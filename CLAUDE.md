@@ -48,6 +48,7 @@ Red is reserved. Nothing else in the game uses it.
 - `npm run preview` — serve the built `dist/` locally
 - `npm run test` — run unit tests (Vitest)
 - `npm run typecheck` — compile ink, then TypeScript check (`tsc --noEmit`)
+- `npm run package` — build, then zip the contents of `dist/` into `clipped-wing.zip` for itch.io (see README)
 - `npm run ink` — compile `story/main.ink` → `src/generated/main.ink.json` (also runs automatically in `dev`, with watch, and in `build`)
 
 ## Conventions
@@ -59,6 +60,8 @@ Red is reserved. Nothing else in the game uses it.
 ## Decisions
 
 (Record decisions here as they're made, newest first.)
+
+- **2026-09-29 — Hosting.** `npm run package` zips the contents of `dist/` (with `index.html` at the zip root) into `clipped-wing.zip`, which is gitignored. The build is one JS bundle plus `index.html` with relative paths, and has been checked running from a nested URL path. Dev-only code is guarded with `import.meta.env.DEV` and stripped from the build.
 
 - **2026-09-29 — Scenes and UI.** The scene flow is `Boot` → `Preload` → `Title` → `TestArea`. `BootScene` creates the shared **session** `{ story, calendar, saves }` (`src/session.ts`) and stores it in the Phaser registry. Scenes get it with `getSession(this)`. `saveSession`/`loadSession` wrap SaveSystem and return player-facing messages. Placeholder textures (`dot`, `soft-glow`) are generated in code in `PreloadScene`. Glows combine additive tinted `soft-glow` images with Phaser 4's Glow filter (`enableFilters()` + `filters.internal.addGlow`). `DialogueBox` (`src/ui/`) plays a knot through StoryBridge: Space/Enter/E/click to advance, number keys or click to choose. `DebugOverlay` is toggled with the backtick key; its keys (T time, U afternoon action, K save, L load, X delete save) only work while it's visible, and save/load are refused mid-conversation. Gotchas: children of a `scrollFactor(0)` container also need `scrollFactor(0)`, or input hit-tests are offset by the camera scroll. Always read `JustDown` every frame so presses don't queue while input is blocked. Dev builds expose the game as `window.__game` for console debugging.
 

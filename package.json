@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "npm run ink --silent && tsc --noEmit",
-    "ink": "node scripts/ink.mjs"
+    "ink": "node scripts/ink.mjs",
+    "package": "npm run build && rm -f clipped-wing.zip && cd dist && zip -qr ../clipped-wing.zip ."
   },
   "dependencies": {
     "inkjs": "2.4.0",
