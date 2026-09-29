@@ -47,7 +47,8 @@ Red is reserved. Nothing else in the game uses it.
 - `npm run build` — type-check, then production build into `dist/`
 - `npm run preview` — serve the built `dist/` locally
 - `npm run test` — run unit tests (Vitest)
-- `npm run typecheck` — TypeScript check (`tsc --noEmit`)
+- `npm run typecheck` — compile ink, then TypeScript check (`tsc --noEmit`)
+- `npm run ink` — compile `story/main.ink` → `src/generated/main.ink.json` (also runs automatically in `dev`, with watch, and in `build`)
 
 ## Conventions
 
@@ -59,4 +60,5 @@ Red is reserved. Nothing else in the game uses it.
 
 (Record decisions here as they're made, newest first.)
 
+- **2026-09-29 — Ink pipeline.** `scripts/ink.mjs` compiles `story/main.ink` (plus its INCLUDEs, resolved relative to `story/`) with inkjs's own compiler (`inkjs/full`). No external binaries. Output goes to `src/generated/main.ink.json`, which is gitignored and imported directly by the game so no runtime fetch or asset path is needed. A Vite plugin in `vite.config.ts` runs it at dev start, on every `.ink` change in dev (errors go to the terminal and Vite's browser overlay, and the last good JSON is kept), and at build (an error fails the build). Errors print as `story/file.ink:LINE  message`. The script is plain JS checked by TypeScript (`checkJs`). The root ink flow does nothing; the game starts conversations by knot name.
 - **2026-09-29 — Scaffold.** Phaser 4.2.1, TypeScript 7.0.2 (native compiler, used only for `tsc --noEmit`; Vite strips types), Vite 8, Vitest 5, inkjs 2.4. Versions pinned exactly. Strict TS plus `noUncheckedIndexedAccess`. Rendering: fixed 1920×1080, `Scale.FIT` + `CENTER_BOTH` (letterboxed), `pixelArt: false`, Arcade physics. Vite `base: './'` so `dist/` works from any folder (itch.io). A Vitest test checks that `PALETTE` in `src/config.ts` matches the palette table above.
