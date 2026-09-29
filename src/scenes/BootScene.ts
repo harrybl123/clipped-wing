@@ -1,20 +1,14 @@
 import Phaser from 'phaser';
-import { css, GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { createSession } from '../session';
 
-/** Temporary scene proving the scaffold renders. Replaced in milestone 4. */
+/** Creates the shared session (story, calendar, saves), then hands over to loading. */
 export class BootScene extends Phaser.Scene {
   constructor() {
     super('Boot');
   }
 
   create(): void {
-    this.cameras.main.setBackgroundColor(css('carvedWood'));
-    this.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'Clipped Wing — scaffold OK', {
-        fontFamily: 'Georgia, serif',
-        fontSize: '64px',
-        color: css('canopyWhite'),
-      })
-      .setOrigin(0.5);
+    createSession(this.game);
+    this.scene.start('Preload');
   }
 }
