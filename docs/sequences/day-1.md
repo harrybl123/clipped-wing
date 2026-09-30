@@ -1,6 +1,6 @@
 # Sequence plan: Day 1, Ascension Day
 
-A plan for the designer to mark up before it's built. **(doc)** = design doc; **(designer)** = decided
+Built 2026-09-30 (`story/day1.ink`; the areas' knots route into it by the `day1` stage). Planned with the designer first. **(doc)** = design doc; **(designer)** = decided
 in conversation; **(suggestion)** = Claude's proposal. All dialogue below is a **first draft** for the
 designer to rewrite; it keeps to the tree's faith and never hints at the truth.
 

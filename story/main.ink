@@ -11,7 +11,21 @@ VAR food_store = 8
 // How you first handled your doubt: "hide" (a brave face), "joke" or "voice" (honest). Empty until chosen (Day 1 morning, with Mum).
 VAR dialogue_style = ""
 
+// What to do next: shown at the top of the screen, with the red bird marker over objective_target
+// ("<area id>:<person, object or door id>"). Empty means nothing to point at.
+VAR objective = "Talk to Mum"
+VAR objective_target = "home:mum"
+
+// Day 1 (story/day1.ink): the stage the day has reached, and a few things that happened.
+// Stages: wake, bench, rite, friend, ascension, climb, home, bed, done.
+VAR day1 = "wake"
+VAR rite_done = false
+VAR climb_tutorial = false
+VAR met_friend_climb = false
+VAR watched_lights = false
+
 INCLUDE prologue.ink
+INCLUDE day1.ink
 INCLUDE home.ink
 INCLUDE offering-floor.ink
 INCLUDE roots-market.ink

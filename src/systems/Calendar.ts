@@ -80,6 +80,11 @@ export class Calendar {
     return true;
   }
 
+  /** Moves on to `slot` later today (e.g. when the story moves the day on). Does nothing if it's already that late. */
+  advanceTo(slot: TimeSlot): void {
+    if (TIME_SLOTS.indexOf(slot) > TIME_SLOTS.indexOf(this._slot)) this._slot = slot;
+  }
+
   /** Jumps to the morning of `day` with no afternoon actions used (e.g. the prologue ending and Day 1 starting). */
   jumpTo(day: Day): void {
     this._day = day;

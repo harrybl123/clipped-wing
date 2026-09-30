@@ -4,24 +4,16 @@
 // ============================================================================
 
 === home_mum ===
-// The first time you talk to her (Day 1 morning, after the prologue), she asks how you are: your
-// answer is the first dialogue-style choice (the designer moved it here from the prologue).
-{ dialogue_style == "": -> how_are_you }
-[PLACEHOLDER] "Off you go, love. Big day." #speaker:mum
--> END
-
-= how_are_you
-[PLACEHOLDER] "You're up. How are you feeling this morning?" #speaker:mum
-+ [PLACEHOLDER: put on a brave face]
-    ~ dialogue_style = "hide"
-    [PLACEHOLDER] "Fine. Better than fine. It's Ascension Day." #speaker:you
-+ [PLACEHOLDER: make a joke of it]
-    ~ dialogue_style = "joke"
-    [PLACEHOLDER] "Still got most of my fingers. Good start." #speaker:you
-+ [PLACEHOLDER: say how you really feel]
-    ~ dialogue_style = "voice"
-    [PLACEHOLDER] "Tired. I keep dreaming about that day." #speaker:you
-- [PLACEHOLDER] "Well. Eat something before you go." #speaker:mum
+// What Mum says depends on how far Day 1 has got (story/day1.ink). The first time (Day 1 morning,
+// after the prologue) she asks how you are: your first dialogue-style choice.
+{
+- dialogue_style == "": -> day1_mum_morning
+- day1 == "bench" || day1 == "rite": -> day1_mum_go_on
+- day1 == "friend" || day1 == "ascension": -> day1_mum_afternoon
+- day1 == "climb": -> day1_mum_climb
+- day1 == "home": -> day1_mum_blessing
+}
+[PLACEHOLDER] "Get some rest, love." #speaker:mum
 -> END
 
 === home_hearth ===
@@ -40,10 +32,12 @@
 - -> END
 
 === home_bed ===
-[PLACEHOLDER] Your bed. (Sleeping will end the day later.)
+{ day1 == "bed": -> day1_sleep }
+[PLACEHOLDER] Your bed. Not yet.
 -> END
 
 === home_bench ===
+{ day1 == "bench": -> day1_take_bird }
 [PLACEHOLDER] Your carving bench. A bird is half finished.
 -> END
 

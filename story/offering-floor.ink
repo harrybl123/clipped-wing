@@ -4,6 +4,7 @@
 // ============================================================================
 
 === offering_floor_tender ===
+{ day1 == "rite": -> day1_rite }
 [PLACEHOLDER] The Tender looks down from the landing. "Child of the roots." #speaker:tender
 [PLACEHOLDER] "The Tree gives, and the Tree takes. What do you bring?" #speaker:tender
 + [Hide it: "Only my devotion."]
@@ -25,4 +26,9 @@
 
 === offering_floor_grumbler ===
 [PLACEHOLDER] "Portions are smaller again. Don't tell me you haven't noticed."
+-> END
+
+=== offering_floor_ascension_way ===
+{ day1 == "ascension": -> day1_go_up }
+[PLACEHOLDER] The tube rises up through the ceiling. On Ascension Day, the whole tree climbs to the gate.
 -> END

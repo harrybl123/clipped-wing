@@ -1,4 +1,4 @@
-import { TENDER, VILLAGERS } from '../../ui/characters';
+import { GIRL, TENDER, VILLAGERS } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import { FUNGI, LAMP } from '../../ui/sprites';
 import * as P from './offeringFloorProps';
@@ -92,6 +92,8 @@ export const offeringFloor: AreaDefinition = {
   features: [{ type: 'motes', x: TUBE_X, top: 10, bottom: LANDING.y, halfWidth: 5 }],
 
   people: [
+    // Day 1: the girl in the roots watches you from the edge of the crowd at the morning rite, and slips away if you come close.
+    { id: 'girl', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 436, y: FLOOR, flipX: true, when: ['morning'], hideIf: 'rite_done', shy: 70 },
     // The Tender, on the landing under the lamp, watching the tube.
     { id: 'tender', sprite: TENDER.idle[0]!, idleFrames: TENDER.idle, x: 262, y: LANDING.y, knot: 'offering_floor_tender', flipX: true, when: ['morning', 'evening'] }, // afternoons in the shrine
     ...crowd(),
@@ -101,6 +103,8 @@ export const offeringFloor: AreaDefinition = {
   ],
 
   interactables: [
+    // The way up to the Ascension (on Ascension Day the whole tree climbs to the gate).
+    { id: 'ascension-way', x: 224, y: LANDING.y, reach: 10, label: 'Go up', knot: 'offering_floor_ascension_way' },
     { id: 'tube', x: TUBE_X, y: LANDING.y, reach: 10, label: 'Look', knot: 'offering_floor_tube' },
     { id: 'baskets', x: 95, y: FLOOR, reach: 7, label: 'Look', knot: 'offering_floor_baskets' },
   ],

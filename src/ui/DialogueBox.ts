@@ -49,6 +49,8 @@ export class DialogueBox {
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly story: StoryBridge,
+    /** Called with each line's tags as it's shown (the scene acts on ones like #time: or #show:). */
+    private readonly onLine?: (tags: string[]) => void,
   ) {
     const width = GAME_WIDTH - MARGIN * 2;
     const top = GAME_HEIGHT - MARGIN - HEIGHT;
@@ -141,6 +143,7 @@ export class DialogueBox {
   }
 
   private setLine(text: string, tags: string[]): void {
+    this.onLine?.(tags);
     this.showSpeaker(tags);
     this.lineText.setText(text);
   }

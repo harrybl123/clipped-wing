@@ -1,4 +1,4 @@
-import { GUARD, PREACHER, RESIDENTS, VILLAGERS } from '../../ui/characters';
+import { GUARD, MASTER, PREACHER, RESIDENTS, VILLAGERS } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import * as P from './ascensionGateProps';
 import { handrail } from './friendsHomeProps';
@@ -103,6 +103,8 @@ export const ascensionGate: AreaDefinition = {
   ],
 
   people: [
+    // Day 1: the master, brought on by the Ascension scene (story/day1.ink, #show:master).
+    { id: 'master', sprite: MASTER.idle[0]!, idleFrames: MASTER.idle, x: 140, y: FLOOR, when: CEREMONY, hidden: true },
     { id: 'gate-guard-left', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 116, y: FLOOR },
     { id: 'gate-guard-right', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: W - 116, y: FLOOR, flipX: true, knot: 'gate_guard' },
     { id: 'preacher', sprite: PREACHER.idle[0]!, idleFrames: PREACHER.idle, x: DAIS_R - 26, y: DAIS, flipX: true, when: CEREMONY },

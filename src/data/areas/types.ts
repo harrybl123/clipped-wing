@@ -50,6 +50,7 @@ export type Feature =
   | { type: 'drip'; x: number; y: number; floorY: number } // a drop falls from (x, y) every so often
   | { type: 'motes'; x: number; top: number; bottom: number; halfWidth: number } // pale motes rising in a column (the tube)
   | { type: 'mover'; sprite: RowSprite; x: number; y: number; to: { x: number; y: number }; speed: number; ropeTop?: number } // a one-way platform (top-left at x, y) going to `to` and back at `speed` px/s, pausing at each end; optional ropes up to ropeTop
+  | { type: 'hint'; x: number; y: number; reach: number; text: string; showIf?: string } // a tutorial hint shown at the top of the screen while the player is here (and the ink variable showIf is true)
   | { type: 'jars'; sprite: RowSprite; x: number; y: number; variable: string; max: number; perRow: number; rowSpacing: number }; // one jar per unit of an ink variable, rows stacked upwards
 
 /** Something the player can walk up to and press E on, which runs an ink knot. */
@@ -94,6 +95,13 @@ export interface Person {
   /** Walks back and forth between these x positions (with `walkFrames`), pausing now and then. Wanderers can't be talked to. */
   wander?: { from: number; to: number };
   walkFrames?: RowSprite[];
+  /** Only here while this ink variable is true / false (the story decides, e.g. someone who's moved on). */
+  showIf?: string;
+  hideIf?: string;
+  /** Hidden until a scripted `#show:<id>` tag brings them on (e.g. the master at the Ascension). */
+  hidden?: boolean;
+  /** Slips away (fades out) when the player comes within this many px, e.g. someone watching from the edges. */
+  shy?: number;
 }
 
 export interface AreaDefinition {

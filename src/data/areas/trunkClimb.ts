@@ -1,3 +1,4 @@
+import { FRIEND } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import { FUNGI, LAMP } from '../../ui/sprites';
 import { PULLEY } from './homeProps';
@@ -127,9 +128,17 @@ export const trunkClimb: AreaDefinition = {
     ...MOVERS,
     { type: 'motes', x: TUBE_X + 12, top: 16, bottom: FLOOR, halfWidth: 8 },
     { type: 'drip', x: 300, y: 580, floorY: FLOOR - 4 },
+    // Tutorial hints for the first climb (Day 1 night).
+    { type: 'hint', x: 110, y: FLOOR, reach: 90, text: 'Space or Up to jump', showIf: 'climb_tutorial' },
+    { type: 'hint', x: 175, y: 568, reach: 30, text: 'Down drops you back through a ledge', showIf: 'climb_tutorial' },
+    { type: 'hint', x: 175, y: 484, reach: 30, text: 'Wait for the plank to come to you, then hop on', showIf: 'climb_tutorial' },
   ],
 
-  people: [],
+  people: [
+    // Day 1 night: your friend partway up (by the rest nook), then at the lookout once you've met.
+    { id: 'friend-on-climb', sprite: FRIEND.idle[0]!, idleFrames: FRIEND.idle, x: 112, y: 526, when: ['night'], showIf: 'climb_tutorial', hideIf: 'met_friend_climb', knot: 'trunk_friend_on_climb' },
+    { id: 'friend-at-lookout', sprite: FRIEND.idle[0]!, idleFrames: FRIEND.idle, x: 300, y: TOP, when: ['night'], showIf: 'met_friend_climb', hideIf: 'watched_lights', flipX: true, knot: 'trunk_friend_at_lookout' },
+  ],
 
   interactables: [
     { id: 'climbers-marks', x: 80, y: FLOOR, reach: 12, label: 'Look', knot: 'trunk_climbers_marks' },

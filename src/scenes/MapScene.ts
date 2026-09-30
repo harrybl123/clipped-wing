@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT as H, GAME_WIDTH as W } from '../config';
+import { closedReason } from '../data/access';
 import { AREAS, PLANNED_AREAS } from '../data/areas';
 import { MAP_CANOPY_Y, MAP_LINKS, MAP_PLACES, MAP_TUBE_X, neighbourInDirection, treeHalfWidth, type MapPlace } from '../data/map';
 import { addLight, falloff, noise, rgb, SHADES, smoothstep, type PixelColour, type RGB } from '../ui/pixelArt';
@@ -8,6 +9,7 @@ import { PixelText } from '../ui/PixelText';
 import { playConfirm, playMove } from '../ui/sfx';
 import { BIRD } from '../ui/sprites';
 import type { AreaSceneData } from './AreaScene';
+import { getSession } from '../session';
 
 export interface MapSceneData {
   /** The area the map was opened from (where "you are"). */
@@ -61,8 +63,9 @@ export class MapScene extends Phaser.Scene {
     for (const level of LEVELS) new PixelText(this, 6, level.top + 3, level.name, { color: SHADES.dim });
 
     for (const place of MAP_PLACES) {
-      const built = place.id in AREAS;
-      // A small window: glowing in the place's own light if you can go there, dark if it isn't built yet.
+      const built = this.canVisit(place);
+      // A small window: glowing in the place's own light if you can go there, dark if it isn't built yet
+      // or is closed today (some places open up as the story goes).
       const frame = this.add.rectangle(place.x - 3, place.y - 3, 7, 7, SHADES.deep).setOrigin(0);
       this.add.rectangle(place.x - 2, place.y - 2, 5, 5, built ? WINDOW_LIGHT[place.light] : SHADES.shadow).setOrigin(0);
       if (built) this.add.rectangle(place.x - 1, place.y - 1, 2, 2, SHADES.white).setOrigin(0);
@@ -72,6 +75,14 @@ export class MapScene extends Phaser.Scene {
         // You are here: a red pip (red is reserved for birds and the protagonist).
         this.add.rectangle(place.x - 1, place.y - 7, 3, 3, SHADES.red).setOrigin(0);
       }
+    }
+
+    // The objective: a red bird bobbing over the place you need to go (the same marker as in the areas).
+    const target = String(getSession(this).story.getVariable('objective_target') ?? '').split(':')[0];
+    const goal = MAP_PLACES.find((p) => p.id === target);
+    if (goal) {
+      const marker = this.add.image(goal.x, goal.y - 6, makeSpriteTexture(this, 'bird', BIRD.rows, BIRD.colours)).setOrigin(0.5, 1);
+      this.tweens.add({ targets: marker, y: goal.y - 9, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     }
 
     this.cursor = this.add.image(0, 0, makeSpriteTexture(this, 'bird', BIRD.rows, BIRD.colours)).setOrigin(1, 0.5);
@@ -99,11 +110,17 @@ export class MapScene extends Phaser.Scene {
     });
   }
 
+  /** Whether you can travel to a place now: built, and not closed today. */
+  private canVisit(place: MapPlace): boolean {
+    const { calendar } = getSession(this);
+    return place.id in AREAS && closedReason(place.id, calendar.day, calendar.slot) === null;
+  }
+
   private select(place: MapPlace): void {
     const previous = this.selected;
     if (previous) this.frames.get(previous.id)?.setFillStyle(SHADES.deep);
     this.selected = place;
-    const built = place.id in AREAS;
+    const built = this.canVisit(place);
     this.frames.get(place.id)?.setFillStyle(built ? SHADES.light : SHADES.dim);
     this.cursor.setPosition(place.x - 5, place.y);
 
@@ -114,15 +131,16 @@ export class MapScene extends Phaser.Scene {
     this.label.setPosition(labelX, place.y - 4);
     this.labelPlate.setPosition(labelX - 2, place.y - 6).setSize(this.label.width + 4, this.label.height + 3);
 
-    const status =
-      place.id === this.current ? 'You are here. Esc to go back.' : built ? `Enter: go to ${name} · Esc: back` : `${capitalise(name)} isn't built yet. · Esc: back`;
+    const { calendar } = getSession(this);
+    const shut = place.id in AREAS ? closedReason(place.id, calendar.day, calendar.slot) : `${capitalise(name)} isn't built yet.`;
+    const status = place.id === this.current ? 'You are here. Esc to go back.' : built ? `Enter: go to ${name} · Esc: back` : `${shut} · Esc: back`;
     this.info.setText(`${place.level}: ${status}`);
   }
 
   private confirm(): void {
     if (this.leaving) return;
     if (this.selected.id === this.current) return this.close();
-    if (!(this.selected.id in AREAS)) return;
+    if (!this.canVisit(this.selected)) return;
     playConfirm(this);
     this.leaving = true;
     const target: AreaSceneData = { areaId: this.selected.id, from: this.current };

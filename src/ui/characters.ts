@@ -315,6 +315,15 @@ export const PREACHER = (() => {
   return { idle: [villager(look, false), villager(look, true)] };
 })();
 
+/**
+ * The celebrated master given to the tube on Day 1: old and calm in a long robe with an amber band and
+ * a pale stole, grey hair, carrying their last carving (placeholder look; a one-off to design properly).
+ */
+export const MASTER = (() => {
+  const look: VillagerLook = { height: 25, width: 3, head: 'bare', long: true, accent: SHADES.amber, hair: SHADES.light, stole: true, bundle: true };
+  return { idle: [villager(look, false), villager(look, true)] };
+})();
+
 /** A guard of the middle tiers' checkpoint: capped, amber-banded, with a staff (placeholder look). */
 export const GUARD = (() => {
   const look: VillagerLook = { height: 25, width: 3, head: 'cap', accent: SHADES.amber, staff: true };

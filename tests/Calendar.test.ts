@@ -88,4 +88,13 @@ describe('Calendar', () => {
     cal.jumpTo(1);
     expect(cal.toJSON()).toEqual({ day: 1, slot: 'morning', afternoonActionsUsed: 0 });
   });
+
+  it('moves on to a later slot today, but never back', () => {
+    const cal = new Calendar({ day: 1, slot: 'morning', afternoonActionsUsed: 0 });
+    cal.advanceTo('evening');
+    expect(cal.slot).toBe('evening');
+    cal.advanceTo('afternoon');
+    expect(cal.slot).toBe('evening');
+    expect(cal.day).toBe(1);
+  });
 });

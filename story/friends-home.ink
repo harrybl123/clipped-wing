@@ -4,6 +4,7 @@
 // ============================================================================
 
 === friends_home_friend ===
+{ day1 == "friend": -> day1_friend }
 [PLACEHOLDER] "Did you see the lights last night? One day that'll be me going up." #speaker:friend
 + [Tease them]
     [PLACEHOLDER] "You'd miss us." #speaker:you

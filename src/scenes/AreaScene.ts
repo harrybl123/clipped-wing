@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { closedReason } from '../data/access';
 import { AREAS, PLANNED_AREAS } from '../data/areas';
-import type { AreaDefinition, Exit, Feature } from '../data/areas/types';
+import type { AreaDefinition, Exit, Feature, Person } from '../data/areas/types';
+import { nextHop } from '../data/route';
 import { Player } from '../objects/Player';
 import type { MapSceneData } from './MapScene';
 import { getSession } from '../session';
@@ -11,7 +13,8 @@ import { paintArea } from '../ui/paintArea';
 import { SHADES } from '../ui/pixelArt';
 import { makePaintedTexture, makeSpriteTexture, PIXEL } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
-import { FIRE_FRAMES } from '../ui/sprites';
+import { ObjectiveMarker } from '../ui/ObjectiveMarker';
+import { FIRE_FRAMES, type RowSprite } from '../ui/sprites';
 
 export interface AreaSceneData {
   areaId: string;
@@ -21,7 +24,43 @@ export interface AreaSceneData {
   start?: { x: number; y: number };
   /** A title card faded in over the start of the scene (e.g. "Day 1: Ascension Day"). */
   card?: string;
+  /** An ink knot that plays by itself on arrival (a scripted scene, e.g. the Ascension). */
+  script?: string;
 }
+
+/** A person placed in the area, and whether the story has them here right now. */
+interface PersonEntry {
+  person: Person;
+  image: Phaser.GameObjects.Image;
+  /** Hidden or shown by #hide:/#show: tags. */
+  scriptHidden: boolean;
+  /** A shy person who has slipped away. */
+  gone: boolean;
+}
+
+/** A small carving shown up close for a moment during a scripted scene (#inset:<id>). */
+const INSETS: Record<string, RowSprite> = {
+  // The master's mark: a spiral cut into their last carving.
+  spiral: {
+    rows: [
+      'ffffffffffffffff',
+      'fwwwwwwwwwwwwwwf',
+      'fwwssssssssswwwf',
+      'fwwswwwwwwwwswwf',
+      'fwwswssssswwswwf',
+      'fwwswswwwswwswwf',
+      'fwwswswswswwswwf',
+      'fwwswswsswwwswwf',
+      'fwwswswwwwwwswwf',
+      'fwwswsssssssswwf',
+      'fwwswwwwwwwwwwwf',
+      'fwwssssssssssswf',
+      'fwwwwwwwwwwwwwwf',
+      'ffffffffffffffff',
+    ],
+    colours: { f: SHADES.woodLight, w: SHADES.woodPale, s: SHADES.deep },
+  },
+};
 
 /** A person pacing between two points. */
 interface Wanderer {
@@ -79,6 +118,14 @@ export class AreaScene extends Phaser.Scene {
   private leaving = false;
   private wanderers: Wanderer[] = [];
   private movers: Mover[] = [];
+  private people = new Map<string, PersonEntry>();
+  private hints: Extract<Feature, { type: 'hint' }>[] = [];
+  private hintText!: PixelText;
+  private objective!: ObjectiveMarker;
+  /** Things to do once the current conversation closes (e.g. travel after a #goto: tag). */
+  private afterClose: (() => void)[] = [];
+  private inset: Phaser.GameObjects.Container | null = null;
+  private script: string | undefined;
   /** Frame on which the dialogue closed, so the key that closed it doesn't also jump or reopen it. */
   private dialogueClosedFrame = -1;
 
@@ -93,8 +140,13 @@ export class AreaScene extends Phaser.Scene {
     this.from = data.from;
     this.start = data.start;
     this.card = data.card;
+    this.script = data.script;
     this.wanderers = [];
     this.movers = [];
+    this.people = new Map();
+    this.hints = [];
+    this.afterClose = [];
+    this.inset = null;
     this.current = null;
     this.leaving = false;
   }
@@ -110,13 +162,11 @@ export class AreaScene extends Phaser.Scene {
 
     for (const feature of area.features) this.addFeature(feature);
 
-    const closed = () => (this.dialogueClosedFrame = this.game.loop.frame);
+    const closed = () => this.conversationClosed();
     const talk = (knot: string) => () => this.dialogue.open(knot, closed);
     this.usables = area.interactables.map((it) => ({ ...it, use: talk(it.knot) }));
     for (const exit of area.exits) this.usables.push({ ...exit, label: 'Leave', use: () => this.openDoorMenu(exit) });
     const session = getSession(this);
-    const present = (when?: string[]) => !when || when.includes(session.calendar.slot);
-    const peopleImages: { image: Phaser.GameObjects.Image; when?: string[] }[] = [];
     for (const person of area.people) {
       const frames = (person.idleFrames ?? [person.sprite]).map((f, i) => makeSpriteTexture(this, `person-${person.id}-${i}`, f.rows, f.colours));
       const image = this.add.image(person.x, person.y, frames[0]!).setOrigin(0.5, 1).setFlipX(person.flipX ?? false).setDepth(8);
@@ -127,14 +177,17 @@ export class AreaScene extends Phaser.Scene {
         let frame = 0;
         this.time.addEvent({ delay: 650, loop: true, callback: () => image.setTexture(frames[(frame = (frame + 1) % frames.length)]!) });
       }
-      peopleImages.push({ image, when: person.when });
-      if (person.knot && !person.wander) this.usables.push({ x: person.x, y: person.y, reach: 14, label: 'Talk', use: talk(person.knot), enabled: () => present(person.when) });
+      const entry: PersonEntry = { person, image, scriptHidden: person.hidden ?? false, gone: false };
+      this.people.set(person.id, entry);
+      if (person.knot && !person.wander) this.usables.push({ x: person.x, y: person.y, reach: 14, label: 'Talk', use: talk(person.knot), enabled: () => this.isPresent(entry) });
     }
 
-    // Who's here depends on the time of day; refresh when the clock changes (e.g. from the debug overlay).
-    const refreshPeople = () => peopleImages.forEach(({ image, when }) => image.setVisible(present(when)));
-    refreshPeople();
-    this.events.on('calendar-changed', refreshPeople);
+    // Who's here depends on the time of day and the story; refresh when either changes.
+    this.refreshPeople();
+    this.events.on('calendar-changed', () => {
+      this.refreshPeople();
+      this.refreshObjective();
+    });
 
     const solids = this.physics.add.staticGroup();
     for (const s of area.solids) {
@@ -160,7 +213,14 @@ export class AreaScene extends Phaser.Scene {
     this.interactKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.promptPlate = this.add.rectangle(0, 0, 1, 1, SHADES.shadow, 0.85).setOrigin(0).setDepth(19).setVisible(false);
     this.prompt = new PixelText(this, 0, 0, '', { color: SHADES.white }).setDepth(20).setVisible(false);
-    this.dialogue = new DialogueBox(this, session.story);
+    this.dialogue = new DialogueBox(this, session.story, (tags) => this.handleTags(tags));
+    this.objective = new ObjectiveMarker(this);
+    this.hintText = new PixelText(this, 0, 18, '', { color: SHADES.white, shadow: SHADES.shadow }).setScrollFactor(0).setDepth(26).setVisible(false);
+    this.refreshObjective();
+    if (this.script) {
+      const knot = this.script;
+      this.time.delayedCall(700, () => this.dialogue.open(knot, closed));
+    }
     new DebugOverlay(this, session, () => (this.dialogue.isOpen ? 'Close the conversation first.' : null));
 
     if (this.card) this.showCard(this.card);
@@ -180,6 +240,9 @@ export class AreaScene extends Phaser.Scene {
     this.stepUp();
     this.updateWanderers(delta);
     this.updateMovers(delta);
+    this.updateShyPeople();
+    this.updateHints();
+    this.objective.pointAt(this.objectivePoint());
 
     this.setCurrent(this.dialogue.isOpen || !this.player.onGround ? null : this.nearestInteractable());
     if (this.current && interactPressed && !blocked) {
@@ -270,6 +333,191 @@ export class AreaScene extends Phaser.Scene {
     }
   }
 
+  // --- The story: who's here, what to do next, and what ink's tags ask for ---
+
+  /** Whether a person is here now: the time of day, the story's variables, and any scripted hiding. */
+  private isPresent(entry: PersonEntry): boolean {
+    const { person } = entry;
+    const { calendar, story } = getSession(this);
+    if (entry.scriptHidden || entry.gone) return false;
+    if (person.when && !person.when.includes(calendar.slot)) return false;
+    if (person.showIf && !story.getVariable(person.showIf)) return false;
+    if (person.hideIf && story.getVariable(person.hideIf)) return false;
+    return true;
+  }
+
+  private refreshPeople(): void {
+    for (const entry of this.people.values()) entry.image.setVisible(this.isPresent(entry));
+  }
+
+  /** After any conversation: run what it queued (travel, the end of the day), then refresh the scene. */
+  private conversationClosed(): void {
+    this.dialogueClosedFrame = this.game.loop.frame;
+    this.clearInset();
+    this.refreshPeople();
+    this.refreshObjective();
+    const queued = this.afterClose;
+    this.afterClose = [];
+    for (const run of queued) run();
+  }
+
+  private refreshObjective(): void {
+    this.objective.setObjective(String(getSession(this).story.getVariable('objective') ?? ''));
+  }
+
+  /**
+   * Where the marker bird goes: over the objective's person, object or door if it's in this area, or
+   * over the door on the way if it's somewhere else (only through areas that are open now).
+   */
+  private objectivePoint(): { x: number; y: number } | null {
+    const { story, calendar } = getSession(this);
+    const target = String(story.getVariable('objective_target') ?? '');
+    if (!target) return null;
+    const [areaId, thing] = target.split(':');
+    if (!areaId) return null;
+    if (areaId !== this.area.id) {
+      const hop = nextHop(this.area.id, areaId, AREAS, (id) => closedReason(id, calendar.day, calendar.slot) === null);
+      const exit = this.area.exits.find((e) => e.to === hop);
+      return exit ? { x: exit.x, y: exit.y - 42 } : null;
+    }
+    const entry = thing ? this.people.get(thing) : undefined;
+    if (entry) return entry.image.visible ? { x: entry.image.x, y: entry.image.y - entry.image.height - 5 } : null;
+    const it = this.area.interactables.find((i) => i.id === thing);
+    if (it) return { x: it.x, y: it.y - 30 };
+    const exit = this.area.exits.find((e) => e.id === thing);
+    if (exit) return { x: exit.x, y: exit.y - 42 };
+    return null;
+  }
+
+  /** Shy people slip away when you come close. */
+  private updateShyPeople(): void {
+    for (const entry of this.people.values()) {
+      const { shy } = entry.person;
+      if (!shy || entry.gone || !entry.image.visible) continue;
+      if (Math.abs(this.player.feet.x - entry.image.x) < shy) {
+        entry.gone = true;
+        this.tweens.add({ targets: entry.image, alpha: 0, duration: 500, onComplete: () => entry.image.setVisible(false).setAlpha(1) });
+      }
+    }
+  }
+
+  /** Tutorial hints: shown at the top of the screen while the player is in a hint's zone. */
+  private updateHints(): void {
+    const { x, y } = this.player.feet;
+    const { story } = getSession(this);
+    const hint = this.dialogue.isOpen ? undefined : this.hints.find((h) => Math.abs(x - h.x) <= h.reach && Math.abs(y - h.y) <= 40 && (!h.showIf || story.getVariable(h.showIf)));
+    if (!hint) {
+      this.hintText.setVisible(false);
+      return;
+    }
+    if (this.hintText.text !== hint.text) this.hintText.setText(hint.text);
+    this.hintText.setPosition(Math.round((GAME_WIDTH - this.hintText.width) / 2), 18).setVisible(true);
+  }
+
+  /**
+   * Acts on a line's tags as it's shown:
+   *   #time:<slot>            the day moves on (morning → afternoon → evening → night)
+   *   #show:<id> #hide:<id>   bring a person on, or take them off
+   *   #move:<id>:<x>[:<y>]    walk a person somewhere
+   *   #flash:<cyan|white>     a flash of light
+   *   #inset:<id>             show a small carving up close until the next line
+   *   #lights:<x>:<top>:<bottom>  lights rise up the tube
+   *   #card:<text>            a title card
+   *   #goto:<area>[:<x>:<y>[:<knot>]]  after the conversation, go there (optionally to a spot, playing a knot)
+   *   #endday                 after the conversation, the day ends
+   */
+  private handleTags(tags: string[]): void {
+    this.clearInset();
+    const { calendar } = getSession(this);
+    for (const tag of tags) {
+      const [name, ...args] = tag.split(':').map((a) => a.trim());
+      const entry = args[0] ? this.people.get(args[0]) : undefined;
+      switch (name) {
+        case 'time':
+          calendar.advanceTo(args[0] as typeof calendar.slot);
+          this.events.emit('calendar-changed');
+          break;
+        case 'show':
+        case 'hide':
+          if (entry) {
+            entry.scriptHidden = name === 'hide';
+            entry.image.setVisible(this.isPresent(entry));
+          }
+          break;
+        case 'move':
+          if (entry) {
+            const x = Number(args[1]);
+            const y = args[2] !== undefined ? Number(args[2]) : entry.image.y;
+            entry.image.setFlipX(x < entry.image.x);
+            const duration = (Math.hypot(x - entry.image.x, y - entry.image.y) / 26) * 1000;
+            this.tweens.add({ targets: entry.image, x, y, duration });
+          }
+          break;
+        case 'flash': {
+          const [r, g, b] = args[0] === 'cyan' ? [174, 246, 247] : [244, 241, 232];
+          this.cameras.main.flash(700, r, g, b);
+          break;
+        }
+        case 'inset':
+          this.showInset(args[0] ?? '');
+          break;
+        case 'lights':
+          this.riseLights(Number(args[0]), Number(args[1]), Number(args[2]));
+          break;
+        case 'card':
+          this.showCard(args.join(':'));
+          break;
+        case 'goto': {
+          const [areaId, x, y, knot] = args;
+          if (areaId) this.afterClose.push(() => this.goTo(areaId, { start: x && y ? { x: Number(x), y: Number(y) } : undefined, script: knot || undefined }));
+          break;
+        }
+        case 'endday':
+          this.afterClose.push(() => this.endDay());
+          break;
+      }
+    }
+  }
+
+  private showInset(id: string): void {
+    const sprite = INSETS[id];
+    if (!sprite) return;
+    const key = makeSpriteTexture(this, `inset-${id}`, sprite.rows, sprite.colours);
+    const w = sprite.rows[0]!.length * 3;
+    const frame = this.add.rectangle(0, 0, w + 6, sprite.rows.length * 3 + 6, SHADES.shadow).setOrigin(0.5);
+    const image = this.add.image(0, 0, key).setScale(3);
+    this.inset = this.add.container(GAME_WIDTH / 2, 70, [frame, image]).setScrollFactor(0).setDepth(27).setAlpha(0);
+    this.tweens.add({ targets: this.inset, alpha: 1, duration: 400 });
+  }
+
+  private clearInset(): void {
+    this.inset?.destroy();
+    this.inset = null;
+  }
+
+  /** Lights rising one after another up the tube (the Ascension lights). */
+  private riseLights(x: number, top: number, bottom: number): void {
+    for (let i = 0; i < 14; i++) {
+      this.time.delayedCall(i * 380, () => {
+        // Amber, so they show against the tube's white-hot core.
+        const light = this.add.rectangle(x + Phaser.Math.Between(-2, 2), bottom, 3, 3, SHADES.amber).setDepth(9);
+        this.tweens.add({ targets: light, y: top, duration: 3200, ease: 'Sine.easeIn', onComplete: () => light.destroy() });
+      });
+    }
+  }
+
+  /** The end of the day: for now, just to the next morning with a note (later days aren't built yet). */
+  private endDay(): void {
+    const { calendar } = getSession(this);
+    const next = calendar.day === 'prologue' ? 1 : Math.min(7, calendar.day + 1);
+    this.leaving = true;
+    this.cameras.main.fadeOut(1200, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      calendar.jumpTo(next as typeof calendar.day);
+      this.scene.restart({ areaId: 'home', start: this.area.id === 'home' ? { x: 50, y: 150 } : undefined, card: `Day ${next} (not built yet)` } satisfies AreaSceneData);
+    });
+  }
+
   /** Fades a title card in over the middle of the screen, holds it, then fades it away. */
   private showCard(text: string): void {
     const card = new PixelText(this, 0, 0, text, { color: SHADES.white, shadow: SHADES.shadow }).setScrollFactor(0).setDepth(30).setAlpha(0);
@@ -299,11 +547,17 @@ export class AreaScene extends Phaser.Scene {
     }
   }
 
-  /** Using a door: go straight next door, open the map, or stay. */
+  /** Using a door: go straight next door, open the map, or stay. Doors to areas that are closed today just say why. */
   private openDoorMenu(exit: Exit): void {
-    const closed = () => (this.dialogueClosedFrame = this.game.loop.frame);
+    const closed = () => this.conversationClosed();
     const name = PLANNED_AREAS[exit.to] ?? exit.to;
     const built = exit.to in AREAS;
+    const { calendar } = getSession(this);
+    const shut = closedReason(exit.to, calendar.day, calendar.slot);
+    if (shut) {
+      this.dialogue.say(shut, closed);
+      return;
+    }
     this.dialogue.openMenu(
       '[PLACEHOLDER] Where to?',
       [
@@ -324,11 +578,11 @@ export class AreaScene extends Phaser.Scene {
     this.scene.launch('Map', { current: this.area.id } satisfies MapSceneData);
   }
 
-  private goTo(areaId: string): void {
+  private goTo(areaId: string, extra: Omit<AreaSceneData, 'areaId' | 'from'> = {}): void {
     this.leaving = true;
     this.cameras.main.fadeOut(350, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.restart({ areaId, from: this.area.id } satisfies AreaSceneData);
+      this.scene.restart({ areaId, from: this.area.id, ...extra } satisfies AreaSceneData);
     });
   }
 
@@ -407,6 +661,9 @@ export class AreaScene extends Phaser.Scene {
         this.time.addEvent({ delay: 2600, loop: true, callback: fall });
         break;
       }
+      case 'hint':
+        this.hints.push(feature);
+        break;
       case 'jars': {
         const { story } = getSession(this);
         const jars = Array.from({ length: feature.max }, (_, i) =>
