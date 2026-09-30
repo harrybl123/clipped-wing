@@ -5,6 +5,7 @@ import { SHADES } from './pixelArt';
 import { makeSpriteTexture } from './pixelTextures';
 import { PORTRAIT_SIZE, SPEAKERS } from './portraits';
 import { PixelText } from './PixelText';
+import { playConfirm, playMove } from './sfx';
 import { BIRD, MORE_ARROW } from './sprites';
 
 const MARGIN = 8;
@@ -197,14 +198,16 @@ export class DialogueBox {
       y += CHOICE_SPACING;
     }
     this.options = choices;
-    this.select(0);
+    this.select(0, false);
   }
 
   /** Highlights choice i (wrapping around) and moves the bird cursor beside it. */
-  private select(i: number): void {
+  private select(i: number, sound = true): void {
     const count = this.choiceTexts.length;
     if (count === 0) return;
-    this.selected = (i + count) % count;
+    const next = (i + count) % count;
+    if (sound && next !== this.selected) playMove(this.scene);
+    this.selected = next;
     this.choiceTexts.forEach((t, j) => t.setColor(j === this.selected ? SHADES.amber : SHADES.light));
     const chosen = this.choiceTexts[this.selected]!;
     this.cursor.setPosition(this.lineText.x + 1, chosen.y + 1).setVisible(true);
@@ -212,7 +215,9 @@ export class DialogueBox {
 
   private choose(i: number): void {
     const option = this.options[i];
-    if (option) option.run();
+    if (!option) return;
+    playConfirm(this.scene);
+    option.run();
   }
 
   private clearChoices(): void {

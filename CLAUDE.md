@@ -65,6 +65,8 @@ The game is pixel art, so darker and lighter **shades** of these colours are all
 
 (Record decisions here as they're made, newest first.)
 
+- **2026-09-30 — Audio.** Title music is the designer's track `src/assets/audio/light-through-the-window.mp3`. Audio files live in `src/assets/audio/` and are imported (Vite bundles them with hashed names), then loaded in `PreloadScene` with `this.load.audio`. The title starts the music (looping) on the first key press, since browsers block audio until then, fades it in to `MUSIC_VOLUME` (0.6), and fades it out on New Game; it's destroyed when the title shuts down. UI sounds are synthesised with Web Audio in `src/ui/sfx.ts` (no files): `playMove` (a soft click) when a cursor moves in the title menu, dialogue choices or the map; `playConfirm` (a two-note chime) when something is chosen. They go through Phaser's master volume and mute, and are silent until audio is unlocked.
+
 - **2026-09-30 — The Ascension gate; every area built.** The thirteenth and last planned area (brief in `docs/areas/ascension-gate.md`): the tube rising into the Canopy's glare, a metal gate in the tube's wall flanked by two great carved wings, stairs up both sides to a dais, balconies for the evening crowd. All 13 areas in `PLANNED_AREAS` are now built (placeholder art and text), so every window on the map is lit. Next: assess how the story unfolds with the gameplay and areas.
 
 - **2026-09-30 — The seed grove.** The twelfth area (brief in `docs/areas/seed-grove.md`): gardens out on a branch in the Canopy's light, a vault of amber-glowing seeds, a guard at night. Living plants are green, but healthy seeds glow amber, so the eerie green glow stays a sign of the roots' fungi (and the rot).

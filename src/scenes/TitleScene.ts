@@ -3,6 +3,7 @@ import { GAME_HEIGHT as H, GAME_WIDTH as W } from '../config';
 import { addLight, falloff, noise, rgb, SHADES, smoothstep, type PixelColour, type RGB } from '../ui/pixelArt';
 import { makePaintedTexture, makeSpriteTexture, PIXEL, stampRows } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
+import { playConfirm, playMove } from '../ui/sfx';
 import { BIRD, FUNGI, LAMP } from '../ui/sprites';
 
 // Title screen, visual only: looking up the inside of the trunk at the tube rising into the
@@ -13,6 +14,8 @@ const TUBE_X = 345;
 const MENU_X = 52;
 const MENU_Y = 132;
 const MENU_SPACING = 13;
+/** How loud the title music gets once it has faded in (0–1). */
+const MUSIC_VOLUME = 0.6;
 /** Lamps: some sit in carved alcoves in the trunk wall, some hang on cords. */
 const ALCOVE_LAMPS: readonly [number, number][] = [[250, 44], [410, 50], [448, 72]];
 const HANGING_LAMPS: readonly [number, number][] = [[282, 60], [386, 30]];
@@ -44,6 +47,7 @@ export class TitleScene extends Phaser.Scene {
   private pressAnyKey!: PixelText;
   private notice: PixelText | null = null;
   private menu: MenuItem[] = [];
+  private music: Phaser.Sound.BaseSound | null = null;
 
   constructor() {
     super('Title');
@@ -53,6 +57,12 @@ export class TitleScene extends Phaser.Scene {
     this.phase = 'gate';
     this.selected = 0;
     this.cameras.main.fadeIn(800);
+    // The title music starts with the first key press (browsers block audio until then).
+    this.music = this.sound.add('title-music', { loop: true, volume: 0 });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.music?.destroy();
+      this.music = null;
+    });
 
     makePaintedTexture(this, 'title-backdrop', W, H, paintBackdrop());
     this.add.image(0, 0, 'title-backdrop').setOrigin(0);
@@ -80,7 +90,7 @@ export class TitleScene extends Phaser.Scene {
         .setVisible(false)
         .setInteractive({ useHandCursor: true })
         .on('pointerover', () => this.phase === 'menu' && this.select(i))
-        .on('pointerdown', () => this.phase === 'menu' && this.menu[i]!.action()),
+        .on('pointerdown', () => this.phase === 'menu' && this.choose()),
     );
     const birdSprite = this.add.image(0, 0, makeSpriteTexture(this, 'bird', BIRD.rows, BIRD.colours));
     this.bird = this.add.container(MENU_X - 14, MENU_Y + 4, [birdSprite]).setVisible(false);
@@ -121,6 +131,11 @@ export class TitleScene extends Phaser.Scene {
 
   private openMenu(): void {
     this.phase = 'menu';
+    playConfirm(this);
+    if (this.music && !this.music.isPlaying) {
+      this.music.play();
+      this.tweens.add({ targets: this.music, volume: MUSIC_VOLUME, duration: 2500, ease: 'Sine.easeInOut' });
+    }
     this.tweens.killTweensOf(this.pressAnyKey);
     this.pressAnyKey.destroy();
     // Fade the menu in, one item after another.
@@ -128,13 +143,21 @@ export class TitleScene extends Phaser.Scene {
       item.setVisible(true).setAlpha(0);
       this.tweens.add({ targets: item, alpha: 1, duration: 450, delay: i * 70, ease: 'Sine.easeOut' });
     }
-    this.select(0);
+    this.select(0, false);
   }
 
-  private select(index: number): void {
-    this.selected = (index + this.items.length) % this.items.length;
+  /** Highlights menu item `index` (wrapping), with a soft click if the selection moved and `sound` is on. */
+  private select(index: number, sound = true): void {
+    const next = (index + this.items.length) % this.items.length;
+    if (sound && next !== this.selected) playMove(this);
+    this.selected = next;
     this.items.forEach((item, i) => item.setColor(i === this.selected ? SHADES.white : SHADES.dim).setX(MENU_X + (i === this.selected ? 2 : 0)));
     this.bird.setY(MENU_Y + 4 + this.selected * MENU_SPACING);
+  }
+
+  private choose(): void {
+    playConfirm(this);
+    this.menu[this.selected]!.action();
   }
 
   private showNotice(message: string): void {
@@ -146,6 +169,7 @@ export class TitleScene extends Phaser.Scene {
 
   private startGame(): void {
     this.phase = 'leaving';
+    if (this.music) this.tweens.add({ targets: this.music, volume: 0, duration: 600 });
     this.cameras.main.fadeOut(600, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Area', { areaId: 'home' }));
   }
@@ -157,7 +181,7 @@ export class TitleScene extends Phaser.Scene {
     const key = event.key.toLowerCase();
     if (key === 'arrowup' || key === 'w') this.select(this.selected - 1);
     else if (key === 'arrowdown' || key === 's') this.select(this.selected + 1);
-    else if (key === 'enter' || key === ' ' || key === 'e') this.menu[this.selected]!.action();
+    else if (key === 'enter' || key === ' ' || key === 'e') this.choose();
   }
 }
 

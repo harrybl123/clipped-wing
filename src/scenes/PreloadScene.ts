@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
+import titleMusicUrl from '../assets/audio/light-through-the-window.mp3';
 import { AREAS } from '../data/areas';
 import { SHADES } from '../ui/pixelArt';
 import { PIXEL } from '../ui/pixelTextures';
 
-/** Loads assets (none yet besides generated placeholders) with a progress bar, then shows the title. */
+/** Loads assets (the title music; everything else is generated) with a progress bar, then shows the title. */
 export class PreloadScene extends Phaser.Scene {
   constructor() {
     super('Preload');
@@ -17,7 +18,8 @@ export class PreloadScene extends Phaser.Scene {
     this.add.rectangle(x, y, barWidth, 2, SHADES.woodPale).setOrigin(0);
     const bar = this.add.rectangle(x, y, 0, 2, SHADES.white).setOrigin(0);
     this.load.on('progress', (p: number) => (bar.width = Math.round(barWidth * p)));
-    // Future: this.load.image(...) etc. from public/assets/.
+    // Audio files live in src/assets/audio/ and are imported, so Vite bundles them with hashed names.
+    this.load.audio('title-music', titleMusicUrl);
   }
 
   create(): void {

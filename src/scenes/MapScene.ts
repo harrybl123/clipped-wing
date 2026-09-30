@@ -5,6 +5,7 @@ import { MAP_CANOPY_Y, MAP_LINKS, MAP_PLACES, MAP_TUBE_X, neighbourInDirection, 
 import { addLight, falloff, noise, rgb, SHADES, smoothstep, type PixelColour, type RGB } from '../ui/pixelArt';
 import { makePaintedTexture, makeSpriteTexture } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
+import { playConfirm, playMove } from '../ui/sfx';
 import { BIRD } from '../ui/sprites';
 import type { AreaSceneData } from './AreaScene';
 
@@ -122,6 +123,7 @@ export class MapScene extends Phaser.Scene {
     if (this.leaving) return;
     if (this.selected.id === this.current) return this.close();
     if (!(this.selected.id in AREAS)) return;
+    playConfirm(this);
     this.leaving = true;
     const target: AreaSceneData = { areaId: this.selected.id, from: this.current };
     this.cameras.main.fadeOut(300, 0, 0, 0);
@@ -147,7 +149,10 @@ export class MapScene extends Phaser.Scene {
     const dir = directions[key];
     if (dir) {
       const next = neighbourInDirection(this.selected, dir[0], dir[1]);
-      if (next) this.select(next);
+      if (next) {
+        playMove(this);
+        this.select(next);
+      }
     } else if (key === 'enter' || key === ' ' || key === 'e') {
       this.confirm();
     } else if (key === 'escape' || key === 'm') {
