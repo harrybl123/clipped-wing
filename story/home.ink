@@ -47,3 +47,7 @@
 === home_seat ===
 [PLACEHOLDER] The old root seat by the candle. The cosiest spot in the house.
 -> END
+
+=== home_kitchen ===
+[PLACEHOLDER] The kitchen corner. Chopped roots on the board.
+-> END

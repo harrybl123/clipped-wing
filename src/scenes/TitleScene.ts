@@ -3,7 +3,7 @@ import { GAME_HEIGHT as H, GAME_WIDTH as W } from '../config';
 import { addLight, falloff, noise, rgb, SHADES, smoothstep, type PixelColour, type RGB } from '../ui/pixelArt';
 import { makePaintedTexture, makeSpriteTexture, PIXEL, stampRows } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
-import { BIRD, FUNGUS, LAMP } from '../ui/sprites';
+import { BIRD, FUNGI, LAMP } from '../ui/sprites';
 
 // Title screen, visual only: looking up the inside of the trunk at the tube rising into the
 // white Canopy, with the menu beside it. Only New Game does anything yet (parked menu ideas
@@ -13,17 +13,23 @@ const TUBE_X = 345;
 const MENU_X = 52;
 const MENU_Y = 132;
 const MENU_SPACING = 13;
-const LAMPS: readonly [number, number][] = [[250, 44], [282, 60], [410, 50], [448, 72], [386, 30]];
+/** Lamps: some sit in carved alcoves in the trunk wall, some hang on cords. */
+const ALCOVE_LAMPS: readonly [number, number][] = [[250, 44], [410, 50], [448, 72]];
+const HANGING_LAMPS: readonly [number, number][] = [[282, 60], [386, 30]];
 
 type Pt = { x: number; y: number };
-/** Top edges of the foreground roots, as cubic Béziers. */
+/** Top edges of the low root hills along the bottom, as cubic Béziers. */
 type Root = [Pt, Pt, Pt, Pt];
 const ROOTS: readonly Root[] = [
   [{ x: -10, y: 222 }, { x: 70, y: 206 }, { x: 150, y: 238 }, { x: 228, y: 275 }],
   [{ x: 490, y: 228 }, { x: 430, y: 214 }, { x: 380, y: 244 }, { x: 330, y: 275 }],
   [{ x: -10, y: 262 }, { x: 160, y: 256 }, { x: 320, y: 258 }, { x: 490, y: 260 }],
 ];
-const FUNGUS_SPOTS: readonly [root: number, t: number][] = [[0, 0.18], [0, 0.42], [1, 0.25], [1, 0.5], [2, 0.55]];
+
+/** Fungi by x position; they grow on whatever surface is there. */
+const FUNGUS_SPOTS: readonly [x: number, variant: keyof typeof FUNGI][] = [
+  [36, 'cluster'], [84, 'tall'], [172, 'droop'], [300, 'bent'], [410, 'droop'], [455, 'cluster'],
+];
 
 interface MenuItem {
   label: string;
@@ -53,10 +59,10 @@ export class TitleScene extends Phaser.Scene {
     this.addMotes();
 
     // Shimmer on the tube's core.
-    const core = this.add.rectangle(TUBE_X, 0, 1, 262, SHADES.white).setOrigin(0.5, 0);
+    const core = this.add.rectangle(TUBE_X, 0, 1, HILL_TOP[TUBE_X]!, SHADES.white).setOrigin(0.5, 0);
     this.tweens.add({ targets: core, alpha: 0.4, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
 
-    new PixelText(this, 32, 56, 'Clipped Wing', { color: SHADES.white, scale: 3, shadow: SHADES.shadow });
+    new PixelText(this, 32, 56, 'Clipped Wing', { color: SHADES.light, scale: 3, shadow: SHADES.shadow, chisel: { light: SHADES.white, dark: SHADES.dim } });
 
     this.pressAnyKey = new PixelText(this, MENU_X, MENU_Y, 'press any key', { color: SHADES.white, shadow: SHADES.shadow });
     // A slow, gentle breath rather than a blink.
@@ -166,43 +172,68 @@ function pointOn([p0, p1, p2, p3]: Root, t: number): Pt {
   return { x: b(p0.x, p1.x, p2.x, p3.x), y: b(p0.y, p1.y, p2.y, p3.y) };
 }
 
-/** For each screen column, the y of the root's top edge (undefined where it doesn't reach). */
-function rootTops(root: Root): (number | undefined)[] {
-  const tops: (number | undefined)[] = [];
-  for (let s = 0; s <= 2000; s++) {
-    const p = pointOn(root, s / 2000);
-    const x = Math.round(p.x);
-    if (x >= 0 && x < W) tops[x] = Math.min(tops[x] ?? Infinity, Math.round(p.y));
+/** For each column, the top of the root hills (the highest of the three curves). */
+const HILL_TOP: number[] = (() => {
+  const tops = Array.from({ length: W }, () => H);
+  for (const root of ROOTS) {
+    for (let s = 0; s <= 2000; s++) {
+      const p = pointOn(root, s / 2000);
+      const x = Math.round(p.x);
+      if (x >= 0 && x < W) tops[x] = Math.min(tops[x]!, Math.round(p.y));
+    }
   }
   return tops;
+})();
+
+/** The low root hills along the bottom, as a silhouette. */
+function isSilhouette(x: number, y: number): boolean {
+  return x >= 0 && x < W && y >= HILL_TOP[x]!;
+}
+
+/** Topmost silhouette row in a column. */
+function surfaceAt(x: number): number {
+  for (let y = 0; y < H; y++) if (isSilhouette(x, y)) return y;
+  return H;
 }
 
 /**
  * The backdrop painter: wood grain converging up towards the Canopy, vignette, light from
- * the Canopy, tube, lamps and fungi, crisp tube and sprites, and dark foreground roots.
+ * the Canopy, tube, lamps and fungi, lamp alcoves and cords, and the low root hills in front.
  */
 function paintBackdrop(): (x: number, y: number) => PixelColour {
-  const fungi = FUNGUS_SPOTS.map(([r, t]) => pointOn(ROOTS[r]!, t));
-  const tops = ROOTS.map(rootTops);
   const wood = rgb(SHADES.wood);
   const [white, cyan, green, amber] = [SHADES.white, SHADES.cyan, SHADES.green, SHADES.amber].map(rgb) as [RGB, RGB, RGB, RGB];
+  const fungi = FUNGUS_SPOTS.map(([x, variant]) => ({ x, y: surfaceAt(x), sprite: FUNGI[variant] }));
 
-  const sprites = new Map<number, number>();
-  const put = (x: number, y: number, c: number) => sprites.set(y * W + x, c);
-  for (const [x, y] of LAMPS) stampRows(put, LAMP.rows, LAMP.colours, x - 1, y - 2);
-  for (const f of fungi) stampRows(put, FUNGUS.rows, FUNGUS.colours, Math.round(f.x) - 2, Math.round(f.y) - FUNGUS.rows.length);
+  const overlay = new Map<number, number>();
+  const put = (x: number, y: number, c: number) => {
+    if (x >= 0 && y >= 0 && x < W && y < H) overlay.set(y * W + x, c);
+  };
+  // Carved alcoves in the trunk wall, each holding a lamp.
+  for (const [lx, ly] of ALCOVE_LAMPS) {
+    for (let dy = -8; dy <= 5; dy++) {
+      for (let dx = -4; dx <= 4; dx++) {
+        if (dy < -6 && Math.abs(dx) > 2) continue;
+        const rim = Math.abs(dx) === 4 || dy === -8 || (dy <= -6 && Math.abs(dx) === 2 && dy === -7);
+        put(lx + dx, ly + dy, dy === 5 ? SHADES.woodPale : rim ? SHADES.woodLight : SHADES.deep);
+      }
+    }
+  }
+  for (const [lx, ly] of HANGING_LAMPS) for (let y = 0; y < ly - 2; y++) put(lx, y, SHADES.deep);
+  for (const [lx, ly] of [...ALCOVE_LAMPS, ...HANGING_LAMPS]) stampRows(put, LAMP.rows, LAMP.colours, lx - 1, ly - 2);
+  for (const f of fungi) stampRows(put, f.sprite.rows, f.sprite.colours, f.x - Math.floor(f.sprite.rows[0]!.length / 2), f.y - f.sprite.rows.length);
 
   return (x, y) => {
-    const sprite = sprites.get(y * W + x);
-    if (sprite !== undefined) return sprite;
+    const exact = overlay.get(y * W + x);
+    if (exact !== undefined) return exact;
 
-    const rootTop = Math.min(...tops.map((t) => t[x] ?? Infinity));
-    if (y >= rootTop) {
-      if (y > rootTop) return SHADES.shadow;
+    const dx = x - TUBE_X;
+    if (isSilhouette(x, y)) {
+      // A faint rim on the top edge, green near the fungi.
+      if (isSilhouette(x, y - 1)) return SHADES.shadow;
       return fungi.some((f) => Math.hypot(f.x - x, f.y - y) < 22) ? SHADES.greenMid : SHADES.deep;
     }
 
-    const dx = x - TUBE_X;
     const hw = tubeHalfWidth(y);
     if (Math.abs(dx) <= hw) {
       const edge = Math.abs(dx) / hw;
@@ -217,8 +248,8 @@ function paintBackdrop(): (x: number, y: number) => PixelColour {
     let c = wood.map((v) => v * (1 + 0.28 * grain) * (1 - 0.8 * vignette)) as RGB;
     c = addLight(c, white, 1.25 * falloff(x, y, TUBE_X, -12, 95, 48));
     c = addLight(c, cyan, (0.18 + 0.2 * (1 - t)) * Math.exp(-((dx / (9 + 14 * t)) ** 2)));
-    for (const f of fungi) c = addLight(c, green, 0.55 * falloff(x, y, f.x, f.y - 3, 11, 9));
-    for (const [lx, ly] of LAMPS) c = addLight(c, amber, 0.6 * falloff(x, y, lx, ly, 6));
+    for (const f of fungi) c = addLight(c, green, 0.45 * falloff(x, y, f.x, f.y - 4, 12, 10));
+    for (const [lx, ly] of [...ALCOVE_LAMPS, ...HANGING_LAMPS]) c = addLight(c, amber, 0.6 * falloff(x, y, lx, ly, 6));
     return c;
   };
 }

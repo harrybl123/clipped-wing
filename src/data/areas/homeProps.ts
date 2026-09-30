@@ -236,3 +236,56 @@ export const MENDING_BASKET: RowSprite = {
   rows: ['......n..', '.yy...n..', 'yyyy..n..', 'awawawawa', 'wawawawaw', '.awawawa.'],
   colours: { n: S.light, y: S.cyanDeep, a: S.amberDeep, w: S.woodPale },
 };
+
+// --- The kitchen corner, between the door and the hearth ---
+
+/** A worktop over two cupboards. */
+export const COUNTER: RowSprite = {
+  rows: fill(32, 14, (x, y) => {
+    if (y === 0) return 'h';
+    if (y <= 2) return 'p';
+    if (y === 3 || y === 13) return 'd';
+    if (x === 0 || x === 31 || x === 15 || x === 16) return 'd';
+    if ((x === 13 || x === 18) && y === 8) return 'k';
+    return x === 1 || x === 17 || y === 4 ? 'l' : 'c';
+  }),
+  colours: { h: S.dim, p: S.woodPale, d: S.deep, l: S.woodLight, c: S.wood, k: S.dim },
+};
+
+/** Chopping board with a knife and a few chopped roots. */
+export const BOARD: RowSprite = {
+  rows: ['.g.g..llll', 'pppppppp..'],
+  colours: { g: S.greenMid, l: S.light, p: S.woodPale },
+};
+
+/** Plates stood on edge and cups, for the crockery shelf. */
+export const CROCKERY: RowSprite = {
+  rows: fill(26, 6, (x, y) => {
+    const plate = (cx: number) => Math.hypot(x - cx, y - 2.5) <= 2.6;
+    if (plate(3) || plate(8)) return Math.hypot(x - (x < 6 ? 3 : 8), y - 2.5) < 1.2 ? 'm' : 'l';
+    const cup = (x >= 13 && x <= 15) || (x >= 18 && x <= 20) || (x >= 23 && x <= 25);
+    if (cup && y >= 2) return y === 5 && (x === 13 || x === 18 || x === 23) ? '.' : 'l';
+    return '.';
+  }),
+  colours: { l: S.light, m: S.dim },
+};
+
+export const LADLE: RowSprite = { rows: ['.l.', '.l.', '.l.', '.l.', '.l.', 'lll', 'lll', '.l.'], colours: { l: S.light } };
+
+export const PAN: RowSprite = {
+  rows: ['..l...', '..l...', '..l...', 'dddddd', 'dmmmmd', 'dmmmmd', '.dddd.'],
+  colours: { l: S.light, d: S.deep, m: S.dim },
+};
+
+export const SPOON: RowSprite = { rows: ['.w.', '.w.', '.w.', '.w.', 'www', '.w.'], colours: { w: S.woodPale } };
+
+/** Open water barrel. */
+export const BARREL: RowSprite = {
+  rows: fill(10, 14, (x, y) => {
+    if (y === 0) return x === 0 || x === 9 ? 'r' : 'w';
+    if (y === 1) return x === 0 || x === 9 ? 'r' : 'c';
+    if (y === 3 || y === 11) return 'h';
+    return x % 3 === 0 ? 'd' : 'l';
+  }),
+  colours: { r: S.woodPale, w: S.cyanMid, c: S.cyanDeep, h: S.dim, d: S.wood, l: S.woodLight },
+};

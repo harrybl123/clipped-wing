@@ -1,5 +1,5 @@
 import { SHADES as S } from '../../ui/pixelArt';
-import { BIRD, FUNGUS, VILLAGER } from '../../ui/sprites';
+import { BIRD, FUNGI, VILLAGER } from '../../ui/sprites';
 import * as P from './homeProps';
 import type { AreaDefinition } from './types';
 
@@ -28,7 +28,7 @@ export const home: AreaDefinition = {
   ],
 
   lights: [
-    { x: 102, y: 222, colour: S.amber, radius: 80, radiusY: 50, strength: 0.5 }, // hearth
+    { x: 102, y: 224, colour: S.amber, radius: 92, radiusY: 56, strength: 0.34 }, // hearth
     { x: 102, y: 150, colour: S.amber, radius: 60, radiusY: 40, strength: 0.15 }, // hearth glow on the loft
     { x: 118, y: 60, colour: S.green, radius: 34, strength: 0.32 }, // fungus lamp
     { x: 456, y: 88, colour: S.green, radius: 24, radiusY: 46, strength: 0.4 }, // light through the crack
@@ -38,6 +38,7 @@ export const home: AreaDefinition = {
   ],
 
   lines: [
+    { from: { x: 46, y: 173 }, to: { x: 74, y: 173 }, colour: S.dim }, // utensil rail
     { from: { x: 118, y: 12 }, to: { x: 118, y: 47 }, colour: S.dim }, // lamp cord
     { from: { x: 150, y: 12 }, to: { x: 150, y: 19 }, colour: S.dim }, // herb cords
     { from: { x: 162, y: 12 }, to: { x: 162, y: 23 }, colour: S.dim },
@@ -52,7 +53,16 @@ export const home: AreaDefinition = {
     { sprite: P.post(78), x: 294, y: LOFT + 8 },
     // Ground floor
     { sprite: P.DOOR, x: 18, y: FLOOR - 34 },
-    { sprite: P.CHARM, x: 44, y: 188 },
+    { sprite: P.CHARM, x: 26, y: 194 }, // above the door
+    // Kitchen corner
+    { sprite: P.COUNTER, x: 42, y: FLOOR - 14 },
+    { sprite: P.BOARD, x: 48, y: FLOOR - 16 },
+    { sprite: P.shelf(30), x: 44, y: 198 },
+    { sprite: P.CROCKERY, x: 46, y: 192 },
+    { sprite: P.LADLE, x: 50, y: 174 },
+    { sprite: P.PAN, x: 57, y: 174 },
+    { sprite: P.SPOON, x: 67, y: 174 },
+    { sprite: P.BARREL, x: 127, y: FLOOR - 14 },
     { sprite: P.HEARTH, x: 80, y: FLOOR - 18 },
     { sprite: P.POT, x: 84, y: FLOOR - 25 },
     { sprite: P.GEAR, x: 116, y: FLOOR - 25 },
@@ -68,8 +78,9 @@ export const home: AreaDefinition = {
     { sprite: P.shelf(56), x: 390, y: 176 },
     { sprite: P.PATCH, x: 382, y: 96 },
     { sprite: P.CRACK, x: 452, y: 64 },
-    { sprite: FUNGUS, x: 434, y: FLOOR - 4 },
-    { sprite: FUNGUS, x: 441, y: FLOOR - 4 },
+    { sprite: FUNGI.cluster, x: 432, y: FLOOR - 7 },
+    { sprite: FUNGI.droop, x: 441, y: FLOOR - 5 },
+    { sprite: FUNGI.bent, x: 454, y: 112 }, // growing out of the crack
     // The living nook under the shelves
     { sprite: P.MENDING_BASKET, x: 377, y: FLOOR - 6 },
     { sprite: P.SEAT, x: 390, y: FLOOR - 12 },
@@ -105,6 +116,7 @@ export const home: AreaDefinition = {
 
   interactables: [
     { id: 'door', x: 28, y: FLOOR, reach: 14, label: 'Leave', knot: 'home_door' },
+    { id: 'kitchen', x: 58, y: FLOOR, reach: 12, label: 'Look', knot: 'home_kitchen' },
     { id: 'hearth', x: 102, y: FLOOR, reach: 18, label: 'Look', knot: 'home_hearth' },
     { id: 'food-store', x: 382, y: FLOOR, reach: 9, label: 'Look', knot: 'home_food_store' },
     { id: 'seat', x: 401, y: FLOOR, reach: 10, label: 'Sit', knot: 'home_seat' },

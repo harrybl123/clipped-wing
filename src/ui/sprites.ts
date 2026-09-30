@@ -56,10 +56,18 @@ export const BIRD: RowSprite = {
   colours: { '#': SHADES.red, d: SHADES.redDark, o: SHADES.shadow },
 };
 
-/** A glowing root fungus, 5 wide, standing on its bottom row. */
-export const FUNGUS: RowSprite = {
-  rows: ['.gwg.', 'ggggg', '..s..', '..s..'],
-  colours: { g: SHADES.green, w: SHADES.white, s: SHADES.greenMid },
+const fungus = (rows: string[]): RowSprite => ({ rows, colours: { g: SHADES.green, w: SHADES.white, m: SHADES.greenMid, s: SHADES.greenDeep } });
+
+/** Glowing root fungi: irregular stalks and caps, a little eerie. Each stands on its bottom row. */
+export const FUNGI = {
+  /** A tall, thin one with a lopsided cap. */
+  tall: fungus(['.gg..', 'gwggg', 'g.m.g', '..m..', '..m..', '.m...', '.m...', '.s...']),
+  /** A cluster of three at different heights. */
+  cluster: fungus(['.gg.....', 'gwgg..g.', '.m...ggg', '.m..gw.m', '..m.gm.m', '..m..m.m', '..s..s.s']),
+  /** A small, droopy-capped one. */
+  droop: fungus(['.ggg.', 'gwggg', 'g.m.g', '..m..', '..s..']),
+  /** A bent stalk with a small cap. */
+  bent: fungus(['...gg', '..gwg', '..m..', '.m...', '.m...', 'm....', 's....']),
 };
 
 /** A hanging lamp, 3 wide. */
