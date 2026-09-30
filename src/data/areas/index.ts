@@ -5,6 +5,7 @@ import { lowerRoots } from './lowerRoots';
 import { offeringFloor } from './offeringFloor';
 import { rootsMarket } from './rootsMarket';
 import { tendersShrine } from './tendersShrine';
+import { trunkClimb } from './trunkClimb';
 import type { AreaDefinition } from './types';
 
 /** Every area in the design (docs/design-summary.md), by id, with the name used in menus. Built or not. */
@@ -33,4 +34,5 @@ export const AREAS: Record<string, AreaDefinition> = {
   [lowerRoots.id]: lowerRoots,
   [backRoutes.id]: backRoutes,
   [tendersShrine.id]: tendersShrine,
+  [trunkClimb.id]: trunkClimb,
 };

@@ -49,6 +49,7 @@ export type Feature =
   | { type: 'swing'; sprite: RowSprite; x: number; y: number; ropeTop: number } // hanging from ropeTop, sways
   | { type: 'drip'; x: number; y: number; floorY: number } // a drop falls from (x, y) every so often
   | { type: 'motes'; x: number; top: number; bottom: number; halfWidth: number } // pale motes rising in a column (the tube)
+  | { type: 'mover'; sprite: RowSprite; x: number; y: number; to: { x: number; y: number }; speed: number; ropeTop?: number } // a one-way platform (top-left at x, y) going to `to` and back at `speed` px/s, pausing at each end; optional ropes up to ropeTop
   | { type: 'jars'; sprite: RowSprite; x: number; y: number; variable: string; max: number; perRow: number; rowSpacing: number }; // one jar per unit of an ink variable, rows stacked upwards
 
 /** Something the player can walk up to and press E on, which runs an ink knot. */

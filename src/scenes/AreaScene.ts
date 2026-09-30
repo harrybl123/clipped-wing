@@ -44,6 +44,21 @@ interface Usable {
   use: () => void;
 }
 
+/** A platform travelling between two points (a lift on ropes, a plank sliding along a rope). */
+interface Mover {
+  image: Phaser.Physics.Arcade.Image;
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+  speed: number;
+  dir: 1 | -1;
+  pause: number;
+  width: number;
+  ropes?: { graphics: Phaser.GameObjects.Graphics; top: number };
+}
+
+/** How long a moving platform waits at each end, in ms. */
+const MOVER_PAUSE = 900;
+
 /** Any side-on area, built from its AreaDefinition in src/data/areas. */
 export class AreaScene extends Phaser.Scene {
   private area!: AreaDefinition;
@@ -57,6 +72,7 @@ export class AreaScene extends Phaser.Scene {
   private from: string | undefined;
   private leaving = false;
   private wanderers: Wanderer[] = [];
+  private movers: Mover[] = [];
   /** Frame on which the dialogue closed, so the key that closed it doesn't also jump or reopen it. */
   private dialogueClosedFrame = -1;
 
@@ -70,6 +86,7 @@ export class AreaScene extends Phaser.Scene {
     this.area = area;
     this.from = data.from;
     this.wanderers = [];
+    this.movers = [];
     this.current = null;
     this.leaving = false;
   }
@@ -127,7 +144,9 @@ export class AreaScene extends Phaser.Scene {
     const arrival = area.exits.find((e) => e.to === this.from) ?? area.playerStart;
     this.player = new Player(this, arrival.x, arrival.y);
     // Pressing down drops through one-way platforms (walkways, bridges, roofs, stairs).
-    this.physics.add.collider(this.player.sprite, solids, undefined, (_p, zone) => !(this.player.dropping && (zone as Phaser.GameObjects.Zone).getData('oneWay')));
+    const notDroppingThrough = (_p: unknown, other: unknown) => !(this.player.dropping && (other as Phaser.GameObjects.GameObject).getData('oneWay'));
+    this.physics.add.collider(this.player.sprite, solids, undefined, notDroppingThrough);
+    if (this.movers.length) this.physics.add.collider(this.player.sprite, this.movers.map((m) => m.image), undefined, notDroppingThrough);
     if (area.width > GAME_WIDTH || area.height > GAME_HEIGHT) this.cameras.main.startFollow(this.player.sprite, true, 0.1, 0.1);
 
     this.interactKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.E);
@@ -150,6 +169,7 @@ export class AreaScene extends Phaser.Scene {
     this.player.update(blocked);
     this.stepUp();
     this.updateWanderers(delta);
+    this.updateMovers(delta);
 
     this.setCurrent(this.dialogue.isOpen || !this.player.onGround ? null : this.nearestInteractable());
     if (this.current && interactPressed && !blocked) {
@@ -207,6 +227,35 @@ export class AreaScene extends Phaser.Scene {
       if (atEnd || Math.random() < delta / 9000) {
         w.pause = Phaser.Math.Between(700, 2600);
         if (atEnd) w.dir = w.dir > 0 ? -1 : 1;
+      }
+    }
+  }
+
+  /** Moves each platform towards the end it's heading for, pausing there before coming back. Riders are carried by the physics. */
+  private updateMovers(delta: number): void {
+    for (const m of this.movers) {
+      const body = m.image.body as Phaser.Physics.Arcade.Body;
+      if (m.pause > 0) {
+        m.pause -= delta;
+        body.setVelocity(0, 0);
+      } else {
+        const target = m.dir > 0 ? m.to : m.from;
+        const dx = target.x - m.image.x;
+        const dy = target.y - m.image.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= (m.speed * delta) / 1000 + 0.5) {
+          body.reset(target.x, target.y);
+          m.dir = m.dir > 0 ? -1 : 1;
+          m.pause = MOVER_PAUSE;
+        } else {
+          body.setVelocity((dx / dist) * m.speed, (dy / dist) * m.speed);
+        }
+      }
+      if (m.ropes) {
+        const { graphics, top } = m.ropes;
+        const x = Math.round(m.image.x);
+        const y = Math.round(m.image.y);
+        graphics.clear().fillStyle(SHADES.woodPale).fillRect(x + 2, top, 1, y - top).fillRect(x + m.width - 3, top, 1, y - top);
       }
     }
   }
@@ -291,6 +340,19 @@ export class AreaScene extends Phaser.Scene {
             rope.setTo(feature.x, feature.ropeTop, x, feature.y);
           },
         });
+        break;
+      }
+      case 'mover': {
+        const key = makeSpriteTexture(this, `mover-${feature.x}-${feature.y}`, feature.sprite.rows, feature.sprite.colours);
+        const width = feature.sprite.rows[0]!.length;
+        const image = this.physics.add.image(feature.x, feature.y, key).setOrigin(0).setDepth(6).setData('oneWay', true);
+        const body = image.body as Phaser.Physics.Arcade.Body;
+        body.setAllowGravity(false).setImmovable(true).setSize(width, 4, false).setOffset(0, 0);
+        body.checkCollision.down = false;
+        body.checkCollision.left = false;
+        body.checkCollision.right = false;
+        const ropes = feature.ropeTop === undefined ? undefined : { graphics: this.add.graphics().setDepth(5), top: feature.ropeTop };
+        this.movers.push({ image, from: { x: feature.x, y: feature.y }, to: feature.to, speed: feature.speed, dir: 1, pause: MOVER_PAUSE, width, ropes });
         break;
       }
       case 'motes': {
