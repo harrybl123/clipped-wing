@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT as H, GAME_WIDTH as W } from '../config';
-import { LIGHT_CELL } from '../data/areas/homeProps';
 import { tubeColumn } from '../data/areas/offeringFloorProps';
 import { getSession } from '../session';
 import { DialogueBox } from '../ui/DialogueBox';
@@ -8,7 +7,7 @@ import { addLight, falloff, noise, rgb, SHADES, type RGB } from '../ui/pixelArt'
 import { makePaintedTexture, makeSpriteTexture } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
 import * as Art from '../ui/prologueArt';
-import { BIRD, MORE_ARROW, type RowSprite } from '../ui/sprites';
+import { MORE_ARROW, type RowSprite } from '../ui/sprites';
 import type { AreaSceneData } from './AreaScene';
 import { paintTree } from './MapScene';
 
@@ -384,7 +383,7 @@ export class PrologueScene extends Phaser.Scene {
     this.tweens.add({ targets: t, alpha: 1, duration: 1200 });
   }
 
-  /** The tube glowing up through the dark: offerings (red birds) rising, blessings drifting down. */
+  /** The tube glowing up through the dark. */
   private buildTubeTableau(t: Phaser.GameObjects.Container): void {
     const cyan = rgb(SHADES.cyan);
     makePaintedTexture(this, 'prologue-tube-bg', W, H, (x, y) => {
@@ -395,19 +394,6 @@ export class PrologueScene extends Phaser.Scene {
     t.add(this.add.image(0, 0, 'prologue-tube-bg').setOrigin(0));
     const column = tubeColumn(24, H);
     t.add(this.add.image(W / 2 - 12, 0, makeSpriteTexture(this, 'prologue-tube', column.rows, column.colours)).setOrigin(0));
-    const birdKey = makeSpriteTexture(this, 'bird', BIRD.rows, BIRD.colours);
-    const cellKey = makeSpriteTexture(this, 'prologue-cell', LIGHT_CELL.rows, LIGHT_CELL.colours);
-    const rise = () => {
-      if (!t.visible) return;
-      const bird = this.add.image(W / 2 - 18 + Phaser.Math.Between(-4, 4), H + 8, birdKey).setAlpha(0.95);
-      t.add(bird);
-      this.tweens.add({ targets: bird, y: -10, duration: 5200, onComplete: () => bird.destroy() });
-      const cell = this.add.image(W / 2 + 18 + Phaser.Math.Between(-4, 4), -8, cellKey);
-      t.add(cell);
-      this.tweens.add({ targets: cell, y: H + 10, duration: 6800, onComplete: () => cell.destroy() });
-      this.time.delayedCall(1100, rise);
-    };
-    rise();
   }
 
   /** The end of the prologue: into Day 1, waking at home. */
