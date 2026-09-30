@@ -9,7 +9,15 @@ import { TitleScene } from './scenes/TitleScene';
 const game = new Phaser.Game(createGameConfig([BootScene, PreloadScene, TitleScene, AreaScene, MapScene]));
 
 // Keep pixels square and crisp: rescale by whole numbers when the window changes size.
-window.addEventListener('resize', () => game.scale.setZoom(integerZoom()));
+const onResize = () => game.scale.setZoom(integerZoom());
+window.addEventListener('resize', onResize);
+
+// Dev only: when the dev server swaps in new code, destroy the old game first, so two games (and two
+// copies of the music) never run in the same page.
+import.meta.hot?.dispose(() => {
+  window.removeEventListener('resize', onResize);
+  game.destroy(true);
+});
 
 // Dev builds only: expose the game for poking at from the browser console.
 if (import.meta.env.DEV) Object.assign(window, { __game: game });

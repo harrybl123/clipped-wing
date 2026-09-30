@@ -57,12 +57,7 @@ export class TitleScene extends Phaser.Scene {
     this.phase = 'gate';
     this.selected = 0;
     this.cameras.main.fadeIn(800);
-    // The title music starts with the first key press (browsers block audio until then).
-    this.music = this.sound.add('title-music', { loop: true, volume: 0 });
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      this.music?.destroy();
-      this.music = null;
-    });
+    this.startMusic();
 
     makePaintedTexture(this, 'title-backdrop', W, H, paintBackdrop());
     this.add.image(0, 0, 'title-backdrop').setOrigin(0);
@@ -129,13 +124,32 @@ export class TitleScene extends Phaser.Scene {
     });
   }
 
+  /**
+   * Starts the title music as soon as the title appears, fading in. Browsers block sound until the
+   * player first clicks or presses a key, so if audio is still locked it starts the moment it unlocks.
+   * Only one copy ever plays: any earlier one is removed first.
+   */
+  private startMusic(): void {
+    this.sound.removeByKey('title-music');
+    const music = this.sound.add('title-music', { loop: true, volume: 0 });
+    this.music = music;
+    const play = () => {
+      if (this.music !== music || music.isPlaying) return;
+      music.play();
+      this.tweens.add({ targets: music, volume: MUSIC_VOLUME, duration: 2500, ease: 'Sine.easeInOut' });
+    };
+    if (this.sound.locked) this.sound.once(Phaser.Sound.Events.UNLOCKED, play);
+    else play();
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.sound.off(Phaser.Sound.Events.UNLOCKED, play);
+      music.destroy();
+      if (this.music === music) this.music = null;
+    });
+  }
+
   private openMenu(): void {
     this.phase = 'menu';
     playConfirm(this);
-    if (this.music && !this.music.isPlaying) {
-      this.music.play();
-      this.tweens.add({ targets: this.music, volume: MUSIC_VOLUME, duration: 2500, ease: 'Sine.easeInOut' });
-    }
     this.tweens.killTweensOf(this.pressAnyKey);
     this.pressAnyKey.destroy();
     // Fade the menu in, one item after another.
