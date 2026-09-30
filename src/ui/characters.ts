@@ -16,6 +16,19 @@ const span = (g: Grid, y: number, x0: number, x1: number, c: string) => {
 };
 const rows = (g: Grid) => g.map((r) => r.join(''));
 
+/**
+ * A faint edge on the unlit (left and top) side of the dark body, so the figure still reads
+ * against dark backgrounds. Dimmer than the rim light on the lit side.
+ */
+function edgeShadowSide(g: Grid): void {
+  const empty = (x: number, y: number) => (g[y]?.[x] ?? '.') === '.';
+  const edges: [number, number][] = [];
+  g.forEach((row, y) => row.forEach((c, x) => {
+    if (c === 'o' && (empty(x - 1, y) || empty(x, y - 1))) edges.push([x, y]);
+  }));
+  for (const [x, y] of edges) g[y]![x] = 'e';
+}
+
 // --- The protagonist ---
 
 interface Pose {
@@ -71,6 +84,7 @@ function protagonist(pose: Pose): RowSprite {
   };
   leg(4, pose.sway[0], liftBack, false);
   leg(6, pose.sway[1], liftFront, true);
+  edgeShadowSide(g);
   // The red thread: a knot at the back of the neck, trailing out behind the body
   // (only drawn where it isn't hidden by the figure).
   put(g, 4, 5 + b, 'r');
@@ -79,7 +93,7 @@ function protagonist(pose: Pose): RowSprite {
     const y = 6 + b + dy;
     if (g[y]?.[x] === '.') put(g, x, y, 'r');
   }
-  return { rows: rows(g), colours: { o: SHADES.shadow, '#': SHADES.dim, h: SHADES.light, r: SHADES.red } };
+  return { rows: rows(g), colours: { o: SHADES.shadow, e: SHADES.woodLight, '#': SHADES.dim, h: SHADES.light, r: SHADES.red } };
 }
 
 const HANGING: [number, number][] = [[-1, 1], [-1, 2], [-2, 3]];
@@ -113,9 +127,16 @@ function mum(breathe: boolean): RowSprite {
   }
   span(g, 5 + b, 5, 7, 'o');
   // A patterned shawl over her shoulders (placeholder signature detail), fringed at the bottom.
-  for (let y = 6; y <= 10; y++) {
-    const half = Math.min(4, y - 4);
-    for (let x = 6 - half; x <= 6 + half; x++) put(g, x, y + b, (x + y) % 3 === 0 ? 't' : 's');
+  // Outlined in shadow so her silhouette stays joined up even against mid-brown wood.
+  put(g, 5, 6 + b, 'o');
+  put(g, 6, 6 + b, 'o');
+  put(g, 7, 6 + b, 'o');
+  for (let y = 7; y <= 10; y++) {
+    const half = Math.min(4, y - 5);
+    for (let x = 6 - half; x <= 6 + half; x++) {
+      const edge = Math.abs(x - 6) === half;
+      put(g, x, y + b, edge ? (x > 6 ? '#' : 'o') : (x + y) % 3 === 0 ? 't' : 's');
+    }
   }
   // Body and a long skirt, widening to the floor.
   for (let y = 11; y <= 15; y++) span(g, y + b, 3, 9, 'o');
@@ -125,7 +146,8 @@ function mum(breathe: boolean): RowSprite {
     span(g, y, 3 - w, 9 + w, 'o');
     put(g, 10 + w, y, '#');
   }
-  return { rows: rows(g), colours: { o: SHADES.shadow, '#': SHADES.dim, s: SHADES.amberDeep, t: SHADES.woodPale } };
+  edgeShadowSide(g);
+  return { rows: rows(g), colours: { o: SHADES.shadow, e: SHADES.woodLight, '#': SHADES.dim, s: SHADES.amberDeep, t: SHADES.woodPale } };
 }
 
 export const MUM = { idle: [mum(false), mum(true)] };
