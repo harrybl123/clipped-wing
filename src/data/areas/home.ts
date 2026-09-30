@@ -1,5 +1,6 @@
 import { SHADES as S } from '../../ui/pixelArt';
-import { BIRD, FUNGI, VILLAGER } from '../../ui/sprites';
+import { MUM } from '../../ui/characters';
+import { BIRD, FUNGI } from '../../ui/sprites';
 import * as P from './homeProps';
 import type { AreaDefinition } from './types';
 
@@ -112,7 +113,7 @@ export const home: AreaDefinition = {
     { type: 'jars', sprite: P.JAR, x: 393, y: 204, variable: 'food_store', max: 16, perRow: 8, rowSpacing: 28 },
   ],
 
-  people: [{ id: 'mum', sprite: VILLAGER, x: 150, y: FLOOR, knot: 'home_mum' }],
+  people: [{ id: 'mum', sprite: MUM.idle[0]!, idleFrames: MUM.idle, x: 150, y: FLOOR, knot: 'home_mum', flipX: true }],
 
   interactables: [
     { id: 'door', x: 28, y: FLOOR, reach: 14, label: 'Leave', knot: 'home_door' },

@@ -70,6 +70,8 @@ export interface Person {
   y: number;
   knot: string;
   flipX?: boolean;
+  /** Idle animation frames (e.g. breathing), cycled slowly. Defaults to just `sprite`. */
+  idleFrames?: RowSprite[];
 }
 
 export interface AreaDefinition {

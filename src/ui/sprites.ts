@@ -8,41 +8,6 @@ export interface RowSprite {
   colours: Record<string, number>;
 }
 
-/** The protagonist: a small dark figure with a red scarf (red: birds and the protagonist only). */
-export const PLAYER: RowSprite = {
-  rows: [
-    '...####...',
-    '..#oooo#..',
-    '.#oooooo#.',
-    '.#oooooo#.',
-    '.#oooooo#.',
-    '..#oooo#..',
-    '..rrrrrr..',
-    '.#ooooorr.',
-    '.#oooooor.',
-    '#oooooooo#',
-    '#oooooooo#',
-    '#oooooooo#',
-    '#oooooooo#',
-    '#oooooooo#',
-    '.#oooooo#.',
-    '.#oooooo#.',
-    '.#oo##oo#.',
-    '.#o#..#o#.',
-    '.#o#..#o#.',
-    '.#o#..#o#.',
-    '.#o#..#o#.',
-    '.##....##.',
-  ],
-  colours: { '#': SHADES.dim, o: SHADES.shadow, r: SHADES.red },
-};
-
-/** A placeholder villager: same build, no red, slightly paler outline. */
-export const VILLAGER: RowSprite = {
-  rows: PLAYER.rows.map((row) => row.replace(/r/g, 'o')),
-  colours: { '#': SHADES.light, o: SHADES.shadow },
-};
-
 /** A small red carved bird with one heavy, clipped wing. */
 export const BIRD: RowSprite = {
   rows: [

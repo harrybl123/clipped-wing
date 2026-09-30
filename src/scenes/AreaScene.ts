@@ -54,8 +54,12 @@ export class AreaScene extends Phaser.Scene {
 
     this.interactables = [...area.interactables];
     for (const person of area.people) {
-      const key = makeSpriteTexture(this, `person-${person.id}`, person.sprite.rows, person.sprite.colours);
-      this.add.image(person.x, person.y, key).setOrigin(0.5, 1).setFlipX(person.flipX ?? false).setDepth(8);
+      const frames = (person.idleFrames ?? [person.sprite]).map((f, i) => makeSpriteTexture(this, `person-${person.id}-${i}`, f.rows, f.colours));
+      const image = this.add.image(person.x, person.y, frames[0]!).setOrigin(0.5, 1).setFlipX(person.flipX ?? false).setDepth(8);
+      if (frames.length > 1) {
+        let frame = 0;
+        this.time.addEvent({ delay: 650, loop: true, callback: () => image.setTexture(frames[(frame = (frame + 1) % frames.length)]!) });
+      }
       this.interactables.push({ id: person.id, x: person.x, y: person.y, reach: 14, label: 'Talk', knot: person.knot });
     }
 
