@@ -1,5 +1,6 @@
 import { home } from './home';
 import { offeringFloor } from './offeringFloor';
+import { rootsMarket } from './rootsMarket';
 import type { AreaDefinition } from './types';
 
 /** Every area in the design (docs/design-summary.md), by id, with the name used in menus. Built or not. */
@@ -23,4 +24,5 @@ export const PLANNED_AREAS: Record<string, string> = {
 export const AREAS: Record<string, AreaDefinition> = {
   [home.id]: home,
   [offeringFloor.id]: offeringFloor,
+  [rootsMarket.id]: rootsMarket,
 };

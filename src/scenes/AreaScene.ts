@@ -19,6 +19,20 @@ export interface AreaSceneData {
   from?: string;
 }
 
+/** A person pacing between two points. */
+interface Wanderer {
+  image: Phaser.GameObjects.Image;
+  from: number;
+  to: number;
+  dir: 1 | -1;
+  /** Milliseconds left standing still before walking on. */
+  pause: number;
+  walkKeys: string[];
+  idleKey: string;
+  stepTimer: number;
+  frame: number;
+}
+
 /** Anything the player can walk up to and press E on. */
 interface Usable {
   /** False while unavailable (e.g. a person who isn't here at this time of day). */
@@ -42,6 +56,7 @@ export class AreaScene extends Phaser.Scene {
   private current: Usable | null = null;
   private from: string | undefined;
   private leaving = false;
+  private wanderers: Wanderer[] = [];
   /** Frame on which the dialogue closed, so the key that closed it doesn't also jump or reopen it. */
   private dialogueClosedFrame = -1;
 
@@ -54,6 +69,7 @@ export class AreaScene extends Phaser.Scene {
     if (!area) throw new Error(`AreaScene: no area called "${data.areaId}"`);
     this.area = area;
     this.from = data.from;
+    this.wanderers = [];
     this.current = null;
     this.leaving = false;
   }
@@ -79,12 +95,15 @@ export class AreaScene extends Phaser.Scene {
     for (const person of area.people) {
       const frames = (person.idleFrames ?? [person.sprite]).map((f, i) => makeSpriteTexture(this, `person-${person.id}-${i}`, f.rows, f.colours));
       const image = this.add.image(person.x, person.y, frames[0]!).setOrigin(0.5, 1).setFlipX(person.flipX ?? false).setDepth(8);
-      if (frames.length > 1) {
+      if (person.wander) {
+        const walkKeys = (person.walkFrames ?? [person.sprite]).map((f, i) => makeSpriteTexture(this, `person-${person.id}-walk-${i}`, f.rows, f.colours));
+        this.wanderers.push({ image, from: person.wander.from, to: person.wander.to, dir: person.flipX ? -1 : 1, pause: Phaser.Math.Between(0, 1500), walkKeys, idleKey: frames[0]!, stepTimer: 0, frame: 0 });
+      } else if (frames.length > 1) {
         let frame = 0;
         this.time.addEvent({ delay: 650, loop: true, callback: () => image.setTexture(frames[(frame = (frame + 1) % frames.length)]!) });
       }
       peopleImages.push({ image, when: person.when });
-      if (person.knot) this.usables.push({ x: person.x, y: person.y, reach: 14, label: 'Talk', use: talk(person.knot), enabled: () => present(person.when) });
+      if (person.knot && !person.wander) this.usables.push({ x: person.x, y: person.y, reach: 14, label: 'Talk', use: talk(person.knot), enabled: () => present(person.when) });
     }
 
     // Who's here depends on the time of day; refresh when the clock changes (e.g. from the debug overlay).
@@ -123,11 +142,12 @@ export class AreaScene extends Phaser.Scene {
     }
   }
 
-  override update(): void {
+  override update(_time: number, delta: number): void {
     const interactPressed = Phaser.Input.Keyboard.JustDown(this.interactKey);
     const blocked = this.leaving || this.dialogue.isOpen || this.game.loop.frame === this.dialogueClosedFrame;
     this.player.update(blocked);
     this.stepUp();
+    this.updateWanderers(delta);
 
     this.setCurrent(this.dialogue.isOpen || !this.player.onGround ? null : this.nearestInteractable());
     if (this.current && interactPressed && !blocked) {
@@ -161,6 +181,32 @@ export class AreaScene extends Phaser.Scene {
     const x = Phaser.Math.Clamp(Math.round(it.x - this.prompt.width / 2), 2, this.area.width - this.prompt.width - 2);
     this.prompt.setPosition(x, it.y - 38);
     this.promptPlate.setPosition(x - 2, it.y - 40).setSize(this.prompt.width + 4, this.prompt.height + 3).setVisible(true);
+  }
+
+  /** Wanderers pace between their two points at a stroll, stopping for a moment now and then. */
+  private updateWanderers(delta: number): void {
+    const SPEED = 22; // px per second
+    for (const w of this.wanderers) {
+      if (!w.image.visible) continue;
+      if (w.pause > 0) {
+        w.pause -= delta;
+        w.image.setTexture(w.idleKey);
+        continue;
+      }
+      w.image.x += w.dir * SPEED * (delta / 1000);
+      w.image.setFlipX(w.dir < 0);
+      w.stepTimer += delta;
+      if (w.stepTimer > 180) {
+        w.stepTimer = 0;
+        w.frame = (w.frame + 1) % w.walkKeys.length;
+        w.image.setTexture(w.walkKeys[w.frame]!);
+      }
+      const atEnd = (w.dir > 0 && w.image.x >= w.to) || (w.dir < 0 && w.image.x <= w.from);
+      if (atEnd || Math.random() < delta / 9000) {
+        w.pause = Phaser.Math.Between(700, 2600);
+        if (atEnd) w.dir = w.dir > 0 ? -1 : 1;
+      }
+    }
   }
 
   /** Walks the player up low one-way ledges (stairs) instead of making them jump each one. */

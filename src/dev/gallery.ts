@@ -3,6 +3,7 @@
 
 import * as homeProps from '../data/areas/homeProps';
 import * as offeringFloorProps from '../data/areas/offeringFloorProps';
+import * as rootsMarketProps from '../data/areas/rootsMarketProps';
 import { MUM, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
 import { hexString } from '../ui/pixelArt';
 import { SPEAKERS } from '../ui/portraits';
@@ -40,6 +41,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       { label: 'protagonist idle', frames: PROTAGONIST.idle, fps: 1.6 },
       { label: 'mum idle', frames: MUM.idle, fps: 1.5 },
       { label: 'tender idle', frames: TENDER.idle, fps: 1.2 },
+      ...VILLAGERS.slice(0, 3).map((v, i) => ({ label: `villager ${i} walk`, frames: v.walk, fps: 5.5 })),
     ],
   },
   { title: 'Portraits', scale: 4, entries: Object.entries(SPEAKERS).map(([id, s]): Entry => [id, s.portrait]) },
@@ -57,6 +59,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
   },
   { title: 'Home props', scale: 4, entries: propEntries(homeProps) },
   { title: 'Offering floor props', scale: 4, entries: propEntries(offeringFloorProps) },
+  { title: 'Roots market props', scale: 4, entries: propEntries(rootsMarketProps) },
 ];
 
 function drawSprite(canvas: HTMLCanvasElement, sprite: RowSprite, scale: number): void {

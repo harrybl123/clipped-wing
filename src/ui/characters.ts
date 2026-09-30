@@ -220,7 +220,7 @@ interface VillagerLook {
 }
 
 /** A background figure, varied by `look`. Same lighting as everyone: rim on the right, faint edge on the left. */
-function villager(look: VillagerLook, breathe: boolean): RowSprite {
+function villager(look: VillagerLook, breathe: boolean, stride = 0): RowSprite {
   const W = 13;
   const H = look.height;
   const g = grid(W, H);
@@ -254,13 +254,18 @@ function villager(look: VillagerLook, breathe: boolean): RowSprite {
   for (let y = legTop; y < H; y++) {
     if (look.long) {
       const w = look.width + Math.floor((y - legTop) / 3);
-      span(g, y, cx - w, cx + w, 'o');
-      put(g, cx + w + 1, y, '#');
+      const sway = y > legTop + 3 ? stride : 0; // the hem swings when walking
+      span(g, y, cx - w + sway, cx + w + sway, 'o');
+      put(g, cx + w + 1 + sway, y, '#');
     } else {
-      span(g, y, cx - 2, cx - 1, 'o');
-      span(g, y, cx + 1, cx + 2, 'o');
-      put(g, cx + 3, y, y === H - 1 ? 'o' : '#');
-      if (y === H - 1) put(g, cx + 4, y, 'o'); // toes forward
+      // Legs apart when striding: the back leg angles back, the front leg forward.
+      const t = (y - legTop) / Math.max(1, H - 1 - legTop);
+      const back = cx - 2 - Math.round(stride * t);
+      const front = cx + 1 + Math.round(stride * t);
+      span(g, y, back, back + 1, 'o');
+      span(g, y, front, front + 1, 'o');
+      put(g, front + 2, y, y === H - 1 ? 'o' : '#');
+      if (y === H - 1) put(g, front + 3, y, 'o'); // toes forward
     }
   }
   edgeShadowSide(g);
@@ -277,5 +282,8 @@ const LOOKS: VillagerLook[] = [
   { height: 21, width: 2, head: 'cap', accent: SHADES.greenMid },
 ];
 
-/** Background villagers, each with a 2-frame breathing idle. */
-export const VILLAGERS = LOOKS.map((look) => ({ idle: [villager(look, false), villager(look, true)] }));
+/** Background villagers, each with a 2-frame breathing idle and a 2-frame walk. */
+export const VILLAGERS = LOOKS.map((look) => ({
+  idle: [villager(look, false), villager(look, true)],
+  walk: [villager(look, false, 2), villager(look, true, 0)],
+}));

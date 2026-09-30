@@ -90,6 +90,9 @@ export interface Person {
   when?: TimeSlot[];
   /** Idle animation frames (e.g. breathing), cycled slowly. Defaults to just `sprite`. */
   idleFrames?: RowSprite[];
+  /** Walks back and forth between these x positions (with `walkFrames`), pausing now and then. Wanderers can't be talked to. */
+  wander?: { from: number; to: number };
+  walkFrames?: RowSprite[];
 }
 
 export interface AreaDefinition {
