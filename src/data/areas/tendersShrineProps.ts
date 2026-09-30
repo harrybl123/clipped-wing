@@ -21,7 +21,7 @@ export const DESK: RowSprite = {
 };
 
 /**
- * A tally board: pictographs of offerings with notches beside each (roots-dwellers can't read, so
+ * A tally board: a pictograph for each family's kind of ornament, with notches beside each (roots-dwellers can't read, so
  * the records are counted, not written). `seed` varies the counts.
  */
 export const tallyBoard = (seed: number): RowSprite => ({
@@ -30,7 +30,7 @@ export const tallyBoard = (seed: number): RowSprite => ({
     const line = Math.floor((y - 2) / 4);
     const ly = (y - 2) % 4;
     if (y < 2 || line > 3 || ly === 3) return 'b';
-    if (x >= 2 && x <= 4) return ly === 1 || (ly !== 1 && x === 3) ? 'i' : 'b'; // a little bird-ish pictograph
+    if (x >= 2 && x <= 4) return (line % 2 === 0 ? ly === 1 || x === 3 : ly !== 1 || x === 3) ? 'i' : 'b'; // a little pictograph of each family's ornament
     const count = 3 + ((seed * 7 + line * 5) % 8);
     if (x >= 6 && x < 6 + count && x % 2 === 0) return ly === 1 && (x - 6) % 10 === 8 ? 'n' : 'n';
     return 'b';

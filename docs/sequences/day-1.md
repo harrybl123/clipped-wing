@@ -19,6 +19,12 @@ designer to rewrite; it keeps to the tree's faith and never hints at the truth.
 - A red bird marker shows where to go next. **(designer)** (Red is reserved for birds, so it fits.)
 - Don't open up every area at once: keep some back for suspense. **(designer)** This changes the doc's
   "visit everyone on Day 1".
+- Everyone who wants to watch an Ascension goes up to the gate; the girl in the lower roots can't be
+  bothered, so she isn't there. **(designer)**
+- You meet your friend on the way up the trunk, and they're at the lookout when you get there.
+  **(designer)**
+- The spiral is carved into the master's last piece, the carving they carry into the gate (their
+  maker's mark; message 6 echoes it). Your bird goes up at the Day 1 morning rite. **(left to Claude)**
 
 ## The shape of the day (suggestion)
 
@@ -169,10 +175,5 @@ Objective: *Go home to bed.*
 - **Day-specific people:** the crowds, the girl in the archway, your friend at the lookout at night.
 
 ## Open questions
-1. Does the offering go up at the morning rite on Day 1 (as drafted), even though it's also Ascension
-   Day?
-2. How is the spiral shown: on the master's last carving, their clothing, both?
-3. Is your friend at the lookout, or do you climb alone (as the tutorial) and meet them after?
-4. Does the Ascension happen at the gate with everyone there (as drafted), or do the roots watch from
-   the offering floor below?
-5. The weak grip in the climb: what does it do?
+- The weak grip in the climb: what does it do? (Later.)
+- Day 2 onwards.
