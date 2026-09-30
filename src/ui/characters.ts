@@ -340,3 +340,55 @@ function friend(breathe: boolean): RowSprite {
 }
 
 export const FRIEND = { idle: [friend(false), friend(true)] };
+
+// --- The girl in the roots ---
+
+/**
+ * Your age, edgy, refuses to conform: choppy, messy hair with the glowing green strand
+ * (the design doc's signature detail), a ring in her ear, tattoos in glowing fungus ink up her
+ * arm, arms crossed and weight on one hip.
+ */
+function girl(breathe: boolean): RowSprite {
+  const g = grid(12, 24);
+  const b = breathe ? 1 : 0;
+  // Head: messy hair, choppy and falling to the shoulders on both sides.
+  for (let y = 0; y <= 3; y++) span(g, y + b, 3, 7, 'o');
+  put(g, 8, 0 + b, 'o');
+  for (let y = 1; y <= 5; y++) put(g, 8, y + b, y % 2 ? 'o' : '#');
+  put(g, 9, 4 + b, 'o');
+  span(g, 4 + b, 4, 6, 'o');
+  for (let y = 1; y <= 7; y++) put(g, 2, y + b, 'o'); // hair falling down the back
+  put(g, 3, 6 + b, 'o');
+  put(g, 3, 7 + b, 'o');
+  // The glowing strand, falling from the crown past her shoulder.
+  put(g, 4, 0 + b, 'g');
+  for (let y = 1; y <= 8; y++) put(g, 3 - (y > 5 ? 1 : 0), y + b, 'g');
+  put(g, 7, 3 + b, 'p'); // ring in her ear, showing through her hair
+  // Neck, body, a cropped top over a longer ragged skirt.
+  span(g, 5 + b, 5, 6, 'o');
+  for (let y = 6; y <= 14; y++) {
+    span(g, y + b, 4, 8, 'o');
+    put(g, 9, y + b, '#');
+  }
+  // Arms crossed over the chest: forearms across, tattooed arm glowing in lines.
+  span(g, 9 + b, 4, 9, 'o');
+  span(g, 10 + b, 3, 9, 'o');
+  put(g, 10, 9 + b, '#');
+  put(g, 10, 10 + b, '#');
+  put(g, 6, 10 + b, 't');
+  put(g, 8, 10 + b, 't');
+  put(g, 9, 7 + b, 't');
+  // Ragged hem, then legs with weight on the back one (the front knee bent out).
+  for (let x = 3; x <= 9; x += 2) put(g, x, 15 + b, 'o');
+  for (let y = 15; y <= 23; y++) {
+    span(g, y, 4, 5, 'o');
+    const front = y < 19 ? 7 : 8;
+    put(g, front, y, 'o');
+    put(g, front + 1, y, '#');
+  }
+  put(g, 10, 23, 'o');
+  edgeShadowSide(g);
+  return { rows: rows(g), colours: { o: SHADES.shadow, e: SHADES.woodLight, '#': SHADES.dim, g: SHADES.green, t: SHADES.greenMid, p: SHADES.light } };
+}
+
+export const GIRL = { idle: [girl(false), girl(true)] };

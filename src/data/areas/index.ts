@@ -1,5 +1,6 @@
 import { friendsHome } from './friendsHome';
 import { home } from './home';
+import { lowerRoots } from './lowerRoots';
 import { offeringFloor } from './offeringFloor';
 import { rootsMarket } from './rootsMarket';
 import type { AreaDefinition } from './types';
@@ -27,4 +28,5 @@ export const AREAS: Record<string, AreaDefinition> = {
   [offeringFloor.id]: offeringFloor,
   [rootsMarket.id]: rootsMarket,
   [friendsHome.id]: friendsHome,
+  [lowerRoots.id]: lowerRoots,
 };

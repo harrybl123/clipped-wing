@@ -35,6 +35,10 @@ const COLOURS = {
   Q: SHADES.cyan, // tube token highlight
   y: SHADES.amberDeep, // blond hair
   Y: SHADES.amber, // blond hair highlight
+  n: SHADES.green, // glowing strand, fungus-ink tattoos
+  N: SHADES.greenMid, // strand glow
+  x: SHADES.greenDeep, // tattoo lines
+  p: SHADES.light, // piercings
 };
 
 function draw(pick: Pick): RowSprite {
@@ -196,10 +200,55 @@ export const FRIEND_PORTRAIT: RowSprite = (() => {
   });
 })();
 
+/**
+ * The girl in the roots: choppy, messy dark hair, a fringe over one eye, the glowing
+ * green strand, rings in her ear, brow and lip, fungus-ink tattoos up her neck, a half-lidded smirk.
+ */
+export const GIRL_PORTRAIT: RowSprite = (() => {
+  const face: Face = { cx: 24, cy: 22, rx: 9, ry: 11 };
+  const eyeY = face.cy + 1;
+  const ragged = (x: number) => [0, 2, 1, 3, 1, 0, 2, 3, 0, 1][x % 10]!; // uneven ends
+  return draw((x, y) => {
+    const u = x - face.cx;
+    const inFace = inEllipse(x, y, face.cx, face.cy, face.rx, face.ry);
+    // Piercings: rings down the right ear, poking through her hair; a brow ring; a lip ring.
+    if (x === face.cx + face.rx + 1 && (y === eyeY + 1 || y === eyeY + 4)) return 'p';
+    if (x === face.cx + 6 && y === eyeY - 2) return 'p';
+    if (x === face.cx - 1 && y === eyeY + 9) return 'p';
+    // Hair: a choppy side-swept fringe (down over the left eye), falling past the jaw either side.
+    const inMass = inEllipse(x, y, face.cx, face.cy - 3, face.rx + 4, face.ry + 3);
+    const fringe = u < 0 && u >= -9 ? eyeY + 3 - Math.floor((u + 9) * 0.45) : face.cy - 7 + ragged(x);
+    const overFace = inFace && y < fringe;
+    const beside = !inFace && Math.abs(u) >= 6 && Math.abs(u) <= face.rx + 4 && y > face.cy - 8 && y < face.cy + 13 + ragged(x);
+    if ((inMass && !inFace && y < face.cy) || overFace || beside) {
+      // The glowing strand: from the crown, swept left along the fringe, then down beside the face.
+      const strandX = y < face.cy - 2 ? face.cx - 2 - Math.round((y - (face.cy - 14)) * 0.55) : face.cx - face.rx - 2;
+      if (y >= face.cy - 14 && (x === strandX || x === strandX + 1)) return x === strandX ? 'n' : 'N';
+      return u > 2 && (x * 3 + y) % 7 === 0 ? 'k' : 'h';
+    }
+    if (inFace) {
+      if (y === eyeY - 1 && x >= face.cx + 3 && x <= face.cx + 4) return 'e'; // heavy lid: half-lidded, unimpressed
+      const mouthY = eyeY + 8;
+      if (y === mouthY && x >= face.cx - 2 && x <= face.cx + 1) return 'e';
+      if (y === mouthY && x === face.cx + 2) return 'M';
+      if (y === mouthY - 1 && x === face.cx + 3) return 'e'; // the smirk
+      const feature = y === mouthY ? null : features(x, y, face, false);
+      return feature ?? skin(x, face.cx, face.rx);
+    }
+    // Neck, with a fungus-ink vine tattoo climbing it.
+    if (y >= 32 && y <= 37 && x >= 20 && x <= 28) {
+      if ((x === 26 && (y === 33 || y === 35)) || (x === 27 && y === 34) || (x === 25 && y === 36) || (x === 26 && y === 37)) return 'x';
+      return skin(x, 24, 5);
+    }
+    return body(x, y, 36) ?? '.';
+  });
+})();
+
 /** Portraits by the speaker id used in ink tags (`#speaker:mum`), with the name shown above the line. */
 export const SPEAKERS: Record<string, { name: string; portrait: RowSprite }> = {
   you: { name: 'You', portrait: PROTAGONIST_PORTRAIT },
   mum: { name: 'Mum', portrait: MUM_PORTRAIT },
   tender: { name: 'The Tender', portrait: TENDER_PORTRAIT },
   friend: { name: 'Your friend', portrait: FRIEND_PORTRAIT },
+  girl: { name: 'The girl', portrait: GIRL_PORTRAIT },
 };

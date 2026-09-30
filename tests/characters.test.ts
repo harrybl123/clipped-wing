@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FRIEND, MUM, PROTAGONIST, TENDER } from '../src/ui/characters';
+import { FRIEND, GIRL, MUM, PROTAGONIST, TENDER } from '../src/ui/characters';
 import { SHADES } from '../src/ui/pixelArt';
 import { PORTRAIT_SIZE, SPEAKERS } from '../src/ui/portraits';
 import type { RowSprite } from '../src/ui/sprites';
@@ -33,7 +33,7 @@ describe('character sprites', () => {
   });
 
   it('keeps red off everyone else', () => {
-    for (const f of [...MUM.idle, ...TENDER.idle, ...FRIEND.idle]) {
+    for (const f of [...MUM.idle, ...TENDER.idle, ...FRIEND.idle, ...GIRL.idle]) {
       expect(Object.values(f.colours)).not.toContain(SHADES.red);
       expect(new Set(f.rows.map((r) => r.length)).size).toBe(1);
     }
@@ -48,6 +48,16 @@ it('gives the friend grounded, same-size frames with the tube token and blond ha
     expect(f.rows.join('')).toContain('q');
     expect(f.colours.q).toBe(SHADES.cyan);
     expect(f.colours.Y).toBe(SHADES.amber);
+  }
+});
+
+it('gives the girl grounded, same-size frames with her glowing green strand', () => {
+  for (const f of GIRL.idle) {
+    expect(f.rows).toHaveLength(24);
+    expect(new Set(f.rows.map((r) => r.length))).toEqual(new Set([12]));
+    expect(f.rows.at(-1)).toMatch(/[^.]/);
+    expect(f.rows.join('')).toContain('g');
+    expect(f.colours.g).toBe(SHADES.green);
   }
 });
 

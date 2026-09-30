@@ -2,10 +2,11 @@
 // Plain canvas, no Phaser. Add new sprite sources to SECTIONS as they're created.
 
 import * as friendsHomeProps from '../data/areas/friendsHomeProps';
+import * as lowerRootsProps from '../data/areas/lowerRootsProps';
 import * as homeProps from '../data/areas/homeProps';
 import * as offeringFloorProps from '../data/areas/offeringFloorProps';
 import * as rootsMarketProps from '../data/areas/rootsMarketProps';
-import { FRIEND, MUM, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
+import { FRIEND, GIRL, MUM, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
 import { hexString } from '../ui/pixelArt';
 import { SPEAKERS } from '../ui/portraits';
 import { BIRD, FIRE_FRAMES, FUNGI, LAMP, MORE_ARROW, type RowSprite } from '../ui/sprites';
@@ -36,6 +37,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       ...MUM.idle.map((f, i): Entry => [`mum idle ${i}`, f]),
       ...TENDER.idle.map((f, i): Entry => [`tender idle ${i}`, f]),
       ...FRIEND.idle.map((f, i): Entry => [`friend idle ${i}`, f]),
+      ...GIRL.idle.map((f, i): Entry => [`girl idle ${i}`, f]),
       ...VILLAGERS.map((v, i): Entry => [`villager ${i}`, v.idle[0]!]),
     ],
     animations: [
@@ -44,6 +46,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       { label: 'mum idle', frames: MUM.idle, fps: 1.5 },
       { label: 'tender idle', frames: TENDER.idle, fps: 1.2 },
       { label: 'friend idle', frames: FRIEND.idle, fps: 1.4 },
+      { label: 'girl idle', frames: GIRL.idle, fps: 1.3 },
       ...VILLAGERS.slice(0, 3).map((v, i) => ({ label: `villager ${i} walk`, frames: v.walk, fps: 5.5 })),
     ],
   },
@@ -64,6 +67,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
   { title: 'Offering floor props', scale: 4, entries: propEntries(offeringFloorProps) },
   { title: 'Roots market props', scale: 4, entries: propEntries(rootsMarketProps) },
   { title: "Friend's home props", scale: 4, entries: propEntries(friendsHomeProps) },
+  { title: 'Lower roots props', scale: 4, entries: propEntries(lowerRootsProps) },
 ];
 
 function drawSprite(canvas: HTMLCanvasElement, sprite: RowSprite, scale: number): void {

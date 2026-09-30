@@ -117,6 +117,7 @@ export class AreaScene extends Phaser.Scene {
       solids.add(zone);
       const body = zone.body as Phaser.Physics.Arcade.StaticBody;
       if (s.oneWay) {
+        zone.setData('oneWay', true);
         body.checkCollision.down = false;
         body.checkCollision.left = false;
         body.checkCollision.right = false;
@@ -125,7 +126,8 @@ export class AreaScene extends Phaser.Scene {
 
     const arrival = area.exits.find((e) => e.to === this.from) ?? area.playerStart;
     this.player = new Player(this, arrival.x, arrival.y);
-    this.physics.add.collider(this.player.sprite, solids);
+    // Pressing down drops through one-way platforms (walkways, bridges, roofs, stairs).
+    this.physics.add.collider(this.player.sprite, solids, undefined, (_p, zone) => !(this.player.dropping && (zone as Phaser.GameObjects.Zone).getData('oneWay')));
     if (area.width > GAME_WIDTH || area.height > GAME_HEIGHT) this.cameras.main.startFollow(this.player.sprite, true, 0.1, 0.1);
 
     this.interactKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.E);
@@ -212,7 +214,7 @@ export class AreaScene extends Phaser.Scene {
   /** Walks the player up low one-way ledges (stairs) instead of making them jump each one. */
   private stepUp(): void {
     const body = this.player.body;
-    if (!body.blocked.down || body.velocity.x === 0) return;
+    if (!body.blocked.down || body.velocity.x === 0 || this.player.dropping) return;
     const ahead = body.velocity.x > 0 ? body.right + 1 : body.left - 1;
     for (const s of this.area.solids) {
       if (!s.oneWay) continue;

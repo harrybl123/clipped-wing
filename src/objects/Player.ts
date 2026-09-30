@@ -4,6 +4,8 @@ import { makeSpriteTexture } from '../ui/pixelTextures';
 import type { RowSprite } from '../ui/sprites';
 
 const RUN_SPEED = 105;
+/** How long one-way platforms are ignored after pressing down (long enough to fall through a 10px walkway). */
+const DROP_TIME = 300;
 const JUMP_VELOCITY = -225; // with gravity 450 this clears ~56 px
 
 /** Makes the protagonist's frame textures and animations (once per game). */
@@ -17,9 +19,9 @@ function createAnimations(scene: Phaser.Scene): void {
   if (!scene.anims.exists('player-walk')) scene.anims.create({ key: 'player-walk', frames: walk, frameRate: 9, repeat: -1 });
 }
 
-type MoveKeys = Record<'left' | 'right' | 'up' | 'a' | 'd' | 'w' | 'space', Phaser.Input.Keyboard.Key>;
+type MoveKeys = Record<'left' | 'right' | 'up' | 'down' | 'a' | 'd' | 'w' | 's' | 'space', Phaser.Input.Keyboard.Key>;
 
-/** The protagonist: left/right movement and jumping with Arcade physics (arrows/WASD + Space). */
+/** The protagonist: left/right movement and jumping with Arcade physics (arrows/WASD + Space; down drops through one-way platforms). */
 export class Player {
   readonly sprite: Phaser.Physics.Arcade.Sprite;
   readonly body: Phaser.Physics.Arcade.Body;
@@ -35,7 +37,7 @@ export class Player {
     this.body.setCollideWorldBounds(true);
     const K = Phaser.Input.Keyboard.KeyCodes;
     this.keys = scene.input.keyboard!.addKeys({
-      left: K.LEFT, right: K.RIGHT, up: K.UP, a: K.A, d: K.D, w: K.W, space: K.SPACE,
+      left: K.LEFT, right: K.RIGHT, up: K.UP, down: K.DOWN, a: K.A, d: K.D, w: K.W, s: K.S, space: K.SPACE,
     }) as MoveKeys;
   }
 
@@ -43,6 +45,13 @@ export class Player {
   get feet(): { x: number; y: number } {
     return { x: this.sprite.x, y: this.sprite.y };
   }
+
+  /** True for a moment after pressing down on a one-way platform, so the player drops through it. */
+  get dropping(): boolean {
+    return this.sprite.scene.time.now < this.dropUntil;
+  }
+
+  private dropUntil = 0;
 
   get onGround(): boolean {
     return this.body.blocked.down;
@@ -57,7 +66,9 @@ export class Player {
     const direction = blocked ? 0 : Number(right) - Number(left);
     this.body.setVelocityX(direction * RUN_SPEED);
     if (direction !== 0) this.sprite.setFlipX(direction < 0);
+    const downPressed = [this.keys.down, this.keys.s].map((k) => Phaser.Input.Keyboard.JustDown(k)).some(Boolean);
     if (!blocked && jumpPressed && this.onGround) this.body.setVelocityY(JUMP_VELOCITY);
+    else if (!blocked && downPressed && this.onGround) this.dropUntil = this.sprite.scene.time.now + DROP_TIME;
     this.animate(direction);
   }
 
