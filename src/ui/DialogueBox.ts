@@ -14,6 +14,12 @@ const CHOICE_SPACING = 11;
 /** Choices are indented to leave room for the bird cursor. */
 const CHOICE_INDENT = 14;
 const MAX_CHOICES = 9;
+
+/** An option in a menu opened from code. */
+export interface MenuOption {
+  label: string;
+  run: () => void;
+}
 const PORTRAIT_GAP = 7;
 
 /**
@@ -31,7 +37,9 @@ export class DialogueBox {
   private readonly width: number;
   private readonly continueHint: Phaser.GameObjects.Image;
   private choiceTexts: PixelText[] = [];
-  private choiceIndices: number[] = [];
+  private options: MenuOption[] = [];
+  /** 'ink' plays the story; 'menu' and 'message' are shown from code (door menus, notices). */
+  private mode: 'ink' | 'menu' | 'message' = 'ink';
   private selected = 0;
   private readonly cursor: Phaser.GameObjects.Image;
   private onClose: (() => void) | null = null;
@@ -84,10 +92,39 @@ export class DialogueBox {
   /** Starts the ink knot and shows its first line. `onClose` runs when the conversation ends. */
   open(knot: string, onClose?: () => void): void {
     this.story.startKnot(knot);
+    this.show('ink', onClose);
+    this.advance();
+  }
+
+  /**
+   * Shows a line of narration with options, from code rather than ink (e.g. a door menu).
+   * Picking an option closes the box, then runs it.
+   */
+  openMenu(text: string, options: MenuOption[], onClose?: () => void): void {
+    this.show('menu', onClose);
+    this.setLine(text, []);
+    this.showChoices(options.map((o) => ({ label: o.label, run: () => { this.close(); o.run(); } })));
+    this.continueHint.setVisible(false);
+  }
+
+  /** Shows a single line of narration from code; the next press closes it. */
+  say(text: string, onClose?: () => void): void {
+    this.show('message', onClose);
+    this.setLine(text, []);
+    this.continueHint.setVisible(true);
+  }
+
+  private show(mode: 'ink' | 'menu' | 'message', onClose?: () => void): void {
+    this.clearChoices();
+    this.mode = mode;
     this.onClose = onClose ?? null;
     this._isOpen = true;
     this.container.setVisible(true);
-    this.advance();
+  }
+
+  private setLine(text: string, tags: string[]): void {
+    this.showSpeaker(tags);
+    this.lineText.setText(text);
   }
 
   close(): void {
@@ -103,23 +140,26 @@ export class DialogueBox {
   /** Shows the next line, or the choices, or closes if the knot has finished. */
   private advance(): void {
     if (this.choiceTexts.length > 0) return; // waiting for a choice
+    if (this.mode !== 'ink') {
+      this.close();
+      return;
+    }
     // Skip blank lines (ink produces one after a choice with no text of its own).
     let line = this.story.nextLine();
     while (line !== null && line.text === '') line = this.story.nextLine();
     if (line === null) {
       // Nothing more to say: either ink is waiting on a choice (keep the last line up) or it's over.
       if (this.story.choices().length > 0) {
-        this.showChoices();
+        this.showChoices(this.inkOptions());
         this.continueHint.setVisible(false);
       } else {
         this.close();
       }
       return;
     }
-    this.showSpeaker(line.tags);
-    this.lineText.setText(line.text);
+    this.setLine(line.text, line.tags);
     // If ink now wants a choice, show the options under this line straight away.
-    if (!this.story.canContinue) this.showChoices();
+    if (!this.story.canContinue) this.showChoices(this.inkOptions());
     this.continueHint.setVisible(this.choiceTexts.length === 0);
   }
 
@@ -136,22 +176,27 @@ export class DialogueBox {
     this.nameText.setText(speaker.name).setX(textX);
   }
 
-  private showChoices(): void {
-    const choices = this.story.choices().slice(0, MAX_CHOICES);
+  /** The story's current choices as options: choosing one continues the story. */
+  private inkOptions(): MenuOption[] {
+    return this.story.choices().map((c) => ({ label: c.text, run: () => { this.clearChoices(); this.story.choose(c.index); this.advance(); } }));
+  }
+
+  private showChoices(options: MenuOption[]): void {
+    const choices = options.slice(0, MAX_CHOICES);
     let y = this.lineText.y + this.lineText.height + 4;
     for (const [i, choice] of choices.entries()) {
-      const text = new PixelText(this.scene, this.lineText.x + CHOICE_INDENT, y, `${i + 1}. ${choice.text}`, { color: SHADES.light })
+      const text = new PixelText(this.scene, this.lineText.x + CHOICE_INDENT, y, `${i + 1}. ${choice.label}`, { color: SHADES.light })
         .setInteractive({ useHandCursor: true })
         .on('pointerover', () => this.select(i))
         .on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
           event.stopPropagation();
-          this.choose(choice.index);
+          this.choose(i);
         });
       this.container.add(text.setScrollFactor(0));
       this.choiceTexts.push(text);
-      this.choiceIndices.push(choice.index);
       y += CHOICE_SPACING;
     }
+    this.options = choices;
     this.select(0);
   }
 
@@ -165,16 +210,15 @@ export class DialogueBox {
     this.cursor.setPosition(this.lineText.x + 1, chosen.y + 1).setVisible(true);
   }
 
-  private choose(index: number): void {
-    this.clearChoices();
-    this.story.choose(index);
-    this.advance();
+  private choose(i: number): void {
+    const option = this.options[i];
+    if (option) option.run();
   }
 
   private clearChoices(): void {
     for (const t of this.choiceTexts) t.destroy();
     this.choiceTexts = [];
-    this.choiceIndices = [];
+    this.options = [];
     this.cursor.setVisible(false);
   }
 
@@ -185,11 +229,10 @@ export class DialogueBox {
     if (this.choiceTexts.length > 0) {
       if (key === 'arrowup' || key === 'w') this.select(this.selected - 1);
       else if (key === 'arrowdown' || key === 's') this.select(this.selected + 1);
-      else if (confirm) this.choose(this.choiceIndices[this.selected]!);
+      else if (confirm) this.choose(this.selected);
       else {
         const n = Number.parseInt(key, 10);
-        const index = this.choiceIndices[n - 1];
-        if (index !== undefined) this.choose(index);
+        if (n >= 1 && n <= this.options.length) this.choose(n - 1);
       }
       return;
     }

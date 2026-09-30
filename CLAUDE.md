@@ -51,17 +51,21 @@ The game is pixel art, so darker and lighter **shades** of these colours are all
 - `npm run test` — run unit tests (Vitest)
 - `npm run typecheck` — compile ink, then TypeScript check (`tsc --noEmit`)
 - `npm run package` — build, then zip the contents of `dist/` into `clipped-wing.zip` for itch.io (see README)
+- Dev only: `http://localhost:5173/?area=<id>` opens an area directly (skips the title); `http://localhost:5173/gallery.html` shows every sprite, portrait and prop enlarged, with animations and a dark/lit background toggle
 - `npm run ink` — compile `story/main.ink` → `src/generated/main.ink.json` (also runs automatically in `dev`, with watch, and in `build`)
 
 ## Conventions
 
 - Scenes in `src/scenes/`, systems in `src/systems/`, game objects in `src/objects/`, data in `src/data/`, ink in `story/`.
 - British English in all player-facing text.
+- New areas start from a brief in `docs/areas/` (copy `_template.md`); Claude's proposals stay marked **(suggestion)** until the designer confirms them.
 - Keep this file current: when an architectural decision is made, record it under "Decisions" below.
 
 ## Decisions
 
 (Record decisions here as they're made, newest first.)
+
+- **2026-09-30 — Doors and dev tooling.** Areas have `exits` (`to` = a neighbouring area id from `PLANNED_AREAS` in `src/data/areas/index.ts`, which lists all 13 areas in the design with their menu names; `AREAS` holds the built ones). Using an exit opens a door menu: go straight to the neighbour, open the map, or stay. Unbuilt targets and the map say they aren't built yet. Travel restarts `AreaScene` with `{ areaId, from }`, and the player arrives at the exit leading back to `from` (else `playerStart`). Visits don't cost afternoon actions yet (to decide). `DialogueBox` can show code-driven `openMenu(text, options)` and `say(text)` as well as ink, with the same keys and cursor. Dev tools: `?area=<id>` and `gallery.html` (`src/dev/gallery.ts`, not in the build; add new sprite sources to its `SECTIONS`).
 
 - **2026-09-30 — Dialogue portraits.** An ink line tagged `#speaker:<id>` shows that speaker's 48×48 portrait and name in the dialogue box; untagged lines are narration and use the full width. Speakers are registered in `SPEAKERS` in `src/ui/portraits.ts` (currently `you` and `mum`); portraits are placeholder busts drawn procedurally, lit from the right, and red appears only on the protagonist's thread. Adding a character means adding a portrait and a `SPEAKERS` entry. Later, a mood tag could swap expressions.
 

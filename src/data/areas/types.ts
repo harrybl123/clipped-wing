@@ -62,6 +62,20 @@ export interface Interactable {
   knot: string;
 }
 
+/**
+ * A way out. Using it offers: go straight to the neighbouring area `to`, open the map, or stay.
+ * When the player arrives from `to`, they appear at this exit.
+ */
+export interface Exit {
+  id: string;
+  /** Centre of the zone along the floor, and the y of that surface. */
+  x: number;
+  y: number;
+  reach: number;
+  /** Id of the neighbouring area (from PLANNED_AREAS; it may not be built yet). */
+  to: string;
+}
+
 /** A person standing in the area, drawn at (x, y) = bottom-centre. Talking runs `knot`. */
 export interface Person {
   id: string;
@@ -76,6 +90,8 @@ export interface Person {
 
 export interface AreaDefinition {
   id: string;
+  /** Shown in door menus and on the map, e.g. "your home". */
+  name: string;
   width: number;
   height: number;
   /** The hollow the room is carved into; outside it is solid heartwood. */
@@ -90,4 +106,5 @@ export interface AreaDefinition {
   features: Feature[];
   people: Person[];
   interactables: Interactable[];
+  exits: Exit[];
 }

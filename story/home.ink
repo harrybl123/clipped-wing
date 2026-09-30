@@ -15,10 +15,6 @@
 - [PLACEHOLDER] Mum turns back to the fire. (Untagged lines are narration.)
 -> END
 
-=== home_door ===
-[PLACEHOLDER] The door out to the roots. (The map isn't built yet.)
--> END
-
 === home_hearth ===
 [PLACEHOLDER] The hearth. The fire is low.
 -> END

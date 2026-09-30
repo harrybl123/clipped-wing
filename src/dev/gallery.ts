@@ -1,0 +1,104 @@
+// DEV ONLY (gallery.html, not part of the build): every placeholder sprite, enlarged, for review.
+// Plain canvas, no Phaser. Add new sprite sources to SECTIONS as they're created.
+
+import * as homeProps from '../data/areas/homeProps';
+import { MUM, PROTAGONIST } from '../ui/characters';
+import { hexString } from '../ui/pixelArt';
+import { SPEAKERS } from '../ui/portraits';
+import { BIRD, FIRE_FRAMES, FUNGI, LAMP, MORE_ARROW, type RowSprite } from '../ui/sprites';
+
+type Entry = [label: string, sprite: RowSprite];
+
+const isSprite = (v: unknown): v is RowSprite => typeof v === 'object' && v !== null && 'rows' in v && 'colours' in v;
+
+/** Home props: constants as they are, generator functions at a sample size. */
+const homePropEntries: Entry[] = Object.entries(homeProps).flatMap(([name, value]): Entry[] => {
+  if (isSprite(value)) return [[name, value]];
+  if (typeof value === 'function') return [[`${name}(24)`, (value as (n: number) => RowSprite)(24)]];
+  return [];
+});
+
+const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: { label: string; frames: RowSprite[]; fps: number }[] }[] = [
+  {
+    title: 'Characters',
+    scale: 6,
+    entries: [
+      ...PROTAGONIST.idle.map((f, i): Entry => [`protagonist idle ${i}`, f]),
+      ...PROTAGONIST.walk.map((f, i): Entry => [`protagonist walk ${i}`, f]),
+      ['protagonist jump', PROTAGONIST.jump],
+      ['protagonist fall', PROTAGONIST.fall],
+      ...MUM.idle.map((f, i): Entry => [`mum idle ${i}`, f]),
+    ],
+    animations: [
+      { label: 'protagonist walk', frames: PROTAGONIST.walk, fps: 9 },
+      { label: 'protagonist idle', frames: PROTAGONIST.idle, fps: 1.6 },
+      { label: 'mum idle', frames: MUM.idle, fps: 1.5 },
+    ],
+  },
+  { title: 'Portraits', scale: 4, entries: Object.entries(SPEAKERS).map(([id, s]): Entry => [id, s.portrait]) },
+  {
+    title: 'Shared sprites',
+    scale: 6,
+    entries: [
+      ['bird', BIRD],
+      ['lamp', LAMP],
+      ['more arrow', MORE_ARROW],
+      ...Object.entries(FUNGI).map(([n, s]): Entry => [`fungus ${n}`, s]),
+      ...FIRE_FRAMES.map((f, i): Entry => [`fire ${i}`, f]),
+    ],
+    animations: [{ label: 'fire', frames: [...FIRE_FRAMES], fps: 7 }],
+  },
+  { title: 'Home props', scale: 4, entries: homePropEntries },
+];
+
+function drawSprite(canvas: HTMLCanvasElement, sprite: RowSprite, scale: number): void {
+  const w = sprite.rows[0]!.length;
+  const h = sprite.rows.length;
+  canvas.width = w * scale;
+  canvas.height = h * scale;
+  const ctx = canvas.getContext('2d')!;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  sprite.rows.forEach((row, y) =>
+    [...row].forEach((ch, x) => {
+      const colour = sprite.colours[ch];
+      if (colour === undefined) return;
+      ctx.fillStyle = hexString(colour);
+      ctx.fillRect(x * scale, y * scale, scale, scale);
+    }),
+  );
+}
+
+function tile(label: string, sprite: RowSprite, scale: number): HTMLElement {
+  const figure = document.createElement('figure');
+  const canvas = document.createElement('canvas');
+  drawSprite(canvas, sprite, scale);
+  const caption = document.createElement('figcaption');
+  caption.textContent = `${label} · ${sprite.rows[0]!.length}×${sprite.rows.length}`;
+  figure.append(canvas, caption);
+  return figure;
+}
+
+const root = document.getElementById('gallery')!;
+for (const section of SECTIONS) {
+  const heading = document.createElement('h2');
+  heading.textContent = section.title;
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+  for (const [label, sprite] of section.entries) grid.append(tile(label, sprite, section.scale));
+  for (const anim of section.animations ?? []) {
+    const figure = tile(`${anim.label} (animated)`, anim.frames[0]!, section.scale);
+    const canvas = figure.querySelector('canvas')!;
+    let frame = 0;
+    setInterval(() => drawSprite(canvas, anim.frames[(frame = (frame + 1) % anim.frames.length)]!, section.scale), 1000 / anim.fps);
+    grid.append(figure);
+  }
+  root.append(heading, grid);
+}
+
+// Toggle between dark and lit wood backgrounds, to check silhouettes read on both.
+const backgrounds = ['#1c1611', '#54463a'];
+let bg = 0;
+document.getElementById('toggle-bg')!.addEventListener('click', () => {
+  bg = (bg + 1) % backgrounds.length;
+  document.body.style.setProperty('--bg', backgrounds[bg]!);
+});

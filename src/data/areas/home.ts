@@ -14,6 +14,7 @@ const LOFT = 150;
 
 export const home: AreaDefinition = {
   id: 'home',
+  name: 'your home',
   width: 480,
   height: 270,
   cavity: { x: 16, y: 12, width: 448, height: FLOOR - 12, radius: 30 },
@@ -116,7 +117,6 @@ export const home: AreaDefinition = {
   people: [{ id: 'mum', sprite: MUM.idle[0]!, idleFrames: MUM.idle, x: 150, y: FLOOR, knot: 'home_mum', flipX: true }],
 
   interactables: [
-    { id: 'door', x: 28, y: FLOOR, reach: 14, label: 'Leave', knot: 'home_door' },
     { id: 'kitchen', x: 58, y: FLOOR, reach: 12, label: 'Look', knot: 'home_kitchen' },
     { id: 'hearth', x: 102, y: FLOOR, reach: 18, label: 'Look', knot: 'home_hearth' },
     { id: 'food-store', x: 382, y: FLOOR, reach: 9, label: 'Look', knot: 'home_food_store' },
@@ -125,4 +125,6 @@ export const home: AreaDefinition = {
     { id: 'bench', x: 184, y: LOFT, reach: 26, label: 'Carve', knot: 'home_bench' },
     { id: 'hiding-spot', x: 266, y: LOFT, reach: 9, label: 'Search', knot: 'home_hiding_spot' },
   ],
+
+  exits: [{ id: 'door', x: 28, y: FLOOR, reach: 14, to: 'offering-floor' }],
 };

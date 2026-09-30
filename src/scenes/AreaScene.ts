@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
-import { AREAS } from '../data/areas';
-import type { AreaDefinition, Feature, Interactable } from '../data/areas/types';
+import { AREAS, PLANNED_AREAS } from '../data/areas';
+import type { AreaDefinition, Exit, Feature } from '../data/areas/types';
 import { Player } from '../objects/Player';
 import { getSession } from '../session';
 import { DebugOverlay } from '../ui/DebugOverlay';
@@ -14,6 +14,17 @@ import { FIRE_FRAMES } from '../ui/sprites';
 
 export interface AreaSceneData {
   areaId: string;
+  /** The area the player came from; they appear at the exit that leads back there. */
+  from?: string;
+}
+
+/** Anything the player can walk up to and press E on. */
+interface Usable {
+  x: number;
+  y: number;
+  reach: number;
+  label: string;
+  use: () => void;
 }
 
 /** Any side-on area, built from its AreaDefinition in src/data/areas. */
@@ -24,8 +35,10 @@ export class AreaScene extends Phaser.Scene {
   private prompt!: PixelText;
   private promptPlate!: Phaser.GameObjects.Rectangle;
   private interactKey!: Phaser.Input.Keyboard.Key;
-  private interactables: Interactable[] = [];
-  private current: Interactable | null = null;
+  private usables: Usable[] = [];
+  private current: Usable | null = null;
+  private from: string | undefined;
+  private leaving = false;
   /** Frame on which the dialogue closed, so the key that closed it doesn't also jump or reopen it. */
   private dialogueClosedFrame = -1;
 
@@ -37,7 +50,9 @@ export class AreaScene extends Phaser.Scene {
     const area = AREAS[data.areaId];
     if (!area) throw new Error(`AreaScene: no area called "${data.areaId}"`);
     this.area = area;
+    this.from = data.from;
     this.current = null;
+    this.leaving = false;
   }
 
   create(): void {
@@ -52,7 +67,10 @@ export class AreaScene extends Phaser.Scene {
 
     for (const feature of area.features) this.addFeature(feature);
 
-    this.interactables = [...area.interactables];
+    const closed = () => (this.dialogueClosedFrame = this.game.loop.frame);
+    const talk = (knot: string) => () => this.dialogue.open(knot, closed);
+    this.usables = area.interactables.map((it) => ({ ...it, use: talk(it.knot) }));
+    for (const exit of area.exits) this.usables.push({ ...exit, label: 'Leave', use: () => this.openDoorMenu(exit) });
     for (const person of area.people) {
       const frames = (person.idleFrames ?? [person.sprite]).map((f, i) => makeSpriteTexture(this, `person-${person.id}-${i}`, f.rows, f.colours));
       const image = this.add.image(person.x, person.y, frames[0]!).setOrigin(0.5, 1).setFlipX(person.flipX ?? false).setDepth(8);
@@ -60,7 +78,7 @@ export class AreaScene extends Phaser.Scene {
         let frame = 0;
         this.time.addEvent({ delay: 650, loop: true, callback: () => image.setTexture(frames[(frame = (frame + 1) % frames.length)]!) });
       }
-      this.interactables.push({ id: person.id, x: person.x, y: person.y, reach: 14, label: 'Talk', knot: person.knot });
+      this.usables.push({ x: person.x, y: person.y, reach: 14, label: 'Talk', use: talk(person.knot) });
     }
 
     const solids = this.physics.add.staticGroup();
@@ -75,7 +93,8 @@ export class AreaScene extends Phaser.Scene {
       }
     }
 
-    this.player = new Player(this, area.playerStart.x, area.playerStart.y);
+    const arrival = area.exits.find((e) => e.to === this.from) ?? area.playerStart;
+    this.player = new Player(this, arrival.x, arrival.y);
     this.physics.add.collider(this.player.sprite, solids);
     if (area.width > GAME_WIDTH || area.height > GAME_HEIGHT) this.cameras.main.startFollow(this.player.sprite, true, 0.1, 0.1);
 
@@ -88,21 +107,21 @@ export class AreaScene extends Phaser.Scene {
 
   override update(): void {
     const interactPressed = Phaser.Input.Keyboard.JustDown(this.interactKey);
-    const blocked = this.dialogue.isOpen || this.game.loop.frame === this.dialogueClosedFrame;
+    const blocked = this.leaving || this.dialogue.isOpen || this.game.loop.frame === this.dialogueClosedFrame;
     this.player.update(blocked);
 
     this.setCurrent(this.dialogue.isOpen || !this.player.onGround ? null : this.nearestInteractable());
     if (this.current && interactPressed && !blocked) {
-      this.dialogue.open(this.current.knot, () => (this.dialogueClosedFrame = this.game.loop.frame));
+      this.current.use();
       this.setCurrent(null);
     }
   }
 
   /** The closest interactable whose zone the player's feet are in, on the same surface. */
-  private nearestInteractable(): Interactable | null {
+  private nearestInteractable(): Usable | null {
     const { x, y } = this.player.feet;
-    let best: Interactable | null = null;
-    for (const it of this.interactables) {
+    let best: Usable | null = null;
+    for (const it of this.usables) {
       const dx = Math.abs(x - it.x);
       if (Math.abs(y - it.y) > 4 || dx > it.reach) continue;
       if (!best || dx < Math.abs(x - best.x)) best = it;
@@ -110,7 +129,7 @@ export class AreaScene extends Phaser.Scene {
     return best;
   }
 
-  private setCurrent(it: Interactable | null): void {
+  private setCurrent(it: Usable | null): void {
     if (it === this.current) return;
     this.current = it;
     if (!it) {
@@ -122,6 +141,33 @@ export class AreaScene extends Phaser.Scene {
     const x = Phaser.Math.Clamp(Math.round(it.x - this.prompt.width / 2), 2, this.area.width - this.prompt.width - 2);
     this.prompt.setPosition(x, it.y - 38);
     this.promptPlate.setPosition(x - 2, it.y - 40).setSize(this.prompt.width + 4, this.prompt.height + 3).setVisible(true);
+  }
+
+  /** Using a door: go straight next door, open the map, or stay. */
+  private openDoorMenu(exit: Exit): void {
+    const closed = () => (this.dialogueClosedFrame = this.game.loop.frame);
+    const name = PLANNED_AREAS[exit.to] ?? exit.to;
+    const built = exit.to in AREAS;
+    this.dialogue.openMenu(
+      '[PLACEHOLDER] Where to?',
+      [
+        {
+          label: built ? `Go to ${name}` : `Go to ${name} (not built yet)`,
+          run: () => (built ? this.goTo(exit.to) : this.dialogue.say(`${capitalise(name)} isn't built yet.`, closed)),
+        },
+        { label: 'Open the map (not built yet)', run: () => this.dialogue.say("The map isn't built yet.", closed) },
+        { label: 'Stay', run: () => {} },
+      ],
+      closed,
+    );
+  }
+
+  private goTo(areaId: string): void {
+    this.leaving = true;
+    this.cameras.main.fadeOut(350, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.restart({ areaId, from: this.area.id } satisfies AreaSceneData);
+    });
   }
 
   private addFeature(feature: Feature): void {
@@ -188,3 +234,4 @@ export class AreaScene extends Phaser.Scene {
   }
 }
 
+const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);

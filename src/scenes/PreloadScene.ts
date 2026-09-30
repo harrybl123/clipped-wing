@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { AREAS } from '../data/areas';
 import { SHADES } from '../ui/pixelArt';
 import { PIXEL } from '../ui/pixelTextures';
 
@@ -24,6 +25,9 @@ export class PreloadScene extends Phaser.Scene {
     g.fillStyle(0xffffff).fillRect(0, 0, 1, 1);
     g.generateTexture(PIXEL, 1, 1);
     g.destroy();
-    this.scene.start('Title');
+    // Dev builds only: ?area=<id> skips the title and opens that area directly.
+    const areaId = import.meta.env.DEV ? new URLSearchParams(window.location.search).get('area') : null;
+    if (areaId && areaId in AREAS) this.scene.start('Area', { areaId });
+    else this.scene.start('Title');
   }
 }
