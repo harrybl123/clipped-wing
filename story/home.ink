@@ -43,3 +43,7 @@
 === home_hiding_spot ===
 [PLACEHOLDER] A loose board. Something could be hidden under here.
 -> END
+
+=== home_seat ===
+[PLACEHOLDER] The old root seat by the candle. The cosiest spot in the house.
+-> END

@@ -22,6 +22,7 @@ export class AreaScene extends Phaser.Scene {
   private player!: Player;
   private dialogue!: DialogueBox;
   private prompt!: PixelText;
+  private promptPlate!: Phaser.GameObjects.Rectangle;
   private interactKey!: Phaser.Input.Keyboard.Key;
   private interactables: Interactable[] = [];
   private current: Interactable | null = null;
@@ -75,7 +76,8 @@ export class AreaScene extends Phaser.Scene {
     if (area.width > GAME_WIDTH || area.height > GAME_HEIGHT) this.cameras.main.startFollow(this.player.sprite, true, 0.1, 0.1);
 
     this.interactKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.E);
-    this.prompt = new PixelText(this, 0, 0, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(20).setVisible(false);
+    this.promptPlate = this.add.rectangle(0, 0, 1, 1, SHADES.shadow, 0.85).setOrigin(0).setDepth(19).setVisible(false);
+    this.prompt = new PixelText(this, 0, 0, '', { color: SHADES.white }).setDepth(20).setVisible(false);
     this.dialogue = new DialogueBox(this, session.story);
     new DebugOverlay(this, session, () => (this.dialogue.isOpen ? 'Close the conversation first.' : null));
   }
@@ -109,11 +111,13 @@ export class AreaScene extends Phaser.Scene {
     this.current = it;
     if (!it) {
       this.prompt.setVisible(false);
+      this.promptPlate.setVisible(false);
       return;
     }
     this.prompt.setText(`[E] ${it.label}`).setVisible(true);
     const x = Phaser.Math.Clamp(Math.round(it.x - this.prompt.width / 2), 2, this.area.width - this.prompt.width - 2);
     this.prompt.setPosition(x, it.y - 38);
+    this.promptPlate.setPosition(x - 2, it.y - 40).setSize(this.prompt.width + 4, this.prompt.height + 3).setVisible(true);
   }
 
   private addFeature(feature: Feature): void {

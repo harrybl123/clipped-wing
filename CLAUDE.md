@@ -55,13 +55,15 @@ The game is pixel art, so darker and lighter **shades** of these colours are all
 
 ## Conventions
 
-- Scenes in `src/scenes/`, systems in `src/systems/`, data in `src/data/`, ink in `story/`.
+- Scenes in `src/scenes/`, systems in `src/systems/`, game objects in `src/objects/`, data in `src/data/`, ink in `story/`.
 - British English in all player-facing text.
 - Keep this file current: when an architectural decision is made, record it under "Decisions" below.
 
 ## Decisions
 
 (Record decisions here as they're made, newest first.)
+
+- **2026-09-30 — Areas are data.** Each area is a typed `AreaDefinition` in `src/data/areas/` (registered in `index.ts`), built by one generic `AreaScene` (start it with `{ areaId }`). It holds: the carved `cavity` (heartwood outside it), `solids` (`oneWay` platforms can be jumped up through; `invisible` ones aren't painted), dithered `lights`, baked `lines` and `props` (row sprites), animated `features` (`fire`, `swing`, `drip`, `jars` driven by an ink variable), `people` and `interactables` (each runs an ink knot; the nearest one on the same surface shows an `[E]` prompt). `src/ui/paintArea.ts` paints the backdrop from the data. Area art is small and dense (about one screen, lots of character) rather than big empty halls. `tests/areas.test.ts` checks every area: sprites well-formed, props in bounds, things standing on solids, and every knot and variable existing in the compiled ink. Area knots live in `story/<area>.ink`, INCLUDEd from `main.ink`. The player controller is `src/objects/Player.ts`.
 
 - **2026-09-30 — Pixel art.** The whole game is 2D pixel art at a native **480×270**, with `pixelArt: true` and `roundPixels`, scaled up by whole numbers only (`integerZoom()` in `config.ts`, re-applied on window resize) so pixels stay square. Physics is scaled to match (gravity 450). Colours come from the palette plus `SHADES` (`src/ui/pixelArt.ts`); dithered backdrops never use red. **Backdrops** are painted per pixel in code: a scene supplies `colourAt(x, y)` (base wood, grain, vignette, light sources via `falloff`/`addLight`), and `makePaintedTexture` ordered-dithers it to `BACKDROP_PALETTE`. **Sprites** are rows of characters in `src/ui/sprites.ts`, turned into textures with `makeSpriteTexture` or stamped into backdrops with `stampRows`. **Text** uses a hand-drawn 5×7 pixel font (`src/ui/pixelFont.ts`, pure and unit-tested) through the `PixelText` game object, never Phaser's `Text`. The palette lives in a Phaser-free `src/palette.ts`, re-exported by `config.ts`. This supersedes the 1920×1080 painterly rendering below. Parked menu/flow ideas are in `docs/ideas.md`.
 

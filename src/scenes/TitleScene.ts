@@ -58,8 +58,10 @@ export class TitleScene extends Phaser.Scene {
 
     new PixelText(this, 32, 56, 'Clipped Wing', { color: SHADES.white, scale: 3, shadow: SHADES.shadow });
 
-    this.pressAnyKey = new PixelText(this, MENU_X, MENU_Y, 'press any key', { color: SHADES.light });
-    this.tweens.add({ targets: this.pressAnyKey, alpha: 0, duration: 700, yoyo: true, repeat: -1, ease: 'Stepped', easeParams: [3] });
+    this.pressAnyKey = new PixelText(this, MENU_X, MENU_Y, 'press any key', { color: SHADES.white, shadow: SHADES.shadow });
+    // A slow, gentle breath rather than a blink.
+    this.pressAnyKey.setAlpha(0);
+    this.tweens.add({ targets: this.pressAnyKey, alpha: 1, duration: 1200, delay: 900, ease: 'Sine.easeOut', onComplete: () => this.tweens.add({ targets: this.pressAnyKey, alpha: 0.5, duration: 2200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }) });
 
     this.menu = [
       { label: 'New Game', action: () => this.startGame() },
@@ -113,9 +115,13 @@ export class TitleScene extends Phaser.Scene {
 
   private openMenu(): void {
     this.phase = 'menu';
+    this.tweens.killTweensOf(this.pressAnyKey);
     this.pressAnyKey.destroy();
-    for (const item of this.items) item.setVisible(true);
-    this.bird.setVisible(true);
+    // Fade the menu in, one item after another.
+    for (const [i, item] of [this.bird, ...this.items].entries()) {
+      item.setVisible(true).setAlpha(0);
+      this.tweens.add({ targets: item, alpha: 1, duration: 450, delay: i * 70, ease: 'Sine.easeOut' });
+    }
     this.select(0);
   }
 

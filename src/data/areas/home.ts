@@ -32,7 +32,8 @@ export const home: AreaDefinition = {
     { x: 102, y: 150, colour: S.amber, radius: 60, radiusY: 40, strength: 0.15 }, // hearth glow on the loft
     { x: 118, y: 60, colour: S.green, radius: 34, strength: 0.32 }, // fungus lamp
     { x: 456, y: 88, colour: S.green, radius: 24, radiusY: 46, strength: 0.4 }, // light through the crack
-    { x: 448, y: 232, colour: S.green, radius: 16, radiusY: 10, strength: 0.3 }, // fungi by the crack
+    { x: 438, y: 232, colour: S.green, radius: 14, radiusY: 9, strength: 0.28 }, // fungi by the crack
+    { x: 420, y: 216, colour: S.amber, radius: 22, radiusY: 18, strength: 0.32 }, // candle in the nook
     { x: 247, y: 104, colour: S.cyan, radius: 16, strength: 0.3 }, // scavenged light cell
   ],
 
@@ -67,8 +68,14 @@ export const home: AreaDefinition = {
     { sprite: P.shelf(56), x: 390, y: 176 },
     { sprite: P.PATCH, x: 382, y: 96 },
     { sprite: P.CRACK, x: 452, y: 64 },
-    { sprite: FUNGUS, x: 440, y: FLOOR - 4 },
-    { sprite: FUNGUS, x: 449, y: FLOOR - 4 },
+    { sprite: FUNGUS, x: 434, y: FLOOR - 4 },
+    { sprite: FUNGUS, x: 441, y: FLOOR - 4 },
+    // The living nook under the shelves
+    { sprite: P.MENDING_BASKET, x: 377, y: FLOOR - 6 },
+    { sprite: P.SEAT, x: 390, y: FLOOR - 12 },
+    { sprite: P.SIDE_TABLE, x: 416, y: FLOOR - 12 },
+    { sprite: P.TRAY, x: 416, y: FLOOR - 14 },
+    { sprite: P.CANDLE, x: 419, y: FLOOR - 19 },
     { sprite: P.HERBS, x: 148, y: 19 },
     { sprite: P.HERBS, x: 160, y: 23 },
     { sprite: P.HERBS, x: 172, y: 17 },
@@ -99,7 +106,8 @@ export const home: AreaDefinition = {
   interactables: [
     { id: 'door', x: 28, y: FLOOR, reach: 14, label: 'Leave', knot: 'home_door' },
     { id: 'hearth', x: 102, y: FLOOR, reach: 18, label: 'Look', knot: 'home_hearth' },
-    { id: 'food-store', x: 418, y: FLOOR, reach: 26, label: 'Look', knot: 'home_food_store' },
+    { id: 'food-store', x: 382, y: FLOOR, reach: 9, label: 'Look', knot: 'home_food_store' },
+    { id: 'seat', x: 401, y: FLOOR, reach: 10, label: 'Sit', knot: 'home_seat' },
     { id: 'bed', x: 46, y: LOFT, reach: 26, label: 'Sleep', knot: 'home_bed' },
     { id: 'bench', x: 184, y: LOFT, reach: 26, label: 'Carve', knot: 'home_bench' },
     { id: 'hiding-spot', x: 266, y: LOFT, reach: 9, label: 'Search', knot: 'home_hiding_spot' },

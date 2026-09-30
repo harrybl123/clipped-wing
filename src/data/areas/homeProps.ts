@@ -188,3 +188,51 @@ export const LOOSE_BOARD: RowSprite = {
   rows: ['sppppppppppps', 'sddddddddddds'],
   colours: { s: S.shadow, p: S.woodPale, d: S.deep },
 };
+
+// --- The living nook under the food shelves ---
+
+/** A low seat carved from a root knot, with a patched cushion. */
+export const SEAT: RowSprite = {
+  rows: fill(22, 12, (x, y) => {
+    if (y === 0) return x >= 2 && x <= 19 ? 'k' : '.';
+    if (y <= 2) return x >= 1 && x <= 20 ? ['c', 'a', 'g', 'w'][Math.floor((x - 1) / 5) % 4]! : '.';
+    if (y === 3) return 'h';
+    if (y <= 9) {
+      if (x === 0 || x === 21) return 'd';
+      const ring = Math.hypot((x - 10.5) / 2.2, (y - 6.5) / 1.6);
+      return ring > 0.8 && ring < 1.4 ? 'd' : 'l';
+    }
+    if (y === 10) return (x >= 1 && x <= 4) || (x >= 17 && x <= 20) ? 'l' : '.';
+    return (x >= 0 && x <= 5) || (x >= 16 && x <= 21) ? 'd' : '.';
+  }),
+  colours: { k: S.woodPale, c: S.cyanDeep, a: S.amberDeep, g: S.greenDeep, w: S.woodLight, h: S.woodPale, l: S.woodLight, d: S.deep },
+};
+
+/** A little side table grown from a root stalk. */
+export const SIDE_TABLE: RowSprite = {
+  rows: fill(10, 12, (x, y) => {
+    if (y === 0) return 'h';
+    if (y === 1) return 'p';
+    if (y === 2) return x >= 1 && x <= 8 ? 'd' : '.';
+    if (y <= 10) return x === 4 || x === 5 ? 'l' : '.';
+    return x >= 2 && x <= 7 ? 'l' : '.';
+  }),
+  colours: { h: S.dim, p: S.woodPale, d: S.deep, l: S.woodLight },
+};
+
+/** A cracked, faintly glowing gift from the tube, used as a candle tray. */
+export const TRAY: RowSprite = {
+  rows: ['cccccdcccc', 'mmmmmmmmmm'],
+  colours: { c: S.cyan, d: S.cyanDeep, m: S.cyanMid },
+};
+
+export const CANDLE: RowSprite = {
+  rows: ['.a.', '.w.', 'lll', 'lll', 'lll'],
+  colours: { a: S.amber, w: S.white, l: S.light },
+};
+
+/** Mum's mending basket, with yarn and a needle. */
+export const MENDING_BASKET: RowSprite = {
+  rows: ['......n..', '.yy...n..', 'yyyy..n..', 'awawawawa', 'wawawawaw', '.awawawa.'],
+  colours: { n: S.light, y: S.cyanDeep, a: S.amberDeep, w: S.woodPale },
+};
