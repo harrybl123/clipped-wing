@@ -4,19 +4,25 @@
 // Mum tenderly teaching you to carve, praise and hints of your talent, the slip that takes your
 // left thumb and forefinger, black, then your older self's narration and how the tree works.
 //
-// Tags (see PrologueScene): #name:Mum (a voice, no face) · #step:turn · #step:carve · #step:slip
+// No hands or faces on screen: just the bird, the knife, and the two voices (you and Mum).
+//
+// Tags (see PrologueScene): #name:Mum / #name:You (a voice, no face) · #step:turn · #step:carve · #step:slip
 // · #black · #narration · #tableau:tree / #tableau:tube · #end
 // ============================================================================
 
 === prologue ===
 [PLACEHOLDER] "Like this. Hold it gently, like it might fly off." #name:Mum
+[PLACEHOLDER] "Like this?" #name:You
 [PLACEHOLDER] "Turn it to the fire so you can see the grain." #name:Mum #step:turn
 [PLACEHOLDER] "Good. You see it already, don't you?" #name:Mum
+[PLACEHOLDER] "The lines go that way. Like feathers." #name:You
 [PLACEHOLDER] "Now along the wing. Slowly. Let the blade do the work." #name:Mum #step:carve
 [PLACEHOLDER] "Well done! Look at that line. Better than mine at your age." #name:Mum
+[PLACEHOLDER] "Really? Better than yours?" #name:You
 [PLACEHOLDER] "The gods will love your birds one day. I know it." #name:Mum
 [PLACEHOLDER] "Turn it round, the other wing." #name:Mum #step:turn
 [PLACEHOLDER] "Same again, just as slow..." #name:Mum #step:slip
+[PLACEHOLDER] "Mum! Mum, it hurts!" #name:You
 [PLACEHOLDER] "No, no, no! Give it here, give me your hand!" #name:Mum
 [PLACEHOLDER] (Your older voice.) That day, the roots claimed me for good. #black #narration
 [PLACEHOLDER] I still see every bird perfectly in my head. My hands just can't make it. #narration

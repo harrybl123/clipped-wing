@@ -23,6 +23,7 @@ The tree is a meritocracy of craft: the better you make, the higher you live and
 - **Blessings come down.** Food, cloth, tools and light (glowing objects nobody in the tree could make). Everyone assumes these are divine. They are actually machine-made goods from outside.
 - **Technology rises with height.** People believe a god gives them technological gifts. The upper branches are the most technological; the roots are mainly natural, with scavenged odd bits here and there that have made their way back down. (Added 2026-09-30.)
 - **Rejection is unheard of.** No offering has been returned in living memory. A rejected piece is a divine verdict, so it is unclean: nobody will touch or open it, and it goes straight back to its shamed maker. This is the outsider's cover.
+- **Fairness, brutally.** The tree sees itself as perfectly fair: you receive according to what you contribute. A brilliant carver makes better things, moves higher, and receives better materials, food, housing and status. It's a brutal meritocracy, and meritocracy assumes everyone has an equal chance to show their merit. The protagonist doesn't. (Added 2026-09-30.)
 - **Devotion is total.** Everyone is insufferably in awe of the Tree. Doubt is unthinkable. Blessings have been shrinking for everyone lately, and people are hungry and scared.
 - **The Ascension.** The tree's finest makers are chosen to give themselves to the tube, a sacred sacrifice everyone mourns and celebrates. In truth, they are captured and taken outside.
 - **The judgement of skill is really outside taste.** What the tree believes is divine merit is what the Integrated find fashionable.
@@ -40,7 +41,7 @@ Outside is a society so fused with technology it has lost the ability to make th
 
 A woodcarver whose missing thumb leaves the same flaw in every bird they make.
 
-- **The accident (prologue).** As an over-eager child, carving before they were ready, a slip of the blade takes their thumb.
+- **The accident (prologue).** As an over-eager child, carving before they were ready, a slip of the blade takes their left thumb and index finger. (Changed from the thumb alone, 2026-09-30.)
 - **The flaw.** Every bird they carve carries the same mistake (for example, a heavy left wing). In the tree's eyes this makes them a lesser crafter.
 - **The roots.** Their low standing puts them at the bottom of the tree, carving from the only wood they're allowed, which is rotting.
 - **Why it matters.** The flaw that makes them worthless in the tree is what makes them findable from outside.
@@ -153,8 +154,8 @@ Act 1 is a prologue and seven days, about 45 minutes. By day you survive; by nig
 
 **Prologue: The Slip**
 
-- A child carving too early; a slip of the blade takes the thumb.
-- A small reaction choice (brave face, joke, tears) introduces the three dialogue styles.
+- A child carving too early; a slip of the blade takes the left thumb and index finger.
+- (2026-09-30) The reaction choice that introduces the three dialogue styles moves to Day 1 morning: Mum asks how you're feeling.
 
 **Day 1: Ascension Day** (setup)
 

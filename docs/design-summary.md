@@ -15,7 +15,7 @@ This is a condensed version of the full design doc, written as build context. Wh
 
 ## The protagonist
 
-- A woodcarver, an only child living with their mum in the roots. Lost a thumb in a childhood carving accident, so every bird they carve has the same flaw: a heavy, clipped wing.
+- A woodcarver, an only child living with their mum in the roots. Lost their left thumb and index finger in a childhood carving accident, so every bird they carve has the same flaw: a heavy, clipped wing.
 - Naturally doubtful. Dialogue offers three styles throughout: **hide it** (perform devotion; lowers suspicion), **joke about it** (wry deflection), **voice it** (blunt questions; raises suspicion, earns trust from the girl and the archivist).
 
 ## The outsider: Grounded
@@ -40,7 +40,7 @@ Each day: **morning** (choose your offering: a proper bird or a message bird), *
 
 | Day | Focus | Morning: you send | Evening: comes down | Night set piece |
 | --- | --- | --- | --- | --- |
-| Prologue | The slip | — | — | Losing the thumb; first dialogue-style choice |
+| Prologue | The slip | — | — | Losing the thumb and index finger (the first dialogue-style choice is now Day 1 morning, with Mum) |
 | 1 | Ascension Day (setup) | Your usual bird | A small blessing; the Ascension | The climb (platformer tutorial) |
 | 2 | The rejection | Your usual bird | Rejected: message 1 | The fire, then the first decoding |
 | 3 | Your friend | The fledgling (or usual bird) | Message 2 | The visit (hide the evidence; confide or lie) |

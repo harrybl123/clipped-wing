@@ -44,7 +44,7 @@ the back routes; Night 1 and the Day 7 chase on the trunk climb). Ideas to explo
   shove, grab; you can't make a proper fist), or being caught and chased.
 - Ties to the weak grip (no thumb) and the rot (worse the deeper you go).
 
-## The accident: thumb and index finger (noted 2026-09-30)
+## The accident: thumb and index finger (noted 2026-09-30; confirmed, now in the design doc)
 
 The designer is thinking that in the prologue the accident takes the protagonist's **left thumb and
 index finger**, not just the thumb (the design doc and summary still say "thumb"; update them if

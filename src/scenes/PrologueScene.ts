@@ -5,16 +5,17 @@ import { tubeColumn } from '../data/areas/offeringFloorProps';
 import { getSession } from '../session';
 import { DialogueBox } from '../ui/DialogueBox';
 import { addLight, falloff, noise, rgb, SHADES, type RGB } from '../ui/pixelArt';
-import { makePaintedTexture, makeSpriteTexture, PIXEL } from '../ui/pixelTextures';
+import { makePaintedTexture, makeSpriteTexture } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
 import * as Art from '../ui/prologueArt';
 import { BIRD, MORE_ARROW, type RowSprite } from '../ui/sprites';
 import type { AreaSceneData } from './AreaScene';
 import { paintTree } from './MapScene';
 
-// The prologue: a close-up memory. You and Mum at the workbench, her hands around yours, carving a
-// bird together by firelight. You follow her instructions (turn the bird; hold E to carve along the
-// wing) while she praises you, until the slip takes your left thumb and forefinger. Black. Then your
+// The prologue: a close-up memory. The workbench by firelight, the half-carved bird big in the middle,
+// the carving knife beside it; no hands, no faces, just you and Mum talking. You follow her
+// instructions (turn the bird; hold E to carve along the wing) while she praises you, until the knife
+// slips and takes your left thumb and forefinger (blood drops onto the bird). Black. Then your
 // older self's narration on black, and the world explained over two stills (the tree; the tube),
 // before you wake at home on Day 1.
 //
@@ -23,7 +24,7 @@ import { paintTree } from './MapScene';
 //   #name:Mum        a voice with no face (shown in the dialogue box)
 //   #step:turn       show the line and wait for the player to turn the bird (left/right)
 //   #step:carve      show the line and wait for the player to carve along the wing (hold E)
-//   #step:slip       as carve, but the chisel slips partway
+//   #step:slip       as carve, but the knife slips partway
 //   #black           cut to black before this line
 //   #narration       show the line as narration (on black, or under a still)
 //   #tableau:<id>    show a still (tree, tube) with this line
@@ -31,24 +32,33 @@ import { paintTree } from './MapScene';
 
 /** Carving speed: fraction of the wing per second while E is held. */
 const CARVE_SPEED = 0.32;
-/** How far along the wing the chisel slips on the last cut. */
+/** How far along the wing the knife slips on the last cut. */
 const SLIP_AT = 0.6;
+/** Little chips of wood the knife cuts out (pale fresh wood, a darker edge). */
+const CHIPS: RowSprite[] = [
+  { rows: ['.pp', 'ppl', 'l..'], colours: { p: SHADES.light, l: SHADES.woodPale } },
+  { rows: ['pp.', '.pl'], colours: { p: SHADES.light, l: SHADES.woodPale } },
+  { rows: ['.p..', 'pppl', '..l.'], colours: { p: SHADES.woodPale, l: SHADES.woodLight } },
+  { rows: ['p', 'l'], colours: { p: SHADES.light, l: SHADES.woodPale } },
+];
 
-type Step = { kind: 'turn'; target: 'left' | 'right' } | { kind: 'carve' | 'slip'; facing: 'left' | 'right'; progress: number; lastScrape: number };
+type Step = { kind: 'turn'; target: 'left' | 'right' } | { kind: 'carve' | 'slip'; facing: 'left' | 'right'; progress: number; lastChip: number };
 
 export class PrologueScene extends Phaser.Scene {
   private dialogue!: DialogueBox;
   private layers!: { closeup: Phaser.GameObjects.Container; tableau: Phaser.GameObjects.Container; black: Phaser.GameObjects.Rectangle };
   private bird!: Phaser.GameObjects.Image;
   private facing: 'left' | 'right' = 'left';
-  private wingsCarved = 0;
-  private leftHand!: Phaser.GameObjects.Image;
-  private carvingHand!: Phaser.GameObjects.Container;
+  /** Which sides of the bird have had their wing carved. */
+  private carved = { left: false, right: false };
+  private knife!: Phaser.GameObjects.Image;
   private guide!: Phaser.GameObjects.Graphics;
   private hint!: PixelText;
   private narration!: PixelText;
   private narrationArrow!: Phaser.GameObjects.Image;
   private step: Step | null = null;
+  /** When the current step began (so the click that started it doesn't also count). */
+  private stepStarted = 0;
   private waitingForNarration = false;
   private endAfterNarration = false;
   private keys!: Record<'left' | 'right' | 'a' | 'd' | 'e' | 'space', Phaser.Input.Keyboard.Key>;
@@ -60,7 +70,7 @@ export class PrologueScene extends Phaser.Scene {
   create(): void {
     this.step = null;
     this.facing = 'left';
-    this.wingsCarved = 0;
+    this.carved = { left: false, right: false };
     this.waitingForNarration = false;
     this.endAfterNarration = false;
     const K = Phaser.Input.Keyboard.KeyCodes;
@@ -81,8 +91,11 @@ export class PrologueScene extends Phaser.Scene {
       if (e.repeat || !this.waitingForNarration) return;
       if ([' ', 'enter', 'e'].includes(e.key.toLowerCase())) this.continueNarration();
     });
-    this.input.on('pointerdown', () => this.waitingForNarration && this.continueNarration());
-
+    this.input.on('pointerdown', () => {
+      if (this.waitingForNarration) this.continueNarration();
+      // A click turns the bird, unless it's the same click that just closed the previous line.
+      else if (this.step?.kind === 'turn' && this.time.now - this.stepStarted > 150) this.turnBird(this.step.target);
+    });
 
     getSession(this).story.startKnot('prologue');
     this.cameras.main.fadeIn(1600);
@@ -91,7 +104,7 @@ export class PrologueScene extends Phaser.Scene {
 
   // --- The close-up ---
 
-  /** The bench, the bird, and the hands (full-screen layers, drawn in this order so the hands are over the bird). */
+  /** The bench, the bird and the knife. */
   private buildCloseup(): Phaser.GameObjects.Container {
     const closeup = this.add.container(0, 0);
     const tex = (key: string, s: RowSprite) => makeSpriteTexture(this, key, s.rows, s.colours);
@@ -100,34 +113,32 @@ export class PrologueScene extends Phaser.Scene {
     closeup.add(this.add.image(96, 170, tex('prologue-shavings', Art.SHAVINGS)).setOrigin(0));
     closeup.add(this.add.image(360, 150, tex('prologue-shavings', Art.SHAVINGS)).setOrigin(0).setFlipX(true));
     closeup.add(this.add.image(370, 40, tex('prologue-spare-chisel', Art.SPARE_CHISEL)).setOrigin(0).setAngle(-12));
-    this.bird = this.add.image(0, 0, this.birdTexture('left')).setOrigin(0);
+    // Anchored on its centre line so it can turn (narrow and widen) about it.
+    this.bird = this.add.image(Art.BIRD_CX, 0, this.birdTexture('left')).setOrigin(Art.BIRD_CX / W, 0);
     closeup.add(this.bird);
     this.guide = this.add.graphics();
     closeup.add(this.guide);
-    this.leftHand = this.add.image(0, 0, tex('prologue-child-left', Art.childLeftLayer(false))).setOrigin(0);
-    closeup.add(this.leftHand);
-    closeup.add(this.add.image(0, 0, tex('prologue-mum-left', Art.mumLeftLayer())).setOrigin(0));
-    this.carvingHand = this.add.container(0, 0);
-    this.carvingHand.add(this.add.image(0, 0, tex('prologue-carving', Art.carvingLayer())).setOrigin(0));
-    closeup.add(this.carvingHand);
-    this.restCarvingHand();
+    this.knife = this.add.image(0, 0, tex('prologue-knife', Art.CARVING_KNIFE)).setOrigin(0);
+    closeup.add(this.knife);
+    this.restKnife();
     return closeup;
   }
 
   private birdTexture(facing: Art.BirdFacing): string {
-    const sprite = Art.birdLayer(facing, this.wingsCarved);
-    return makeSpriteTexture(this, `prologue-bird-${facing}-${this.wingsCarved}`, sprite.rows, sprite.colours);
+    const carved = facing !== 'turning' && this.carved[facing];
+    const sprite = Art.birdLayer(facing, carved);
+    return makeSpriteTexture(this, `prologue-bird-${facing}-${carved ? 'carved' : 'rough'}`, sprite.rows, sprite.colours);
   }
 
-  /** Moves the carving layer so the chisel tip is at (x, y). */
-  private chiselTo(x: number, y: number): void {
-    this.carvingHand.setPosition(x - Art.CHISEL_TIP.x, y - Art.CHISEL_TIP.y);
+  /** Moves the knife so its tip is at (x, y). */
+  private knifeTo(x: number, y: number): void {
+    this.knife.setPosition(Math.round(x - Art.KNIFE_TIP.x), Math.round(y - Art.KNIFE_TIP.y));
   }
 
-  /** Puts the chisel hand back to rest, just above the start of the wing. */
-  private restCarvingHand(): void {
+  /** Rests the knife just above the start of the wing. */
+  private restKnife(): void {
     const start = this.wingPoint(0);
-    this.chiselTo(start.x + 14, start.y - 12);
+    this.knifeTo(start.x + (this.facing === 'left' ? 16 : 10), start.y - 22);
   }
 
   private wingPoint(t: number): { x: number; y: number } {
@@ -135,14 +146,21 @@ export class PrologueScene extends Phaser.Scene {
     return path[Math.min(path.length - 1, Math.max(0, Math.round(t * (path.length - 1))))]!;
   }
 
-  /** Draws the carving line along the wing: dotted ahead of the chisel, solid behind it. */
+  /**
+   * Draws the carving line along the wing: a faint dotted guide ahead of the knife, and behind it the
+   * groove actually cut into the wood (a dark cut with a pale lip below where the wood's been shaved).
+   */
   private drawGuide(progress: number): void {
     const path = Art.wingPath(this.facing);
     this.guide.clear();
     path.forEach((p, i) => {
       const done = i / (path.length - 1) <= progress;
-      if (!done && i % 2 === 1) return;
-      this.guide.fillStyle(done ? SHADES.deep : SHADES.white, done ? 1 : 0.8).fillRect(p.x, p.y, 1, 1);
+      if (done) {
+        this.guide.fillStyle(SHADES.shadow).fillRect(p.x, p.y - 1, 1, 2);
+        this.guide.fillStyle(SHADES.light).fillRect(p.x, p.y + 1, 1, 1);
+      } else if (i % 3 === 0) {
+        this.guide.fillStyle(SHADES.white, 0.7).fillRect(p.x, p.y, 1, 1);
+      }
     });
   }
 
@@ -171,14 +189,16 @@ export class PrologueScene extends Phaser.Scene {
     if (step === 'turn') {
       this.dialogue.hold(line.text, tags);
       this.step = { kind: 'turn', target: this.facing === 'left' ? 'right' : 'left' };
-      this.showHint('< >  turn the bird');
+      this.stepStarted = this.time.now;
+      this.showHint('< > (or click)  turn the bird');
       return;
     }
     if (step === 'carve' || step === 'slip') {
       this.dialogue.hold(line.text, tags);
-      this.step = { kind: step, facing: this.facing, progress: 0, lastScrape: 0 };
+      this.step = { kind: step, facing: this.facing, progress: 0, lastChip: 0 };
+      this.stepStarted = this.time.now;
       this.drawGuide(0);
-      this.showHint('hold E  carve');
+      this.showHint('hold E (or the mouse)  carve');
       return;
     }
     this.dialogue.line(line.text, tags, () => this.next());
@@ -194,22 +214,24 @@ export class PrologueScene extends Phaser.Scene {
       if ((step.target === 'right' && wantsRight) || (step.target === 'left' && wantsLeft)) this.turnBird(step.target);
       return;
     }
-    // Carving: hold E (or Space) to move the chisel along the wing.
-    if (!(this.keys.e.isDown || this.keys.space.isDown)) return;
+    // Carving: hold E, Space or the mouse button to move the knife along the wing (not with the key or
+    // click that closed the previous line).
+    const pointerHeld = this.input.activePointer.isDown && this.input.activePointer.downTime > this.stepStarted;
+    if (!(this.keys.e.isDown || this.keys.space.isDown || pointerHeld)) return;
     step.progress = Math.min(1, step.progress + (CARVE_SPEED * delta) / 1000);
     const tip = this.wingPoint(step.progress);
-    this.chiselTo(tip.x + Phaser.Math.Between(0, 1), tip.y);
+    this.knifeTo(tip.x + Phaser.Math.Between(0, 1), tip.y);
     this.drawGuide(step.progress);
-    if (time - step.lastScrape > 110) {
-      step.lastScrape = time;
-      this.shaving(tip);
+    if (time - step.lastChip > 140) {
+      step.lastChip = time;
+      this.chip(tip);
     }
     if (step.kind === 'slip' && step.progress >= SLIP_AT) return this.slip();
     if (step.progress >= 1) {
-      this.wingsCarved += 1;
+      this.carved[this.facing] = true;
       this.bird.setTexture(this.birdTexture(this.facing));
       this.guide.clear();
-      this.restCarvingHand();
+      this.restKnife();
       this.endStep();
     }
   }
@@ -221,47 +243,100 @@ export class PrologueScene extends Phaser.Scene {
     this.time.delayedCall(250, () => this.next());
   }
 
+  /**
+   * Turns the bird round smoothly: it narrows as it turns edge-on, swaps to its other side at the
+   * thinnest point, then widens again. The knife lifts away while it turns.
+   */
   private turnBird(to: 'left' | 'right'): void {
     this.step = null;
-    this.bird.setTexture(this.birdTexture('turning'));
-    this.tweens.add({ targets: this.carvingHand, alpha: 0.4, duration: 120, yoyo: true });
-    this.time.delayedCall(170, () => {
-      this.facing = to;
-      this.bird.setTexture(this.birdTexture(to));
-      this.restCarvingHand();
-      this.endStep();
+    this.hint.setVisible(false);
+    this.tweens.add({ targets: this.knife, alpha: 0, duration: 150 });
+    this.tweens.chain({
+      targets: this.bird,
+      tweens: [
+        { scaleX: 0.06, duration: 260, ease: 'Sine.easeIn' },
+        {
+          scaleX: 1, duration: 320, ease: 'Sine.easeOut',
+          onStart: () => {
+            this.facing = to;
+            this.bird.setTexture(this.birdTexture(to));
+          },
+        },
+      ],
+      onComplete: () => {
+        this.restKnife();
+        this.tweens.add({ targets: this.knife, alpha: 1, duration: 200 });
+        this.endStep();
+      },
     });
   }
 
-  /** A curl of wood peeling off the chisel. */
-  private shaving(at: { x: number; y: number }): void {
-    const bit = this.add.image(at.x, at.y, PIXEL).setTint(Math.random() < 0.5 ? SHADES.woodPale : SHADES.light).setDepth(5);
-    this.tweens.add({ targets: bit, x: at.x + Phaser.Math.Between(4, 14), y: at.y + Phaser.Math.Between(6, 18), alpha: 0, duration: 700, onComplete: () => bit.destroy() });
+  /** A chip of wood cut out by the knife: it flicks away in a little arc and lands on the bench, where it stays. */
+  private chip(at: { x: number; y: number }): void {
+    const shape = CHIPS[Phaser.Math.Between(0, CHIPS.length - 1)]!;
+    const key = makeSpriteTexture(this, `prologue-chip-${CHIPS.indexOf(shape)}`, shape.rows, shape.colours);
+    const bit = this.add.image(at.x, at.y, key).setDepth(6);
+    const dx = Phaser.Math.Between(-26, 26);
+    const land = { x: at.x + dx, y: at.y + Phaser.Math.Between(40, 70) };
+    const arc = { t: 0 };
+    this.tweens.add({
+      targets: arc, t: 1, duration: 420, ease: 'Linear',
+      onUpdate: () => {
+        bit.setPosition(Math.round(at.x + dx * arc.t), Math.round(at.y + (land.y - at.y) * arc.t - Math.sin(arc.t * Math.PI) * 16));
+      },
+      onComplete: () => {
+        bit.setPosition(land.x, land.y).setAngle(Phaser.Math.Between(0, 3) * 90);
+        this.layers.closeup.add(bit); // stays on the bench
+      },
+    });
   }
 
-  /** The chisel skids off the wing into the child's hand. */
+  /** The knife skids off the line, gouges the wood and cuts you: a red flash, and blood drops onto the bird. */
   private slip(): void {
+    const step = this.step;
     this.step = null;
     this.hint.setVisible(false);
-    this.guide.clear();
-    this.tweens.add({ targets: this.carvingHand, x: Art.THUMB.x - Art.CHISEL_TIP.x, y: Art.THUMB.y - Art.CHISEL_TIP.y, duration: 60, ease: 'Expo.easeIn' });
-    this.time.delayedCall(60, () => {
+    const from = this.wingPoint(step && 'progress' in step ? step.progress : SLIP_AT);
+    const to = { x: from.x - 34, y: from.y + 46 };
+    this.tweens.add({ targets: this.knife, x: to.x - Art.KNIFE_TIP.x, y: to.y - Art.KNIFE_TIP.y, duration: 70, ease: 'Expo.easeIn' });
+    // The gouge: a jagged line torn off the carving line and down the bird.
+    for (let i = 0; i <= 24; i++) {
+      const t = i / 24;
+      this.guide.fillStyle(SHADES.shadow).fillRect(Math.round(from.x + (to.x - from.x) * t * 0.6 + (i % 3) - 1), Math.round(from.y + (to.y - from.y) * t * 0.6), 1, 1);
+    }
+    this.time.delayedCall(70, () => {
       this.cameras.main.flash(160, 216, 50, 58);
       this.cameras.main.shake(260, 0.012);
-      const hurt = Art.childLeftLayer(true);
-      this.leftHand.setTexture(makeSpriteTexture(this, 'prologue-child-left-hurt', hurt.rows, hurt.colours));
-      this.tweens.add({ targets: this.leftHand, x: -1, duration: 50, yoyo: true, repeat: -1 }); // trembling
+      this.bleed(from);
     });
-    this.time.delayedCall(700, () => {
+    this.time.delayedCall(900, () => {
       this.dialogue.close();
       this.next();
     });
   }
 
+  /** Drops of blood (red: the protagonist's colour) falling onto the bird and the bench. */
+  private bleed(near: { x: number; y: number }): void {
+    for (let i = 0; i < 9; i++) {
+      this.time.delayedCall(i * 140 + Phaser.Math.Between(0, 80), () => {
+        const x = near.x - 10 + Phaser.Math.Between(-8, 8);
+        const y = near.y + Phaser.Math.Between(4, 30);
+        const drop = this.add.rectangle(x, y - 14, 1, 2, SHADES.red).setOrigin(0).setDepth(6);
+        this.tweens.add({
+          targets: drop, y, duration: 180, ease: 'Quad.easeIn',
+          onComplete: () => {
+            drop.setSize(2, 1);
+            this.layers.closeup.add(drop);
+          },
+        });
+      });
+    }
+  }
+
   // --- After the slip ---
 
   private cutToBlack(): void {
-    this.tweens.killTweensOf([this.leftHand, this.carvingHand]);
+    this.tweens.killTweensOf(this.knife);
     this.dialogue.close();
     this.layers.black.setAlpha(1);
     this.layers.closeup.setVisible(false);
