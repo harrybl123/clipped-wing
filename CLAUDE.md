@@ -51,7 +51,7 @@ The game is pixel art, so darker and lighter **shades** of these colours are all
 - `npm run test` — run unit tests (Vitest)
 - `npm run typecheck` — compile ink, then TypeScript check (`tsc --noEmit`)
 - `npm run package` — build, then zip the contents of `dist/` into `clipped-wing.zip` for itch.io (see README)
-- Dev only: `http://localhost:5173/?area=<id>` opens an area directly (skips the title); `http://localhost:5173/gallery.html` shows every sprite, portrait and prop enlarged, with animations and a dark/lit background toggle
+- Dev only: `http://localhost:5173/?area=<id>` opens an area directly (skips the title); M opens the map in any area; `http://localhost:5173/gallery.html` shows every sprite, portrait and prop enlarged, with animations and a dark/lit background toggle
 - `npm run ink` — compile `story/main.ink` → `src/generated/main.ink.json` (also runs automatically in `dev`, with watch, and in `build`)
 
 ## Conventions
@@ -64,6 +64,8 @@ The game is pixel art, so darker and lighter **shades** of these colours are all
 ## Decisions
 
 (Record decisions here as they're made, newest first.)
+
+- **2026-09-30 — The map.** `MapScene` shows the tree as a cutaway (the design doc's layout: Canopy, upper branches with the Ascension gate on the tube, trunk, roots around the offering floor with your home on the edge by the rot, back routes beneath, lower roots at the bottom). Place positions, window light colours and the faint paths between them (`MAP_LINKS`: ladders, walkways, a rope bridge) live in `src/data/map.ts` (pure; `treeHalfWidth` is the outline, and tests check every place sits inside it and can be reached with the arrow keys). Built places show a lit window, unbuilt ones a dark window; a red pip marks where you are. It opens over the paused area from the door menu (or M in dev builds). Arrows/WASD move between places (`neighbourInDirection`: within 45°, straighter then closer), Enter travels (arriving at the door that leads back where you came from), Esc/M returns you to where you were. Positions are placeholder until the designer shares the map diagram from the live design doc. Not yet: the upper branches being off-limits until Day 5, and whether travel costs time.
 
 - **2026-09-30 — Offering floor, the Tender, villagers, time of day.** The second area (brief in `docs/areas/offering-floor.md`). `Person.when` limits people to time slots (crowd for the morning rite and evening ceremony, a couple in the afternoon, empty at night); `Person.knot` is optional, so background people have no prompt. `AreaScene` listens for a `calendar-changed` scene event (the debug overlay emits it after T or L) and shows or hides people. The player steps up one-way ledges up to `MAX_STEP` (8px) without jumping, which is how stairs work (`stairs()` in the area file builds one-way step blocks). New feature type `motes` (particles rising in the tube). Characters: `TENDER` (16×32, wizardy: hood with amber crest, white beard, staff, robe) with a portrait and `SPEAKERS.tender`; `VILLAGERS` are seven varied background looks from one generator (height, width, headwear, bundle, long clothing, accent colour; never red).
 

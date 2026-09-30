@@ -3,6 +3,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { AREAS, PLANNED_AREAS } from '../data/areas';
 import type { AreaDefinition, Exit, Feature } from '../data/areas/types';
 import { Player } from '../objects/Player';
+import type { MapSceneData } from './MapScene';
 import { getSession } from '../session';
 import { DebugOverlay } from '../ui/DebugOverlay';
 import { DialogueBox } from '../ui/DialogueBox';
@@ -113,6 +114,13 @@ export class AreaScene extends Phaser.Scene {
     this.prompt = new PixelText(this, 0, 0, '', { color: SHADES.white }).setDepth(20).setVisible(false);
     this.dialogue = new DialogueBox(this, session.story);
     new DebugOverlay(this, session, () => (this.dialogue.isOpen ? 'Close the conversation first.' : null));
+
+    // Dev builds only: M opens the map from anywhere, for quick testing.
+    if (import.meta.env.DEV) {
+      this.input.keyboard?.on('keydown-M', () => {
+        if (!this.dialogue.isOpen && !this.leaving) this.openMap();
+      });
+    }
   }
 
   override update(): void {
@@ -182,11 +190,17 @@ export class AreaScene extends Phaser.Scene {
           label: built ? `Go to ${name}` : `Go to ${name} (not built yet)`,
           run: () => (built ? this.goTo(exit.to) : this.dialogue.say(`${capitalise(name)} isn't built yet.`, closed)),
         },
-        { label: 'Open the map (not built yet)', run: () => this.dialogue.say("The map isn't built yet.", closed) },
+        { label: 'Open the map', run: () => this.openMap() },
         { label: 'Stay', run: () => {} },
       ],
       closed,
     );
+  }
+
+  /** Opens the map over this area (paused), which either travels or comes back here. */
+  private openMap(): void {
+    this.scene.pause();
+    this.scene.launch('Map', { current: this.area.id } satisfies MapSceneData);
   }
 
   private goTo(areaId: string): void {
