@@ -69,47 +69,61 @@ export const SPARE_CHISEL: RowSprite = {
 
 // --- The bird ---
 
-export type BirdFacing = 'left' | 'turning' | 'right';
+export type BirdFacing = 'left' | 'right';
+
+/** How far the carving has got: the near wing, the head smoothed, the eye cut. */
+export interface BirdState {
+  nearWingCarved: boolean;
+  headSmooth: boolean;
+  eyeCarved: boolean;
+}
 
 /** The bird's centre line: it turns about this x. */
 export const BIRD_CX = 250;
+/** Where the head and the eye are on the bird when it faces left (mirror about BIRD_CX when it faces right). */
+export const HEAD = { x: 204, y: 84 };
+export const EYE = { x: 199, y: 79 };
 
 /** The wing's arc (bird facing left): top edge y for x from 222 to 286. */
 const wingTop = (x: number) => 102 - Math.sqrt(Math.max(0, 1 - ((x - 254) / 32) ** 2)) * 16;
 
 /**
- * The bird being carved, big: plump body, head, beak, tail, and the near wing: rough-hewn, or carved
- * with feathers if `nearWingCarved`.
+ * The bird being carved, big: plump body, head, beak, tail, and the near wing. Rough-hewn to begin
+ * with (facets and chisel marks); the head smooths, the eye is cut, and each wing gets its feathers as
+ * you work.
  */
-export function birdLayer(facing: BirdFacing, nearWingCarved: boolean): RowSprite {
+export function birdLayer(facing: BirdFacing, state: BirdState): RowSprite {
   const s = new Sheet();
   const wood: Shade = (u, e) => (e < 1.1 ? 'o' : u < -0.3 ? 'P' : u < 0.35 ? 'p' : 'l');
   s.ellipse(BIRD_CX, 106, 50, 26, wood); // body
-  s.ellipse(204, 84, 18, 17, wood); // head
+  s.ellipse(HEAD.x, HEAD.y, 18, 17, wood); // head
   for (let i = 0; i < 14; i++) for (let dy = -Math.floor((14 - i) / 3); dy <= Math.floor((14 - i) / 3); dy++) s.set(186 - i, 88 + dy, i === 13 || Math.abs(dy) === Math.floor((14 - i) / 3) ? 'o' : 'P'); // beak
   for (let x = 294; x <= 324; x++) {
     const top = 92 - Math.floor((x - 294) * 0.45);
     const bottom = 112 + Math.floor((x - 294) * 0.2);
     for (let y = top; y <= bottom; y++) s.set(x, y, x === 324 || y === top || y === bottom ? 'o' : (x + y) % 9 === 0 ? 'f' : 'l'); // tail
   }
-  s.ellipse(199, 79, 2.5, 2.5, () => 'k'); // eye
-  const carved = nearWingCarved && facing !== 'turning';
+  if (!state.headSmooth) for (let i = 0; i < 16; i++) s.set(HEAD.x - 12 + ((i * 7) % 24), HEAD.y - 10 + ((i * 5) % 20), 'f'); // rough facets on the head
+  if (state.eyeCarved) {
+    s.ellipse(EYE.x, EYE.y, 2.5, 2.5, () => 'k');
+    s.set(EYE.x - 1, EYE.y - 1, 'P'); // a glint
+  } else {
+    s.set(EYE.x, EYE.y, 'f'); // just a mark where the eye will go
+  }
   for (let x = 222; x <= 286; x++) {
     const top = wingTop(x);
     s.set(x, top, 'o');
     s.set(x, top + 1, 'o');
-    if (carved) {
+    if (state.nearWingCarved) {
       if (x % 7 === 0) for (let k = 2; k <= 14; k++) s.set(x - Math.round(k * 0.45), top + k, 'f'); // feathers
     } else if ((x * 7) % 11 < 3) {
       s.set(x, top + 4, 'f'); // rough facets
       s.set(x + 1, top + 5, 'f');
     }
   }
-  if (!carved) for (let i = 0; i < 26; i++) s.set(214 + ((i * 37) % 76), 112 + ((i * 11) % 14), 'f'); // chisel marks on the rough block
+  if (!state.nearWingCarved) for (let i = 0; i < 26; i++) s.set(214 + ((i * 37) % 76), 112 + ((i * 11) % 14), 'f'); // chisel marks on the rough block
   let rows = s.g.map((r) => r.join(''));
-  const mirror = (x: number) => 2 * BIRD_CX - x;
-  if (facing === 'right') rows = rows.map((r) => Array.from({ length: SCREEN_W }, (_, x) => r[mirror(x)] ?? '.').join(''));
-  if (facing === 'turning') rows = rows.map((r) => Array.from({ length: SCREEN_W }, (_, x) => r[Math.round(BIRD_CX + (x - BIRD_CX) / 0.5)] ?? '.').join(''));
+  if (facing === 'right') rows = rows.map((r) => Array.from({ length: SCREEN_W }, (_, x) => r[2 * BIRD_CX - x] ?? '.').join(''));
   return { rows, colours: { P: SHADES.light, p: SHADES.woodPale, l: SHADES.woodLight, o: SHADES.deep, f: SHADES.wood, k: SHADES.shadow } };
 }
 

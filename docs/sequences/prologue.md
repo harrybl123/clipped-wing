@@ -21,11 +21,19 @@ Built 2026-09-30 (`src/scenes/PrologueScene.ts`, `src/ui/prologueArt.ts`, `story
 - Intimate, not the usual distant side view. **(designer)** A close-up of the workbench by firelight:
   just the bird and the knife, no hands (hands were tried and looked wrong) and no faces; the scene is
   the two voices. **(designer)**
-- Interaction **(suggestion)**: left/right (or a click) turns the bird smoothly; holding E (or the
-  mouse) carves along a guide on the wing, cutting a groove, with chips of wood flicking onto the
-  bench. The last cut slips partway: a gouge, a red flash, blood drops onto the bird.
+- The bird is your first offering, meant to go up the tube at the next morning's rite. **(designer)**
+- It shouldn't rush to the slip: more tenderness, world-building, a couple more interactions.
+  **(designer)** Steps **(suggestion)**:
+  - turn it to the fire to see the grain (left/right or a click; the bird turns smoothly)
+  - smooth the head by rocking it left and right (8 rocks; dust lifts off)
+  - carve the first wing (hold E or the mouse: the knife cuts a groove, chips land on the bench)
+  - cut the eye (press E when a pulsing ring is smallest; after 3 misses it just works)
+  - turn it round and carve the other wing, which slips partway: a gouge, a red flash, blood drops
+    onto the bird
+  Between steps Mum explains the world to the child (the rite, blessings, the high branches) and
+  shares a memory of learning at the same bench. **(suggestion)**
 - After the black: narration as text on black, then two stills with the words beneath (the tree in
-  cross-section; the tube with offerings rising and blessings falling). **(designer left it to
+  cross-section; the tube, just the beam **(designer)**). **(designer left it to
   Claude)**
 - No sound effects for now. **(designer)**
 

@@ -22,7 +22,9 @@ import { paintTree } from './MapScene';
 // that this scene acts on:
 //   #name:Mum        a voice with no face (shown in the dialogue box)
 //   #step:turn       show the line and wait for the player to turn the bird (left/right)
+//   #step:smooth     show the line and wait for the player to smooth the head (rock it: left, right, left…)
 //   #step:carve      show the line and wait for the player to carve along the wing (hold E)
+//   #step:eye        show the line and wait for the player to cut the eye (press E when the ring is smallest)
 //   #step:slip       as carve, but the knife slips partway
 //   #black           cut to black before this line
 //   #narration       show the line as narration (on black, or under a still)
@@ -41,15 +43,24 @@ const CHIPS: RowSprite[] = [
   { rows: ['p', 'l'], colours: { p: SHADES.light, l: SHADES.woodPale } },
 ];
 
-type Step = { kind: 'turn'; target: 'left' | 'right' } | { kind: 'carve' | 'slip'; facing: 'left' | 'right'; progress: number; lastChip: number };
+/** Rocks needed to smooth the head (alternating left and right). */
+const SMOOTH_ROCKS = 8;
+/** Misses allowed on the eye before it just works (it's a kindness, not a test). */
+const EYE_MISSES = 3;
+
+type Step =
+  | { kind: 'turn'; target: 'left' | 'right' }
+  | { kind: 'smooth'; rocks: number; last: 'left' | 'right' | null }
+  | { kind: 'eye'; misses: number; ring: Phaser.GameObjects.Graphics; phase: number }
+  | { kind: 'carve' | 'slip'; facing: 'left' | 'right'; progress: number; lastChip: number };
 
 export class PrologueScene extends Phaser.Scene {
   private dialogue!: DialogueBox;
   private layers!: { closeup: Phaser.GameObjects.Container; tableau: Phaser.GameObjects.Container; black: Phaser.GameObjects.Rectangle };
   private bird!: Phaser.GameObjects.Image;
   private facing: 'left' | 'right' = 'left';
-  /** Which sides of the bird have had their wing carved. */
-  private carved = { left: false, right: false };
+  /** How far the carving has got: each wing, the head, the eye. */
+  private carved = { left: false, right: false, head: false, eye: false };
   private knife!: Phaser.GameObjects.Image;
   private guide!: Phaser.GameObjects.Graphics;
   private hint!: PixelText;
@@ -69,7 +80,7 @@ export class PrologueScene extends Phaser.Scene {
   create(): void {
     this.step = null;
     this.facing = 'left';
-    this.carved = { left: false, right: false };
+    this.carved = { left: false, right: false, head: false, eye: false };
     this.waitingForNarration = false;
     this.endAfterNarration = false;
     const K = Phaser.Input.Keyboard.KeyCodes;
@@ -124,9 +135,15 @@ export class PrologueScene extends Phaser.Scene {
   }
 
   private birdTexture(facing: Art.BirdFacing): string {
-    const carved = facing !== 'turning' && this.carved[facing];
-    const sprite = Art.birdLayer(facing, carved);
-    return makeSpriteTexture(this, `prologue-bird-${facing}-${carved ? 'carved' : 'rough'}`, sprite.rows, sprite.colours);
+    const state: Art.BirdState = { nearWingCarved: this.carved[facing], headSmooth: this.carved.head, eyeCarved: this.carved.eye };
+    const key = `prologue-bird-${facing}-${Number(state.nearWingCarved)}${Number(state.headSmooth)}${Number(state.eyeCarved)}`;
+    const sprite = Art.birdLayer(facing, state);
+    return makeSpriteTexture(this, key, sprite.rows, sprite.colours);
+  }
+
+  /** A point on the bird given where it is when facing left (mirrored when it faces right). */
+  private onBird(p: { x: number; y: number }): { x: number; y: number } {
+    return this.facing === 'left' ? p : { x: 2 * Art.BIRD_CX - p.x, y: p.y };
   }
 
   /** Moves the knife so its tip is at (x, y). */
@@ -192,6 +209,22 @@ export class PrologueScene extends Phaser.Scene {
       this.showHint('< > (or click)  turn the bird');
       return;
     }
+    if (step === 'smooth') {
+      this.dialogue.hold(line.text, tags);
+      this.step = { kind: 'smooth', rocks: 0, last: null };
+      this.stepStarted = this.time.now;
+      this.showHint('< >  rock it, left and right');
+      return;
+    }
+    if (step === 'eye') {
+      this.dialogue.hold(line.text, tags);
+      const ring = this.add.graphics().setDepth(7);
+      this.layers.closeup.add(ring);
+      this.step = { kind: 'eye', misses: 0, ring, phase: 0 };
+      this.stepStarted = this.time.now;
+      this.showHint('press E when the ring is smallest');
+      return;
+    }
     if (step === 'carve' || step === 'slip') {
       this.dialogue.hold(line.text, tags);
       this.step = { kind: step, facing: this.facing, progress: 0, lastChip: 0 };
@@ -206,8 +239,17 @@ export class PrologueScene extends Phaser.Scene {
   override update(time: number, delta: number): void {
     const step = this.step;
     if (!step) return;
+    const pressed = (k: Phaser.Input.Keyboard.Key) => Phaser.Input.Keyboard.JustDown(k);
+    if (step.kind === 'smooth') {
+      const dir = pressed(this.keys.left) || pressed(this.keys.a) ? 'left' : pressed(this.keys.right) || pressed(this.keys.d) ? 'right' : null;
+      if (dir && dir !== step.last) this.rock(step, dir);
+      return;
+    }
+    if (step.kind === 'eye') {
+      this.updateEye(step, delta);
+      return;
+    }
     if (step.kind === 'turn') {
-      const pressed = (k: Phaser.Input.Keyboard.Key) => Phaser.Input.Keyboard.JustDown(k);
       const wantsRight = pressed(this.keys.right) || pressed(this.keys.d);
       const wantsLeft = pressed(this.keys.left) || pressed(this.keys.a);
       if ((step.target === 'right' && wantsRight) || (step.target === 'left' && wantsLeft)) this.turnBird(step.target);
@@ -268,6 +310,49 @@ export class PrologueScene extends Phaser.Scene {
         this.endStep();
       },
     });
+  }
+
+  /** One rock of the bird while smoothing its head: it shifts a little, dust lifts off; enough rocks and it's smooth. */
+  private rock(step: Extract<Step, { kind: 'smooth' }>, dir: 'left' | 'right'): void {
+    step.last = dir;
+    step.rocks += 1;
+    this.tweens.add({ targets: this.bird, x: Art.BIRD_CX + (dir === 'left' ? -3 : 3), duration: 90, yoyo: true, ease: 'Sine.easeOut' });
+    const head = this.onBird(Art.HEAD);
+    for (let i = 0; i < 3; i++) {
+      const dust = this.add.rectangle(head.x + Phaser.Math.Between(-12, 12), head.y + Phaser.Math.Between(-10, 8), 1, 1, SHADES.light).setOrigin(0).setDepth(6);
+      this.tweens.add({ targets: dust, y: dust.y - Phaser.Math.Between(6, 14), alpha: 0, duration: 600, onComplete: () => dust.destroy() });
+    }
+    if (step.rocks >= SMOOTH_ROCKS) {
+      this.carved.head = true;
+      this.bird.setTexture(this.birdTexture(this.facing));
+      this.time.delayedCall(200, () => this.endStep());
+      this.step = null;
+    }
+  }
+
+  /** The eye: a ring pulses round the mark; press E (or click) when it's smallest. A few misses and it just works. */
+  private updateEye(step: Extract<Step, { kind: 'eye' }>, delta: number): void {
+    step.phase += delta / 1000;
+    const eye = this.onBird(Art.EYE);
+    const radius = 3 + (Math.sin(step.phase * 3.2) + 1) * 4; // 3 to 11
+    step.ring.clear().lineStyle(1, SHADES.white, 0.9).strokeCircle(eye.x, eye.y, radius);
+    const pointer = this.input.activePointer;
+    const hit = Phaser.Input.Keyboard.JustDown(this.keys.e) || Phaser.Input.Keyboard.JustDown(this.keys.space) || (pointer.isDown && pointer.downTime > this.stepStarted && pointer.getDuration() < 30);
+    if (!hit) return;
+    if (radius < 5 || step.misses >= EYE_MISSES) {
+      step.ring.destroy();
+      this.carved.eye = true;
+      this.bird.setTexture(this.birdTexture(this.facing));
+      this.knifeTo(eye.x + 2, eye.y + 1);
+      this.time.delayedCall(350, () => {
+        this.restKnife();
+        this.endStep();
+      });
+      this.step = null;
+    } else {
+      step.misses += 1;
+      this.tweens.add({ targets: this.bird, x: Art.BIRD_CX + 1, duration: 40, yoyo: true, repeat: 1 }); // not quite
+    }
   }
 
   /** A chip of wood cut out by the knife: it flicks away in a little arc and lands on the bench, where it stays. */
