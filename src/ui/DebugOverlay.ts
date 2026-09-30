@@ -60,6 +60,7 @@ export class DebugOverlay {
     switch (event.key.toLowerCase()) {
       case 't':
         this.flash(calendar.advance() ? 'Time advanced.' : 'Already at the end of the week.');
+        this.scene.events.emit('calendar-changed');
         break;
       case 'u':
         this.flash(calendar.takeAfternoonAction() ? 'Afternoon action used.' : 'No afternoon action available now.');
@@ -69,6 +70,7 @@ export class DebugOverlay {
         break;
       case 'l':
         this.flash(this.isBusy() ?? loadSession(this.session));
+        this.scene.events.emit('calendar-changed');
         break;
       case 'x':
         this.session.saves.clear();

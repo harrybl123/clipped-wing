@@ -1,3 +1,4 @@
+import type { TimeSlot } from '../../systems/Calendar';
 import type { RowSprite } from '../../ui/sprites';
 
 // The shape of an area: a side-on room built from data by AreaScene. Coordinates are in
@@ -47,6 +48,7 @@ export type Feature =
   | { type: 'fire'; x: number; y: number } // animated flames, bottom-centre at (x, y), with smoke
   | { type: 'swing'; sprite: RowSprite; x: number; y: number; ropeTop: number } // hanging from ropeTop, sways
   | { type: 'drip'; x: number; y: number; floorY: number } // a drop falls from (x, y) every so often
+  | { type: 'motes'; x: number; top: number; bottom: number; halfWidth: number } // pale motes rising in a column (the tube)
   | { type: 'jars'; sprite: RowSprite; x: number; y: number; variable: string; max: number; perRow: number; rowSpacing: number }; // one jar per unit of an ink variable, rows stacked upwards
 
 /** Something the player can walk up to and press E on, which runs an ink knot. */
@@ -76,14 +78,16 @@ export interface Exit {
   to: string;
 }
 
-/** A person standing in the area, drawn at (x, y) = bottom-centre. Talking runs `knot`. */
+/** A person standing in the area, drawn at (x, y) = bottom-centre. Talking runs `knot` (no knot: background only). */
 export interface Person {
   id: string;
   sprite: RowSprite;
   x: number;
   y: number;
-  knot: string;
+  knot?: string;
   flipX?: boolean;
+  /** Time slots when they're here (default: always). */
+  when?: TimeSlot[];
   /** Idle animation frames (e.g. breathing), cycled slowly. Defaults to just `sprite`. */
   idleFrames?: RowSprite[];
 }

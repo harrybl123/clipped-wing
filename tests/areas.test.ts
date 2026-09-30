@@ -60,7 +60,8 @@ describe.each(Object.values(AREAS))('area $id', (area) => {
 
   it('only uses ink knots and variables that exist', () => {
     const story = compileStory();
-    for (const it of [...area.interactables, ...area.people]) expect(() => story.startKnot(it.knot), it.knot).not.toThrow();
+    const knots = [...area.interactables.map((it) => it.knot), ...area.people.flatMap((p) => (p.knot ? [p.knot] : []))];
+    for (const knot of knots) expect(() => story.startKnot(knot), knot).not.toThrow();
     for (const f of area.features) if (f.type === 'jars') expect(story.variableNames()).toContain(f.variable);
   });
 });

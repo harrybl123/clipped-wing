@@ -10,6 +10,7 @@ VAR suspicion = 0
 VAR food_store = 8
 
 INCLUDE home.ink
+INCLUDE offering-floor.ink
 
 // The game starts conversations by knot name via StoryBridge, so the root
 // flow does nothing.

@@ -20,6 +20,8 @@ export interface AreaSceneData {
 
 /** Anything the player can walk up to and press E on. */
 interface Usable {
+  /** False while unavailable (e.g. a person who isn't here at this time of day). */
+  enabled?: () => boolean;
   x: number;
   y: number;
   reach: number;
@@ -57,7 +59,6 @@ export class AreaScene extends Phaser.Scene {
 
   create(): void {
     const { area } = this;
-    const session = getSession(this);
     this.cameras.main.setBackgroundColor(SHADES.shadow).fadeIn(400);
     this.physics.world.setBounds(0, 0, area.width, area.height);
     this.cameras.main.setBounds(0, 0, area.width, area.height);
@@ -71,6 +72,9 @@ export class AreaScene extends Phaser.Scene {
     const talk = (knot: string) => () => this.dialogue.open(knot, closed);
     this.usables = area.interactables.map((it) => ({ ...it, use: talk(it.knot) }));
     for (const exit of area.exits) this.usables.push({ ...exit, label: 'Leave', use: () => this.openDoorMenu(exit) });
+    const session = getSession(this);
+    const present = (when?: string[]) => !when || when.includes(session.calendar.slot);
+    const peopleImages: { image: Phaser.GameObjects.Image; when?: string[] }[] = [];
     for (const person of area.people) {
       const frames = (person.idleFrames ?? [person.sprite]).map((f, i) => makeSpriteTexture(this, `person-${person.id}-${i}`, f.rows, f.colours));
       const image = this.add.image(person.x, person.y, frames[0]!).setOrigin(0.5, 1).setFlipX(person.flipX ?? false).setDepth(8);
@@ -78,8 +82,14 @@ export class AreaScene extends Phaser.Scene {
         let frame = 0;
         this.time.addEvent({ delay: 650, loop: true, callback: () => image.setTexture(frames[(frame = (frame + 1) % frames.length)]!) });
       }
-      this.usables.push({ x: person.x, y: person.y, reach: 14, label: 'Talk', use: talk(person.knot) });
+      peopleImages.push({ image, when: person.when });
+      if (person.knot) this.usables.push({ x: person.x, y: person.y, reach: 14, label: 'Talk', use: talk(person.knot), enabled: () => present(person.when) });
     }
+
+    // Who's here depends on the time of day; refresh when the clock changes (e.g. from the debug overlay).
+    const refreshPeople = () => peopleImages.forEach(({ image, when }) => image.setVisible(present(when)));
+    refreshPeople();
+    this.events.on('calendar-changed', refreshPeople);
 
     const solids = this.physics.add.staticGroup();
     for (const s of area.solids) {
@@ -109,6 +119,7 @@ export class AreaScene extends Phaser.Scene {
     const interactPressed = Phaser.Input.Keyboard.JustDown(this.interactKey);
     const blocked = this.leaving || this.dialogue.isOpen || this.game.loop.frame === this.dialogueClosedFrame;
     this.player.update(blocked);
+    this.stepUp();
 
     this.setCurrent(this.dialogue.isOpen || !this.player.onGround ? null : this.nearestInteractable());
     if (this.current && interactPressed && !blocked) {
@@ -122,6 +133,7 @@ export class AreaScene extends Phaser.Scene {
     const { x, y } = this.player.feet;
     let best: Usable | null = null;
     for (const it of this.usables) {
+      if (it.enabled && !it.enabled()) continue;
       const dx = Math.abs(x - it.x);
       if (Math.abs(y - it.y) > 4 || dx > it.reach) continue;
       if (!best || dx < Math.abs(x - best.x)) best = it;
@@ -141,6 +153,21 @@ export class AreaScene extends Phaser.Scene {
     const x = Phaser.Math.Clamp(Math.round(it.x - this.prompt.width / 2), 2, this.area.width - this.prompt.width - 2);
     this.prompt.setPosition(x, it.y - 38);
     this.promptPlate.setPosition(x - 2, it.y - 40).setSize(this.prompt.width + 4, this.prompt.height + 3).setVisible(true);
+  }
+
+  /** Walks the player up low one-way ledges (stairs) instead of making them jump each one. */
+  private stepUp(): void {
+    const body = this.player.body;
+    if (!body.blocked.down || body.velocity.x === 0) return;
+    const ahead = body.velocity.x > 0 ? body.right + 1 : body.left - 1;
+    for (const s of this.area.solids) {
+      if (!s.oneWay) continue;
+      const rise = Math.round(body.bottom) - s.y;
+      if (rise >= 1 && rise <= MAX_STEP && ahead >= s.x && ahead <= s.x + s.width) {
+        this.player.sprite.y -= rise;
+        return;
+      }
+    }
   }
 
   /** Using a door: go straight next door, open the map, or stay. */
@@ -204,6 +231,25 @@ export class AreaScene extends Phaser.Scene {
         });
         break;
       }
+      case 'motes': {
+        this.add.particles(0, 0, PIXEL, {
+          emitZone: {
+            type: 'random',
+            source: {
+              getRandomPoint: (p) => {
+                p.x = feature.x + Phaser.Math.Between(-feature.halfWidth, feature.halfWidth);
+                p.y = Phaser.Math.Between(feature.top + 20, feature.bottom);
+              },
+            },
+          },
+          speedY: { min: -14, max: -5 },
+          lifespan: 6000,
+          frequency: 200,
+          tint: SHADES.white,
+          alpha: { start: 1, end: 0 },
+        }).setDepth(3);
+        break;
+      }
       case 'drip': {
         const drop = this.add.rectangle(feature.x, feature.y, 1, 2, SHADES.light).setOrigin(0).setDepth(4).setVisible(false);
         const fall = () => {
@@ -233,5 +279,8 @@ export class AreaScene extends Phaser.Scene {
     }
   }
 }
+
+/** Tallest ledge (px) the player walks up without jumping, e.g. a stair. */
+const MAX_STEP = 8;
 
 const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);

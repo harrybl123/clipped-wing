@@ -2,7 +2,8 @@
 // Plain canvas, no Phaser. Add new sprite sources to SECTIONS as they're created.
 
 import * as homeProps from '../data/areas/homeProps';
-import { MUM, PROTAGONIST } from '../ui/characters';
+import * as offeringFloorProps from '../data/areas/offeringFloorProps';
+import { MUM, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
 import { hexString } from '../ui/pixelArt';
 import { SPEAKERS } from '../ui/portraits';
 import { BIRD, FIRE_FRAMES, FUNGI, LAMP, MORE_ARROW, type RowSprite } from '../ui/sprites';
@@ -11,10 +12,13 @@ type Entry = [label: string, sprite: RowSprite];
 
 const isSprite = (v: unknown): v is RowSprite => typeof v === 'object' && v !== null && 'rows' in v && 'colours' in v;
 
-/** Home props: constants as they are, generator functions at a sample size. */
-const homePropEntries: Entry[] = Object.entries(homeProps).flatMap(([name, value]): Entry[] => {
+/** Props: constants as they are, generator functions at a sample size. */
+const propEntries = (props: Record<string, unknown>): Entry[] => Object.entries(props).flatMap(([name, value]): Entry[] => {
   if (isSprite(value)) return [[name, value]];
-  if (typeof value === 'function') return [[`${name}(24)`, (value as (n: number) => RowSprite)(24)]];
+  if (typeof value === 'function') {
+    const make = value as (a: number, b?: number) => RowSprite;
+    return [[make.length >= 2 ? `${name}(12, 24)` : `${name}(24)`, make.length >= 2 ? make(12, 24) : make(24)]];
+  }
   return [];
 });
 
@@ -28,11 +32,14 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       ['protagonist jump', PROTAGONIST.jump],
       ['protagonist fall', PROTAGONIST.fall],
       ...MUM.idle.map((f, i): Entry => [`mum idle ${i}`, f]),
+      ...TENDER.idle.map((f, i): Entry => [`tender idle ${i}`, f]),
+      ...VILLAGERS.map((v, i): Entry => [`villager ${i}`, v.idle[0]!]),
     ],
     animations: [
       { label: 'protagonist walk', frames: PROTAGONIST.walk, fps: 9 },
       { label: 'protagonist idle', frames: PROTAGONIST.idle, fps: 1.6 },
       { label: 'mum idle', frames: MUM.idle, fps: 1.5 },
+      { label: 'tender idle', frames: TENDER.idle, fps: 1.2 },
     ],
   },
   { title: 'Portraits', scale: 4, entries: Object.entries(SPEAKERS).map(([id, s]): Entry => [id, s.portrait]) },
@@ -48,7 +55,8 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
     ],
     animations: [{ label: 'fire', frames: [...FIRE_FRAMES], fps: 7 }],
   },
-  { title: 'Home props', scale: 4, entries: homePropEntries },
+  { title: 'Home props', scale: 4, entries: propEntries(homeProps) },
+  { title: 'Offering floor props', scale: 4, entries: propEntries(offeringFloorProps) },
 ];
 
 function drawSprite(canvas: HTMLCanvasElement, sprite: RowSprite, scale: number): void {

@@ -25,6 +25,12 @@ const COLOURS = {
   s: SHADES.amberDeep, // shawl
   t: SHADES.woodPale, // shawl pattern
   o: SHADES.shadow, // outline
+  a: SHADES.amber, // amber crest
+  A: SHADES.amberDeep, // crest shadow
+  b: SHADES.light, // white beard
+  B: SHADES.dim, // beard shadow
+  H: SHADES.woodLight, // hood
+  I: SHADES.wood, // hood lit edge
 };
 
 function draw(pick: Pick): RowSprite {
@@ -124,8 +130,41 @@ export const MUM_PORTRAIT: RowSprite = (() => {
   });
 })();
 
+/** The Tender: old and wise-looking, hood with the amber crest of office, long white beard. */
+export const TENDER_PORTRAIT: RowSprite = (() => {
+  const face: Face = { cx: 24, cy: 22, rx: 8, ry: 10 };
+  return draw((x, y) => {
+    // The amber crest, a pointed diamond badge at the brow of the hood.
+    const crest = Math.abs(x - 24) + Math.abs(y - 8.5) * 0.8;
+    if (crest <= 3.2) return crest <= 1.6 ? 'a' : 'A';
+    // Face, deep under the hood: only the lit side shows much.
+    const inFace = inEllipse(x, y, face.cx, face.cy, face.rx, face.ry);
+    // Long beard from the cheeks down over the chest.
+    const beardTop = face.cy + 3;
+    const beardHalf = y < 38 ? 7 - Math.max(0, (y - 30) * 0.4) : Math.max(0, 7 - (y - 30) * 0.6);
+    if (y >= beardTop && Math.abs(x - 24) <= beardHalf && !(y < face.cy + 7 && Math.abs(x - 24) <= 2 && y === face.cy + 6)) {
+      if (y === face.cy + 6 && Math.abs(x - 24) <= 2) return 'e'; // mouth in the beard
+      return x < 22 || (x * 3 + y) % 11 === 0 ? 'B' : 'b';
+    }
+    if (inFace) {
+      const feature = features(x, y, face, true);
+      if (feature && y < beardTop) return feature === 'h' ? 'b' : feature; // white brows
+      if (y === face.cy - 4 && x >= face.cx - 3 && x <= face.cx + 3) return 'S'; // brow furrow
+      return skin(x, face.cx, face.rx);
+    }
+    // Hood around the face, falling to the shoulders.
+    const inHood = inEllipse(x, y, 24, 22, 14, 17) || (y > 30 && Math.abs(x - 24) <= 8 + (y - 30) * 1.6);
+    if (inHood && y <= 47) {
+      if (!inEllipse(x, y, 24, 22, 13, 16) && y <= 30) return x > 24 ? 'I' : 'o';
+      return x > 30 ? 'I' : 'H';
+    }
+    return '.';
+  });
+})();
+
 /** Portraits by the speaker id used in ink tags (`#speaker:mum`), with the name shown above the line. */
 export const SPEAKERS: Record<string, { name: string; portrait: RowSprite }> = {
   you: { name: 'You', portrait: PROTAGONIST_PORTRAIT },
   mum: { name: 'Mum', portrait: MUM_PORTRAIT },
+  tender: { name: 'The Tender', portrait: TENDER_PORTRAIT },
 };

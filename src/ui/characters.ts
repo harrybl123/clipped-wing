@@ -156,3 +156,126 @@ function mum(breathe: boolean): RowSprite {
 }
 
 export const MUM = { idle: [mum(false), mum(true)] };
+
+// --- The Tender ---
+
+/**
+ * Tall, old and a little stooped, like a wizard: a long robe to the floor, a hood with the amber
+ * crest of office (the design doc's signature detail), a long white beard and a staff.
+ */
+function tender(breathe: boolean): RowSprite {
+  const g = grid(16, 32);
+  const b = breathe ? 1 : 0;
+  // Staff on the front side, taller than the Tender, with a knotted top.
+  for (let y = 2; y <= 31; y++) put(g, 14, y, y <= 3 ? 'k' : 'w');
+  put(g, 13, 2, 'k');
+  put(g, 15, 3, 'k');
+  // Hood, leaning slightly forward (stooped), with the amber crest at the brow.
+  span(g, 1 + b, 5, 8, 'o');
+  for (let y = 2; y <= 7; y++) span(g, y + b, 4, 9, 'o');
+  put(g, 10, 3 + b, '#');
+  put(g, 10, 4 + b, '#');
+  put(g, 8, 1 + b, 'a');
+  put(g, 8, 2 + b, 'a');
+  put(g, 9, 2 + b, 'a');
+  // Face in shadow under the hood, and a long white beard.
+  span(g, 4 + b, 7, 9, 'f');
+  span(g, 5 + b, 7, 9, 'f');
+  for (let y = 6; y <= 12; y++) {
+    const half = y < 10 ? 2 : Math.max(0, 12 - y);
+    span(g, y + b, 8 - half, 8 + half, 'l');
+  }
+  // Robe: shoulders, then flaring to the floor; the front edge catches the light.
+  for (let y = 7; y <= 31; y++) {
+    const w = y < 12 ? 3 : 3 + Math.floor((y - 12) / 4);
+    for (let x = 7 - w; x <= 7 + w; x++) if (g[y]![x] === '.' || (y > 12 + b && g[y]![x] !== 'w')) put(g, x, y, g[y]![x] === 'l' ? 'l' : 'o');
+    put(g, 8 + w, y, '#');
+  }
+  // Hand on the staff.
+  put(g, 13, 16 + b, 'f');
+  put(g, 13, 17 + b, 'f');
+  // A band of the amber crest's colour at the waist.
+  for (let x = 4; x <= 10; x++) if (g[18]![x] === 'o') put(g, x, 18, 'd');
+  edgeShadowSide(g);
+  return {
+    rows: rows(g),
+    colours: { o: SHADES.shadow, e: SHADES.woodLight, '#': SHADES.dim, a: SHADES.amber, d: SHADES.amberDeep, f: SHADES.woodPale, l: SHADES.light, w: SHADES.woodPale, k: SHADES.dim },
+  };
+}
+
+export const TENDER = { idle: [tender(false), tender(true)] };
+
+// --- Villagers ---
+
+interface VillagerLook {
+  height: number; // 21–26
+  width: number; // body half-width 2–4
+  head: 'bare' | 'hood' | 'cap' | 'bun';
+  /** Something carried on the back side. */
+  bundle?: boolean;
+  /** Skirt or robe to the floor instead of legs. */
+  long?: boolean;
+  /** Clothing accent colour (never red). */
+  accent: number;
+}
+
+/** A background figure, varied by `look`. Same lighting as everyone: rim on the right, faint edge on the left. */
+function villager(look: VillagerLook, breathe: boolean): RowSprite {
+  const W = 13;
+  const H = look.height;
+  const g = grid(W, H);
+  const b = breathe ? 1 : 0;
+  const cx = 6;
+  const headTop = 0;
+  // Head and headwear.
+  const headRows = [headTop + 1, headTop + 2, headTop + 3, headTop + 4];
+  for (const y of headRows) span(g, y + b, cx - 2, cx + 2, 'o');
+  for (const y of headRows.slice(0, 3)) put(g, cx + 3, y + b, '#');
+  if (look.head === 'hood') {
+    span(g, headTop + b, cx - 2, cx + 2, 'o');
+    for (let y = 1; y <= 5; y++) put(g, cx - 3, y + b, 'o');
+  } else if (look.head === 'cap') {
+    span(g, headTop + b, cx - 2, cx + 3, 'c');
+    put(g, cx + 4, headTop + 1 + b, 'c');
+  } else if (look.head === 'bun') {
+    span(g, headTop + b, cx - 1, cx, 'o');
+  }
+  // Body.
+  const bodyTop = 5;
+  const legTop = H - 8;
+  for (let y = bodyTop; y < legTop; y++) {
+    span(g, y + b, cx - look.width, cx + look.width, 'o');
+    put(g, cx + look.width + 1, y + b, '#');
+  }
+  // A band of accent colour across the chest.
+  span(g, bodyTop + 2 + b, cx - look.width + 1, cx + look.width - 1, 'c');
+  if (look.bundle) for (let y = bodyTop + 1; y <= bodyTop + 5; y++) span(g, y + b, cx - look.width - 3, cx - look.width - 1, 'u');
+  // Legs, or a long skirt/robe.
+  for (let y = legTop; y < H; y++) {
+    if (look.long) {
+      const w = look.width + Math.floor((y - legTop) / 3);
+      span(g, y, cx - w, cx + w, 'o');
+      put(g, cx + w + 1, y, '#');
+    } else {
+      span(g, y, cx - 2, cx - 1, 'o');
+      span(g, y, cx + 1, cx + 2, 'o');
+      put(g, cx + 3, y, y === H - 1 ? 'o' : '#');
+      if (y === H - 1) put(g, cx + 4, y, 'o'); // toes forward
+    }
+  }
+  edgeShadowSide(g);
+  return { rows: rows(g), colours: { o: SHADES.shadow, e: SHADES.woodLight, '#': SHADES.dim, c: look.accent, u: SHADES.amberDeep } };
+}
+
+const LOOKS: VillagerLook[] = [
+  { height: 25, width: 3, head: 'hood', accent: SHADES.greenDeep },
+  { height: 23, width: 3, head: 'cap', accent: SHADES.cyanDeep },
+  { height: 26, width: 2, head: 'bare', bundle: true, accent: SHADES.amberDeep },
+  { height: 24, width: 3, head: 'bun', long: true, accent: SHADES.woodPale },
+  { height: 22, width: 3, head: 'bare', accent: SHADES.woodLight },
+  { height: 25, width: 3, head: 'hood', long: true, accent: SHADES.cyanDeep },
+  { height: 21, width: 2, head: 'cap', accent: SHADES.greenMid },
+];
+
+/** Background villagers, each with a 2-frame breathing idle. */
+export const VILLAGERS = LOOKS.map((look) => ({ idle: [villager(look, false), villager(look, true)] }));
