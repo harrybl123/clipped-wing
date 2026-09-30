@@ -93,7 +93,7 @@ export const offeringFloor: AreaDefinition = {
 
   people: [
     // The Tender, on the landing under the lamp, watching the tube.
-    { id: 'tender', sprite: TENDER.idle[0]!, idleFrames: TENDER.idle, x: 262, y: LANDING.y, knot: 'offering_floor_tender', flipX: true, when: ['morning', 'afternoon', 'evening'] },
+    { id: 'tender', sprite: TENDER.idle[0]!, idleFrames: TENDER.idle, x: 262, y: LANDING.y, knot: 'offering_floor_tender', flipX: true, when: ['morning', 'evening'] }, // afternoons in the shrine
     ...crowd(),
     // Quieter in the afternoon: a couple of people passing through.
     { id: 'grumbler', sprite: VILLAGERS[2]!.idle[0]!, idleFrames: VILLAGERS[2]!.idle, x: 62, y: FLOOR, knot: 'offering_floor_grumbler', when: ['afternoon'] },

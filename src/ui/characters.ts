@@ -217,6 +217,10 @@ interface VillagerLook {
   long?: boolean;
   /** Clothing accent colour (never red). */
   accent: number;
+  /** Hair colour when it shows (bare heads and buns); default the body's shadow. Grey for elders. */
+  hair?: number;
+  /** A pale stole hanging down the front of a robe (elders' mark of office, placeholder). */
+  stole?: boolean;
 }
 
 /** A background figure, varied by `look`. Same lighting as everyone: rim on the right, faint edge on the left. */
@@ -238,7 +242,11 @@ function villager(look: VillagerLook, breathe: boolean, stride = 0): RowSprite {
     span(g, headTop + b, cx - 2, cx + 3, 'c');
     put(g, cx + 4, headTop + 1 + b, 'c');
   } else if (look.head === 'bun') {
-    span(g, headTop + b, cx - 1, cx, 'o');
+    span(g, headTop + b, cx - 1, cx, look.hair ? 'h' : 'o');
+  }
+  if (look.hair && look.head !== 'hood' && look.head !== 'cap') {
+    span(g, headTop + 1 + b, cx - 2, cx + 1, 'h');
+    put(g, cx - 2, headTop + 2 + b, 'h');
   }
   // Body.
   const bodyTop = 5;
@@ -249,6 +257,7 @@ function villager(look: VillagerLook, breathe: boolean, stride = 0): RowSprite {
   }
   // A band of accent colour across the chest.
   span(g, bodyTop + 2 + b, cx - look.width + 1, cx + look.width - 1, 'c');
+  if (look.stole) for (let y = bodyTop + 1; y < H - 1; y++) put(g, cx + 1, y + (y < legTop ? b : 0), 's');
   if (look.bundle) for (let y = bodyTop + 1; y <= bodyTop + 5; y++) span(g, y + b, cx - look.width - 3, cx - look.width - 1, 'u');
   // Legs, or a long skirt/robe.
   for (let y = legTop; y < H; y++) {
@@ -269,7 +278,7 @@ function villager(look: VillagerLook, breathe: boolean, stride = 0): RowSprite {
     }
   }
   edgeShadowSide(g);
-  return { rows: rows(g), colours: { o: SHADES.shadow, e: SHADES.woodLight, '#': SHADES.dim, c: look.accent, u: SHADES.amberDeep } };
+  return { rows: rows(g), colours: { o: SHADES.shadow, e: SHADES.woodLight, '#': SHADES.dim, c: look.accent, u: SHADES.amberDeep, h: look.hair ?? SHADES.shadow, s: SHADES.woodPale } };
 }
 
 const LOOKS: VillagerLook[] = [
@@ -281,6 +290,23 @@ const LOOKS: VillagerLook[] = [
   { height: 25, width: 3, head: 'hood', long: true, accent: SHADES.cyanDeep },
   { height: 21, width: 2, head: 'cap', accent: SHADES.greenMid },
 ];
+
+/**
+ * The elders who meet with the Tender in the shrine: old, grey-haired, long robes with an amber band
+ * and a pale stole (placeholder looks until the designer describes them).
+ */
+export const ELDERS = ([
+  { height: 24, width: 3, head: 'bare', long: true, accent: SHADES.amberDeep, hair: SHADES.light, stole: true },
+  { height: 23, width: 3, head: 'bun', long: true, accent: SHADES.amberDeep, hair: SHADES.dim, stole: true },
+  { height: 25, width: 2, head: 'bare', long: true, accent: SHADES.amberDeep, hair: SHADES.dim, stole: true },
+  { height: 22, width: 3, head: 'hood', long: true, accent: SHADES.amberDeep, stole: true },
+] satisfies VillagerLook[]).map((look) => ({ idle: [villager(look, false), villager(look, true)] }));
+
+/** The preacher: tall and thin in a long hooded robe with a band of the tube's cyan (placeholder look). */
+export const PREACHER = (() => {
+  const look: VillagerLook = { height: 26, width: 2, head: 'hood', long: true, accent: SHADES.cyanMid, stole: true };
+  return { idle: [villager(look, false), villager(look, true)] };
+})();
 
 /** Background villagers, each with a 2-frame breathing idle and a 2-frame walk. */
 export const VILLAGERS = LOOKS.map((look) => ({

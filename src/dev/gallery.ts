@@ -6,8 +6,9 @@ import * as friendsHomeProps from '../data/areas/friendsHomeProps';
 import * as lowerRootsProps from '../data/areas/lowerRootsProps';
 import * as homeProps from '../data/areas/homeProps';
 import * as offeringFloorProps from '../data/areas/offeringFloorProps';
+import * as tendersShrineProps from '../data/areas/tendersShrineProps';
 import * as rootsMarketProps from '../data/areas/rootsMarketProps';
-import { FRIEND, GIRL, MUM, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
+import { ELDERS, FRIEND, GIRL, MUM, PREACHER, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
 import { hexString } from '../ui/pixelArt';
 import { SPEAKERS } from '../ui/portraits';
 import { BIRD, FIRE_FRAMES, FUNGI, LAMP, MORE_ARROW, type RowSprite } from '../ui/sprites';
@@ -39,6 +40,8 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       ...TENDER.idle.map((f, i): Entry => [`tender idle ${i}`, f]),
       ...FRIEND.idle.map((f, i): Entry => [`friend idle ${i}`, f]),
       ...GIRL.idle.map((f, i): Entry => [`girl idle ${i}`, f]),
+      ...ELDERS.map((e, i): Entry => [`elder ${i}`, e.idle[0]!]),
+      ['preacher', PREACHER.idle[0]!],
       ...VILLAGERS.map((v, i): Entry => [`villager ${i}`, v.idle[0]!]),
     ],
     animations: [
@@ -70,6 +73,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
   { title: "Friend's home props", scale: 4, entries: propEntries(friendsHomeProps) },
   { title: 'Lower roots props', scale: 4, entries: propEntries(lowerRootsProps) },
   { title: 'Back routes props', scale: 4, entries: propEntries(backRoutesProps) },
+  { title: "Tender's shrine props", scale: 4, entries: propEntries(tendersShrineProps) },
 ];
 
 function drawSprite(canvas: HTMLCanvasElement, sprite: RowSprite, scale: number): void {
