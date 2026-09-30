@@ -6,14 +6,14 @@ import { makeSpriteTexture } from './pixelTextures';
 import { PORTRAIT_SIZE, SPEAKERS } from './portraits';
 import { PixelText } from './PixelText';
 import { playConfirm, playMove } from './sfx';
-import { BIRD, MORE_ARROW } from './sprites';
+import { MORE_ARROW } from './sprites';
 
 const MARGIN = 8;
 const HEIGHT = 70;
 const PADDING = 7;
 const CHOICE_SPACING = 11;
-/** Choices are indented to leave room for the bird cursor. */
-const CHOICE_INDENT = 14;
+/** Choices are indented a little under the line they answer. */
+const CHOICE_INDENT = 6;
 const MAX_CHOICES = 9;
 
 /** An option in a menu opened from code. */
@@ -42,7 +42,6 @@ export class DialogueBox {
   /** 'ink' plays the story; 'menu' and 'message' are shown from code (door menus, notices); 'held' stays up until code closes it. */
   private mode: 'ink' | 'menu' | 'message' | 'held' = 'ink';
   private selected = 0;
-  private readonly cursor: Phaser.GameObjects.Image;
   private onClose: (() => void) | null = null;
   private _isOpen = false;
 
@@ -71,11 +70,9 @@ export class DialogueBox {
       .setOrigin(1, 1);
     scene.tweens.add({ targets: this.continueHint, y: '+=1', duration: 400, yoyo: true, repeat: -1, ease: 'Stepped', easeParams: [1] });
 
-    // The small red bird marks the selected choice (the same cursor as the title menu).
-    this.cursor = scene.add.image(0, 0, makeSpriteTexture(scene, 'bird', BIRD.rows, BIRD.colours)).setOrigin(0).setVisible(false);
 
     this.container = scene.add
-      .container(0, 0, [border, panel, this.portraitFrame, this.portraitBack, this.portrait, this.nameText, this.lineText, this.continueHint, this.cursor])
+      .container(0, 0, [border, panel, this.portraitFrame, this.portraitBack, this.portrait, this.nameText, this.lineText, this.continueHint])
       .setScrollFactor(0, 0, true) // children too, or input hit-tests use the camera scroll
       .setDepth(1000)
       .setVisible(false);
@@ -227,7 +224,7 @@ export class DialogueBox {
     this.select(0, false);
   }
 
-  /** Highlights choice i (wrapping around) and moves the bird cursor beside it. */
+  /** Highlights choice i (wrapping around) in amber. No cursor: an arrow beside one option reads as a recommendation. */
   private select(i: number, sound = true): void {
     const count = this.choiceTexts.length;
     if (count === 0) return;
@@ -235,8 +232,6 @@ export class DialogueBox {
     if (sound && next !== this.selected) playMove(this.scene);
     this.selected = next;
     this.choiceTexts.forEach((t, j) => t.setColor(j === this.selected ? SHADES.amber : SHADES.light));
-    const chosen = this.choiceTexts[this.selected]!;
-    this.cursor.setPosition(this.lineText.x + 1, chosen.y + 1).setVisible(true);
   }
 
   private choose(i: number): void {
@@ -250,7 +245,6 @@ export class DialogueBox {
     for (const t of this.choiceTexts) t.destroy();
     this.choiceTexts = [];
     this.options = [];
-    this.cursor.setVisible(false);
   }
 
   private handleKey(event: KeyboardEvent): void {

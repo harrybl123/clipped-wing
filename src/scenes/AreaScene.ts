@@ -559,7 +559,7 @@ export class AreaScene extends Phaser.Scene {
       return;
     }
     this.dialogue.openMenu(
-      '[PLACEHOLDER] Where to?',
+      'Where to?',
       [
         {
           label: built ? `Go to ${name}` : `Go to ${name} (not built yet)`,
