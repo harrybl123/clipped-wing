@@ -1,3 +1,4 @@
+import { backRoutes } from './backRoutes';
 import { friendsHome } from './friendsHome';
 import { home } from './home';
 import { lowerRoots } from './lowerRoots';
@@ -29,4 +30,5 @@ export const AREAS: Record<string, AreaDefinition> = {
   [rootsMarket.id]: rootsMarket,
   [friendsHome.id]: friendsHome,
   [lowerRoots.id]: lowerRoots,
+  [backRoutes.id]: backRoutes,
 };

@@ -46,8 +46,16 @@ export function paintArea(area: AreaDefinition): (x: number, y: number) => Pixel
   const wood = rgb(SHADES.wood);
   const lights = area.lights.map((l) => ({ ...l, rgb: rgb(l.colour) }));
   const { cavity } = area;
-  const centreX = cavity.x + cavity.width / 2;
-  const centreY = cavity.y + cavity.height / 2;
+  // The vignette spans everything carved (the cavity plus any nooks), clipped to the area.
+  const carved = [cavity, ...(area.nooks ?? [])];
+  const left = Math.max(0, Math.min(...carved.map((r) => r.x)));
+  const top = Math.max(0, Math.min(...carved.map((r) => r.y)));
+  const right = Math.min(width, Math.max(...carved.map((r) => r.x + r.width)));
+  const bottom = Math.min(area.height, Math.max(...carved.map((r) => r.y + r.height)));
+  const centreX = (left + right) / 2;
+  const centreY = (top + bottom) / 2;
+  const halfW = (right - left) / 2;
+  const halfH = (bottom - top) / 2;
 
   return (x, y) => {
     const exact = overlay.get(y * width + x);
@@ -56,13 +64,20 @@ export function paintArea(area: AreaDefinition): (x: number, y: number) => Pixel
     let d = roundedRectDistance(x, y, cavity);
     for (const nook of area.nooks ?? []) d = Math.min(d, roundedRectDistance(x, y, nook));
     if (d >= 0) {
-      // Heartwood around the hollow: a carved lip, then growth rings.
+      // Heartwood around the hollow: a carved lip, then growth rings (or, for tunnels, dense packed wood
+      // with a dark band along the wall and the odd root fibre running through).
       if (d < 1.5) return SHADES.woodLight;
+      if (area.heartwood === 'packed') {
+        if (d < 4) return SHADES.deep;
+        const fibre = Math.abs(noise(x / 40 + y / 90) * 60 - ((y + x * 0.35) % 60)) < 0.8;
+        if (fibre && noise(x / 13 + 7) > 0.55) return SHADES.deep;
+        return noise(x / 6 + noise(y / 8) * 3) * 0.7 + noise(y / 3 + x / 17) * 0.3 > 0.6 ? SHADES.deep : SHADES.shadow;
+      }
       return Math.floor(d / 5) % 3 === 0 ? SHADES.deep : SHADES.shadow;
     }
 
     const grain = noise(x / 5 + noise(y / 90) * 0.5) * 0.6 + noise(x / 1.8 + 90) * 0.4;
-    const vignette = smoothstep(0.45, 1.1, Math.hypot((x - centreX) / (cavity.width / 2), (y - centreY) / (cavity.height / 2)));
+    const vignette = smoothstep(0.45, 1.1, Math.hypot((x - centreX) / halfW, (y - centreY) / halfH));
     const edgeShadow = smoothstep(-10, 0, d) * 0.4; // darker right against the walls
     let c = wood.map((v) => v * area.ambient * (1 + 0.28 * grain) * (1 - 0.55 * vignette - edgeShadow)) as RGB;
     for (const l of lights) c = addLight(c, l.rgb, l.strength * falloff(x, y, l.x, l.y, l.radius, l.radiusY ?? l.radius));

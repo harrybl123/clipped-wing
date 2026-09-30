@@ -289,3 +289,15 @@ export const BARREL: RowSprite = {
   }),
   colours: { r: S.woodPale, w: S.cyanMid, c: S.cyanDeep, h: S.dim, d: S.wood, l: S.woodLight },
 };
+
+/** A low, ragged gap at the foot of the wall where the wood has gone soft: the way down into the back routes. */
+export const ROT_GAP: RowSprite = {
+  rows: fill(14, 18, (x, y) => {
+    const half = Math.min(6.5, 2 + y * 0.45) - ((x * 7 + y * 3) % 5 === 0 ? 1 : 0);
+    const d = Math.abs(x - 6.5);
+    if (d > half + 1) return '.';
+    if (d > half) return (x + y) % 3 === 0 ? 'g' : 'e';
+    return y > 14 ? 'd' : 'k';
+  }),
+  colours: { k: S.shadow, d: S.deep, e: S.woodLight, g: S.greenMid },
+};

@@ -80,6 +80,7 @@ export const home: AreaDefinition = {
     { sprite: P.shelf(56), x: 390, y: 176 },
     { sprite: P.PATCH, x: 382, y: 96 },
     { sprite: P.CRACK, x: 452, y: 64 },
+    { sprite: P.ROT_GAP, x: 444, y: FLOOR - 18 }, // down into the back routes
     { sprite: FUNGI.cluster, x: 432, y: FLOOR - 7 },
     { sprite: FUNGI.droop, x: 441, y: FLOOR - 5 },
     { sprite: FUNGI.bent, x: 454, y: 112 }, // growing out of the crack
@@ -126,5 +127,8 @@ export const home: AreaDefinition = {
     { id: 'hiding-spot', x: 266, y: LOFT, reach: 9, label: 'Search', knot: 'home_hiding_spot' },
   ],
 
-  exits: [{ id: 'door', x: 28, y: FLOOR, reach: 14, to: 'offering-floor' }],
+  exits: [
+    { id: 'door', x: 28, y: FLOOR, reach: 14, to: 'offering-floor' },
+    { id: 'rot-gap', x: 451, y: FLOOR, reach: 8, to: 'back-routes' },
+  ],
 };

@@ -64,6 +64,8 @@ export const MAP_LINKS: readonly MapLink[] = [
   { from: 'offering-floor', to: 'back-routes', kind: 'ladder' },
   { from: 'roots-market', to: 'friends-home', kind: 'walkway' },
   { from: 'friends-home', to: 'back-routes', kind: 'ladder' },
+  { from: 'home', to: 'back-routes', kind: 'walkway' },
+  { from: 'tenders-shrine', to: 'back-routes', kind: 'ladder' },
   { from: 'back-routes', to: 'lower-roots', kind: 'walkway' },
   { from: 'home', to: 'lower-roots', kind: 'ladder' },
   { from: 'tenders-shrine', to: 'trunk-climb', kind: 'ladder' },

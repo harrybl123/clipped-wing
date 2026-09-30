@@ -105,6 +105,8 @@ export interface AreaDefinition {
   cavity: Rect & { radius: number };
   /** Extra carved hollows joined onto the cavity (a crawlway seen through a window, a side passage). Painted only; add solids to walk in them. */
   nooks?: (Rect & { radius: number })[];
+  /** How the solid heartwood outside the hollows looks: growth rings round a room (default), or dense packed wood for tunnels. */
+  heartwood?: 'rings' | 'packed';
   /** How bright the bare wood is before lights (1 = normal). */
   ambient: number;
   playerStart: { x: number; y: number };

@@ -1,6 +1,7 @@
 // DEV ONLY (gallery.html, not part of the build): every placeholder sprite, enlarged, for review.
 // Plain canvas, no Phaser. Add new sprite sources to SECTIONS as they're created.
 
+import * as backRoutesProps from '../data/areas/backRoutesProps';
 import * as friendsHomeProps from '../data/areas/friendsHomeProps';
 import * as lowerRootsProps from '../data/areas/lowerRootsProps';
 import * as homeProps from '../data/areas/homeProps';
@@ -68,6 +69,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
   { title: 'Roots market props', scale: 4, entries: propEntries(rootsMarketProps) },
   { title: "Friend's home props", scale: 4, entries: propEntries(friendsHomeProps) },
   { title: 'Lower roots props', scale: 4, entries: propEntries(lowerRootsProps) },
+  { title: 'Back routes props', scale: 4, entries: propEntries(backRoutesProps) },
 ];
 
 function drawSprite(canvas: HTMLCanvasElement, sprite: RowSprite, scale: number): void {

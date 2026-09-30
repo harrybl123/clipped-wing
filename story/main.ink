@@ -14,6 +14,7 @@ INCLUDE offering-floor.ink
 INCLUDE roots-market.ink
 INCLUDE friends-home.ink
 INCLUDE lower-roots.ink
+INCLUDE back-routes.ink
 
 // The game starts conversations by knot name via StoryBridge, so the root
 // flow does nothing.
