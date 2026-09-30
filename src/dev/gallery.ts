@@ -7,10 +7,11 @@ import * as lowerRootsProps from '../data/areas/lowerRootsProps';
 import * as homeProps from '../data/areas/homeProps';
 import * as offeringFloorProps from '../data/areas/offeringFloorProps';
 import * as trunkClimbProps from '../data/areas/trunkClimbProps';
+import * as upperHallsProps from '../data/areas/upperHallsProps';
 import * as middleTiersProps from '../data/areas/middleTiersProps';
 import * as tendersShrineProps from '../data/areas/tendersShrineProps';
 import * as rootsMarketProps from '../data/areas/rootsMarketProps';
-import { ELDERS, FRIEND, GIRL, GUARD, MUM, PREACHER, RESIDENTS, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
+import { ARCHIVIST, ELDERS, FRIEND, GIRL, GUARD, MUM, PREACHER, RESIDENTS, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
 import { hexString } from '../ui/pixelArt';
 import { SPEAKERS } from '../ui/portraits';
 import { BIRD, FIRE_FRAMES, FUNGI, LAMP, MORE_ARROW, type RowSprite } from '../ui/sprites';
@@ -42,6 +43,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       ...TENDER.idle.map((f, i): Entry => [`tender idle ${i}`, f]),
       ...FRIEND.idle.map((f, i): Entry => [`friend idle ${i}`, f]),
       ...GIRL.idle.map((f, i): Entry => [`girl idle ${i}`, f]),
+      ...ARCHIVIST.idle.map((f, i): Entry => [`archivist idle ${i}`, f]),
       ...ELDERS.map((e, i): Entry => [`elder ${i}`, e.idle[0]!]),
       ['preacher', PREACHER.idle[0]!],
       ['guard', GUARD.idle[0]!],
@@ -79,6 +81,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
   { title: 'Back routes props', scale: 4, entries: propEntries(backRoutesProps) },
   { title: "Tender's shrine props", scale: 4, entries: propEntries(tendersShrineProps) },
   { title: 'Middle tiers props', scale: 4, entries: propEntries(middleTiersProps) },
+  { title: 'Upper halls props', scale: 4, entries: propEntries(upperHallsProps) },
   { title: 'Trunk climb props', scale: 4, entries: [...propEntries(trunkClimbProps), ...(['fungus', 'bark', 'plank', 'metal'] as const).map((k): Entry => [`ledge(30, ${k})`, trunkClimbProps.ledge(30, k)])] },
 ];
 

@@ -442,3 +442,51 @@ function girl(breathe: boolean): RowSprite {
 }
 
 export const GIRL = { idle: [girl(false), girl(true)] };
+
+// --- The archivist ---
+
+/**
+ * A reasonable member of high society who keeps the Ascension records: tall and neat in a long
+ * coat with a high collar, spectacles that catch the light, hands folded behind their back, and the
+ * pale ribbon of the upper branches (the design doc's signature detail) tied in their hair and
+ * trailing behind.
+ */
+function archivist(breathe: boolean): RowSprite {
+  const g = grid(13, 27);
+  const b = breathe ? 1 : 0;
+  // Neat hair, tied back.
+  span(g, 0 + b, 4, 7, 'o');
+  for (let y = 1; y <= 3; y++) {
+    span(g, y + b, 3, 7, 'o');
+    put(g, 8, y + b, '#');
+  }
+  span(g, 4 + b, 4, 6, 'o');
+  put(g, 7, 4 + b, '#');
+  put(g, 7, 2 + b, 'g'); // spectacles glint
+  // The pale ribbon: a bow at the back of the head, its tails trailing behind.
+  put(g, 2, 1 + b, 'r');
+  put(g, 2, 2 + b, 'r');
+  put(g, 1, 3 + b, 'r');
+  put(g, 1, 4 + b, 'r');
+  put(g, 0, 5 + b, 'r');
+  // High collar, then the long coat to below the knee.
+  span(g, 5 + b, 5, 7, 'l');
+  for (let y = 6; y <= 21; y++) {
+    const w = y < 16 ? 0 : Math.floor((y - 16) / 3);
+    span(g, y + (y < 16 ? b : 0), 4 - w, 8 + w, 'o');
+    put(g, 9 + w, y + (y < 16 ? b : 0), '#');
+  }
+  // A line of pale buttons down the front edge.
+  for (let y = 8; y <= 18; y += 3) put(g, 8, y + (y < 16 ? b : 0), 'l');
+  // Legs below the coat.
+  for (let y = 22; y <= 26; y++) {
+    span(g, y, 4, 5, 'o');
+    put(g, 7, y, 'o');
+    put(g, 8, y, '#');
+  }
+  put(g, 9, 26, 'o');
+  edgeShadowSide(g);
+  return { rows: rows(g), colours: { o: SHADES.shadow, e: SHADES.woodLight, '#': SHADES.dim, r: SHADES.white, l: SHADES.light, g: SHADES.cyanMid } };
+}
+
+export const ARCHIVIST = { idle: [archivist(false), archivist(true)] };

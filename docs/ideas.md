@@ -43,3 +43,11 @@ the back routes; Night 1 and the Day 7 chase on the trunk climb). Ideas to explo
 - Combat or confrontation (the design doc already has a short real-time fight on Day 4: dodge,
   shove, grab; you can't make a proper fist), or being caught and chased.
 - Ties to the weak grip (no thumb) and the rot (worse the deeper you go).
+
+## The accident: thumb and index finger (noted 2026-09-30)
+
+The designer is thinking that in the prologue the accident takes the protagonist's **left thumb and
+index finger**, not just the thumb (the design doc and summary still say "thumb"; update them if
+this is confirmed). The sprite's bandaged hand is already the left (near) hand when facing right;
+the art pass could show two missing digits, and the carving flaw and the weak grip would follow from
+it.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ELDERS, FRIEND, GIRL, GUARD, MUM, PREACHER, PROTAGONIST, RESIDENTS, TENDER, VILLAGERS } from '../src/ui/characters';
+import { ARCHIVIST, ELDERS, FRIEND, GIRL, GUARD, MUM, PREACHER, PROTAGONIST, RESIDENTS, TENDER, VILLAGERS } from '../src/ui/characters';
 import { SHADES } from '../src/ui/pixelArt';
 import { PORTRAIT_SIZE, SPEAKERS } from '../src/ui/portraits';
 import type { RowSprite } from '../src/ui/sprites';
@@ -33,7 +33,7 @@ describe('character sprites', () => {
   });
 
   it('keeps red off everyone else', () => {
-    for (const f of [...MUM.idle, ...TENDER.idle, ...FRIEND.idle, ...GIRL.idle, ...PREACHER.idle, ...GUARD.idle, ...RESIDENTS.flatMap((r) => [...r.idle, ...r.walk]), ...ELDERS.flatMap((e) => e.idle), ...VILLAGERS.flatMap((v) => [...v.idle, ...v.walk])]) {
+    for (const f of [...MUM.idle, ...TENDER.idle, ...FRIEND.idle, ...GIRL.idle, ...PREACHER.idle, ...ARCHIVIST.idle, ...GUARD.idle, ...RESIDENTS.flatMap((r) => [...r.idle, ...r.walk]), ...ELDERS.flatMap((e) => e.idle), ...VILLAGERS.flatMap((v) => [...v.idle, ...v.walk])]) {
       expect(Object.values(f.colours)).not.toContain(SHADES.red);
       expect(new Set(f.rows.map((r) => r.length)).size).toBe(1);
     }
@@ -58,6 +58,16 @@ it('gives the girl grounded, same-size frames with her glowing green strand', ()
     expect(f.rows.at(-1)).toMatch(/[^.]/);
     expect(f.rows.join('')).toContain('g');
     expect(f.colours.g).toBe(SHADES.green);
+  }
+});
+
+it('gives the archivist grounded, same-size frames with the pale ribbon', () => {
+  for (const f of ARCHIVIST.idle) {
+    expect(f.rows).toHaveLength(27);
+    expect(new Set(f.rows.map((r) => r.length))).toEqual(new Set([13]));
+    expect(f.rows.at(-1)).toMatch(/[^.]/);
+    expect(f.rows.join('')).toContain('r');
+    expect(f.colours.r).toBe(SHADES.white);
   }
 });
 

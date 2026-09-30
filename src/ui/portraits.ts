@@ -39,6 +39,7 @@ const COLOURS = {
   N: SHADES.greenMid, // strand glow
   x: SHADES.greenDeep, // tattoo lines
   p: SHADES.light, // piercings
+  W: SHADES.white, // the archivist's pale ribbon
 };
 
 function draw(pick: Pick): RowSprite {
@@ -244,6 +245,39 @@ export const GIRL_PORTRAIT: RowSprite = (() => {
   });
 })();
 
+/**
+ * The archivist: neat hair swept back and tied with the pale ribbon of the upper branches (a bow
+ * showing behind), round spectacles catching the light, a high pale collar, a careful, uneasy look.
+ */
+export const ARCHIVIST_PORTRAIT: RowSprite = (() => {
+  const face: Face = { cx: 24, cy: 22, rx: 9, ry: 12 };
+  const eyeY = face.cy + 1;
+  return draw((x, y) => {
+    // The ribbon's bow and tails, behind the head on the left.
+    if (inEllipse(x, y, 12, 13, 3, 2.2) || inEllipse(x, y, 12, 18, 2.2, 3)) return (x + y) % 3 === 0 ? 'b' : 'W';
+    if ((x === 11 && y >= 20 && y <= 27) || (x === 10 && y >= 24 && y <= 31)) return 'W';
+    // Neat hair, swept back from the brow.
+    const inFace = inEllipse(x, y, face.cx, face.cy, face.rx, face.ry);
+    if (inEllipse(x, y, face.cx, face.cy - 2, face.rx + 1.5, face.ry + 0.5) && (y < face.cy - 7 || (!inFace && y < face.cy + 2))) {
+      return (x + y * 2) % 7 === 0 ? 'k' : 'h';
+    }
+    if (inFace) {
+      // Round spectacles: rims round each eye, a glint on the lit lens, a bridge between.
+      for (const ex of [face.cx - 3.5, face.cx + 3.5]) {
+        const r = Math.hypot(x - ex, y - eyeY);
+        if (r > 2.4 && r < 3.4) return 'o';
+        if (ex > face.cx && x === Math.round(ex) + 1 && y === eyeY - 1) return 'q';
+      }
+      if (y === eyeY && x === face.cx) return 'o';
+      if (y === eyeY - 5 && x >= face.cx - 2 && x <= face.cx + 2) return 'S'; // a worried line
+      return features(x, y, face, true) ?? skin(x, face.cx, face.rx);
+    }
+    // A high pale collar up the neck.
+    if (y >= 33 && y <= 38 && x >= 19 && x <= 29) return y <= 34 && x > 20 && x < 28 ? skin(x, 24, 5) : 'b';
+    return body(x, y, 38) ?? '.';
+  });
+})();
+
 /** Portraits by the speaker id used in ink tags (`#speaker:mum`), with the name shown above the line. */
 export const SPEAKERS: Record<string, { name: string; portrait: RowSprite }> = {
   you: { name: 'You', portrait: PROTAGONIST_PORTRAIT },
@@ -251,4 +285,5 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite }> = {
   tender: { name: 'The Tender', portrait: TENDER_PORTRAIT },
   friend: { name: 'Your friend', portrait: FRIEND_PORTRAIT },
   girl: { name: 'The girl', portrait: GIRL_PORTRAIT },
+  archivist: { name: 'The archivist', portrait: ARCHIVIST_PORTRAIT },
 };
