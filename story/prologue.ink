@@ -21,10 +21,8 @@
 [PLACEHOLDER] "Because it's for the Tree. Everything we send up, it sees." #name:Mum
 [PLACEHOLDER] "Start with the head. Rock it in your hands and let the rough bits fall away." #name:Mum #step:smooth
 [PLACEHOLDER] "Lovely. Feel how smooth that is now?" #name:Mum
-[PLACEHOLDER] "What does the Tree do with them all?" #name:You
-[PLACEHOLDER] "It keeps the best, and sends blessings back down. Bread, cloth, light. The better the work, the better the blessing." #name:Mum
-[PLACEHOLDER] "The finest makers live right up in the high branches, where it's always warm." #name:Mum
-[PLACEHOLDER] "Could we live up there one day?" #name:You
+[PLACEHOLDER] "Keep this up and you'll be living in the high branches one day, where it's always warm." #name:Mum
+[PLACEHOLDER] "Me? Up there?" #name:You
 [PLACEHOLDER] "With hands like yours? I wouldn't bet against it." #name:Mum
 [PLACEHOLDER] "Now along the wing. Slowly. Let the blade do the work." #name:Mum #step:carve
 [PLACEHOLDER] "Well done! Look at that line. Better than mine at your age." #name:Mum
@@ -39,6 +37,7 @@
 [PLACEHOLDER] "No, no, no! Give it here, give me your hand!" #name:Mum
 [PLACEHOLDER] (Your older voice.) My first offering never went up the tube. #black #narration
 [PLACEHOLDER] That day, the roots claimed me for good. #narration
+[PLACEHOLDER] A carver with a ruined hand makes flawed birds. And in the tree, what you make decides where you live. #narration
 [PLACEHOLDER] I still see every bird perfectly in my head. My hands just can't make it. #narration
 [PLACEHOLDER] The tree is fair, they say. You give your work, and it gives back in kind. #tableau:tree #narration
 [PLACEHOLDER] The finest makers rise: better wood, better food, homes in the high branches. The rest stay low. #narration
