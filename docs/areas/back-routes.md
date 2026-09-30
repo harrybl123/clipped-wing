@@ -39,3 +39,4 @@ blessings, look at one of her marks. Placeholder text only.
 - Day 6's overhearing: played at the grate here, or in the shrine itself from a hidden spot?
 - Should the offering floor get a visible hatch down here? (For now, arriving from here puts you
   at its usual start.)
+- More danger when the sequences are built **(designer)**: real-time events like the environment crumbling, maybe combat. See `docs/ideas.md`.

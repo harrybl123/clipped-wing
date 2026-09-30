@@ -221,6 +221,8 @@ interface VillagerLook {
   hair?: number;
   /** A pale stole hanging down the front of a robe (elders' mark of office, placeholder). */
   stole?: boolean;
+  /** A tall staff held in front, with a pale tip (guards). */
+  staff?: boolean;
 }
 
 /** A background figure, varied by `look`. Same lighting as everyone: rim on the right, faint edge on the left. */
@@ -278,7 +280,12 @@ function villager(look: VillagerLook, breathe: boolean, stride = 0): RowSprite {
     }
   }
   edgeShadowSide(g);
-  return { rows: rows(g), colours: { o: SHADES.shadow, e: SHADES.woodLight, '#': SHADES.dim, c: look.accent, u: SHADES.amberDeep, h: look.hair ?? SHADES.shadow, s: SHADES.woodPale } };
+  if (look.staff) {
+    const sx = cx + look.width + 2;
+    for (let y = 0; y < H; y++) put(g, sx, y, y < 2 ? 't' : 'w');
+    put(g, sx - 1, 8 + b, 'o'); // hand on the staff
+  }
+  return { rows: rows(g), colours: { o: SHADES.shadow, e: SHADES.woodLight, '#': SHADES.dim, t: SHADES.light, w: SHADES.woodPale, c: look.accent, u: SHADES.amberDeep, h: look.hair ?? SHADES.shadow, s: SHADES.woodPale } };
 }
 
 const LOOKS: VillagerLook[] = [
@@ -307,6 +314,23 @@ export const PREACHER = (() => {
   const look: VillagerLook = { height: 26, width: 2, head: 'hood', long: true, accent: SHADES.cyanMid, stole: true };
   return { idle: [villager(look, false), villager(look, true)] };
 })();
+
+/** A guard of the middle tiers' checkpoint: capped, amber-banded, with a staff (placeholder look). */
+export const GUARD = (() => {
+  const look: VillagerLook = { height: 25, width: 3, head: 'cap', accent: SHADES.amber, staff: true };
+  return { idle: [villager(look, false), villager(look, true)] };
+})();
+
+/** Better-off residents of the middle tiers and upper branches: amber and pale accents, finer headwear (placeholder looks). */
+export const RESIDENTS = ([
+  { height: 24, width: 3, head: 'bun', long: true, accent: SHADES.amber, hair: SHADES.dim },
+  { height: 25, width: 3, head: 'cap', accent: SHADES.light },
+  { height: 23, width: 3, head: 'bare', long: true, accent: SHADES.cyanMid, hair: SHADES.woodLight },
+  { height: 26, width: 2, head: 'bare', accent: SHADES.amberDeep, hair: SHADES.amberDeep, stole: true },
+] satisfies VillagerLook[]).map((look) => ({
+  idle: [villager(look, false), villager(look, true)],
+  walk: [villager(look, false, 2), villager(look, true, 0)],
+}));
 
 /** Background villagers, each with a 2-frame breathing idle and a 2-frame walk. */
 export const VILLAGERS = LOOKS.map((look) => ({

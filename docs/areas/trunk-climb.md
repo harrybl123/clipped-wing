@@ -35,3 +35,4 @@ Look at the climbers' marks; watch from the lookout. Placeholder text only.
 - The weak grip (no thumb): what does it do in play? Slipping on some ledges, can't hang?
 - Night 1: do others climb too (a few kids on the lookout)?
 - The Day 7 chase: who follows, and does the route change?
+- More danger when the sequences are built **(designer)**: real-time events like the environment crumbling, maybe combat. See `docs/ideas.md`.

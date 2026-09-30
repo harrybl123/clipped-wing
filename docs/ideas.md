@@ -31,3 +31,15 @@ pass, consider taking its structure and feel (not its bright daylight colours):
   the archive, saplings in the seed grove).
 - Ladders, walkways and rope bridges between rooms; amber lanterns hanging from branches, more
   of them higher up; green fungi glowing in the roots; the Canopy as white glare.
+
+## Danger in the back routes and the trunk climb (noted 2026-09-30)
+
+The designer wants both to become more dangerous when their sequences are built (Days 3/6/7 in
+the back routes; Night 1 and the Day 7 chase on the trunk climb). Ideas to explore then:
+
+- Real-time events: the environment crumbling (soft wood giving way, boards snapping, ledges
+  breaking off behind you, a rope fraying on the slider or lift), falling debris, drips turning to
+  collapses.
+- Combat or confrontation (the design doc already has a short real-time fight on Day 4: dodge,
+  shove, grab; you can't make a proper fist), or being caught and chased.
+- Ties to the weak grip (no thumb) and the rot (worse the deeper you go).

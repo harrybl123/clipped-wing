@@ -2,6 +2,7 @@ import { backRoutes } from './backRoutes';
 import { friendsHome } from './friendsHome';
 import { home } from './home';
 import { lowerRoots } from './lowerRoots';
+import { middleTiers } from './middleTiers';
 import { offeringFloor } from './offeringFloor';
 import { rootsMarket } from './rootsMarket';
 import { tendersShrine } from './tendersShrine';
@@ -35,4 +36,5 @@ export const AREAS: Record<string, AreaDefinition> = {
   [backRoutes.id]: backRoutes,
   [tendersShrine.id]: tendersShrine,
   [trunkClimb.id]: trunkClimb,
+  [middleTiers.id]: middleTiers,
 };

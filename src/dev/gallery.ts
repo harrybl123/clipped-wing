@@ -7,9 +7,10 @@ import * as lowerRootsProps from '../data/areas/lowerRootsProps';
 import * as homeProps from '../data/areas/homeProps';
 import * as offeringFloorProps from '../data/areas/offeringFloorProps';
 import * as trunkClimbProps from '../data/areas/trunkClimbProps';
+import * as middleTiersProps from '../data/areas/middleTiersProps';
 import * as tendersShrineProps from '../data/areas/tendersShrineProps';
 import * as rootsMarketProps from '../data/areas/rootsMarketProps';
-import { ELDERS, FRIEND, GIRL, MUM, PREACHER, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
+import { ELDERS, FRIEND, GIRL, GUARD, MUM, PREACHER, RESIDENTS, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
 import { hexString } from '../ui/pixelArt';
 import { SPEAKERS } from '../ui/portraits';
 import { BIRD, FIRE_FRAMES, FUNGI, LAMP, MORE_ARROW, type RowSprite } from '../ui/sprites';
@@ -43,6 +44,8 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       ...GIRL.idle.map((f, i): Entry => [`girl idle ${i}`, f]),
       ...ELDERS.map((e, i): Entry => [`elder ${i}`, e.idle[0]!]),
       ['preacher', PREACHER.idle[0]!],
+      ['guard', GUARD.idle[0]!],
+      ...RESIDENTS.map((r, i): Entry => [`resident ${i}`, r.idle[0]!]),
       ...VILLAGERS.map((v, i): Entry => [`villager ${i}`, v.idle[0]!]),
     ],
     animations: [
@@ -75,6 +78,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
   { title: 'Lower roots props', scale: 4, entries: propEntries(lowerRootsProps) },
   { title: 'Back routes props', scale: 4, entries: propEntries(backRoutesProps) },
   { title: "Tender's shrine props", scale: 4, entries: propEntries(tendersShrineProps) },
+  { title: 'Middle tiers props', scale: 4, entries: propEntries(middleTiersProps) },
   { title: 'Trunk climb props', scale: 4, entries: [...propEntries(trunkClimbProps), ...(['fungus', 'bark', 'plank', 'metal'] as const).map((k): Entry => [`ledge(30, ${k})`, trunkClimbProps.ledge(30, k)])] },
 ];
 
