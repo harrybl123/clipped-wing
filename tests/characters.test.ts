@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { MUM, PROTAGONIST } from '../src/ui/characters';
 import { SHADES } from '../src/ui/pixelArt';
+import { PORTRAIT_SIZE, SPEAKERS } from '../src/ui/portraits';
 import type { RowSprite } from '../src/ui/sprites';
 
 const frames: [string, RowSprite][] = [
@@ -36,5 +37,19 @@ describe('character sprites', () => {
       expect(Object.values(f.colours)).not.toContain(SHADES.red);
       expect(new Set(f.rows.map((r) => r.length)).size).toBe(1);
     }
+  });
+});
+
+describe('portraits', () => {
+  it.each(Object.entries(SPEAKERS))('%s is a square, fully coloured portrait', (_id, { portrait }) => {
+    expect(portrait.rows).toHaveLength(PORTRAIT_SIZE);
+    expect(new Set(portrait.rows.map((r) => r.length))).toEqual(new Set([PORTRAIT_SIZE]));
+    const unknown = [...new Set(portrait.rows.join(''))].filter((ch) => ch !== '.' && !(ch in portrait.colours));
+    expect(unknown).toEqual([]);
+  });
+
+  it('keeps red on the protagonist only', () => {
+    expect(SPEAKERS.you!.portrait.rows.join('')).toContain('r');
+    expect(SPEAKERS.mum!.portrait.rows.join('')).not.toContain('r');
   });
 });

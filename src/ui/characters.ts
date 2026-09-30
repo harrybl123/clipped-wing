@@ -62,6 +62,11 @@ function protagonist(pose: Pose): RowSprite {
   span(g, 5 + b, 5, 6, 'o');
   span(g, 6 + b, 4, 8, 'o');
   for (let y = 7; y <= 16; y++) span(g, y + b, 4, 8, 'o');
+  // Back arm, in shadow, swinging opposite the front one.
+  for (let y = 7; y <= 14; y++) {
+    const swing = y >= 11 ? -Math.sign(pose.arm ?? 0) * Math.min(Math.abs(pose.arm ?? 0), y - 10) : 0;
+    put(g, 3 + swing, y + b, 'o');
+  }
   // Front arm with a pale rim, ending in the bandaged hand (the missing thumb).
   const arm = pose.arm ?? 0;
   for (let y = 7; y <= 13; y++) {

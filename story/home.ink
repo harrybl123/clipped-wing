@@ -4,14 +4,16 @@
 // ============================================================================
 
 === home_mum ===
-[PLACEHOLDER] Mum: Hello, love. This is a test conversation.
-[PLACEHOLDER] Suspicion is currently {suspicion}.
+// Lines tagged #speaker:<id> show that person's portrait (ids in src/ui/portraits.ts).
+[PLACEHOLDER] Hello, love. This is a test conversation. #speaker:mum
+[PLACEHOLDER] Suspicion is currently {suspicion}. #speaker:mum
 + [Test choice A (raises suspicion)]
     ~ suspicion += 1
-    [PLACEHOLDER] You picked A. Suspicion goes up by one.
+    [PLACEHOLDER] I picked A. Suspicion goes up by one. #speaker:you
 + [Test choice B (no change)]
-    [PLACEHOLDER] You picked B. Nothing changes.
-- -> END
+    [PLACEHOLDER] I picked B. Nothing changes. #speaker:you
+- [PLACEHOLDER] Mum turns back to the fire. (Untagged lines are narration.)
+-> END
 
 === home_door ===
 [PLACEHOLDER] The door out to the roots. (The map isn't built yet.)

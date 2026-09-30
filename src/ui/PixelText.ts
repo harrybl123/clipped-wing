@@ -43,6 +43,14 @@ export class PixelText extends Phaser.GameObjects.Image {
     return this;
   }
 
+  setWrapWidth(width: number): this {
+    if (width !== this.style.wrapWidth) {
+      this.style.wrapWidth = width;
+      this.redraw();
+    }
+    return this;
+  }
+
   setColor(color: number): this {
     if (color !== this.style.color) {
       this.style.color = color;
