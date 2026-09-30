@@ -2,6 +2,7 @@
 // Plain canvas, no Phaser. Add new sprite sources to SECTIONS as they're created.
 
 import * as archiveProps from '../data/areas/archiveProps';
+import * as ascensionGateProps from '../data/areas/ascensionGateProps';
 import * as backRoutesProps from '../data/areas/backRoutesProps';
 import * as friendsHomeProps from '../data/areas/friendsHomeProps';
 import * as lowerRootsProps from '../data/areas/lowerRootsProps';
@@ -86,6 +87,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
   { title: 'Upper halls props', scale: 4, entries: propEntries(upperHallsProps) },
   { title: 'Archive props', scale: 4, entries: propEntries(archiveProps) },
   { title: 'Seed grove props', scale: 4, entries: propEntries(seedGroveProps) },
+  { title: 'Ascension gate props', scale: 4, entries: propEntries(ascensionGateProps) },
   { title: 'Trunk climb props', scale: 4, entries: [...propEntries(trunkClimbProps), ...(['fungus', 'bark', 'plank', 'metal'] as const).map((k): Entry => [`ledge(30, ${k})`, trunkClimbProps.ledge(30, k)])] },
 ];
 

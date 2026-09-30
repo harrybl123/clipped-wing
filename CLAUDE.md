@@ -65,6 +65,8 @@ The game is pixel art, so darker and lighter **shades** of these colours are all
 
 (Record decisions here as they're made, newest first.)
 
+- **2026-09-30 — The Ascension gate; every area built.** The thirteenth and last planned area (brief in `docs/areas/ascension-gate.md`): the tube rising into the Canopy's glare, a metal gate in the tube's wall flanked by two great carved wings, stairs up both sides to a dais, balconies for the evening crowd. All 13 areas in `PLANNED_AREAS` are now built (placeholder art and text), so every window on the map is lit. Next: assess how the story unfolds with the gameplay and areas.
+
 - **2026-09-30 — The seed grove.** The twelfth area (brief in `docs/areas/seed-grove.md`): gardens out on a branch in the Canopy's light, a vault of amber-glowing seeds, a guard at night. Living plants are green, but healthy seeds glow amber, so the eerie green glow stays a sign of the roots' fungi (and the rot).
 
 - **2026-09-30 — The archive.** The eleventh area (brief in `docs/areas/archive.md`): a wall of record plaques with makers' marks (pictures, since roots-dwellers can't read), the index engine, drawers under a gallery, the back hatch from the trunk climb, and a watchman at night.
