@@ -1,30 +1,14 @@
 import Phaser from 'phaser';
 
-/** Fixed internal resolution. The canvas is scaled to fit the window and letterboxed. */
-export const GAME_WIDTH = 1920;
-export const GAME_HEIGHT = 1080;
+/** Internal resolution in game pixels. Pixel art: scaled up by whole numbers only (see integerZoom). */
+export const GAME_WIDTH = 480;
+export const GAME_HEIGHT = 270;
 
-/** Art-direction palette. Must match the table in CLAUDE.md exactly. */
-export const PALETTE = {
-  /** The unknowable top of the tree */
-  canopyWhite: 0xf4f1e8,
-  /** The sacred tube */
-  tubeCyan: 0xaef6f7,
-  /** Warmth, wealth, the upper branches */
-  lampAmber: 0xf2b45a,
-  /** Fungi of the lower roots */
-  rootGreen: 0x6fe0c0,
-  /** Reserved: birds and the protagonist only */
-  offeringRed: 0xd8323a,
-  /** The tree itself */
-  carvedWood: 0x2a221b,
-} as const;
+export { PALETTE } from './palette';
 
-export type PaletteName = keyof typeof PALETTE;
-
-/** CSS hex string for a palette colour, for Phaser text styles. */
-export function css(name: PaletteName): string {
-  return `#${PALETTE[name].toString(16).padStart(6, '0')}`;
+/** Largest whole-number scale at which the game fits the window (at least 1). */
+export function integerZoom(): number {
+  return Math.max(1, Math.floor(Math.min(window.innerWidth / GAME_WIDTH, window.innerHeight / GAME_HEIGHT)));
 }
 
 export function createGameConfig(scenes: Phaser.Types.Scenes.SceneType[]): Phaser.Types.Core.GameConfig {
@@ -34,15 +18,16 @@ export function createGameConfig(scenes: Phaser.Types.Scenes.SceneType[]): Phase
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
     backgroundColor: '#000000',
-    pixelArt: false,
-    antialias: true,
+    pixelArt: true,
+    roundPixels: true,
     scale: {
-      mode: Phaser.Scale.FIT,
+      mode: Phaser.Scale.NONE,
       autoCenter: Phaser.Scale.CENTER_BOTH,
+      zoom: integerZoom(),
     },
     physics: {
       default: 'arcade',
-      arcade: { gravity: { x: 0, y: 1800 }, debug: false },
+      arcade: { gravity: { x: 0, y: 450 }, debug: false },
     },
     scene: scenes,
   };

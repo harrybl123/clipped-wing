@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
-import { css, PALETTE } from '../config';
 import { loadSession, saveSession, type Session } from '../session';
+import { SHADES } from './pixelArt';
+import { PixelText } from './PixelText';
 
 const HELP = [
-  '` hide   T advance time   U use afternoon action',
-  'K save   L load   X delete save',
+  '` hide  T advance time  U use afternoon action',
+  'K save  L load  X delete save',
 ].join('\n');
 
 /**
@@ -12,7 +13,7 @@ const HELP = [
  * and keys to poke the systems by hand. The keys only work while the overlay is visible.
  */
 export class DebugOverlay {
-  private readonly text: Phaser.GameObjects.Text;
+  private readonly text: PixelText;
   private readonly background: Phaser.GameObjects.Rectangle;
   private message = '';
   private messageTimer: Phaser.Time.TimerEvent | null = null;
@@ -24,13 +25,8 @@ export class DebugOverlay {
     private readonly session: Session,
     private readonly isBusy: () => string | null = () => null,
   ) {
-    this.background = scene.add.rectangle(24, 24, 10, 10, PALETTE.carvedWood, 0.85).setOrigin(0);
-    this.text = scene.add.text(48, 44, '', {
-      fontFamily: 'Menlo, Consolas, monospace',
-      fontSize: '24px',
-      color: css('canopyWhite'),
-      lineSpacing: 6,
-    });
+    this.background = scene.add.rectangle(4, 4, 10, 10, SHADES.shadow, 0.88).setOrigin(0);
+    this.text = new PixelText(scene, 9, 9, '', { color: SHADES.white });
     for (const o of [this.background, this.text]) o.setScrollFactor(0).setDepth(2000).setVisible(false);
 
     for (const name of session.story.variableNames()) {
@@ -95,20 +91,20 @@ export class DebugOverlay {
     if (!this.visible) return;
     const { calendar, story, saves } = this.session;
     const left = calendar.afternoonActionsLeft;
-    const variables = story.variableNames().map((name) => `  ${name} = ${JSON.stringify(story.getVariable(name))}`);
+    const variables = story.variableNames().map((name) => `- ${name} = ${JSON.stringify(story.getVariable(name))}`);
     this.text.setText(
       [
         'DEBUG',
         `Day: ${calendar.day}   Slot: ${calendar.slot}`,
         `Afternoon actions left: ${left === Infinity ? 'unlimited' : left}${calendar.slot === 'afternoon' ? '' : ' (not afternoon)'}`,
         'Ink variables:',
-        ...(variables.length ? variables : ['  (none)']),
+        ...(variables.length ? variables : ['- (none)']),
         `Save: ${!saves.isAvailable ? 'storage unavailable' : saves.hasSave() ? 'present' : 'none'}`,
         '',
         HELP,
         ...(this.message ? ['', `> ${this.message}`] : []),
       ].join('\n'),
     );
-    this.background.setSize(this.text.width + 48, this.text.height + 40);
+    this.background.setSize(this.text.width + 10, this.text.height + 10);
   }
 }

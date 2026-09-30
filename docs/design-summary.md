@@ -84,4 +84,4 @@ Each day: **morning** (choose your offering: a proper bird or a message bird), *
 
 ## Art direction
 
-2D, side-on, hand-painted with an ink-and-watercolour lean (references: Planet of Lana, Creaks). A carved world; light tells you where you are (cyan tube, amber lamps, green lower roots); red is reserved for birds and the protagonist; small dark figures; the Canopy is pure white. Detail lives in painted backgrounds; motion stays simple; glow, fog and particles are done in code. See the palette in CLAUDE.md.
+2D, side-on pixel art at 480×270 (references: Kingdom Two Crowns, Owlboy, Eastward, Hyper Light Drifter; Planet of Lana and Creaks still hold for mood). A tight palette of the six key colours and their shades, with dithered light. A carved world; light tells you where you are (cyan tube, amber lamps, green lower roots); red is reserved for birds and the protagonist; small dark figures; the Canopy is pure white. Detail lives in the backgrounds; motion stays simple; glow, fog and particles are done in code. See the palette in CLAUDE.md.

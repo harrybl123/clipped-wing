@@ -1,0 +1,75 @@
+import { SHADES } from './pixelArt';
+
+// Placeholder pixel sprites as rows of characters: each character maps to a colour in the
+// sprite's `colours`, '.' is transparent. Replaced by real art in the art pass.
+
+export interface RowSprite {
+  rows: readonly string[];
+  colours: Record<string, number>;
+}
+
+/** The protagonist: a small dark figure with a red scarf (red: birds and the protagonist only). */
+export const PLAYER: RowSprite = {
+  rows: [
+    '...####...',
+    '..#oooo#..',
+    '.#oooooo#.',
+    '.#oooooo#.',
+    '.#oooooo#.',
+    '..#oooo#..',
+    '..rrrrrr..',
+    '.#ooooorr.',
+    '.#oooooor.',
+    '#oooooooo#',
+    '#oooooooo#',
+    '#oooooooo#',
+    '#oooooooo#',
+    '#oooooooo#',
+    '.#oooooo#.',
+    '.#oooooo#.',
+    '.#oo##oo#.',
+    '.#o#..#o#.',
+    '.#o#..#o#.',
+    '.#o#..#o#.',
+    '.#o#..#o#.',
+    '.##....##.',
+  ],
+  colours: { '#': SHADES.dim, o: SHADES.shadow, r: SHADES.red },
+};
+
+/** A placeholder villager: same build, no red, slightly paler outline. */
+export const VILLAGER: RowSprite = {
+  rows: PLAYER.rows.map((row) => row.replace(/r/g, 'o')),
+  colours: { '#': SHADES.light, o: SHADES.shadow },
+};
+
+/** A small red carved bird with one heavy, clipped wing. */
+export const BIRD: RowSprite = {
+  rows: [
+    '......##..',
+    '.....#o##.',
+    '#...######',
+    '##.######.',
+    '.#dd####..',
+    '..dd......',
+  ],
+  colours: { '#': SHADES.red, d: SHADES.redDark, o: SHADES.shadow },
+};
+
+/** A glowing root fungus, 5 wide, standing on its bottom row. */
+export const FUNGUS: RowSprite = {
+  rows: ['.gwg.', 'ggggg', '..s..', '..s..'],
+  colours: { g: SHADES.green, w: SHADES.white, s: SHADES.greenMid },
+};
+
+/** A hanging lamp, 3 wide. */
+export const LAMP: RowSprite = {
+  rows: ['.d.', 'aaa', 'awa', 'aaa', '.d.'],
+  colours: { a: SHADES.amber, w: SHADES.white, d: SHADES.amberDeep },
+};
+
+/** The dialogue box's "more" arrow. */
+export const MORE_ARROW: RowSprite = {
+  rows: ['#####', '.###.', '..#..'],
+  colours: { '#': SHADES.light },
+};

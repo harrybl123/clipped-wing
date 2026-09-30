@@ -1,11 +1,15 @@
 import Phaser from 'phaser';
-import { css, GAME_HEIGHT, GAME_WIDTH, PALETTE } from '../config';
+import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import type { StoryBridge } from '../systems/StoryBridge';
+import { SHADES } from './pixelArt';
+import { makeSpriteTexture } from './pixelTextures';
+import { PixelText } from './PixelText';
+import { MORE_ARROW } from './sprites';
 
-const MARGIN = 80;
-const HEIGHT = 300;
-const PADDING = 36;
-const FONT = 'Georgia, serif';
+const MARGIN = 8;
+const HEIGHT = 70;
+const PADDING = 7;
+const CHOICE_SPACING = 11;
 const MAX_CHOICES = 9;
 
 /**
@@ -14,9 +18,9 @@ const MAX_CHOICES = 9;
  */
 export class DialogueBox {
   private readonly container: Phaser.GameObjects.Container;
-  private readonly lineText: Phaser.GameObjects.Text;
-  private readonly continueHint: Phaser.GameObjects.Text;
-  private choiceTexts: Phaser.GameObjects.Text[] = [];
+  private readonly lineText: PixelText;
+  private readonly continueHint: Phaser.GameObjects.Image;
+  private choiceTexts: PixelText[] = [];
   private onClose: (() => void) | null = null;
   private _isOpen = false;
 
@@ -26,24 +30,17 @@ export class DialogueBox {
   ) {
     const width = GAME_WIDTH - MARGIN * 2;
     const top = GAME_HEIGHT - MARGIN - HEIGHT;
-    const panel = scene.add
-      .rectangle(MARGIN, top, width, HEIGHT, PALETTE.carvedWood, 0.94)
-      .setOrigin(0)
-      .setStrokeStyle(2, PALETTE.canopyWhite, 0.35);
-    this.lineText = scene.add.text(MARGIN + PADDING, top + PADDING, '', {
-      fontFamily: FONT,
-      fontSize: '36px',
-      color: css('canopyWhite'),
-      wordWrap: { width: width - PADDING * 2 },
-      lineSpacing: 8,
-    });
+    // A 1px border made of two filled rectangles (crisper than a stroke at this scale).
+    const border = scene.add.rectangle(MARGIN, top, width, HEIGHT, SHADES.dim).setOrigin(0);
+    const panel = scene.add.rectangle(MARGIN + 1, top + 1, width - 2, HEIGHT - 2, SHADES.shadow).setOrigin(0);
+    this.lineText = new PixelText(scene, MARGIN + PADDING, top + PADDING, '', { color: SHADES.white, wrapWidth: width - PADDING * 2 });
     this.continueHint = scene.add
-      .text(MARGIN + width - PADDING, top + HEIGHT - PADDING, '▼', { fontFamily: FONT, fontSize: '28px', color: css('canopyWhite') })
+      .image(MARGIN + width - PADDING, top + HEIGHT - PADDING, makeSpriteTexture(scene, 'more-arrow', MORE_ARROW.rows, MORE_ARROW.colours))
       .setOrigin(1, 1);
-    scene.tweens.add({ targets: this.continueHint, alpha: 0.2, duration: 600, yoyo: true, repeat: -1 });
+    scene.tweens.add({ targets: this.continueHint, y: '+=1', duration: 400, yoyo: true, repeat: -1, ease: 'Stepped', easeParams: [1] });
 
     this.container = scene.add
-      .container(0, 0, [panel, this.lineText, this.continueHint])
+      .container(0, 0, [border, panel, this.lineText, this.continueHint])
       .setScrollFactor(0, 0, true) // children too, or input hit-tests use the camera scroll
       .setDepth(1000)
       .setVisible(false);
@@ -95,20 +92,19 @@ export class DialogueBox {
 
   private showChoices(): void {
     const choices = this.story.choices().slice(0, MAX_CHOICES);
-    let y = this.lineText.y + this.lineText.height + 24;
+    let y = this.lineText.y + this.lineText.height + 4;
     for (const [i, choice] of choices.entries()) {
-      const text = this.scene.add
-        .text(this.lineText.x + 24, y, `${i + 1}. ${choice.text}`, { fontFamily: FONT, fontSize: '32px', color: css('canopyWhite') })
+      const text = new PixelText(this.scene, this.lineText.x + 6, y, `${i + 1}. ${choice.text}`, { color: SHADES.light })
         .setInteractive({ useHandCursor: true })
-        .on('pointerover', () => text.setColor(css('lampAmber')))
-        .on('pointerout', () => text.setColor(css('canopyWhite')))
+        .on('pointerover', () => text.setColor(SHADES.amber))
+        .on('pointerout', () => text.setColor(SHADES.light))
         .on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
           event.stopPropagation();
           this.choose(choice.index);
         });
       this.container.add(text.setScrollFactor(0));
       this.choiceTexts.push(text);
-      y += text.height + 10;
+      y += CHOICE_SPACING;
     }
   }
 

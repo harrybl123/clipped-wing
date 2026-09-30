@@ -1,29 +1,37 @@
 import Phaser from 'phaser';
-import { css, GAME_HEIGHT, PALETTE } from '../config';
+import { GAME_HEIGHT as H } from '../config';
 import { getSession } from '../session';
 import { DebugOverlay } from '../ui/DebugOverlay';
 import { DialogueBox } from '../ui/DialogueBox';
-import { addCarvedBands, addFungus, addLamp, addTube } from '../ui/scenery';
+import { addLight, falloff, noise, rgb, SHADES, smoothstep, type PixelColour, type RGB } from '../ui/pixelArt';
+import { makePaintedTexture, makeSpriteTexture, PIXEL, stampRows } from '../ui/pixelTextures';
+import { PixelText } from '../ui/PixelText';
+import { FUNGUS, LAMP, PLAYER, VILLAGER } from '../ui/sprites';
 
-// Placeholder stand-in for the lower roots: shapes only, to prove movement, camera,
-// dialogue and debug tools are wired together. Not a real area.
+// Placeholder stand-in for the lower roots, to prove movement, camera, dialogue and debug
+// tools are wired together. Not a real area.
 
-const WORLD_WIDTH = 3840;
-const FLOOR_Y = 1000;
-const RUN_SPEED = 420;
-const JUMP_VELOCITY = -900; // with gravity 1800 this clears ~225 px
-const INTERACT_DISTANCE = 150;
+const WORLD_WIDTH = 960;
+const FLOOR_Y = 250;
+const PLATFORM = { x: 272, y: 202, width: 106, height: 6 };
+const TUBE_X = 600;
+const TUBE_HALF_WIDTH = 9;
+const FUNGI: readonly number[] = [128, 168, 788];
+const LAMP_POS = { x: 288, y: 90 };
+const NPC_X = 462;
+
+const RUN_SPEED = 105;
+const JUMP_VELOCITY = -225; // with gravity 450 this clears ~56 px
+const INTERACT_DISTANCE = 38;
 const TEST_KNOT = 'test_conversation';
 
 export class TestAreaScene extends Phaser.Scene {
-  private player!: Phaser.GameObjects.Rectangle;
+  private player!: Phaser.Physics.Arcade.Sprite;
   private playerBody!: Phaser.Physics.Arcade.Body;
-  private playerAccent!: Phaser.GameObjects.Rectangle;
-  private npc!: Phaser.GameObjects.Rectangle;
-  private prompt!: Phaser.GameObjects.Text;
+  private npc!: Phaser.GameObjects.Image;
+  private prompt!: PixelText;
   private dialogue!: DialogueBox;
   private keys!: Record<'left' | 'right' | 'up' | 'a' | 'd' | 'w' | 'space' | 'e', Phaser.Input.Keyboard.Key>;
-  private facing: 1 | -1 = 1;
   /** Frame on which the dialogue closed, so the key that closed it doesn't also jump or reopen it. */
   private dialogueClosedFrame = -1;
 
@@ -32,25 +40,22 @@ export class TestAreaScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.cameras.main.setBackgroundColor(css('carvedWood'));
-    this.physics.world.setBounds(0, 0, WORLD_WIDTH, GAME_HEIGHT);
-    this.cameras.main.setBounds(0, 0, WORLD_WIDTH, GAME_HEIGHT);
+    this.cameras.main.setBackgroundColor(SHADES.shadow).fadeIn(400);
+    this.physics.world.setBounds(0, 0, WORLD_WIDTH, H);
+    this.cameras.main.setBounds(0, 0, WORLD_WIDTH, H);
 
-    addCarvedBands(this, WORLD_WIDTH, GAME_HEIGHT);
+    makePaintedTexture(this, 'test-area-backdrop', WORLD_WIDTH, H, paintBackdrop());
+    this.add.image(0, 0, 'test-area-backdrop').setOrigin(0);
+    this.addTubeMotes();
     const solids = this.buildGround();
-    addTube(this, 2400, 0, FLOOR_Y);
-    addFungus(this, 520, FLOOR_Y, 0.9);
-    addFungus(this, 640, FLOOR_Y, 0.6);
-    addFungus(this, 3150, FLOOR_Y, 1.1);
-    addLamp(this, 1150, 360);
 
-    this.npc = this.add.rectangle(1850, FLOOR_Y - 60, 56, 120, PALETTE.carvedWood).setStrokeStyle(3, PALETTE.canopyWhite, 0.35);
-    this.prompt = this.add
-      .text(this.npc.x, this.npc.y - 110, '[E] talk (test)', { fontFamily: 'Georgia, serif', fontSize: '28px', color: css('canopyWhite') })
-      .setOrigin(0.5)
-      .setVisible(false);
+    this.npc = this.add.image(NPC_X, FLOOR_Y, makeSpriteTexture(this, 'villager', VILLAGER.rows, VILLAGER.colours)).setOrigin(0.5, 1);
+    this.prompt = new PixelText(this, 0, 0, '[E] talk (test)', { color: SHADES.white, shadow: SHADES.shadow }).setVisible(false);
+    this.prompt.setPosition(Math.round(NPC_X - this.prompt.width / 2), FLOOR_Y - this.npc.height - 14);
 
-    this.createPlayer(300, FLOOR_Y - 48);
+    this.player = this.physics.add.sprite(70, FLOOR_Y - 11, makeSpriteTexture(this, 'player', PLAYER.rows, PLAYER.colours)).setDepth(10);
+    this.playerBody = this.player.body as Phaser.Physics.Arcade.Body;
+    this.playerBody.setCollideWorldBounds(true);
     this.physics.add.collider(this.player, solids);
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
 
@@ -64,15 +69,9 @@ export class TestAreaScene extends Phaser.Scene {
     this.dialogue = new DialogueBox(this, session.story);
     new DebugOverlay(this, session, () => (this.dialogue.isOpen ? 'Close the conversation first.' : null));
 
-    this.add
-      .text(24, GAME_HEIGHT - 24, 'Arrows/WASD move · Space jump · E interact · ` debug   [TEST AREA — placeholder]', {
-        fontFamily: 'Georgia, serif',
-        fontSize: '22px',
-        color: css('canopyWhite'),
-      })
-      .setOrigin(0, 1)
-      .setAlpha(0.5)
-      .setScrollFactor(0);
+    new PixelText(this, 4, H - 11, 'Arrows/WASD move · Space jump · E talk · ` debug  [test area]', { color: SHADES.dim })
+      .setScrollFactor(0)
+      .setDepth(900);
   }
 
   override update(): void {
@@ -85,32 +84,70 @@ export class TestAreaScene extends Phaser.Scene {
     const right = this.keys.right.isDown || this.keys.d.isDown;
     const direction = inputBlocked ? 0 : Number(right) - Number(left);
     this.playerBody.setVelocityX(direction * RUN_SPEED);
-    if (direction !== 0) this.facing = direction > 0 ? 1 : -1;
+    if (direction !== 0) this.player.setFlipX(direction < 0);
     if (!inputBlocked && jumpPressed && this.playerBody.blocked.down) this.playerBody.setVelocityY(JUMP_VELOCITY);
-    this.playerAccent.setPosition(this.player.x + this.facing * 14, this.player.y - 18);
 
-    const nearNpc = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.npc.x, this.npc.y) < INTERACT_DISTANCE;
+    const nearNpc = Math.abs(this.player.x - this.npc.x) < INTERACT_DISTANCE && Math.abs(this.player.y - (FLOOR_Y - 11)) < 20;
     this.prompt.setVisible(nearNpc && !this.dialogue.isOpen);
     if (nearNpc && interactPressed && !inputBlocked) {
       this.dialogue.open(TEST_KNOT, () => (this.dialogueClosedFrame = this.game.loop.frame));
     }
   }
 
-  private createPlayer(x: number, y: number): void {
-    this.player = this.add.rectangle(x, y, 48, 96, PALETTE.carvedWood).setStrokeStyle(3, PALETTE.canopyWhite, 0.5).setDepth(10);
-    this.physics.add.existing(this.player);
-    this.playerBody = this.player.body as Phaser.Physics.Arcade.Body;
-    this.playerBody.setCollideWorldBounds(true);
-    // The protagonist's small red accent (red is reserved for birds and the protagonist).
-    this.playerAccent = this.add.rectangle(x, y, 14, 14, PALETTE.offeringRed).setDepth(11);
-  }
-
   private buildGround(): Phaser.Physics.Arcade.StaticGroup {
     const solids = this.physics.add.staticGroup();
-    const floor = this.add.rectangle(WORLD_WIDTH / 2, FLOOR_Y + 40, WORLD_WIDTH, 80, PALETTE.carvedWood).setStrokeStyle(2, PALETTE.canopyWhite, 0.25);
-    const platform = this.add.rectangle(1300, 820, 420, 30, PALETTE.carvedWood).setStrokeStyle(2, PALETTE.canopyWhite, 0.35);
+    const floor = this.add.rectangle(0, FLOOR_Y, WORLD_WIDTH, H - FLOOR_Y, SHADES.deep).setOrigin(0);
+    this.add.rectangle(0, FLOOR_Y, WORLD_WIDTH, 1, SHADES.woodPale).setOrigin(0);
+    const platform = this.add.rectangle(PLATFORM.x, PLATFORM.y, PLATFORM.width, PLATFORM.height, SHADES.deep).setOrigin(0);
+    this.add.rectangle(PLATFORM.x, PLATFORM.y, PLATFORM.width, 1, SHADES.woodPale).setOrigin(0);
     solids.addMultiple([floor, platform]);
     solids.refresh();
     return solids;
   }
+
+  private addTubeMotes(): void {
+    this.add.particles(0, 0, PIXEL, {
+      emitZone: {
+        type: 'random',
+        source: { getRandomPoint: (p) => { p.x = TUBE_X + Phaser.Math.Between(-TUBE_HALF_WIDTH + 2, TUBE_HALF_WIDTH - 2); p.y = Phaser.Math.Between(40, FLOOR_Y); } },
+      },
+      speedY: { min: -14, max: -5 },
+      lifespan: 7000,
+      frequency: 200,
+      tint: SHADES.white,
+      alpha: { start: 1, end: 0 },
+    });
+  }
+}
+
+/** Wood wall with vertical grain, lit by the tube, a lamp and the fungi; darker low down. */
+function paintBackdrop(): (x: number, y: number) => PixelColour {
+  const wood = rgb(SHADES.wood);
+  const [white, cyan, green, amber] = [SHADES.white, SHADES.cyan, SHADES.green, SHADES.amber].map(rgb) as [RGB, RGB, RGB, RGB];
+
+  const sprites = new Map<number, number>();
+  const put = (x: number, y: number, c: number) => sprites.set(y * WORLD_WIDTH + x, c);
+  for (let y = 0; y < LAMP_POS.y - 2; y++) put(LAMP_POS.x, y, SHADES.amberDeep); // cord
+  stampRows(put, LAMP.rows, LAMP.colours, LAMP_POS.x - 1, LAMP_POS.y - 2);
+  for (const fx of FUNGI) stampRows(put, FUNGUS.rows, FUNGUS.colours, fx - 2, FLOOR_Y - FUNGUS.rows.length);
+
+  return (x, y) => {
+    const sprite = sprites.get(y * WORLD_WIDTH + x);
+    if (sprite !== undefined) return sprite;
+
+    const dx = x - TUBE_X;
+    if (Math.abs(dx) <= TUBE_HALF_WIDTH) {
+      const edge = Math.abs(dx) / TUBE_HALF_WIDTH;
+      return edge < 0.25 ? SHADES.white : edge < 0.75 ? SHADES.cyan : SHADES.cyanMid;
+    }
+
+    const grain = noise(x / 5 + noise(y / 90) * 0.5) * 0.6 + noise(x / 1.8 + 90) * 0.4;
+    const shade = 1 - 0.55 * smoothstep(0.35, 1, y / FLOOR_Y) - 0.3 * smoothstep(0.3, 0, y / FLOOR_Y);
+    let c = wood.map((v) => v * (1 + 0.3 * grain) * shade) as RGB;
+    c = addLight(c, cyan, 0.4 * Math.exp(-((dx / 34) ** 2)));
+    c = addLight(c, white, 0.12 * Math.exp(-((dx / 14) ** 2)));
+    c = addLight(c, amber, 0.28 * falloff(x, y, LAMP_POS.x, LAMP_POS.y, 34, 30));
+    for (const fx of FUNGI) c = addLight(c, green, 0.3 * falloff(x, y, fx, FLOOR_Y - 3, 13, 9));
+    return c;
+  };
 }

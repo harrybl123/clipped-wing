@@ -287,9 +287,9 @@ Layout, top to bottom: the Canopy (blinding light, unreachable); the upper branc
 
 ## Art direction
 
-Clipped Wing is 2D, side-on and hand-painted, leaning toward ink linework with watercolour washes. Detail lives in the painted backgrounds; anything that moves stays simple.
+Clipped Wing is 2D, side-on pixel art at 480×270, scaled up crisply. It uses a tight palette built from the six key colours and their shades, with dithered light and glow. Detail lives in the backgrounds; anything that moves stays simple. (Changed from hand-painted ink and watercolour on 2026-09-30.)
 
-**References:** Planet of Lana (a painted world with dark, readable figures) and Creaks (pen and watercolour, a gloomy but whimsical world, a zoomed-out side view of its setting).
+**References:** Kingdom Two Crowns (side-on pixel art, dark and lit by glow), Owlboy and Eastward (detailed pixel worlds full of character), and Hyper Light Drifter (tight palettes, strong light). The earlier painted references, Planet of Lana (dark, readable figures) and Creaks (a gloomy but whimsical world seen side-on), still hold for mood.
 
 **What gives it its own character**
 
