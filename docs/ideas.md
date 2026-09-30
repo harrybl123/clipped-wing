@@ -18,3 +18,16 @@ The current title screen is visual only. When menus are built for real, consider
 - **Open questions:**
   - What does New Game lead into: straight into the prologue, or a title card first?
   - One autosave slot, or player-chosen saves?
+
+## Map art (parked 2026-09-30)
+
+The current map is a simple cutaway with lit windows. The designer shared a reference of a
+detailed pixel-art treehouse world and then decided the simple version is fine for now. For the art
+pass, consider taking its structure and feel (not its bright daylight colours):
+
+- A gnarled trunk with bark, branches reaching the upper places, roots spreading into the dark.
+- Each place as a tiny lit room carved into the trunk, a branch or a root, with a small scene
+  inside (hearth at home, stairs and tube at the offering floor, stalls at the market, shelves in
+  the archive, saplings in the seed grove).
+- Ladders, walkways and rope bridges between rooms; amber lanterns hanging from branches, more
+  of them higher up; green fungi glowing in the roots; the Canopy as white glare.
