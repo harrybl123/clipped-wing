@@ -73,3 +73,43 @@ export const MORE_ARROW: RowSprite = {
   rows: ['#####', '.###.', '..#..'],
   colours: { '#': SHADES.light },
 };
+
+/** Flames on logs, three frames cycled for flicker. Amber and white only: fire is never red. */
+export const FIRE_FRAMES: readonly RowSprite[] = [
+  [
+    '.....a......',
+    '....aa..a...',
+    '...aaa.aa...',
+    '..aaawaaa.a.',
+    '..aawwwaaaa.',
+    '.aawwwwwaa..',
+    '.aawwwwwwaa.',
+    'aaawwwwwwaaa',
+    'llldlllldlll',
+    '.dllllllllld',
+  ],
+  [
+    '......a.....',
+    '...a..aa....',
+    '...aa.aaa...',
+    '.a.aaawaaa..',
+    '.aaaawwwaa..',
+    '..aawwwwwaa.',
+    '.aawwwwwwaa.',
+    'aaawwwwwwaaa',
+    'llldlllldlll',
+    '.dllllllllld',
+  ],
+  [
+    '....a.......',
+    '....aa...a..',
+    '...aaa..aa..',
+    '..aawaaaaa..',
+    '.aaawwwaaa..',
+    '.aawwwwwaaa.',
+    '.aawwwwwwaa.',
+    'aaawwwwwwaaa',
+    'llldlllldlll',
+    '.dllllllllld',
+  ],
+].map((rows) => ({ rows, colours: { a: SHADES.amber, w: SHADES.white, l: SHADES.woodLight, d: SHADES.deep } }));

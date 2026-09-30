@@ -135,7 +135,7 @@ export class TitleScene extends Phaser.Scene {
   private startGame(): void {
     this.phase = 'leaving';
     this.cameras.main.fadeOut(600, 0, 0, 0);
-    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('TestArea'));
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Area', { areaId: 'home' }));
   }
 
   private handleKey(event: KeyboardEvent): void {

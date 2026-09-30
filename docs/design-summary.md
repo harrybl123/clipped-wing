@@ -9,6 +9,7 @@ This is a condensed version of the full design doc, written as build context. Wh
 - **Rejection is unheard of.** A rejected piece is unclean; nobody touches or opens it, and it goes straight back to its shamed maker.
 - **The Ascension:** the finest makers are given to the tube in a sacred ceremony at the **Ascension gate**, high on the tube. Everyone believes it's a holy sacrifice.
 - **Blessings are shrinking** all week, getting visibly worse, before and after the protagonist's first rejection.
+- **Technological gifts:** people believe a god sends them technological gifts down the tube. The higher up the tree, the more technology you see; the roots are mainly natural, with scavenged odd bits here and there that found their way back down.
 - **The Canopy** at the top is blinding white. In Act 1 nothing up there can be seen.
 - Hidden truths (not shown directly in Act 1): the outside is a barren, technological world; the Ascended are captured, not sacrificed; the tree is rotting.
 

@@ -11,7 +11,8 @@ describe('ink pipeline', () => {
 
     const story = new Story(readFileSync(result.outFile, 'utf8'));
     expect(story.variablesState['suspicion']).toBe(0);
-    story.ChoosePathString('test_conversation');
+    expect(story.variablesState['food_store']).toBe(8);
+    story.ChoosePathString('home_mum');
     expect(story.ContinueMaximally()).toContain('test conversation');
     expect(story.currentChoices).toHaveLength(2);
   });
