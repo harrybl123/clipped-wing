@@ -1,10 +1,11 @@
 // DEV ONLY (gallery.html, not part of the build): every placeholder sprite, enlarged, for review.
 // Plain canvas, no Phaser. Add new sprite sources to SECTIONS as they're created.
 
+import * as friendsHomeProps from '../data/areas/friendsHomeProps';
 import * as homeProps from '../data/areas/homeProps';
 import * as offeringFloorProps from '../data/areas/offeringFloorProps';
 import * as rootsMarketProps from '../data/areas/rootsMarketProps';
-import { MUM, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
+import { FRIEND, MUM, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
 import { hexString } from '../ui/pixelArt';
 import { SPEAKERS } from '../ui/portraits';
 import { BIRD, FIRE_FRAMES, FUNGI, LAMP, MORE_ARROW, type RowSprite } from '../ui/sprites';
@@ -34,6 +35,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       ['protagonist fall', PROTAGONIST.fall],
       ...MUM.idle.map((f, i): Entry => [`mum idle ${i}`, f]),
       ...TENDER.idle.map((f, i): Entry => [`tender idle ${i}`, f]),
+      ...FRIEND.idle.map((f, i): Entry => [`friend idle ${i}`, f]),
       ...VILLAGERS.map((v, i): Entry => [`villager ${i}`, v.idle[0]!]),
     ],
     animations: [
@@ -41,6 +43,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       { label: 'protagonist idle', frames: PROTAGONIST.idle, fps: 1.6 },
       { label: 'mum idle', frames: MUM.idle, fps: 1.5 },
       { label: 'tender idle', frames: TENDER.idle, fps: 1.2 },
+      { label: 'friend idle', frames: FRIEND.idle, fps: 1.4 },
       ...VILLAGERS.slice(0, 3).map((v, i) => ({ label: `villager ${i} walk`, frames: v.walk, fps: 5.5 })),
     ],
   },
@@ -60,6 +63,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
   { title: 'Home props', scale: 4, entries: propEntries(homeProps) },
   { title: 'Offering floor props', scale: 4, entries: propEntries(offeringFloorProps) },
   { title: 'Roots market props', scale: 4, entries: propEntries(rootsMarketProps) },
+  { title: "Friend's home props", scale: 4, entries: propEntries(friendsHomeProps) },
 ];
 
 function drawSprite(canvas: HTMLCanvasElement, sprite: RowSprite, scale: number): void {

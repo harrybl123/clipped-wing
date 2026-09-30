@@ -103,6 +103,8 @@ export interface AreaDefinition {
   height: number;
   /** The hollow the room is carved into; outside it is solid heartwood. */
   cavity: Rect & { radius: number };
+  /** Extra carved hollows joined onto the cavity (a crawlway seen through a window, a side passage). Painted only; add solids to walk in them. */
+  nooks?: (Rect & { radius: number })[];
   /** How bright the bare wood is before lights (1 = normal). */
   ambient: number;
   playerStart: { x: number; y: number };

@@ -53,7 +53,8 @@ export function paintArea(area: AreaDefinition): (x: number, y: number) => Pixel
     const exact = overlay.get(y * width + x);
     if (exact !== undefined) return exact;
 
-    const d = roundedRectDistance(x, y, cavity);
+    let d = roundedRectDistance(x, y, cavity);
+    for (const nook of area.nooks ?? []) d = Math.min(d, roundedRectDistance(x, y, nook));
     if (d >= 0) {
       // Heartwood around the hollow: a carved lip, then growth rings.
       if (d < 1.5) return SHADES.woodLight;

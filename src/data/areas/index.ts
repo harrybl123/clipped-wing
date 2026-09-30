@@ -1,3 +1,4 @@
+import { friendsHome } from './friendsHome';
 import { home } from './home';
 import { offeringFloor } from './offeringFloor';
 import { rootsMarket } from './rootsMarket';
@@ -25,4 +26,5 @@ export const AREAS: Record<string, AreaDefinition> = {
   [home.id]: home,
   [offeringFloor.id]: offeringFloor,
   [rootsMarket.id]: rootsMarket,
+  [friendsHome.id]: friendsHome,
 };

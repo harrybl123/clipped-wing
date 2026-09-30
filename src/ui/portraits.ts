@@ -31,6 +31,10 @@ const COLOURS = {
   B: SHADES.dim, // beard shadow
   H: SHADES.woodLight, // hood
   I: SHADES.wood, // hood lit edge
+  q: SHADES.cyanMid, // tube token
+  Q: SHADES.cyan, // tube token highlight
+  y: SHADES.amberDeep, // blond hair
+  Y: SHADES.amber, // blond hair highlight
 };
 
 function draw(pick: Pick): RowSprite {
@@ -162,9 +166,40 @@ export const TENDER_PORTRAIT: RowSprite = (() => {
   });
 })();
 
+/** Your friend: your age, neat short blond hair with a parting, an open face, the cyan tube token on a cord. */
+export const FRIEND_PORTRAIT: RowSprite = (() => {
+  const face: Face = { cx: 24, cy: 21, rx: 9, ry: 12 };
+  return draw((x, y) => {
+    // Tidy hair, cut straight across the brow, parted on the left.
+    // Fair hair, a straight fringe and down over the temples, outlined so it stands apart from the skin.
+    const hair = (grow: number) =>
+      inEllipse(x, y, face.cx, face.cy - 2, face.rx + 1.5 + grow, face.ry + 0.5 + grow) &&
+      (y < face.cy - 5 + grow || (Math.abs(x - face.cx) > face.rx - 2 - grow && y < face.cy + 1 + grow));
+    if (hair(0)) {
+      if (x < face.cx - 5 || x === face.cx - 3 || (x + (y >> 2)) % 5 === 0) return 'y';
+      return 'Y';
+    }
+    if (hair(1) && !inEllipse(x, y, face.cx, face.cy, face.rx, face.ry)) return 'o';
+    if (inEllipse(x, y, face.cx, face.cy, face.rx, face.ry)) {
+      if (y === face.cy + 8 && (x === face.cx - 3 || x === face.cx + 3)) return 'e'; // a hopeful smile
+      const feature = features(x, y, face, false);
+      if (feature === 'h') return 'y'; // fair brows
+      return feature ?? skin(x, face.cx, face.rx);
+    }
+    // The token: a bead on a cord round the neck.
+    if (inEllipse(x, y, 24, 41, 1.6, 1.6)) return x >= 24 && y <= 41 ? 'Q' : 'q';
+    for (const side of [-1, 1]) {
+      if (y >= 34 && y <= 39 && x === 24 + side * (4 - Math.round((y - 34) * 0.7))) return 'E';
+    }
+    if (y >= 32 && y <= 37 && x >= 20 && x <= 28) return skin(x, 24, 5);
+    return body(x, y, 36) ?? '.';
+  });
+})();
+
 /** Portraits by the speaker id used in ink tags (`#speaker:mum`), with the name shown above the line. */
 export const SPEAKERS: Record<string, { name: string; portrait: RowSprite }> = {
   you: { name: 'You', portrait: PROTAGONIST_PORTRAIT },
   mum: { name: 'Mum', portrait: MUM_PORTRAIT },
   tender: { name: 'The Tender', portrait: TENDER_PORTRAIT },
+  friend: { name: 'Your friend', portrait: FRIEND_PORTRAIT },
 };

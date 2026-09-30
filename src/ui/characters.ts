@@ -287,3 +287,56 @@ export const VILLAGERS = LOOKS.map((look) => ({
   idle: [villager(look, false), villager(look, true)],
   walk: [villager(look, false, 2), villager(look, true, 0)],
 }));
+
+// --- Your friend ---
+
+/**
+ * Your age, neat and devout: tidy blond hair, hands clasped at the chest, and (placeholder signature
+ * detail) a small cyan token of the tube on a cord round the neck. Their dream is to rise.
+ */
+function friend(breathe: boolean): RowSprite {
+  const g = grid(12, 25);
+  const b = breathe ? 1 : 0;
+  // Head, with blond hair cut neat and flat across the top, lighter where the light catches it.
+  span(g, 0 + b, 3, 7, 'y');
+  put(g, 7, 0 + b, 'Y');
+  put(g, 6, 0 + b, 'Y');
+  for (let y = 1; y <= 3; y++) {
+    span(g, y + b, 3, 7, 'o');
+    put(g, 8, y + b, '#');
+  }
+  span(g, 1 + b, 3, 6, 'y');
+  put(g, 7, 1 + b, 'Y');
+  put(g, 3, 2 + b, 'y');
+  put(g, 3, 3 + b, 'y');
+  span(g, 4 + b, 4, 6, 'o');
+  put(g, 7, 4 + b, '#');
+  // Neck, shoulders, body.
+  span(g, 5 + b, 5, 6, 'o');
+  for (let y = 6; y <= 15; y++) {
+    span(g, y + b, 4, 8, 'o');
+    put(g, 9, y + b, '#');
+  }
+  // Back arm in shadow; front arm bent up so the hands meet, clasped, at the chest.
+  for (let y = 7; y <= 13; y++) put(g, 3, y + b, 'o');
+  for (let y = 7; y <= 9; y++) put(g, 10, y + b, '#');
+  span(g, 10 + b, 8, 10, 'k');
+  span(g, 11 + b, 8, 9, 'k');
+  // The tube token: a cord from the neck to a single cyan bead.
+  put(g, 5, 6 + b, 't');
+  put(g, 7, 6 + b, 't');
+  put(g, 6, 7 + b, 't');
+  put(g, 6, 8 + b, 'q');
+  // Legs, standing straight; toes forward.
+  for (let y = 16; y <= 24; y++) {
+    span(g, y, 4, 5, 'o');
+    put(g, 7, y, 'o');
+    put(g, 8, y, '#');
+  }
+  put(g, 9, 24, 'o');
+  put(g, 6, 24, 'o');
+  edgeShadowSide(g);
+  return { rows: rows(g), colours: { o: SHADES.shadow, e: SHADES.woodLight, '#': SHADES.dim, k: SHADES.woodPale, t: SHADES.woodLight, q: SHADES.cyan, y: SHADES.amberDeep, Y: SHADES.amber } };
+}
+
+export const FRIEND = { idle: [friend(false), friend(true)] };

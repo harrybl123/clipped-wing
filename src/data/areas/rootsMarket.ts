@@ -13,7 +13,7 @@ import type { AreaDefinition, Person, Solid } from './types';
 // the evening (people are at the ceremony), empty at night. See docs/areas/roots-market.md.
 
 const FLOOR = 236;
-const BALCONY = { x: 256, y: 172, width: 208 };
+const BALCONY = { x: 256, y: 172, width: 168 }; // stops short of the right wall so you can drop off the end
 const TRADING: Person['when'] = ['morning', 'afternoon'];
 const OPEN: Person['when'] = ['morning', 'afternoon', 'evening'];
 
@@ -118,7 +118,7 @@ export const rootsMarket: AreaDefinition = {
     { sprite: P.FUNGUS_JARS, x: 114, y: FLOOR - 17 },
     // Under the balcony: posts, the ration hatch, sacks and crates.
     { sprite: post(56), x: 258, y: BALCONY.y + 8 },
-    { sprite: post(56), x: 400, y: BALCONY.y + 8 },
+    { sprite: post(56), x: 420, y: BALCONY.y + 8 },
     { sprite: P.RATION_HATCH, x: 290, y: FLOOR - 40 },
     { sprite: P.SACK, x: 322, y: FLOOR - 6 },
     { sprite: P.CRATE, x: 380, y: FLOOR - 8 },
@@ -156,7 +156,7 @@ export const rootsMarket: AreaDefinition = {
     // People browsing.
     wandering('browser-1', 1, 150, 186, FLOOR, TRADING),
     wandering('browser-2', 5, 312, 430, FLOOR, TRADING),
-    wandering('browser-3', 0, 270, 440, BALCONY.y, TRADING),
+    wandering('browser-3', 0, 270, 414, BALCONY.y, TRADING),
     wandering('evening-walker', 4, 60, 420, FLOOR, ['evening']),
   ],
 

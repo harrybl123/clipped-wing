@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MUM, PROTAGONIST } from '../src/ui/characters';
+import { FRIEND, MUM, PROTAGONIST, TENDER } from '../src/ui/characters';
 import { SHADES } from '../src/ui/pixelArt';
 import { PORTRAIT_SIZE, SPEAKERS } from '../src/ui/portraits';
 import type { RowSprite } from '../src/ui/sprites';
@@ -32,12 +32,23 @@ describe('character sprites', () => {
     }
   });
 
-  it('keeps red off Mum', () => {
-    for (const f of MUM.idle) {
+  it('keeps red off everyone else', () => {
+    for (const f of [...MUM.idle, ...TENDER.idle, ...FRIEND.idle]) {
       expect(Object.values(f.colours)).not.toContain(SHADES.red);
       expect(new Set(f.rows.map((r) => r.length)).size).toBe(1);
     }
   });
+});
+
+it('gives the friend grounded, same-size frames with the tube token and blond hair', () => {
+  for (const f of FRIEND.idle) {
+    expect(f.rows).toHaveLength(25);
+    expect(new Set(f.rows.map((r) => r.length))).toEqual(new Set([12]));
+    expect(f.rows.at(-1)).toMatch(/[^.]/);
+    expect(f.rows.join('')).toContain('q');
+    expect(f.colours.q).toBe(SHADES.cyan);
+    expect(f.colours.Y).toBe(SHADES.amber);
+  }
 });
 
 describe('portraits', () => {
@@ -50,6 +61,6 @@ describe('portraits', () => {
 
   it('keeps red on the protagonist only', () => {
     expect(SPEAKERS.you!.portrait.rows.join('')).toContain('r');
-    expect(SPEAKERS.mum!.portrait.rows.join('')).not.toContain('r');
+    for (const id of Object.keys(SPEAKERS).filter((id) => id !== 'you')) expect(SPEAKERS[id]!.portrait.rows.join(''), id).not.toContain('r');
   });
 });
