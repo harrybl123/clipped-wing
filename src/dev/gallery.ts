@@ -10,6 +10,7 @@ import * as offeringFloorProps from '../data/areas/offeringFloorProps';
 import * as trunkClimbProps from '../data/areas/trunkClimbProps';
 import * as upperHallsProps from '../data/areas/upperHallsProps';
 import * as middleTiersProps from '../data/areas/middleTiersProps';
+import * as seedGroveProps from '../data/areas/seedGroveProps';
 import * as tendersShrineProps from '../data/areas/tendersShrineProps';
 import * as rootsMarketProps from '../data/areas/rootsMarketProps';
 import { ARCHIVIST, ELDERS, FRIEND, GIRL, GUARD, MUM, PREACHER, RESIDENTS, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
@@ -84,6 +85,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
   { title: 'Middle tiers props', scale: 4, entries: propEntries(middleTiersProps) },
   { title: 'Upper halls props', scale: 4, entries: propEntries(upperHallsProps) },
   { title: 'Archive props', scale: 4, entries: propEntries(archiveProps) },
+  { title: 'Seed grove props', scale: 4, entries: propEntries(seedGroveProps) },
   { title: 'Trunk climb props', scale: 4, entries: [...propEntries(trunkClimbProps), ...(['fungus', 'bark', 'plank', 'metal'] as const).map((k): Entry => [`ledge(30, ${k})`, trunkClimbProps.ledge(30, k)])] },
 ];
 

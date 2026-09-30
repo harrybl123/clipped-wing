@@ -6,6 +6,7 @@ import { lowerRoots } from './lowerRoots';
 import { middleTiers } from './middleTiers';
 import { offeringFloor } from './offeringFloor';
 import { rootsMarket } from './rootsMarket';
+import { seedGrove } from './seedGrove';
 import { tendersShrine } from './tendersShrine';
 import { trunkClimb } from './trunkClimb';
 import { upperHalls } from './upperHalls';
@@ -41,4 +42,5 @@ export const AREAS: Record<string, AreaDefinition> = {
   [middleTiers.id]: middleTiers,
   [upperHalls.id]: upperHalls,
   [archive.id]: archive,
+  [seedGrove.id]: seedGrove,
 };

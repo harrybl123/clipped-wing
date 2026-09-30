@@ -65,6 +65,8 @@ The game is pixel art, so darker and lighter **shades** of these colours are all
 
 (Record decisions here as they're made, newest first.)
 
+- **2026-09-30 — The seed grove.** The twelfth area (brief in `docs/areas/seed-grove.md`): gardens out on a branch in the Canopy's light, a vault of amber-glowing seeds, a guard at night. Living plants are green, but healthy seeds glow amber, so the eerie green glow stays a sign of the roots' fungi (and the rot).
+
 - **2026-09-30 — The archive.** The eleventh area (brief in `docs/areas/archive.md`): a wall of record plaques with makers' marks (pictures, since roots-dwellers can't read), the index engine, drawers under a gallery, the back hatch from the trunk climb, and a watchman at night.
 
 - **2026-09-30 — The upper halls, the archivist.** The tenth area (brief in `docs/areas/upper-halls.md`): skylights with the Canopy's white light, peak tech, a feast, the first writing, and spectacular masterwork carving (height is skill; bare polished wood). `ARCHIVIST` (13×27, long coat, spectacles, the pale ribbon) with a portrait and `SPEAKERS.archivist`; all main characters now have sprites and portraits. Designer's note: the prologue accident may take the left thumb and index finger (see `docs/ideas.md`).
