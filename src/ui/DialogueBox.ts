@@ -39,8 +39,8 @@ export class DialogueBox {
   private readonly continueHint: Phaser.GameObjects.Image;
   private choiceTexts: PixelText[] = [];
   private options: MenuOption[] = [];
-  /** 'ink' plays the story; 'menu' and 'message' are shown from code (door menus, notices). */
-  private mode: 'ink' | 'menu' | 'message' = 'ink';
+  /** 'ink' plays the story; 'menu' and 'message' are shown from code (door menus, notices); 'held' stays up until code closes it. */
+  private mode: 'ink' | 'menu' | 'message' | 'held' = 'ink';
   private selected = 0;
   private readonly cursor: Phaser.GameObjects.Image;
   private onClose: (() => void) | null = null;
@@ -115,7 +115,24 @@ export class DialogueBox {
     this.continueHint.setVisible(true);
   }
 
-  private show(mode: 'ink' | 'menu' | 'message', onClose?: () => void): void {
+  /**
+   * Shows one line from code, with its tags (`speaker:<id>` for a portrait, `name:<Name>` for a name
+   * without one). The next press closes it. Used by scenes that step through ink themselves (the prologue).
+   */
+  line(text: string, tags: string[], onClose?: () => void): void {
+    this.show('message', onClose);
+    this.setLine(text, tags);
+    this.continueHint.setVisible(true);
+  }
+
+  /** Shows one line that stays up, ignoring key presses, until code calls close() (e.g. while the player follows an instruction). */
+  hold(text: string, tags: string[]): void {
+    this.show('held');
+    this.setLine(text, tags);
+    this.continueHint.setVisible(false);
+  }
+
+  private show(mode: 'ink' | 'menu' | 'message' | 'held', onClose?: () => void): void {
     this.clearChoices();
     this.mode = mode;
     this.onClose = onClose ?? null;
@@ -164,14 +181,20 @@ export class DialogueBox {
     this.continueHint.setVisible(this.choiceTexts.length === 0);
   }
 
-  /** Shows the portrait and name for a `speaker:<id>` tag, or hides them for narration. */
+  /**
+   * Shows the portrait and name for a `speaker:<id>` tag, just a name for a `name:<Name>` tag (a voice
+   * with no face, as in the prologue), or neither for narration.
+   */
   private showSpeaker(tags: string[]): void {
     const id = tags.find((t) => t.startsWith('speaker:'))?.slice('speaker:'.length).trim();
     const speaker = id ? SPEAKERS[id] : undefined;
-    for (const o of [this.portraitFrame, this.portraitBack, this.portrait, this.nameText]) o.setVisible(!!speaker);
+    const nameOnly = speaker ? undefined : tags.find((t) => t.startsWith('name:'))?.slice('name:'.length).trim();
+    for (const o of [this.portraitFrame, this.portraitBack, this.portrait]) o.setVisible(!!speaker);
+    this.nameText.setVisible(!!speaker || !!nameOnly);
     const textX = MARGIN + PADDING + (speaker ? PORTRAIT_SIZE + PORTRAIT_GAP : 0);
-    this.lineText.setX(textX).setY(this.top + PADDING + (speaker ? 11 : 0));
+    this.lineText.setX(textX).setY(this.top + PADDING + (speaker || nameOnly ? 11 : 0));
     this.lineText.setWrapWidth(this.width - (textX - MARGIN) - PADDING);
+    if (nameOnly) this.nameText.setText(nameOnly).setX(textX);
     if (!speaker || !id) return;
     this.portrait.setTexture(makeSpriteTexture(this.scene, `portrait-${id}`, speaker.portrait.rows, speaker.portrait.colours));
     this.nameText.setText(speaker.name).setX(textX);
@@ -228,7 +251,7 @@ export class DialogueBox {
   }
 
   private handleKey(event: KeyboardEvent): void {
-    if (!this._isOpen || event.repeat) return;
+    if (!this._isOpen || event.repeat || this.mode === 'held') return;
     const key = event.key.toLowerCase();
     const confirm = key === ' ' || key === 'enter' || key === 'e';
     if (this.choiceTexts.length > 0) {
@@ -245,6 +268,6 @@ export class DialogueBox {
   }
 
   private handlePointer(): void {
-    if (this._isOpen && this.choiceTexts.length === 0) this.advance();
+    if (this._isOpen && this.mode !== 'held' && this.choiceTexts.length === 0) this.advance();
   }
 }

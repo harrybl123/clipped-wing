@@ -4,15 +4,24 @@
 // ============================================================================
 
 === home_mum ===
-// Lines tagged #speaker:<id> show that person's portrait (ids in src/ui/portraits.ts).
-[PLACEHOLDER] Hello, love. This is a test conversation. #speaker:mum
-[PLACEHOLDER] Suspicion is currently {suspicion}. #speaker:mum
-+ [Test choice A (raises suspicion)]
-    ~ suspicion += 1
-    [PLACEHOLDER] I picked A. Suspicion goes up by one. #speaker:you
-+ [Test choice B (no change)]
-    [PLACEHOLDER] I picked B. Nothing changes. #speaker:you
-- [PLACEHOLDER] Mum turns back to the fire. (Untagged lines are narration.)
+// The first time you talk to her (Day 1 morning, after the prologue), she asks how you are: your
+// answer is the first dialogue-style choice (the designer moved it here from the prologue).
+{ dialogue_style == "": -> how_are_you }
+[PLACEHOLDER] "Off you go, love. Big day." #speaker:mum
+-> END
+
+= how_are_you
+[PLACEHOLDER] "You're up. How are you feeling this morning?" #speaker:mum
++ [PLACEHOLDER: put on a brave face]
+    ~ dialogue_style = "hide"
+    [PLACEHOLDER] "Fine. Better than fine. It's Ascension Day." #speaker:you
++ [PLACEHOLDER: make a joke of it]
+    ~ dialogue_style = "joke"
+    [PLACEHOLDER] "Still got most of my fingers. Good start." #speaker:you
++ [PLACEHOLDER: say how you really feel]
+    ~ dialogue_style = "voice"
+    [PLACEHOLDER] "Tired. I keep dreaming about that day." #speaker:you
+- [PLACEHOLDER] "Well. Eat something before you go." #speaker:mum
 -> END
 
 === home_hearth ===

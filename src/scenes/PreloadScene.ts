@@ -27,9 +27,11 @@ export class PreloadScene extends Phaser.Scene {
     g.fillStyle(0xffffff).fillRect(0, 0, 1, 1);
     g.generateTexture(PIXEL, 1, 1);
     g.destroy();
-    // Dev builds only: ?area=<id> skips the title and opens that area directly.
-    const areaId = import.meta.env.DEV ? new URLSearchParams(window.location.search).get('area') : null;
+    // Dev builds only: ?area=<id> skips the title and opens that area directly; ?scene=prologue opens the prologue.
+    const params = import.meta.env.DEV ? new URLSearchParams(window.location.search) : null;
+    const areaId = params?.get('area');
     if (areaId && areaId in AREAS) this.scene.start('Area', { areaId });
+    else if (params?.get('scene') === 'prologue') this.scene.start('Prologue');
     else this.scene.start('Title');
   }
 }

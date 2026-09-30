@@ -82,4 +82,10 @@ describe('Calendar', () => {
       expect(() => Calendar.fromJSON(data)).toThrow('invalid saved state');
     },
   );
+
+  it('jumps to the morning of a day with no afternoon actions used', () => {
+    const cal = new Calendar({ day: 'prologue', slot: 'evening', afternoonActionsUsed: 1 });
+    cal.jumpTo(1);
+    expect(cal.toJSON()).toEqual({ day: 1, slot: 'morning', afternoonActionsUsed: 0 });
+  });
 });

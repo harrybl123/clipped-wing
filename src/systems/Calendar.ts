@@ -80,6 +80,13 @@ export class Calendar {
     return true;
   }
 
+  /** Jumps to the morning of `day` with no afternoon actions used (e.g. the prologue ending and Day 1 starting). */
+  jumpTo(day: Day): void {
+    this._day = day;
+    this._slot = TIME_SLOTS[0];
+    this._afternoonActionsUsed = 0;
+  }
+
   toJSON(): CalendarState {
     return { day: this._day, slot: this._slot, afternoonActionsUsed: this._afternoonActionsUsed };
   }

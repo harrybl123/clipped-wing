@@ -185,7 +185,7 @@ export class TitleScene extends Phaser.Scene {
     this.phase = 'leaving';
     if (this.music) this.tweens.add({ targets: this.music, volume: 0, duration: 600 });
     this.cameras.main.fadeOut(600, 0, 0, 0);
-    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Area', { areaId: 'home' }));
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Prologue'));
   }
 
   private handleKey(event: KeyboardEvent): void {

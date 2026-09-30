@@ -3,10 +3,11 @@ import { createGameConfig, integerZoom } from './config';
 import { BootScene } from './scenes/BootScene';
 import { MapScene } from './scenes/MapScene';
 import { PreloadScene } from './scenes/PreloadScene';
+import { PrologueScene } from './scenes/PrologueScene';
 import { AreaScene } from './scenes/AreaScene';
 import { TitleScene } from './scenes/TitleScene';
 
-const game = new Phaser.Game(createGameConfig([BootScene, PreloadScene, TitleScene, AreaScene, MapScene]));
+const game = new Phaser.Game(createGameConfig([BootScene, PreloadScene, TitleScene, PrologueScene, AreaScene, MapScene]));
 
 // Keep pixels square and crisp: rescale by whole numbers when the window changes size.
 const onResize = () => game.scale.setZoom(integerZoom());

@@ -17,6 +17,10 @@ export interface AreaSceneData {
   areaId: string;
   /** The area the player came from; they appear at the exit that leads back there. */
   from?: string;
+  /** Where the player appears instead (e.g. waking in bed), overriding `from`. */
+  start?: { x: number; y: number };
+  /** A title card faded in over the start of the scene (e.g. "Day 1: Ascension Day"). */
+  card?: string;
 }
 
 /** A person pacing between two points. */
@@ -70,6 +74,8 @@ export class AreaScene extends Phaser.Scene {
   private usables: Usable[] = [];
   private current: Usable | null = null;
   private from: string | undefined;
+  private start: { x: number; y: number } | undefined;
+  private card: string | undefined;
   private leaving = false;
   private wanderers: Wanderer[] = [];
   private movers: Mover[] = [];
@@ -85,6 +91,8 @@ export class AreaScene extends Phaser.Scene {
     if (!area) throw new Error(`AreaScene: no area called "${data.areaId}"`);
     this.area = area;
     this.from = data.from;
+    this.start = data.start;
+    this.card = data.card;
     this.wanderers = [];
     this.movers = [];
     this.current = null;
@@ -141,7 +149,7 @@ export class AreaScene extends Phaser.Scene {
       }
     }
 
-    const arrival = area.exits.find((e) => e.to === this.from) ?? area.playerStart;
+    const arrival = this.start ?? area.exits.find((e) => e.to === this.from) ?? area.playerStart;
     this.player = new Player(this, arrival.x, arrival.y);
     // Pressing down drops through one-way platforms (walkways, bridges, roofs, stairs).
     const notDroppingThrough = (_p: unknown, other: unknown) => !(this.player.dropping && (other as Phaser.GameObjects.GameObject).getData('oneWay'));
@@ -154,6 +162,8 @@ export class AreaScene extends Phaser.Scene {
     this.prompt = new PixelText(this, 0, 0, '', { color: SHADES.white }).setDepth(20).setVisible(false);
     this.dialogue = new DialogueBox(this, session.story);
     new DebugOverlay(this, session, () => (this.dialogue.isOpen ? 'Close the conversation first.' : null));
+
+    if (this.card) this.showCard(this.card);
 
     // Dev builds only: M opens the map from anywhere, for quick testing.
     if (import.meta.env.DEV) {
@@ -258,6 +268,20 @@ export class AreaScene extends Phaser.Scene {
         graphics.clear().fillStyle(SHADES.woodPale).fillRect(x + 2, top, 1, y - top).fillRect(x + m.width - 3, top, 1, y - top);
       }
     }
+  }
+
+  /** Fades a title card in over the middle of the screen, holds it, then fades it away. */
+  private showCard(text: string): void {
+    const card = new PixelText(this, 0, 0, text, { color: SHADES.white, shadow: SHADES.shadow }).setScrollFactor(0).setDepth(30).setAlpha(0);
+    card.setPosition(Math.round((GAME_WIDTH - card.width) / 2), 96);
+    this.tweens.chain({
+      targets: card,
+      tweens: [
+        { alpha: 1, duration: 900, delay: 400, ease: 'Sine.easeOut' },
+        { alpha: 0, duration: 900, delay: 2200, ease: 'Sine.easeIn' },
+      ],
+      onComplete: () => card.destroy(),
+    });
   }
 
   /** Walks the player up low one-way ledges (stairs) instead of making them jump each one. */

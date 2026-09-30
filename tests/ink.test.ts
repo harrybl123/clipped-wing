@@ -12,8 +12,29 @@ describe('ink pipeline', () => {
     const story = new Story(readFileSync(result.outFile, 'utf8'));
     expect(story.variablesState['suspicion']).toBe(0);
     expect(story.variablesState['food_store']).toBe(8);
+    expect(story.variablesState['dialogue_style']).toBe('');
+  });
+
+  it('has Mum ask how you are the first time, and remembers your dialogue style', () => {
+    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
     story.ChoosePathString('home_mum');
-    expect(story.ContinueMaximally()).toContain('test conversation');
-    expect(story.currentChoices).toHaveLength(2);
+    expect(story.ContinueMaximally()).toContain('How are you feeling');
+    expect(story.currentChoices).toHaveLength(3);
+    story.ChooseChoiceIndex(1);
+    story.ContinueMaximally();
+    expect(story.variablesState['dialogue_style']).toBe('joke');
+    story.ChoosePathString('home_mum');
+    expect(story.ContinueMaximally()).not.toContain('How are you feeling');
+  });
+
+  it('has a prologue ending in #end', () => {
+    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    story.ChoosePathString('prologue');
+    let tags: string[] = [];
+    while (story.canContinue) {
+      story.Continue();
+      tags = story.currentTags ?? [];
+    }
+    expect(tags).toContain('end');
   });
 });

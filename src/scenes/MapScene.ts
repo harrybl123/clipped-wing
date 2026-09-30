@@ -202,7 +202,7 @@ function pathPixels(): Map<number, number> {
  * the top (wealth), greener towards the bottom-left (the rot), with the tube glowing up the middle
  * into the white glare of the Canopy. The back routes wind beneath the roots.
  */
-function paintTree(): (x: number, y: number) => PixelColour {
+export function paintTree(): (x: number, y: number) => PixelColour {
   const wood = rgb(SHADES.wood);
   const [white, cyan, green, amber] = [SHADES.white, SHADES.cyan, SHADES.green, SHADES.amber].map(rgb) as [RGB, RGB, RGB, RGB];
   const backRoutesY = (x: number) => 226 + Math.round(Math.sin(x / 22) * 4);

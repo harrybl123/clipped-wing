@@ -8,7 +8,10 @@
 VAR suspicion = 0
 // Jars in the food store at home. Placeholder starting amount; shrinks nightly later.
 VAR food_store = 8
+// How you first handled your doubt: "hide" (a brave face), "joke" or "voice" (honest). Empty until chosen (Day 1 morning, with Mum).
+VAR dialogue_style = ""
 
+INCLUDE prologue.ink
 INCLUDE home.ink
 INCLUDE offering-floor.ink
 INCLUDE roots-market.ink
