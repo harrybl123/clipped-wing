@@ -3,7 +3,7 @@ import { css, GAME_HEIGHT, PALETTE } from '../config';
 import { getSession } from '../session';
 import { DebugOverlay } from '../ui/DebugOverlay';
 import { DialogueBox } from '../ui/DialogueBox';
-import { TEXTURES } from './PreloadScene';
+import { addCarvedBands, addFungus, addLamp, addTube } from '../ui/scenery';
 
 // Placeholder stand-in for the lower roots: shapes only, to prove movement, camera,
 // dialogue and debug tools are wired together. Not a real area.
@@ -36,13 +36,13 @@ export class TestAreaScene extends Phaser.Scene {
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, GAME_HEIGHT);
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, GAME_HEIGHT);
 
-    this.drawBackdrop();
+    addCarvedBands(this, WORLD_WIDTH, GAME_HEIGHT);
     const solids = this.buildGround();
-    this.buildTube(2400);
-    this.buildFungus(520, 0.9);
-    this.buildFungus(640, 0.6);
-    this.buildFungus(3150, 1.1);
-    this.buildLamp(1150, 360);
+    addTube(this, 2400, 0, FLOOR_Y);
+    addFungus(this, 520, FLOOR_Y, 0.9);
+    addFungus(this, 640, FLOOR_Y, 0.6);
+    addFungus(this, 3150, FLOOR_Y, 1.1);
+    addLamp(this, 1150, 360);
 
     this.npc = this.add.rectangle(1850, FLOOR_Y - 60, 56, 120, PALETTE.carvedWood).setStrokeStyle(3, PALETTE.canopyWhite, 0.35);
     this.prompt = this.add
@@ -105,15 +105,6 @@ export class TestAreaScene extends Phaser.Scene {
     this.playerAccent = this.add.rectangle(x, y, 14, 14, PALETTE.offeringRed).setDepth(11);
   }
 
-  /** Far wall: faint vertical "carved" bands with parallax. */
-  private drawBackdrop(): void {
-    const bands = this.add.graphics().setScrollFactor(0.5);
-    for (let x = 0; x < WORLD_WIDTH; x += 160) {
-      bands.fillStyle(PALETTE.canopyWhite, 0.02 + ((x / 160) % 3) * 0.012);
-      bands.fillRect(x, 0, 70 + ((x / 160) % 2) * 40, GAME_HEIGHT);
-    }
-  }
-
   private buildGround(): Phaser.Physics.Arcade.StaticGroup {
     const solids = this.physics.add.staticGroup();
     const floor = this.add.rectangle(WORLD_WIDTH / 2, FLOOR_Y + 40, WORLD_WIDTH, 80, PALETTE.carvedWood).setStrokeStyle(2, PALETTE.canopyWhite, 0.25);
@@ -121,46 +112,5 @@ export class TestAreaScene extends Phaser.Scene {
     solids.addMultiple([floor, platform]);
     solids.refresh();
     return solids;
-  }
-
-  /** The sacred tube: a tall cyan column with a glow filter and motes drifting upwards. */
-  private buildTube(x: number): void {
-    const width = 90;
-    this.add.image(x, FLOOR_Y / 2, TEXTURES.softGlow).setDisplaySize(width * 6, FLOOR_Y * 1.3).setTint(PALETTE.tubeCyan).setAlpha(0.25).setBlendMode(Phaser.BlendModes.ADD);
-    const tube = this.add.rectangle(x, FLOOR_Y / 2, width, FLOOR_Y, PALETTE.tubeCyan, 0.85);
-    tube.enableFilters();
-    tube.filters?.internal.addGlow(PALETTE.tubeCyan, 6, 1, 2);
-    this.add.particles(0, 0, TEXTURES.dot, {
-      emitZone: {
-        type: 'random',
-        source: {
-          getRandomPoint: (point) => {
-            point.x = x + Phaser.Math.Between(-width / 2 + 10, width / 2 - 10);
-            point.y = Phaser.Math.Between(200, FLOOR_Y);
-          },
-        },
-      },
-      speedY: { min: -60, max: -20 },
-      speedX: { min: -6, max: 6 },
-      lifespan: 6000,
-      frequency: 180,
-      scale: { min: 0.2, max: 0.5 },
-      alpha: { start: 0.9, end: 0 },
-      tint: PALETTE.canopyWhite,
-      blendMode: Phaser.BlendModes.ADD,
-    });
-  }
-
-  private buildFungus(x: number, size: number): void {
-    this.add.image(x, FLOOR_Y - 14 * size, TEXTURES.softGlow).setScale(0.9 * size).setTint(PALETTE.rootGreen).setAlpha(0.5).setBlendMode(Phaser.BlendModes.ADD);
-    this.add.rectangle(x, FLOOR_Y - 10 * size, 8 * size, 20 * size, PALETTE.rootGreen, 0.8);
-    this.add.ellipse(x, FLOOR_Y - 22 * size, 44 * size, 20 * size, PALETTE.rootGreen);
-  }
-
-  private buildLamp(x: number, y: number): void {
-    this.add.line(0, 0, x, 0, x, y - 20, PALETTE.lampAmber, 0.4).setOrigin(0);
-    const halo = this.add.image(x, y, TEXTURES.softGlow).setScale(1.6).setTint(PALETTE.lampAmber).setAlpha(0.45).setBlendMode(Phaser.BlendModes.ADD);
-    this.tweens.add({ targets: halo, alpha: 0.3, duration: 1800, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    this.add.circle(x, y, 18, PALETTE.lampAmber);
   }
 }
