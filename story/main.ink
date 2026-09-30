@@ -19,6 +19,7 @@ INCLUDE tenders-shrine.ink
 INCLUDE trunk-climb.ink
 INCLUDE middle-tiers.ink
 INCLUDE upper-halls.ink
+INCLUDE archive.ink
 
 // The game starts conversations by knot name via StoryBridge, so the root
 // flow does nothing.

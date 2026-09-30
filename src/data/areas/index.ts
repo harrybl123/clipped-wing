@@ -1,3 +1,4 @@
+import { archive } from './archive';
 import { backRoutes } from './backRoutes';
 import { friendsHome } from './friendsHome';
 import { home } from './home';
@@ -39,4 +40,5 @@ export const AREAS: Record<string, AreaDefinition> = {
   [trunkClimb.id]: trunkClimb,
   [middleTiers.id]: middleTiers,
   [upperHalls.id]: upperHalls,
+  [archive.id]: archive,
 };

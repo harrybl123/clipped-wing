@@ -65,6 +65,8 @@ The game is pixel art, so darker and lighter **shades** of these colours are all
 
 (Record decisions here as they're made, newest first.)
 
+- **2026-09-30 — The archive.** The eleventh area (brief in `docs/areas/archive.md`): a wall of record plaques with makers' marks (pictures, since roots-dwellers can't read), the index engine, drawers under a gallery, the back hatch from the trunk climb, and a watchman at night.
+
 - **2026-09-30 — The upper halls, the archivist.** The tenth area (brief in `docs/areas/upper-halls.md`): skylights with the Canopy's white light, peak tech, a feast, the first writing, and spectacular masterwork carving (height is skill; bare polished wood). `ARCHIVIST` (13×27, long coat, spectacles, the pale ribbon) with a portrait and `SPEAKERS.archivist`; all main characters now have sprites and portraits. Designer's note: the prologue accident may take the left thumb and index finger (see `docs/ideas.md`).
 
 - **2026-09-30 — The middle tiers; danger noted for later.** The ninth area (brief in `docs/areas/middle-tiers.md`): the official way up, a stair-street with a guard post, workshops, better homes and a counterweight lift (a `mover`). New placeholder looks: `GUARD` (`VillagerLook.staff`) and `RESIDENTS`. Props are stamped over solids, so long props like the tube must be split around planks they would otherwise cover. The designer wants the back routes and the trunk climb to become more dangerous (crumbling, real-time events, maybe combat) when their sequences are built; see `docs/ideas.md`.

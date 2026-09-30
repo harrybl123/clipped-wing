@@ -1,6 +1,7 @@
 // DEV ONLY (gallery.html, not part of the build): every placeholder sprite, enlarged, for review.
 // Plain canvas, no Phaser. Add new sprite sources to SECTIONS as they're created.
 
+import * as archiveProps from '../data/areas/archiveProps';
 import * as backRoutesProps from '../data/areas/backRoutesProps';
 import * as friendsHomeProps from '../data/areas/friendsHomeProps';
 import * as lowerRootsProps from '../data/areas/lowerRootsProps';
@@ -82,6 +83,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
   { title: "Tender's shrine props", scale: 4, entries: propEntries(tendersShrineProps) },
   { title: 'Middle tiers props', scale: 4, entries: propEntries(middleTiersProps) },
   { title: 'Upper halls props', scale: 4, entries: propEntries(upperHallsProps) },
+  { title: 'Archive props', scale: 4, entries: propEntries(archiveProps) },
   { title: 'Trunk climb props', scale: 4, entries: [...propEntries(trunkClimbProps), ...(['fungus', 'bark', 'plank', 'metal'] as const).map((k): Entry => [`ledge(30, ${k})`, trunkClimbProps.ledge(30, k)])] },
 ];
 
