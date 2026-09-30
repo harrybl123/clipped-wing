@@ -5,12 +5,14 @@ import { SHADES } from './pixelArt';
 import { makeSpriteTexture } from './pixelTextures';
 import { PORTRAIT_SIZE, SPEAKERS } from './portraits';
 import { PixelText } from './PixelText';
-import { MORE_ARROW } from './sprites';
+import { BIRD, MORE_ARROW } from './sprites';
 
 const MARGIN = 8;
 const HEIGHT = 70;
 const PADDING = 7;
 const CHOICE_SPACING = 11;
+/** Choices are indented to leave room for the bird cursor. */
+const CHOICE_INDENT = 14;
 const MAX_CHOICES = 9;
 const PORTRAIT_GAP = 7;
 
@@ -29,6 +31,9 @@ export class DialogueBox {
   private readonly width: number;
   private readonly continueHint: Phaser.GameObjects.Image;
   private choiceTexts: PixelText[] = [];
+  private choiceIndices: number[] = [];
+  private selected = 0;
+  private readonly cursor: Phaser.GameObjects.Image;
   private onClose: (() => void) | null = null;
   private _isOpen = false;
 
@@ -55,8 +60,11 @@ export class DialogueBox {
       .setOrigin(1, 1);
     scene.tweens.add({ targets: this.continueHint, y: '+=1', duration: 400, yoyo: true, repeat: -1, ease: 'Stepped', easeParams: [1] });
 
+    // The small red bird marks the selected choice (the same cursor as the title menu).
+    this.cursor = scene.add.image(0, 0, makeSpriteTexture(scene, 'bird', BIRD.rows, BIRD.colours)).setOrigin(0).setVisible(false);
+
     this.container = scene.add
-      .container(0, 0, [border, panel, this.portraitFrame, this.portraitBack, this.portrait, this.nameText, this.lineText, this.continueHint])
+      .container(0, 0, [border, panel, this.portraitFrame, this.portraitBack, this.portrait, this.nameText, this.lineText, this.continueHint, this.cursor])
       .setScrollFactor(0, 0, true) // children too, or input hit-tests use the camera scroll
       .setDepth(1000)
       .setVisible(false);
@@ -95,9 +103,17 @@ export class DialogueBox {
   /** Shows the next line, or the choices, or closes if the knot has finished. */
   private advance(): void {
     if (this.choiceTexts.length > 0) return; // waiting for a choice
-    const line = this.story.nextLine();
+    // Skip blank lines (ink produces one after a choice with no text of its own).
+    let line = this.story.nextLine();
+    while (line !== null && line.text === '') line = this.story.nextLine();
     if (line === null) {
-      this.close();
+      // Nothing more to say: either ink is waiting on a choice (keep the last line up) or it's over.
+      if (this.story.choices().length > 0) {
+        this.showChoices();
+        this.continueHint.setVisible(false);
+      } else {
+        this.close();
+      }
       return;
     }
     this.showSpeaker(line.tags);
@@ -124,18 +140,29 @@ export class DialogueBox {
     const choices = this.story.choices().slice(0, MAX_CHOICES);
     let y = this.lineText.y + this.lineText.height + 4;
     for (const [i, choice] of choices.entries()) {
-      const text = new PixelText(this.scene, this.lineText.x + 6, y, `${i + 1}. ${choice.text}`, { color: SHADES.light })
+      const text = new PixelText(this.scene, this.lineText.x + CHOICE_INDENT, y, `${i + 1}. ${choice.text}`, { color: SHADES.light })
         .setInteractive({ useHandCursor: true })
-        .on('pointerover', () => text.setColor(SHADES.amber))
-        .on('pointerout', () => text.setColor(SHADES.light))
+        .on('pointerover', () => this.select(i))
         .on('pointerdown', (_p: Phaser.Input.Pointer, _x: number, _y: number, event: Phaser.Types.Input.EventData) => {
           event.stopPropagation();
           this.choose(choice.index);
         });
       this.container.add(text.setScrollFactor(0));
       this.choiceTexts.push(text);
+      this.choiceIndices.push(choice.index);
       y += CHOICE_SPACING;
     }
+    this.select(0);
+  }
+
+  /** Highlights choice i (wrapping around) and moves the bird cursor beside it. */
+  private select(i: number): void {
+    const count = this.choiceTexts.length;
+    if (count === 0) return;
+    this.selected = (i + count) % count;
+    this.choiceTexts.forEach((t, j) => t.setColor(j === this.selected ? SHADES.amber : SHADES.light));
+    const chosen = this.choiceTexts[this.selected]!;
+    this.cursor.setPosition(this.lineText.x + 1, chosen.y + 1).setVisible(true);
   }
 
   private choose(index: number): void {
@@ -147,17 +174,26 @@ export class DialogueBox {
   private clearChoices(): void {
     for (const t of this.choiceTexts) t.destroy();
     this.choiceTexts = [];
+    this.choiceIndices = [];
+    this.cursor.setVisible(false);
   }
 
   private handleKey(event: KeyboardEvent): void {
     if (!this._isOpen || event.repeat) return;
+    const key = event.key.toLowerCase();
+    const confirm = key === ' ' || key === 'enter' || key === 'e';
     if (this.choiceTexts.length > 0) {
-      const n = Number.parseInt(event.key, 10);
-      const choice = this.story.choices()[n - 1];
-      if (choice && n <= this.choiceTexts.length) this.choose(choice.index);
+      if (key === 'arrowup' || key === 'w') this.select(this.selected - 1);
+      else if (key === 'arrowdown' || key === 's') this.select(this.selected + 1);
+      else if (confirm) this.choose(this.choiceIndices[this.selected]!);
+      else {
+        const n = Number.parseInt(key, 10);
+        const index = this.choiceIndices[n - 1];
+        if (index !== undefined) this.choose(index);
+      }
       return;
     }
-    if (event.key === ' ' || event.key === 'Enter' || event.key.toLowerCase() === 'e') this.advance();
+    if (confirm) this.advance();
   }
 
   private handlePointer(): void {
