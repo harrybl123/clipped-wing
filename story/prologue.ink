@@ -36,6 +36,7 @@
 [PLACEHOLDER] "Mum! Mum, it hurts!" #name:You
 [PLACEHOLDER] "No, no, no! Give it here, give me your hand!" #name:Mum
 [PLACEHOLDER] (Your older voice.) My first offering never went up the tube. #black #narration
+[PLACEHOLDER] The knife took my left thumb, and the finger beside it. #narration
 [PLACEHOLDER] That day, the roots claimed me for good. #narration
 [PLACEHOLDER] A carver with a ruined hand makes flawed birds. And in the tree, what you make decides where you live. #narration
 [PLACEHOLDER] I still see every bird perfectly in my head. My hands just can't make it. #narration
