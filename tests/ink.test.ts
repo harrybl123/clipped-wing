@@ -160,7 +160,7 @@ describe('ink pipeline', () => {
     expect(v['summons_on_floor']).toBe(false);
     expect(v['objective_target']).toBe('home:bench');
     expect(play('home_bench', 0)).toContain('carve:day4_carving');
-    expect(play('day4_carving', 2)).toEqual(expect.arrayContaining(['plate', 'step:scratch', 'step:rough', 'step:hollow', 'step:seal', 'end']));
+    expect(play('day4_carving', 2)).toEqual(expect.arrayContaining(['plate:reply2', 'step:scratch', 'step:rough', 'step:hollow', 'step:seal', 'end']));
     expect(v['reply2']).toBe('why');
     expect(v['objective_target']).toBe('tenders-shrine:tender-summons');
     expect(v['mum_away']).toBe(true);
@@ -196,8 +196,81 @@ describe('ink pipeline', () => {
     expect(play('the_rot_way_up')).toContain('goto:girls-home:200:236:day4_girls_goodbye');
     expect(v['girl_with_you']).toBe(false);
     expect(play('day4_girls_goodbye', 2)).toContain('goto:home:440:236:day4_home_late');
-    expect(play('home_bed', 0)).toContain('endday:Day 5 (not built yet)');
+    expect(play('home_bed', 0)).toContain('endday:Day 5');
+    expect(v['day5']).toBe('wake');
     expect(v['day4']).toBe('done');
+  });
+
+  describe('Day 5', () => {
+    const start = (truth: boolean) => {
+      const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+      const v = story.variablesState;
+      const play = (knot: string, ...choices: number[]) => {
+        story.ChoosePathString(knot);
+        const tags: string[] = [];
+        for (;;) {
+          while (story.canContinue) {
+            story.Continue();
+            tags.push(...(story.currentTags ?? []));
+          }
+          const next = choices.shift();
+          if (next === undefined || story.currentChoices.length === 0) break;
+          story.ChooseChoiceIndex(next);
+        }
+        return tags;
+      };
+      Object.entries({ dialogue_style: 'voice', day1: 'done', day2: 'done', day3: 'done', day4: 'done', reply1: 'fledgling', reply2: 'why', day5: 'wake', food_store: 6 }).forEach(([k, x]) => (v[k] = x));
+      expect(play('home_bench', 0)).toContain('carve:day5_carving');
+      expect(play('day5_carving', 1)).toEqual(expect.arrayContaining(['plate:reply3', 'step:scratch', 'step:hollow', 'step:seal', 'end']));
+      expect(v['reply3']).toBe('take');
+      expect(play('shrine_tender_summons', 2)).toContain('time:afternoon');
+      expect(v['objective_target']).toBe('home:escort-home');
+      expect(play('home_escort')).toContain('goto:middle-tiers:60:360:day5_checkpoint');
+      expect(v['escorted']).toBe(true);
+      // Big choice 2: tell him (0, then yes) or pander (1, then yes).
+      expect(play('upper_archivist', 2, 2, truth ? 0 : 1, 0)).toEqual(expect.arrayContaining(['dim:on', 'dim:off', 'time:evening', 'goto:offering-floor:60:236']));
+      expect(v['told_archivist']).toBe(truth);
+      expect(play('offering_floor_chalk_ring', 0)).toEqual(expect.arrayContaining(['show:rejected-bird', 'goto:home:130:236:day5_mum_night']));
+      expect(v['escorted']).toBe(false);
+      play('day5_mum_night');
+      expect(play('home_hearth')).toContain('decode:message4:day5_decoded');
+      return { v, play };
+    };
+
+    it('if you told the archivist, you can go back up and he gives you a healthy seed', () => {
+      const { v, play } = start(true);
+      play('day5_decoded', 0);
+      expect(v['day5']).toBe('archive');
+      expect(v['objective_target']).toBe('archive:archivist-night');
+      play('archive_archivist', 0, 2); // the wrong mark, then the right one
+      expect(v['seed']).toBe('healthy');
+      expect(play('home_bed', 0)).toContain('endday:Day 6 (not built yet)');
+    });
+
+    it('if you told him, you can still go to the lower roots, where the boy sells you a seed for food', () => {
+      const { v, play } = start(true);
+      play('day5_decoded', 1);
+      expect(v['day5']).toBe('roots');
+      play('lower_roots_girl');
+      expect(v['objective_target']).toBe('lower-roots:dodger');
+      play('lower_roots_dodger', 0, 0);
+      expect(v['seed']).toBe('roots');
+      expect(v['food_store']).toBe(4);
+    });
+
+    it("if you didn't, you try to steal one, get caught, and have to go to the roots", () => {
+      const { v, play } = start(false);
+      play('day5_decoded');
+      expect(v['day5']).toBe('steal');
+      expect(v['stealing']).toBe(true);
+      expect(play('archive_drawers', 2)).toEqual(expect.arrayContaining(['show:archivist-catch', 'goto:trunk-climb:201:118']));
+      expect(v['caught_stealing']).toBe(true);
+      expect(v['stealing']).toBe(false);
+      play('lower_roots_girl');
+      play('lower_roots_dodger', 1);
+      expect(v['seed']).toBe('roots');
+      expect(v['food_store']).toBe(3);
+    });
   });
 
   it('on Day 4, holding back at the market skips the fight, and winning it raises suspicion', () => {

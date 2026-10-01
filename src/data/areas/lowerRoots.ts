@@ -1,4 +1,4 @@
-import { GIRL, VILLAGERS } from '../../ui/characters';
+import { DODGER, GIRL, VILLAGERS } from '../../ui/characters';
 import { BOARDED_HOLE } from './girlsHomeProps';
 import { SHADES as S } from '../../ui/pixelArt';
 import { FUNGI } from '../../ui/sprites';
@@ -182,6 +182,8 @@ export const lowerRoots: AreaDefinition = {
     { ...wanderer('night-walker', 4, 300, 880, FLOOR, ['night']), hideIf: 'sneaking' },
     // The girl, at home.
     { id: 'girl', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 1056, y: FLOOR, knot: 'lower_roots_girl', flipX: true, hideIf: ['girl_with_you', 'sneaking'] },
+    // Day 5 on: the boy, a sleazy fixer, leaning on the great root by the boarded hole.
+    { id: 'dodger', sprite: DODGER.idle[0]!, idleFrames: DODGER.idle, x: 906, y: FLOOR, knot: 'lower_roots_dodger', when: ['afternoon', 'evening', 'night'], showIf: 'day5', hideIf: 'sneaking' },
     // Day 3: she shows you the way into the back routes, and comes with you.
     { id: 'girl-guide', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 60, y: FLOOR, knot: 'girl_guide', showIf: 'girl_with_you', follow: true },
   ],

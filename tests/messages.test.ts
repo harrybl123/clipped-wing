@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { compileInk } from '../scripts/ink.mjs';
-import { glossaryVariable, MESSAGES, REPLY_PICTURES, scratches } from '../src/data/messages';
+import { glossaryVariable, MESSAGES, REPLY_SETS, scratches } from '../src/data/messages';
 import { StoryBridge } from '../src/systems/StoryBridge';
 import { comparable, SymbolMatcher } from '../src/systems/SymbolMatcher';
 
@@ -59,7 +59,7 @@ describe('message 1', () => {
 
 describe('message 3', () => {
   it('has a version for each reply to message 2, all ending the same way', () => {
-    for (const reply of Object.keys(REPLY_PICTURES)) {
+    for (const { value: reply } of REPLY_SETS.reply2!.options) {
       const message = MESSAGES[`message3_${reply}`];
       expect(message, reply).toBeDefined();
       expect(message!.line).toMatch(/I am Grounded\. There are many of us beyond the bark\.$/);
@@ -75,5 +75,23 @@ describe('message 3', () => {
     expect(matcher.guess('many', 'many of us').kind).toBe('correct');
     expect(new SymbolMatcher(MESSAGES.message3_yes!.symbols).guess('yet', 'yet').kind).toBe('correct');
     expect(new SymbolMatcher(MESSAGES.message3_cant!.symbols).guess('also', 'neither').kind).toBe('correct');
+  });
+});
+
+describe('replies', () => {
+  it('offers three well-formed pictures per set, each filling a variable that exists in ink', () => {
+    const story = new StoryBridge(readFileSync(compileInk().outFile, 'utf8'));
+    for (const [id, set] of Object.entries(REPLY_SETS)) {
+      expect(set.options, id).toHaveLength(3);
+      expect(story.variableNames()).toContain(set.variable);
+      for (const o of set.options) expect(new Set(o.picture.map((r) => r.length)).size, `${id} ${o.value}`).toBe(1);
+    }
+  });
+});
+
+describe('message 4', () => {
+  it('reads like message 1, but new life is a seed', () => {
+    expect(MESSAGES.message4!.line).toBe(MESSAGES.message1!.line.replace('I see you, clipped wing. ', 'Clipped wing, ').replace('Send', 'send'));
+    expect(new SymbolMatcher(MESSAGES.message4!.symbols).guess('seed', 'seed').kind).toBe('correct');
   });
 });

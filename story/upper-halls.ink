@@ -8,6 +8,7 @@
 -> END
 
 === upper_archivist ===
+{ day5 == "upper": -> day5_archivist }
 [PLACEHOLDER] "So you're the carver. Sit, if you like. I only want to ask a few questions." #speaker:archivist
 -> END
 

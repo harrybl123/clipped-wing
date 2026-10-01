@@ -87,6 +87,23 @@ VAR has_feather = false
 // The night sneak through the lower roots: the watch is out.
 VAR sneaking = false
 
+// Day 5 (story/day5.ink). Stages: wake, carve, shrine, escort, upper, evening, open, archive, steal, roots, deal, bed, done.
+VAR day5 = ""
+// Your reply to message 3: "who" (who are you?), "take" (take me) or "afraid" (I'm afraid).
+VAR reply3 = ""
+// The guard sent to take you up to the archivist, and keep you at the ceremony.
+VAR escort_waiting = false
+VAR escorted = false
+// Big choice 2 (design doc): you told the archivist about the messages (true), or pandered (false).
+VAR told_archivist = false
+VAR archivist_trust = 0
+VAR archivist_waiting = false
+// You didn't tell him, so you try to steal a seed from the archive; it fails.
+VAR stealing = false
+VAR caught_stealing = false
+// The seed you got for Grounded: "healthy" (from the archivist) or "roots" (from the boy in the lower roots; it grows rot, Chapter 2).
+VAR seed = ""
+
 // The glossary: each decoded symbol in the player's own words (glossary_<symbol id>, see src/data/messages.ts).
 // Little words like "that" fill themselves in and have no entry.
 VAR glossary_self = ""
@@ -110,12 +127,14 @@ VAR glossary_because = ""
 VAR glossary_carve = ""
 VAR glossary_grounded = ""
 VAR glossary_many = ""
+VAR glossary_seed = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
 INCLUDE day2.ink
 INCLUDE day3.ink
 INCLUDE day4.ink
+INCLUDE day5.ink
 INCLUDE home.ink
 INCLUDE offering-floor.ink
 INCLUDE roots-market.ink

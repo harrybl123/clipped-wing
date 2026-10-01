@@ -45,6 +45,18 @@ const CLOSED: Partial<Record<Day, Record<string, string>>> = {
     'trunk-climb': "There's no reason to climb today.",
     'offering-floor': 'Across the way, a man with a lamp is watching your door. Not that way.',
   },
+  // Day 5: summoned upward in the afternoon (the archivist's token), and at night the archive's back
+  // hatch, through the trunk climb. The lower roots are open now; your front door is still watched at night.
+  5: {
+    ...without(HELD_BACK, 'back-routes', 'lower-roots'),
+    'middle-tiers': 'The way up is guarded. Not without being sent for.',
+    'upper-halls': 'The upper halls are no place for someone from the roots.',
+    archive: 'The archive is for the upper branches.',
+    'friends-home': 'His family has forbidden you from coming near.',
+    'ascension-gate': 'The gate is only opened for an Ascension.',
+    'trunk-climb': "There's no reason to climb today.",
+    'offering-floor': 'Across the way, a man with a lamp is watching your door. Not that way.',
+  },
 };
 
 /** Areas that open at particular times on a day that otherwise keeps them closed. */
@@ -53,6 +65,7 @@ const OPENS_AT: Partial<Record<Day, Record<string, TimeSlot[]>>> = {
   // Day 3: the girl shows you the way down after the morning rite.
   3: { 'lower-roots': ['afternoon', 'evening', 'night'], 'back-routes': ['afternoon', 'evening', 'night'] },
   4: { 'lower-roots': ['night'], 'offering-floor': ['morning', 'afternoon', 'evening'] },
+  5: { 'middle-tiers': ['afternoon'], 'upper-halls': ['afternoon'], 'trunk-climb': ['night'], archive: ['night'], 'offering-floor': ['morning', 'afternoon', 'evening'] },
 };
 
 /** Why you can't go to `areaId` right now, or null if you can. */

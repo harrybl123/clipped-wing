@@ -29,4 +29,5 @@
 
 // Day 4 morning: the Tender, waiting for you (the summons).
 === shrine_tender_summons ===
+{ day5 == "shrine": -> day5_shrine }
 -> day4_shrine

@@ -4,6 +4,7 @@
 // ============================================================================
 
 === archive_archivist ===
+{ day5 == "archive": -> day5_archive }
 [PLACEHOLDER] "Every one of the Ascended, recorded. Name, craft, the day the Tree took them." #speaker:archivist
 -> END
 
@@ -12,6 +13,7 @@
 -> END
 
 === archive_drawers ===
+{ day5 == "steal": -> day5_theft }
 [PLACEHOLDER] Drawer after drawer of records. The writing means nothing to you, but some have pictures.
 -> END
 
@@ -21,4 +23,9 @@
 
 === archive_newest_record ===
 [PLACEHOLDER] The newest plaque, its wood still pale from the chisel.
+-> END
+
+// Day 5 night: he catches you at the drawers (the theft that fails).
+=== archive_archivist_catch ===
+"Go. Now." #speaker:archivist
 -> END

@@ -1,5 +1,5 @@
 import { SHADES as S } from '../../ui/pixelArt';
-import { FRIEND, MUM } from '../../ui/characters';
+import { FRIEND, GUARD, MUM } from '../../ui/characters';
 import { BIRD, FUNGI } from '../../ui/sprites';
 import * as P from './homeProps';
 import type { AreaDefinition } from './types';
@@ -122,6 +122,8 @@ export const home: AreaDefinition = {
 
   people: [
     { id: 'mum', sprite: MUM.idle[0]!, idleFrames: MUM.idle, x: 150, y: FLOOR, knot: 'home_mum', flipX: true, hideIf: ['mum_in_bed', 'mum_away'] },
+    // Day 5 afternoon: the guard sent to take you up to the archivist.
+    { id: 'escort-home', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 44, y: FLOOR, showIf: 'escort_waiting', when: ['afternoon'], knot: 'home_escort' },
     // Day 4 morning: the summons on the floor inside the door.
     { id: 'summons', sprite: SUMMONS, x: 48, y: FLOOR, showIf: 'summons_on_floor', knot: 'home_summons', label: 'Pick up' },
     // Day 3 night: the evidence to hide before your friend climbs in (people, so the story can show them), and him.

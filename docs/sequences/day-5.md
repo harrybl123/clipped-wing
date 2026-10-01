@@ -1,5 +1,7 @@
 # Sequence plan: Day 5, The Archivist
 
+Built 2026-10-01 (`story/day5.ink`; message 4 and the reply pictures in `src/data/messages.ts`). Dev: `?day=5`.
+
 A plan for the designer to mark up before it's built. **(doc)** = design doc; **(designer)** = decided
 in conversation; **(suggestion)** = Claude's proposal. Dialogue here is a sketch; the full draft comes
 once the shape is agreed.

@@ -336,6 +336,12 @@ export const WATCHMAN = (() => {
   return { idle: [villager(look, false), villager(look, true)], walk: [villager(look, false, 2), villager(look, true, 0)] };
 })();
 
+/** The boy in the lower roots (Day 5 on): a sleazy fixer who can get anything. Small, capped, a bundle of goods on his back (placeholder look). */
+export const DODGER = (() => {
+  const look: VillagerLook = { height: 22, width: 2, head: 'cap', accent: SHADES.amber, bundle: true };
+  return { idle: [villager(look, false), villager(look, true)] };
+})();
+
 /** Better-off residents of the middle tiers and upper branches: amber and pale accents, finer headwear (placeholder looks). */
 export const RESIDENTS = ([
   { height: 24, width: 3, head: 'bun', long: true, accent: SHADES.amber, hair: SHADES.dim },

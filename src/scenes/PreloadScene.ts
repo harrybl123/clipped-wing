@@ -29,20 +29,20 @@ export class PreloadScene extends Phaser.Scene {
     g.generateTexture(PIXEL, 1, 1);
     g.destroy();
     // Dev builds only: ?area=<id> skips the title and opens that area directly; ?scene=prologue opens the
-    // prologue; ?scene=decode opens the first message's decoding; ?day=2, 3 or 4 wakes at home on that day.
+    // prologue; ?scene=decode opens the first message's decoding; ?day=2 to 5 wakes at home on that day.
     const params = import.meta.env.DEV ? new URLSearchParams(window.location.search) : null;
     const areaId = params?.get('area');
     if (areaId && areaId in AREAS) this.scene.start('Area', { areaId });
     else if (params?.get('scene') === 'prologue') this.scene.start('Prologue');
     else if (params?.get('scene') === 'decode') this.scene.start('Decode', { message: 'message1' });
-    else if (params && ['2', '3', '4'].includes(params.get('day') ?? '')) {
-      const day = Number(params.get('day')) as 2 | 3 | 4;
+    else if (params && ['2', '3', '4', '5'].includes(params.get('day') ?? '')) {
+      const day = Number(params.get('day')) as 2 | 3 | 4 | 5;
       this.devStartDay(day, params.get('reply') === 'usual' ? 'usual' : 'fledgling');
     } else this.scene.start('Title');
   }
 
-  /** Dev only: wakes at home on Day 2, 3 or 4 with the story as if the earlier days had been played (?day=3&reply=usual for the ignore path). */
-  private devStartDay(day: 2 | 3 | 4, reply: 'fledgling' | 'usual'): void {
+  /** Dev only: wakes at home on Day 2 to 5 with the story as if the earlier days had been played (?day=3&reply=usual for the ignore path). */
+  private devStartDay(day: 2 | 3 | 4 | 5, reply: 'fledgling' | 'usual'): void {
     const session = getSession(this);
     const { story, calendar } = session;
     const set = (vars: Record<string, string | number | boolean>) => Object.entries(vars).forEach(([k, v]) => story.setVariable(k, v));
@@ -55,12 +55,19 @@ export class PreloadScene extends Phaser.Scene {
       for (const [k, v] of Object.entries({ self: 'I', see: 'see', you: 'you', clipped: 'clipped', wing: 'wing', send: 'send', new: 'new', life: 'life', cant: "can't", fly: 'fly' })) story.setVariable(`glossary_${k}`, v);
       session.dayStarts[3] = { ink: story.saveState(), calendar: calendar.toJSON() };
     }
-    if (day === 4) {
+    if (day >= 4) {
       calendar.jumpTo(4);
       set({ reply1: 'fledgling', times_ignored: 0, day3: 'done', fledgling_size: 'small', fledgling_wing: 'left', fledgling_eye: 'open', blessings_withheld: true, confided: true, friend_trust: 2, suspicion: 2, food_store: 6 });
       set({ day4: 'wake', summons_on_floor: true, objective: "See what's by the door", objective_target: 'home:summons' });
       for (const [k, v] of Object.entries({ rest: 'rest', beyond: 'beyond', bark: 'bark', would: 'would', like: 'like' })) story.setVariable(`glossary_${k}`, v);
       session.dayStarts[4] = { ink: story.saveState(), calendar: calendar.toJSON() };
+    }
+    if (day === 5) {
+      calendar.jumpTo(5);
+      set({ day4: 'done', summons_on_floor: false, reply2: 'why', fought: true, girl_trust: 2, has_feather: true, house_watched: true, food_store: 4 });
+      set({ day5: 'wake', objective: 'Answer Grounded', objective_target: 'home:bench' });
+      for (const [k, v] of Object.entries({ because: 'because', carve: 'carve', grounded: 'grounded', many: 'many' })) story.setVariable(`glossary_${k}`, v);
+      session.dayStarts[5] = { ink: story.saveState(), calendar: calendar.toJSON() };
     }
     this.scene.start('Area', { areaId: 'home', start: { x: 50, y: 150 }, card: `Day ${day}` });
   }

@@ -540,7 +540,7 @@ export const MESSAGE_3_WHY: Message = {
   symbols: [BECAUSE, SELF, SEE, YOU, CARVE, AM, GROUNDED, MANY, BEYOND, BARK],
 };
 
-export const MESSAGES: Record<string, Message> = Object.fromEntries([MESSAGE_1, MESSAGE_2, MESSAGE_3_YES, MESSAGE_3_CANT, MESSAGE_3_WHY].map((m) => [m.id, m]));
+
 
 /** A wing cut off short, the way you clip a fledgling's: your "I can't". */
 const CLIPPED_WING = scratches(
@@ -549,5 +549,74 @@ const CLIPPED_WING = scratches(
   [[[14, 1], [6, 2], [1, 5], [5, 6], [2, 9], [6, 10], [4, 13], [9, 13], [8, 16], [13, 15], [14, 14]], [[5, 6], [13, 4]], [[6, 10], [13, 8]], [[14, 0], [14, 17]], [[17, 3], [19, 5]], [[17, 9], [19, 11]]],
 );
 
-/** Your reply to message 2 (Day 4), scratched on the back of his plate: in his own pictures. */
-export const REPLY_PICTURES: Record<'yes' | 'cant' | 'why', string[]> = { yes: FLY.picture, cant: CLIPPED_WING, why: WOULD.picture };
+// --- Your replies to message 3 (Day 5) ---
+
+/** "Who are you?": his pointing hand, and the hook-and-dot question. */
+const WHO_ARE_YOU = scratches(
+  24,
+  18,
+  [[[3, 8], [8, 8]], [[3, 11], [8, 11]], [[16, 5], [17, 2], [19, 1], [21, 2], [22, 4], [20, 7], [19, 9], [19, 12]], [[17, 5], [18, 3], [20, 2], [21, 4], [19, 7], [18, 9], [18, 12]]],
+  [{ poly: [[1, 7], [2, 6], [8, 6], [8, 7], [13, 7], [14, 8], [13, 9], [8, 9], [8, 14], [7, 15], [2, 15], [1, 13]] }, { disc: [18.5, 15.5, 1.4] }],
+);
+
+/** "Take me": you, and an arrow arching up over the bark to the far side. */
+const TAKE_ME = scratches(
+  24,
+  18,
+  [...figureLimbs(4, 4), [[5, 7], [7, 3], [11, 1], [15, 1], [19, 4], [21, 9]], [[18, 8], [21, 11], [23, 7]], [[14, 6], [14, 17]], [[15, 6], [15, 17]], [[0, 17], [23, 17]]],
+  [...figureShapes(4, 4)],
+);
+
+/** "I'm afraid": you, small, under a great eye. */
+const AFRAID = scratches(
+  24,
+  26,
+  [[[2, 4], [6, 1], [12, 0], [18, 1], [22, 4]], [[2, 4], [6, 7], [12, 8], [18, 7], [22, 4]], ...figureLimbs(12, 12), [[7, 15], [6, 17], [7, 19]], [[17, 15], [18, 17], [17, 19]]],
+  [{ disc: [12, 4, 2.2] }, ...figureShapes(12, 12)],
+);
+
+export interface ReplyOption {
+  /** What goes into the ink variable. */
+  value: string;
+  picture: string[];
+}
+
+/** Your replies, scratched on the back of his plate in his own pictures (#plate:<set> in the carving): which ink variable each set fills, and its three pictures in the order of the choices. */
+export const REPLY_SETS: Record<string, { variable: string; options: ReplyOption[] }> = {
+  // Day 4, to message 2: yes (open wings) / I can't (a clipped wing) / why? (a hook and a dot).
+  reply2: { variable: 'reply2', options: [{ value: 'yes', picture: FLY.picture }, { value: 'cant', picture: CLIPPED_WING }, { value: 'why', picture: WOULD.picture }] },
+  // Day 5, to message 3: who are you? / take me / I'm afraid.
+  reply3: { variable: 'reply3', options: [{ value: 'who', picture: WHO_ARE_YOU }, { value: 'take', picture: TAKE_ME }, { value: 'afraid', picture: AFRAID }] },
+};
+
+// --- Message 4 ---
+
+/** "New life", this time as a seed sprouting, with the upper branches above it: he wants a seed, from up there. */
+const SEED: DecodeSymbol = {
+  id: 'seed',
+  picture: scratches(
+    24,
+    20,
+    [[[0, 1], [6, 3], [10, 2]], [[6, 3], [8, 6]], [[23, 0], [17, 3], [13, 2]], [[17, 3], [15, 6]], [[3, 0], [4, 2]], [[20, 0], [20, 2]], [[12, 15], [12, 9]]],
+    [{ poly: [[9, 16], [12, 14], [15, 16], [14, 19], [10, 19]] }, { poly: [[13, 10], [16, 7], [19, 7], [17, 10], [13, 11]] }, { poly: [[12, 12], [9, 10], [6, 10], [8, 12], [12, 13]] }],
+  ),
+  accepted: ['seed', 'seeds', 'new life', 'sprout', 'seedling', 'grain', 'pip', 'kernel', 'nut', 'bean', 'shoot', 'growth', 'life'],
+  near: [
+    { words: ['egg', 'plant', 'branch', 'branches', 'tree', 'leaf', 'leaves', 'up', 'top', 'grove', 'root', 'roots'], reply: "Warm. Not an egg this time. What's that shoot growing out of, under the branches?" },
+  ],
+  nudge: "Where the first plate had an egg and a shoot, there's a seed, sprouting. And branches over it: the upper branches.",
+  hint: 'What does a tree grow from?',
+};
+
+/** Message 4 (Day 5): "Clipped wing, send me new life that can't fly." The same words as message 1, but new life is a seed, by the upper branches (design doc). */
+export const MESSAGE_4: Message = {
+  id: 'message4',
+  line: "Clipped wing, send me new life that can't fly.",
+  rows: [
+    ['clipped', 'wing', 'send', 'self'],
+    ['seed', 'that', 'cant', 'fly'],
+  ],
+  symbols: [CLIPPED, WING, SEND, SELF, SEED, THAT, CANT, FLY],
+};
+
+export const MESSAGES: Record<string, Message> = Object.fromEntries([MESSAGE_1, MESSAGE_2, MESSAGE_3_YES, MESSAGE_3_CANT, MESSAGE_3_WHY, MESSAGE_4].map((m) => [m.id, m]));

@@ -11,6 +11,7 @@
 { day3 == "evening": -> day3_rejection }
 { day4 == "shrine": -> day4_not_here }
 { day4 == "evening": -> day4_tender_evening }
+{ day5 == "evening": -> day4_tender_evening }
 [PLACEHOLDER] The Tender looks down from the landing. "Child of the roots." #speaker:tender
 [PLACEHOLDER] "The Tree gives, and the Tree takes. What do you bring?" #speaker:tender
 + [Hide it: "Only my devotion."]
@@ -48,18 +49,21 @@
 
 // Talkable people in the crowd at the rites (src/data/areas/offeringFloor.ts).
 === offering_floor_crowd_mother ===
+{ day5 == "evening": -> day5_crowd_mother }
 { day4 == "evening": -> day4_crowd_mother }
 { day3 == "rite" || day3 == "evening": -> day3_crowd_mother }
 They're watching the tube, not you.
 -> END
 
 === offering_floor_crowd_old_man ===
+{ day5 == "evening": -> day5_crowd_old_man }
 { day4 == "evening": -> day4_crowd_old_man }
 { day3 == "rite" || day3 == "evening": -> day3_crowd_old_man }
 They're watching the tube, not you.
 -> END
 
 === offering_floor_crowd_zealot ===
+{ day5 == "evening": -> day5_crowd_zealot }
 { day4 == "evening": -> day4_crowd_zealot }
 { day3 == "rite" || day3 == "evening": -> day3_crowd_zealot }
 They're watching the tube, not you.
@@ -68,5 +72,6 @@ They're watching the tube, not you.
 // Day 4 evening: the chalk ring at the foot of the stairs.
 === offering_floor_chalk_ring ===
 { day4 == "evening": -> day4_ritual }
+{ day5 == "evening": -> day5_ceremony }
 Chalk on the floor, scuffed by a hundred feet.
 -> END

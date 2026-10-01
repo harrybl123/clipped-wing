@@ -28,6 +28,14 @@ describe('area access', () => {
     expect(nextHop('home', 'lower-roots', AREAS, (id) => isAreaOpen(id, 4, 'night'))).toBe('back-routes');
   });
 
+  it('on Day 5, takes you up in the afternoon, and up the trunk to the archive at night', () => {
+    expect(isAreaOpen('middle-tiers', 5, 'morning')).toBe(false);
+    expect(isAreaOpen('upper-halls', 5, 'afternoon')).toBe(true);
+    expect(isAreaOpen('archive', 5, 'night')).toBe(true);
+    expect(nextHop('home', 'archive', AREAS, (id) => isAreaOpen(id, 5, 'night'))).toBe('back-routes');
+    expect(nextHop('home', 'lower-roots', AREAS, (id) => isAreaOpen(id, 5, 'night'))).toBe('back-routes');
+  });
+
   it('gives a line to show when an area is closed', () => {
     expect(closedReason('back-routes', 1, 'morning')).toMatch(/back routes/);
     expect(closedReason('home', 1, 'morning')).toBeNull();

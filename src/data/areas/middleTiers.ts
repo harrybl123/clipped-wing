@@ -129,12 +129,15 @@ export const middleTiers: AreaDefinition = {
   ],
 
   features: [
+    { type: 'hint', x: 470, y: MID, reach: 120, text: 'People in the doorways stop talking as you pass.', showIf: 'escorted' },
     { type: 'mover', sprite: hangingPlank(34), x: 913, y: FLOOR, to: { x: 913, y: TOP }, speed: 40, ropeTop: 24 }, // the counterweight lift
   ],
 
   people: [
     { id: 'guard', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 160, y: FLOOR, knot: 'middle_guard', flipX: true },
     resident('carver', 3, 500, MID, { knot: 'middle_carver' }),
+    // Day 5: your escort, up to the archivist.
+    { id: 'escort', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 40, y: FLOOR, knot: 'middle_escort', showIf: 'escorted', follow: true },
     resident('lift-keeper', 1, 896, FLOOR, { knot: 'middle_lift_keeper', flipX: true, when: ['morning', 'afternoon'] }),
     strolling('landing-1', 0, 440, 530, MID),
     strolling('street-1', 2, 440, 890, FLOOR),

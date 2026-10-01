@@ -1,4 +1,4 @@
-import { ARCHIVIST, RESIDENTS } from '../../ui/characters';
+import { ARCHIVIST, GUARD, RESIDENTS } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import { handrail } from './friendsHomeProps';
 import { ARCHWAY } from './offeringFloorProps';
@@ -107,6 +107,7 @@ export const upperHalls: AreaDefinition = {
   ],
 
   features: [
+    { type: 'hint', x: 80, y: FLOOR, reach: 60, text: '"Don\'t touch anything," your escort mutters.', showIf: 'escorted' },
     { type: 'drip', x: 328, y: 208, floorY: FLOOR - 9 },
     { type: 'drip', x: 332, y: 210, floorY: FLOOR - 9 },
     { type: 'motes', x: 116, top: 20, bottom: FLOOR - 20, halfWidth: 14 }, // dust in the Canopy's light
@@ -120,6 +121,8 @@ export const upperHalls: AreaDefinition = {
     { ...resident('stroller', 2, 360, FLOOR), walkFrames: RESIDENTS[2]!.walk, wander: { from: 280, to: 440 } },
     resident('lounger', 0, 546, FLOOR, { flipX: true }),
     resident('reader', 3, 520, MEZZ, { when: ['morning'] }),
+    // Day 5: your escort.
+    { id: 'escort', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 40, y: FLOOR, knot: 'middle_escort', showIf: 'escorted', follow: true },
     { id: 'archivist', sprite: ARCHIVIST.idle[0]!, idleFrames: ARCHIVIST.idle, x: 588, y: MEZZ, knot: 'upper_archivist', flipX: true, when: ['afternoon', 'evening'] },
   ],
 

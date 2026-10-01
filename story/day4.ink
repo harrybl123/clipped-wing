@@ -48,7 +48,7 @@ Your bench. His plate is under the board where you hid it, and there's wood enou
 === day4_carving ===
 First light. You turn his plate over. The back is bare metal, smooth as water.
 He asked you a question. "Would you like to fly?"
-You can't write. Nobody in the roots can. But you can answer him in his own pictures. #plate
+You can't write. Nobody in the roots can. But you can answer him in his own pictures. #plate:reply2
 + [Open wings: yes]
     ~ reply2 = "yes"
 + [A clipped wing: I can't]
@@ -592,9 +592,9 @@ Your bed. The feather is still against your skin.
 + [Sleep]
     ~ day4 = "done"
     ~ mum_in_bed = false
-    ~ house_watched = false
-    ~ objective = ""
-    ~ objective_target = ""
-    You dream of something red, high up, where nothing lives. #endday:Day 5 (not built yet)
+    ~ day5 = "wake"
+    ~ objective = "Answer Grounded"
+    ~ objective_target = "home:bench"
+    You dream of something red, high up, where nothing lives. #endday:Day 5
 + [Not yet]
 - -> END

@@ -26,3 +26,8 @@
 === middle_clock ===
 [PLACEHOLDER] A blessing that ticks. Its hands creep round, and the family who owns it tells everyone the time.
 -> END
+
+// Day 5: the escort, following you up.
+=== middle_escort ===
+"Keep moving." #name:The guard
+-> END

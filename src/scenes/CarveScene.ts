@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH as W } from '../config';
-import { REPLY_PICTURES } from '../data/messages';
+import { REPLY_SETS, type ReplyOption } from '../data/messages';
 import { getSession } from '../session';
 import { bellyPosition, carvedBird, CARVE_H, CARVE_W, eyePosition, wingPosition, type CarveOptions, type CarveStage } from '../ui/carveArt';
 import { SHADES } from '../ui/pixelArt';
@@ -20,7 +20,7 @@ import { StepScene, type StepSceneData } from './StepScene';
 //   scratch  (a reply) strike in the green three times; each strike scratches more of the picture
 //   hollow   like smoothing, inside the bird, but press too hard and the wall cracks: start again
 //   seal     press when the ring round the plug is smallest
-// A line tagged #plate shows the three pictures you can reply with, beside the choices (Day 4).
+// A line tagged #plate:<set> shows the three pictures you can reply with (REPLY_SETS), beside the choices (Day 4 on).
 // Your missing thumb makes everything a little shaky. Misses never fail you: you just go again (the eye
 // and the seal give in after a few).
 
@@ -53,8 +53,6 @@ const HINTS: Record<string, string> = {
 /** The plate you scratch your reply on, and the pictures on it, drawn at three times size. */
 const PLATE_SCALE = 3;
 const PLATE_Y = 82;
-type Reply = keyof typeof REPLY_PICTURES;
-const REPLIES: Reply[] = ['yes', 'cant', 'why'];
 
 type Step =
   | { kind: 'rough' | 'scratch'; marker: number; dir: 1 | -1; zone: [number, number]; strikes: number }
@@ -78,6 +76,8 @@ export class CarveScene extends StepScene {
   private platePicture: Phaser.GameObjects.Image | null = null;
   /** The hole in the bird's belly, between hollowing and sealing. */
   private holeOpen = false;
+  /** Which set of reply pictures the last #plate line offered. */
+  private replySet = REPLY_SETS.reply2!;
 
   constructor() {
     super('Carve');
@@ -330,24 +330,26 @@ export class CarveScene extends StepScene {
     this.hole.fillStyle(SHADES.shadow).fillEllipse(at.x, at.y, 6 + depth * 10, 4 + depth * 5);
   }
 
-  // --- Your reply (Day 4) ---
+  // --- Your reply (Day 4 on) ---
 
   protected override onLine(tags: string[]): void {
-    if (tags.includes('plate')) this.showChoices();
-    else this.clearChoices();
+    const plate = tags.find((t) => t === 'plate' || t.startsWith('plate:'));
+    if (plate) {
+      this.replySet = REPLY_SETS[plate.slice(6)] ?? REPLY_SETS.reply2!;
+      this.showChoices();
+    } else this.clearChoices();
   }
 
   /** The three pictures you could scratch, numbered like the choices beneath them. */
   private showChoices(): void {
     this.clearChoices();
     this.bird.setVisible(false);
-    REPLIES.forEach((reply, i) => {
-      const picture = REPLY_PICTURES[reply];
+    this.replySet.options.forEach(({ value, picture }, i) => {
       const x = W / 2 + (i - 1) * 110;
       const w = picture[0]!.length * PLATE_SCALE + 12;
       const h = picture.length * PLATE_SCALE + 12;
       const back = this.add.rectangle(x, PLATE_Y, w, h, SHADES.light).setStrokeStyle(1, SHADES.dim);
-      const image = this.add.image(x, PLATE_Y, makeSpriteTexture(this, `reply-${reply}`, picture, { '#': SHADES.deep })).setScale(PLATE_SCALE);
+      const image = this.add.image(x, PLATE_Y, makeSpriteTexture(this, `reply-${value}`, picture, { '#': SHADES.deep })).setScale(PLATE_SCALE);
       const label = new PixelText(this, 0, PLATE_Y + h / 2 + 4, String(i + 1), { color: SHADES.amber, shadow: SHADES.shadow });
       label.setX(Math.round(x - label.width / 2));
       this.choicePlates.push(back, image, label);
@@ -361,11 +363,10 @@ export class CarveScene extends StepScene {
 
   /** The back of his plate, with as much of your picture as you've scratched so far (0–1). */
   private showReply(fraction: number): void {
-    const reply = this.reply();
-    const picture = REPLY_PICTURES[reply];
+    const { value, picture } = this.reply();
     const cut = Math.round(picture[0]!.length * fraction);
     const rows = picture.map((row) => [...row].map((ch, x) => (x < cut ? ch : '.')).join(''));
-    const key = makeSpriteTexture(this, `reply-${reply}-${cut}`, rows, { '#': SHADES.deep });
+    const key = makeSpriteTexture(this, `reply-${value}-${cut}`, rows, { '#': SHADES.deep });
     if (!this.plate) {
       const w = picture[0]!.length * PLATE_SCALE + 16;
       const h = picture.length * PLATE_SCALE + 16;
@@ -383,9 +384,10 @@ export class CarveScene extends StepScene {
     });
   }
 
-  private reply(): Reply {
-    const r = String(getSession(this).story.getVariable('reply2'));
-    return (REPLIES as string[]).includes(r) ? (r as Reply) : 'yes';
+  /** The picture you chose from the current set (the first, if somehow none). */
+  private reply(): ReplyOption {
+    const chosen = String(getSession(this).story.getVariable(this.replySet.variable));
+    return this.replySet.options.find((o) => o.value === chosen) ?? this.replySet.options[0]!;
   }
 
   protected startStep(name: string): void {

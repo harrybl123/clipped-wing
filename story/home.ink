@@ -22,6 +22,9 @@
 - day4 == "wake": -> day4_summons
 - day4 == "carve": -> day4_mum_go_on
 - day4 == "open" || day4 == "bed": -> day2_mum_asleep
+- day5 == "wake" || day5 == "carve" || day5 == "shrine": -> day5_mum_morning
+- day5 == "escort": -> day5_mum_escort
+- day5 != "" && day5 != "upper" && day5 != "evening" && day5 != "done": -> day2_mum_asleep
 }
 [PLACEHOLDER] "Get some rest, love." #speaker:mum
 -> END
@@ -30,6 +33,7 @@
 { day2 == "burn": -> day2_hearth }
 { day3 == "open": -> day3_open_bird }
 { day4 == "open" && mum_in_bed: -> day4_open_bird }
+{ day5 == "open" && mum_in_bed: -> day5_open_bird }
 [PLACEHOLDER] The hearth. The fire is low.
 -> END
 
@@ -49,6 +53,7 @@
 { day2 == "bed": -> day2_sleep }
 { day3 == "bed": -> day3_sleep }
 { day4 == "bed": -> day4_sleep }
+{ day5 == "bed": -> day5_sleep }
 [PLACEHOLDER] Your bed. Not yet.
 -> END
 
@@ -57,6 +62,7 @@
 { day2 == "bench": -> day2_take_bird }
 { day3 == "carve": -> day3_bench }
 { day4 == "carve": -> day4_bench }
+{ day5 == "wake" || day5 == "carve": -> day5_bench }
 [PLACEHOLDER] Your carving bench. A bird is half finished.
 -> END
 
@@ -76,3 +82,7 @@
 // Day 4: the Tender's summons, pushed under the door (src/data/areas/home.ts).
 === home_summons ===
 -> day4_summons
+
+// Day 5 afternoon: the guard sent to take you up to the archivist.
+=== home_escort ===
+-> day5_escort
