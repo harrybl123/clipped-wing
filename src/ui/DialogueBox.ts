@@ -37,6 +37,8 @@ export class DialogueBox {
   private readonly top: number;
   private readonly width: number;
   private readonly continueHint: Phaser.GameObjects.Image;
+  private readonly border: Phaser.GameObjects.Rectangle;
+  private readonly panel: Phaser.GameObjects.Rectangle;
   private choiceTexts: PixelText[] = [];
   private options: MenuOption[] = [];
   /** 'ink' plays the story; 'menu' and 'message' are shown from code (door menus, notices); 'held' stays up until code closes it. */
@@ -58,6 +60,8 @@ export class DialogueBox {
     // A 1px border made of two filled rectangles (crisper than a stroke at this scale).
     const border = scene.add.rectangle(MARGIN, top, width, HEIGHT, SHADES.dim).setOrigin(0);
     const panel = scene.add.rectangle(MARGIN + 1, top + 1, width - 2, HEIGHT - 2, SHADES.shadow).setOrigin(0);
+    this.border = border;
+    this.panel = panel;
     this.lineText = new PixelText(scene, MARGIN + PADDING, top + PADDING, '', { color: SHADES.white, wrapWidth: width - PADDING * 2 });
     this.nameText = new PixelText(scene, MARGIN + PADDING, top + PADDING, '', { color: SHADES.amber });
     // Speaker portrait on the left, in a thin frame.
@@ -143,6 +147,21 @@ export class DialogueBox {
     this.onLine?.(tags);
     this.showSpeaker(tags);
     this.lineText.setText(text);
+    this.fit();
+  }
+
+  /**
+   * Grows the box upwards when a long line and its choices won't fit in the usual height, so nothing
+   * spills off the bottom of the screen. The box's bottom edge stays put.
+   */
+  private fit(): void {
+    const last = this.choiceTexts[this.choiceTexts.length - 1];
+    const bottom = last ? last.y + last.height : this.lineText.y + this.lineText.height;
+    const extra = Math.max(0, Math.ceil(bottom - this.top + PADDING - HEIGHT));
+    this.container.setY(-extra);
+    this.border.setSize(this.width, HEIGHT + extra);
+    this.panel.setSize(this.width - 2, HEIGHT + extra - 2);
+    this.continueHint.setY(this.top + HEIGHT - PADDING + extra);
   }
 
   close(): void {
@@ -222,6 +241,7 @@ export class DialogueBox {
     }
     this.options = choices;
     this.select(0, false);
+    this.fit();
   }
 
   /** Highlights choice i (wrapping around) in amber. No cursor: an arrow beside one option reads as a recommendation. */
@@ -245,6 +265,7 @@ export class DialogueBox {
     for (const t of this.choiceTexts) t.destroy();
     this.choiceTexts = [];
     this.options = [];
+    this.fit();
   }
 
   private handleKey(event: KeyboardEvent): void {

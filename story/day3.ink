@@ -431,18 +431,21 @@ He drops down from the window, out of breath. #show:friend-visit
 
 = confide
 ~ confided = true
-You tell him. The seam in the bird. The plate. The pictures. "I see you, clipped wing."
+You fetch the plate from where you hid it, and tell him everything. The seam in the bird. The pictures. "I see you, clipped wing."
+He doesn't say anything for a long time. Then he sinks down onto the floor, as if his legs have gone.
+"It spoke to you." #speaker:friend
+"The Tree. It sent something back. To you. It's never... nobody has ever..." #speaker:friend
 { friend_trust > 0:
-    He listens to all of it without a word.
-    "If anyone else had told me this, I'd think they'd gone mad." #speaker:friend
-    "But you've never lied to me. Not even about my lamp hook." #speaker:friend
+    He looks at you as if he's never seen you before. As if you're something holy.
+    "All my life I've prayed for a sign. And it came to you." #speaker:friend
+    "I'm not jealous. I'm not. I just... why you?" #speaker:friend
     ~ friend_trust += 1
 - else:
-    He backs away from you, a step.
-    "You're talking about the Tree like it's... someone. Like someone's in there." #speaker:friend
-    "I don't know what to believe." #speaker:friend
+    He reaches out to touch the plate, and stops, as if it might burn him.
+    "Are you sure? You'd swear it, on the tube? Because if you're lying about this..." #speaker:friend
+    "No. No, look at it. Nobody in the tree could cut lines like that." #speaker:friend
 }
-"I won't tell anyone. I swear on the tube." #speaker:friend
+"I won't tell anyone. I swear on the tube. This is between you and the Tree." #speaker:friend
 -> goodbye
 
 = lie
