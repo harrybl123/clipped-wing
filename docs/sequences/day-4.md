@@ -24,6 +24,14 @@ once the shape is agreed.
 - Something must happen that makes the girl need you to come to her in secret. **(designer)**
 - Her home is smaller and more run-down than yours, crammed with more random stuff. **(designer)**
 - Her home and the rot are new areas, not on the map, reached only from the lower roots. **(designer)**
+- The summons is the Tender's summons, which everyone recognises: it looks like the banners hung round
+  the tree (the offering floor's banners). **(designer)**
+- The market fight is a timing scene for now (like the carving); it may become real-time later.
+  **(designer)**
+- If the watch sees you on the night sneak, you go back to the start. **(designer)**
+- The rot is sticky and grimy; there's nothing special to find there. **(designer)**
+- Your reply only changes message 3's first words for now. Extra mechanics (e.g. Grounded's trust)
+  wait unless the design doc makes them a main or medium choice. **(designer)**
   (Her home is currently drawn at the far end of the lower roots; it moves indoors into its own area,
   and the lower roots keep her doorway.)
 
@@ -43,9 +51,9 @@ once the shape is agreed.
 ## Beats (suggestion)
 
 ### 1. The summons
-Roots folk can't read, so it isn't a letter in words: a little wooden tag pushed under the door, burnt
-with the Tender's crest (the amber crest from his hood). Mum goes pale. "He wants you at the shrine.
-Now. Before the rite."
+Roots folk can't read, so it isn't words: the Tender's summons, a small cloth like the banners hung
+round the tree, pushed under the door. Everyone knows what it means. Mum goes pale. "He wants you at
+the shrine. Now. Before the rite."
 
 ### 2. Your reply, and the hollow bird
 - **Choose the reply:** a small screen like the decoding plate, but you scratch it yourself: pick one
@@ -77,8 +85,9 @@ wrong". What he wants from this conversation:
 ### 4. The market: Mum snubbed, the fight
 - A stallholder refuses to serve Mum; people won't stand near her. A young zealot (the one from Day 3?)
   knocks her basket out of her hands.
-- **Step in:** a short real-time fight: dodge his swings, shove, grab; you can't make a proper fist
-  (a weak punch does almost nothing). Win: suspicion jumps. Lose: you're hurt and lose food.
+- **Step in:** a timing scene for now, like the carving (designer): his swings to dodge, openings to
+  shove or grab, timed presses; you can't make a proper fist (a punch does almost nothing). Win:
+  suspicion jumps. Lose: you're hurt and lose food. (Could become real-time later.)
 - **Hold back:** Mum sees you hold back.
 
 ### 5. The girl: why she needs you, in secret
@@ -108,18 +117,14 @@ Escalating: horror (Day 2) → violence (Day 3) → **ritual** (Day 4). It's org
 ### 8. Night: the sneak, her home, the rot
 - **The sneak (lower roots at night):** the street has a night watch with lanterns, and neighbours'
   lit windows. Stay out of the light: the high route over the roofs, dark doorways, timing the watch's
-  rounds.
+  rounds. If the watch sees you, you go back to the start of the street (designer).
 - **Her home (new area, not on the map):** tiny, falling apart, crammed with salvaged junk. A board in
   the floor she keeps a rug over.
-- **The rot (new area, not on the map):** under her house. Dying roots, glowing rot, beetles, the
-  hazards from the back routes. Far worse than anyone above admits. You look at the wood and you know:
+- **The rot (new area, not on the map):** under her house. Sticky, grimy, dying roots, glowing rot,
+  beetles, the hazards from the back routes. Far worse than anyone above admits. Nothing special to
+  find there (designer). You look at the wood and you know:
   her house won't hold forever. (No way through yet: the Day 7 roots ending pays this off.)
 
 ## Open questions
-1. **The summons:** a burnt tag with the Tender's crest (roots folk can't read), or a messenger at the door?
-2. **The fight:** a real-time fight is new machinery. Keep it small (a few seconds of dodge/shove/grab
-   against one zealot), or make it a timing scene like the carving?
-3. **The sneak:** if the watch sees you, what happens? Back to the start of the street (retry), or
-   suspicion rises and you carry on?
-4. **The rot:** what does she show you down there beyond the rot itself? Is there something you find?
-5. **Your reply choice:** does it change anything beyond message 3's first words (e.g. Grounded's trust)?
+None for now: all answered (above). Remaining small calls are Claude's, marked (suggestion), for the
+designer to change in playtesting.
