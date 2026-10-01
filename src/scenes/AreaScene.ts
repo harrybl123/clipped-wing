@@ -5,7 +5,9 @@ import { AREAS, PLANNED_AREAS } from '../data/areas';
 import type { AreaDefinition, Exit, Feature, Person } from '../data/areas/types';
 import { nextHop } from '../data/route';
 import { Player } from '../objects/Player';
+import type { CarveSceneData } from './CarveScene';
 import type { DecodeResult, DecodeSceneData } from './DecodeScene';
+import type { EndingSceneData } from './EndingScene';
 import type { MapSceneData } from './MapScene';
 import { getSession } from '../session';
 import { DebugOverlay } from '../ui/DebugOverlay';
@@ -102,6 +104,26 @@ interface Mover {
 
 /** How long a moving platform waits at each end, in ms. */
 const MOVER_PAUSE = 900;
+/** How long a rotten board holds once you've stepped on it, and how long before it grows back, in ms. */
+const CRUMBLE_HOLD = 450;
+const CRUMBLE_REGROW = 3200;
+
+/** A rotten board that gives way a moment after you step on it. */
+interface Crumble {
+  x: number;
+  y: number;
+  width: number;
+  zone: Phaser.GameObjects.Zone;
+  image: Phaser.GameObjects.Image;
+  /** Ms since you first stood on it (null: not yet). */
+  standing: number | null;
+}
+
+/** Waiting for the story (#when): the knot plays once `variable` reaches 0 (e.g. everything hidden). */
+interface Waiting {
+  knot: string;
+  variable: string;
+}
 
 /** Any side-on area, built from its AreaDefinition in src/data/areas. */
 export class AreaScene extends Phaser.Scene {
@@ -131,6 +153,9 @@ export class AreaScene extends Phaser.Scene {
   private script: string | undefined;
   /** Frame on which the dialogue closed, so the key that closed it doesn't also jump or reopen it. */
   private dialogueClosedFrame = -1;
+  private crumbles: Crumble[] = [];
+  private crumbleGroup!: Phaser.Physics.Arcade.StaticGroup;
+  private waiting: Waiting | null = null;
 
   constructor() {
     super('Area');
@@ -152,6 +177,8 @@ export class AreaScene extends Phaser.Scene {
     this.inset = null;
     this.current = null;
     this.leaving = false;
+    this.crumbles = [];
+    this.waiting = null;
   }
 
   create(): void {
@@ -162,6 +189,7 @@ export class AreaScene extends Phaser.Scene {
 
     makePaintedTexture(this, `area-${area.id}`, area.width, area.height, paintArea(area));
     this.add.image(0, 0, `area-${area.id}`).setOrigin(0);
+    this.crumbleGroup = this.physics.add.staticGroup();
 
     for (const feature of area.features) this.addFeature(feature);
 
@@ -182,7 +210,17 @@ export class AreaScene extends Phaser.Scene {
       }
       const entry: PersonEntry = { person, image, scriptHidden: person.hidden ?? false, gone: false };
       this.people.set(person.id, entry);
-      if (person.knot && !person.wander) this.usables.push({ x: person.x, y: person.y, reach: 14, label: 'Talk', use: talk(person.knot), enabled: () => this.isPresent(entry) });
+      if (person.knot && !person.wander) {
+        // Where they stand now (people can be moved by the story, or follow you).
+        this.usables.push({
+          get x() { return entry.image.x; },
+          get y() { return entry.image.y; },
+          reach: 14,
+          label: person.label ?? 'Talk',
+          use: talk(person.knot),
+          enabled: () => this.isPresent(entry),
+        });
+      }
     }
 
     // Who's here depends on the time of day and the story; refresh when either changes.
@@ -211,6 +249,7 @@ export class AreaScene extends Phaser.Scene {
     const notDroppingThrough = (_p: unknown, other: unknown) => !(this.player.dropping && (other as Phaser.GameObjects.GameObject).getData('oneWay'));
     this.physics.add.collider(this.player.sprite, solids, undefined, notDroppingThrough);
     if (this.movers.length) this.physics.add.collider(this.player.sprite, this.movers.map((m) => m.image), undefined, notDroppingThrough);
+    if (this.crumbles.length) this.physics.add.collider(this.player.sprite, this.crumbleGroup, undefined, notDroppingThrough);
     if (area.width > GAME_WIDTH || area.height > GAME_HEIGHT) this.cameras.main.startFollow(this.player.sprite, true, 0.1, 0.1);
 
     this.interactKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.E);
@@ -252,6 +291,9 @@ export class AreaScene extends Phaser.Scene {
     this.updateWanderers(delta);
     this.updateMovers(delta);
     this.updateShyPeople();
+    this.updateFollowers(delta);
+    this.updateCrumbles(delta);
+    this.updateWaiting();
     this.updateHints();
     this.objective.pointAt(this.objectivePoint());
 
@@ -344,6 +386,61 @@ export class AreaScene extends Phaser.Scene {
     }
   }
 
+  /** People following you (the girl in the back routes) walk after you, and catch up when you change level. */
+  private updateFollowers(delta: number): void {
+    const { x, y } = this.player.feet;
+    for (const entry of this.people.values()) {
+      if (!entry.person.follow || !entry.image.visible) continue;
+      const img = entry.image;
+      const behind = x + (this.player.sprite.flipX ? 16 : -16);
+      if (this.player.onGround && Math.abs(img.y - y) > 2) img.setPosition(behind, y);
+      const dx = behind - img.x;
+      if (Math.abs(dx) > 3) {
+        img.x += Math.sign(dx) * Math.min(Math.abs(dx), (Math.abs(dx) > 60 ? 140 : 70) * (delta / 1000));
+        img.setFlipX(dx < 0);
+      }
+    }
+  }
+
+  /** Rotten boards: once stood on, they shake, then give way, then grow back. */
+  private updateCrumbles(delta: number): void {
+    const { x, y } = this.player.feet;
+    for (const c of this.crumbles) {
+      const body = c.zone.body as Phaser.Physics.Arcade.StaticBody;
+      if (!body.enable) continue;
+      if (c.standing === null && this.player.onGround && Math.abs(y - c.y) <= 1 && x >= c.x && x <= c.x + c.width) c.standing = 0;
+      if (c.standing === null) continue;
+      c.standing += delta;
+      c.image.setX(c.x + (Math.random() < 0.5 ? -1 : 1));
+      if (c.standing < CRUMBLE_HOLD) continue;
+      body.enable = false;
+      c.standing = null;
+      this.tweens.add({ targets: c.image, y: c.y + 40, alpha: 0, duration: 600, ease: 'Quad.easeIn' });
+      this.time.delayedCall(CRUMBLE_REGROW, () => {
+        body.enable = true;
+        c.image.setPosition(c.x, c.y).setAlpha(0);
+        this.tweens.add({ targets: c.image, alpha: 1, duration: 400 });
+      });
+    }
+  }
+
+  /** #when: once its variable reaches 0, its knot plays (after any conversation that's open). */
+  private updateWaiting(): void {
+    const w = this.waiting;
+    if (!w || Number(getSession(this).story.getVariable(w.variable)) > 0) return;
+    this.waiting = null;
+    const play = () => this.dialogue.open(w.knot, () => this.conversationClosed());
+    if (this.dialogue.isOpen) this.afterClose.push(play);
+    else play();
+  }
+
+  /** Knocked back by falling rubble: a jolt, and you're back at `reset` (anyone following comes too). */
+  private knockBack(reset: { x: number; y: number }): void {
+    this.cameras.main.shake(200, 0.01).flash(250, 40, 28, 18);
+    this.player.body.reset(reset.x, reset.y);
+    for (const entry of this.people.values()) if (entry.person.follow && entry.image.visible) entry.image.setPosition(reset.x - 16, reset.y);
+  }
+
   // --- The story: who's here, what to do next, and what ink's tags ask for ---
 
   /** Whether a person is here now: the time of day, the story's variables, and any scripted hiding. */
@@ -378,19 +475,24 @@ export class AreaScene extends Phaser.Scene {
 
   /**
    * Where the marker bird goes: over the objective's person, object or door if it's in this area, or
-   * over the door on the way if it's somewhere else (only through areas that are open now).
+   * over the door on the way if it's somewhere else (only through areas that are open now). The target
+   * can list several places separated by ";" (e.g. the way in, then the person): one in this area wins,
+   * otherwise the first one there's a way to.
    */
   private objectivePoint(): { x: number; y: number } | null {
     const { story, calendar } = getSession(this);
-    const target = String(story.getVariable('objective_target') ?? '');
-    if (!target) return null;
-    const [areaId, thing] = target.split(':');
-    if (!areaId) return null;
-    if (areaId !== this.area.id) {
+    const targets = String(story.getVariable('objective_target') ?? '').split(';').map((t) => t.split(':') as [string, string | undefined]).filter(([a]) => a);
+    for (const [areaId, thing] of targets) if (areaId === this.area.id) return this.pointAt(thing);
+    for (const [areaId] of targets) {
       const hop = nextHop(this.area.id, areaId, AREAS, (id) => closedReason(id, calendar.day, calendar.slot) === null);
       const exit = this.area.exits.find((e) => e.to === hop);
-      return exit ? { x: exit.x, y: exit.y - 42 } : null;
+      if (exit) return { x: exit.x, y: exit.y - 42 };
     }
+    return null;
+  }
+
+  /** Over a person, object or door in this area. */
+  private pointAt(thing: string | undefined): { x: number; y: number } | null {
     const entry = thing ? this.people.get(thing) : undefined;
     if (entry) return entry.image.visible ? { x: entry.image.x, y: entry.image.y - entry.image.height - 5 } : null;
     const it = this.area.interactables.find((i) => i.id === thing);
@@ -440,6 +542,10 @@ export class AreaScene extends Phaser.Scene {
    *   #recoil                 the crowd steps back from you
    *   #decode:<message>[:<knot>]  after the conversation, the decoding screen; then the knot plays
    *   #dim:on / #dim:off      the room darkens around the conversation, or lightens again
+   *   #throw                  something is thrown at you from the crowd
+   *   #carve:<knot>           after the conversation, the carving close-up plays the knot
+   *   #when:<variable>:<knot>  once the variable reaches 0 (e.g. everything hidden), the knot plays
+   *   #ending:<id>            after the conversation, an ending (e.g. loyal)
    */
   private handleTags(tags: string[]): void {
     this.clearInset();
@@ -497,6 +603,23 @@ export class AreaScene extends Phaser.Scene {
         case 'recoil':
           this.recoil();
           break;
+        case 'throw':
+          this.throwAtPlayer();
+          break;
+        case 'carve': {
+          const knot = args[0];
+          const start = { ...this.player.feet };
+          if (knot) this.afterClose.push(() => this.leaveFor('Carve', { knot, back: { areaId: this.area.id, start } } satisfies CarveSceneData));
+          break;
+        }
+        case 'when': {
+          const [variable, knot] = args;
+          if (variable && knot) this.waiting = { variable, knot };
+          break;
+        }
+        case 'ending':
+          if (args[0]) this.afterClose.push(() => this.leaveFor('Ending', { ending: args[0]! } satisfies EndingSceneData, 1500));
+          break;
         case 'dim':
           this.tweens.add({ targets: this.dimmer, alpha: args[0] === 'off' ? 0 : 0.75, duration: 900 });
           break;
@@ -549,6 +672,27 @@ export class AreaScene extends Phaser.Scene {
     }
   }
 
+  /** Something thrown from the crowd: it arcs from someone near the back and hits you. */
+  private throwAtPlayer(): void {
+    const throwers = [...this.people.values()].filter((e) => e.image.visible && e.person.id.startsWith('crowd'));
+    const from = throwers.length ? throwers[Math.floor(Math.random() * throwers.length)]!.image : { x: this.player.feet.x + 120, y: this.player.feet.y };
+    const to = { x: this.player.feet.x, y: this.player.feet.y - 18 };
+    const lump = this.add.rectangle(from.x, from.y - 20, 3, 3, SHADES.greenMid).setDepth(12);
+    const arc = { t: 0 };
+    this.tweens.add({
+      targets: arc, t: 1, duration: 420,
+      onUpdate: () => lump.setPosition(from.x + (to.x - from.x) * arc.t, from.y - 20 + (to.y - from.y + 20) * arc.t - Math.sin(arc.t * Math.PI) * 30),
+      onComplete: () => lump.destroy(),
+    });
+  }
+
+  /** Fades out and hands over to another scene (the carving, an ending). */
+  private leaveFor(scene: string, data: object, fade = 500): void {
+    this.leaving = true;
+    this.cameras.main.fadeOut(fade, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start(scene, data));
+  }
+
   /** Opens the decoding screen over this area (paused); it resumes the area when the plate is put down. */
   private openDecode(data: DecodeSceneData): void {
     this.scene.pause();
@@ -563,6 +707,8 @@ export class AreaScene extends Phaser.Scene {
     this.cameras.main.fadeOut(1200, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       calendar.jumpTo(next as typeof calendar.day);
+      // Remember how each day began, so an ending can send you back to it.
+      getSession(this).dayStarts[next] = { ink: getSession(this).story.saveState(), calendar: calendar.toJSON() };
       this.scene.restart({ areaId: 'home', start: this.area.id === 'home' ? { x: 50, y: 150 } : undefined, card: card ?? `Day ${next} (not built yet)` } satisfies AreaSceneData);
     });
   }
@@ -602,7 +748,7 @@ export class AreaScene extends Phaser.Scene {
     const name = PLANNED_AREAS[exit.to] ?? exit.to;
     const built = exit.to in AREAS;
     const { calendar } = getSession(this);
-    const shut = closedReason(exit.to, calendar.day, calendar.slot);
+    const shut = exit.secret ? null : closedReason(exit.to, calendar.day, calendar.slot);
     if (shut) {
       this.dialogue.say(shut, closed);
       return;
@@ -713,6 +859,50 @@ export class AreaScene extends Phaser.Scene {
       case 'hint':
         this.hints.push(feature);
         break;
+      case 'crumble': {
+        const rows = [0, 1, 2].map((r) => Array.from({ length: feature.width }, (_, i) => (r === 0 ? (i % 7 === 3 ? 'd' : 'p') : (i * 5 + r * 3) % 9 === 0 ? '.' : r === 2 ? 'd' : 'w')).join(''));
+        const key = makeSpriteTexture(this, `crumble-${feature.width}`, rows, { p: SHADES.woodPale, w: SHADES.woodLight, d: SHADES.deep });
+        const image = this.add.image(feature.x, feature.y, key).setOrigin(0).setDepth(6);
+        const zone = this.add.zone(feature.x, feature.y, feature.width, 3).setOrigin(0).setData('oneWay', true);
+        this.crumbleGroup.add(zone);
+        const body = zone.body as Phaser.Physics.Arcade.StaticBody;
+        body.checkCollision.down = false;
+        body.checkCollision.left = false;
+        body.checkCollision.right = false;
+        this.crumbles.push({ x: feature.x, y: feature.y, width: feature.width, zone, image, standing: null });
+        break;
+      }
+      case 'rubble': {
+        const lump = this.add.rectangle(feature.x, feature.top, 5, 4, SHADES.woodPale).setDepth(11).setVisible(false);
+        const dust = this.add.particles(0, 0, PIXEL, { x: { min: feature.x - 3, max: feature.x + 3 }, y: feature.top, speedY: { min: 20, max: 40 }, lifespan: 600, frequency: 60, tint: SHADES.dim, emitting: false }).setDepth(11);
+        const drop = () => {
+          dust.start();
+          this.time.delayedCall(800, () => {
+            dust.stop();
+            lump.setPosition(feature.x, feature.top).setVisible(true);
+            let hit = false;
+            this.tweens.add({
+              targets: lump, y: feature.floorY - 2, duration: 450, ease: 'Quad.easeIn',
+              onUpdate: () => {
+                const body = this.player.body;
+                if (!hit && Math.abs(lump.x - body.center.x) < 7 && lump.y >= body.top && lump.y <= body.bottom) {
+                  hit = true;
+                  this.knockBack(feature.reset);
+                }
+              },
+              onComplete: () => {
+                lump.setVisible(false);
+                dust.explode(6, feature.x, feature.floorY - 2);
+              },
+            });
+          });
+        };
+        this.time.delayedCall(Phaser.Math.Between(0, feature.every), () => {
+          drop();
+          this.time.addEvent({ delay: feature.every, loop: true, callback: drop });
+        });
+        break;
+      }
       case 'jars': {
         const { story } = getSession(this);
         const jars = Array.from({ length: feature.max }, (_, i) =>

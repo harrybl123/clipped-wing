@@ -7,6 +7,8 @@
 { day1 == "rite": -> day1_rite }
 { day2 == "rite": -> day2_rite }
 { day2 == "evening": -> day2_rejection }
+{ day3 == "rite": -> day3_rite }
+{ day3 == "evening": -> day3_rejection }
 [PLACEHOLDER] The Tender looks down from the landing. "Child of the roots." #speaker:tender
 [PLACEHOLDER] "The Tree gives, and the Tree takes. What do you bring?" #speaker:tender
 + [Hide it: "Only my devotion."]
@@ -35,4 +37,9 @@
 === offering_floor_ascension_way ===
 { day1 == "ascension": -> day1_go_up }
 [PLACEHOLDER] The tube rises up through the ceiling. On Ascension Day, the whole tree climbs to the gate.
+-> END
+
+=== offering_floor_girl_rite ===
+{ day3 == "girl": -> day3_girl }
+"Go on, then." #speaker:girl
 -> END

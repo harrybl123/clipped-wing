@@ -1,0 +1,371 @@
+// ============================================================================
+// Day 3: your friend. Draft text from docs/sequences/day-3.md, for the designer to rewrite.
+// Stages in `day3` (main.ink): wake, carve, rite, girl, sneak, evening, home, open, hide, visit, bed, done.
+// On the ignore path (reply1 == "usual") you carve your usual bird, it comes back with message 1 again,
+// and the second, stern choice follows; ignoring again is the loyal ending (#ending:loyal).
+// Extra tags: #carve:<knot> (after the conversation, the carving close-up plays that knot)
+// · #hold:<stage> (carving only: hold E through a stage) · #throw (something is thrown at you)
+// · #when:<variable>:<knot> (once the variable reaches 0, the knot plays)
+// · #ending:loyal (the loyal ending)
+// ============================================================================
+
+// --- Morning, at home ---
+
+=== day3_mum_morning ===
+Mum is already up. She doesn't look as if she slept.
+"Carve something today. Anything. Let them see you're still faithful." #speaker:mum
+"And keep your head down at the rite. Please." #speaker:mum
+~ day3 = "carve"
+~ objective = "Carve your offering"
+~ objective_target = "home:bench"
+-> END
+
+=== day3_mum_go_on ===
+"Go on. And don't look at anyone." #speaker:mum
+-> END
+
+=== day3_bench ===
+{ reply1 == "usual":
+    Your bench. Wood for your usual bird.
+- else:
+    Your bench. A small block of wood, just big enough for a fledgling.
+}
++ [Carve]
+    You sit down at the bench. #carve:day3_carving
++ [Not yet]
+- -> END
+
+// --- The carving close-up (src/scenes/CarveScene.ts steps through this) ---
+
+=== day3_carving ===
+{ reply1 == "usual": -> usual }
+First light, and the house still asleep. You turn the block in your good hand.
+How small should it be?
++ [Tiny, small enough to cup in one hand]
+    ~ fledgling_size = "tiny"
++ [Small, but strong enough to last]
+    ~ fledgling_size = "small"
+- You rough out the shape. Your knife hand knows the way, even if your other hand doesn't. #hold:rough
+Now smooth it. Slowly, the way Mum taught you. #hold:smooth
+Which wing do you clip?
++ [The left, like your hand]
+    ~ fledgling_wing = "left"
++ [The right]
+    ~ fledgling_wing = "right"
+- You cut the wing short, clean and straight. #hold:wing
+And the eye. Open, or half closed?
++ [Open, looking up]
+    ~ fledgling_eye = "open"
++ [Half closed, as if asleep]
+    ~ fledgling_eye = "sleepy"
+- One small cut. #hold:eye
+~ day3 = "rite"
+~ objective = "Give your offering to the Tender"
+~ objective_target = "offering-floor:tender"
+It sits in your palm: a fledgling that will never fly. It's the best thing you've made in years. #end
+-> END
+
+= usual
+First light, and the house still asleep. Your usual bird. You could carve it with your eyes shut.
+You rough out the shape. #hold:rough
+Smooth it. #hold:smooth
+The wing, the way it always comes out: a little heavy. #hold:wing
+The eye. #hold:eye
+~ day3 = "rite"
+~ objective = "Give your offering to the Tender"
+~ objective_target = "offering-floor:tender"
+The same bird as ever. The Tree will take it this time. It has to. #end
+-> END
+
+// --- The morning rite: the crowd, your friend, the girl ---
+
+=== day3_rite ===
+The floor is packed: people on the stairs, in the archways, people you've never seen at a roots rite.
+They part around you as you come through. Nobody lets their sleeve touch yours.
+"That's the one." #name:Someone in the crowd
+"Cursed." #name:Someone else
+The Tender sees you coming and takes a cloth from their robe before reaching for your offering.
+"Not with the others." #speaker:tender
+Your {reply1 == "usual": bird|fledgling} goes into a basket of its own, and the basket goes up last. #flash:cyan
+Across the floor, you see your friend. He sees you too, and starts towards you. #show:friend-rite
+His father grabs his arm and pulls him back, out through the archway. #move:friend-rite:452 #move:friend-parent-rite:452
+"Stay away from my son!" #name:His father
+They're gone. #hide:friend-rite #hide:friend-parent-rite
+You need to tell him. You need to tell someone.
+Someone is leaning in the far archway, watching you. The girl from the lower roots. #show:girl-rite
+~ day3 = "girl"
+~ objective = "Talk to the girl"
+~ objective_target = "offering-floor:girl-rite"
+-> END
+
+=== day3_girl ===
+"You look like you've been spat at. Oh, wait. You have." #speaker:girl
+She pushes off the archway.
+"You all right? Honestly. Nobody else is going to ask you."
++ [I'm fine. Really.]
+    "I'm fine. Really." #speaker:you
+    "Course you are. That's why your hands are shaking." #speaker:girl
++ [Never better. Can't you tell?]
+    "Never better. Can't you tell?" #speaker:you
+    "Ha. There's a bit of fight in you. I like that." #speaker:girl
++ [No. I'm not.]
+    "No. I'm not." #speaker:you
+    "No. Didn't think so." #speaker:girl
+- You tell her about your friend. His father. "Stay away from my son."
+"His house. The one with the shrine in the window?" #speaker:girl
+"The back of it sits right on the old ways. Nobody up here remembers they're there." #speaker:girl
+"Come on. I'll show you." #speaker:girl
+~ day3 = "sneak"
+~ girl_with_you = true
+~ objective = "Get to your friend's window"
+~ objective_target = "back-routes:to-friends-window;friends-home:friend"
+She leads you down, and down, to where the roots end. #time:afternoon #goto:lower-roots:80:360:day3_lower_roots
+-> END
+
+=== day3_lower_roots ===
+"My end of the tree. Lovely, isn't it." #speaker:girl
+"And that, down at the end, is the way into the old routes. Tunnels under everything. Under your house, under the Tender's feet." #speaker:girl
+"Mind the ceilings. They come down when they like." #speaker:girl
+"I'm coming with you. Not to hold your hand. Just to make sure you don't die stupidly." #speaker:girl
+-> END
+
+=== day3_girl_follow ===
+{~"Keep moving."|"Up the shaft, then along. You'll see."|"Don't stand on the soft boards. Or do, and find out."|"Watch the dust. When it falls, something follows."}
+-> END
+
+=== day3_window ===
+You tap on the window. His face appears, then his hands, pushing it open.
+"You can't be here! If Father hears..." #speaker:friend
++ [I had to see you.]
+    "I had to see you." #speaker:you
++ [Nice to see you too.]
+    "Nice to see you too." #speaker:you
++ [I need to tell you the truth.]
+    "I need to tell you the truth. About the bird." #speaker:you
+- "Not here. Not now." #speaker:friend
+A voice from downstairs calls his name.
+"Tonight. I'll come to you. I promise." #speaker:friend
+The window shuts.
+When you look round, the girl has already gone.
+~ girl_with_you = false
+~ day3 = "evening"
+~ mum_at_ceremony = true
+~ objective = "Go to the evening ceremony"
+~ objective_target = "offering-floor:tender"
+Above you, the light in the tube is turning gold. #time:evening
+-> END
+
+=== day3_parent ===
+"Out. Out of my house. Now." #name:His father
+-> END
+
+// --- The evening: the second rejection, worse than the first ---
+
+=== day3_rejection ===
+The floor is packed before the blessings even start. There's a space around you and Mum, a ring nobody steps into.
+"A blessing, for the weavers. A blessing, for the potters." #speaker:tender
+The Tender doesn't look your way when the tube goes dark. #flash:dark
+Your {reply1 == "usual": bird|fledgling} drops into the basin. #show:rejected-bird #shake
+This time, nobody screams. They were waiting for it.
+"Again." #name:A woman
+"Twice! The Tree's sent it back twice!" #name:An old man
+Something hits your shoulder: a rotten root, thrown from the back of the crowd. #throw #shake
+"Get it out of here!" #name:A man
+Someone shoves Mum. She stumbles against the steps. #move:mum-ceremony:150
++ [Go to Mum, head down]
+    You go to her and help her up, and keep your eyes on the floor.
++ [Stare them down]
+    ~ suspicion += 1
+    You stare back at them. A few look away. Most don't.
++ [Leave her alone!]
+    ~ suspicion += 2
+    "Leave her alone!" #speaker:you
+    For a moment the whole floor goes quiet. Then the shouting is twice as loud.
+- "Enough!" #speaker:tender
+"Until the Tree is appeased, no blessings will come down for the carver's house." #speaker:tender
+~ food_store -= 2
+~ blessings_withheld = true
+A murmur goes round the floor. Some of them sound pleased.
+"Take it. And take yourselves home." #speaker:tender
+You climb the steps and take your {reply1 == "usual": bird|fledgling} out of the basin. #hide:rejected-bird
+~ mum_at_ceremony = false
+~ objective = ""
+~ objective_target = ""
+Mum doesn't say a word all the way home. #time:night #goto:home:130:236:day3_mum_night
+-> END
+
+// --- Night, at home ---
+
+=== day3_mum_night ===
+{ dialogue_style:
+- "hide":
+    Mum sits by the fire and doesn't take off her shawl.
+    "I don't know what we did. I don't know what you did." #speaker:mum
+    "I've given the Tree everything my whole life." #speaker:mum
+- "joke":
+    "Don't. Don't you dare make a joke of this. Not tonight." #speaker:mum
+    "They pushed me. In front of everyone. And you just stood there with that look on your face." #speaker:mum
+- else:
+    "They put their hands on me, love. On me." #speaker:mum
+    "Forty years I've stood on that floor." #speaker:mum
+}
+"I'm going to bed. Get rid of that thing." #speaker:mum
+~ mum_in_bed = true
+~ day3 = "open"
+{ reply1 == "usual":
+    ~ objective = "Open the bird"
+- else:
+    ~ objective = "Open the fledgling"
+}
+~ objective_target = "home:hearth"
+She goes to bed without looking at it.
+-> END
+
+=== day3_open_bird ===
+You sit by the hearth with your {reply1 == "usual": bird|fledgling} in your hands.
+There's a seam along the belly again. Someone has been inside it.
+{ reply1 == "usual": -> ignore_again }
+You work it open. Inside is a plate, blackened like the first. On purpose, you think. To keep it hidden.
+And the fledgling itself has been hollowed out. Neatly, from the inside, so it holds its shape.
+You start rubbing at the soot. #decode:message2:day3_decoded
+-> END
+
+= ignore_again
+You work it open. Inside is a plate, blackened like the first.
+You already know what it says before you've rubbed it clean. #decode:message1:day3_second_choice
+-> END
+
+=== day3_decoded ===
+"Clipped wing, I rest beyond the bark. Would you like to fly?" #speaker:you
+Beyond the bark. Outside the tree. Nobody lives outside the tree.
+You turn the hollow fledgling over in your hands. Whoever did this wants you to see how it's done.
+To carve a bird empty, and put something inside it.
+To answer.
+-> day3_knock
+
+=== day3_second_choice ===
+"I see you, clipped wing. Send me new life that can't fly." #speaker:you
+The same words. Whoever this is asked you twice, and twice you turned away.
+They won't ask a third time. #dim:on
+This is the last chance to answer. If you ignore it again, it's over. There's no coming back from this choice.
+- (choose)
++ [Carve a fledgling with a clipped wing (answer the message)]
+    You'll answer. Late, but you'll answer.
+    ++ [Yes. Answer it.]
+        ~ reply1 = "fledgling"
+        ~ answered_late = true
+        You set the plate aside. Tomorrow, a fledgling goes up the tube. #dim:off
+        -> day3_knock
+    ++ [No. Think again.]
+        -> choose
++ [Carve your usual bird (ignore the message)]
+    You'd be choosing the Tree, for good. Whoever wrote this will stop. You'll never know who it was.
+    ++ [Yes. Stay loyal to the Tree.]
+        ~ times_ignored += 1
+        You drop the plate into the fire and watch it blacken until the scratches are gone.
+        You stayed loyal to the Tree. #ending:loyal
+        -> END
+    ++ [No. Think again.]
+        -> choose
+
+=== day3_knock ===
+A tap at the window. Three taps: the knock you made up together when you were small.
+It's him. And the plate, the {answered_late: bird|fledgling} and your shavings are all out in the open.
+~ day3 = "hide"
+~ evidence_left = 3
+~ evidence_plate = true
+~ evidence_bird = true
+~ evidence_shavings = true
+~ objective = "Hide everything!"
+~ objective_target = ""
+He taps again, louder. Hide them before you let him in. #when:evidence_left:day3_visit
+-> END
+
+=== day3_hide_plate ===
+~ evidence_plate = false
+~ evidence_left -= 1
+You slide the plate under the chopping board.
+-> END
+
+=== day3_hide_bird ===
+~ evidence_bird = false
+~ evidence_left -= 1
+You stuff the hollow bird under your blanket.
+-> END
+
+=== day3_hide_shavings ===
+~ evidence_shavings = false
+~ evidence_left -= 1
+You sweep the shavings into the kindling.
+-> END
+
+// --- The visit: confide or lie ---
+
+=== day3_visit ===
+~ objective = ""
+He drops down from the window, out of breath. #show:friend-visit
+"I said I'd come." #speaker:friend
+{ evidence_plate: His eyes go straight to the kitchen, to the blackened plate lying by the board. }
+{ evidence_bird: He looks up at the loft, at the hollowed bird on your bed. }
+{ evidence_shavings: He steps in the fresh shavings by the bench and looks at them, then at you. }
+"Why is the Tree doing this to you? What did you do?" #speaker:friend
+"You said you'd tell me the truth." #speaker:friend
++ [Tell him everything]
+    -> confide
++ [Lie to him]
+    -> lie
+
+= confide
+~ confided = true
+You tell him. The seam in the bird. The plate. The pictures. "I see you, clipped wing."
+{ friend_trust > 0:
+    He listens to all of it without a word.
+    "If anyone else had told me this, I'd think they'd gone mad." #speaker:friend
+    "But you've never lied to me. Not even about my lamp hook." #speaker:friend
+    ~ friend_trust += 1
+- else:
+    He backs away from you, a step.
+    "You're talking about the Tree like it's... someone. Like someone's in there." #speaker:friend
+    "I don't know what to believe." #speaker:friend
+}
+"I won't tell anyone. I swear on the tube." #speaker:friend
+-> goodbye
+
+= lie
+~ confided = false
+"I don't know. I'm cursed, that's all. The Tree's turned its face from me." #speaker:you
+{ evidence_left > 0: -> caught }
+"I'm sorry. I'm so sorry." #speaker:friend
+He believes you. Somehow, that's worse.
+-> goodbye
+
+= caught
+"Then what's that?" #speaker:friend
++ [Nothing. Just an old offering.]
+    "Nothing. Just an old offering." #speaker:you
++ [Leave it. Please.]
+    "Leave it. Please." #speaker:you
+- He looks at you for a long time. He knows. You can see that he knows.
+~ friend_trust -= 1
+~ friend_suspects = true
+"Fine. Keep your secrets." #speaker:friend
+-> goodbye
+
+= goodbye
+"I have to go before they notice." #speaker:friend
+He climbs back out of the window, into the dark. #hide:friend-visit
+~ day3 = "bed"
+~ objective = "Go to bed"
+~ objective_target = "home:bed"
+-> END
+
+=== day3_sleep ===
+Your bed. {evidence_bird: Something hard under the blanket: the hollow bird.}
++ [Sleep]
+    ~ day3 = "done"
+    ~ mum_in_bed = false
+    ~ objective = ""
+    ~ objective_target = ""
+    You lie awake a long time. #endday:Day 4 (not built yet)
++ [Not yet]
+- -> END

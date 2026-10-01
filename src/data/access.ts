@@ -26,11 +26,19 @@ const CLOSED: Partial<Record<Day, Record<string, string>>> = {
     'ascension-gate': 'The gate is only opened for an Ascension.',
     'trunk-climb': "There's no reason to climb today.",
   },
+  3: {
+    ...HELD_BACK,
+    'friends-home': 'His family has forbidden you from coming near.',
+    'ascension-gate': 'The gate is only opened for an Ascension.',
+    'trunk-climb': "There's no reason to climb today.",
+  },
 };
 
 /** Areas that open at particular times on a day that otherwise keeps them closed. */
 const OPENS_AT: Partial<Record<Day, Record<string, TimeSlot[]>>> = {
   1: { 'trunk-climb': ['night'] },
+  // Day 3: the girl shows you the way down after the morning rite.
+  3: { 'lower-roots': ['afternoon', 'evening', 'night'], 'back-routes': ['afternoon', 'evening', 'night'] },
 };
 
 /** Why you can't go to `areaId` right now, or null if you can. */

@@ -293,4 +293,107 @@ export const MESSAGE_1: Message = {
   symbols: [SELF, SEE, YOU, CLIPPED, WING, SEND, NEW, LIFE, THAT, CANT, FLY],
 };
 
-export const MESSAGES: Record<string, Message> = { [MESSAGE_1.id]: MESSAGE_1 };
+// --- Message 2's new pictures ---
+
+const REST: DecodeSymbol = {
+  id: 'rest',
+  picture: scratches(
+    24,
+    14,
+    [[[16, 9], [21, 9]], [[16, 11], [21, 11]], [[0, 13], [23, 13]], [[14, 1], [17, 1], [14, 4], [17, 4]], [[19, 4], [21, 4], [19, 6], [21, 6]]],
+    [{ disc: [4, 10, 2.3] }, { poly: [[7, 8], [16, 8], [16, 12], [7, 12]] }],
+  ),
+  accepted: ['rest', 'sleep', 'lie', 'lie down', 'stay', 'live', 'dwell', 'wait', 'lay', 'resting', 'asleep', 'nap', 'am'],
+  near: [
+    { words: ['bed', 'night', 'tired', 'dream', 'z', 'zz', 'zzz', 'snore'], reply: "Warm. Someone lying down, asleep. What are they doing?" },
+    { words: ['dead', 'die', 'death', 'fall', 'fallen'], reply: "Cold. Look: they're breathing. Only sleeping." },
+  ],
+  nudge: 'A person lying flat, with little marks rising off them, like breath in sleep.',
+  hint: 'Mum, every night: "Get some rest, love."',
+};
+
+const BEYOND: DecodeSymbol = {
+  id: 'beyond',
+  picture: scratches(
+    24,
+    16,
+    [[[1, 13], [3, 7], [7, 3], [12, 1], [17, 3], [21, 8], [22, 12]], [[19, 10], [22, 13], [23, 9]], [[0, 15], [23, 15]]],
+    [{ poly: [[10, 6], [13, 6], [13, 15], [10, 15]] }],
+  ),
+  accepted: ['beyond', 'past', 'over', 'outside', 'behind', 'across', 'past the', 'the other side', 'other side', 'through', 'far', 'away', 'out'],
+  near: [
+    { words: ['wall', 'arrow', 'jump', 'hill', 'arch', 'bridge'], reply: 'Warm. An arrow, going right over a wall. Where does it end up?' },
+    { words: ['inside', 'in', 'under', 'within'], reply: 'Cold. The opposite: the far side.' },
+  ],
+  nudge: 'An arrow arching over a wall, landing on the far side.',
+  hint: 'Further than the Canopy. Further than the lower roots. On the other side of everything you know.',
+};
+
+const BARK: DecodeSymbol = {
+  id: 'bark',
+  picture: scratches(22, 18, [
+    [[4, 0], [4, 17]],
+    [[17, 0], [17, 17]],
+    [[7, 0], [8, 4], [7, 8], [8, 12], [7, 17]],
+    [[11, 0], [10, 5], [11, 9], [10, 13], [11, 17]],
+    [[14, 0], [15, 4], [14, 9], [15, 13], [14, 17]],
+    [[2, 3], [4, 3]],
+    [[17, 11], [19, 11]],
+  ]),
+  accepted: ['bark', 'tree', 'the tree', 'trunk', 'skin', 'wood', 'shell', 'outside of the tree', 'outer wood'],
+  near: [
+    { words: ['plank', 'board', 'wall', 'lines', 'grain'], reply: "Warm. Wood, rough and ridged. But not cut wood. The tree's own outside." },
+    { words: ['root', 'roots', 'branch', 'leaf'], reply: 'Close. Part of the tree. Which part covers the outside of it?' },
+  ],
+  nudge: 'Rough, ridged wood: the outside of a trunk.',
+  hint: "You've carved your whole life into the inside of the tree. What covers its outside?",
+};
+
+const WOULD: DecodeSymbol = {
+  id: 'would',
+  picture: scratches(14, 18, [
+    [[3, 5], [4, 2], [7, 0], [10, 1], [11, 4], [9, 7], [7, 9], [7, 12]],
+    [[4, 5], [5, 2], [7, 1], [10, 2], [10, 4], [8, 7], [6, 9], [6, 12]],
+  ], [{ disc: [6.5, 16, 1.4] }]),
+  accepted: ['would', 'will', 'do', 'does', 'could', 'can', 'shall', 'should', 'may', 'want', 'question', 'ask'],
+  near: [
+    { words: ['what', 'why', 'how', 'who', 'where', 'when', 'hook'], reply: "Warm. It's a question. How do you start asking someone if they want something?" },
+  ],
+  nudge: 'A hook with a dot under it: a question being asked.',
+  hint: 'A question. The kind you ask when you hope the answer is yes.',
+};
+
+const LIKE: DecodeSymbol = {
+  id: 'like',
+  picture: scratches(16, 14, [], [{ poly: [[8, 13], [1, 6], [1, 3], [3, 1], [6, 1], [8, 3], [10, 1], [13, 1], [15, 3], [15, 6]] }]),
+  accepted: ['like', 'want', 'love', 'wish', 'desire', 'care', 'fancy', 'enjoy', 'hope', 'long'],
+  near: [
+    { words: ['heart', 'hearts', 'chest', 'feel', 'feeling'], reply: 'Warm. A heart. What does your heart do when you long for something?' },
+    { words: ['hate', 'dislike'], reply: 'Cold. The opposite.' },
+  ],
+  nudge: 'A heart.',
+  hint: 'What your friend feels about the Canopy. He would ____ to go there more than anything.',
+};
+
+const TO: DecodeSymbol = {
+  id: 'to',
+  picture: scratches(7, 5, [[[0, 2], [6, 2]], [[4, 0], [6, 2], [4, 4]]]),
+  accepted: ['to'],
+  near: [],
+  nudge: '',
+  hint: '',
+  given: 'to',
+};
+
+/** Message 2 (Day 3): "Clipped wing, I rest beyond the bark. Would you like to fly?" Clipped, wing, I, you and fly come from message 1. */
+export const MESSAGE_2: Message = {
+  id: 'message2',
+  line: 'Clipped wing, I rest beyond the bark. Would you like to fly?',
+  rows: [
+    ['clipped', 'wing', 'self', 'rest', 'beyond', 'bark'],
+    ['would', 'you', 'like', 'to', 'fly'],
+  ],
+  symbols: [CLIPPED, WING, SELF, REST, BEYOND, BARK, WOULD, YOU, LIKE, TO, FLY],
+};
+
+export const MESSAGES: Record<string, Message> = { [MESSAGE_1.id]: MESSAGE_1, [MESSAGE_2.id]: MESSAGE_2 };

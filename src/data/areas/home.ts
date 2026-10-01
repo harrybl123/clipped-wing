@@ -1,5 +1,5 @@
 import { SHADES as S } from '../../ui/pixelArt';
-import { MUM } from '../../ui/characters';
+import { FRIEND, MUM } from '../../ui/characters';
 import { BIRD, FUNGI } from '../../ui/sprites';
 import * as P from './homeProps';
 import type { AreaDefinition } from './types';
@@ -10,6 +10,9 @@ import type { AreaDefinition } from './types';
 // story/home.ink.
 
 const FLOOR = 236;
+/** The plate from the bird, blackened, and a scatter of fresh shavings. */
+const EVIDENCE_PLATE = { rows: ['.ssss.', 'sddmds', 'sdmdds', '.ssss.'], colours: { s: S.deep, d: S.dim, m: S.light } };
+const EVIDENCE_SHAVINGS = { rows: ['.l..p...l.', 'p.pl..pl.p', '.pp.lp.pp.'], colours: { p: S.light, l: S.woodPale } };
 const LOFT = 150;
 
 export const home: AreaDefinition = {
@@ -115,7 +118,14 @@ export const home: AreaDefinition = {
     { type: 'jars', sprite: P.JAR, x: 393, y: 204, variable: 'food_store', max: 16, perRow: 8, rowSpacing: 28 },
   ],
 
-  people: [{ id: 'mum', sprite: MUM.idle[0]!, idleFrames: MUM.idle, x: 150, y: FLOOR, knot: 'home_mum', flipX: true, hideIf: 'mum_in_bed' }],
+  people: [
+    { id: 'mum', sprite: MUM.idle[0]!, idleFrames: MUM.idle, x: 150, y: FLOOR, knot: 'home_mum', flipX: true, hideIf: 'mum_in_bed' },
+    // Day 3 night: the evidence to hide before your friend climbs in (people, so the story can show them), and him.
+    { id: 'evidence-plate', sprite: EVIDENCE_PLATE, x: 80, y: FLOOR, when: ['night'], showIf: 'evidence_plate', knot: 'day3_hide_plate', label: 'Hide' },
+    { id: 'evidence-bird', sprite: BIRD, x: 64, y: LOFT, when: ['night'], showIf: 'evidence_bird', knot: 'day3_hide_bird', label: 'Hide' },
+    { id: 'evidence-shavings', sprite: EVIDENCE_SHAVINGS, x: 200, y: LOFT, when: ['night'], showIf: 'evidence_shavings', knot: 'day3_hide_shavings', label: 'Hide' },
+    { id: 'friend-visit', sprite: FRIEND.idle[0]!, idleFrames: FRIEND.idle, x: 44, y: FLOOR, when: ['night'], hidden: true },
+  ],
 
   interactables: [
     { id: 'kitchen', x: 58, y: FLOOR, reach: 12, label: 'Look', knot: 'home_kitchen' },

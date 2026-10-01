@@ -1,4 +1,4 @@
-import { GIRL, MUM, TENDER, VILLAGERS } from '../../ui/characters';
+import { FRIEND, GIRL, MUM, TENDER, VILLAGERS } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import { BIRD, FUNGI, LAMP } from '../../ui/sprites';
 import * as P from './offeringFloorProps';
@@ -37,6 +37,20 @@ function crowd(): Person[] {
   return [...left.map((x) => ({ x, flipX: false })), ...right.map((x) => ({ x, flipX: true }))].map(({ x, flipX }, i) => {
     const look = VILLAGERS[(i * 3) % VILLAGERS.length]!;
     return { id: `crowd-${i}`, sprite: look.idle[0]!, idleFrames: look.idle, x, y: FLOOR, flipX, when: CEREMONY };
+  });
+}
+
+/** More people for the rites once word has got round (Day 3 on): on the lower stairs either side. */
+function extraCrowd(): Person[] {
+  return [1, 3, 5].flatMap((i, n) => {
+    const top = FLOOR - STEP.rise * (i + 1);
+    const leftX = LANDING.x - STEP.run * (STEP.count - i) + 5;
+    const rightX = LANDING.x + LANDING.width + STEP.run * (STEP.count - i) - 5;
+    const look = (k: number) => VILLAGERS[(n * 2 + k) % VILLAGERS.length]!;
+    return [
+      { id: `crowd-stairs-left-${n}`, sprite: look(0).idle[0]!, idleFrames: look(0).idle, x: leftX, y: top, when: CEREMONY, showIf: 'day3' },
+      { id: `crowd-stairs-right-${n}`, sprite: look(1).idle[0]!, idleFrames: look(1).idle, x: rightX, y: top, flipX: true, when: CEREMONY, showIf: 'day3' },
+    ];
   });
 }
 
@@ -102,6 +116,12 @@ export const offeringFloor: AreaDefinition = {
     // Day 2 evening: Mum at the ceremony, and your bird, rejected, in the basin (#show:rejected-bird).
     { id: 'mum-ceremony', sprite: MUM.idle[0]!, idleFrames: MUM.idle, x: 124, y: FLOOR, when: ['evening'], showIf: 'mum_at_ceremony' },
     { id: 'rejected-bird', sprite: BIRD, x: TUBE_X, y: LANDING.y, when: ['evening'], hidden: true },
+    // Day 3: word has got round, and the crowd fills the stairs too.
+    ...extraCrowd(),
+    // Day 3 morning: your friend across the floor (his father pulls him away), and the girl in the archway.
+    { id: 'friend-rite', sprite: FRIEND.idle[0]!, idleFrames: FRIEND.idle, x: 412 - 18, y: FLOOR, flipX: true, when: ['morning'], hidden: true },
+    { id: 'friend-parent-rite', sprite: VILLAGERS[3]!.idle[0]!, idleFrames: VILLAGERS[3]!.idle, x: 412 - 4, y: FLOOR, flipX: true, when: ['morning'], hidden: true },
+    { id: 'girl-rite', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 444, y: FLOOR, flipX: true, when: ['morning'], hidden: true, knot: 'offering_floor_girl_rite' },
     // Quieter in the afternoon: a couple of people passing through.
     { id: 'grumbler', sprite: VILLAGERS[2]!.idle[0]!, idleFrames: VILLAGERS[2]!.idle, x: 62, y: FLOOR, knot: 'offering_floor_grumbler', when: ['afternoon'] },
     { id: 'passer-by', sprite: VILLAGERS[5]!.idle[0]!, idleFrames: VILLAGERS[5]!.idle, x: 410, y: FLOOR, flipX: true, when: ['afternoon'] },

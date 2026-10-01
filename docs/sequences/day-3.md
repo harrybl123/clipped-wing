@@ -1,5 +1,7 @@
 # Sequence plan: Day 3, Your Friend
 
+Built 2026-10-01 (`story/day3.ink`; carving in `src/scenes/CarveScene.ts`, message 2 in `src/data/messages.ts`). The plan below is as agreed; the built version follows the decisions underneath.
+
 A plan for the designer to mark up before it's built. **(doc)** = design doc; **(designer)** = decided
 in conversation; **(suggestion)** = Claude's proposal. Dialogue here is only a sketch; the full draft
 comes once the shape is agreed.
@@ -26,6 +28,14 @@ comes once the shape is agreed.
 - The ignore path: "You stayed loyal to the Tree." Then retry from Day 2. **(designer)**
 - The back routes get real-time danger: things crumbling that you must avoid. Later, perhaps big bugs
   patrolling loops, Pac-Man style, that you must get past. **(designer)**
+- The window is short ("Not here. Tonight."); the truth (confide or lie) is at the night visit. **(designer)**
+- The second rejection: something thrown, Mum shoved, blessings withheld from your house. **(designer)**
+- The girl comes through the back routes with you. **(designer)**
+- After the loyal ending, retry from the beginning of Day 2. **(designer)**
+- No timer on hiding the evidence: your friend waits, knocking, until everything's hidden. **(designer)**
+  (So he never sees anything for now; the ink still has the "he saw something" lie for later.)
+- Decoding: from the fifth wrong guess, a letter of the answer shows, one more each time; auto-solve
+  moves to the eighth. **(designer)**
 
 ## The shape of the day (suggestion)
 

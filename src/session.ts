@@ -1,6 +1,6 @@
 import type Phaser from 'phaser';
 import storyJson from './generated/main.ink.json';
-import { Calendar } from './systems/Calendar';
+import { Calendar, type CalendarState } from './systems/Calendar';
 import { SaveSystem } from './systems/SaveSystem';
 import { StoryBridge } from './systems/StoryBridge';
 
@@ -9,12 +9,14 @@ export interface Session {
   story: StoryBridge;
   calendar: Calendar;
   saves: SaveSystem;
+  /** How each day began (ink and calendar), so an ending can send you back to the start of a day. Not saved yet. */
+  dayStarts: Partial<Record<number, { ink: string; calendar: CalendarState }>>;
 }
 
 const REGISTRY_KEY = 'session';
 
 export function createSession(game: Phaser.Game): Session {
-  const session: Session = { story: new StoryBridge(storyJson), calendar: new Calendar(), saves: new SaveSystem() };
+  const session: Session = { story: new StoryBridge(storyJson), calendar: new Calendar(), saves: new SaveSystem(), dayStarts: {} };
   game.registry.set(REGISTRY_KEY, session);
   return session;
 }

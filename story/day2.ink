@@ -291,9 +291,10 @@ You lift the loose board and slide the plate underneath.
 Your bed. The scratches on the plate are still there when you close your eyes.
 + [Sleep]
     ~ day2 = "done"
+    ~ day3 = "wake"
     ~ mum_in_bed = false
-    ~ objective = ""
-    ~ objective_target = ""
-    You sleep, badly. #endday:Day 3 (not built yet)
+    ~ objective = "Talk to Mum"
+    ~ objective_target = "home:mum"
+    You sleep, badly. #endday:Day 3
 + [Not yet]
 - -> END

@@ -38,6 +38,25 @@ VAR mum_in_bed = false
 VAR reply1 = ""
 VAR times_ignored = 0
 
+// Day 3 (story/day3.ink). Stages: wake, carve, rite, girl, sneak, evening, open, hide, bed, done.
+VAR day3 = ""
+// The fledgling you carved: "tiny" or "small"; which wing you clipped; its eye ("open" or "sleepy").
+VAR fledgling_size = ""
+VAR fledgling_wing = ""
+VAR fledgling_eye = ""
+VAR girl_with_you = false
+VAR blessings_withheld = false
+// You ignored message 1 on Day 2, then answered it on Day 3.
+VAR answered_late = false
+// Hiding the evidence before your friend climbs in: how many things are still out, and which.
+VAR evidence_left = 0
+VAR evidence_plate = false
+VAR evidence_bird = false
+VAR evidence_shavings = false
+// The visit: you told your friend the truth (true) or lied (false); whether he knows you lied.
+VAR confided = false
+VAR friend_suspects = false
+
 // The glossary: each decoded symbol in the player's own words (glossary_<symbol id>, see src/data/messages.ts).
 // Little words like "that" fill themselves in and have no entry.
 VAR glossary_self = ""
@@ -50,10 +69,16 @@ VAR glossary_new = ""
 VAR glossary_life = ""
 VAR glossary_cant = ""
 VAR glossary_fly = ""
+VAR glossary_rest = ""
+VAR glossary_beyond = ""
+VAR glossary_bark = ""
+VAR glossary_would = ""
+VAR glossary_like = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
 INCLUDE day2.ink
+INCLUDE day3.ink
 INCLUDE home.ink
 INCLUDE offering-floor.ink
 INCLUDE roots-market.ink

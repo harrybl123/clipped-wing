@@ -1,0 +1,100 @@
+import Phaser from 'phaser';
+import { GAME_HEIGHT as H, GAME_WIDTH as W } from '../config';
+import { getSession } from '../session';
+import { Calendar } from '../systems/Calendar';
+import { SHADES } from '../ui/pixelArt';
+import { PixelText } from '../ui/PixelText';
+import { playConfirm, playMove } from '../ui/sfx';
+import type { AreaSceneData } from './AreaScene';
+
+export interface EndingSceneData {
+  /** Which ending (an id in ENDINGS). */
+  ending: string;
+}
+
+/** The endings that stop the game early. Draft words, for the designer. */
+const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number }> = {
+  // Ignoring Grounded's message twice (the design doc's "short, comfortable loyal ending").
+  loyal: {
+    title: 'You stayed loyal to the Tree.',
+    lines: [
+      'You carved your usual bird the next morning, and every morning after that.',
+      'The Tree never sent one back again.',
+      'Whoever had been watching you stopped watching.',
+    ],
+    retryDay: 2,
+  },
+};
+
+/**
+ * An ending that stops the game early: words on black, then a choice to try again from the start of a
+ * day (from how it began, kept in the session) or go back to the title.
+ */
+export class EndingScene extends Phaser.Scene {
+  private options: { label: string; run: () => void; text: PixelText }[] = [];
+  private selected = 0;
+  private ready = false;
+
+  constructor() {
+    super('Ending');
+  }
+
+  create(data: EndingSceneData): void {
+    const ending = ENDINGS[data.ending] ?? ENDINGS.loyal!;
+    this.options = [];
+    this.selected = 0;
+    this.ready = false;
+    this.cameras.main.setBackgroundColor(0x000000).fadeIn(1500);
+
+    const centre = (t: PixelText) => t.setX(Math.round((W - t.width) / 2));
+    const title = centre(new PixelText(this, 0, 60, ending.title, { color: SHADES.white, scale: 2 })).setAlpha(0);
+    this.tweens.add({ targets: title, alpha: 1, duration: 1500, delay: 600 });
+    ending.lines.forEach((line, i) => {
+      const t = centre(new PixelText(this, 0, 110 + i * 14, line, { color: SHADES.light, wrapWidth: 400 })).setAlpha(0);
+      this.tweens.add({ targets: t, alpha: 1, duration: 1200, delay: 2400 + i * 1600 });
+    });
+
+    const start = getSession(this).dayStarts[ending.retryDay];
+    const choices = [
+      ...(start ? [{ label: `Try again from Day ${ending.retryDay}`, run: () => this.retry(ending.retryDay) }] : []),
+      { label: 'Back to the title', run: () => this.scene.start('Title') },
+    ];
+    const shownAt = 2400 + ending.lines.length * 1600 + 800;
+    choices.forEach((c, i) => {
+      const text = centre(new PixelText(this, 0, H - 60 + i * 14, c.label, { color: SHADES.dim })).setAlpha(0);
+      this.tweens.add({ targets: text, alpha: 1, duration: 800, delay: shownAt });
+      this.options.push({ ...c, text });
+    });
+    this.time.delayedCall(shownAt, () => {
+      this.ready = true;
+      this.highlight();
+    });
+
+    this.input.keyboard!.on('keydown', (e: KeyboardEvent) => {
+      if (!this.ready) return;
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'ArrowDown' || e.key === 's') {
+        this.selected = (this.selected + (e.key === 'ArrowUp' || e.key === 'w' ? -1 : 1) + this.options.length) % this.options.length;
+        playMove(this);
+        this.highlight();
+      } else if (e.key === 'Enter' || e.key === ' ' || e.key === 'e') {
+        playConfirm(this);
+        this.ready = false;
+        this.options[this.selected]!.run();
+      }
+    });
+  }
+
+  private highlight(): void {
+    this.options.forEach((o, i) => o.text.setColor(i === this.selected ? SHADES.amber : SHADES.dim));
+  }
+
+  /** Back to how that day began: the story and the calendar as they were, waking at home. */
+  private retry(day: number): void {
+    const session = getSession(this);
+    const start = session.dayStarts[day];
+    if (!start) return;
+    session.story.loadState(start.ink);
+    session.calendar = Calendar.fromJSON(start.calendar);
+    this.scene.start('Area', { areaId: 'home', start: { x: 50, y: 150 }, card: `Day ${day}` } satisfies AreaSceneData);
+  }
+}

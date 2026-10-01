@@ -418,7 +418,9 @@ export class DecodeScene extends Phaser.Scene {
   private showHelp(): void {
     const { symbol } = this.slots[this.selected]!;
     const level = this.isSolved() ? 'none' : this.matcher.helpLevel(symbol.id);
-    this.help.setText(level === 'hint' ? symbol.hint : level === 'nudge' ? symbol.nudge : '');
+    const letters = this.isSolved() ? '' : this.matcher.revealedLetters(symbol.id);
+    const help = level === 'hint' ? symbol.hint : level === 'nudge' ? symbol.nudge : '';
+    this.help.setText(letters ? `${help}\n\nIt begins:  ${letters}` : help);
     this.centreText();
   }
 

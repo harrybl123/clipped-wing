@@ -18,3 +18,7 @@
 === back_routes_mark ===
 [PLACEHOLDER] A mark in glowing fungus ink, painted by someone who knows the way.
 -> END
+
+// The girl, showing you the way (Day 3).
+=== girl_guide ===
+-> day3_girl_follow

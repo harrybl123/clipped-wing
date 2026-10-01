@@ -8,7 +8,9 @@ export interface SymbolDefinition {
 /** Wrong attempts on one symbol before each level of help. */
 export const NUDGE_AFTER = 2;
 export const HINT_AFTER = 4;
-export const AUTO_SOLVE_AFTER = 6;
+/** From here, each wrong attempt reveals one more letter of the answer (designer). */
+export const LETTER_AFTER = 5;
+export const AUTO_SOLVE_AFTER = 8;
 
 export type HelpLevel = 'none' | 'nudge' | 'hint';
 
@@ -114,6 +116,17 @@ export class SymbolMatcher {
     if (n >= HINT_AFTER) return 'hint';
     if (n >= NUDGE_AFTER) return 'nudge';
     return 'none';
+  }
+
+  /**
+   * The answer with letters revealed, once there have been LETTER_AFTER wrong attempts: one letter at
+   * LETTER_AFTER, another for each attempt after (e.g. "s _ _" then "s e _"). Empty before then.
+   */
+  revealedLetters(symbolId: string): string {
+    const symbol = this.symbol(symbolId);
+    const shown = this.progress.get(symbolId)!.wrongAttempts - LETTER_AFTER + 1;
+    if (shown <= 0) return '';
+    return [...symbol.first].map((ch, i) => (i < shown || ch === ' ' ? ch : '_')).join(' ');
   }
 
   wrongAttempts(symbolId: string): number {

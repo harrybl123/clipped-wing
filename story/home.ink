@@ -16,12 +16,16 @@
 - day2 == "bench" || day2 == "rite": -> day2_mum_go_on
 - day2 == "afternoon": -> day2_mum_afternoon
 - day2 == "burn" || day2 == "hide" || day2 == "bed": -> day2_mum_asleep
+- day3 == "wake": -> day3_mum_morning
+- day3 == "carve" || day3 == "rite": -> day3_mum_go_on
+- day3 == "open" || day3 == "hide" || day3 == "bed": -> day2_mum_asleep
 }
 [PLACEHOLDER] "Get some rest, love." #speaker:mum
 -> END
 
 === home_hearth ===
 { day2 == "burn": -> day2_hearth }
+{ day3 == "open": -> day3_open_bird }
 [PLACEHOLDER] The hearth. The fire is low.
 -> END
 
@@ -39,12 +43,14 @@
 === home_bed ===
 { day1 == "bed": -> day1_sleep }
 { day2 == "bed": -> day2_sleep }
+{ day3 == "bed": -> day3_sleep }
 [PLACEHOLDER] Your bed. Not yet.
 -> END
 
 === home_bench ===
 { day1 == "bench": -> day1_take_bird }
 { day2 == "bench": -> day2_take_bird }
+{ day3 == "carve": -> day3_bench }
 [PLACEHOLDER] Your carving bench. A bird is half finished.
 -> END
 

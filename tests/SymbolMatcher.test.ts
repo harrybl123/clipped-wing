@@ -3,6 +3,7 @@ import {
   AUTO_SOLVE_AFTER,
   comparable,
   HINT_AFTER,
+  LETTER_AFTER,
   normalise,
   NUDGE_AFTER,
   stem,
@@ -121,5 +122,15 @@ describe('SymbolMatcher', () => {
     m.preset('eye', 'watch');
     expect(m.isSolved('eye')).toBe(true);
     expect(m.guess('eye', 'see')).toEqual({ kind: 'already-solved', answer: 'watch' });
+  });
+
+  it('reveals a letter of the answer from the fifth wrong attempt, one more each time', () => {
+    const m = new SymbolMatcher([{ id: 'eye', accepted: ['see', 'watch'] }]);
+    for (let i = 1; i < LETTER_AFTER; i++) m.guess('eye', 'nope');
+    expect(m.revealedLetters('eye')).toBe('');
+    m.guess('eye', 'nope');
+    expect(m.revealedLetters('eye')).toBe('s _ _');
+    m.guess('eye', 'nope');
+    expect(m.revealedLetters('eye')).toBe('s e _');
   });
 });

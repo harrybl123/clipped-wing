@@ -87,7 +87,66 @@ describe('ink pipeline', () => {
     expect(v['reply1']).toBe('usual');
     expect(v['times_ignored']).toBe(1);
     play('home_hiding_spot');
-    expect(play('home_bed', 0).tags).toContain('endday:Day 3 (not built yet)');
+    expect(play('home_bed', 0).tags).toContain('endday:Day 3');
     expect(v['day2']).toBe('done');
+  });
+
+  it('plays Day 3 through: the carving, the rite, the girl, the window, the second rejection, hiding, confiding', () => {
+    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const v = story.variablesState;
+    const play = (knot: string, ...choices: number[]) => {
+      story.ChoosePathString(knot);
+      const tags: string[] = [];
+      for (;;) {
+        while (story.canContinue) {
+          story.Continue();
+          tags.push(...(story.currentTags ?? []));
+        }
+        const next = choices.shift();
+        if (next === undefined || story.currentChoices.length === 0) break;
+        story.ChooseChoiceIndex(next);
+      }
+      return tags;
+    };
+    Object.entries({ dialogue_style: 'voice', day1: 'done', day2: 'done', day3: 'wake', reply1: 'fledgling', friend_trust: 1 }).forEach(([k, x]) => (v[k] = x));
+    play('home_mum');
+    expect(play('home_bench', 0)).toContain('carve:day3_carving');
+    expect(play('day3_carving', 0, 0, 1)).toEqual(expect.arrayContaining(['hold:rough', 'hold:eye', 'end']));
+    expect(v['fledgling_wing']).toBe('left');
+    expect(play('offering_floor_tender')).toContain('show:girl-rite');
+    expect(play('offering_floor_girl_rite', 2)).toContain('goto:lower-roots:80:360:day3_lower_roots');
+    expect(v['girl_with_you']).toBe(true);
+    expect(play('friends_home_friend', 2)).toContain('time:evening');
+    const food = v['food_store'] as number;
+    expect(play('offering_floor_tender', 0)).toEqual(expect.arrayContaining(['throw', 'goto:home:130:236:day3_mum_night']));
+    expect(v['food_store']).toBe(food - 2);
+    play('day3_mum_night');
+    expect(play('home_hearth')).toContain('decode:message2:day3_decoded');
+    expect(play('day3_decoded')).toContain('when:evidence_left:day3_visit');
+    play('day3_hide_plate');
+    play('day3_hide_bird');
+    play('day3_hide_shavings');
+    expect(v['evidence_left']).toBe(0);
+    play('day3_visit', 0);
+    expect(v['confided']).toBe(true);
+    expect(v['friend_trust']).toBe(2);
+    expect(play('home_bed', 0)).toContain('endday:Day 4 (not built yet)');
+  });
+
+  it('ends the game loyally if you ignore the message a second time', () => {
+    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    story.variablesState['reply1'] = 'usual';
+    story.ChoosePathString('day3_second_choice');
+    story.ContinueMaximally();
+    story.ChooseChoiceIndex(1); // ignore
+    story.ContinueMaximally();
+    story.ChooseChoiceIndex(0); // yes, stay loyal
+    let tags: string[] = [];
+    while (story.canContinue) {
+      story.Continue();
+      tags = [...tags, ...(story.currentTags ?? [])];
+    }
+    expect(tags).toContain('ending:loyal');
+    expect(story.variablesState['times_ignored']).toBe(1);
   });
 });

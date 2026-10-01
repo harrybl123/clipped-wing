@@ -1,3 +1,4 @@
+import { GIRL } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import { FUNGI } from '../../ui/sprites';
 import * as P from './backRoutesProps';
@@ -61,9 +62,9 @@ export const backRoutes: AreaDefinition = {
   solids: [
     ...heartwoodSolids(TUNNELS, W, H),
     ...boards(368, [196, 160]),
-    ...boards(768, [196, 160]),
+    ...boards(768, [196]),
     ...boards(200, [324, 288, 256]),
-    ...boards(800, [324, 288, 256]),
+    ...boards(800, [324, 256]),
   ],
 
   lights: [
@@ -103,6 +104,15 @@ export const backRoutes: AreaDefinition = {
   ],
 
   features: [
+    // Day 3 on: the routes are crumbling. Rotten boards give way; lumps fall from the ceiling (dust first).
+    { type: 'crumble', x: 800, y: 288, width: 32 },
+    { type: 'crumble', x: 768, y: 160, width: 32 },
+    { type: 'rubble', x: 330, top: 322, floorY: LOWER, every: 2600, reset: { x: 270, y: LOWER } },
+    { type: 'rubble', x: 610, top: 322, floorY: LOWER, every: 2200, reset: { x: 560, y: LOWER } },
+    { type: 'rubble', x: 690, top: 322, floorY: LOWER, every: 2900, reset: { x: 560, y: LOWER } },
+    { type: 'rubble', x: 860, top: 82, floorY: UPPER, every: 2400, reset: { x: 816, y: UPPER } },
+    { type: 'hint', x: 290, y: LOWER, reach: 50, text: 'When dust falls, something follows', showIf: 'girl_with_you' },
+    { type: 'hint', x: 816, y: 324, reach: 20, text: "Rotten boards won't hold you for long", showIf: 'girl_with_you' },
     { type: 'motes', x: 496, top: 34, bottom: UPPER, halfWidth: 14 }, // dust in the light from the tube
     { type: 'drip', x: 720, y: 50, floorY: UPPER - 4 },
     { type: 'drip', x: 300, y: 324, floorY: LOWER - 4 },
@@ -110,7 +120,10 @@ export const backRoutes: AreaDefinition = {
     { type: 'drip', x: 580, y: 276, floorY: LOWER - 4 },
   ],
 
-  people: [],
+  people: [
+    // Day 3: the girl, showing you the way.
+    { id: 'girl-guide', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 60, y: LOWER, knot: 'girl_guide', showIf: 'girl_with_you', follow: true },
+  ],
 
   interactables: [
     { id: 'shrine-grate', x: 66, y: UPPER, reach: 8, label: 'Listen', knot: 'back_routes_shrine_grate' },
@@ -122,7 +135,7 @@ export const backRoutes: AreaDefinition = {
   exits: [
     { id: 'to-shrine', x: 36, y: UPPER, reach: 12, to: 'tenders-shrine' },
     { id: 'to-offering-floor', x: 496, y: UPPER, reach: 10, to: 'offering-floor' },
-    { id: 'to-friends-window', x: 924, y: UPPER, reach: 12, to: 'friends-home' },
+    { id: 'to-friends-window', x: 924, y: UPPER, reach: 12, to: 'friends-home', secret: true },
     { id: 'to-home', x: 36, y: MIDDLE, reach: 12, to: 'home' },
     { id: 'to-lower-roots', x: 36, y: LOWER, reach: 12, to: 'lower-roots' },
   ],
