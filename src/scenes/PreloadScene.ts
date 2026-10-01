@@ -40,6 +40,7 @@ export class PreloadScene extends Phaser.Scene {
     if (areaId && areaId in AREAS) this.scene.start('Area', { areaId });
     else if (params?.get('scene') === 'prologue') this.scene.start('Prologue');
     else if (params?.get('scene') === 'decode') this.scene.start('Decode', { message: 'message1' });
+    else if (params?.get('ending')) this.scene.start('Ending', { ending: params.get('ending')! });
     else if (params && ['2', '3', '4', '5', '6', '7'].includes(params.get('day') ?? '')) {
       const day = Number(params.get('day')) as 2 | 3 | 4 | 5 | 6 | 7;
       this.devStartDay(day, params.get('reply') === 'usual' ? 'usual' : 'fledgling', params.get('at'), params.get('told') === '1' || params.get('seed') === 'healthy', params.get('plate') === '1');
@@ -81,7 +82,12 @@ export class PreloadScene extends Phaser.Scene {
       set({ day6: 'wake', objective: 'Answer Grounded', objective_target: 'home:bench', glossary_seed: 'seed' });
       session.dayStarts[6] = { ink: story.saveState(), calendar: calendar.toJSON() };
     }
-    if (day === 6 && at === 'tail') {
+    if (day === 3 && at === 'night') {
+      // Night 3 at home, the bird by the hearth (with &reply=usual: the second, stern choice; the loyal ending).
+      calendar.advanceTo('night');
+      set({ day3: 'open', mum_in_bed: true, objective: 'Open the bird', objective_target: 'home:hearth' });
+      this.scene.start('Area', { areaId: 'home', start: { x: 120, y: 236 } });
+    } else if (day === 6 && at === 'tail') {
       // Cloaked, at the market at noon, the Tender about to cross it.
       calendar.advanceTo('afternoon');
       set({ day6: 'tail', has_disguise: true, tailing: true, objective: 'Follow the Tender without being seen', objective_target: 'roots-market:tender-tail;roots-market:ration-hatch' });
@@ -101,7 +107,7 @@ export class PreloadScene extends Phaser.Scene {
       calendar.advanceTo('night');
       set({ day5: 'open', reply3: 'who', told_archivist: told, archivist_trust: told ? 3 : 0, mum_in_bed: true, objective: 'Open the bird', objective_target: 'home:hearth' });
       this.scene.start('Area', { areaId: 'home', start: { x: 120, y: 236 } });
-    } else if (day < 7) this.scene.start('Area', { areaId: 'home', start: { x: 50, y: 150 }, card: `Day ${day}` });
+    } else if (day < 7 && !(day === 3 && at === 'night')) this.scene.start('Area', { areaId: 'home', start: { x: 50, y: 150 }, card: `Day ${day}` });
   }
 
   /** Dev only: Day 7, in custody (you saved the girl) or at home under guard (you blamed her), optionally jumping ahead. */

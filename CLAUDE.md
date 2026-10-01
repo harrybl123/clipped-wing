@@ -51,7 +51,7 @@ The game is pixel art, so darker and lighter **shades** of these colours are all
 - `npm run test` — run unit tests (Vitest)
 - `npm run typecheck` — compile ink, then TypeScript check (`tsc --noEmit`)
 - `npm run package` — build, then zip the contents of `dist/` into `clipped-wing.zip` for itch.io (see README)
-- Dev only: `?day=2` to `?day=7` (`?day=7` wakes in the cell; `&girl=blamed` at home under guard; `&at=trial|visits|evening|night|chase|fall`, `&lied=1`; `?day=3&reply=usual` for the ignore path; `?day=5&at=archivist`, `?day=5&at=night[&told=1]`, `?day=6&at=tail` or `?day=6&at=interrogation[&plate=1]` to jump in) wakes at home on that day; `http://localhost:5173/?area=<id>` opens an area directly (skips the title); M opens the map in any area; `http://localhost:5173/gallery.html` shows every sprite, portrait and prop enlarged, with animations and a dark/lit background toggle
+- Dev only: `?day=2` to `?day=7` (`?day=7` wakes in the cell; `&girl=blamed` at home under guard; `&at=trial|visits|evening|night|chase|fall`, `&lied=1`; `?day=3&reply=usual` for the ignore path, `&at=night` for the second choice by the hearth; `?ending=loyal` (or `fly`, `fall`, `fall_together`) shows an ending; `?day=5&at=archivist`, `?day=5&at=night[&told=1]`, `?day=6&at=tail` or `?day=6&at=interrogation[&plate=1]` to jump in) wakes at home on that day; `http://localhost:5173/?area=<id>` opens an area directly (skips the title); M opens the map in any area; `http://localhost:5173/gallery.html` shows every sprite, portrait and prop enlarged, with animations and a dark/lit background toggle
 - `npm run ink` — compile `story/main.ink` → `src/generated/main.ink.json` (also runs automatically in `dev`, with watch, and in `build`)
 
 ## Conventions

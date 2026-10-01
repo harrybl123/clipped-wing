@@ -21,7 +21,10 @@ const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number
       'You carved your usual bird the next morning, and every morning after that.',
       'The Tree never sent one back again.',
       'Whoever had been watching you stopped watching.',
+      'Over the next six weeks, everyone in the tree slowly starved. Even the upper branches.',
     ],
+    // The question it leaves you with (designer).
+    coda: 'Could you have saved your people?',
     retryDay: 2,
   },
   // Day 7, up: chased to the very top, and into the tube (big choice 3).
