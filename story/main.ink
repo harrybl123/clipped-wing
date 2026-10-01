@@ -59,6 +59,34 @@ VAR evidence_shavings = false
 VAR confided = false
 VAR friend_suspects = false
 
+// Day 4 (story/day4.ink). Stages: wake, carve, shrine, market, girl, evening, open, sneak, visit, rot, back, bed, done.
+VAR day4 = ""
+// The Tender's summons, pushed under the door in the night (picked up on Day 4 morning).
+VAR summons_on_floor = false
+// Your reply to message 2, picked from three pictures: "yes" (open wings), "cant" (a clipped wing) or "why" (a hook and a dot).
+VAR reply2 = ""
+VAR tender_waiting = false
+// Wrong answers to the Tender's questions; two and he asks to see your hands.
+VAR tender_doubts = 0
+VAR showed_hands = false
+// Mum's out of the house (at the market, or at the ceremony).
+VAR mum_away = false
+VAR mum_at_market = false
+// The market: you stepped in (the fight) or held back. The fight scene counts what you landed and what you took.
+VAR fought = false
+VAR held_back = false
+VAR fight_landed = 0
+VAR fight_taken = 0
+VAR fight_won = false
+VAR hurt = false
+// The girl (design doc: tracked through the act).
+VAR girl_trust = 0
+VAR chalk_ring = false
+VAR house_watched = false
+VAR has_feather = false
+// The night sneak through the lower roots: the watch is out.
+VAR sneaking = false
+
 // The glossary: each decoded symbol in the player's own words (glossary_<symbol id>, see src/data/messages.ts).
 // Little words like "that" fill themselves in and have no entry.
 VAR glossary_self = ""
@@ -76,17 +104,26 @@ VAR glossary_beyond = ""
 VAR glossary_bark = ""
 VAR glossary_would = ""
 VAR glossary_like = ""
+VAR glossary_yet = ""
+VAR glossary_also = ""
+VAR glossary_because = ""
+VAR glossary_carve = ""
+VAR glossary_grounded = ""
+VAR glossary_many = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
 INCLUDE day2.ink
 INCLUDE day3.ink
+INCLUDE day4.ink
 INCLUDE home.ink
 INCLUDE offering-floor.ink
 INCLUDE roots-market.ink
 INCLUDE friends-home.ink
 INCLUDE lower-roots.ink
 INCLUDE back-routes.ink
+INCLUDE girls-home.ink
+INCLUDE the-rot.ink
 INCLUDE tenders-shrine.ink
 INCLUDE trunk-climb.ink
 INCLUDE middle-tiers.ink

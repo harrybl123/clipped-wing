@@ -1,5 +1,9 @@
 # Sequence plan: Day 4, The Girl in the Roots
 
+Built 2026-10-01 (`story/day4.ink`; the reply and the hollow bird in `src/scenes/CarveScene.ts`, the
+fight in `src/scenes/FightScene.ts`, message 3 in `src/data/messages.ts`, her home and the rot in
+`src/data/areas/girlsHome.ts` and `theRot.ts`). Dev: `?day=4`.
+
 A plan for the designer to mark up before it's built. **(doc)** = design doc; **(designer)** = decided
 in conversation; **(suggestion)** = Claude's proposal. Dialogue here is a sketch; the full draft comes
 once the shape is agreed.

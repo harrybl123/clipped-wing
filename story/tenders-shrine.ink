@@ -26,3 +26,7 @@
 === shrine_blessing ===
 [PLACEHOLDER] A blessing set into the wall in a carved frame. It glows like the tube, and nobody touches it.
 -> END
+
+// Day 4 morning: the Tender, waiting for you (the summons).
+=== shrine_tender_summons ===
+-> day4_shrine

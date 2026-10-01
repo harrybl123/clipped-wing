@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { compileInk } from '../scripts/ink.mjs';
-import { AREAS, PLANNED_AREAS } from '../src/data/areas';
+import { AREA_NAMES, AREAS, PLANNED_AREAS } from '../src/data/areas';
 import type { AreaDefinition } from '../src/data/areas/types';
 import { StoryBridge } from '../src/systems/StoryBridge';
 import type { RowSprite } from '../src/ui/sprites';
@@ -44,8 +44,8 @@ describe.each(Object.values(AREAS))('area $id', (area) => {
     expect(area.solids.some((s) => y === s.y && x >= s.x && x <= s.x + s.width)).toBe(true);
   });
 
-  it('is one of the planned areas, with the same name', () => {
-    expect(PLANNED_AREAS[area.id]).toBe(area.name);
+  it('is one of the planned areas (or a hidden one, off the map), with the same name', () => {
+    expect(AREA_NAMES[area.id]).toBe(area.name);
   });
 
   it('has exits that lead to planned areas', () => {
@@ -63,7 +63,7 @@ describe.each(Object.values(AREAS))('area $id', (area) => {
     const knots = [...area.interactables.map((it) => it.knot), ...area.people.flatMap((p) => (p.knot ? [p.knot] : []))];
     for (const knot of knots) expect(() => story.startKnot(knot), knot).not.toThrow();
     for (const f of area.features) if (f.type === 'jars') expect(story.variableNames()).toContain(f.variable);
-    const conditions = [...area.people.flatMap((p) => [p.showIf, p.hideIf]), ...area.features.flatMap((f) => (f.type === 'hint' ? [f.showIf] : []))];
+    const conditions = [...area.people.flatMap((p) => [p.showIf, p.hideIf].flat()), ...area.features.flatMap((f) => ('showIf' in f ? [f.showIf] : []))];
     for (const name of conditions.filter((c): c is string => !!c)) expect(story.variableNames(), name).toContain(name);
   });
 });

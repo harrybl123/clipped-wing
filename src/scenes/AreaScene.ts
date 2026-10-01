@@ -1,18 +1,20 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { closedReason } from '../data/access';
-import { AREAS, PLANNED_AREAS } from '../data/areas';
+import { AREAS, AREA_NAMES } from '../data/areas';
 import type { AreaDefinition, Exit, Feature, Person } from '../data/areas/types';
 import { nextHop } from '../data/route';
 import { Player } from '../objects/Player';
 import type { CarveSceneData } from './CarveScene';
 import type { DecodeResult, DecodeSceneData } from './DecodeScene';
 import type { EndingSceneData } from './EndingScene';
+import type { StepSceneData } from './StepScene';
 import type { MapSceneData } from './MapScene';
 import { getSession } from '../session';
 import { DebugOverlay } from '../ui/DebugOverlay';
 import { DialogueBox } from '../ui/DialogueBox';
 import { paintArea } from '../ui/paintArea';
+import { WATCHMAN } from '../ui/characters';
 import { SHADES } from '../ui/pixelArt';
 import { makePaintedTexture, makeSpriteTexture, PIXEL } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
@@ -64,6 +66,41 @@ const INSETS: Record<string, RowSprite> = {
       'ffffffffffffffff',
     ],
     colours: { f: SHADES.woodLight, w: SHADES.woodPale, s: SHADES.deep },
+  },
+  // The Tender's summons: a small cloth in the banners' colours, folded, with the tube's mark.
+  summons: {
+    rows: [
+      'pppppppppppppppp',
+      'eaaaaaaaaaaaaaae',
+      'eaaaaaacaaaaaaae',
+      'eaaaaacwcaaaaaae',
+      'eaaaaccwccaaaaae',
+      'eaaaacaccacaaaae',
+      'eaaaacacaacaaaae',
+      'eaaaaccaccaaaaae',
+      'eaaaaaccccaaaaae',
+      'eaaaaaacaaaaaaae',
+      'eeeeeeeeeeeeeeee',
+      'a.a.a.a.a.a.a.a.',
+    ],
+    colours: { p: SHADES.woodPale, a: SHADES.amberDeep, e: SHADES.woodLight, c: SHADES.cyanMid, w: SHADES.cyan },
+  },
+  // A real feather from outside: red, like nothing else in the tree (red is for birds).
+  feather: {
+    rows: [
+      '..............rR',
+      '...........rrRR.',
+      '.........rrRRr..',
+      '.......rrRRrr...',
+      '.....rrRRrrr....',
+      '....rRRrrr......',
+      '...rRrrrd.......',
+      '..rRrrd.........',
+      '..Rrd...........',
+      '.Rd.............',
+      'q...............',
+    ],
+    colours: { r: SHADES.red, R: SHADES.redDark, d: SHADES.redDark, q: SHADES.light },
   },
 };
 
@@ -132,6 +169,28 @@ interface Collapse {
 }
 
 
+/** A watchman with a lantern (the `watch` feature). */
+interface Watchman {
+  feature: Extract<Feature, { type: 'watch' }>;
+  image: Phaser.GameObjects.Image;
+  lantern: Phaser.GameObjects.Rectangle;
+  cone: Phaser.GameObjects.Graphics;
+  callout: PixelText;
+  dir: 1 | -1;
+  /** Ms left standing at the end of his round, or before he turns round (standing watch). */
+  wait: number;
+  /** Ms left before you're sent back, once he's seen you (null: he hasn't). */
+  alarm: number | null;
+  walkKeys: string[];
+  idleKey: string;
+  step: number;
+}
+
+/** How far above or below his feet the watch's lantern reaches. */
+const WATCH_VIEW_Y = 60;
+/** A standing watchman turns round this often (ms), unless the feature says otherwise; a pacing one waits this long at each end. */
+const WATCH_PAUSE = 2600;
+
 /** Any side-on area, built from its AreaDefinition in src/data/areas. */
 export class AreaScene extends Phaser.Scene {
   private area!: AreaDefinition;
@@ -167,6 +226,9 @@ export class AreaScene extends Phaser.Scene {
   private hazards: { rect: () => Phaser.Geom.Rectangle; reset: { x: number; y: number } }[] = [];
   private beetles: { image: Phaser.GameObjects.Image; feature: Extract<Feature, { type: 'beetle' }>; dir: 1 | -1; frames: string[]; step: number }[] = [];
   private crumbleGroup!: Phaser.Physics.Arcade.StaticGroup;
+  private watchmen: Watchman[] = [];
+  private shadows: Extract<Feature, { type: 'shadow' }>[] = [];
+  private shadowGraphics: Phaser.GameObjects.Graphics | null = null;
 
   constructor() {
     super('Area');
@@ -192,6 +254,9 @@ export class AreaScene extends Phaser.Scene {
     this.collapses = [];
     this.hazards = [];
     this.beetles = [];
+    this.watchmen = [];
+    this.shadows = [];
+    this.shadowGraphics = null;
   }
 
   create(): void {
@@ -299,7 +364,8 @@ export class AreaScene extends Phaser.Scene {
 
   override update(_time: number, delta: number): void {
     const interactPressed = Phaser.Input.Keyboard.JustDown(this.interactKey);
-    const blocked = this.leaving || this.dialogue.isOpen || this.game.loop.frame === this.dialogueClosedFrame;
+    const caught = this.watchmen.some((w) => w.alarm !== null);
+    const blocked = this.leaving || caught || this.dialogue.isOpen || this.game.loop.frame === this.dialogueClosedFrame;
     this.player.update(blocked);
     this.stepUp();
     this.updateWanderers(delta);
@@ -309,6 +375,7 @@ export class AreaScene extends Phaser.Scene {
     this.updateCrumbles(delta);
     this.updateCollapses(delta);
     this.updateBeetles(delta);
+    this.updateWatch(delta);
     this.checkHazards();
     this.updateWaiting(delta);
     this.updateHints();
@@ -534,6 +601,69 @@ export class AreaScene extends Phaser.Scene {
     }
   }
 
+  /**
+   * The night watch: each watchman paces his round (or stands and turns), his lantern lighting the way
+   * ahead. If you're in its light and not in a shadow, he calls out, and you're sent back to his `reset`.
+   */
+  private updateWatch(delta: number): void {
+    if (!this.watchmen.length) return;
+    const { story } = getSession(this);
+    const { x: px, y: py } = this.player.feet;
+    const inShadow = this.shadows.some((s) => (!s.showIf || story.getVariable(s.showIf)) && Math.abs(py - s.y) <= 2 && px >= s.x && px <= s.x + s.width);
+    this.player.sprite.setAlpha(inShadow && this.watchmen.some((w) => w.image.visible) ? 0.45 : 1);
+    this.shadowGraphics?.setVisible(this.shadows.some((s) => !s.showIf || story.getVariable(s.showIf)));
+    for (const w of this.watchmen) {
+      const f = w.feature;
+      const on = !f.showIf || !!story.getVariable(f.showIf);
+      w.image.setVisible(on);
+      w.lantern.setVisible(on);
+      w.cone.setVisible(on);
+      if (!on) continue;
+      if (w.alarm !== null) {
+        w.alarm -= delta;
+        if (w.alarm <= 0) {
+          w.alarm = null;
+          w.callout.setVisible(false);
+          this.knockBack(f.reset);
+        }
+      } else if (f.from === f.to) {
+        // Standing watch: turns round now and then.
+        w.wait -= delta;
+        if (w.wait <= 0) {
+          w.dir = w.dir > 0 ? -1 : 1;
+          w.wait = f.pause ?? WATCH_PAUSE;
+        }
+      } else if (w.wait > 0) {
+        w.wait -= delta;
+        w.image.setTexture(w.idleKey);
+      } else {
+        w.image.x += w.dir * f.speed * (delta / 1000);
+        w.step += delta;
+        w.image.setTexture(w.walkKeys[Math.floor(w.step / 220) % w.walkKeys.length]!);
+        if (w.image.x <= f.from || w.image.x >= f.to) {
+          w.image.x = Phaser.Math.Clamp(w.image.x, f.from, f.to);
+          w.dir = w.image.x <= f.from ? 1 : -1;
+          w.wait = f.pause ?? WATCH_PAUSE;
+        }
+      }
+      w.image.setFlipX(w.dir < 0);
+      const lx = Math.round(w.image.x + w.dir * 6);
+      const ly = f.y - 13;
+      w.lantern.setPosition(lx, ly);
+      // The lantern's light: a wedge spreading out ahead of him.
+      w.cone.clear().fillStyle(SHADES.amber, w.alarm !== null ? 0.28 : 0.13).fillTriangle(lx, ly, lx + w.dir * f.range, f.y - WATCH_VIEW_Y, lx + w.dir * f.range, f.y + 2);
+      w.cone.fillTriangle(lx, ly, lx + w.dir * f.range, f.y + 2, lx, f.y + 2);
+      if (w.alarm !== null || this.dialogue.isOpen || this.leaving) continue;
+      const ahead = (px - w.image.x) * w.dir;
+      const seen = !inShadow && py <= f.y + 4 && f.y - py <= WATCH_VIEW_Y && ahead >= -8 && ahead <= f.range;
+      if (seen) {
+        w.alarm = 900;
+        w.callout.setText("Who's there?").setPosition(Math.round(w.image.x - w.callout.width / 2), f.y - 44).setVisible(true);
+        this.cameras.main.flash(300, 242, 180, 90);
+      }
+    }
+  }
+
   /** Touching rot or a beetle knocks you back. */
   private checkHazards(): void {
     if (this.leaving) return;
@@ -592,7 +722,7 @@ export class AreaScene extends Phaser.Scene {
     if (entry.scriptHidden || entry.gone) return false;
     if (person.when && !person.when.includes(calendar.slot)) return false;
     if (person.showIf && !story.getVariable(person.showIf)) return false;
-    if (person.hideIf && story.getVariable(person.hideIf)) return false;
+    if ([person.hideIf ?? []].flat().some((v) => story.getVariable(v))) return false;
     return true;
   }
 
@@ -695,6 +825,8 @@ export class AreaScene extends Phaser.Scene {
    *   #carve:<knot>           after the conversation, the carving close-up plays the knot
    *   #when:<variable>:<knot>[:<seconds>]  once the variable reaches 0 (e.g. everything hidden), or the time runs out, the knot plays
    *   #ending:<id>            after the conversation, an ending (e.g. loyal)
+   *   #fight:<knot>[:<then>]  after the conversation, the fight close-up plays the knot; back here, <then> plays
+   *   #turn                   the crowd turns its back on you
    */
   private handleTags(tags: string[]): void {
     this.clearInset();
@@ -761,6 +893,15 @@ export class AreaScene extends Phaser.Scene {
           if (knot) this.afterClose.push(() => this.leaveFor('Carve', { knot, back: { areaId: this.area.id, start } } satisfies CarveSceneData));
           break;
         }
+        case 'fight': {
+          const [knot, then] = args;
+          const start = { ...this.player.feet };
+          if (knot) this.afterClose.push(() => this.leaveFor('Fight', { knot, back: { areaId: this.area.id, start, script: then || undefined } } satisfies StepSceneData));
+          break;
+        }
+        case 'turn':
+          this.turnAway();
+          break;
         case 'when': {
           // The clock (if any) starts once the conversation closes, so it isn't running while you read.
           const [variable, knot, seconds] = args;
@@ -819,6 +960,16 @@ export class AreaScene extends Phaser.Scene {
       // They back away still facing you, too frightened to turn their backs.
       entry.image.setFlipX(dir > 0);
       this.tweens.add({ targets: entry.image, x, duration: 450, ease: 'Quad.easeOut', delay: Phaser.Math.Between(0, 200) });
+    }
+  }
+
+  /** The crowd turns its back on you, all at once. */
+  private turnAway(): void {
+    const px = this.player.feet.x;
+    for (const [id, entry] of this.people) {
+      if (!entry.image.visible || !id.startsWith('crowd')) continue;
+      // Sprites face right; someone to your left faces left to turn away.
+      entry.image.setFlipX(entry.image.x < px);
     }
   }
 
@@ -895,7 +1046,7 @@ export class AreaScene extends Phaser.Scene {
   /** Using a door: go straight next door, open the map, or stay. Doors to areas that are closed today just say why. */
   private openDoorMenu(exit: Exit): void {
     const closed = () => this.conversationClosed();
-    const name = PLANNED_AREAS[exit.to] ?? exit.to;
+    const name = AREA_NAMES[exit.to] ?? exit.to;
     const built = exit.to in AREAS;
     const { calendar } = getSession(this);
     const shut = exit.secret ? null : closedReason(exit.to, calendar.day, calendar.slot);
@@ -1079,6 +1230,23 @@ export class AreaScene extends Phaser.Scene {
         const image = this.add.image(feature.from, feature.y, frames[0]!).setOrigin(0.5, 1).setDepth(9);
         this.beetles.push({ image, feature, dir: 1, frames, step: 0 });
         this.hazards.push({ rect: () => new Phaser.Geom.Rectangle(image.x - image.width / 2 + 2, image.y - image.height + 2, image.width - 4, image.height - 2), reset: feature.reset });
+        break;
+      }
+      case 'watch': {
+        const idleKey = makeSpriteTexture(this, 'watchman-0', WATCHMAN.idle[0]!.rows, WATCHMAN.idle[0]!.colours);
+        const walkKeys = WATCHMAN.walk.map((f, i) => makeSpriteTexture(this, `watchman-walk-${i}`, f.rows, f.colours));
+        const start = feature.from === feature.to ? feature.from : Math.round((feature.from + feature.to) / 2);
+        const image = this.add.image(start, feature.y, idleKey).setOrigin(0.5, 1).setDepth(9);
+        const lantern = this.add.rectangle(start, feature.y - 13, 3, 4, SHADES.amber).setStrokeStyle(1, SHADES.deep).setDepth(10);
+        const cone = this.add.graphics().setDepth(7);
+        const callout = new PixelText(this, 0, 0, '', { color: SHADES.amber, shadow: SHADES.shadow }).setDepth(21).setVisible(false);
+        this.watchmen.push({ feature, image, lantern, cone, callout, dir: 1, wait: feature.pause ?? WATCH_PAUSE, alarm: null, walkKeys, idleKey, step: 0 });
+        break;
+      }
+      case 'shadow': {
+        this.shadows.push(feature);
+        this.shadowGraphics ??= this.add.graphics().setDepth(7);
+        this.shadowGraphics.fillStyle(SHADES.shadow, 0.6).fillRect(feature.x, feature.y - 22, feature.width, 22);
         break;
       }
       case 'jars': {

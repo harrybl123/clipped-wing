@@ -52,7 +52,7 @@ this is confirmed). The sprite's bandaged hand is already the left (near) hand w
 the art pass could show two missing digits, and the carving flaw and the weak grip would follow from
 it.
 
-## To fix (noted 2026-10-01, from the designer's Day 3 playtest)
+## To fix (noted 2026-10-01, from the designer's Day 3 playtest; both done with Day 4)
 
 - **The rot drips in the back routes are too fast to get past** (the drip curtain down the first
   shaft, `drips` feature in `src/data/areas/backRoutes.ts`). Slow them down: a longer interval between
@@ -62,3 +62,17 @@ it.
   reaction at the window on Day 3 (`day3_window` in `story/day3.ink`: "He looks from her to you as if
   he doesn't know you any more"), and keep this in mind for how roots folk talk about the lower roots
   everywhere.
+
+## Scenes should move, and the dialogue box shouldn't hide them (noted 2026-10-01, after Day 4)
+
+The designer wants every scene to have movement while it plays out (people walking, turning,
+reacting, things happening in the world) and the dialogue box never to cover what's going on: it
+makes the story feel more dynamic. **Do this once all the scenes are pinned down** (after the
+remaining days are built), as a pass across the whole game: e.g. a smaller or repositionable box,
+the camera framing the action above it, more `#move:`/`#show:`-style staging in the ink.
+
+## Reactions to the messages (designer, 2026-10-01)
+
+Across the story the protagonist should react to Grounded's messages with curiosity: inquisitive,
+slightly fearful, but drawn in. Days 2 to 4 now have beats like this when a bird is opened and when
+a plate is read; keep it up for messages 4 to 6.

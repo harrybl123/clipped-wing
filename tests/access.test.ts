@@ -19,6 +19,15 @@ describe('area access', () => {
     for (const id of ['back-routes', 'lower-roots', 'archive', 'trunk-climb', 'ascension-gate']) expect(isAreaOpen(id, 2, 'night'), id).toBe(false);
   });
 
+  it('on Day 4, opens the back routes, keeps the lower roots for after dark, and watches your front door at night', () => {
+    expect(isAreaOpen('back-routes', 4, 'morning')).toBe(true);
+    expect(isAreaOpen('lower-roots', 4, 'afternoon')).toBe(false);
+    expect(isAreaOpen('lower-roots', 4, 'night')).toBe(true);
+    expect(isAreaOpen('offering-floor', 4, 'evening')).toBe(true);
+    expect(closedReason('offering-floor', 4, 'night')).toMatch(/watching your door/);
+    expect(nextHop('home', 'lower-roots', AREAS, (id) => isAreaOpen(id, 4, 'night'))).toBe('back-routes');
+  });
+
   it('gives a line to show when an area is closed', () => {
     expect(closedReason('back-routes', 1, 'morning')).toMatch(/back routes/);
     expect(closedReason('home', 1, 'morning')).toBeNull();

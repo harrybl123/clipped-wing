@@ -9,6 +9,8 @@
 { day2 == "evening": -> day2_rejection }
 { day3 == "rite": -> day3_rite }
 { day3 == "evening": -> day3_rejection }
+{ day4 == "shrine": -> day4_not_here }
+{ day4 == "evening": -> day4_tender_evening }
 [PLACEHOLDER] The Tender looks down from the landing. "Child of the roots." #speaker:tender
 [PLACEHOLDER] "The Tree gives, and the Tree takes. What do you bring?" #speaker:tender
 + [Hide it: "Only my devotion."]
@@ -58,4 +60,10 @@ They're watching the tube, not you.
 === offering_floor_crowd_zealot ===
 { day3 == "rite" || day3 == "evening": -> day3_crowd_zealot }
 They're watching the tube, not you.
+-> END
+
+// Day 4 evening: the chalk ring at the foot of the stairs.
+=== offering_floor_chalk_ring ===
+{ day4 == "evening": -> day4_ritual }
+Chalk on the floor, scuffed by a hundred feet.
 -> END

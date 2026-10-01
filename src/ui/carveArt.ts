@@ -33,6 +33,12 @@ export function eyePosition(opts: CarveOptions): { x: number; y: number } {
   return { x: Math.round(head.x - head.r * 0.35), y: Math.round(head.y - head.r * 0.15) };
 }
 
+/** The middle of the bird's belly, where it's hollowed out to hold a plate (Day 4 on). */
+export function bellyPosition(opts: CarveOptions): { x: number; y: number } {
+  const { k, cx, cy } = frame(opts);
+  return { x: Math.round(cx - 4 * k), y: Math.round(cy + 6 * k) };
+}
+
 /** Where the wing ends (a fledgling's is clipped there): the x on the canvas, and the wing's centre y. */
 export function wingPosition(opts: CarveOptions): { x: number; y: number; from: number } {
   const { fledgling, k, cx, cy } = frame(opts);

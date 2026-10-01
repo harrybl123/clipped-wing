@@ -54,10 +54,12 @@ export type Feature =
   | { type: 'jars'; sprite: RowSprite; x: number; y: number; variable: string; max: number; perRow: number; rowSpacing: number } // one jar per unit of an ink variable, rows stacked upwards
   | { type: 'rubble'; x: number; top: number; floorY: number; every: number; reset: { x: number; y: number } } // a lump of wood drops from (x, top) to floorY every `every` ms, after a trickle of dust; if it hits you, you're knocked back to `reset`
   | { type: 'crumble'; x: number; y: number; width: number } // a rotten board (one-way, top-left at x, y) that gives way a moment after you stand on it, then grows back
-  | { type: 'collapse'; from: number; to: number; y: number; top: number; reset: { x: number; y: number }; showIf?: string }
+  | { type: 'collapse'; from: number; to: number; y: number; top: number; reset: { x: number; y: number }; showIf?: string } // a stretch of tunnel (floor y, ceiling top) that starts coming down round you as you run through it: lumps fall just ahead and behind (dust first); a hit knocks you back to `reset`. Only while the ink variable showIf is true
   | { type: 'rot'; x: number; y: number; width: number; height: number; reset: { x: number; y: number } } // a pool of glowing rot (e.g. at the bottom of a pit); touching it knocks you back to `reset`
   | { type: 'drips'; xs: number[]; top: number; bottom: number; count: number; every: number; reset: { x: number; y: number } } // rot dripping in a rhythm down a shaft: a drop gathers at the top of each column, then falls; `count` drops in a burst every `every` ms; a hit knocks you back
-  | { type: 'beetle'; from: number; to: number; y: number; speed: number; reset: { x: number; y: number } }; // a big beetle pacing between from and to on floor y, rushing when you're close and on its level; touching it knocks you back. Jump it or slip past // a stretch of tunnel (floor y, ceiling top) that starts coming down round you as you run through it: lumps fall just ahead and behind (dust first); a hit knocks you back to `reset`. Only while the ink variable showIf is true
+  | { type: 'beetle'; from: number; to: number; y: number; speed: number; reset: { x: number; y: number } } // a big beetle pacing between from and to on floor y, rushing when you're close and on its level; touching it knocks you back. Jump it or slip past
+  | { type: 'watch'; from: number; to: number; y: number; speed: number; range: number; pause?: number; reset: { x: number; y: number }; showIf?: string } // a watchman with a lantern on floor y, pacing from..to (pausing `pause` ms at each end) or, if from === to, standing and turning round every `pause` ms. He sees you if you're in his lantern's light (up to `range` px ahead, and not too far above or below) and not in a shadow: you're sent back to `reset`. Only while showIf is true
+  | { type: 'shadow'; x: number; y: number; width: number; showIf?: string }; // a dark doorway or nook on floor y, x..x+width: standing in it, the watch can't see you
 
 /** Something the player can walk up to and press E on, which runs an ink knot. */
 export interface Interactable {
@@ -105,7 +107,7 @@ export interface Person {
   walkFrames?: RowSprite[];
   /** Only here while this ink variable is true / false (the story decides, e.g. someone who's moved on). */
   showIf?: string;
-  hideIf?: string;
+  hideIf?: string | string[];
   /** Hidden until a scripted `#show:<id>` tag brings them on (e.g. the master at the Ascension). */
   hidden?: boolean;
   /** Slips away (fades out) when the player comes within this many px, e.g. someone watching from the edges. */

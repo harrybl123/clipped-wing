@@ -26,3 +26,7 @@
 === lower_roots_scratches ===
 [PLACEHOLDER] Lines scratched into the wall, turning and branching. They mean something to someone.
 -> END
+
+// Her doorway, under the great root (her home is its own area: girls-home).
+=== lower_roots_girls_door ===
+-> day4_girls_door

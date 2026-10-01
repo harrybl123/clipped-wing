@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { compileInk } from '../scripts/ink.mjs';
-import { glossaryVariable, MESSAGES, scratches } from '../src/data/messages';
+import { glossaryVariable, MESSAGES, REPLY_PICTURES, scratches } from '../src/data/messages';
 import { StoryBridge } from '../src/systems/StoryBridge';
 import { comparable, SymbolMatcher } from '../src/systems/SymbolMatcher';
 
@@ -26,6 +26,7 @@ describe.each(Object.values(MESSAGES))('message $id', (message) => {
     const used = new Set(message.rows.flat());
     for (const id of used) expect(ids.has(id), id).toBe(true);
     expect([...ids].filter((id) => !used.has(id))).toEqual([]);
+    expect(message.rows.length).toBeLessThanOrEqual(2); // the plate has two rows
     for (const row of message.rows) expect(row.length).toBeLessThanOrEqual(7);
     for (const s of message.symbols) expect(s.picture[0]!.length <= 26 && s.picture.length <= 20, s.id).toBe(true);
   });
@@ -53,5 +54,26 @@ describe('message 1', () => {
     expect(matcher.guess('cant', "can't").kind).toBe('correct');
     expect(matcher.guess('clipped', 'cut off').kind).toBe('correct');
     expect(matcher.guess('fly', 'flying').kind).toBe('correct');
+  });
+});
+
+describe('message 3', () => {
+  it('has a version for each reply to message 2, all ending the same way', () => {
+    for (const reply of Object.keys(REPLY_PICTURES)) {
+      const message = MESSAGES[`message3_${reply}`];
+      expect(message, reply).toBeDefined();
+      expect(message!.line).toMatch(/I am Grounded\. There are many of us beyond the bark\.$/);
+      expect(message!.rows.flat().slice(-6)).toEqual(['self', 'am', 'grounded', 'many', 'beyond', 'bark']);
+    }
+  });
+
+  it('accepts his name, and the words for the new pictures', () => {
+    const matcher = new SymbolMatcher(MESSAGES.message3_why!.symbols);
+    expect(matcher.guess('grounded', 'Grounded').kind).toBe('correct');
+    expect(matcher.guess('because', 'because').kind).toBe('correct');
+    expect(matcher.guess('carve', 'carving').kind).toBe('correct');
+    expect(matcher.guess('many', 'many of us').kind).toBe('correct');
+    expect(new SymbolMatcher(MESSAGES.message3_yes!.symbols).guess('yet', 'yet').kind).toBe('correct');
+    expect(new SymbolMatcher(MESSAGES.message3_cant!.symbols).guess('also', 'neither').kind).toBe('correct');
   });
 });

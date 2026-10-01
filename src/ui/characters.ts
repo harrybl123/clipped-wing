@@ -330,6 +330,12 @@ export const GUARD = (() => {
   return { idle: [villager(look, false), villager(look, true)] };
 })();
 
+/** The night watch in the lower roots (Day 4 on): capped, cyan-banded (the Tender's colours). Carries a lantern, drawn by AreaScene. */
+export const WATCHMAN = (() => {
+  const look: VillagerLook = { height: 25, width: 3, head: 'cap', accent: SHADES.cyanMid };
+  return { idle: [villager(look, false), villager(look, true)], walk: [villager(look, false, 2), villager(look, true, 0)] };
+})();
+
 /** Better-off residents of the middle tiers and upper branches: amber and pale accents, finer headwear (placeholder looks). */
 export const RESIDENTS = ([
   { height: 24, width: 3, head: 'bun', long: true, accent: SHADES.amber, hair: SHADES.dim },

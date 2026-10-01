@@ -1,8 +1,7 @@
 import { GIRL, VILLAGERS } from '../../ui/characters';
+import { BOARDED_HOLE } from './girlsHomeProps';
 import { SHADES as S } from '../../ui/pixelArt';
 import { FUNGI } from '../../ui/sprites';
-import { beam } from './friendsHomeProps';
-import { FUNGUS_LAMP, RUG } from './homeProps';
 import { CRATE } from './rootsMarketProps';
 import * as P from './lowerRootsProps';
 import { ARCHWAY } from './offeringFloorProps';
@@ -12,7 +11,11 @@ import type { AreaDefinition, Person, Prop } from './types';
 // girl among them. Bigger than one screen (the camera follows you) because Night 4 is a sneak
 // through here: a crowded, lit street below and a dark high route of root walkways and a rope
 // bridge above (reached by jumping up shack roofs), both leading to the girl's home at the far,
-// deepest end. Built as a place for now; stealth comes later. See docs/areas/lower-roots.md.
+// deepest end. See docs/areas/lower-roots.md.
+// Day 4 night is the sneak to her door (designer): the night watch walks the street and the high
+// walkway with lanterns, and stands near her door; dark doorways hide you. If the watch sees you,
+// you're back at the start of the street. Her home itself is its own area now (girls-home, off the
+// map); here there's only her door, and the boarded-up hole where the house next door fell in.
 
 const W = 1120;
 const H = 400;
@@ -20,6 +23,11 @@ const FLOOR = 360;
 const HIGH = 230;
 const BUSY: Person['when'] = ['morning', 'afternoon', 'evening'];
 const DAY: Person['when'] = ['morning', 'afternoon'];
+/** Where the watch sends you back to: the start of the street. */
+const START = { x: 60, y: FLOOR };
+/** Her home: a shack at the far end (the door's on its right, seed odd). */
+const HER_HOME = { x: 976, w: 56, h: 44 };
+const HER_DOOR = HER_HOME.x + HER_HOME.w - 9;
 
 const villager = (id: string, look: number, x: number, y: number, extra: Partial<Person> = {}): Person => ({
   id,
@@ -93,22 +101,18 @@ const props: Prop[] = [
   { sprite: FUNGI.tall, x: 470, y: FLOOR - 8 },
   { sprite: FUNGI.droop, x: 800, y: FLOOR - 5 },
   { sprite: FUNGI.bent, x: 640, y: HIGH - 7 },
-  // The girl's home.
-  { sprite: beam(184), x: 924, y: 232 },
+  // The far end: the boarded hole where the house next to hers fell into the rot, and her home.
+  { sprite: BOARDED_HOLE, x: 926, y: FLOOR - 5 },
+  { sprite: P.shack(HER_HOME.w, HER_HOME.h, 15, 'green', S.greenDeep), x: HER_HOME.x, y: FLOOR - HER_HOME.h },
+  { sprite: P.GLOW_PAINT, x: 1048, y: 300 },
+  { sprite: P.SCRATCHED_MAP, x: 1060, y: 330 },
   { sprite: P.hangingRoots(24, 20, 7), x: 1040, y: 237 },
   { sprite: P.foundStrings(28), x: 1010, y: 237 },
-  { sprite: P.RAG_CURTAIN, x: 925, y: 300 },
-  { sprite: P.HAMMOCK, x: 956, y: 300 },
-  { sprite: P.SCRATCHED_MAP, x: 1000, y: 322 },
-  { sprite: P.GLOW_PAINT, x: 1040, y: 290 },
   { sprite: P.washingLine(36, 9), x: 1054, y: 250 },
-  { sprite: FUNGUS_LAMP, x: 985, y: 262 },
-  { sprite: RUG, x: 950, y: FLOOR - 2 },
-  { sprite: CRATE, x: 1018, y: FLOOR - 8 },
-  { sprite: P.FINDS, x: 962, y: FLOOR - 5 },
-  { sprite: P.POTTED_FUNGI, x: 944, y: FLOOR - 7 },
-  { sprite: P.POTTED_FUNGI, x: 1070, y: FLOOR - 7 },
-  { sprite: FUNGI.cluster, x: 1094, y: FLOOR - 7 },
+  { sprite: CRATE, x: 1074, y: FLOOR - 8 },
+  { sprite: P.POTTED_FUNGI, x: 962, y: FLOOR - 7 },
+  { sprite: P.POTTED_FUNGI, x: 1090, y: FLOOR - 7 },
+  { sprite: FUNGI.cluster, x: 1060, y: FLOOR - 7 },
 ];
 
 export const lowerRoots: AreaDefinition = {
@@ -135,8 +139,8 @@ export const lowerRoots: AreaDefinition = {
 
   lights: [
     { x: 520, y: 350, colour: S.amber, radius: 56, radiusY: 36, strength: 0.38 }, // the shared fire
-    { x: 988, y: 272, colour: S.green, radius: 54, radiusY: 44, strength: 0.3 }, // the girl's fungus lamp
-    { x: 1056, y: 300, colour: S.green, radius: 30, radiusY: 22, strength: 0.22 }, // her glowing wall paint
+    { x: 945, y: 352, colour: S.green, radius: 24, radiusY: 10, strength: 0.3 }, // rot glowing up through the boarded hole
+    { x: 1064, y: 310, colour: S.green, radius: 30, radiusY: 22, strength: 0.22 }, // her glowing wall paint
     { x: 1040, y: 260, colour: S.green, radius: 20, strength: 0.3 }, // her found strings
     ...FUNGUS_SHELVES.map(([x, y]) => ({ x: x + 5, y: y + 3, colour: S.green, radius: 14, radiusY: 10, strength: 0.2 })),
     ...BURROWS.filter(([, , l]) => l !== 'dark').map(([x, y, l]) => ({ x: x + 5, y: y + 4, colour: l === 'green' ? S.green : S.amber, radius: 14, strength: 0.22 })),
@@ -145,13 +149,21 @@ export const lowerRoots: AreaDefinition = {
     { x: 800, y: 356, colour: S.green, radius: 14, radiusY: 8, strength: 0.26 },
   ],
 
-  lines: [{ from: { x: 988, y: 237 }, to: { x: 988, y: 262 }, colour: S.deep }], // her lamp's cord
+  lines: [],
   props,
 
   features: [
     { type: 'fire', x: 520, y: FLOOR - 1 },
     { type: 'drip', x: 566, y: 74, floorY: FLOOR - 4 },
     { type: 'drip', x: 790, y: 60, floorY: FLOOR - 4 },
+    // Day 4 night: the watch. One walks the street, one the high walkway, one in front of her door.
+    { type: 'watch', from: 150, to: 450, y: FLOOR, speed: 20, range: 80, pause: 1800, reset: START, showIf: 'sneaking' },
+    { type: 'watch', from: 440, to: 600, y: HIGH, speed: 18, range: 70, pause: 2000, reset: START, showIf: 'sneaking' },
+    { type: 'watch', from: 920, to: 1080, y: FLOOR, speed: 20, range: 64, pause: 2000, reset: START, showIf: 'sneaking' },
+    // Dark doorways to hide in (and the nook at the foot of the great root).
+    ...SHACKS.filter((s) => (s.y ?? FLOOR) === FLOOR).map((s) => ({ type: 'shadow' as const, x: s.x + (s.seed % 2 === 0 ? 5 : s.w - 13), y: FLOOR, width: 8, showIf: 'sneaking' })),
+    { type: 'shadow', x: 898, y: FLOOR, width: 14, showIf: 'sneaking' },
+    { type: 'hint', x: 70, y: FLOOR, reach: 50, text: 'Keep out of the lanterns. Doorways and the high walkways are dark.', showIf: 'sneaking' },
   ],
 
   people: [
@@ -167,9 +179,9 @@ export const lowerRoots: AreaDefinition = {
     villager('doorway', 3, 380, FLOOR, { when: DAY }),
     villager('leaning', 4, 720, HIGH, { when: DAY, flipX: true }),
     // At night, hardly anyone.
-    wanderer('night-walker', 4, 300, 880, FLOOR, ['night']),
+    { ...wanderer('night-walker', 4, 300, 880, FLOOR, ['night']), hideIf: 'sneaking' },
     // The girl, at home.
-    { id: 'girl', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 1046, y: FLOOR, knot: 'lower_roots_girl', flipX: true, hideIf: 'girl_with_you' },
+    { id: 'girl', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 1056, y: FLOOR, knot: 'lower_roots_girl', flipX: true, hideIf: ['girl_with_you', 'sneaking'] },
     // Day 3: she shows you the way into the back routes, and comes with you.
     { id: 'girl-guide', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 60, y: FLOOR, knot: 'girl_guide', showIf: 'girl_with_you', follow: true },
   ],
@@ -177,7 +189,8 @@ export const lowerRoots: AreaDefinition = {
   interactables: [
     { id: 'pot', x: 520, y: FLOOR, reach: 10, label: 'Look', knot: 'lower_roots_pot' },
     { id: 'soft-wood', x: 791, y: FLOOR, reach: 8, label: 'Touch', knot: 'lower_roots_soft_wood' },
-    { id: 'scratches', x: 1008, y: FLOOR, reach: 10, label: 'Look', knot: 'lower_roots_scratches' },
+    { id: 'scratches', x: 1068, y: FLOOR, reach: 8, label: 'Look', knot: 'lower_roots_scratches' },
+    { id: 'girls-door', x: HER_DOOR, y: FLOOR, reach: 8, label: 'Knock', knot: 'lower_roots_girls_door' },
   ],
 
   exits: [

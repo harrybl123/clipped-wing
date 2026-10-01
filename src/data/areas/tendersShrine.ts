@@ -100,6 +100,8 @@ export const tendersShrine: AreaDefinition = {
 
   people: [
     { id: 'tender', sprite: TENDER.idle[0]!, idleFrames: TENDER.idle, x: 110, y: FLOOR, knot: 'shrine_tender', flipX: true, when: AFTERNOON },
+    // Day 4 morning: he's sent for you, and waits by the stool under the lamp.
+    { id: 'tender-summons', sprite: TENDER.idle[0]!, idleFrames: TENDER.idle, x: 244, y: FLOOR, knot: 'shrine_tender_summons', flipX: true, when: ['morning'], showIf: 'tender_waiting' },
     ...CHAIRS.map((x, i) => elder(i, x)),
     { id: 'preacher', sprite: PREACHER.idle[0]!, idleFrames: PREACHER.idle, x: 286, y: DAIS, flipX: true, knot: 'shrine_preacher', when: AFTERNOON },
   ],

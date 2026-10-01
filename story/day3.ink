@@ -173,9 +173,10 @@ A shadow moves. Then his face. He pushes the window open and leans out. #show:fr
 - Then he sees who's behind you, and goes quiet.
 "Who's that?" #speaker:friend
 "Charmed, I'm sure." #speaker:girl
-"You're from the lower roots. You're..." #speaker:friend
-"Cursed? Rotten? Go on, I've heard them all." #speaker:girl
-He looks from her to you as if he doesn't know you any more.
+"You're from the lower roots." #speaker:friend
+"Go on, then. Cursed? Rotten? I've heard them all." #speaker:girl
+"I was only going to say thank you. For bringing him." #speaker:friend
+He gives her a small, stiff nod, the way his mother nods to the lower-roots women at the market: kind, and not quite sure she's allowed.
 "Not here. Not now." #speaker:friend
 A voice from inside calls his name. He looks over his shoulder.
 "Tonight. I'll come to you. I promise." #speaker:friend
@@ -328,7 +329,10 @@ You sit by the hearth with your {reply1 == "usual": bird|fledgling} in your hand
 There's a seam along the belly again. Someone has been inside it.
 { reply1 == "usual": -> ignore_again }
 You work it open. Inside is a plate, blackened like the first. On purpose, you think. To keep it hidden.
+They answered. You sent a fledgling up into the light, and whoever is up there understood it, and wrote back.
 And the fledgling itself has been hollowed out. Neatly, from the inside, so it holds its shape.
+You turn it over and over. You'd never get a wall that thin with your hands. Whoever did this has tools you've never seen, or hands that never shake.
+Your fingers are trembling. You can't tell any more if it's fear.
 You start rubbing at the soot. #decode:message2:day3_decoded
 -> END
 
@@ -340,6 +344,9 @@ You already know what it says before you've rubbed it clean. #decode:message1:da
 === day3_decoded ===
 "Clipped wing, I rest beyond the bark. Would you like to fly?" #speaker:you
 Beyond the bark. Outside the tree. Nobody lives outside the tree.
+Do they? Is there even an outside? You've never thought about it, not properly. Nobody does. The tree is the world.
+You look at the wall, at the dark wood your whole life has happened inside, and for the first time you wonder how thick it is.
+"Would you like to fly?" It's a question. They're asking you something. They want to know what you think.
 You turn the hollow fledgling over in your hands. Whoever did this wants you to see how it's done.
 To carve a bird empty, and put something inside it.
 To answer.
@@ -485,8 +492,11 @@ Your bed. {evidence_bird: Something hard under the blanket: the hollow bird.}
 + [Sleep]
     ~ day3 = "done"
     ~ mum_in_bed = false
-    ~ objective = ""
-    ~ objective_target = ""
-    You lie awake a long time. #endday:Day 4 (not built yet)
+    ~ routes_collapsing = false
+    ~ day4 = "wake"
+    ~ summons_on_floor = true
+    ~ objective = "See what's by the door"
+    ~ objective_target = "home:summons"
+    You lie awake a long time. #endday:Day 4
 + [Not yet]
 - -> END

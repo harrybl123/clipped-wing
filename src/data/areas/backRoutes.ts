@@ -122,7 +122,7 @@ export const backRoutes: AreaDefinition = {
     // More beetles along the lower tunnel, between the pits.
     { type: 'beetle', from: 296, to: 410, y: LOWER, speed: 30, reset: { x: 238, y: LOWER } },
     { type: 'beetle', from: 478, to: 584, y: LOWER, speed: 38, reset: { x: 414, y: LOWER } },
-    { type: 'drips', xs: [806, 816, 826], top: 236, bottom: LOWER, count: 3, every: 2600, reset: { x: 788, y: LOWER } },
+    { type: 'drips', xs: [806, 816, 826], top: 236, bottom: LOWER, count: 3, every: 4600, reset: { x: 788, y: LOWER } }, // a long gap between bursts (designer: it was impossible)
     { type: 'crumble', x: 800, y: 288, width: 32 },
     { type: 'beetle', from: 640, to: 770, y: MIDDLE, speed: 34, reset: { x: 792, y: MIDDLE } },
     { type: 'crumble', x: 600, y: UPPER, width: 32 }, // over the top of the far shaft

@@ -30,3 +30,14 @@
 { day2 == "afternoon": {day2_ration: -> day2_already_visited | -> day2_ration} }
 [PLACEHOLDER] The ration hatch. The shutter is half down and the shelf behind it is thin.
 -> END
+
+// Day 4: Mum at the stew stall, and the girl under the balcony afterwards (src/data/areas/rootsMarket.ts).
+=== market_mum ===
+{ day4 == "market": -> day4_market }
+"Not now, love." #speaker:mum
+-> END
+
+=== market_girl ===
+{ day4 == "girl": -> day4_girl }
+"Go on. Shoo." #speaker:girl
+-> END

@@ -14,6 +14,9 @@ const HELD_BACK: Record<string, string> = {
   'seed-grove': 'The seed grove is for the upper branches.',
 };
 
+/** A copy of `reasons` with some areas left out (opened). */
+const without = (reasons: Record<string, string>, ...ids: string[]) => Object.fromEntries(Object.entries(reasons).filter(([id]) => !ids.includes(id)));
+
 /** Areas that are closed on a given day, with the line shown if you try to go. */
 const CLOSED: Partial<Record<Day, Record<string, string>>> = {
   1: {
@@ -32,6 +35,16 @@ const CLOSED: Partial<Record<Day, Record<string, string>>> = {
     'ascension-gate': 'The gate is only opened for an Ascension.',
     'trunk-climb': "There's no reason to climb today.",
   },
+  // Day 4: you know the back routes now. The lower roots wait for dark (the girl: "Come after dark"), and
+  // at night your house is watched, so the front door is out.
+  4: {
+    ...without(HELD_BACK, 'back-routes'),
+    'lower-roots': 'Not in daylight. She said to come after dark.',
+    'friends-home': 'His family has forbidden you from coming near.',
+    'ascension-gate': 'The gate is only opened for an Ascension.',
+    'trunk-climb': "There's no reason to climb today.",
+    'offering-floor': 'Across the way, a man with a lamp is watching your door. Not that way.',
+  },
 };
 
 /** Areas that open at particular times on a day that otherwise keeps them closed. */
@@ -39,6 +52,7 @@ const OPENS_AT: Partial<Record<Day, Record<string, TimeSlot[]>>> = {
   1: { 'trunk-climb': ['night'] },
   // Day 3: the girl shows you the way down after the morning rite.
   3: { 'lower-roots': ['afternoon', 'evening', 'night'], 'back-routes': ['afternoon', 'evening', 'night'] },
+  4: { 'lower-roots': ['night'], 'offering-floor': ['morning', 'afternoon', 'evening'] },
 };
 
 /** Why you can't go to `areaId` right now, or null if you can. */

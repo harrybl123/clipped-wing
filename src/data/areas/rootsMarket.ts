@@ -1,4 +1,4 @@
-import { VILLAGERS } from '../../ui/characters';
+import { GIRL, MUM, VILLAGERS } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import { FUNGI, LAMP } from '../../ui/sprites';
 import { post } from './homeProps';
@@ -158,6 +158,10 @@ export const rootsMarket: AreaDefinition = {
     wandering('browser-2', 5, 312, 430, FLOOR, TRADING),
     wandering('browser-3', 0, 270, 414, BALCONY.y, TRADING),
     wandering('evening-walker', 4, 60, 420, FLOOR, ['evening']),
+    // Day 4 afternoon: Mum at the stew stall; the young zealot from the rites; the girl under the balcony afterwards.
+    { id: 'mum-market', sprite: MUM.idle[0]!, idleFrames: MUM.idle, x: 86, y: FLOOR, flipX: true, knot: 'market_mum', when: ['afternoon'], showIf: 'mum_at_market' },
+    standing('zealot-market', 0, 132, FLOOR, { flipX: true, when: ['afternoon'], hidden: true }),
+    { id: 'girl-market', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 404, y: FLOOR, flipX: true, knot: 'market_girl', when: ['afternoon'], hidden: true },
   ],
 
   interactables: [{ id: 'ration-hatch', x: 310, y: FLOOR, reach: 7, label: 'Look', knot: 'market_ration_hatch' }],

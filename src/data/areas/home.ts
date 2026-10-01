@@ -14,6 +14,8 @@ const FLOOR = 236;
 const EVIDENCE_PLATE = { rows: ['.ssss.', 'sddmds', 'sdmdds', '.ssss.'], colours: { s: S.deep, d: S.dim, m: S.light } };
 const EVIDENCE_SHAVINGS = { rows: ['.l..p...l.', 'p.pl..pl.p', '.pp.lp.pp.'], colours: { p: S.light, l: S.woodPale } };
 const LOFT = 150;
+/** The Tender's summons (Day 4): a little cloth in the banners' colours, pushed under the door. */
+const SUMMONS = { rows: ['peeeeeeep', 'eaacwcaae', 'eaaaaaaae'], colours: { p: S.woodPale, e: S.woodLight, a: S.amberDeep, c: S.cyanMid, w: S.cyan } };
 
 export const home: AreaDefinition = {
   id: 'home',
@@ -119,7 +121,9 @@ export const home: AreaDefinition = {
   ],
 
   people: [
-    { id: 'mum', sprite: MUM.idle[0]!, idleFrames: MUM.idle, x: 150, y: FLOOR, knot: 'home_mum', flipX: true, hideIf: 'mum_in_bed' },
+    { id: 'mum', sprite: MUM.idle[0]!, idleFrames: MUM.idle, x: 150, y: FLOOR, knot: 'home_mum', flipX: true, hideIf: ['mum_in_bed', 'mum_away'] },
+    // Day 4 morning: the summons on the floor inside the door.
+    { id: 'summons', sprite: SUMMONS, x: 48, y: FLOOR, showIf: 'summons_on_floor', knot: 'home_summons', label: 'Pick up' },
     // Day 3 night: the evidence to hide before your friend climbs in (people, so the story can show them), and him.
     { id: 'evidence-plate', sprite: EVIDENCE_PLATE, x: 80, y: FLOOR, when: ['night'], showIf: 'evidence_plate', knot: 'day3_hide_plate', label: 'Hide' },
     { id: 'evidence-bird', sprite: BIRD, x: 64, y: LOFT, when: ['night'], showIf: 'evidence_bird', knot: 'day3_hide_bird', label: 'Hide' },

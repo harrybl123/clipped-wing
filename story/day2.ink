@@ -247,11 +247,19 @@ You shake it. Something rattles inside.
 + [Open it]
 - You work the seam open with the tip of your knife. It gives far too easily, as if it was made to.
 Inside, wedged in the hollow: a thin plate of metal, no bigger than your thumbnail was, black with soot from the fire.
+You almost drop it. Nobody puts things inside offerings. Nobody would dare.
+But somebody has. And it was meant for you: it came back in your bird, to your hands.
+You turn it towards the firelight. Your heart is going so hard you can hear it.
 Under the soot, something is scratched into it. #decode:message1:day2_decoded
 -> END
 
 === day2_decoded ===
 "I see you, clipped wing. Send me new life that can't fly." #speaker:you
+You read it again. And again.
+"I see you." Who sees you? From where? The Tree doesn't speak in pictures. Does it?
+Clipped wing. They know about your hand. They know about your birds. Someone has been watching you, closely, for a long time.
+It should frighten you. It does. But underneath the fear there's something else, small and bright, that you haven't felt in years.
+Somebody looked at your work and saw you.
 You drop the empty bird into the fire. It catches at once.
 The house is silent. Tomorrow, something of yours goes up the tube. #dim:on
 Whatever you carve tonight is your answer. This choice can't be undone.

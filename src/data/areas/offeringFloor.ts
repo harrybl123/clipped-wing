@@ -29,6 +29,8 @@ function stairs(): Solid[] {
 }
 
 const CEREMONY: Person['when'] = ['morning', 'evening'];
+/** Day 4: a ring chalked on the floor at the foot of the stairs, for you to stand in alone. */
+const CHALK_RING = { rows: ['...wwwwwwwwww...', '.ww..........ww.', 'w..............w', '.ww..........ww.', '...wwwwwwwwww...'], colours: { w: S.light } };
 
 /** The crowd for the rite and the ceremony: both sides of the floor, facing the tube. */
 function crowd(): Person[] {
@@ -124,6 +126,8 @@ export const offeringFloor: AreaDefinition = {
     { id: 'friend-rite', sprite: FRIEND.idle[0]!, idleFrames: FRIEND.idle, x: 412 - 18, y: FLOOR, flipX: true, when: ['morning'], hidden: true },
     { id: 'friend-parent-rite', sprite: VILLAGERS[3]!.idle[0]!, idleFrames: VILLAGERS[3]!.idle, x: 412 - 4, y: FLOOR, flipX: true, when: ['morning'], hidden: true },
     { id: 'girl-rite', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 444, y: FLOOR, flipX: true, when: ['morning'], hidden: true, knot: 'offering_floor_girl_rite' },
+    // Day 4 evening: the chalk ring.
+    { id: 'chalk-ring', sprite: CHALK_RING, x: 104, y: FLOOR, when: ['evening'], showIf: 'chalk_ring', knot: 'offering_floor_chalk_ring', label: 'Stand in it' },
     // Quieter in the afternoon: a couple of people passing through.
     { id: 'grumbler', sprite: VILLAGERS[2]!.idle[0]!, idleFrames: VILLAGERS[2]!.idle, x: 62, y: FLOOR, knot: 'offering_floor_grumbler', when: ['afternoon'] },
     { id: 'passer-by', sprite: VILLAGERS[5]!.idle[0]!, idleFrames: VILLAGERS[5]!.idle, x: 410, y: FLOOR, flipX: true, when: ['afternoon'] },

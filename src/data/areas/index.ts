@@ -2,6 +2,7 @@ import { archive } from './archive';
 import { ascensionGate } from './ascensionGate';
 import { backRoutes } from './backRoutes';
 import { friendsHome } from './friendsHome';
+import { girlsHome } from './girlsHome';
 import { home } from './home';
 import { lowerRoots } from './lowerRoots';
 import { middleTiers } from './middleTiers';
@@ -9,6 +10,7 @@ import { offeringFloor } from './offeringFloor';
 import { rootsMarket } from './rootsMarket';
 import { seedGrove } from './seedGrove';
 import { tendersShrine } from './tendersShrine';
+import { theRot } from './theRot';
 import { trunkClimb } from './trunkClimb';
 import { upperHalls } from './upperHalls';
 import type { AreaDefinition } from './types';
@@ -30,6 +32,15 @@ export const PLANNED_AREAS: Record<string, string> = {
   'ascension-gate': 'the Ascension gate',
 };
 
+/** Places that aren't on the map: you only reach them through the story (her door, the board in her floor). */
+export const HIDDEN_AREAS: Record<string, string> = {
+  'girls-home': "the girl's home",
+  'the-rot': 'the rot',
+};
+
+/** Every area's name for menus, on the map or not. */
+export const AREA_NAMES: Record<string, string> = { ...PLANNED_AREAS, ...HIDDEN_AREAS };
+
 /** Areas that have been built, by id. */
 export const AREAS: Record<string, AreaDefinition> = {
   [home.id]: home,
@@ -45,4 +56,6 @@ export const AREAS: Record<string, AreaDefinition> = {
   [archive.id]: archive,
   [seedGrove.id]: seedGrove,
   [ascensionGate.id]: ascensionGate,
+  [girlsHome.id]: girlsHome,
+  [theRot.id]: theRot,
 };

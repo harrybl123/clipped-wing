@@ -396,4 +396,158 @@ export const MESSAGE_2: Message = {
   symbols: [CLIPPED, WING, SELF, REST, BEYOND, BARK, WOULD, YOU, LIKE, TO, FLY],
 };
 
-export const MESSAGES: Record<string, Message> = { [MESSAGE_1.id]: MESSAGE_1, [MESSAGE_2.id]: MESSAGE_2 };
+// --- Message 3's new pictures ---
+
+const YET: DecodeSymbol = {
+  id: 'yet',
+  picture: scratches(
+    24,
+    13,
+    [[[0, 11], [23, 11]], [[12, 1], [12, 3]], [[5, 4], [6, 5]], [[19, 4], [18, 5]], [[2, 9], [4, 9]], [[20, 9], [22, 9]]],
+    [{ disc: [12, 11, 5.4] }],
+  ),
+  accepted: ['yet', 'not yet', 'soon', 'later', 'wait', 'someday', 'one day', 'in time', 'eventually', 'still', 'almost', 'nearly'],
+  near: [
+    { words: ['sun', 'sunrise', 'dawn', 'morning', 'rising', 'horizon', 'day', 'light'], reply: "Warm. The sun, only halfway up. It hasn't happened... not ___." },
+    { words: ['now', 'already', 'done'], reply: 'Cold. The opposite: it hasn\'t happened.' },
+  ],
+  nudge: "Something only halfway risen. It's coming, but it isn't here.",
+  hint: 'What Mum says when you ask if supper is ready: "Not ___."',
+};
+
+const ALSO: DecodeSymbol = {
+  id: 'also',
+  picture: scratches(24, 16, [...figureLimbs(5, 2), ...figureLimbs(19, 2), [[10, 6], [14, 6]], [[10, 9], [14, 9]]], [...figureShapes(5, 2), ...figureShapes(19, 2)]),
+  accepted: ['also', 'too', 'either', 'neither', 'as well', 'same', 'likewise', 'me too', 'both', 'nor', 'same as', 'alike'],
+  near: [
+    { words: ['two', 'pair', 'twins', 'people', 'friends', 'equal', 'equals', 'us'], reply: 'Warm. Two people, just the same. One is like the other ___.' },
+    { words: ['different', 'other', 'opposite'], reply: 'Cold. Look: they match.' },
+  ],
+  nudge: 'Two figures, exactly alike, with a sign between them that says they match.',
+  hint: 'When your friend said he was scared too, you said: "Me ___."',
+};
+
+const BECAUSE: DecodeSymbol = {
+  id: 'because',
+  picture: scratches(
+    24,
+    14,
+    [[[6, 7], [16, 7]], [[13, 4], [16, 7], [13, 10]], [[20, 2], [20, 4]], [[20, 10], [20, 12]], [[17, 7], [17, 7]], [[23, 7], [22, 7]], [[18, 4], [18, 4]], [[22, 4], [22, 4]], [[18, 10], [18, 10]], [[22, 10], [22, 10]]],
+    [{ disc: [3, 7, 2.6] }, { disc: [20, 7, 1.6] }],
+  ),
+  accepted: ['because', 'since', 'cause', 'reason', 'so', 'as', 'for', 'why', 'caused', 'due to', 'because of', 'thanks to'],
+  near: [
+    { words: ['arrow', 'then', 'leads', 'makes', 'after', 'next', 'burst', 'start'], reply: "Warm. One thing making another happen. Why did the second happen? ___ of the first." },
+  ],
+  nudge: 'A dot, and an arrow from it to a burst: one thing makes the next one happen.',
+  hint: 'You asked him "why?". How does anyone start the answer to that?',
+};
+
+const CARVE: DecodeSymbol = {
+  id: 'carve',
+  picture: scratches(
+    24,
+    18,
+    // A knife (solid handle, crossguard, thin blade) cutting into a block of wood, a curl of shaving lifting off.
+    [
+      [[9, 6], [15, 12]], [[10, 6], [15, 11]],
+      [[6, 8], [10, 4]],
+      [[10, 12], [23, 12], [23, 17], [10, 17], [10, 12]], [[12, 14], [16, 14]], [[18, 15], [22, 15]], [[13, 16], [19, 16]],
+      [[16, 11], [18, 8], [20, 6], [22, 6], [23, 8], [21, 9], [20, 8]],
+    ],
+    [{ poly: [[0, 2], [2, 0], [7, 5], [5, 7]] }],
+  ),
+  accepted: ['carve', 'carving', 'carved', 'carver', 'carves', 'whittle', 'cut', 'craft', 'make', 'made', 'shape', 'work', 'chip'],
+  near: [
+    { words: ['knife', 'blade', 'chisel', 'shaving', 'shavings', 'wood', 'tool'], reply: 'Warm. A knife, and a curl of wood peeling off it. What are you doing with it?' },
+  ],
+  nudge: 'A knife cutting into a block of wood, and a curl of shaving lifting off.',
+  hint: 'What you do every morning at your bench.',
+};
+
+const AM: DecodeSymbol = {
+  id: 'am',
+  picture: scratches(7, 5, [[[0, 1], [6, 1]], [[0, 3], [6, 3]]]),
+  accepted: ['am'],
+  near: [],
+  nudge: '',
+  hint: '',
+  given: 'am',
+};
+
+/** His own mark: a bird on bare ground, wings folded (design doc). */
+const GROUNDED: DecodeSymbol = {
+  id: 'grounded',
+  picture: scratches(
+    24,
+    18,
+    [[[0, 16], [23, 16]], [[9, 13], [8, 16]], [[12, 13], [13, 16]], [[3, 17], [4, 17]], [[17, 17], [19, 17]], [[2, 5], [5, 6]]],
+    [{ disc: [7, 6, 2.6] }, { poly: [[6, 8], [16, 6], [22, 4], [19, 9], [14, 13], [8, 13], [5, 10]] }],
+  ),
+  accepted: ['grounded', 'ground', 'landed', 'flightless', 'earthbound', 'earth', 'ground bird', 'bird on the ground', 'on the ground', 'the grounded', 'down'],
+  near: [
+    { words: ['bird', 'birds', 'sitting', 'nest', 'perched', 'hen', 'standing', 'resting', 'him', 'name'], reply: 'Warm. A bird, but not flying. Where is it standing? What does that make it?' },
+    { words: ['soil', 'dirt', 'floor', 'mud'], reply: "Close. That's where it is. What does it make a bird, to be stuck there?" },
+    { words: ['fly', 'flying', 'flight', 'sky'], reply: 'Cold. This one has its feet on the ground.' },
+  ],
+  nudge: "A bird standing on bare ground, wings folded. It isn't flying. It's been ___ed.",
+  hint: 'A bird that can\'t fly stays on the ___. Like yours, with its clipped wing. He signs himself that way.',
+};
+
+/** "Many of us": a crowd of little figures. */
+const MANY: DecodeSymbol = {
+  id: 'many',
+  picture: scratches(24, 18, [...figureLimbs(4, 4), ...figureLimbs(12, 2), ...figureLimbs(20, 4)], [...figureShapes(4, 4), ...figureShapes(12, 2), ...figureShapes(20, 4)]),
+  accepted: ['many', 'many of us', 'lots', 'lots of us', 'crowd', 'us', 'we', 'others', 'people', 'more', 'a lot', 'plenty', 'many people', 'all of us', 'there are many'],
+  near: [
+    { words: ['three', 'family', 'friends', 'group', 'village', 'tree', 'them', 'they'], reply: "Warm. Lots of people together. And he's one of them. How many?" },
+    { words: ['one', 'alone', 'me', 'i'], reply: 'Cold. There are more than one.' },
+  ],
+  nudge: 'A crowd of little people, standing together.',
+  hint: 'Not just him. There are ____ of them.',
+};
+
+/** Message 3 (Day 4), after "yes": "Not yet. I am Grounded. There are many of us beyond the bark." */
+export const MESSAGE_3_YES: Message = {
+  id: 'message3_yes',
+  line: 'Not yet. I am Grounded. There are many of us beyond the bark.',
+  rows: [
+    ['cant', 'yet', 'self', 'am', 'grounded'],
+    ['many', 'beyond', 'bark'],
+  ],
+  symbols: [CANT, YET, SELF, AM, GROUNDED, MANY, BEYOND, BARK],
+};
+
+/** Message 3 (Day 4), after "I can't": "Neither can I. I am Grounded. There are many of us beyond the bark." */
+export const MESSAGE_3_CANT: Message = {
+  id: 'message3_cant',
+  line: 'Neither can I. I am Grounded. There are many of us beyond the bark.',
+  rows: [
+    ['self', 'cant', 'also'],
+    ['self', 'am', 'grounded', 'many', 'beyond', 'bark'],
+  ],
+  symbols: [SELF, CANT, ALSO, AM, GROUNDED, MANY, BEYOND, BARK],
+};
+
+/** Message 3 (Day 4), after "why?": "Because I have watched you carve. I am Grounded. There are many of us beyond the bark." */
+export const MESSAGE_3_WHY: Message = {
+  id: 'message3_why',
+  line: 'Because I have watched you carve. I am Grounded. There are many of us beyond the bark.',
+  rows: [
+    ['because', 'self', 'see', 'you', 'carve'],
+    ['self', 'am', 'grounded', 'many', 'beyond', 'bark'],
+  ],
+  symbols: [BECAUSE, SELF, SEE, YOU, CARVE, AM, GROUNDED, MANY, BEYOND, BARK],
+};
+
+export const MESSAGES: Record<string, Message> = Object.fromEntries([MESSAGE_1, MESSAGE_2, MESSAGE_3_YES, MESSAGE_3_CANT, MESSAGE_3_WHY].map((m) => [m.id, m]));
+
+/** A wing cut off short, the way you clip a fledgling's: your "I can't". */
+const CLIPPED_WING = scratches(
+  24,
+  18,
+  [[[14, 1], [6, 2], [1, 5], [5, 6], [2, 9], [6, 10], [4, 13], [9, 13], [8, 16], [13, 15], [14, 14]], [[5, 6], [13, 4]], [[6, 10], [13, 8]], [[14, 0], [14, 17]], [[17, 3], [19, 5]], [[17, 9], [19, 11]]],
+);
+
+/** Your reply to message 2 (Day 4), scratched on the back of his plate: in his own pictures. */
+export const REPLY_PICTURES: Record<'yes' | 'cant' | 'why', string[]> = { yes: FLY.picture, cant: CLIPPED_WING, why: WOULD.picture };

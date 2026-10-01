@@ -133,7 +133,93 @@ describe('ink pipeline', () => {
     play('day3_visit', 0);
     expect(v['confided']).toBe(true);
     expect(v['friend_trust']).toBe(2);
-    expect(play('home_bed', 0)).toContain('endday:Day 4 (not built yet)');
+    expect(play('home_bed', 0)).toContain('endday:Day 4');
+    expect(v['day4']).toBe('wake');
+    expect(v['objective_target']).toBe('home:summons');
+  });
+
+  it('plays Day 4 through: the summons, the reply, the shrine, the market, the girl, the ritual, message 3, the night', () => {
+    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const v = story.variablesState;
+    const play = (knot: string, ...choices: number[]) => {
+      story.ChoosePathString(knot);
+      const tags: string[] = [];
+      for (;;) {
+        while (story.canContinue) {
+          story.Continue();
+          tags.push(...(story.currentTags ?? []));
+        }
+        const next = choices.shift();
+        if (next === undefined || story.currentChoices.length === 0) break;
+        story.ChooseChoiceIndex(next);
+      }
+      return tags;
+    };
+    Object.entries({ dialogue_style: 'voice', day1: 'done', day2: 'done', day3: 'done', reply1: 'fledgling', day4: 'wake', summons_on_floor: true, food_store: 6 }).forEach(([k, x]) => (v[k] = x));
+    expect(play('home_summons', 2)).toContain('inset:summons');
+    expect(v['summons_on_floor']).toBe(false);
+    expect(v['objective_target']).toBe('home:bench');
+    expect(play('home_bench', 0)).toContain('carve:day4_carving');
+    expect(play('day4_carving', 2)).toEqual(expect.arrayContaining(['plate', 'step:scratch', 'step:rough', 'step:hollow', 'step:seal', 'end']));
+    expect(v['reply2']).toBe('why');
+    expect(v['objective_target']).toBe('tenders-shrine:tender-summons');
+    expect(v['mum_away']).toBe(true);
+    // Two wrong answers and he asks to see your hands.
+    expect(play('shrine_tender_summons', 2, 2, 2, 2, 1, 2, 2)).toEqual(expect.arrayContaining(['dim:on', 'time:afternoon']));
+    expect(v['showed_hands']).toBe(true);
+    expect(v['objective_target']).toBe('roots-market:mum-market');
+    expect(play('market_mum', 0)).toEqual(expect.arrayContaining(['show:zealot-market', 'fight:day4_fight:day4_after_fight']));
+    expect(v['food_store']).toBe(5);
+    expect(play('day4_fight', 1)).toEqual(expect.arrayContaining(['step:dodge', 'step:shove', 'step:grab', 'end']));
+    expect(v['fight_won']).toBe(false); // nothing landed (the fight scene counts the hits)
+    expect(play('day4_after_fight')).toContain('show:girl-market');
+    expect(v['hurt']).toBe(true);
+    expect(v['food_store']).toBe(3);
+    expect(play('market_girl', 0, 0)).toContain('time:evening');
+    expect(v['girl_trust']).toBe(1);
+    expect(v['objective_target']).toBe('offering-floor:chalk-ring');
+    expect(play('offering_floor_chalk_ring', 0)).toEqual(expect.arrayContaining(['turn', 'goto:home:130:236:day4_mum_night']));
+    expect(v['house_watched']).toBe(true);
+    play('day4_mum_night');
+    expect(play('home_hearth')).toContain('decode:message3_why:day4_decoded');
+    expect(play('day4_decoded')).toContain('inset:feather');
+    expect(v['sneaking']).toBe(true);
+    expect(v['objective_target']).toBe('lower-roots:girls-door');
+    expect(play('lower_roots_girls_door')).toContain('goto:girls-home:150:236:day4_girls_home');
+    expect(v['sneaking']).toBe(false);
+    play('day4_girls_home', 0);
+    expect(play('girls_home_board')).toContain('goto:the-rot:40:232:day4_rot_arrive');
+    expect(v['girl_with_you']).toBe(true);
+    expect(play('the_rot_way_up')).not.toContain('goto:girls-home:200:236:day4_girls_goodbye'); // look at the wood first
+    play('the_rot_dying_root', 0);
+    expect(v['girl_trust']).toBe(2);
+    expect(play('the_rot_way_up')).toContain('goto:girls-home:200:236:day4_girls_goodbye');
+    expect(v['girl_with_you']).toBe(false);
+    expect(play('day4_girls_goodbye', 2)).toContain('goto:home:440:236:day4_home_late');
+    expect(play('home_bed', 0)).toContain('endday:Day 5 (not built yet)');
+    expect(v['day4']).toBe('done');
+  });
+
+  it('on Day 4, holding back at the market skips the fight, and winning it raises suspicion', () => {
+    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const v = story.variablesState;
+    v['day4'] = 'market';
+    story.ChoosePathString('market_mum');
+    story.ContinueMaximally();
+    story.ChooseChoiceIndex(1);
+    const tags: string[] = [];
+    while (story.canContinue) {
+      story.Continue();
+      tags.push(...(story.currentTags ?? []));
+    }
+    expect(tags).toContain('show:girl-market');
+    expect(tags.some((t) => t.startsWith('fight'))).toBe(false);
+    expect(v['held_back']).toBe(true);
+    v['fight_won'] = true;
+    const before = v['suspicion'] as number;
+    story.ChoosePathString('day4_after_fight');
+    story.ContinueMaximally();
+    expect(v['suspicion']).toBe(before + 2);
   });
 
   it('ends the game loyally if you ignore the message a second time', () => {
