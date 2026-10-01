@@ -8,6 +8,10 @@
 [PLACEHOLDER] "Every one of the Ascended, recorded. Name, craft, the day the Tree took them." #speaker:archivist
 -> END
 
+// Day 7 afternoon (at home under guard): a goodbye, if he's your ally.
+=== archive_archivist_goodbye ===
+-> day7_archivist_goodbye
+
 === archive_index_engine ===
 [PLACEHOLDER] A cabinet of drawers worked by a crank and a great gear. A glass eye glows over one drawer.
 -> END

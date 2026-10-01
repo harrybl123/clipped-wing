@@ -106,6 +106,19 @@ around the high walkway) could be used or introduced in another part of the stor
 earlier in passing, or turning up again on Days 6 and 7 (selling you out? helping, for a price?).
 Come back to this when planning the later days.
 
+## Day 7 to playtest (Claude, 2026-10-01)
+
+- **The chase's pace:** the mob sets off 2.5 seconds after you arrive and walks at 62 px/s (you run at
+  105). Waiting for a lift in the trunk climb is the dangerous part. Being caught throws you back to
+  where you came in, which in the three-screen trunk climb is the bottom: maybe too harsh (a
+  checkpoint halfway up?).
+- **Mum's goodbye** happens at the cell door (custody) or at home (goodbyes); on the custody path you
+  never see her again, on the home path she's at the door as the mob breaks in. Both stay ambiguous.
+- **The boy** doesn't come back on Day 7 yet (see "Bring the boy back").
+- **Scenes that empty before you leave:** a `#time:` tag on the last line of a scene hides the people
+  who belong to the old time of day before the screen fades (e.g. the morning crowd after the trial).
+  Part of the "scenes should move" pass.
+
 ## Later passes (designer, 2026-10-01)
 
 - **The hunger and the blame should build before Day 6.** By Day 6 the roots connect you with why

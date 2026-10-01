@@ -97,6 +97,7 @@ export const ascensionGate: AreaDefinition = {
   ],
 
   features: [
+    { type: 'mob', delay: 2500, speed: 62, showIf: 'chased' }, // Day 7: the mob, on your heels all the way to the top
     { type: 'motes', x: TUBE_X + 16, top: 20, bottom: FLOOR, halfWidth: 12 },
     { type: 'fire', x: DAIS_L + 8, y: DAIS - 8 },
     { type: 'fire', x: DAIS_R - 8, y: DAIS - 8 },
@@ -105,8 +106,9 @@ export const ascensionGate: AreaDefinition = {
   people: [
     // Day 1: the master, brought on by the Ascension scene (story/day1.ink, #show:master).
     { id: 'master', sprite: MASTER.idle[0]!, idleFrames: MASTER.idle, x: 140, y: FLOOR, when: CEREMONY, hidden: true },
-    { id: 'gate-guard-left', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 116, y: FLOOR },
-    { id: 'gate-guard-right', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: W - 116, y: FLOOR, flipX: true, knot: 'gate_guard' },
+    // (Day 7: they've gone down to join the mob.)
+    { id: 'gate-guard-left', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 116, y: FLOOR, hideIf: 'chased' },
+    { id: 'gate-guard-right', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: W - 116, y: FLOOR, flipX: true, knot: 'gate_guard', hideIf: 'chased' },
     { id: 'preacher', sprite: PREACHER.idle[0]!, idleFrames: PREACHER.idle, x: DAIS_R - 26, y: DAIS, flipX: true, when: CEREMONY },
     // The crowd, only for the ceremony.
     ...[40, 60, 80].map((x, i) => onlooker(`balcony-left-${i}`, x, BALCONY, i)),

@@ -10,11 +10,11 @@ import type { DecodeResult, DecodeSceneData } from './DecodeScene';
 import type { EndingSceneData } from './EndingScene';
 import type { StepSceneData } from './StepScene';
 import type { MapSceneData } from './MapScene';
-import { getSession } from '../session';
+import { getSession, type WakePlace } from '../session';
 import { DebugOverlay } from '../ui/DebugOverlay';
 import { DialogueBox } from '../ui/DialogueBox';
 import { paintArea } from '../ui/paintArea';
-import { WATCHMAN } from '../ui/characters';
+import { VILLAGERS, WATCHMAN } from '../ui/characters';
 import { SHADES } from '../ui/pixelArt';
 import { makePaintedTexture, makeSpriteTexture, PIXEL } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
@@ -205,6 +205,26 @@ interface Quarry {
   callout: PixelText;
 }
 
+/** The mob chasing you (the `mob` feature): torch-bearers following the path you took. */
+interface Mob {
+  feature: Extract<Feature, { type: 'mob' }>;
+  /** Your path through the area: points a couple of px apart, each with its distance along the path. */
+  trail: { x: number; y: number; d: number }[];
+  /** How far along your path the front of the mob has got. */
+  head: number;
+  /** Ms before they set off (after you arrive, or after they've caught you). */
+  wait: number;
+  /** Ms until you're thrown back, once they've caught you (null: they haven't). */
+  alarm: number | null;
+  members: { image: Phaser.GameObjects.Image; torch: Phaser.GameObjects.Rectangle; walkKeys: string[] }[];
+  callout: PixelText;
+  step: number;
+}
+
+/** How far apart the mob walk along your path (px), and how close the front has to get to catch you. */
+const MOB_SPACING = 13;
+const MOB_REACH = 10;
+
 /** How long someone you're tailing pauses before looking round (ms): a moment to get out of sight. */
 const QUARRY_TURN = 900;
 
@@ -252,6 +272,12 @@ export class AreaScene extends Phaser.Scene {
   private shadows: Extract<Feature, { type: 'shadow' }>[] = [];
   private shadowGraphics: Phaser.GameObjects.Graphics | null = null;
   private quarries: Quarry[] = [];
+  private mobs: Mob[] = [];
+  private triggers: Extract<Feature, { type: 'trigger' }>[] = [];
+  /** Where you came in (the mob throws you back here). */
+  private arrival = { x: 0, y: 0 };
+  /** Where tomorrow starts, if not in your bed (#wake). */
+  private wakeAt: WakePlace | null = null;
 
   constructor() {
     super('Area');
@@ -281,6 +307,9 @@ export class AreaScene extends Phaser.Scene {
     this.shadows = [];
     this.shadowGraphics = null;
     this.quarries = [];
+    this.wakeAt = null;
+    this.mobs = [];
+    this.triggers = [];
   }
 
   create(): void {
@@ -346,6 +375,7 @@ export class AreaScene extends Phaser.Scene {
     }
 
     const arrival = this.start ?? area.exits.find((e) => e.to === this.from) ?? area.playerStart;
+    this.arrival = { x: arrival.x, y: arrival.y };
     // Room to stand up: no solid wall or ceiling in the way (one-way platforms don't count).
     const canStand = (r: Phaser.Geom.Rectangle) => !area.solids.some((s) => !s.oneWay && r.right > s.x && r.left < s.x + s.width && r.bottom > s.y && r.top < s.y + s.height);
     this.player = new Player(this, arrival.x, arrival.y, canStand);
@@ -390,7 +420,7 @@ export class AreaScene extends Phaser.Scene {
 
   override update(_time: number, delta: number): void {
     const interactPressed = Phaser.Input.Keyboard.JustDown(this.interactKey);
-    const caught = this.watchmen.some((w) => w.alarm !== null) || this.quarries.some((q) => q.alarm !== null);
+    const caught = this.watchmen.some((w) => w.alarm !== null) || this.quarries.some((q) => q.alarm !== null) || this.mobs.some((m) => m.alarm !== null);
     const blocked = this.leaving || caught || this.dialogue.isOpen || this.game.loop.frame === this.dialogueClosedFrame;
     this.player.update(blocked);
     this.stepUp();
@@ -403,6 +433,8 @@ export class AreaScene extends Phaser.Scene {
     this.updateBeetles(delta);
     this.updateWatch(delta);
     this.updateQuarries(delta);
+    this.updateMobs(delta);
+    this.updateTriggers();
     this.updateCloak();
     this.checkHazards();
     this.updateWaiting(delta);
@@ -700,13 +732,13 @@ export class AreaScene extends Phaser.Scene {
 
   /**
    * The cloak: once you have it, you wear it wherever you're not expected (designer). Off at home, at
-   * the evening ceremony (you stand in the ring as yourself) and before the elders. You fade a little
-   * while you're hidden in a shadow that matters.
+   * the evening ceremony (you stand in the ring as yourself), before the elders, at the trial and in the
+   * cell. You fade a little while you're hidden in a shadow that matters.
    */
   private updateCloak(): void {
     const { story, calendar } = getSession(this);
     const sprite = this.player.sprite;
-    const expected = this.area.id === 'home' || (this.area.id === 'offering-floor' && calendar.slot === 'evening') || !!story.getVariable('interrogating');
+    const expected = this.area.id === 'home' || this.area.id === 'shrine-cell' || (this.area.id === 'offering-floor' && calendar.slot === 'evening') || !!story.getVariable('interrogating') || !!story.getVariable('trial');
     this.player.cloaked = !!story.getVariable('has_disguise') && !expected;
     const watched = this.watchmen.some((w) => w.image.visible) || this.quarries.some((q) => !q.done && !!story.getVariable(q.feature.showIf));
     const hidden = watched && this.inShadow();
@@ -797,6 +829,95 @@ export class AreaScene extends Phaser.Scene {
         if (seen) this.cameras.main.flash(300, 242, 180, 90);
       }
     }
+  }
+
+  /**
+   * The mob: they follow the exact path you took, a little slower than you run. Wait too long (for a
+   * lift, a gap) and they catch you: you're thrown back to where you came in, and they start again.
+   */
+  private updateMobs(delta: number): void {
+    const { story } = getSession(this);
+    const { x: px, y: py } = this.player.feet;
+    for (const m of this.mobs) {
+      const on = !!story.getVariable(m.feature.showIf);
+      for (const member of m.members) {
+        member.image.setVisible(on && m.wait <= 0);
+        member.torch.setVisible(on && m.wait <= 0);
+      }
+      if (!on || this.leaving || !m.trail.length) continue;
+      if (m.alarm !== null) {
+        m.alarm -= delta;
+        if (m.alarm <= 0) {
+          m.alarm = null;
+          m.callout.setVisible(false);
+          this.knockBack(this.arrival);
+          this.resetMob(m);
+        }
+        continue;
+      }
+      if (this.dialogue.isOpen) continue;
+      // Your path: a new point whenever you've moved a couple of px.
+      const last = m.trail[m.trail.length - 1]!;
+      const moved = Math.hypot(px - last.x, py - last.y);
+      if (moved >= 2) m.trail.push({ x: px, y: py, d: last.d + moved });
+      if (m.wait > 0) {
+        m.wait -= delta;
+        continue;
+      }
+      const end = m.trail[m.trail.length - 1]!.d;
+      m.head = Math.min(end, m.head + m.feature.speed * (delta / 1000));
+      m.step += delta;
+      m.members.forEach((member, i) => {
+        const at = this.alongTrail(m, Math.max(0, m.head - i * MOB_SPACING));
+        const ahead = this.alongTrail(m, Math.max(0, m.head - i * MOB_SPACING) + 4);
+        member.image.setPosition(Math.round(at.x), Math.round(at.y)).setFlipX(ahead.x < at.x);
+        member.image.setTexture(member.walkKeys[Math.floor(m.step / 200 + i) % member.walkKeys.length]!);
+        const dir = member.image.flipX ? -1 : 1;
+        member.torch.setPosition(Math.round(at.x + dir * 5), Math.round(at.y - 27)).setAlpha(0.7 + Math.random() * 0.3);
+      });
+      const front = m.members[0]!.image;
+      if (Math.abs(front.x - px) < MOB_REACH && Math.abs(front.y - py) < 16) {
+        m.alarm = 800;
+        m.callout.setText('Got it!').setPosition(Math.round(front.x - 18), Math.round(front.y - 46)).setVisible(true);
+        this.cameras.main.flash(300, 242, 180, 90).shake(300, 0.008);
+      }
+    }
+  }
+
+  /** The point `d` px along the mob's copy of your path. */
+  private alongTrail(m: Mob, d: number): { x: number; y: number } {
+    const t = m.trail;
+    let lo = 0;
+    let hi = t.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (t[mid]!.d <= d) lo = mid;
+      else hi = mid - 1;
+    }
+    const a = t[lo]!;
+    const b = t[lo + 1];
+    if (!b) return a;
+    const f = (d - a.d) / (b.d - a.d || 1);
+    return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
+  }
+
+  /** The mob starts again from where you came in. */
+  private resetMob(m: Mob): void {
+    m.trail = [{ ...this.arrival, d: 0 }];
+    m.head = 0;
+    m.wait = m.feature.delay;
+    for (const member of m.members) member.image.setPosition(this.arrival.x, this.arrival.y);
+  }
+
+  /** Spots where a knot plays by itself as you reach them. */
+  private updateTriggers(): void {
+    if (this.dialogue.isOpen || this.leaving || !this.player.onGround) return;
+    const { story } = getSession(this);
+    const { x, y } = this.player.feet;
+    const t = this.triggers.find((t) => Math.abs(x - t.x) <= t.reach && Math.abs(y - t.y) <= 4 && (!t.showIf || story.getVariable(t.showIf)) && !(t.hideIf && story.getVariable(t.hideIf)));
+    if (!t) return;
+    this.triggers = this.triggers.filter((other) => other !== t);
+    this.dialogue.open(t.knot, () => this.conversationClosed());
   }
 
   /** Touching rot or a beetle knocks you back. */
@@ -958,6 +1079,7 @@ export class AreaScene extends Phaser.Scene {
    *   #card:<text>            a title card
    *   #goto:<area>[:<x>:<y>[:<knot>]]  after the conversation, go there (optionally to a spot, playing a knot)
    *   #endday[:<card>]        after the conversation, the day ends (the card shows on the next morning)
+   *   #wake:<area>:<x>:<y>[:<knot>]  the next morning starts there instead of in your bed (with #endday)
    *   #shake                  the screen shakes
    *   #recoil                 the crowd steps back from you
    *   #decode:<message>[:<knot>]  after the conversation, the decoding screen; then the knot plays
@@ -1019,6 +1141,11 @@ export class AreaScene extends Phaser.Scene {
         case 'endday':
           this.afterClose.push(() => this.endDay(args.join(':') || undefined));
           break;
+        case 'wake': {
+          const [areaId, x, y, knot] = args;
+          if (areaId) this.wakeAt = { areaId, start: { x: Number(x), y: Number(y) }, script: knot || undefined };
+          break;
+        }
         case 'shake':
           this.cameras.main.shake(260, 0.006);
           break;
@@ -1141,17 +1268,19 @@ export class AreaScene extends Phaser.Scene {
     this.scene.launch('Decode', data);
   }
 
-  /** The end of the day: on to the next morning, waking in bed, with a card (days not built yet say so). */
+  /** The end of the day: on to the next morning, waking in bed (or wherever #wake said), with a card (days not built yet say so). */
   private endDay(card?: string): void {
     const { calendar } = getSession(this);
     const next = calendar.day === 'prologue' ? 1 : Math.min(7, calendar.day + 1);
+    const wake = this.wakeAt ?? undefined;
     this.leaving = true;
     this.cameras.main.fadeOut(1200, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       calendar.jumpTo(next as typeof calendar.day);
       // Remember how each day began, so an ending can send you back to it.
-      getSession(this).dayStarts[next] = { ink: getSession(this).story.saveState(), calendar: calendar.toJSON() };
-      this.scene.restart({ areaId: 'home', start: this.area.id === 'home' ? { x: 50, y: 150 } : undefined, card: card ?? `Day ${next} (not built yet)` } satisfies AreaSceneData);
+      getSession(this).dayStarts[next] = { ink: getSession(this).story.saveState(), calendar: calendar.toJSON(), wake };
+      const text = card ?? `Day ${next} (not built yet)`;
+      this.scene.restart((wake ? { ...wake, card: text } : { areaId: 'home', start: this.area.id === 'home' ? { x: 50, y: 150 } : undefined, card: text }) satisfies AreaSceneData);
     });
   }
 
@@ -1397,6 +1526,24 @@ export class AreaScene extends Phaser.Scene {
         this.quarries.push({ feature, offsets, next: 1, wait: 3000, looking: false, turnIn: 0, alarm: null, done: false, callout });
         break;
       }
+      case 'mob': {
+        const members = [0, 1, 2, 3, 4].map((i) => {
+          const look = VILLAGERS[(i * 2 + 1) % VILLAGERS.length]!;
+          const walkKeys = look.walk.map((f, k) => makeSpriteTexture(this, `mob-${i}-${k}`, f.rows, f.colours));
+          const image = this.add.image(0, 0, walkKeys[0]!).setOrigin(0.5, 1).setDepth(9 - i * 0.01).setVisible(false);
+          const torch = this.add.rectangle(0, 0, 2, 3, SHADES.amber).setStrokeStyle(1, SHADES.amberDeep).setDepth(10).setVisible(false);
+          return { image, torch, walkKeys };
+        });
+        const callout = new PixelText(this, 0, 0, '', { color: SHADES.amber, shadow: SHADES.shadow }).setDepth(21).setVisible(false);
+        const mob: Mob = { feature, trail: [], head: 0, wait: 0, alarm: null, members, callout, step: 0 };
+        this.mobs.push(mob);
+        // The player isn't placed yet: set off once the scene has started.
+        this.time.delayedCall(0, () => this.resetMob(mob));
+        break;
+      }
+      case 'trigger':
+        this.triggers.push(feature);
+        break;
       case 'jars': {
         const { story } = getSession(this);
         const jars = Array.from({ length: feature.max }, (_, i) =>

@@ -1,4 +1,4 @@
-import { GUARD, RESIDENTS } from '../../ui/characters';
+import { FRIEND, GUARD, RESIDENTS } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import { handrail } from './friendsHomeProps';
 import * as P from './middleTiersProps';
@@ -129,6 +129,9 @@ export const middleTiers: AreaDefinition = {
   ],
 
   features: [
+    { type: 'mob', delay: 2500, speed: 62, showIf: 'chased' }, // Day 7: the mob, on your heels all the way to the top
+    // Day 7: the guard at the post as you come through (your friend sends him the wrong way, if you confided in him).
+    { type: 'trigger', x: 112, y: FLOOR, reach: 10, knot: 'day7_middle_guard', showIf: 'chased', hideIf: 'guard_passed' },
     { type: 'hint', x: 470, y: MID, reach: 120, text: 'People in the doorways stop talking as you pass.', showIf: 'escorted' },
     { type: 'mover', sprite: hangingPlank(34), x: 913, y: FLOOR, to: { x: 913, y: TOP }, speed: 40, ropeTop: 24 }, // the counterweight lift
   ],
@@ -137,6 +140,7 @@ export const middleTiers: AreaDefinition = {
     { id: 'guard', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 160, y: FLOOR, knot: 'middle_guard', flipX: true },
     resident('carver', 3, 500, MID, { knot: 'middle_carver' }),
     // Day 5: your escort, up to the archivist.
+    { id: 'friend-chase', sprite: FRIEND.idle[0]!, idleFrames: FRIEND.idle, x: 236, y: FLOOR, flipX: true, when: ['night'], hidden: true },
     { id: 'escort', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 40, y: FLOOR, knot: 'middle_escort', showIf: 'escorted', follow: true },
     resident('lift-keeper', 1, 896, FLOOR, { knot: 'middle_lift_keeper', flipX: true, when: ['morning', 'afternoon'] }),
     strolling('landing-1', 0, 440, 530, MID),

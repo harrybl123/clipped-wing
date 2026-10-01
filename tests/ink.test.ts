@@ -328,7 +328,7 @@ describe('ink pipeline', () => {
       expect(v['evidence_left']).toBe(0);
       expect(play('day6_guards')).toContain('goto:tenders-shrine:218:236:day6_interrogation');
       expect(v['plate_found']).toBe(false);
-      expect(play('day6_interrogation', 2, 2, 0, 0)).toEqual(expect.arrayContaining(['show:girl-shrine', 'dim:on', 'dim:off', 'endday:Day 7 (not built yet)']));
+      expect(play('day6_interrogation', 2, 2, 0, 0)).toEqual(expect.arrayContaining(['show:girl-shrine', 'dim:on', 'dim:off', 'wake:shrine-cell:250:236:day7_cell_wake', 'endday:Day 7']));
       expect(v['girl_fate']).toBe('saved');
       expect(v['in_custody']).toBe(true);
     });
@@ -340,7 +340,83 @@ describe('ink pipeline', () => {
       expect(play('day6_interrogation', 0, 0, 1, 0)).toContain('goto:home:130:236:day6_home_after');
       expect(v['girl_fate']).toBe('blamed');
       expect(v['in_custody']).toBe(false);
-      expect(play('home_bed', 0)).toContain('endday:Day 7 (not built yet)');
+      expect(play('home_bed', 0)).toContain('endday:Day 7');
+      expect(v['house_guarded']).toBe(true);
+      expect(v['objective_target']).toBe('home:bench');
+    });
+  });
+
+  describe('Day 7', () => {
+    const start = (vars: Record<string, string | number | boolean>) => {
+      const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+      const v = story.variablesState;
+      const play = (knot: string, ...choices: number[]) => {
+        story.ChoosePathString(knot);
+        const tags: string[] = [];
+        for (;;) {
+          while (story.canContinue) {
+            story.Continue();
+            tags.push(...(story.currentTags ?? []));
+          }
+          const next = choices.shift();
+          if (next === undefined || story.currentChoices.length === 0) break;
+          story.ChooseChoiceIndex(next);
+        }
+        return tags;
+      };
+      Object.entries({ dialogue_style: 'voice', day1: 'done', day2: 'done', day3: 'done', day4: 'done', day5: 'done', day6: 'done', reply1: 'fledgling', ...vars }).forEach(([k, x]) => (v[k] = x));
+      return { v, play };
+    };
+
+    it('in custody: carve under guard, the trial, visitors by your choices, message 6, then up through the shrine and into the tube', () => {
+      const { v, play } = start({ in_custody: true, girl_fate: 'saved', day7: 'wake', told_archivist: true, confided: true });
+      play('day7_cell_wake');
+      expect(v['objective_target']).toBe('shrine-cell:bench');
+      expect(play('shrine_cell_bench', 0)).toContain('carve:day7_carving');
+      expect(play('day7_carving')).toEqual(expect.arrayContaining(['plate:caged', 'step:scratch', 'step:seal', 'end']));
+      expect(v['reply5']).toBe('caged');
+      expect(play('shrine_cell_guard')).toContain('goto:offering-floor:104:236:day7_trial');
+      expect(v['trial']).toBe(true);
+      expect(play('day7_trial', 0)).toEqual(expect.arrayContaining(['show:caged-bird', 'time:afternoon', 'goto:shrine-cell:250:236:day7_cell_afternoon']));
+      expect(play('day7_cell_afternoon')).toContain('show:mum-cell');
+      // Mum, then the archivist (an ally), then your friend at the grate (you confided), then the evening.
+      expect(play('shrine_cell_mum', 0)).toEqual(expect.arrayContaining(['hide:mum-cell', 'show:archivist-cell']));
+      expect(play('shrine_cell_archivist', 2)).toEqual(expect.arrayContaining(['inset:spiral', 'hide:archivist-cell', 'show:friend-cell']));
+      expect(play('shrine_cell_friend', 2)).toEqual(expect.arrayContaining(['hide:friend-cell', 'time:evening']));
+      expect(play('shrine_cell_guard')).toContain('goto:offering-floor:104:236:day7_return');
+      expect(play('day7_return', 2)).toEqual(expect.arrayContaining(['show:caged-bird', 'recoil', 'throw', 'goto:shrine-cell:250:236:day7_cell_night']));
+      expect(play('shrine_cell_bench')).toContain('decode:message6:day7_decoded');
+      expect(play('day7_decoded', 0, 0)).toEqual(expect.arrayContaining(['show:girl-cell', 'goto:tenders-shrine:182:236:day7_shrine_escape']));
+      expect(v['chased']).toBe(true);
+      expect(v['friend_helps']).toBe(true);
+      expect(play('day7_middle_guard')).toEqual(expect.arrayContaining(['show:friend-chase', 'hide:guard']));
+      expect(v['guard_passed']).toBe(true);
+      expect(play('gate_gate')).toContain('ending:fly');
+    });
+
+    it('at home under guard: goodbyes in your cloak, then you give yourself up and find the girl in the rot', () => {
+      const { v, play } = start({ girl_fate: 'blamed', girl_in_rot: true, house_guarded: true, day7: 'carve', objective_target: 'home:bench', confided: false, has_disguise: true });
+      play('home_mum', 0);
+      expect(play('home_bench', 0)).toContain('carve:day7_carving');
+      play('day7_carving');
+      expect(v['objective_target']).toBe('home:guard-door');
+      expect(play('home_guard_door')).toContain('goto:offering-floor:104:236:day7_trial');
+      expect(play('day7_trial', 1)).toEqual(expect.arrayContaining(['time:afternoon', 'goto:home:130:236']));
+      expect(v['day7']).toBe('goodbyes');
+      play('home_mum', 0);
+      expect(v['objective_target']).toBe('home:guard-door');
+      expect(play('back_routes_window')).not.toContain('show:friend-window'); // you lied to him
+      expect(play('home_guard_door', 0)).toEqual(expect.arrayContaining(['time:evening', 'goto:offering-floor:104:236:day7_return']));
+      expect(play('day7_return', 0)).toContain('goto:home:130:236:day7_home_night');
+      expect(play('home_hearth')).toContain('decode:message6:day7_decoded');
+      expect(play('day7_decoded', 1, 0)).toContain('goto:the-rot:100:232:day7_cast_down');
+      expect(v['chased']).toBe(false);
+      play('day7_cast_down');
+      expect(v['objective_target']).toBe('the-rot:girl-fallen;the-rot:crack');
+      expect(play('the_rot_crack')).not.toContain('ending:fall_together'); // not without her
+      play('the_rot_girl_fallen', 0);
+      expect(v['girl_follows']).toBe(true);
+      expect(play('the_rot_crack')).toEqual(expect.arrayContaining(['show:daylight', 'ending:fall_together']));
     });
   });
 

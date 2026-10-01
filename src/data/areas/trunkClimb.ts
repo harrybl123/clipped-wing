@@ -125,6 +125,7 @@ export const trunkClimb: AreaDefinition = {
   ],
 
   features: [
+    { type: 'mob', delay: 2500, speed: 62, showIf: 'chased' }, // Day 7: the mob, on your heels all the way to the top
     ...MOVERS,
     { type: 'motes', x: TUBE_X + 12, top: 16, bottom: FLOOR, halfWidth: 8 },
     { type: 'drip', x: 300, y: 580, floorY: FLOOR - 4 },

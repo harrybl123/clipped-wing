@@ -9,10 +9,17 @@ export interface Session {
   story: StoryBridge;
   calendar: Calendar;
   saves: SaveSystem;
-  /** How each day began (ink and calendar), so an ending can send you back to the start of a day. Not saved yet. */
-  dayStarts: Partial<Record<number, { ink: string; calendar: CalendarState }>>;
+  /** How each day began (ink, calendar, and where you woke if not in your bed), so an ending can send you back to the start of a day. Not saved yet. */
+  dayStarts: Partial<Record<number, { ink: string; calendar: CalendarState; wake?: WakePlace }>>;
   /** A knot waiting for an ink variable to reach 0 (#when), or for time to run out if `left` (ms) is set; kept here so it survives travelling between areas. */
   waiting: { variable: string; knot: string; left?: number } | null;
+}
+
+/** Where a day starts when it isn't in your bed at home (e.g. Day 7 in the cell behind the shrine): an area, a spot, and a knot that plays on waking. */
+export interface WakePlace {
+  areaId: string;
+  start: { x: number; y: number };
+  script?: string;
 }
 
 const REGISTRY_KEY = 'session';

@@ -118,6 +118,8 @@ export const archive: AreaDefinition = {
     scribe('scribe-2', 0, 470),
     { id: 'watchman', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 360, y: FLOOR, when: ['night'], wander: { from: 220, to: 600 }, walkFrames: GUARD.idle, hideIf: 'stealing' },
     // Day 5 night: the archivist, waiting for you by the index engine (you told him), or catching you at the drawers (you didn't).
+    // Day 7 afternoon (at home under guard): he'll see you, if he's your ally.
+    { id: 'archivist-goodbye', sprite: ARCHIVIST.idle[0]!, idleFrames: ARCHIVIST.idle, x: 590, y: FLOOR, knot: 'archive_archivist_goodbye', flipX: true, when: ['afternoon'], showIf: 'archivist_goodbye' },
     { id: 'archivist-night', sprite: ARCHIVIST.idle[0]!, idleFrames: ARCHIVIST.idle, x: 116, y: FLOOR, knot: 'archive_archivist', when: ['night'], showIf: 'archivist_waiting' },
     { id: 'archivist-catch', sprite: ARCHIVIST.idle[0]!, idleFrames: ARCHIVIST.idle, x: 400, y: FLOOR, knot: 'archive_archivist_catch', flipX: true, when: ['night'], hidden: true },
   ],

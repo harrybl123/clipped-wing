@@ -427,14 +427,17 @@ They cut her ropes. On the way past, she looks at you, and her face does somethi
 ~ in_custody = true
 ~ interrogating = false
 ~ day6 = "done"
+~ day7 = "wake"
 ~ objective = ""
 ~ objective_target = ""
-They lock you in the back room of the shrine, in the dark, and you sit with your back against the door and wait for morning. #endday:Day 7 (not built yet)
+They lock you in the back room of the shrine, in the dark, and you sit with your back against the door and wait for morning. #wake:shrine-cell:250:236:day7_cell_wake #endday:Day 7
 -> END
 
 = blame
 ~ girl_fate = "blamed"
 ~ girl_trust = -2
+~ girl_in_rot = true
+~ house_guarded = true
 "It's her. She's been talking to me. About things beyond the bark. Things that aren't the Tree." #speaker:you #dim:off
 "I listened. I'm sorry. I listened." #speaker:you
 She doesn't look up. She doesn't argue. She doesn't say anything at all.
@@ -459,9 +462,10 @@ You can't stop seeing the girl's back, going out of the door, not looking round.
 Your bed. You won't sleep.
 + [Lie down]
     ~ day6 = "done"
+    ~ day7 = "carve"
     ~ mum_in_bed = false
-    ~ objective = ""
-    ~ objective_target = ""
-    Somewhere below, under everything, they're taking her down into the dark. #endday:Day 7 (not built yet)
+    ~ objective = "Carve your offering"
+    ~ objective_target = "home:bench"
+    Somewhere below, under everything, they're taking her down into the dark. #endday:Day 7
 + [Not yet]
 - -> END

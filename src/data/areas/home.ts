@@ -130,6 +130,9 @@ export const home: AreaDefinition = {
     { id: 'evidence-plate', sprite: EVIDENCE_PLATE, x: 80, y: FLOOR, when: ['night'], showIf: 'evidence_plate', knot: 'home_hide_plate', label: 'Hide' },
     { id: 'evidence-bird', sprite: BIRD, x: 64, y: LOFT, when: ['night'], showIf: 'evidence_bird', knot: 'day3_hide_bird', label: 'Hide' },
     { id: 'evidence-shavings', sprite: EVIDENCE_SHAVINGS, x: 200, y: LOFT, when: ['night'], showIf: 'evidence_shavings', knot: 'day3_hide_shavings', label: 'Hide' },
+    // Day 7 (you blamed the girl): a guard on your door by day; your friend through the rot gap when the mob comes (if you confided in him).
+    { id: 'guard-door', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 44, y: FLOOR, when: ['morning', 'afternoon'], showIf: 'house_guarded', knot: 'home_guard_door' },
+    { id: 'friend-home', sprite: FRIEND.idle[0]!, idleFrames: FRIEND.idle, x: 436, y: FLOOR, flipX: true, when: ['night'], hidden: true },
     { id: 'friend-visit', sprite: FRIEND.idle[0]!, idleFrames: FRIEND.idle, x: 44, y: FLOOR, when: ['night'], hidden: true },
   ],
 

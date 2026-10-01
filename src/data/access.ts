@@ -65,6 +65,21 @@ const CLOSED: Partial<Record<Day, Record<string, string>>> = {
     'trunk-climb': "There's no reason to climb today.",
     'offering-floor': 'Across the way, a man with a lamp is watching your door. Not that way.',
   },
+  // Day 7: the guard's on your front door, and every face out there knows yours. In the afternoon (at
+  // home, in your cloak) the back ways are open for goodbyes: the routes, and the trunk climb to the
+  // archive. At night, the chase: up through the shrine, the trunk climb, the middle tiers and the upper
+  // halls to the gate (the archive hatch is barred).
+  7: {
+    'offering-floor': 'Not that way. Every face out there knows yours.',
+    'roots-market': 'Not that way. Every face out there knows yours.',
+    'friends-home': 'His family has forbidden you from coming near.',
+    'lower-roots': 'Not down there. Not now.',
+    'middle-tiers': 'The way up is guarded. Not without being sent for.',
+    'upper-halls': 'The upper halls are no place for someone from the roots.',
+    archive: 'The archive hatch is barred tonight.',
+    'seed-grove': 'The seed grove is for the upper branches.',
+    'ascension-gate': 'The gate is only opened for an Ascension.',
+  },
 };
 
 /** Areas that open at particular times on a day that otherwise keeps them closed. */
@@ -74,6 +89,7 @@ const OPENS_AT: Partial<Record<Day, Record<string, TimeSlot[]>>> = {
   3: { 'lower-roots': ['afternoon', 'evening', 'night'], 'back-routes': ['afternoon', 'evening', 'night'] },
   4: { 'lower-roots': ['night'], 'offering-floor': ['morning', 'afternoon', 'evening'] },
   6: { 'offering-floor': ['morning', 'afternoon', 'evening'] },
+  7: { 'lower-roots': ['afternoon'], archive: ['afternoon'], 'middle-tiers': ['night'], 'upper-halls': ['night'], 'ascension-gate': ['night'] },
   5: { 'middle-tiers': ['afternoon'], 'upper-halls': ['afternoon'], 'trunk-climb': ['night'], archive: ['night'], 'offering-floor': ['morning', 'afternoon', 'evening'] },
 };
 

@@ -607,6 +607,21 @@ const POINTING_HANDS = scratches(
   ],
 );
 
+// --- Your plate on Day 7 ---
+
+/** "I'm trapped": a bird in a cage. */
+const CAGED = scratches(
+  24,
+  22,
+  [
+    [[4, 7], [7, 3], [12, 1], [17, 3], [20, 7]], [[12, 0], [12, 1]], // the dome and its hook
+    [[4, 7], [4, 20]], [[8, 4], [8, 20]], [[12, 2], [12, 20]], [[16, 4], [16, 20]], [[20, 7], [20, 20]], // bars
+    [[2, 20], [22, 20]], [[2, 21], [22, 21]], // the base
+    [[9, 16], [9, 19]], [[11, 16], [11, 19]], // its legs
+  ],
+  [{ disc: [10, 12, 2.6] }, { poly: [[8, 13], [15, 11], [18, 9], [16, 14], [12, 16], [8, 15]] }, { poly: [[7, 11], [5, 12], [7, 13]] }],
+);
+
 export interface ReplyOption {
   /** What goes into the ink variable. */
   value: string;
@@ -619,6 +634,8 @@ export const REPLY_SETS: Record<string, { variable: string; options: ReplyOption
   reply2: { variable: 'reply2', options: [{ value: 'yes', picture: FLY.picture }, { value: 'cant', picture: CLIPPED_WING }, { value: 'why', picture: WOULD.picture }] },
   // Day 6: one picture, no choice: everyone pointing at you, and a hand reaching down (they blame me; help me).
   blame: { variable: 'reply4', options: [{ value: 'blame', picture: POINTING_HANDS }] },
+  // Day 7: one picture, no choice: a bird in a cage (I'm trapped).
+  caged: { variable: 'reply5', options: [{ value: 'caged', picture: CAGED }] },
   // Day 5, to message 3: who are you? / take me / I'm being watched.
   reply3: { variable: 'reply3', options: [{ value: 'who', picture: WHO_ARE_YOU }, { value: 'take', picture: TAKE_ME }, { value: 'watched', picture: WATCHED }] },
 };
@@ -785,6 +802,110 @@ export const MESSAGE_5_SLEEPS: Message = {
   symbols: [SEED, REST, ROT, DEEP, CLIPPED, WING, STAY_ALIVE, YOU, NOT, MANY, NEED, HURRY],
 };
 
+// --- Message 6's new pictures ---
+
+/** "Make yourself a martyr": the master's spiral, cut into their last carving the night of the Ascension (design doc). */
+const MARTYR: DecodeSymbol = {
+  id: 'martyr',
+  picture: scratches(16, 16, [[[1, 1], [14, 1], [14, 14], [3, 14], [3, 4], [11, 4], [11, 11], [6, 11], [6, 7], [8, 7], [8, 9]], [[1, 2], [13, 2], [13, 13]]]),
+  accepted: ['martyr', 'make yourself a martyr', 'a martyr', 'sacrifice', 'sacrifice yourself', 'give yourself', 'give yourself up', 'offering', 'offer yourself', 'saint', 'ascend', 'ascended', 'ascension', 'master', 'chosen', 'die for'],
+  near: [
+    { words: ['spiral', 'swirl', 'coil', 'maze', 'snail', 'whirl', 'mark', 'sign'], reply: "Warm. A spiral. You've seen it before: cut into a carving, the night someone went up the tube for everyone." },
+  ],
+  nudge: "The master's mark, the spiral on their last carving, the night the whole tree sang them up the tube.",
+  hint: 'The master gave themself to the Tree, for all of you. What do you call someone who does that?',
+};
+
+/** "If": a path splitting in two, one way up and one way down. */
+const IF: DecodeSymbol = {
+  id: 'if',
+  picture: scratches(24, 16, [[[0, 8], [9, 8]], [[0, 9], [9, 9]], [[9, 8], [15, 3], [23, 3]], [[9, 9], [15, 13], [23, 13]], [[20, 0], [23, 3], [20, 6]], [[20, 10], [23, 13], [20, 16]]]),
+  accepted: ['if', 'whether', 'either', 'or', 'choice', 'choose', 'when', 'unless', 'maybe', 'perhaps', 'in case'],
+  near: [
+    { words: ['fork', 'split', 'path', 'paths', 'road', 'roads', 'way', 'ways', 'two', 'branch', 'arrows', 'up', 'down', 'apart'], reply: 'Warm. One way splitting into two: up, or down. Which one, depends... ___ this, or ___ that.' },
+  ],
+  nudge: "A path that splits in two: one way goes up, the other down. It depends which.",
+  hint: "The little word that comes before a condition. \"___ it rains, stay in.\"",
+};
+
+/** "Can": a whole hand, every finger and thumb. */
+const CAN: DecodeSymbol = {
+  id: 'can',
+  picture: scratches(
+    18,
+    18,
+    [[[5, 9], [5, 3]], [[7, 9], [7, 1]], [[9, 9], [9, 1]], [[11, 9], [11, 3]], [[12, 12], [15, 8], [16, 6]]],
+    [{ poly: [[4, 9], [13, 9], [12, 17], [5, 17]] }],
+  ),
+  accepted: ['can', 'could', 'able', 'are able', 'manage', 'possible', 'capable', 'may', 'yes'],
+  near: [
+    { words: ['hand', 'hands', 'fingers', 'finger', 'thumb', 'palm', 'five', 'whole', 'wave'], reply: "Warm. A whole hand, every finger and the thumb. Everything you'd need to carve. What does that make you? You ___." },
+    { words: ['cant', 'cannot', 'not', 'no'], reply: 'Cold. The opposite.' },
+  ],
+  nudge: 'A whole hand, nothing missing. Able to do anything.',
+  hint: "The opposite of the crossed-out picture: not \"can't\". Just...",
+};
+
+/** "Fall": someone tumbling head first, with lines streaming up above them. */
+const FALL: DecodeSymbol = {
+  id: 'fall',
+  picture: scratches(
+    22,
+    20,
+    [[[10, 6], [9, 2]], [[12, 6], [13, 2]], [[8, 11], [4, 8]], [[14, 11], [18, 8]], [[3, 0], [3, 4]], [[19, 0], [19, 4]], [[16, 0], [16, 2]], [[6, 0], [6, 2]]],
+    [{ disc: [11, 15, 2.3] }, { poly: [[8, 11], [14, 11], [13, 6], [9, 6]] }],
+  ),
+  accepted: ['fall', 'falling', 'fell', 'fallen', 'drop', 'dropping', 'dropped', 'tumble', 'plunge', 'plummet', 'go down', 'sink', 'descend'],
+  near: [
+    { words: ['upside', 'upside down', 'head', 'person', 'dive', 'diving', 'jump', 'jumping', 'flip', 'lines'], reply: 'Warm. Someone upside down, head first, lines streaming up past them. What are they doing?' },
+    { words: ['fly', 'rise', 'up', 'climb', 'float'], reply: "Cold. They're going the other way." },
+  ],
+  nudge: 'Someone head first, arms flung out, with the wind streaming up past them.',
+  hint: "What a bird does when it can't fly.",
+};
+
+/** "Must": a heavy stroke and a dot. Like the question's hook, but not a question. */
+const MUST: DecodeSymbol = {
+  id: 'must',
+  picture: scratches(8, 18, [], [{ poly: [[2, 0], [6, 0], [5, 11], [3, 11]] }, { disc: [4, 15, 1.6] }]),
+  accepted: ['must', 'have to', 'has to', 'need to', 'should', 'got to', 'no choice', 'shall', 'forced', 'ought to'],
+  near: [
+    { words: ['would', 'question', 'ask', 'what', 'why', 'hook'], reply: "Close. It's like the question's hook and dot. But straight. This isn't asking anything." },
+    { words: ['line', 'stick', 'dot', 'stroke', 'mark', 'shout', 'loud', 'important', 'warning', 'danger'], reply: "Warm. Said hard, no arguing. Not 'you may'. You ___." },
+  ],
+  nudge: 'A straight stroke, struck hard, with a dot under it. No question about it.',
+  hint: 'Not "you could". Not "you might". Stronger. No choice left.',
+};
+
+/** "Will find": an eye, a winding trail, and a mark where it ends. */
+const FIND: DecodeSymbol = {
+  id: 'find',
+  picture: scratches(
+    26,
+    16,
+    [ring(5, 5, 4, 3, 12), [[10, 6]], [[12, 8]], [[14, 10]], [[16, 10]], [[18, 9]], [[19, 11], [23, 15]], [[23, 11], [19, 15]], [[20, 11], [24, 15]], [[24, 11], [20, 15]]],
+    [{ disc: [5, 5, 1.2] }],
+  ),
+  accepted: ['find', 'will find', 'found', 'finds', 'come for', 'come to', 'search', 'seek', 'look for', 'discover', 'track', 'reach', 'meet', 'get to'],
+  near: [
+    { words: ['see', 'watch', 'eye', 'look', 'spot', 'trail', 'path', 'map', 'x', 'cross', 'mark', 'follow'], reply: "Close. More than seeing: looking, following the trail, and getting there in the end." },
+    { words: ['lose', 'lost', 'hide'], reply: 'Cold. The opposite.' },
+  ],
+  nudge: 'An eye, a trail winding away from it, and a mark where it ends. Looking, and getting there.',
+  hint: "What you do with something that's lost, when you look hard enough.",
+};
+
+/** Message 6 (Day 7): "Clipped wing, make yourself a martyr. Fly if you can, fall if you must. I will find you." (designer) */
+export const MESSAGE_6: Message = {
+  id: 'message6',
+  line: 'Clipped wing, make yourself a martyr. Fly if you can, fall if you must. I will find you.',
+  rows: [
+    ['clipped', 'wing', 'martyr', 'fly', 'if', 'can'],
+    ['fall', 'if', 'must', 'self', 'find', 'you'],
+  ],
+  symbols: [CLIPPED, WING, MARTYR, FLY, IF, CAN, FALL, MUST, SELF, FIND, YOU],
+};
+
 export const MESSAGES: Record<string, Message> = Object.fromEntries(
-  [MESSAGE_1, MESSAGE_2, MESSAGE_3_YES, MESSAGE_3_CANT, MESSAGE_3_WHY, MESSAGE_4, MESSAGE_5_LIVES, MESSAGE_5_SLEEPS].map((m) => [m.id, m]),
+  [MESSAGE_1, MESSAGE_2, MESSAGE_3_YES, MESSAGE_3_CANT, MESSAGE_3_WHY, MESSAGE_4, MESSAGE_5_LIVES, MESSAGE_5_SLEEPS, MESSAGE_6].map((m) => [m.id, m]),
 );

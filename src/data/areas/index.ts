@@ -9,6 +9,7 @@ import { middleTiers } from './middleTiers';
 import { offeringFloor } from './offeringFloor';
 import { rootsMarket } from './rootsMarket';
 import { seedGrove } from './seedGrove';
+import { shrineCell } from './shrineCell';
 import { tendersShrine } from './tendersShrine';
 import { theRot } from './theRot';
 import { trunkClimb } from './trunkClimb';
@@ -36,6 +37,7 @@ export const PLANNED_AREAS: Record<string, string> = {
 export const HIDDEN_AREAS: Record<string, string> = {
   'girls-home': "the girl's home",
   'the-rot': 'the rot',
+  'shrine-cell': 'the cell behind the shrine',
 };
 
 /** Every area's name for menus, on the map or not. */
@@ -58,4 +60,5 @@ export const AREAS: Record<string, AreaDefinition> = {
   [ascensionGate.id]: ascensionGate,
   [girlsHome.id]: girlsHome,
   [theRot.id]: theRot,
+  [shrineCell.id]: shrineCell,
 };

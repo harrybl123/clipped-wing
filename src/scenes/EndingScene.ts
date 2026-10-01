@@ -12,8 +12,8 @@ export interface EndingSceneData {
   ending: string;
 }
 
-/** The endings that stop the game early. Draft words, for the designer. */
-const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number }> = {
+/** The endings: ones that stop the game early, and Act 1's two (Day 7). Draft words, for the designer. */
+const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number; coda?: string }> = {
   // Ignoring Grounded's message twice (the design doc's "short, comfortable loyal ending").
   loyal: {
     title: 'You stayed loyal to the Tree.',
@@ -23,6 +23,39 @@ const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number
       'Whoever had been watching you stopped watching.',
     ],
     retryDay: 2,
+  },
+  // Day 7, up: chased to the very top, and into the tube (big choice 3).
+  fly: {
+    title: 'Fly if you can.',
+    lines: [
+      'The tube took you the way it takes every offering: all at once, without a sound.',
+      'Below you the torches got smaller, and smaller, and then there were none.',
+      'Up, and up, into the white.',
+    ],
+    coda: 'End of Act 1',
+    retryDay: 7,
+  },
+  // Day 7, down: you gave yourself up, and they threw you into the rot; light breaks in at the far end.
+  fall: {
+    title: 'Fall if you must.',
+    lines: [
+      'You went down into the dark, among everything the tree has ever thrown away.',
+      'And at the bottom of it all, a light that never came from the tube.',
+      'I will find you.',
+    ],
+    coda: 'End of Act 1',
+    retryDay: 7,
+  },
+  // The same, with the girl you blamed beside you.
+  fall_together: {
+    title: 'Fall if you must.',
+    lines: [
+      'You went down into the dark, among everything the tree has ever thrown away.',
+      "She didn't forgive you. You didn't ask her to.",
+      'But when the light came in, you went towards it together.',
+    ],
+    coda: 'End of Act 1',
+    retryDay: 7,
   },
 };
 
@@ -49,17 +82,24 @@ export class EndingScene extends Phaser.Scene {
     const centre = (t: PixelText) => t.setX(Math.round((W - t.width) / 2));
     const title = centre(new PixelText(this, 0, 60, ending.title, { color: SHADES.white, scale: 2 })).setAlpha(0);
     this.tweens.add({ targets: title, alpha: 1, duration: 1500, delay: 600 });
+    // Each line under the last (long ones wrap onto two).
+    let y = 106;
     ending.lines.forEach((line, i) => {
-      const t = centre(new PixelText(this, 0, 110 + i * 14, line, { color: SHADES.light, wrapWidth: 400 })).setAlpha(0);
+      const t = centre(new PixelText(this, 0, y, line, { color: SHADES.light, wrapWidth: 400 })).setAlpha(0);
+      y += t.height + 7;
       this.tweens.add({ targets: t, alpha: 1, duration: 1200, delay: 2400 + i * 1600 });
     });
+    if (ending.coda) {
+      const coda = centre(new PixelText(this, 0, y + 10, ending.coda, { color: SHADES.amber })).setAlpha(0);
+      this.tweens.add({ targets: coda, alpha: 1, duration: 1500, delay: 2400 + ending.lines.length * 1600 + 600 });
+    }
 
     const start = getSession(this).dayStarts[ending.retryDay];
     const choices = [
       ...(start ? [{ label: `Try again from Day ${ending.retryDay}`, run: () => this.retry(ending.retryDay) }] : []),
       { label: 'Back to the title', run: () => this.scene.start('Title') },
     ];
-    const shownAt = 2400 + ending.lines.length * 1600 + 800;
+    const shownAt = 2400 + ending.lines.length * 1600 + (ending.coda ? 2400 : 800);
     choices.forEach((c, i) => {
       const text = centre(new PixelText(this, 0, H - 60 + i * 14, c.label, { color: SHADES.dim })).setAlpha(0);
       this.tweens.add({ targets: text, alpha: 1, duration: 800, delay: shownAt });
@@ -88,13 +128,14 @@ export class EndingScene extends Phaser.Scene {
     this.options.forEach((o, i) => o.text.setColor(i === this.selected ? SHADES.amber : SHADES.dim));
   }
 
-  /** Back to how that day began: the story and the calendar as they were, waking at home. */
+  /** Back to how that day began: the story and the calendar as they were, waking where you woke (at home, or in the cell). */
   private retry(day: number): void {
     const session = getSession(this);
     const start = session.dayStarts[day];
     if (!start) return;
     session.story.loadState(start.ink);
     session.calendar = Calendar.fromJSON(start.calendar);
-    this.scene.start('Area', { areaId: 'home', start: { x: 50, y: 150 }, card: `Day ${day}` } satisfies AreaSceneData);
+    session.waiting = null;
+    this.scene.start('Area', { ...(start.wake ?? { areaId: 'home', start: { x: 50, y: 150 } }), card: `Day ${day}` } satisfies AreaSceneData);
   }
 }

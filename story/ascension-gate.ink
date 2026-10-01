@@ -8,5 +8,6 @@
 -> END
 
 === gate_gate ===
+{ chased: -> day7_gate }
 [PLACEHOLDER] The gate into the tube, humming with cold light. Through it, only brightness.
 -> END

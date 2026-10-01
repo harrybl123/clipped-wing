@@ -36,6 +36,17 @@ describe('area access', () => {
     expect(nextHop('home', 'lower-roots', AREAS, (id) => isAreaOpen(id, 5, 'night'))).toBe('back-routes');
   });
 
+  it('on Day 7, keeps you off the floor, opens the back ways for goodbyes, and the chase goes the long way to the top', () => {
+    expect(isAreaOpen('offering-floor', 7, 'afternoon')).toBe(false);
+    expect(isAreaOpen('archive', 7, 'afternoon')).toBe(true);
+    expect(nextHop('home', 'archive', AREAS, (id) => isAreaOpen(id, 7, 'afternoon'))).toBe('back-routes');
+    const night = (id: string) => isAreaOpen(id, 7, 'night');
+    expect(nextHop('home', 'ascension-gate', AREAS, night)).toBe('back-routes');
+    expect(nextHop('tenders-shrine', 'ascension-gate', AREAS, night)).toBe('trunk-climb');
+    expect(nextHop('trunk-climb', 'ascension-gate', AREAS, night)).toBe('middle-tiers');
+    expect(nextHop('upper-halls', 'ascension-gate', AREAS, night)).toBe('ascension-gate');
+  });
+
   it('gives a line to show when an area is closed', () => {
     expect(closedReason('back-routes', 1, 'morning')).toMatch(/back routes/);
     expect(closedReason('home', 1, 'morning')).toBeNull();

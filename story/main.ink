@@ -122,6 +122,24 @@ VAR interrogating = false
 // The girl at the interrogation (a medium choice): "saved" (you declared there's something beyond the Tree: a night in custody) or "blamed" (she's taken to the lower rot).
 VAR girl_fate = ""
 VAR in_custody = false
+// Blamed: she's taken down to the lower rot (and you find her there if you fall, Day 7). Your house is guarded.
+VAR girl_in_rot = false
+VAR house_guarded = false
+
+// Day 7 (story/day7.ink). Stages: wake, carve, rite, visits (in custody) or goodbyes (at home), evening, open, mob, chase, fall, done.
+VAR day7 = ""
+// Your plate on Day 7: a bird in a cage ("I'm trapped"). One picture, no choice.
+VAR reply5 = ""
+// The trial: the elders and a guard on the offering floor while your bird goes up in a cage (and comes back).
+VAR trial = false
+// At home: the archivist will see you in the archive this afternoon (if he's your ally).
+VAR archivist_goodbye = false
+// Big choice 3, up: the mob is after you, all the way to the top. Your friend helps on the way up if you confided in him.
+VAR chased = false
+VAR friend_helps = false
+VAR guard_passed = false
+// Down in the rot, the girl comes with you (if you blamed her, she's been down there all day).
+VAR girl_follows = false
 
 // The glossary: each decoded symbol in the player's own words (glossary_<symbol id>, see src/data/messages.ts).
 // Little words like "that" fill themselves in and have no entry.
@@ -154,6 +172,12 @@ VAR glossary_stayalive = ""
 VAR glossary_need = ""
 VAR glossary_hurry = ""
 VAR glossary_not = ""
+VAR glossary_martyr = ""
+VAR glossary_if = ""
+VAR glossary_can = ""
+VAR glossary_fall = ""
+VAR glossary_must = ""
+VAR glossary_find = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
@@ -162,6 +186,7 @@ INCLUDE day3.ink
 INCLUDE day4.ink
 INCLUDE day5.ink
 INCLUDE day6.ink
+INCLUDE day7.ink
 INCLUDE home.ink
 INCLUDE offering-floor.ink
 INCLUDE roots-market.ink
@@ -170,6 +195,7 @@ INCLUDE lower-roots.ink
 INCLUDE back-routes.ink
 INCLUDE girls-home.ink
 INCLUDE the-rot.ink
+INCLUDE shrine-cell.ink
 INCLUDE tenders-shrine.ink
 INCLUDE trunk-climb.ink
 INCLUDE middle-tiers.ink

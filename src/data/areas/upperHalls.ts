@@ -107,6 +107,7 @@ export const upperHalls: AreaDefinition = {
   ],
 
   features: [
+    { type: 'mob', delay: 2500, speed: 62, showIf: 'chased' }, // Day 7: the mob, on your heels all the way to the top
     { type: 'hint', x: 80, y: FLOOR, reach: 60, text: '"Don\'t touch anything," your escort mutters.', showIf: 'escorted' },
     { type: 'drip', x: 328, y: 208, floorY: FLOOR - 9 },
     { type: 'drip', x: 332, y: 210, floorY: FLOOR - 9 },

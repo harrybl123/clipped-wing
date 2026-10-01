@@ -25,6 +25,7 @@
 
 === back_routes_window ===
 { day3 == "sneak": -> day3_window }
+{ day7 == "goodbyes": -> day7_friend_window }
 A window into the back of your friend's house, high in the tunnel wall.
 -> END
 

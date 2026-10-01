@@ -1,5 +1,13 @@
 # Sequence plan: Day 7, The Mob
 
+Built 2026-10-01 (`story/day7.ink`, the cell's knots in `story/shrine-cell.ink`; message 6 and the
+caged-bird plate in `src/data/messages.ts`; the cell is `src/data/areas/shrineCell.ts`; the chase is
+the `mob` feature in the trunk climb, middle tiers, upper halls and gate; the endings are in
+`src/scenes/EndingScene.ts`). Dev: `?day=7` (in the cell) or `?day=7&girl=blamed` (at home), with
+`&at=evening`, `&at=night`, `&at=chase` or `&at=fall`; `&lied=1` if you lied to your friend. Claude's
+calls are under "Build shape" at the end. In custody you have no plate (the guards have it, or it's at
+home), so you scratch your picture on a sliver of the wood instead.
+
 A plan for the designer to mark up before it's built. **(doc)** = design doc; **(designer)** = decided
 in conversation; **(suggestion)** = Claude's proposal. Dialogue here is a sketch; the full draft comes
 once the shape is agreed. The last day of Act 1.
@@ -101,3 +109,38 @@ once the shape is agreed. The last day of Act 1.
 
 ## Open questions
 None for now: all answered (above). Small calls during the build are Claude's, marked (suggestion).
+
+## Build shape (suggestion; Claude's calls during the build)
+- **Text:** `story/day7.ink`, stages in `day7`: wake, carve, rite, visits (custody) or goodbyes (home),
+  evening, open, mob, chase, fall, done. Draft lines throughout, for the designer to rewrite.
+- **Waking somewhere else:** Day 6's save ends with `#wake:shrine-cell:…` before `#endday`, so Day 7
+  starts in the cell. Retrying Day 7 after an ending starts in the same place.
+- **The cell** (`shrine-cell`, off the map like her home): a small back room behind the shrine with a
+  bench (the wood and knife), the guard's stool, a locked door, and a grate in the floor. Visitors come
+  one after another (Mum, then the archivist if he's your ally, then your friend at the grate if you
+  confided), then the guard takes you to the evening ceremony.
+- **Your plate:** a bird in a cage ("I'm trapped"), one fixed picture (`#plate:caged`, `reply5`).
+- **The trial:** at the morning rite the cage hangs in the tube's mouth and goes up; at the evening
+  ceremony it comes back down with the bird still in it, and the crowd becomes a mob. The Tender hands
+  you the bird as always ("It always comes back to you").
+- **Message 6:** two rows. *clipped · wing · make yourself a martyr (the master's spiral) · fly · if
+  (a fork: two paths) · can (a whole hand)* / *fall · if · must (a stroke and a dot) · I · will find
+  (an eye, a trail and a mark) · you*. Six new pictures: martyr, if, can, fall, must, find.
+- **Home path:** a guard on your door. You carve at your bench, he walks you to the rite and back, and
+  in the afternoon you slip out the rot gap in your cloak for goodbyes: Mum at home, your friend's window
+  (if you confided), the archivist (if he's your ally). Talk to the guard when you're ready for the ceremony.
+- **The mob** (`mob` feature): a crowd with torches that follows the exact path you took through an
+  area (so it works for stairs, ledges and lifts alike), starting a few seconds after you arrive and
+  walking a little slower than you run. Stop too long and they catch you: you're thrown back to where
+  you came in, and they start again. On in the trunk climb, middle tiers, upper halls and the gate
+  while `chased`.
+- **The chase route:** the shrine's back stair → the trunk climb → the middle tiers → the upper halls
+  → the Ascension gate (the archive hatch is barred tonight). From home you go out through the rot gap and
+  up through the shrine's grate first. The gate guards have gone down to join the mob.
+- **Your friend on the way up** (if you confided): at the guard post in the middle tiers, sending the
+  guard the wrong way (a `trigger`: a knot that plays once when you reach a spot).
+- **Fall:** you walk out to the torches; they drag you down and throw you into the rot. You walk towards
+  the far end (the girl is down here if you blamed her), and natural light breaks in.
+- **Endings** ("Fly if you can." / "Fall if you must."): words on black, "End of Act 1", then try
+  again from Day 7 or the title.
+- **Left for later:** the boy's return (`docs/ideas.md`).

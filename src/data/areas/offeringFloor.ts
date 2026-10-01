@@ -1,4 +1,4 @@
-import { FRIEND, GIRL, GUARD, MUM, TENDER, VILLAGERS } from '../../ui/characters';
+import { ELDERS, FRIEND, GIRL, GUARD, MUM, PREACHER, TENDER, VILLAGERS } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import { BIRD, FUNGI, LAMP } from '../../ui/sprites';
 import * as P from './offeringFloorProps';
@@ -33,6 +33,11 @@ const CEREMONY: Person['when'] = ['morning', 'evening'];
 const BITTEN_BIRD = {
   rows: ['......##..', '.....#o##.', '....d#####', '...d.####.', '....d###..', '..........'],
   colours: { '#': S.red, d: S.redDark, o: S.shadow },
+};
+/** Day 7: your bird in a little cage of bent wire, for the trial (it goes up the tube in the morning, and comes back in the evening). */
+const CAGED_BIRD = {
+  rows: ['...ww...', '.wwwwww.', 'w.w..w.w', 'w.wrrw.w', 'wrrrRw.w', 'w.wrrw.w', 'w.w..w.w', 'wwwwwwww'],
+  colours: { w: S.light, r: S.red, R: S.redDark },
 };
 /** Day 4: a ring chalked on the floor at the foot of the stairs, for you to stand in alone. */
 const CHALK_RING = { rows: ['...wwwwwwwwww...', '.ww..........ww.', 'w..............w', '.ww..........ww.', '...wwwwwwwwww...'], colours: { w: S.light } };
@@ -136,6 +141,11 @@ export const offeringFloor: AreaDefinition = {
     { id: 'bitten-bird', sprite: BITTEN_BIRD, x: TUBE_X, y: LANDING.y, when: ['evening'], hidden: true },
     // Day 5 evening: the guard at your shoulder.
     { id: 'escort-floor', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 92, y: FLOOR, when: ['evening'], showIf: 'escorted' },
+    // Day 7: the trial. Two elders on the landing, the preacher on the stairs, a guard at your shoulder; your bird in its cage.
+    { id: 'caged-bird', sprite: CAGED_BIRD, x: TUBE_X, y: LANDING.y, when: CEREMONY, hidden: true },
+    ...[0, 1].map((i): Person => ({ id: `elder-trial-${i}`, sprite: ELDERS[i]!.idle[0]!, idleFrames: ELDERS[i]!.idle, x: 212 + i * 10, y: LANDING.y, when: CEREMONY, showIf: 'trial' })),
+    { id: 'preacher-trial', sprite: PREACHER.idle[0]!, idleFrames: PREACHER.idle, x: 288, y: FLOOR - STEP.rise * 8, flipX: true, when: CEREMONY, showIf: 'trial' },
+    { id: 'guard-trial', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 88, y: FLOOR, when: CEREMONY, showIf: 'trial' },
     // Quieter in the afternoon: a couple of people passing through.
     { id: 'grumbler', sprite: VILLAGERS[2]!.idle[0]!, idleFrames: VILLAGERS[2]!.idle, x: 62, y: FLOOR, knot: 'offering_floor_grumbler', when: ['afternoon'] },
     { id: 'passer-by', sprite: VILLAGERS[5]!.idle[0]!, idleFrames: VILLAGERS[5]!.idle, x: 410, y: FLOOR, flipX: true, when: ['afternoon'] },
