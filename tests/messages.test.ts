@@ -27,7 +27,7 @@ describe.each(Object.values(MESSAGES))('message $id', (message) => {
     for (const id of used) expect(ids.has(id), id).toBe(true);
     expect([...ids].filter((id) => !used.has(id))).toEqual([]);
     for (const row of message.rows) expect(row.length).toBeLessThanOrEqual(7);
-    for (const s of message.symbols) expect(s.picture[0]!.length <= 26 && s.picture.length <= 16, s.id).toBe(true);
+    for (const s of message.symbols) expect(s.picture[0]!.length <= 26 && s.picture.length <= 20, s.id).toBe(true);
   });
 
   it('never lists a word as both near and right', () => {

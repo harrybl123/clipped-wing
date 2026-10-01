@@ -37,15 +37,29 @@ export const glossaryVariable = (symbolId: string) => `glossary_${symbolId}`;
 
 type Point = [number, number];
 
+/** A solid area cut into the plate: a polygon (its outline is drawn too) or a disc. */
+export type Shape = { poly: Point[] } | { disc: [number, number, number] };
+
 /**
- * Draws a picture as scratches: each stroke is a list of points joined by straight lines
- * (Bresenham), on a `width` × `height` grid.
+ * Draws a picture as scratches on a `width` × `height` grid: each stroke is a list of points
+ * joined by straight lines (Bresenham), and each shape is filled solid.
  */
-export function scratches(width: number, height: number, strokes: Point[][]): string[] {
+export function scratches(width: number, height: number, strokes: Point[][], shapes: Shape[] = []): string[] {
   const grid = Array.from({ length: height }, () => Array<string>(width).fill('.'));
   const plot = (x: number, y: number) => {
     if (x >= 0 && y >= 0 && x < width && y < height) grid[y]![x] = '#';
   };
+  for (const shape of shapes) {
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if ('disc' in shape) {
+          const [cx, cy, r] = shape.disc;
+          if ((x - cx) ** 2 + (y - cy) ** 2 <= r * r) plot(x, y);
+        } else if (insidePolygon(x, y, shape.poly)) plot(x, y);
+      }
+    }
+    if ('poly' in shape) strokes = [...strokes, [...shape.poly, shape.poly[0]!]];
+  }
   for (const stroke of strokes) {
     if (stroke.length === 1) plot(...stroke[0]!);
     for (let i = 1; i < stroke.length; i++) {
@@ -74,6 +88,17 @@ export function scratches(width: number, height: number, strokes: Point[][]): st
   return grid.map((row) => row.join(''));
 }
 
+/** Even-odd test: is (x, y) inside the polygon? */
+function insidePolygon(x: number, y: number, poly: Point[]): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i]!;
+    const [xj, yj] = poly[j]!;
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
 /** A closed ring of points around (cx, cy), for eyes and heads. */
 function ring(cx: number, cy: number, rx: number, ry = rx, steps = 12): Point[] {
   return Array.from({ length: steps + 1 }, (_, i) => {
@@ -82,26 +107,37 @@ function ring(cx: number, cy: number, rx: number, ry = rx, steps = 12): Point[] 
   });
 }
 
-/** A little stick figure standing with its head at (x, 2). */
-const figure = (x: number): Point[][] => [ring(x, 2, 2), [[x, 4], [x, 10]], [[x, 10], [x - 2, 13]], [[x, 10], [x + 2, 13]]];
+/** A small solid figure, centred on x, with its head at y. */
+const figureShapes = (x: number, y: number): Shape[] => [{ disc: [x, y, 2.3] }, { poly: [[x - 3, y + 4], [x + 3, y + 4], [x + 2, y + 9], [x - 2, y + 9]] }];
+const figureLimbs = (x: number, y: number): Point[][] => [[[x - 3, y + 4], [x - 5, y + 8]], [[x - 1, y + 9], [x - 2, y + 13]], [[x + 1, y + 9], [x + 2, y + 13]]];
 
 // --- The pictures (one per word). Each symbol can be reused by later messages. ---
 
 const SELF: DecodeSymbol = {
   id: 'self',
-  picture: scratches(13, 14, [...figure(5), [[5, 5], [10, 5], [10, 7], [7, 7]], [[5, 5], [2, 9]]]),
+  picture: scratches(
+    16,
+    20,
+    [[[8, 0], [8, 1]], [[11, 11], [13, 15]], ...figureLimbs(8, 7)],
+    [{ poly: [[5, 1], [11, 1], [8, 4]] }, ...figureShapes(8, 7)],
+  ),
   accepted: ['i', 'me', 'myself', 'self', 'my', 'mine', 'im'],
   near: [
-    { words: ['person', 'man', 'woman', 'figure', 'human', 'someone', 'body', 'people'], reply: 'Warm. A person. But look where its hand is pointing.' },
+    { words: ['person', 'man', 'woman', 'figure', 'human', 'someone', 'body', 'people', 'arrow'], reply: 'Warm. A person, and an arrow pointing right at them. Who is the one pointing?' },
     { words: ['you', 'yourself', 'them', 'him', 'her'], reply: "Close. But it isn't pointing at you. It's pointing at itself." },
   ],
-  nudge: 'Its hand curls back and points at its own chest.',
-  hint: 'Point at your own chest. What do you call the one doing the pointing?',
+  nudge: 'An arrow pointing down at a person. This one, here.',
+  hint: 'Whoever made the plate is pointing at the person: themself. What would they call themself?',
 };
 
 const SEE: DecodeSymbol = {
   id: 'see',
-  picture: scratches(17, 9, [[[0, 4], [4, 1], [8, 0], [12, 1], [16, 4]], [[0, 4], [4, 7], [8, 8], [12, 7], [16, 4]], ring(8, 4, 2, 2, 8), [[8, 4]]]),
+  picture: scratches(
+    25,
+    14,
+    [[[1, 7], [5, 3], [12, 1], [19, 3], [23, 7]], [[1, 7], [5, 11], [12, 13], [19, 11], [23, 7]], [[1, 8], [5, 12]], [[23, 8], [19, 12]], ring(12, 7, 4, 4, 16), [[6, 2], [5, 0]], [[12, 1], [12, 0]], [[18, 2], [19, 0]]],
+    [{ disc: [12, 7, 2] }],
+  ),
   accepted: ['see', 'watch', 'look', 'notice', 'observe', 'spot', 'saw', 'seen', 'stare', 'gaze', 'witness', 'spy', 'look at', 'behold'],
   near: [
     { words: ['eye', 'eyes', 'eyeball', 'vision', 'sight', 'pupil', 'iris', 'face'], reply: 'Warm. It is an eye. But what does an eye do?' },
@@ -113,7 +149,12 @@ const SEE: DecodeSymbol = {
 
 const YOU: DecodeSymbol = {
   id: 'you',
-  picture: scratches(20, 12, [[[1, 4], [3, 2], [9, 2], [10, 3]], [[10, 3], [18, 3], [19, 4], [18, 5], [10, 5]], [[10, 5], [10, 10], [8, 11], [3, 11], [1, 9], [1, 4]], [[4, 6], [9, 6]], [[4, 8], [9, 8]], [[3, 2], [5, 4], [8, 4]]]),
+  picture: scratches(
+    22,
+    14,
+    [[[4, 6], [10, 6]], [[4, 9], [10, 9]], [[3, 3], [6, 5], [10, 5]]],
+    [{ poly: [[1, 5], [3, 3], [11, 3], [11, 4], [20, 4], [21, 5], [20, 6], [11, 6], [11, 12], [9, 13], [3, 13], [1, 11]] }],
+  ),
   accepted: ['you', 'your', 'yourself', 'thee', 'thou', 'ye', 'reader', 'carver'],
   near: [
     { words: ['hand', 'finger', 'point', 'pointing', 'fist', 'arm'], reply: 'Warm. A hand, pointing. But at whom?' },
@@ -125,19 +166,23 @@ const YOU: DecodeSymbol = {
 
 const CLIPPED: DecodeSymbol = {
   id: 'clipped',
-  picture: scratches(18, 14, [[[0, 8], [6, 8]], [[11, 9], [17, 9]], [[8, 9], [15, 1], [16, 2], [9, 10]], [[9, 10], [6, 13], [5, 12], [8, 9]], [[8, 6]], [[10, 11]]]),
-  accepted: ['clipped', 'clip', 'cut', 'cut off', 'snipped', 'severed', 'chopped', 'trimmed', 'sliced', 'lopped', 'broken', 'shortened', 'docked'],
+  picture: scratches(24, 10, [[[19, 6], [5, 6], [4, 5], [5, 4], [21, 4], [22, 5], [22, 7], [21, 8], [3, 8], [1, 7], [1, 3], [3, 1], [18, 1]]]),
+  accepted: ['clipped', 'clip', 'paperclip', 'paper clip', 'clips', 'snipped', 'cut', 'cut off', 'severed', 'chopped', 'trimmed', 'sliced', 'lopped', 'broken', 'shortened', 'docked'],
   near: [
-    { words: ['knife', 'blade', 'chisel', 'sword', 'tool'], reply: "Warm. A blade. What's it doing to the line?" },
-    { words: ['line', 'stick', 'branch', 'thread'], reply: 'Warm. A line, but in two pieces now. What happened to it?' },
+    { words: ['wire', 'pin', 'hook', 'loop', 'staple', 'metal'], reply: 'Warm. A bent bit of wire for holding things together. What is it called?' },
+    { words: ['knife', 'blade', 'scissors', 'shears'], reply: 'Close in meaning. But the picture is the wire itself. What is it called?' },
   ],
-  nudge: 'The blade has gone right through the line. One end has dropped away.',
+  nudge: 'A loop of wire, the kind that clips things together. It sounds like what was done to your wing.',
   hint: 'You remember the knife slipping, and what it did to your hand.',
 };
 
 const WING: DecodeSymbol = {
   id: 'wing',
-  picture: scratches(18, 12, [[[1, 10], [4, 4], [9, 1], [16, 0]], [[4, 4], [6, 11]], [[7, 2], [9, 11]], [[10, 1], [12, 10]], [[13, 1], [15, 8]], [[16, 0], [17, 5]], [[1, 10], [6, 11], [9, 11], [12, 10], [15, 8], [17, 5]]]),
+  picture: scratches(
+    24,
+    18,
+    [[[23, 2], [15, 1], [6, 2], [1, 5], [5, 6], [2, 9], [6, 10], [4, 13], [9, 13], [8, 16], [13, 15], [23, 8], [23, 2]], [[5, 6], [18, 4]], [[6, 10], [19, 7]], [[9, 13], [18, 10]], [[15, 1], [23, 5]]],
+  ),
   accepted: ['wing', 'wings', 'winged'],
   near: [
     { words: ['feather', 'feathers', 'bird', 'birds', 'arm', 'fan', 'leaf'], reply: 'Warm. Part of a bird. Which part?' },
@@ -149,7 +194,12 @@ const WING: DecodeSymbol = {
 
 const SEND: DecodeSymbol = {
   id: 'send',
-  picture: scratches(20, 14, [...figure(3), [[3, 6], [7, 6]], [[7, 6], [19, 6]], [[16, 3], [19, 6], [16, 9]]]),
+  picture: scratches(
+    24,
+    18,
+    [...figureLimbs(4, 3), [[7, 7], [19, 7]], [[7, 8], [19, 8]]],
+    [...figureShapes(4, 3), { poly: [[18, 3], [23, 7], [18, 12]] }],
+  ),
   accepted: ['send', 'sent', 'give', 'offer', 'deliver', 'pass', 'post', 'throw', 'hand over', 'pass on', 'dispatch', 'gift'],
   near: [
     { words: ['arrow', 'away', 'go', 'leave', 'up', 'out', 'away from'], reply: 'Warm. Something going away from someone. Like an offering, going up the tube.' },
@@ -161,19 +211,29 @@ const SEND: DecodeSymbol = {
 
 const NEW: DecodeSymbol = {
   id: 'new',
-  picture: scratches(16, 14, [[[2, 8], [2, 10], [4, 13], [11, 13], [13, 10], [13, 8]], [[2, 8], [4, 6], [6, 8], [8, 5], [10, 8], [12, 6], [13, 8]], [[3, 3], [5, 1], [8, 0], [11, 1], [12, 3]], [[3, 3], [5, 2], [7, 3], [9, 2], [12, 3]], [[1, 4]], [[14, 4]]]),
+  picture: scratches(
+    24,
+    18,
+    [ring(12, 12, 7, 5, 20).filter(([, y]) => y >= 11), [[5, 11], [7, 9], [9, 11], [11, 8], [13, 11], [15, 9], [17, 11], [19, 11]], [[6, 6], [8, 3], [12, 1], [16, 2], [18, 5]], [[6, 6], [8, 4], [10, 6], [12, 4], [14, 6], [16, 4], [18, 5]], [[14, 9], [16, 9]], [[2, 4], [3, 4]], [[21, 3], [22, 3]]],
+    [{ disc: [12, 9, 2] }],
+  ),
   accepted: ['new', 'fresh', 'born', 'newborn', 'hatch', 'hatched', 'young', 'begin', 'beginning', 'start', 'birth', 'brand new'],
   near: [
     { words: ['egg', 'eggs', 'shell', 'crack', 'cracked', 'broken', 'open'], reply: "Warm. An egg, just broken open. What's it like, whatever comes out?" },
     { words: ['old'], reply: 'Cold. The opposite.' },
   ],
-  nudge: 'An egg that has only just cracked open.',
+  nudge: 'An egg cracking open, and a tiny head peeping out.',
   hint: 'You remember being small at the bench, and Mum: "There. Your very first bird." Something just made.',
 };
 
 const LIFE: DecodeSymbol = {
   id: 'life',
-  picture: scratches(14, 14, [[[7, 13], [7, 5]], [[7, 9], [4, 7], [2, 7], [3, 9], [7, 10]], [[7, 6], [10, 3], [12, 3], [11, 5], [7, 7]], [[2, 13], [12, 13]]]),
+  picture: scratches(
+    24,
+    18,
+    [[[12, 15], [12, 6]], [[13, 15], [13, 7]]],
+    [{ poly: [[3, 17], [21, 17], [18, 15], [6, 15]] }, { poly: [[12, 11], [8, 8], [4, 8], [6, 11], [12, 12]] }, { poly: [[13, 8], [16, 4], [21, 3], [19, 7], [13, 9]] }],
+  ),
   accepted: ['life', 'alive', 'living', 'live', 'lives', 'grow', 'growing', 'growth'],
   near: [
     { words: ['plant', 'sprout', 'seed', 'leaf', 'leaves', 'shoot', 'tree', 'root', 'roots', 'fungus', 'flower'], reply: 'Warm. A shoot, growing. What does growing mean it has?' },
@@ -195,7 +255,7 @@ const THAT: DecodeSymbol = {
 
 const CANT: DecodeSymbol = {
   id: 'cant',
-  picture: scratches(12, 12, [[[1, 1], [10, 10]], [[2, 1], [11, 10]], [[10, 1], [1, 10]], [[11, 1], [2, 10]]]),
+  picture: scratches(14, 14, [[[1, 1], [12, 12]], [[2, 1], [13, 12]], [[1, 2], [12, 13]], [[12, 1], [1, 12]], [[13, 1], [2, 12]], [[12, 2], [1, 13]]]),
   accepted: ['cant', 'cannot', 'can not', 'no', 'not', 'unable', 'never', 'wont', 'dont', 'impossible', 'unable to'],
   near: [
     { words: ['cross', 'x', 'kiss', 'mark', 'stop', 'wrong', 'cross out'], reply: 'Warm. A cross. What does it mean when you cross something out?' },
@@ -207,13 +267,18 @@ const CANT: DecodeSymbol = {
 
 const FLY: DecodeSymbol = {
   id: 'fly',
-  picture: scratches(22, 12, [[[11, 6], [7, 2], [3, 1], [0, 3]], [[11, 6], [15, 2], [19, 1], [21, 3]], [[0, 3], [4, 4], [7, 5], [11, 7], [15, 5], [18, 4], [21, 3]], [[3, 1], [4, 4]], [[7, 2], [7, 5]], [[15, 2], [15, 5]], [[19, 1], [18, 4]], ring(11, 4, 1, 1, 6), [[11, 7], [11, 9]], [[11, 9], [10, 11]], [[11, 9], [12, 11]]]),
+  picture: scratches(
+    24,
+    14,
+    [[[12, 10], [11, 13]], [[13, 10], [14, 13]]],
+    [{ poly: [[12, 8], [7, 3], [1, 2], [5, 5], [10, 10]] }, { poly: [[13, 8], [18, 3], [23, 2], [19, 5], [15, 10]] }, { disc: [12.5, 9, 2] }, { disc: [12.5, 6, 1.5] }],
+  ),
   accepted: ['fly', 'flying', 'flight', 'flies', 'flew', 'flown', 'soar', 'soaring', 'glide', 'take off'],
   near: [
     { words: ['bird', 'birds', 'wing', 'wings', 'feather'], reply: 'Warm. A bird, wings wide open. What is it doing?' },
     { words: ['rise', 'rising', 'up', 'ascend', 'ascension'], reply: 'Close. Rising, but not up a tube. On its own wings.' },
   ],
-  nudge: 'A bird with both wings spread, up in the air.',
+  nudge: 'A bird with both wings raised, up in the air.',
   hint: 'Mum\'s voice at the bench: "Hold it gently, like it might fly off."',
 };
 
