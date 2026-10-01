@@ -576,6 +576,19 @@ const WATCHED = scratches(
   [{ disc: [12, 4, 2.2] }, ...figureShapes(12, 12)],
 );
 
+/** "They blame me; help me": hands pointing at you from both sides, and a hand reaching down from above. */
+const POINTING_HANDS = scratches(
+  32,
+  20,
+  [...figureLimbs(16, 9), [[13, 2], [13, 5]], [[15, 2], [15, 6]], [[17, 2], [17, 6]], [[19, 2], [19, 5]]],
+  [
+    ...figureShapes(16, 9),
+    { poly: [[0, 10], [5, 10], [5, 11], [10, 11], [10, 12], [5, 12], [5, 15], [0, 15]] },
+    { poly: [[31, 10], [26, 10], [26, 11], [21, 11], [21, 12], [26, 12], [26, 15], [31, 15]] },
+    { poly: [[12, 0], [20, 0], [20, 2], [12, 2]] },
+  ],
+);
+
 export interface ReplyOption {
   /** What goes into the ink variable. */
   value: string;
@@ -586,6 +599,8 @@ export interface ReplyOption {
 export const REPLY_SETS: Record<string, { variable: string; options: ReplyOption[] }> = {
   // Day 4, to message 2: yes (open wings) / I can't (a clipped wing) / why? (a hook and a dot).
   reply2: { variable: 'reply2', options: [{ value: 'yes', picture: FLY.picture }, { value: 'cant', picture: CLIPPED_WING }, { value: 'why', picture: WOULD.picture }] },
+  // Day 6: one picture, no choice: everyone pointing at you, and a hand reaching down (they blame me; help me).
+  blame: { variable: 'reply4', options: [{ value: 'blame', picture: POINTING_HANDS }] },
   // Day 5, to message 3: who are you? / take me / I'm being watched.
   reply3: { variable: 'reply3', options: [{ value: 'who', picture: WHO_ARE_YOU }, { value: 'take', picture: TAKE_ME }, { value: 'watched', picture: WATCHED }] },
 };
@@ -620,4 +635,134 @@ export const MESSAGE_4: Message = {
   symbols: [CLIPPED, WING, SEND, SELF, SEED, THAT, CANT, FLY],
 };
 
-export const MESSAGES: Record<string, Message> = Object.fromEntries([MESSAGE_1, MESSAGE_2, MESSAGE_3_YES, MESSAGE_3_CANT, MESSAGE_3_WHY, MESSAGE_4].map((m) => [m.id, m]));
+// --- Message 5's new pictures ---
+
+/** "Lives": the seed grown into a little tree, leafing out. */
+const LIVES: DecodeSymbol = {
+  id: 'lives',
+  picture: scratches(
+    24,
+    18,
+    [[[12, 17], [12, 6]], [[13, 17], [13, 7]], [[12, 11], [8, 8]], [[13, 10], [17, 7]], [[0, 17], [23, 17]]],
+    [{ disc: [12, 5, 4.2] }, { disc: [7, 8, 3] }, { disc: [18, 7, 3] }, { poly: [[9, 17], [12, 15], [15, 17]] }],
+  ),
+  accepted: ['lives', 'live', 'alive', 'living', 'grows', 'grow', 'growing', 'grew', 'grown', 'thrives', 'sprouted', 'blooms', 'flourishes'],
+  near: [
+    { words: ['tree', 'plant', 'bush', 'leaves', 'sapling', 'seedling'], reply: "Warm. A little tree, grown from something small. What's it doing? It's..." },
+    { words: ['dead', 'dies', 'died', 'sleeps'], reply: 'Cold. Look how it leafs out.' },
+  ],
+  nudge: 'The seed, grown into a little tree, in full leaf.',
+  hint: 'The seed you sent. What has it done?',
+};
+
+/** "The rot": a glistening blob, dripping. */
+const ROT: DecodeSymbol = {
+  id: 'rot',
+  picture: scratches(
+    24,
+    18,
+    [[[7, 9], [7, 14]], [[12, 10], [12, 17]], [[17, 9], [17, 13]]],
+    [{ poly: [[2, 8], [5, 3], [10, 1], [16, 2], [21, 4], [22, 8], [18, 10], [12, 11], [6, 10]] }, { disc: [7, 15, 1.4] }, { disc: [17, 14, 1.4] }],
+  ),
+  accepted: ['rot', 'the rot', 'rotten', 'rotting', 'decay', 'decayed', 'mould', 'mold', 'blight', 'sickness', 'disease', 'filth', 'slime', 'corruption'],
+  near: [
+    { words: ['drip', 'drips', 'dripping', 'blob', 'goo', 'sticky', 'green', 'fungus', 'puddle', 'wet'], reply: "Warm. Something wet and dripping, the kind of thing the whole roots fears. What's it called?" },
+  ],
+  nudge: 'Something soft and wet, oozing and dripping. What the roots are frightened of.',
+  hint: 'What they call you, at the ceremonies: ___-hand.',
+};
+
+/** "Deep": layers, and an arrow going down through all of them. */
+const DEEP: DecodeSymbol = {
+  id: 'deep',
+  picture: scratches(
+    24,
+    18,
+    [[[0, 3], [23, 3]], [[2, 7], [21, 7]], [[4, 11], [19, 11]], [[6, 15], [17, 15]], [[12, 0], [12, 15]], [[11, 0], [11, 15]], [[8, 12], [11, 17], [12, 17], [15, 12]]],
+  ),
+  accepted: ['deep', 'deeper', 'depth', 'depths', 'below', 'down', 'under', 'beneath', 'far down', 'deep down', 'underneath', 'bottom'],
+  near: [
+    { words: ['layers', 'arrow', 'lines', 'roots', 'ground', 'floor', 'under the tree'], reply: 'Warm. An arrow going down through layer after layer. How far down is it?' },
+    { words: ['up', 'high', 'shallow', 'top'], reply: 'Cold. The opposite.' },
+  ],
+  nudge: 'An arrow going down through layer after layer, all the way to the bottom.',
+  hint: 'Further down than the lower roots. Further than anyone goes.',
+};
+
+/** "Stay alive": someone hanging on to a branch by their hands. */
+const STAY_ALIVE: DecodeSymbol = {
+  id: 'stayalive',
+  picture: scratches(
+    24,
+    18,
+    [[[0, 1], [23, 1]], [[0, 2], [23, 2]], [[9, 3], [11, 7]], [[15, 3], [13, 7]], [[11, 15], [10, 17]], [[13, 15], [14, 17]]],
+    [{ disc: [12, 8, 2.2] }, { poly: [[9, 10], [15, 10], [14, 15], [10, 15]] }],
+  ),
+  accepted: ['stay alive', 'survive', 'live', 'hold on', 'hang on', 'stay', 'endure', 'keep going', 'dont die', 'keep living', 'cling on', 'last', 'be safe', 'stay safe'],
+  near: [
+    { words: ['hang', 'hanging', 'branch', 'climb', 'climbing', 'grip', 'cling', 'swing', 'fall'], reply: "Warm. Someone hanging on by their fingertips. What's he telling you to do?" },
+  ],
+  nudge: 'Someone hanging on to a branch by their hands, not letting go.',
+  hint: 'Mum, last night: "Whatever keeps you alive."',
+};
+
+/** "Need": two open hands reaching up. */
+const NEED: DecodeSymbol = {
+  id: 'need',
+  picture: scratches(
+    24,
+    18,
+    [[[3, 3], [3, 8]], [[5, 1], [5, 8]], [[7, 2], [7, 8]], [[1, 7], [2, 9]], [[16, 2], [16, 8]], [[18, 1], [18, 8]], [[20, 3], [20, 8]], [[22, 7], [21, 9]]],
+    [{ poly: [[2, 8], [9, 8], [8, 14], [4, 14]] }, { poly: [[14, 8], [21, 8], [19, 14], [15, 14]] }, { poly: [[4, 14], [8, 14], [9, 17], [3, 17]] }, { poly: [[15, 14], [19, 14], [20, 17], [14, 17]] }],
+  ),
+  accepted: ['need', 'needs', 'want', 'require', 'must have', 'ask', 'call', 'help', 'call for', 'ask for', 'beg'],
+  near: [
+    { words: ['hands', 'hand', 'reach', 'reaching', 'grab', 'please', 'give', 'catch'], reply: 'Warm. Hands reaching out, open, for something they have to have. What do they do?' },
+  ],
+  nudge: 'Two open hands, reaching up for something they can\'t do without.',
+  hint: 'What you feel for food, today. Not want. Something stronger.',
+};
+
+/** "Hurry": a figure running, with speed lines behind. */
+const HURRY: DecodeSymbol = {
+  id: 'hurry',
+  picture: scratches(
+    24,
+    18,
+    [[[13, 7], [17, 9]], [[13, 7], [10, 10]], [[12, 11], [16, 14], [15, 17]], [[12, 11], [8, 13], [6, 16]], [[0, 5], [5, 5]], [[1, 9], [6, 9]], [[0, 13], [4, 13]]],
+    [{ disc: [15, 3, 2.2] }, { poly: [[11, 6], [15, 6], [13, 12], [11, 12]] }],
+  ),
+  accepted: ['hurry', 'quick', 'quickly', 'fast', 'run', 'rush', 'soon', 'now', 'haste', 'hasten', 'go', 'be quick', 'come quickly'],
+  near: [
+    { words: ['runner', 'legs', 'chase', 'flee', 'escape', 'race', 'speed'], reply: 'Warm. Someone running as fast as they can. What is he telling you to do?' },
+    { words: ['slow', 'wait', 'later'], reply: 'Cold. The opposite.' },
+  ],
+  nudge: 'Someone running flat out, speed lines streaming behind.',
+  hint: 'What everyone says when the guards are coming.',
+};
+
+/** Message 5 (Day 6), after the archivist's seed: "New life lives. Clipped wing, stay alive. You are not the rot. We need you. Hurry." */
+export const MESSAGE_5_LIVES: Message = {
+  id: 'message5_lives',
+  line: 'New life lives. Clipped wing, stay alive. You are not the rot. We need you. Hurry.',
+  rows: [
+    ['seed', 'lives', 'clipped', 'wing', 'stayalive'],
+    ['you', 'cant', 'rot', 'many', 'need', 'you', 'hurry'],
+  ],
+  symbols: [SEED, LIVES, CLIPPED, WING, STAY_ALIVE, YOU, CANT, ROT, MANY, NEED, HURRY],
+};
+
+/** Message 5 (Day 6), after the boy's seed: "New life sleeps. The rot is deep. Clipped wing, stay alive. You are not the rot. We need you. Hurry." */
+export const MESSAGE_5_SLEEPS: Message = {
+  id: 'message5_sleeps',
+  line: 'New life sleeps. The rot is deep. Clipped wing, stay alive. You are not the rot. We need you. Hurry.',
+  rows: [
+    ['seed', 'rest', 'rot', 'deep', 'clipped', 'wing', 'stayalive'],
+    ['you', 'cant', 'rot', 'many', 'need', 'you', 'hurry'],
+  ],
+  symbols: [SEED, REST, ROT, DEEP, CLIPPED, WING, STAY_ALIVE, YOU, CANT, MANY, NEED, HURRY],
+};
+
+export const MESSAGES: Record<string, Message> = Object.fromEntries(
+  [MESSAGE_1, MESSAGE_2, MESSAGE_3_YES, MESSAGE_3_CANT, MESSAGE_3_WHY, MESSAGE_4, MESSAGE_5_LIVES, MESSAGE_5_SLEEPS].map((m) => [m.id, m]),
+);

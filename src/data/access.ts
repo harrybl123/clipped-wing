@@ -57,6 +57,14 @@ const CLOSED: Partial<Record<Day, Record<string, string>>> = {
     'trunk-climb': "There's no reason to climb today.",
     'offering-floor': 'Across the way, a man with a lamp is watching your door. Not that way.',
   },
+  // Day 6: the lower roots and back routes are yours (in your cloak); the upper branches are shut again.
+  6: {
+    ...without(HELD_BACK, 'back-routes', 'lower-roots'),
+    'friends-home': 'His family has forbidden you from coming near.',
+    'ascension-gate': 'The gate is only opened for an Ascension.',
+    'trunk-climb': "There's no reason to climb today.",
+    'offering-floor': 'Across the way, a man with a lamp is watching your door. Not that way.',
+  },
 };
 
 /** Areas that open at particular times on a day that otherwise keeps them closed. */
@@ -65,6 +73,7 @@ const OPENS_AT: Partial<Record<Day, Record<string, TimeSlot[]>>> = {
   // Day 3: the girl shows you the way down after the morning rite.
   3: { 'lower-roots': ['afternoon', 'evening', 'night'], 'back-routes': ['afternoon', 'evening', 'night'] },
   4: { 'lower-roots': ['night'], 'offering-floor': ['morning', 'afternoon', 'evening'] },
+  6: { 'offering-floor': ['morning', 'afternoon', 'evening'] },
   5: { 'middle-tiers': ['afternoon'], 'upper-halls': ['afternoon'], 'trunk-climb': ['night'], archive: ['night'], 'offering-floor': ['morning', 'afternoon', 'evening'] },
 };
 

@@ -1,4 +1,4 @@
-import { FRIEND, GIRL } from '../../ui/characters';
+import { ELDERS, FRIEND, GIRL, PREACHER, TENDER } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import { FUNGI } from '../../ui/sprites';
 import * as P from './backRoutesProps';
@@ -146,6 +146,10 @@ export const backRoutes: AreaDefinition = {
   people: [
     // Day 3: the girl, showing you the way.
     { id: 'girl-guide', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 60, y: LOWER, knot: 'girl_guide', showIf: 'girl_with_you', follow: true },
+    // Day 6: the elders' secret meeting, in the old chamber under the offering floor.
+    ...[440, 458, 476].map((x, i) => ({ id: `meeting-elder-${i}`, sprite: ELDERS[i]!.idle[0]!, idleFrames: ELDERS[i]!.idle, x, y: UPPER, showIf: 'meeting' })),
+    { id: 'meeting-tender', sprite: TENDER.idle[0]!, idleFrames: TENDER.idle, x: 512, y: UPPER, flipX: true, showIf: 'meeting' },
+    { id: 'meeting-preacher', sprite: PREACHER.idle[0]!, idleFrames: PREACHER.idle, x: 534, y: UPPER, flipX: true, showIf: 'meeting' },
     // Day 3: your friend, leaning out of his window when you knock.
     { id: 'friend-window', sprite: FRIEND.idle[0]!, idleFrames: FRIEND.idle, x: 936, y: UPPER, flipX: true, hidden: true },
   ],
@@ -156,6 +160,7 @@ export const backRoutes: AreaDefinition = {
     { id: 'broken-blessings', x: 540, y: LOWER, reach: 16, label: 'Search', knot: 'back_routes_broken_blessings' },
     { id: 'mark', x: 356, y: MIDDLE, reach: 8, label: 'Look', knot: 'back_routes_mark' },
     { id: 'friends-window', x: 912, y: UPPER, reach: 8, label: 'Knock', knot: 'back_routes_window' },
+    { id: 'listen-spot', x: 584, y: UPPER, reach: 10, label: 'Listen', knot: 'back_routes_listen' },
   ],
 
   exits: [

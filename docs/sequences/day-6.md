@@ -1,5 +1,13 @@
 # Sequence plan: Day 6, Scapegoat
 
+Built 2026-10-01 (`story/day6.ink`; message 5 and the pointing hands in `src/data/messages.ts`; the
+tail is the `quarry` feature in `src/data/areas/rootsMarket.ts`). Dev: `?day=6` (`&seed=healthy`),
+`?day=6&at=tail`, `?day=6&at=interrogation` (`&plate=1`). Claude's calls on the small questions: the
+market is a short scripted scene; at the stew stall he stops to talk, then looks back at the foot of the
+balcony steps and by the ration hatch (with a pause before each look, "...", to get out of sight); the
+meeting is in the old chamber under the offering floor, listened to from the tunnel; a found plate
+adds a line and suspicion.
+
 A plan for the designer to mark up before it's built. **(doc)** = design doc; **(designer)** = decided
 in conversation; **(suggestion)** = Claude's proposal. Dialogue here is a sketch; the full draft comes
 once the shape is agreed.

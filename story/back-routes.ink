@@ -27,3 +27,9 @@
 { day3 == "sneak": -> day3_window }
 A window into the back of your friend's house, high in the tunnel wall.
 -> END
+
+// Day 6: where the tunnel narrows, near the old chamber under the offering floor: listen to the elders.
+=== back_routes_listen ===
+{ day6 == "listen": -> day6_meeting }
+The tunnel narrows here, then opens out into the old chamber under the offering floor.
+-> END

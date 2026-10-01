@@ -246,7 +246,8 @@ describe('ink pipeline', () => {
       expect(v['objective_target']).toBe('archive:archivist-night');
       play('archive_archivist', 0, 2); // the wrong mark, then the right one
       expect(v['seed']).toBe('healthy');
-      expect(play('home_bed', 0)).toContain('endday:Day 6 (not built yet)');
+      expect(play('home_bed', 0)).toContain('endday:Day 6');
+      expect(v['day6']).toBe('wake');
     });
 
     it('if you told him, you can still go to the lower roots, where the boy sells you a seed for food', () => {
@@ -274,6 +275,72 @@ describe('ink pipeline', () => {
       play('lower_roots_dodger', 1);
       expect(v['seed']).toBe('roots');
       expect(v['food_store']).toBe(3);
+    });
+  });
+
+  describe('Day 6', () => {
+    const play6 = (seed: 'healthy' | 'roots') => {
+      const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+      const v = story.variablesState;
+      const play = (knot: string, ...choices: number[]) => {
+        story.ChoosePathString(knot);
+        const tags: string[] = [];
+        for (;;) {
+          while (story.canContinue) {
+            story.Continue();
+            tags.push(...(story.currentTags ?? []));
+          }
+          const next = choices.shift();
+          if (next === undefined || story.currentChoices.length === 0) break;
+          story.ChooseChoiceIndex(next);
+        }
+        return tags;
+      };
+      Object.entries({ dialogue_style: 'voice', day1: 'done', day2: 'done', day3: 'done', day4: 'done', day5: 'done', reply1: 'fledgling', seed, day6: 'wake', food_store: 3 }).forEach(([k, x]) => (v[k] = x));
+      play('home_mum', 0);
+      expect(play('home_bench', 0)).toContain('carve:day6_carving');
+      expect(play('day6_carving')).toEqual(expect.arrayContaining(['plate:blame', 'step:scratch', 'step:seal', 'end']));
+      expect(play('shrine_tender_summons', 2)).not.toContain('time:afternoon');
+      expect(v['objective_target']).toBe('roots-market:food-seller');
+      expect(play('market_food_seller', 2)).toEqual(expect.arrayContaining(['throw', 'time:afternoon', 'goto:home:40:236']));
+      expect(v['objective_target']).toBe(seed === 'roots' ? 'lower-roots:dodger' : 'lower-roots:girl');
+      if (seed === 'healthy') play('lower_roots_girl');
+      play('lower_roots_dodger', 1);
+      expect(v['has_disguise']).toBe(true);
+      expect(v['tailing']).toBe(true);
+      expect(v['food_store']).toBe(1);
+      // The quarry feature sets tail_done when they slip behind the ration hatch.
+      expect(play('market_ration_hatch')).not.toContain('goto:back-routes:646:120:day6_tail_down');
+      v['tail_done'] = true;
+      expect(play('market_ration_hatch')).toContain('goto:back-routes:646:120:day6_tail_down');
+      expect(v['meeting']).toBe(true);
+      expect(play('back_routes_listen')).toContain('time:evening');
+      expect(play('offering_floor_chalk_ring', 2)).toEqual(expect.arrayContaining(['show:bitten-bird', 'recoil', 'goto:home:130:236:day6_mum_night']));
+      play('day6_mum_night');
+      expect(play('home_hearth')).toContain(seed === 'healthy' ? 'decode:message5_lives:day6_decoded' : 'decode:message5_sleeps:day6_decoded');
+      expect(play('day6_decoded')).toContain('when:evidence_left:day6_guards:15');
+      return { v, play };
+    };
+
+    it('if you save the girl, she goes free and you spend the night in custody', () => {
+      const { v, play } = play6('healthy');
+      play('home_hide_plate');
+      expect(v['evidence_left']).toBe(0);
+      expect(play('day6_guards')).toContain('goto:tenders-shrine:218:236:day6_interrogation');
+      expect(v['plate_found']).toBe(false);
+      expect(play('day6_interrogation', 2, 2, 0, 0)).toEqual(expect.arrayContaining(['show:girl-shrine', 'dim:on', 'dim:off', 'endday:Day 7 (not built yet)']));
+      expect(v['girl_fate']).toBe('saved');
+      expect(v['in_custody']).toBe(true);
+    });
+
+    it("if you blame her, she's taken to the lower rot and you're sent home; a plate left out is found", () => {
+      const { v, play } = play6('roots');
+      play('day6_guards'); // too slow: the plate's still out
+      expect(v['plate_found']).toBe(true);
+      expect(play('day6_interrogation', 0, 0, 1, 0)).toContain('goto:home:130:236:day6_home_after');
+      expect(v['girl_fate']).toBe('blamed');
+      expect(v['in_custody']).toBe(false);
+      expect(play('home_bed', 0)).toContain('endday:Day 7 (not built yet)');
     });
   });
 

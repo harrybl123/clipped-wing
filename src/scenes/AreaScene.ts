@@ -14,7 +14,7 @@ import { getSession } from '../session';
 import { DebugOverlay } from '../ui/DebugOverlay';
 import { DialogueBox } from '../ui/DialogueBox';
 import { paintArea } from '../ui/paintArea';
-import { WATCHMAN } from '../ui/characters';
+import { CLOAK, WATCHMAN } from '../ui/characters';
 import { SHADES } from '../ui/pixelArt';
 import { makePaintedTexture, makeSpriteTexture, PIXEL } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
@@ -186,6 +186,26 @@ interface Watchman {
   step: number;
 }
 
+/** People you're tailing (the `quarry` feature). */
+interface Quarry {
+  feature: Extract<Feature, { type: 'quarry' }>;
+  /** Each person's distance from the leader at the start, kept as they walk. */
+  offsets: number[];
+  /** The path point they're heading for. */
+  next: number;
+  wait: number;
+  looking: boolean;
+  /** At a stop where he'll look round: ms before he turns (a moment to get out of sight). */
+  turnIn: number;
+  /** Ms until you're sent back, once they've seen you or you've lost them (null: neither). */
+  alarm: number | null;
+  done: boolean;
+  callout: PixelText;
+}
+
+/** How long someone you're tailing pauses before looking round (ms): a moment to get out of sight. */
+const QUARRY_TURN = 900;
+
 /** How far above or below his feet the watch's lantern reaches. */
 const WATCH_VIEW_Y = 60;
 /** A standing watchman turns round this often (ms), unless the feature says otherwise; a pacing one waits this long at each end. */
@@ -229,6 +249,9 @@ export class AreaScene extends Phaser.Scene {
   private watchmen: Watchman[] = [];
   private shadows: Extract<Feature, { type: 'shadow' }>[] = [];
   private shadowGraphics: Phaser.GameObjects.Graphics | null = null;
+  private quarries: Quarry[] = [];
+  /** The hooded cloak over the player, once you have it (Day 6 on). */
+  private cloak!: Phaser.GameObjects.Image;
 
   constructor() {
     super('Area');
@@ -257,6 +280,7 @@ export class AreaScene extends Phaser.Scene {
     this.watchmen = [];
     this.shadows = [];
     this.shadowGraphics = null;
+    this.quarries = [];
   }
 
   create(): void {
@@ -323,6 +347,7 @@ export class AreaScene extends Phaser.Scene {
 
     const arrival = this.start ?? area.exits.find((e) => e.to === this.from) ?? area.playerStart;
     this.player = new Player(this, arrival.x, arrival.y);
+    this.cloak = this.add.image(arrival.x, arrival.y, makeSpriteTexture(this, 'cloak', CLOAK.rows, CLOAK.colours)).setOrigin(0.5, 1).setDepth(11).setVisible(false);
     // Pressing down drops through one-way platforms (walkways, bridges, roofs, stairs).
     const notDroppingThrough = (_p: unknown, other: unknown) => !(this.player.dropping && (other as Phaser.GameObjects.GameObject).getData('oneWay'));
     this.physics.add.collider(this.player.sprite, solids, undefined, notDroppingThrough);
@@ -364,7 +389,7 @@ export class AreaScene extends Phaser.Scene {
 
   override update(_time: number, delta: number): void {
     const interactPressed = Phaser.Input.Keyboard.JustDown(this.interactKey);
-    const caught = this.watchmen.some((w) => w.alarm !== null);
+    const caught = this.watchmen.some((w) => w.alarm !== null) || this.quarries.some((q) => q.alarm !== null);
     const blocked = this.leaving || caught || this.dialogue.isOpen || this.game.loop.frame === this.dialogueClosedFrame;
     this.player.update(blocked);
     this.stepUp();
@@ -376,6 +401,8 @@ export class AreaScene extends Phaser.Scene {
     this.updateCollapses(delta);
     this.updateBeetles(delta);
     this.updateWatch(delta);
+    this.updateQuarries(delta);
+    this.updateCloak();
     this.checkHazards();
     this.updateWaiting(delta);
     this.updateHints();
@@ -609,9 +636,7 @@ export class AreaScene extends Phaser.Scene {
     if (!this.watchmen.length) return;
     const { story } = getSession(this);
     const { x: px, y: py } = this.player.feet;
-    const inShadow = this.shadows.some((s) => (!s.showIf || story.getVariable(s.showIf)) && Math.abs(py - s.y) <= 2 && px >= s.x && px <= s.x + s.width);
-    this.player.sprite.setAlpha(inShadow && this.watchmen.some((w) => w.image.visible) ? 0.45 : 1);
-    this.shadowGraphics?.setVisible(this.shadows.some((s) => !s.showIf || story.getVariable(s.showIf)));
+    const inShadow = this.inShadow();
     for (const w of this.watchmen) {
       const f = w.feature;
       const on = !f.showIf || !!story.getVariable(f.showIf);
@@ -660,6 +685,111 @@ export class AreaScene extends Phaser.Scene {
         w.alarm = 900;
         w.callout.setText("Who's there?").setPosition(Math.round(w.image.x - w.callout.width / 2), f.y - 44).setVisible(true);
         this.cameras.main.flash(300, 242, 180, 90);
+      }
+    }
+  }
+
+  /** Whether you're standing in a dark doorway or nook (a `shadow` that's active now). */
+  private inShadow(): boolean {
+    const { story } = getSession(this);
+    const { x, y } = this.player.feet;
+    return this.shadows.some((s) => (!s.showIf || story.getVariable(s.showIf)) && Math.abs(y - s.y) <= 2 && x >= s.x && x <= s.x + s.width);
+  }
+
+  /** The cloak over the player while you have it; you fade a little while you're hidden in a shadow that matters. */
+  private updateCloak(): void {
+    const { story } = getSession(this);
+    const sprite = this.player.sprite;
+    const on = !!story.getVariable('has_disguise');
+    this.cloak.setVisible(on && sprite.visible).setPosition(Math.round(sprite.x + (sprite.flipX ? 1 : -1)), Math.round(sprite.y - 8)).setFlipX(sprite.flipX);
+    const watched = this.watchmen.some((w) => w.image.visible) || this.quarries.some((q) => !q.done && !!story.getVariable(q.feature.showIf));
+    const hidden = watched && this.inShadow();
+    sprite.setAlpha(hidden ? 0.45 : 1);
+    this.cloak.setAlpha(hidden ? 0.45 : 1);
+    this.shadowGraphics?.setVisible(this.shadows.some((s) => !s.showIf || story.getVariable(s.showIf)));
+  }
+
+  /**
+   * Tailing someone: they walk their path, stop, and at some stops turn round to look. If they see you
+   * (you're in front of them, too close, or behind them within range while they look, and not in a
+   * shadow), or you fall too far behind, you're sent back and they start again. At the end they slip
+   * away, and the ink variable `done` is set.
+   */
+  private updateQuarries(delta: number): void {
+    const { story } = getSession(this);
+    const { x: px, y: py } = this.player.feet;
+    for (const q of this.quarries) {
+      const f = q.feature;
+      if (q.done || !story.getVariable(f.showIf)) continue;
+      const entries = f.people.map((id) => this.people.get(id)).filter((e): e is PersonEntry => !!e);
+      const leader = entries[0];
+      if (!leader) continue;
+      const place = (x: number) => entries.forEach((e, i) => e.image.setX(x + q.offsets[i]!));
+      if (q.alarm !== null) {
+        q.alarm -= delta;
+        if (q.alarm <= 0) {
+          q.alarm = null;
+          q.callout.setVisible(false);
+          this.knockBack(f.reset);
+          place(f.path[0]!.x);
+          q.next = 1;
+          q.wait = 1500;
+          q.looking = false;
+          q.turnIn = 0;
+        }
+        continue;
+      }
+      const target = f.path[q.next];
+      const dir = target ? Math.sign(target.x - leader.image.x) || 1 : 1;
+      if (q.turnIn > 0) {
+        // About to look round: he pauses first.
+        q.turnIn -= delta;
+        if (q.turnIn <= 0) {
+          q.looking = true;
+          q.callout.setVisible(false);
+        }
+      } else if (q.wait > 0) {
+        q.wait -= delta;
+      } else if (target) {
+        q.looking = false;
+        const step = f.speed * (delta / 1000);
+        const x = Math.abs(target.x - leader.image.x) <= step ? target.x : leader.image.x + dir * step;
+        place(x);
+        if (x === target.x) {
+          q.wait = target.wait ?? 0;
+          q.looking = false;
+          q.turnIn = target.look ? QUARRY_TURN : 0;
+          if (target.look) q.callout.setText('...').setPosition(Math.round(leader.image.x - 4), f.y - 46).setVisible(true);
+          q.next += 1;
+          if (q.next >= f.path.length) {
+            // Gone: they slip away (behind the ration hatch).
+            q.done = true;
+            for (const e of entries) {
+              e.scriptHidden = true;
+              this.tweens.add({ targets: e.image, alpha: 0, duration: 500, onComplete: () => e.image.setVisible(false).setAlpha(1) });
+            }
+            story.setVariable(f.done, true);
+            this.refreshObjective();
+            continue;
+          }
+        }
+      }
+      const travel = f.path[q.next] ? Math.sign(f.path[q.next]!.x - leader.image.x) || dir : dir;
+      // Facing: the way they're going, or back the way they came while they look round.
+      for (const e of entries) e.image.setFlipX((q.looking ? -travel : travel) < 0);
+      if (this.dialogue.isOpen || this.leaving || Math.abs(py - f.y) > 40) continue;
+      const rear = entries.reduce((a, e) => ((e.image.x - a.image.x) * travel < 0 ? e : a), leader);
+      const behind = (rear.image.x - px) * travel; // how far behind them you are (negative: in front)
+      const nearest = Math.min(...entries.map((e) => Math.abs(e.image.x - px)));
+      const seen = !this.inShadow() && (behind < -6 || nearest < 18 || (q.looking && q.wait > 0 && behind <= f.range));
+      const lost = !q.looking && q.turnIn <= 0 && behind > f.lose;
+      if (seen || lost) {
+        q.alarm = 1000;
+        q.callout
+          .setText(seen ? 'Hm? Who\'s that?' : "You've lost them.")
+          .setPosition(Math.round((seen ? leader.image.x : px) - 30), f.y - 46)
+          .setVisible(true);
+        if (seen) this.cameras.main.flash(300, 242, 180, 90);
       }
     }
   }
@@ -754,7 +884,13 @@ export class AreaScene extends Phaser.Scene {
   private objectivePoint(): { x: number; y: number } | null {
     const { story, calendar } = getSession(this);
     const targets = String(story.getVariable('objective_target') ?? '').split(';').map((t) => t.split(':') as [string, string | undefined]).filter(([a]) => a);
-    for (const [areaId, thing] of targets) if (areaId === this.area.id) return this.pointAt(thing);
+    // The first one here that's showing (e.g. someone you're following, then where they went).
+    const here = targets.filter(([areaId]) => areaId === this.area.id);
+    for (const [, thing] of here) {
+      const point = this.pointAt(thing);
+      if (point) return point;
+    }
+    if (here.length) return null;
     for (const [areaId] of targets) {
       const hop = nextHop(this.area.id, areaId, AREAS, (id) => closedReason(id, calendar.day, calendar.slot) === null);
       const exit = this.area.exits.find((e) => e.to === hop);
@@ -1247,6 +1383,13 @@ export class AreaScene extends Phaser.Scene {
         this.shadows.push(feature);
         this.shadowGraphics ??= this.add.graphics().setDepth(7);
         this.shadowGraphics.fillStyle(SHADES.shadow, 0.6).fillRect(feature.x, feature.y - 22, feature.width, 22);
+        break;
+      }
+      case 'quarry': {
+        const first = this.area.people.find((p) => p.id === feature.people[0]);
+        const offsets = feature.people.map((id) => (this.area.people.find((p) => p.id === id)?.x ?? 0) - (first?.x ?? 0));
+        const callout = new PixelText(this, 0, 0, '', { color: SHADES.amber, shadow: SHADES.shadow }).setDepth(21).setVisible(false);
+        this.quarries.push({ feature, offsets, next: 1, wait: 1500, looking: false, turnIn: 0, alarm: null, done: false, callout });
         break;
       }
       case 'jars': {

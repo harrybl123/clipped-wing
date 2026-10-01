@@ -438,6 +438,9 @@ Your bed. The seed is in your fist. You don't let go of it.
     ~ girl_on_doorstep = false
     ~ objective = ""
     ~ objective_target = ""
-    Tomorrow, the elders. Tomorrow, the seed goes up the tube. #endday:Day 6 (not built yet)
+    ~ day6 = "wake"
+    ~ objective = "Answer Grounded"
+    ~ objective_target = "home:bench"
+    Tomorrow, the elders. Tomorrow, the seed goes up the tube. #endday:Day 6
 + [Not yet]
 - -> END

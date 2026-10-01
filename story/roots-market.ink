@@ -4,6 +4,7 @@
 // ============================================================================
 
 === market_food_seller ===
+{ day6 == "market": -> day6_market }
 [PLACEHOLDER] "Root stew! Hot root stew! Smaller bowls, same price, don't ask me why."
 -> END
 
@@ -27,6 +28,7 @@
 -> END
 
 === market_ration_hatch ===
+{ day6 == "tail": -> day6_tail_hatch }
 { day2 == "afternoon": {day2_ration: -> day2_already_visited | -> day2_ration} }
 [PLACEHOLDER] The ration hatch. The shutter is half down and the shelf behind it is thin.
 -> END

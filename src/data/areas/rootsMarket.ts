@@ -1,4 +1,4 @@
-import { GIRL, MUM, VILLAGERS } from '../../ui/characters';
+import { GIRL, MUM, PREACHER, TENDER, VILLAGERS } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import { FUNGI, LAMP } from '../../ui/sprites';
 import { post } from './homeProps';
@@ -140,6 +140,16 @@ export const rootsMarket: AreaDefinition = {
     { type: 'fire', x: 100, y: FLOOR - 1 },
     { type: 'swing', sprite: P.HAUL_BASKET, x: 150, y: 128, ropeTop: 12 },
     { type: 'swing', sprite: P.HAUL_BASKET, x: 280, y: 60, ropeTop: 12 },
+    // Day 6: tailing the Tender and the preacher across the market to the ration hatch. He stops to talk at
+    // the stew stall, looks back at the foot of the balcony steps, and again by the hatch; then they slip
+    // behind it. Hide behind the stalls (or up on the balcony) when he looks round.
+    {
+      type: 'quarry', people: ['tender-tail', 'preacher-tail'], y: FLOOR, speed: 18, range: 100, lose: 200, reset: { x: 27, y: FLOOR }, showIf: 'tailing', done: 'tail_done',
+      path: [{ x: 60 }, { x: 74, wait: 2400 }, { x: 160, wait: 1800, look: true }, { x: 250, wait: 1600, look: true }, { x: 300, wait: 1000, look: true }, { x: 318 }],
+    },
+    { type: 'shadow', x: 48, y: FLOOR, width: 38, showIf: 'tailing' }, // behind the stew stall
+    { type: 'shadow', x: 110, y: FLOOR, width: 36, showIf: 'tailing' }, // behind the fungi stall
+    { type: 'hint', x: 40, y: FLOOR, reach: 30, text: 'Keep your distance. When he looks round, be behind a stall.', showIf: 'tailing' },
   ],
 
   people: [
@@ -161,6 +171,9 @@ export const rootsMarket: AreaDefinition = {
     // Day 4 afternoon: Mum at the stew stall; the young zealot from the rites; the girl under the balcony afterwards.
     { id: 'mum-market', sprite: MUM.idle[0]!, idleFrames: MUM.idle, x: 86, y: FLOOR, flipX: true, knot: 'market_mum', when: ['afternoon'], showIf: 'mum_at_market' },
     standing('zealot-market', 0, 132, FLOOR, { flipX: true, when: ['afternoon'], hidden: true }),
+    // Day 6 noon: the Tender and the preacher, crossing the market to the ration hatch (you follow them).
+    { id: 'tender-tail', sprite: TENDER.idle[0]!, idleFrames: TENDER.idle, x: 60, y: FLOOR, when: ['afternoon'], showIf: 'tailing' },
+    { id: 'preacher-tail', sprite: PREACHER.idle[0]!, idleFrames: PREACHER.idle, x: 46, y: FLOOR, when: ['afternoon'], showIf: 'tailing' },
     { id: 'girl-market', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 404, y: FLOOR, flipX: true, knot: 'market_girl', when: ['afternoon'], hidden: true },
   ],
 

@@ -80,6 +80,9 @@ the camera framing the action above it, more `#move:`/`#show:`-style staging in 
 - **The Day 4 night sneak is too easy.** Make it harder: more watchmen, longer lantern reach, fewer
   shadows, watchmen who turn unpredictably, lit windows, or neighbours who'd raise the alarm.
 
+- **The Night 6 interrogation is the scene the dialogue box hides most**: the elders, the guards and
+  the girl all stand below the box's top edge. Fix in the "scenes keep moving" pass.
+
 ## Reactions to the messages (designer, 2026-10-01)
 
 Across the story the protagonist should react to Grounded's messages with curiosity: inquisitive,

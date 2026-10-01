@@ -1,4 +1,4 @@
-import { ELDERS, PREACHER, TENDER } from '../../ui/characters';
+import { ELDERS, GIRL, GUARD, PREACHER, TENDER } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import { LAMP } from '../../ui/sprites';
 import { beam } from './friendsHomeProps';
@@ -103,6 +103,13 @@ export const tendersShrine: AreaDefinition = {
     // Day 4 morning: he's sent for you, and waits by the stool under the lamp.
     { id: 'tender-summons', sprite: TENDER.idle[0]!, idleFrames: TENDER.idle, x: 244, y: FLOOR, knot: 'shrine_tender_summons', flipX: true, when: ['morning'], showIf: 'tender_waiting' },
     ...CHAIRS.map((x, i) => elder(i, x)),
+    // Night 6: the interrogation. The elders on the dais, the preacher, the Tender at his desk, guards at the door; the girl brought in.
+    ...CHAIRS.map((x, i): Person => ({ ...elder(i, x), id: `elder-night-${i}`, knot: undefined, when: ['night'], showIf: 'interrogating' })),
+    { id: 'preacher-night', sprite: PREACHER.idle[0]!, idleFrames: PREACHER.idle, x: 286, y: DAIS, flipX: true, when: ['night'], showIf: 'interrogating' },
+    { id: 'tender-night', sprite: TENDER.idle[0]!, idleFrames: TENDER.idle, x: 96, y: FLOOR, when: ['night'], showIf: 'interrogating' },
+    { id: 'guard-night-0', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 44, y: FLOOR, when: ['night'], showIf: 'interrogating' },
+    { id: 'guard-night-1', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 196, y: FLOOR, flipX: true, when: ['night'], showIf: 'interrogating' },
+    { id: 'girl-shrine', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 160, y: FLOOR, when: ['night'], hidden: true },
     { id: 'preacher', sprite: PREACHER.idle[0]!, idleFrames: PREACHER.idle, x: 286, y: DAIS, flipX: true, knot: 'shrine_preacher', when: AFTERNOON },
   ],
 

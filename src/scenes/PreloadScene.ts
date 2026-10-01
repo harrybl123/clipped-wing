@@ -29,21 +29,22 @@ export class PreloadScene extends Phaser.Scene {
     g.generateTexture(PIXEL, 1, 1);
     g.destroy();
     // Dev builds only: ?area=<id> skips the title and opens that area directly; ?scene=prologue opens the
-    // prologue; ?scene=decode opens the first message's decoding; ?day=2 to 5 wakes at home on that day;
-    // ?day=5&at=archivist jumps to the archivist (big choice 2), ?day=5&at=night to the night's choice (&told=1 if you told him).
+    // prologue; ?scene=decode opens the first message's decoding; ?day=2 to 6 wakes at home on that day;
+    // ?day=5&at=archivist jumps to the archivist (big choice 2), ?day=5&at=night to the night's choice (&told=1 if you told him);
+    // ?day=6 (&seed=healthy for the archivist's seed) with &at=tail (the market, cloaked) or &at=interrogation (&plate=1 if they found it).
     const params = import.meta.env.DEV ? new URLSearchParams(window.location.search) : null;
     const areaId = params?.get('area');
     if (areaId && areaId in AREAS) this.scene.start('Area', { areaId });
     else if (params?.get('scene') === 'prologue') this.scene.start('Prologue');
     else if (params?.get('scene') === 'decode') this.scene.start('Decode', { message: 'message1' });
-    else if (params && ['2', '3', '4', '5'].includes(params.get('day') ?? '')) {
-      const day = Number(params.get('day')) as 2 | 3 | 4 | 5;
-      this.devStartDay(day, params.get('reply') === 'usual' ? 'usual' : 'fledgling', params.get('at'), params.get('told') === '1');
+    else if (params && ['2', '3', '4', '5', '6'].includes(params.get('day') ?? '')) {
+      const day = Number(params.get('day')) as 2 | 3 | 4 | 5 | 6;
+      this.devStartDay(day, params.get('reply') === 'usual' ? 'usual' : 'fledgling', params.get('at'), params.get('told') === '1' || params.get('seed') === 'healthy', params.get('plate') === '1');
     } else this.scene.start('Title');
   }
 
   /** Dev only: wakes at home on Day 2 to 5 with the story as if the earlier days had been played (?day=3&reply=usual for the ignore path). */
-  private devStartDay(day: 2 | 3 | 4 | 5, reply: 'fledgling' | 'usual', at: string | null = null, told = false): void {
+  private devStartDay(day: 2 | 3 | 4 | 5 | 6, reply: 'fledgling' | 'usual', at: string | null = null, told = false, plate = false): void {
     const session = getSession(this);
     const { story, calendar } = session;
     const set = (vars: Record<string, string | number | boolean>) => Object.entries(vars).forEach(([k, v]) => story.setVariable(k, v));
@@ -63,14 +64,30 @@ export class PreloadScene extends Phaser.Scene {
       for (const [k, v] of Object.entries({ rest: 'rest', beyond: 'beyond', bark: 'bark', would: 'would', like: 'like' })) story.setVariable(`glossary_${k}`, v);
       session.dayStarts[4] = { ink: story.saveState(), calendar: calendar.toJSON() };
     }
-    if (day === 5) {
+    if (day >= 5) {
       calendar.jumpTo(5);
       set({ day4: 'done', summons_on_floor: false, reply2: 'why', fought: true, girl_trust: 2, has_feather: true, house_watched: true, food_store: 4 });
       set({ day5: 'wake', objective: 'Answer Grounded', objective_target: 'home:bench' });
       for (const [k, v] of Object.entries({ because: 'because', carve: 'carve', grounded: 'grounded', many: 'many' })) story.setVariable(`glossary_${k}`, v);
       session.dayStarts[5] = { ink: story.saveState(), calendar: calendar.toJSON() };
     }
-    if (day === 5 && at === 'archivist') {
+    if (day === 6) {
+      calendar.jumpTo(6);
+      set({ day5: 'done', reply3: 'who', told_archivist: told, archivist_trust: told ? 3 : 0, caught_stealing: !told, seed: told ? 'healthy' : 'roots', food_store: 3, suspicion: 4 });
+      set({ day6: 'wake', objective: 'Answer Grounded', objective_target: 'home:bench', glossary_seed: 'seed' });
+      session.dayStarts[6] = { ink: story.saveState(), calendar: calendar.toJSON() };
+    }
+    if (day === 6 && at === 'tail') {
+      // Cloaked, at the market at noon, the Tender about to cross it.
+      calendar.advanceTo('afternoon');
+      set({ day6: 'tail', has_disguise: true, tailing: true, objective: 'Follow the Tender without being seen', objective_target: 'roots-market:tender-tail;roots-market:ration-hatch' });
+      this.scene.start('Area', { areaId: 'roots-market', start: { x: 27, y: 236 } });
+    } else if (day === 6 && at === 'interrogation') {
+      // Marched up to the shrine at night.
+      calendar.advanceTo('night');
+      set({ day6: 'interrogation', has_disguise: true, interrogating: true, plate_found: plate, objective: '', objective_target: '' });
+      this.scene.start('Area', { areaId: 'tenders-shrine', start: { x: 218, y: 236 }, script: 'day6_interrogation' });
+    } else if (day === 5 && at === 'archivist') {
       // Up in the upper halls with the escort, just before the archivist.
       calendar.advanceTo('afternoon');
       set({ day5: 'upper', reply3: 'who', escorted: true, objective: 'Meet the archivist in the upper halls', objective_target: 'upper-halls:archivist' });

@@ -127,7 +127,7 @@ export const home: AreaDefinition = {
     // Day 4 morning: the summons on the floor inside the door.
     { id: 'summons', sprite: SUMMONS, x: 48, y: FLOOR, showIf: 'summons_on_floor', knot: 'home_summons', label: 'Pick up' },
     // Day 3 night: the evidence to hide before your friend climbs in (people, so the story can show them), and him.
-    { id: 'evidence-plate', sprite: EVIDENCE_PLATE, x: 80, y: FLOOR, when: ['night'], showIf: 'evidence_plate', knot: 'day3_hide_plate', label: 'Hide' },
+    { id: 'evidence-plate', sprite: EVIDENCE_PLATE, x: 80, y: FLOOR, when: ['night'], showIf: 'evidence_plate', knot: 'home_hide_plate', label: 'Hide' },
     { id: 'evidence-bird', sprite: BIRD, x: 64, y: LOFT, when: ['night'], showIf: 'evidence_bird', knot: 'day3_hide_bird', label: 'Hide' },
     { id: 'evidence-shavings', sprite: EVIDENCE_SHAVINGS, x: 200, y: LOFT, when: ['night'], showIf: 'evidence_shavings', knot: 'day3_hide_shavings', label: 'Hide' },
     { id: 'friend-visit', sprite: FRIEND.idle[0]!, idleFrames: FRIEND.idle, x: 44, y: FLOOR, when: ['night'], hidden: true },

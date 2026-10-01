@@ -24,6 +24,8 @@
 - day4 == "open" || day4 == "bed": -> day2_mum_asleep
 - day5 == "wake" || day5 == "carve" || day5 == "shrine": -> day5_mum_morning
 - day5 == "escort": -> day5_mum_escort
+- day6 == "wake" || day6 == "carve" || day6 == "shrine": -> day6_mum_morning
+- day6 == "open" || day6 == "hide": -> day2_mum_asleep
 - day5 != "" && day5 != "upper" && day5 != "evening" && day5 != "done": -> day2_mum_asleep
 }
 [PLACEHOLDER] "Get some rest, love." #speaker:mum
@@ -34,6 +36,7 @@
 { day3 == "open": -> day3_open_bird }
 { day4 == "open" && mum_in_bed: -> day4_open_bird }
 { day5 == "open" && mum_in_bed: -> day5_open_bird }
+{ day6 == "open" && mum_in_bed: -> day6_open_bird }
 [PLACEHOLDER] The hearth. The fire is low.
 -> END
 
@@ -54,6 +57,7 @@
 { day3 == "bed": -> day3_sleep }
 { day4 == "bed": -> day4_sleep }
 { day5 == "bed": -> day5_sleep }
+{ day6 == "bed": -> day6_sleep }
 [PLACEHOLDER] Your bed. Not yet.
 -> END
 
@@ -63,6 +67,7 @@
 { day3 == "carve": -> day3_bench }
 { day4 == "carve": -> day4_bench }
 { day5 == "wake" || day5 == "carve": -> day5_bench }
+{ day6 == "wake" || day6 == "carve": -> day6_bench }
 [PLACEHOLDER] Your carving bench. A bird is half finished.
 -> END
 
@@ -86,3 +91,8 @@
 // Day 5 afternoon: the guard sent to take you up to the archivist.
 === home_escort ===
 -> day5_escort
+
+// Hiding the plate (Day 3: one of three things; Day 6: just the plate, before the guards break in).
+=== home_hide_plate ===
+{ day6 == "hide": -> day6_hide_plate }
+-> day3_hide_plate

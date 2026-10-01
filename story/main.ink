@@ -106,6 +106,23 @@ VAR seed = ""
 // Night 5: the girl waits on her doorstep while you sneak down to her (the watch is out again).
 VAR girl_on_doorstep = false
 
+// Day 6 (story/day6.ink). Stages: wake, carve, shrine, market, disguise, tail, listen, evening, open, hide, interrogation, home, bed, done.
+VAR day6 = ""
+// Your plate on Day 6: the pointing hands ("they blame me; help me"). One picture, no choice.
+VAR reply4 = ""
+// The hooded cloak from the boy: worn from now on wherever you're not expected (designer).
+VAR has_disguise = false
+// Tailing the Tender and the preacher across the market (the `quarry` feature sets tail_done when they slip behind the ration hatch), then the elders' meeting.
+VAR tailing = false
+VAR tail_done = false
+VAR meeting = false
+// The guards found the plate when they came for you.
+VAR plate_found = false
+VAR interrogating = false
+// The girl at the interrogation (a medium choice): "saved" (you declared there's something beyond the Tree: a night in custody) or "blamed" (she's taken to the lower rot).
+VAR girl_fate = ""
+VAR in_custody = false
+
 // The glossary: each decoded symbol in the player's own words (glossary_<symbol id>, see src/data/messages.ts).
 // Little words like "that" fill themselves in and have no entry.
 VAR glossary_self = ""
@@ -130,6 +147,12 @@ VAR glossary_carve = ""
 VAR glossary_grounded = ""
 VAR glossary_many = ""
 VAR glossary_seed = ""
+VAR glossary_lives = ""
+VAR glossary_rot = ""
+VAR glossary_deep = ""
+VAR glossary_stayalive = ""
+VAR glossary_need = ""
+VAR glossary_hurry = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
@@ -137,6 +160,7 @@ INCLUDE day2.ink
 INCLUDE day3.ink
 INCLUDE day4.ink
 INCLUDE day5.ink
+INCLUDE day6.ink
 INCLUDE home.ink
 INCLUDE offering-floor.ink
 INCLUDE roots-market.ink

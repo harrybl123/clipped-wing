@@ -29,6 +29,11 @@ function stairs(): Solid[] {
 }
 
 const CEREMONY: Person['when'] = ['morning', 'evening'];
+/** Day 6: your bird with a bite out of it, teeth marks round the edge. */
+const BITTEN_BIRD = {
+  rows: ['......##..', '.....#o##.', '....d#####', '...d.####.', '....d###..', '..........'],
+  colours: { '#': S.red, d: S.redDark, o: S.shadow },
+};
 /** Day 4: a ring chalked on the floor at the foot of the stairs, for you to stand in alone. */
 const CHALK_RING = { rows: ['...wwwwwwwwww...', '.ww..........ww.', 'w..............w', '.ww..........ww.', '...wwwwwwwwww...'], colours: { w: S.light } };
 
@@ -128,6 +133,7 @@ export const offeringFloor: AreaDefinition = {
     { id: 'girl-rite', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 444, y: FLOOR, flipX: true, when: ['morning'], hidden: true, knot: 'offering_floor_girl_rite' },
     // Day 4 evening: the chalk ring.
     { id: 'chalk-ring', sprite: CHALK_RING, x: 104, y: FLOOR, when: ['evening'], showIf: 'chalk_ring', knot: 'offering_floor_chalk_ring', label: 'Stand in it' },
+    { id: 'bitten-bird', sprite: BITTEN_BIRD, x: TUBE_X, y: LANDING.y, when: ['evening'], hidden: true },
     // Day 5 evening: the guard at your shoulder.
     { id: 'escort-floor', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 92, y: FLOOR, when: ['evening'], showIf: 'escorted' },
     // Quieter in the afternoon: a couple of people passing through.

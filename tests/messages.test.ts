@@ -79,10 +79,10 @@ describe('message 3', () => {
 });
 
 describe('replies', () => {
-  it('offers three well-formed pictures per set, each filling a variable that exists in ink', () => {
+  it('offers three (or one fixed) well-formed pictures per set, each filling a variable that exists in ink', () => {
     const story = new StoryBridge(readFileSync(compileInk().outFile, 'utf8'));
     for (const [id, set] of Object.entries(REPLY_SETS)) {
-      expect(set.options, id).toHaveLength(3);
+      expect([1, 3], id).toContain(set.options.length); // three to choose from, or one fixed picture
       expect(story.variableNames()).toContain(set.variable);
       for (const o of set.options) expect(new Set(o.picture.map((r) => r.length)).size, `${id} ${o.value}`).toBe(1);
     }

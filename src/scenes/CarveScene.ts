@@ -345,14 +345,18 @@ export class CarveScene extends StepScene {
     this.clearChoices();
     this.bird.setVisible(false);
     this.replySet.options.forEach(({ value, picture }, i) => {
-      const x = W / 2 + (i - 1) * 110;
+      const x = W / 2 + (i - (this.replySet.options.length - 1) / 2) * 110;
       const w = picture[0]!.length * PLATE_SCALE + 12;
       const h = picture.length * PLATE_SCALE + 12;
       const back = this.add.rectangle(x, PLATE_Y, w, h, SHADES.light).setStrokeStyle(1, SHADES.dim);
       const image = this.add.image(x, PLATE_Y, makeSpriteTexture(this, `reply-${value}`, picture, { '#': SHADES.deep })).setScale(PLATE_SCALE);
-      const label = new PixelText(this, 0, PLATE_Y + h / 2 + 4, String(i + 1), { color: SHADES.amber, shadow: SHADES.shadow });
-      label.setX(Math.round(x - label.width / 2));
-      this.choicePlates.push(back, image, label);
+      this.choicePlates.push(back, image);
+      // Numbered like the choices beneath (a single picture, with no choice, needs no number).
+      if (this.replySet.options.length > 1) {
+        const label = new PixelText(this, 0, PLATE_Y + h / 2 + 4, String(i + 1), { color: SHADES.amber, shadow: SHADES.shadow });
+        label.setX(Math.round(x - label.width / 2));
+        this.choicePlates.push(label);
+      }
     });
   }
 

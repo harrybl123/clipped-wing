@@ -5,6 +5,7 @@
 
 === lower_roots_girl ===
 { day5 == "roots": -> day5_girl_seed }
+{ day6 == "disguise" && !has_disguise: -> day6_girl_disguise }
 { day5 == "deal": -> deal }
 [PLACEHOLDER] "Well. Look who wandered all the way down here. Lost, or just nosy?" #speaker:girl
 + [Nosy]
@@ -40,6 +41,7 @@
 // The boy (Day 5 on): a sleazy fixer who hangs around by the boarded hole. Gets anything, for a price.
 === lower_roots_dodger ===
 { day5 == "deal": -> day5_dodger }
+{ day6 == "disguise": -> day6_dodger_disguise }
 { seed == "roots": -> customer }
 {~"Looking for something? I've got it. Whatever it is."|"Psst. Rot-hand. Need anything? Food, light, a nice knife? Discreet."|"Don't look at me like that. I'm a businessman."} #speaker:boy
 -> END
