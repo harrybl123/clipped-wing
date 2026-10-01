@@ -20,6 +20,9 @@ const UPPER = 120;
 const MIDDLE = 232;
 const LOWER = 360;
 
+/** Rot pits in the lower tunnel's floor: [x, width]. Each is a jump (the last has a rotten board in the middle). */
+const PITS: [number, number][] = [[256, 24], [432, 40], [600, 56], [704, 72]];
+
 /** The carved tunnels; everything else is heartwood. */
 const TUNNELS: Rect[] = [
   { x: 16, y: 192, width: 584, height: 40 }, // middle tunnel (the way in from your home)
@@ -34,8 +37,11 @@ const TUNNELS: Rect[] = [
   // Shafts between the levels.
   { x: 368, y: 120, width: 32, height: 72 },
   { x: 768, y: 120, width: 32, height: 56 },
+  { x: 600, y: 120, width: 32, height: 56 }, // the far shaft up from the middle (past the beetle)
   { x: 200, y: 232, width: 32, height: 88 },
   { x: 800, y: 232, width: 32, height: 88 },
+  // Pits where the lower tunnel's floor has rotted through (rot at the bottom).
+  ...PITS.map(([x, width]) => ({ x, y: LOWER, width, height: 32 })),
 ];
 
 /** Boards wedged across a shaft at these heights (one-way: jump up through them, down drops through). */
@@ -62,13 +68,15 @@ export const backRoutes: AreaDefinition = {
   solids: [
     ...heartwoodSolids(TUNNELS, W, H),
     ...boards(368, [196, 160]),
-    ...boards(768, [196]),
+    ...boards(600, [196, 160]),
     // (Rotten boards in the shafts and over the top of the 768 shaft: see the crumble features.)
     ...boards(200, [324, 288, 256]),
     ...boards(800, [324, 256]),
   ],
 
   lights: [
+    ...PITS.map(([x, width]) => ({ x: x + width / 2, y: LOWER + 26, colour: S.green, radius: width * 0.7, radiusY: 16, strength: 0.4 })),
+    { x: 816, y: 300, colour: S.green, radius: 14, radiusY: 60, strength: 0.18 }, // rot down the shaft
     { x: 60, y: 56, colour: S.amber, radius: 34, radiusY: 44, strength: 0.34 }, // through the shrine's grate
     { x: 496, y: 50, colour: S.cyan, radius: 46, radiusY: 70, strength: 0.4 }, // the tube's glow through the offering floor
     { x: 646, y: 86, colour: S.amber, radius: 20, radiusY: 26, strength: 0.28 }, // the market crack
@@ -106,23 +114,25 @@ export const backRoutes: AreaDefinition = {
   ],
 
   features: [
-    // Day 3 on: the routes are crumbling. Rotten boards give way; lumps fall from the ceiling (dust first).
+    // Day 3 on: the routes are crumbling and full of rot. On the way to your friend's window, one new
+    // thing at a time: rot pits to jump (lower), rot dripping down the shaft (time it), a beetle in the
+    // middle (jump it or slip past), then the top tunnel coming down round you. Rotten boards give way.
+    ...PITS.map(([x, width]) => ({ type: 'rot' as const, x, y: LOWER + 22, width, height: 10, reset: { x: x - 18, y: LOWER } })),
+    { type: 'crumble', x: 728, y: LOWER, width: 24 }, // in the middle of the widest pit
+    { type: 'drips', xs: [806, 816, 826], top: 236, bottom: LOWER, count: 3, every: 2600, reset: { x: 788, y: LOWER } },
     { type: 'crumble', x: 800, y: 288, width: 32 },
-    { type: 'crumble', x: 768, y: 160, width: 32 },
-    { type: 'crumble', x: 768, y: UPPER, width: 32 }, // over the top of the shaft: cross it quickly
-    // Day 3: the tunnel comes down round you, on the way there (lower) and on the way back (upper, the top way).
-    { type: 'collapse', from: 400, to: 560, y: LOWER, top: 322, reset: { x: 380, y: LOWER }, showIf: 'girl_with_you' },
-    { type: 'collapse', from: 580, to: 900, y: UPPER, top: 82, reset: { x: 900, y: UPPER }, showIf: 'routes_collapsing' },
-    // Which way: shown while the girl is with you.
-    { type: 'hint', x: 816, y: LOWER, reach: 24, text: 'Up the shaft', showIf: 'girl_with_you' },
-    { type: 'hint', x: 790, y: MIDDLE, reach: 30, text: 'Up again, just along to the left', showIf: 'girl_with_you' },
-    { type: 'hint', x: 860, y: UPPER, reach: 50, text: 'His window is at the end of this tunnel', showIf: 'girl_with_you' },
-    { type: 'rubble', x: 330, top: 322, floorY: LOWER, every: 2600, reset: { x: 270, y: LOWER } },
-    { type: 'rubble', x: 610, top: 322, floorY: LOWER, every: 2200, reset: { x: 560, y: LOWER } },
-    { type: 'rubble', x: 690, top: 322, floorY: LOWER, every: 2900, reset: { x: 560, y: LOWER } },
-    { type: 'rubble', x: 860, top: 82, floorY: UPPER, every: 2400, reset: { x: 816, y: UPPER } },
-    { type: 'hint', x: 290, y: LOWER, reach: 50, text: 'When dust falls, something follows', showIf: 'girl_with_you' },
-    { type: 'hint', x: 816, y: 324, reach: 20, text: "Rotten boards won't hold you for long", showIf: 'girl_with_you' },
+    { type: 'beetle', from: 640, to: 770, y: MIDDLE, speed: 34, reset: { x: 792, y: MIDDLE } },
+    { type: 'crumble', x: 600, y: UPPER, width: 32 }, // over the top of the far shaft
+    { type: 'crumble', x: 768, y: UPPER, width: 32 }, // over the old shaft: cross it quickly
+    { type: 'collapse', from: 680, to: 900, y: UPPER, top: 82, reset: { x: 660, y: UPPER }, showIf: 'girl_with_you' },
+    { type: 'collapse', from: 520, to: 900, y: UPPER, top: 82, reset: { x: 905, y: UPPER }, showIf: 'routes_collapsing' },
+    // The girl's warnings as each new thing comes up (while she's with you).
+    { type: 'hint', x: 236, y: LOWER, reach: 30, text: '"Don\'t touch the green. It eats boots."', showIf: 'girl_with_you' },
+    { type: 'hint', x: 690, y: LOWER, reach: 30, text: '"That board\'s rotten. Don\'t stop on it."', showIf: 'girl_with_you' },
+    { type: 'hint', x: 790, y: LOWER, reach: 30, text: '"It drips in threes. Wait for it... then go up."', showIf: 'girl_with_you' },
+    { type: 'hint', x: 816, y: MIDDLE, reach: 26, text: '"Big one. Don\'t wake it. Jump it, or slip past. Then up the far shaft."', showIf: 'girl_with_you' },
+    { type: 'hint', x: 650, y: UPPER, reach: 30, text: '"Hear that? The roof. Run!"', showIf: 'girl_with_you' },
+    { type: 'hint', x: 905, y: UPPER, reach: 12, text: 'His window', showIf: 'girl_with_you' },
     { type: 'motes', x: 496, top: 34, bottom: UPPER, halfWidth: 14 }, // dust in the light from the tube
     { type: 'drip', x: 720, y: 50, floorY: UPPER - 4 },
     { type: 'drip', x: 300, y: 324, floorY: LOWER - 4 },

@@ -162,6 +162,9 @@ export class AreaScene extends Phaser.Scene {
   private dialogueClosedFrame = -1;
   private crumbles: Crumble[] = [];
   private collapses: Collapse[] = [];
+  /** Hazards that knock you back on touch: rot pools, and beetles (whose rectangles move). */
+  private hazards: { rect: () => Phaser.Geom.Rectangle; reset: { x: number; y: number } }[] = [];
+  private beetles: { image: Phaser.GameObjects.Image; feature: Extract<Feature, { type: 'beetle' }>; dir: 1 | -1; frames: string[]; step: number }[] = [];
   private crumbleGroup!: Phaser.Physics.Arcade.StaticGroup;
 
   constructor() {
@@ -186,6 +189,8 @@ export class AreaScene extends Phaser.Scene {
     this.leaving = false;
     this.crumbles = [];
     this.collapses = [];
+    this.hazards = [];
+    this.beetles = [];
   }
 
   create(): void {
@@ -301,6 +306,8 @@ export class AreaScene extends Phaser.Scene {
     this.updateFollowers(delta);
     this.updateCrumbles(delta);
     this.updateCollapses(delta);
+    this.updateBeetles(delta);
+    this.checkHazards();
     this.updateWaiting();
     this.updateHints();
     this.objective.pointAt(this.onScreen(this.objectivePoint()));
@@ -489,6 +496,38 @@ export class AreaScene extends Phaser.Scene {
       const lx = Phaser.Math.Clamp(x + ahead * Phaser.Math.Between(-30, 80), f.from, f.to);
       this.dropLump(lx, f.top, f.y, 420, f.reset);
       if (Math.random() < 0.3) this.cameras.main.shake(120, 0.003);
+    }
+  }
+
+  /** Beetles pace their stretch, and rush when you're close and on their level. */
+  private updateBeetles(delta: number): void {
+    const { x, y } = this.player.feet;
+    for (const b of this.beetles) {
+      const f = b.feature;
+      const near = Math.abs(y - f.y) <= 4 && Math.abs(x - b.image.x) < 56;
+      if (near) b.dir = x < b.image.x ? -1 : 1;
+      const speed = near ? f.speed * 1.8 : f.speed;
+      b.image.x += b.dir * speed * (delta / 1000);
+      if (b.image.x <= f.from || b.image.x >= f.to) {
+        b.image.x = Phaser.Math.Clamp(b.image.x, f.from, f.to);
+        b.dir = b.image.x <= f.from ? 1 : -1;
+      }
+      b.image.setFlipX(b.dir < 0);
+      b.step += delta;
+      b.image.setTexture(b.frames[Math.floor(b.step / (near ? 90 : 160)) % b.frames.length]!);
+    }
+  }
+
+  /** Touching rot or a beetle knocks you back. */
+  private checkHazards(): void {
+    if (this.leaving) return;
+    const body = this.player.body;
+    const me = new Phaser.Geom.Rectangle(body.left + 1, body.top + 2, body.width - 2, body.height - 2);
+    for (const h of this.hazards) {
+      if (Phaser.Geom.Rectangle.Overlaps(me, h.rect())) {
+        this.knockBack(h.reset);
+        return;
+      }
     }
   }
 
@@ -977,6 +1016,54 @@ export class AreaScene extends Phaser.Scene {
       case 'collapse':
         this.collapses.push({ feature, active: false, enteredFrom: -1, done: false, untilNext: 0 });
         break;
+      case 'rot': {
+        // A glowing pool: bright surface, deeper green below, bubbles rising off it.
+        const g = this.add.graphics().setDepth(7);
+        g.fillStyle(SHADES.greenMid).fillRect(feature.x, feature.y, feature.width, feature.height);
+        g.fillStyle(SHADES.green).fillRect(feature.x, feature.y, feature.width, 1);
+        g.fillStyle(SHADES.greenDeep).fillRect(feature.x, feature.y + feature.height - 2, feature.width, 2);
+        this.add.particles(0, 0, PIXEL, { x: { min: feature.x + 1, max: feature.x + feature.width - 1 }, y: feature.y, speedY: { min: -14, max: -6 }, lifespan: 900, frequency: 180, tint: SHADES.green, alpha: { start: 1, end: 0 } }).setDepth(7);
+        const rect = new Phaser.Geom.Rectangle(feature.x, feature.y, feature.width, feature.height);
+        this.hazards.push({ rect: () => rect, reset: feature.reset });
+        break;
+      }
+      case 'drips': {
+        const height = feature.bottom - feature.top;
+        const fall = (x: number) => {
+          // A drop gathers at the top, then falls.
+          const bead = this.add.rectangle(x, feature.top, 1, 1, SHADES.green).setDepth(11);
+          this.tweens.add({
+            targets: bead, scaleX: 3, scaleY: 3, duration: 350,
+            onComplete: () => {
+              bead.setScale(1).setSize(2, 4);
+              const rect = new Phaser.Geom.Rectangle(x - 1, feature.top, 2, 4);
+              const hazard = { rect: () => rect.setTo(bead.x - 1, bead.y, 2, 4), reset: feature.reset };
+              this.hazards.push(hazard);
+              this.tweens.add({
+                targets: bead, y: feature.bottom - 4, duration: (height / 260) * 1000, ease: 'Quad.easeIn',
+                onComplete: () => {
+                  this.hazards = this.hazards.filter((h) => h !== hazard);
+                  bead.destroy();
+                  this.add.particles(0, 0, PIXEL, { speed: { min: 10, max: 30 }, angle: { min: 200, max: 340 }, lifespan: 300, tint: SHADES.green, emitting: false }).setDepth(11).explode(4, x, feature.bottom - 1);
+                },
+              });
+            },
+          });
+        };
+        const burst = () => {
+          for (let i = 0; i < feature.count; i++) this.time.delayedCall(i * 170, () => feature.xs.forEach(fall));
+        };
+        burst();
+        this.time.addEvent({ delay: feature.every, loop: true, callback: burst });
+        break;
+      }
+      case 'beetle': {
+        const frames = BEETLE_FRAMES.map((f, i) => makeSpriteTexture(this, `beetle-${i}`, f.rows, f.colours));
+        const image = this.add.image(feature.from, feature.y, frames[0]!).setOrigin(0.5, 1).setDepth(9);
+        this.beetles.push({ image, feature, dir: 1, frames, step: 0 });
+        this.hazards.push({ rect: () => new Phaser.Geom.Rectangle(image.x - image.width / 2 + 2, image.y - image.height + 2, image.width - 4, image.height - 2), reset: feature.reset });
+        break;
+      }
       case 'jars': {
         const { story } = getSession(this);
         const jars = Array.from({ length: feature.max }, (_, i) =>
@@ -997,6 +1084,25 @@ export class AreaScene extends Phaser.Scene {
     }
   }
 }
+
+/** A big rot-beetle (side view, facing right), two frames of scuttling legs. Glowing green, never red. */
+const BEETLE_FRAMES: RowSprite[] = [
+  ['..l...l...l...l...l...', '.l...l...l...l...l....'],
+  ['...l...l...l...l...l..', '..l...l...l...l...l...'],
+].map((legs) => ({
+  rows: [
+    '........ssssss........',
+    '.....sssggggggsss.....',
+    '...ssgggGGggggggss....',
+    '..sggGGgggggGGgggss...',
+    '.sggggggggggggggggsss.',
+    'sgggGggggggggGgggsseee',
+    'sggggggggggggggggssse.',
+    'ssssssssssssssssssss..',
+    ...legs,
+  ],
+  colours: { s: SHADES.greenDeep, g: SHADES.greenMid, G: SHADES.green, e: SHADES.white, l: SHADES.greenDeep },
+}));
 
 /** Tallest ledge (px) the player walks up without jumping, e.g. a stair. */
 const MAX_STEP = 8;
