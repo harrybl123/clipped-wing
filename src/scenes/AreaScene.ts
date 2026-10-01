@@ -427,7 +427,7 @@ export class AreaScene extends Phaser.Scene {
    *   #time:<slot>            the day moves on (morning → afternoon → evening → night)
    *   #show:<id> #hide:<id>   bring a person on, or take them off
    *   #move:<id>:<x>[:<y>]    walk a person somewhere
-   *   #flash:<cyan|white>     a flash of light
+   *   #flash:<cyan|white|dark>  a flash of light (or of darkness)
    *   #inset:<id>             show a small carving up close until the next line
    *   #lights:<x>:<top>:<bottom>  lights rise up the tube
    *   #card:<text>            a title card
@@ -465,8 +465,9 @@ export class AreaScene extends Phaser.Scene {
           }
           break;
         case 'flash': {
-          const [r, g, b] = args[0] === 'cyan' ? [174, 246, 247] : [244, 241, 232];
-          this.cameras.main.flash(700, r, g, b);
+          // dark: the light goes out for a moment and slowly comes back.
+          const [r, g, b] = args[0] === 'cyan' ? [174, 246, 247] : args[0] === 'dark' ? [0, 0, 0] : [244, 241, 232];
+          this.cameras.main.flash(args[0] === 'dark' ? 1600 : 700, r, g, b);
           break;
         }
         case 'inset':
@@ -534,9 +535,10 @@ export class AreaScene extends Phaser.Scene {
     for (const [id, entry] of this.people) {
       if (!entry.image.visible || entry.person.wander || id === 'tender' || id.startsWith('mum')) continue;
       const dir = entry.image.x < px ? -1 : 1;
-      const x = Phaser.Math.Clamp(entry.image.x + dir * Phaser.Math.Between(18, 34), 20, this.area.width - 20);
+      const x = Phaser.Math.Clamp(entry.image.x + dir * Phaser.Math.Between(20, 40), 20, this.area.width - 20);
+      // They back away still facing you, too frightened to turn their backs.
       entry.image.setFlipX(dir > 0);
-      this.tweens.add({ targets: entry.image, x, duration: 700, ease: 'Sine.easeOut', delay: Phaser.Math.Between(0, 250) });
+      this.tweens.add({ targets: entry.image, x, duration: 450, ease: 'Quad.easeOut', delay: Phaser.Math.Between(0, 200) });
     }
   }
 

@@ -116,25 +116,36 @@ The light in the tube is turning gold. It's time for the evening ceremony. #time
 === day2_rejection ===
 The blessings come down. The Tender calls out each family as their bundle drops into the basin.
 "A blessing, for the weavers. A blessing, for the potters. A blessing, for the lamp-makers." #speaker:tender
-Then the light in the tube stutters.
-Something drops into the basin with a hard knock. #show:rejected-bird #shake
+Then the tube goes dark. #flash:dark
+Every voice on the floor stops.
+The light comes back. Something drops into the basin with a hard knock. #show:rejected-bird #shake
 Your bird. Untouched.
+The Tender stares at it. The staff is shaking in their hand.
 "...Rejected." #speaker:tender
-Nobody moves. Nobody has ever seen this.
+A woman screams. Someone drops their blessing, and it rolls across the floor, and nobody picks it up.
+"It sent it back. The Tree sent it back!" #name:A woman
+"Never. Not once. Not in my grandmother's time, not in hers." #name:An old man
+"What did you put in it? What did you do?" #name:A man
+They're pulling their children behind their legs. Backing away from you as if you were rot. #recoil
 + [Bow your head.]
     You bow your head and say nothing.
+    "Look at it. Can't even meet our eyes." #name:A man
 + [Maybe it just... fell?]
     "Maybe it just... fell?" #speaker:you
     ~ suspicion += 1
-    Someone laughs, once, then stops.
+    "Fell? It thinks this is funny!" #name:A woman
 + [Why?]
     "Why?" #speaker:you
     ~ suspicion += 2
-    Your voice carries all the way round the floor.
-- "The Tree has spoken. Take it. It is not ours to touch." #speaker:tender
-You climb the steps and take it. Nobody else will. #hide:rejected-bird
-People step back from you. #recoil
-A whisper: "Cursed." Someone pulls a child away.
+    The whole floor gasps.
+    "It asks the Tree why. It asks the Tree why!" #name:An old man
+- "Silence!" #speaker:tender
+"The Tree has spoken. Take it out of the basin. It is not ours to touch." #speaker:tender
+You climb the steps and take it. Nobody else will go near it. #hide:rejected-bird
+Someone spits at your feet. #recoil
+"Rot-hand." #name:A man
+"Cursed." The word goes round the floor, from mouth to mouth. Cursed. Cursed.
+Mum's face has gone the colour of ash.
 "Come. Now. Don't look at anyone." #speaker:mum
 ~ mum_at_ceremony = false
 ~ objective = ""
