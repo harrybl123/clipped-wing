@@ -114,6 +114,11 @@ Worse than the first (suggestion):
 - The second, very stern choice. Ignore again: "You stayed loyal to the Tree." An ending card, then
   retry from the Day 2 choice.
 
+## To fix (designer, after playtesting)
+- The rot drip curtain is too fast to get past: slow the interval.
+- Your friend shouldn't shun the girl: roots folk are kind to the lower roots (a bit of scorn, not
+  hatred). Soften his reaction at the window. (Both in `docs/ideas.md`.)
+
 ## The friend: what the choice leads to
 - **Confide:** on Day 7 he bursts in to warn you as the mob comes. **(doc)**
 - **Lie:** on Day 7 you glimpse him among the torches. **(doc)**

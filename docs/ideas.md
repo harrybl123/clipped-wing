@@ -51,3 +51,14 @@ index finger**, not just the thumb (the design doc and summary still say "thumb"
 this is confirmed). The sprite's bandaged hand is already the left (near) hand when facing right;
 the art pass could show two missing digits, and the carving flaw and the weak grip would follow from
 it.
+
+## To fix (noted 2026-10-01, from the designer's Day 3 playtest)
+
+- **The rot drips in the back routes are too fast to get past** (the drip curtain down the first
+  shaft, `drips` feature in `src/data/areas/backRoutes.ts`). Slow them down: a longer interval between
+  bursts (`every`), and maybe fewer drops per burst or a slower fall.
+- **Your friend shouldn't shun the girl from the lower roots.** People who live only just above the
+  lower roots should be genuinely kind to them: a bit of scorn is fine, but not hatred. Soften his
+  reaction at the window on Day 3 (`day3_window` in `story/day3.ink`: "He looks from her to you as if
+  he doesn't know you any more"), and keep this in mind for how roots folk talk about the lower roots
+  everywhere.
