@@ -59,13 +59,15 @@ proposal, for the designer to mark up.
 - **Your friend through the closed shutter** on Day 7 ("Go away. Please."): his face is the point of
   that moment being hidden. Faceless, or his portrait?
 
-## Questions for the designer
-1. Elders: one face each (suggestion), or one shared face for "An elder"?
-2. Crowd voices: generic faces (suggestion), or should a woman's line always come from a specific
-   person you can see, with her face?
-3. The faceless list above: agree?
-4. Expressions: one face per character for now (suggestion), with a mood tag (`#mood:angry`) for the
-   main cast in a later pass?
+## Decided (designer, 2026-10-01)
+1. **Elders share one face,** told apart by different coloured robes (designer). Their sprites on the
+   dais get the same colours, so each portrait matches its elder. Lines are tagged with which elder speaks.
+2. **Crowd voices:** Claude's call. Generic baseline faces, each matched to someone standing in that
+   crowd; "The crowd" chanting together gets the group portrait.
+3. **Faceless:** Claude's call (designer: "I trust your judgement"). The prologue, the voice behind
+   the curtain on Day 6 (hidden until you know it's the preacher), and your friend through the closed
+   shutter on Day 7. Everyone else has a face.
+4. **No expressions yet** (designer). One face per character.
 
 ## Order of work (suggestion)
 1. The generator, a test (sizes, palette, no red), and the gallery section.
