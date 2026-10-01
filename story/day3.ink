@@ -355,8 +355,7 @@ To answer.
 === day3_second_choice ===
 "I see you, clipped wing. Send me new life that can't fly." #speaker:you
 The same words. Whoever this is asked you twice, and twice you turned away.
-They won't ask a third time. #dim:on
-This is the last chance to answer. If you ignore it again, it's over. There's no coming back from this choice.
+The plate is warm from the fire, and the Tree is above you, as it always has been. #dim:on
 - (choose)
 + [Carve a fledgling with a clipped wing (answer the message)]
     You'll answer. Late, but you'll answer.
@@ -367,8 +366,8 @@ This is the last chance to answer. If you ignore it again, it's over. There's no
         -> day3_knock
     ++ [No. Think again.]
         -> choose
-+ [Carve your usual bird (ignore the message)]
-    You'd be choosing the Tree, for good. Whoever wrote this will stop. You'll never know who it was.
++ [Carve your usual bird (stay loyal to the Tree)]
+    Your usual bird, the way Mum taught you. The Tree, and nothing else.
     ++ [Yes. Stay loyal to the Tree.]
         ~ times_ignored += 1
         You drop the plate into the fire and watch it blacken until the scratches are gone.
