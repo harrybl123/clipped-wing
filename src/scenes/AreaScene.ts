@@ -39,6 +39,8 @@ interface PersonEntry {
   scriptHidden: boolean;
   /** A shy person who has slipped away. */
   gone: boolean;
+  /** A follower mid-hop to catch up with you. */
+  hopping?: boolean;
 }
 
 /** A small carving shown up close for a moment during a scripted scene (#inset:<id>). */
@@ -119,11 +121,16 @@ interface Crumble {
   standing: number | null;
 }
 
-/** Waiting for the story (#when): the knot plays once `variable` reaches 0 (e.g. everything hidden). */
-interface Waiting {
-  knot: string;
-  variable: string;
+/** A stretch of tunnel coming down round you (see the `collapse` feature). */
+interface Collapse {
+  feature: Extract<Feature, { type: 'collapse' }>;
+  active: boolean;
+  /** The side you came in from: once you're out the other side, it's over. */
+  enteredFrom: -1 | 1;
+  done: boolean;
+  untilNext: number;
 }
+
 
 /** Any side-on area, built from its AreaDefinition in src/data/areas. */
 export class AreaScene extends Phaser.Scene {
@@ -154,8 +161,8 @@ export class AreaScene extends Phaser.Scene {
   /** Frame on which the dialogue closed, so the key that closed it doesn't also jump or reopen it. */
   private dialogueClosedFrame = -1;
   private crumbles: Crumble[] = [];
+  private collapses: Collapse[] = [];
   private crumbleGroup!: Phaser.Physics.Arcade.StaticGroup;
-  private waiting: Waiting | null = null;
 
   constructor() {
     super('Area');
@@ -178,7 +185,7 @@ export class AreaScene extends Phaser.Scene {
     this.current = null;
     this.leaving = false;
     this.crumbles = [];
-    this.waiting = null;
+    this.collapses = [];
   }
 
   create(): void {
@@ -293,9 +300,10 @@ export class AreaScene extends Phaser.Scene {
     this.updateShyPeople();
     this.updateFollowers(delta);
     this.updateCrumbles(delta);
+    this.updateCollapses(delta);
     this.updateWaiting();
     this.updateHints();
-    this.objective.pointAt(this.objectivePoint());
+    this.objective.pointAt(this.onScreen(this.objectivePoint()));
 
     this.setCurrent(this.dialogue.isOpen || !this.player.onGround ? null : this.nearestInteractable());
     if (this.current && interactPressed && !blocked) {
@@ -392,8 +400,25 @@ export class AreaScene extends Phaser.Scene {
     for (const entry of this.people.values()) {
       if (!entry.person.follow || !entry.image.visible) continue;
       const img = entry.image;
+      if (entry.hopping) continue;
       const behind = x + (this.player.sprite.flipX ? 16 : -16);
-      if (this.player.onGround && Math.abs(img.y - y) > 2) img.setPosition(behind, y);
+      if (this.player.onGround && Math.abs(img.y - y) > 2) {
+        // You've changed level: she jumps (or drops) after you, in an arc.
+        const from = { x: img.x, y: img.y };
+        const peak = Math.min(from.y, y) - 24;
+        const hop = { t: 0 };
+        entry.hopping = true;
+        img.setFlipX(behind < from.x);
+        this.tweens.add({
+          targets: hop, t: 1, duration: 420 + Math.min(300, Math.abs(y - from.y) * 2), ease: 'Sine.easeInOut',
+          onUpdate: () => {
+            const t = hop.t;
+            img.setPosition(from.x + (behind - from.x) * t, (1 - t) ** 2 * from.y + 2 * (1 - t) * t * peak + t * t * y);
+          },
+          onComplete: () => (entry.hopping = false),
+        });
+        continue;
+      }
       const dx = behind - img.x;
       if (Math.abs(dx) > 3) {
         img.x += Math.sign(dx) * Math.min(Math.abs(dx), (Math.abs(dx) > 60 ? 140 : 70) * (delta / 1000));
@@ -426,12 +451,74 @@ export class AreaScene extends Phaser.Scene {
 
   /** #when: once its variable reaches 0, its knot plays (after any conversation that's open). */
   private updateWaiting(): void {
-    const w = this.waiting;
-    if (!w || Number(getSession(this).story.getVariable(w.variable)) > 0) return;
-    this.waiting = null;
+    const session = getSession(this);
+    const w = session.waiting;
+    if (!w || this.leaving || Number(session.story.getVariable(w.variable)) > 0) return;
+    session.waiting = null;
     const play = () => this.dialogue.open(w.knot, () => this.conversationClosed());
     if (this.dialogue.isOpen) this.afterClose.push(play);
     else play();
+  }
+
+  /** Collapsing tunnel: while you're in it, lumps keep coming down just ahead of you and behind. */
+  private updateCollapses(delta: number): void {
+    const { x, y } = this.player.feet;
+    const { story } = getSession(this);
+    for (const c of this.collapses) {
+      const f = c.feature;
+      if (c.done || (f.showIf && !story.getVariable(f.showIf))) continue;
+      const inside = Math.abs(y - f.y) <= 6 && x >= f.from && x <= f.to;
+      if (!c.active) {
+        if (!inside) continue;
+        c.active = true;
+        c.enteredFrom = x - f.from < f.to - x ? -1 : 1;
+        c.untilNext = 0;
+        this.cameras.main.shake(400, 0.004);
+      }
+      if (!inside) {
+        c.active = false;
+        // Out the far side: it's settled. (Knocked back out the way you came: it starts again when you return.)
+        const outFar = c.enteredFrom < 0 ? x > f.to : x < f.from;
+        if (outFar) c.done = true;
+        continue;
+      }
+      c.untilNext -= delta;
+      if (c.untilNext > 0) continue;
+      c.untilNext = Phaser.Math.Between(220, 380);
+      const ahead = c.enteredFrom < 0 ? 1 : -1;
+      const lx = Phaser.Math.Clamp(x + ahead * Phaser.Math.Between(-30, 80), f.from, f.to);
+      this.dropLump(lx, f.top, f.y, 420, f.reset);
+      if (Math.random() < 0.3) this.cameras.main.shake(120, 0.003);
+    }
+  }
+
+  /** Dust trickles from (x, top) for `warn` ms, then a lump of wood falls to floorY; if it hits you, you're knocked back to `reset`. */
+  private dropLump(x: number, top: number, floorY: number, warn: number, reset: { x: number; y: number }): void {
+    const dust = this.add.particles(0, 0, PIXEL, { x: { min: x - 3, max: x + 3 }, y: top, speedY: { min: 25, max: 50 }, lifespan: 600, frequency: 30, tint: [SHADES.light, SHADES.dim] }).setDepth(11);
+    const size = Phaser.Math.Between(5, 8);
+    // A dark patch on the floor where it's going to land.
+    const mark = this.add.rectangle(x, floorY - 1, size + 4, 2, SHADES.shadow, 0.8).setDepth(7);
+    this.time.delayedCall(warn, () => {
+      dust.stop();
+      const lump = this.add.rectangle(x, top, size, size - 1, Phaser.Math.RND.pick([SHADES.light, SHADES.woodPale])).setStrokeStyle(1, SHADES.deep).setDepth(11);
+      let hit = false;
+      this.tweens.add({
+        targets: lump, y: floorY - 2, duration: 420, ease: 'Quad.easeIn',
+        onUpdate: () => {
+          const body = this.player.body;
+          if (!hit && Math.abs(lump.x - body.center.x) < 4 + size / 2 && lump.y >= body.top && lump.y <= body.bottom) {
+            hit = true;
+            this.knockBack(reset);
+          }
+        },
+        onComplete: () => {
+          lump.destroy();
+          mark.destroy();
+          dust.explode(8, x, floorY - 2);
+          this.time.delayedCall(700, () => dust.destroy());
+        },
+      });
+    });
   }
 
   /** Knocked back by falling rubble: a jolt, and you're back at `reset` (anyone following comes too). */
@@ -489,6 +576,13 @@ export class AreaScene extends Phaser.Scene {
       if (exit) return { x: exit.x, y: exit.y - 42 };
     }
     return null;
+  }
+
+  /** Keeps the marker on screen: something off to one side is shown at the edge, in its direction. */
+  private onScreen(at: { x: number; y: number } | null): { x: number; y: number } | null {
+    if (!at) return null;
+    const view = this.cameras.main.worldView;
+    return { x: Phaser.Math.Clamp(at.x, view.x + 12, view.right - 12), y: Phaser.Math.Clamp(at.y, view.y + 24, view.bottom - 8) };
   }
 
   /** Over a person, object or door in this area. */
@@ -614,7 +708,7 @@ export class AreaScene extends Phaser.Scene {
         }
         case 'when': {
           const [variable, knot] = args;
-          if (variable && knot) this.waiting = { variable, knot };
+          if (variable && knot) getSession(this).waiting = { variable, knot };
           break;
         }
         case 'ending':
@@ -873,36 +967,16 @@ export class AreaScene extends Phaser.Scene {
         break;
       }
       case 'rubble': {
-        const lump = this.add.rectangle(feature.x, feature.top, 5, 4, SHADES.woodPale).setDepth(11).setVisible(false);
-        const dust = this.add.particles(0, 0, PIXEL, { x: { min: feature.x - 3, max: feature.x + 3 }, y: feature.top, speedY: { min: 20, max: 40 }, lifespan: 600, frequency: 60, tint: SHADES.dim, emitting: false }).setDepth(11);
-        const drop = () => {
-          dust.start();
-          this.time.delayedCall(800, () => {
-            dust.stop();
-            lump.setPosition(feature.x, feature.top).setVisible(true);
-            let hit = false;
-            this.tweens.add({
-              targets: lump, y: feature.floorY - 2, duration: 450, ease: 'Quad.easeIn',
-              onUpdate: () => {
-                const body = this.player.body;
-                if (!hit && Math.abs(lump.x - body.center.x) < 7 && lump.y >= body.top && lump.y <= body.bottom) {
-                  hit = true;
-                  this.knockBack(feature.reset);
-                }
-              },
-              onComplete: () => {
-                lump.setVisible(false);
-                dust.explode(6, feature.x, feature.floorY - 2);
-              },
-            });
-          });
-        };
+        const drop = () => this.dropLump(feature.x, feature.top, feature.floorY, 800, feature.reset);
         this.time.delayedCall(Phaser.Math.Between(0, feature.every), () => {
           drop();
           this.time.addEvent({ delay: feature.every, loop: true, callback: drop });
         });
         break;
       }
+      case 'collapse':
+        this.collapses.push({ feature, active: false, enteredFrom: -1, done: false, untilNext: 0 });
+        break;
       case 'jars': {
         const { story } = getSession(this);
         const jars = Array.from({ length: feature.max }, (_, i) =>

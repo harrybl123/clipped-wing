@@ -11,12 +11,14 @@ export interface Session {
   saves: SaveSystem;
   /** How each day began (ink and calendar), so an ending can send you back to the start of a day. Not saved yet. */
   dayStarts: Partial<Record<number, { ink: string; calendar: CalendarState }>>;
+  /** A knot waiting for an ink variable to reach 0 (#when), kept here so it survives travelling between areas. */
+  waiting: { variable: string; knot: string } | null;
 }
 
 const REGISTRY_KEY = 'session';
 
 export function createSession(game: Phaser.Game): Session {
-  const session: Session = { story: new StoryBridge(storyJson), calendar: new Calendar(), saves: new SaveSystem(), dayStarts: {} };
+  const session: Session = { story: new StoryBridge(storyJson), calendar: new Calendar(), saves: new SaveSystem(), dayStarts: {}, waiting: null };
   game.registry.set(REGISTRY_KEY, session);
   return session;
 }

@@ -43,3 +43,19 @@
 { day3 == "girl": -> day3_girl }
 "Go on, then." #speaker:girl
 -> END
+
+// Talkable people in the crowd at the rites (src/data/areas/offeringFloor.ts).
+=== offering_floor_crowd_mother ===
+{ day3 == "rite" || day3 == "evening": -> day3_crowd_mother }
+They're watching the tube, not you.
+-> END
+
+=== offering_floor_crowd_old_man ===
+{ day3 == "rite" || day3 == "evening": -> day3_crowd_old_man }
+They're watching the tube, not you.
+-> END
+
+=== offering_floor_crowd_zealot ===
+{ day3 == "rite" || day3 == "evening": -> day3_crowd_zealot }
+They're watching the tube, not you.
+-> END

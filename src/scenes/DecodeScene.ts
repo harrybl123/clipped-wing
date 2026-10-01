@@ -82,6 +82,8 @@ export class DecodeScene extends Phaser.Scene {
   private ragAt: { x: number; y: number } | null = null;
   private rubbing = false;
   private dust!: Phaser.GameObjects.Particles.ParticleEmitter;
+  /** Patches of soot crumbling away round found pictures (plate pixel indexes still to clear). */
+  private dissolving: number[][] = [];
   private selected = 0;
   private typed = '';
   private coldIndex = 0;
@@ -110,6 +112,7 @@ export class DecodeScene extends Phaser.Scene {
     this.phase = 'rub';
     this.ragAt = null;
     this.rubbing = false;
+    this.dissolving = [];
     this.selected = 0;
     this.typed = '';
     this.leaving = false;
@@ -187,6 +190,7 @@ export class DecodeScene extends Phaser.Scene {
       this.rag.setAngle(this.rubbing ? Math.sin(_time / 40) * 12 : 0);
       this.rubbing = false;
     }
+    this.updateDissolving(delta);
     if (this.sootDirty) {
       this.soot.refresh();
       this.sootDirty = false;
@@ -280,15 +284,12 @@ export class DecodeScene extends Phaser.Scene {
 
   private find(slot: Slot): void {
     slot.found = true;
-    // Wipe the soot off the whole picture.
-    const w = slot.symbol.picture[0]!.length * PICTURE_SCALE + 6;
-    const h = slot.symbol.picture.length * PICTURE_SCALE + 6;
-    const x0 = Math.round(slot.x - w / 2 - (PLATE.x - PLATE.width / 2));
-    const y0 = Math.round(slot.y - h / 2 - (PLATE.y - PLATE.height / 2));
-    this.soot.getContext().clearRect(x0, y0, w, h);
-    for (let y = Math.max(0, y0); y < Math.min(PLATE.height, y0 + h); y++) this.clean.fill(1, y * PLATE.width + Math.max(0, x0), y * PLATE.width + Math.min(PLATE.width, x0 + w));
-    this.sootDirty = true;
+    this.dissolveAround(slot);
     this.tweens.add({ targets: slot.scratch, scale: PICTURE_SCALE * 1.15, duration: 120, yoyo: true });
+    // A picture you've read before: your words come back to you.
+    const known = this.matcher.answer(slot.symbol.id);
+    if (known !== null && !slot.symbol.given) this.feedback.setColor(SHADES.amber).setText(`I recognise this one: ${known}.`);
+    this.renderStrip();
     const left = this.slots.filter((s) => !s.found).length;
     if (left > 0) {
       playMove(this);
@@ -304,6 +305,39 @@ export class DecodeScene extends Phaser.Scene {
       if (first === null) this.complete();
       else this.select(first);
     });
+  }
+
+  /** The rest of the soot round a found picture crumbles away over a moment, in a ragged patch (not a neat square). */
+  private dissolveAround(slot: Slot): void {
+    const rx = (slot.symbol.picture[0]!.length * PICTURE_SCALE) / 2 + 5;
+    const ry = (slot.symbol.picture.length * PICTURE_SCALE) / 2 + 5;
+    const cx = slot.x - (PLATE.x - PLATE.width / 2);
+    const cy = slot.y - (PLATE.y - PLATE.height / 2);
+    const pixels: number[] = [];
+    for (let y = Math.floor(cy - ry - 3); y <= cy + ry + 3; y++) {
+      for (let x = Math.floor(cx - rx - 3); x <= cx + rx + 3; x++) {
+        if (x < 0 || y < 0 || x >= PLATE.width || y >= PLATE.height) continue;
+        const d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2;
+        if (d <= 0.85 + 0.3 * noise(x * 0.4 + y * 0.9) && !this.clean[y * PLATE.width + x]) pixels.push(y * PLATE.width + x);
+      }
+    }
+    Phaser.Utils.Array.Shuffle(pixels);
+    this.dissolving.push(pixels);
+  }
+
+  /** Clears a little more of each dissolving patch every frame. */
+  private updateDissolving(delta: number): void {
+    if (!this.dissolving.length) return;
+    const ctx = this.soot.getContext();
+    const perFrame = Math.ceil(delta * 1.2);
+    for (const pixels of this.dissolving) {
+      for (const i of pixels.splice(0, perFrame)) {
+        this.clean[i] = 1;
+        ctx.clearRect(i % PLATE.width, Math.floor(i / PLATE.width), 1, 1);
+      }
+    }
+    this.dissolving = this.dissolving.filter((p) => p.length);
+    this.sootDirty = true;
   }
 
   /** The plate: pale metal, finely machined. */
@@ -480,9 +514,11 @@ export class DecodeScene extends Phaser.Scene {
     this.centreText();
   }
 
-  /** Your words so far, in the plate's two rows, with blanks for the pictures still to solve. */
+  /** Your words so far, in the plate's two rows: blanks for pictures still under the soot or still to solve. */
   private renderStrip(): void {
-    this.strip.setText(this.message.rows.map((row) => row.map((id) => this.matcher.answer(id) ?? '___').join('  ')).join('\n'));
+    let i = 0;
+    const rows = this.message.rows.map((row) => row.map((id) => (this.slots[i++]?.found ? (this.matcher.answer(id) ?? '___') : '___')).join('  '));
+    this.strip.setText(rows.join('\n'));
     this.centreText();
   }
 

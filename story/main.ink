@@ -45,6 +45,8 @@ VAR fledgling_size = ""
 VAR fledgling_wing = ""
 VAR fledgling_eye = ""
 VAR girl_with_you = false
+// The top way back through the back routes starts coming down (after the window).
+VAR routes_collapsing = false
 VAR blessings_withheld = false
 // You ignored message 1 on Day 2, then answered it on Day 3.
 VAR answered_late = false

@@ -36,7 +36,9 @@ function crowd(): Person[] {
   const right = [400, 412, 424, 436];
   return [...left.map((x) => ({ x, flipX: false })), ...right.map((x) => ({ x, flipX: true }))].map(({ x, flipX }, i) => {
     const look = VILLAGERS[(i * 3) % VILLAGERS.length]!;
-    return { id: `crowd-${i}`, sprite: look.idle[0]!, idleFrames: look.idle, x, y: FLOOR, flipX, when: CEREMONY };
+    // A few of them you can talk to (what they say depends on the day).
+    const knot = ({ 2: 'offering_floor_crowd_mother', 5: 'offering_floor_crowd_old_man' } as Record<number, string>)[i];
+    return { id: `crowd-${i}`, sprite: look.idle[0]!, idleFrames: look.idle, x, y: FLOOR, flipX, when: CEREMONY, ...(knot ? { knot } : {}) };
   });
 }
 
@@ -48,7 +50,7 @@ function extraCrowd(): Person[] {
     const rightX = LANDING.x + LANDING.width + STEP.run * (STEP.count - i) - 5;
     const look = (k: number) => VILLAGERS[(n * 2 + k) % VILLAGERS.length]!;
     return [
-      { id: `crowd-stairs-left-${n}`, sprite: look(0).idle[0]!, idleFrames: look(0).idle, x: leftX, y: top, when: CEREMONY, showIf: 'day3' },
+      { id: `crowd-stairs-left-${n}`, sprite: look(0).idle[0]!, idleFrames: look(0).idle, x: leftX, y: top, when: CEREMONY, showIf: 'day3', ...(n === 0 ? { knot: 'offering_floor_crowd_zealot' } : {}) },
       { id: `crowd-stairs-right-${n}`, sprite: look(1).idle[0]!, idleFrames: look(1).idle, x: rightX, y: top, flipX: true, when: CEREMONY, showIf: 'day3' },
     ];
   });

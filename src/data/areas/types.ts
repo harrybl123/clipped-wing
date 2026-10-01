@@ -53,7 +53,8 @@ export type Feature =
   | { type: 'hint'; x: number; y: number; reach: number; text: string; showIf?: string } // a tutorial hint shown at the top of the screen while the player is here (and the ink variable showIf is true)
   | { type: 'jars'; sprite: RowSprite; x: number; y: number; variable: string; max: number; perRow: number; rowSpacing: number } // one jar per unit of an ink variable, rows stacked upwards
   | { type: 'rubble'; x: number; top: number; floorY: number; every: number; reset: { x: number; y: number } } // a lump of wood drops from (x, top) to floorY every `every` ms, after a trickle of dust; if it hits you, you're knocked back to `reset`
-  | { type: 'crumble'; x: number; y: number; width: number }; // a rotten board (one-way, top-left at x, y) that gives way a moment after you stand on it, then grows back
+  | { type: 'crumble'; x: number; y: number; width: number } // a rotten board (one-way, top-left at x, y) that gives way a moment after you stand on it, then grows back
+  | { type: 'collapse'; from: number; to: number; y: number; top: number; reset: { x: number; y: number }; showIf?: string }; // a stretch of tunnel (floor y, ceiling top) that starts coming down round you as you run through it: lumps fall just ahead and behind (dust first); a hit knocks you back to `reset`. Only while the ink variable showIf is true
 
 /** Something the player can walk up to and press E on, which runs an ink knot. */
 export interface Interactable {

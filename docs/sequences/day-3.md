@@ -34,6 +34,12 @@ comes once the shape is agreed.
 - After the loyal ending, retry from the beginning of Day 2. **(designer)**
 - No timer on hiding the evidence: your friend waits, knocking, until everything's hidden. **(designer)**
   (So he never sees anything for now; the ink still has the "he saw something" lie for later.)
+- Playtest notes (designer), now built: carving is timing games, not holding; a few crowd members to
+  talk to at both rites; a longer conversation with the girl, with more choices; the girl hops after
+  you; clearer directions (hints, the marker at the screen edge); the tunnel comes down round you on
+  the way there and on the way back (the top way, with a rotten board over the shaft); your friend comes
+  to his window (you stay in the back routes); the girl says goodbye; a zealot confronts you at the
+  second rejection and the crowd chants; the hiding shows how many are left and points at the next.
 - Decoding: from the fifth wrong guess, a letter of the answer shows, one more each time; auto-solve
   moves to the eighth. **(designer)**
 

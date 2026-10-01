@@ -22,3 +22,8 @@
 // The girl, showing you the way (Day 3).
 === girl_guide ===
 -> day3_girl_follow
+
+=== back_routes_window ===
+{ day3 == "sneak": -> day3_window }
+A window into the back of your friend's house, high in the tunnel wall.
+-> END

@@ -20,12 +20,29 @@ export interface CarveOptions {
 /** Freshly carved wood is pale: lit edge, face, shaded edge, grooves, and the clean white of a new cut. */
 const COLOURS = { l: SHADES.white, w: SHADES.light, d: SHADES.dim, s: SHADES.woodLight, c: SHADES.white };
 
+/** The bird's size and centre on the canvas. */
+function frame(opts: CarveOptions) {
+  const fledgling = opts.kind === 'fledgling';
+  return { fledgling, k: fledgling ? (opts.size === 'tiny' ? 0.62 : 0.78) : 1, cx: CARVE_W / 2 + 8, cy: CARVE_H / 2 + 12 };
+}
+
+/** Where the eye goes on the canvas (for the eye step's ring). */
+export function eyePosition(opts: CarveOptions): { x: number; y: number } {
+  const { fledgling, k, cx, cy } = frame(opts);
+  const head = { x: cx - (fledgling ? 30 : 38) * k, y: cy - 18 * k, r: (fledgling ? 16 : 13) * k };
+  return { x: Math.round(head.x - head.r * 0.35), y: Math.round(head.y - head.r * 0.15) };
+}
+
+/** Where the wing ends (a fledgling's is clipped there): the x on the canvas, and the wing's centre y. */
+export function wingPosition(opts: CarveOptions): { x: number; y: number; from: number } {
+  const { fledgling, k, cx, cy } = frame(opts);
+  const wingX = cx + 4 * k;
+  return { x: Math.round(fledgling ? wingX + 6 * k : wingX + 26 * k), y: Math.round(cy - 6 * k), from: Math.round(wingX - 26 * k) };
+}
+
 /** The bird, facing left, at a stage of carving. */
 export function carvedBird(stage: CarveStage, opts: CarveOptions): RowSprite {
-  const fledgling = opts.kind === 'fledgling';
-  const k = fledgling ? (opts.size === 'tiny' ? 0.62 : 0.78) : 1;
-  const cx = CARVE_W / 2 + 8;
-  const cy = CARVE_H / 2 + 12;
+  const { fledgling, k, cx, cy } = frame(opts);
   // The bird's parts (a fledgling: rounder, bigger head, stubby tail).
   const body = { x: cx, y: cy, rx: 36 * k, ry: (fledgling ? 24 : 19) * k };
   const head = { x: cx - (fledgling ? 30 : 38) * k, y: cy - 18 * k, r: (fledgling ? 16 : 13) * k };
@@ -77,8 +94,7 @@ export function carvedBird(stage: CarveStage, opts: CarveOptions): RowSprite {
     }
   }
   if (stage >= 4) {
-    const ex = Math.round(head.x - head.r * 0.35);
-    const ey = Math.round(head.y - head.r * 0.15);
+    const { x: ex, y: ey } = eyePosition(opts);
     if (opts.eye === 'sleepy') for (let dx = -2; dx <= 2; dx++) grid[ey]![ex + dx] = 's';
     else {
       for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) grid[ey + dy]![ex + dx] = 's';

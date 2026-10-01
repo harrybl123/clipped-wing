@@ -1,4 +1,4 @@
-import { GIRL } from '../../ui/characters';
+import { FRIEND, GIRL } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import { FUNGI } from '../../ui/sprites';
 import * as P from './backRoutesProps';
@@ -63,6 +63,7 @@ export const backRoutes: AreaDefinition = {
     ...heartwoodSolids(TUNNELS, W, H),
     ...boards(368, [196, 160]),
     ...boards(768, [196]),
+    // (Rotten boards in the shafts and over the top of the 768 shaft: see the crumble features.)
     ...boards(200, [324, 288, 256]),
     ...boards(800, [324, 256]),
   ],
@@ -71,6 +72,7 @@ export const backRoutes: AreaDefinition = {
     { x: 60, y: 56, colour: S.amber, radius: 34, radiusY: 44, strength: 0.34 }, // through the shrine's grate
     { x: 496, y: 50, colour: S.cyan, radius: 46, radiusY: 70, strength: 0.4 }, // the tube's glow through the offering floor
     { x: 646, y: 86, colour: S.amber, radius: 20, radiusY: 26, strength: 0.28 }, // the market crack
+    { x: 932, y: 96, colour: S.amber, radius: 14, radiusY: 18, strength: 0.4 }, // your friend's window, lit
     { x: 530, y: 346, colour: S.cyan, radius: 26, radiusY: 16, strength: 0.18 }, // broken blessings, faintly
     ...MARKS.map(([x, y]) => ({ x: x + 3, y: y + 3, colour: S.green, radius: 12, strength: 0.24 })),
     ...[[152, 226], [262, 114], [622, 354], [884, 114], [42, 354], [40, 226]].map(([x, y]) => ({ x: x!, y: y!, colour: S.green, radius: 16, radiusY: 10, strength: 0.28 })),
@@ -107,6 +109,14 @@ export const backRoutes: AreaDefinition = {
     // Day 3 on: the routes are crumbling. Rotten boards give way; lumps fall from the ceiling (dust first).
     { type: 'crumble', x: 800, y: 288, width: 32 },
     { type: 'crumble', x: 768, y: 160, width: 32 },
+    { type: 'crumble', x: 768, y: UPPER, width: 32 }, // over the top of the shaft: cross it quickly
+    // Day 3: the tunnel comes down round you, on the way there (lower) and on the way back (upper, the top way).
+    { type: 'collapse', from: 400, to: 560, y: LOWER, top: 322, reset: { x: 380, y: LOWER }, showIf: 'girl_with_you' },
+    { type: 'collapse', from: 580, to: 900, y: UPPER, top: 82, reset: { x: 900, y: UPPER }, showIf: 'routes_collapsing' },
+    // Which way: shown while the girl is with you.
+    { type: 'hint', x: 816, y: LOWER, reach: 24, text: 'Up the shaft', showIf: 'girl_with_you' },
+    { type: 'hint', x: 790, y: MIDDLE, reach: 30, text: 'Up again, just along to the left', showIf: 'girl_with_you' },
+    { type: 'hint', x: 860, y: UPPER, reach: 50, text: 'His window is at the end of this tunnel', showIf: 'girl_with_you' },
     { type: 'rubble', x: 330, top: 322, floorY: LOWER, every: 2600, reset: { x: 270, y: LOWER } },
     { type: 'rubble', x: 610, top: 322, floorY: LOWER, every: 2200, reset: { x: 560, y: LOWER } },
     { type: 'rubble', x: 690, top: 322, floorY: LOWER, every: 2900, reset: { x: 560, y: LOWER } },
@@ -123,6 +133,8 @@ export const backRoutes: AreaDefinition = {
   people: [
     // Day 3: the girl, showing you the way.
     { id: 'girl-guide', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 60, y: LOWER, knot: 'girl_guide', showIf: 'girl_with_you', follow: true },
+    // Day 3: your friend, leaning out of his window when you knock.
+    { id: 'friend-window', sprite: FRIEND.idle[0]!, idleFrames: FRIEND.idle, x: 936, y: UPPER, flipX: true, hidden: true },
   ],
 
   interactables: [
@@ -130,12 +142,13 @@ export const backRoutes: AreaDefinition = {
     { id: 'offering-grate', x: 530, y: UPPER, reach: 10, label: 'Look', knot: 'back_routes_offering_grate' },
     { id: 'broken-blessings', x: 540, y: LOWER, reach: 16, label: 'Search', knot: 'back_routes_broken_blessings' },
     { id: 'mark', x: 356, y: MIDDLE, reach: 8, label: 'Look', knot: 'back_routes_mark' },
+    { id: 'friends-window', x: 912, y: UPPER, reach: 8, label: 'Knock', knot: 'back_routes_window' },
   ],
 
   exits: [
     { id: 'to-shrine', x: 36, y: UPPER, reach: 12, to: 'tenders-shrine' },
     { id: 'to-offering-floor', x: 496, y: UPPER, reach: 10, to: 'offering-floor' },
-    { id: 'to-friends-window', x: 924, y: UPPER, reach: 12, to: 'friends-home', secret: true },
+    { id: 'to-friends-window', x: 930, y: UPPER, reach: 6, to: 'friends-home' },
     { id: 'to-home', x: 36, y: MIDDLE, reach: 12, to: 'home' },
     { id: 'to-lower-roots', x: 36, y: LOWER, reach: 12, to: 'lower-roots' },
   ],
