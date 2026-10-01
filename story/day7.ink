@@ -186,7 +186,8 @@ She doesn't say anything at first. She takes your face in both hands and looks a
     She laughs, and it turns into something else halfway, and she has to stop.
 + [Voice it: "Yes. I think it is."]
     "Yes. I think it is." #speaker:you
-    She's quiet for a long time. "Your grandmother used to say the tube had two ends." #speaker:mum
+    She's quiet for a long time.
+    "Your grandmother used to say the tube had two ends." #speaker:mum
     "I always thought she meant the Tree's end, and ours." #speaker:mum
 - "Whatever happens tonight..." #speaker:mum
 She can't finish it. She presses something into your hand: a heel of bread, wrapped in a cloth.
@@ -220,7 +221,8 @@ The archivist, out of breath from the stairs. He looks wrong down here, like a l
 "I told them I had to take your statement, for the archive. It's even true." #speaker:archivist
 He sits on the guard's stool and lowers his voice.
 -> day7_archivist_talk ->
-He stands, tugs his coat straight, and is an upper-branches man again. "Statement taken." #speaker:archivist #hide:archivist-cell
+He stands, tugs his coat straight, and is an upper-branches man again.
+"Statement taken." #speaker:archivist #hide:archivist-cell
 The guard comes back in, scowling, and sits down by the door. #show:guard-cell
 -> day7_next_visitor
 
@@ -403,8 +405,8 @@ You start rubbing. #decode:message6:day7_decoded
 -> END
 
 === day7_decoded ===
-"Clipped wing, make yourself a martyr. Fly if you can, fall if you must. I will find you." #speaker:you
-A martyr. The master's spiral, the night of the Ascension, the whole tree singing them up the tube. Gone, and never a word after.
+"Clipped wing, make yourself a master. Fly if you can, fall if you must. I will find you." #speaker:you
+A master. The spiral on the master's last carving, the night of the Ascension, the whole tree singing them up the tube. Gone, and never a word after.
 Fly if you can. Fall if you must.
 He isn't telling you what to do. He's telling you there are two ways out, and he'll be waiting at the end of either one.
 I will find you.
@@ -419,7 +421,8 @@ Fists on the shrine's front doors. Then something heavier. #shake
 Under you, a scrape. The grate in the floor lifts an inch, falls back, and lifts again. #show:girl-cell
 The girl's face, filthy, grinning up at you out of the dark.
 "Told you I'd owe you." #speaker:girl
-She heaves the grate aside. "Come on. Half the roots is at the front doors, and the other half's on its way." #speaker:girl
+She heaves the grate aside.
+"Come on. Half the roots is at the front doors, and the other half's on its way." #speaker:girl
 "They went past your house on the way up. I didn't see your mum. I don't know. I'm sorry." #speaker:girl
 Fly if you can. Fall if you must.
 Up: the tube, and whatever's at the top of it. Nobody has ever come back down to say.
@@ -427,7 +430,8 @@ Down: the rot, where the tree throws everything it doesn't want.
 "So. Where do you want to go?" #speaker:girl #dim:on
 -> day7_fork
 = home
-Mum turns from the shutters. "They're coming. All of them." #speaker:mum #shake
+Mum turns from the shutters.
+"They're coming. All of them." #speaker:mum #shake
 { confided:
     Something bangs in the gap by the rot, and your friend tumbles out of it, black with dust. #show:friend-home
     "They're coming! Now! I ran the back way..." #speaker:friend
@@ -493,7 +497,8 @@ Behind you, the front door crashes in. You hear Mum's voice, raised, and then yo
 "Down? Down where?" Then she understands. "No. No, you idiot. They'll throw you in the rot." #speaker:girl
 "If I run, they'll take it out on someone. On you. On Mum." #speaker:you
 "And if they throw me down there... he said he'd find me." #speaker:you
-She stares at you. Then she laughs, once, and it's an awful sound. "You're mad. You really are." #speaker:girl
+She stares at you. Then she laughs, once, and it's an awful sound.
+"You're mad. You really are." #speaker:girl
 "I'll find you too. Down there. Somehow." #speaker:girl
 She lets the grate drop, and you're on your own. #hide:girl-cell
 You go to the door, and knock, and wait for them to open it.
@@ -576,11 +581,12 @@ The girl comes up the last of the steps behind you, bent double, getting her bre
     "Somebody's got to stay down here and be a nuisance." #speaker:girl
 + [Joke about it: "Race you to the top."]
     "Race you to the top." #speaker:you
-    She laughs, and it cracks halfway. "You'd cheat." #speaker:girl
+    She laughs, and it cracks halfway.
+    "You'd cheat." #speaker:girl
 + [Voice it: "I'm scared."]
     "I'm scared." #speaker:you
     "Good. Means you're not as mad as they say." #speaker:girl
-- She punches you on the arm, not gently, and doesn't let go of your sleeve straight away.
+- She hugs you, hard and quick, and doesn't let go straight away.
 "If you find him, tell him he owes me a feather." #speaker:girl
 "Farewell, soldier." #speaker:girl
 -> edge
@@ -629,9 +635,10 @@ She sees who it is, and her face goes hard as bark.
     "I told them it was you because I was scared. That's all. There isn't a better reason." #speaker:you
     "I was tied up in front of the elders while you told them I'd poisoned you. I was scared too." #speaker:girl
 - "So they threw you down as well. Good. I hope it stinks for you the way it stinks for me." #speaker:girl
-She looks off into the dark, the way you were going.
-"There's a draught at the far end. Cold. I'm going to it." #speaker:girl
-"Follow if you want. I won't wait, and I won't talk to you." #speaker:girl
+You feel it on your face: a draught, from the far end of the dark. Cold.
+"There's a draught. I'm going to it." #speaker:you
+"Follow if you want. You don't have to talk to me." #speaker:you
+She doesn't answer. But when you set off, she gets up and comes after you, a long way behind.
 ~ girl_follows = true
 -> END
 = again

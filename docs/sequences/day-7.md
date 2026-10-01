@@ -9,8 +9,8 @@ calls are under "Build shape" at the end. In custody you have no plate (the guar
 home), so you scratch your picture on a sliver of the wood instead.
 After the designer's first playthrough: the guard speaks for himself (by situation, and if you try the
 door) and steps out while your friend is at the grate; the cage rises right out of sight; "can" is a
-tick (the opposite of "can't"'s cross) and "must" a great hand shoving someone on (designer: the hand and
-"!" didn't read); the spiral stays for "martyr" (designer: clever, and the answers are generous); long
+tick (the opposite of "can't"'s cross) and "must" stays a stroke and a dot (designer: the hand didn't read, and a
+shoving hand was less clear than "!"); the spiral stays, and the word becomes "master" (designer: martyr was too far from it); long
 replies on the decoding screen wrap; the fork is weightier (the room dims, a beat on what each way
 means); on the custody path the girl comes up with you and sees you off at the gate ("Farewell,
 soldier", designer); the jump is a choice of its own, and you rise up the tube on screen; the girl in
@@ -31,7 +31,7 @@ once the shape is agreed. The last day of Act 1.
   glimpse him among the torches. Your last visits include him only if things are intact. **(doc)**
 
 ## Decided in conversation
-- **Message 6's words:** "Clipped wing, make yourself a martyr. Fly if you can, fall if you must. I will
+- **Message 6's words:** "Clipped wing, make yourself a master. Fly if you can, fall if you must. I will
   find you." **(designer)**
 - **The caged bird is the elders' public trial:** your bird goes up at the morning rite locked in a
   cage, in front of everyone. "If the Tree takes it, the carver is clean. If it comes back, we'll know
@@ -100,7 +100,7 @@ once the shape is agreed. The last day of Act 1.
 ### 3. Evening: the cage comes back, and message 6
 - The tube goes dark. The cage drops into the basin, and your bird is still in it. The trial's answer.
 - The mob: not a crowd any more. The hunger, the blame, the preacher's words, all at once.
-- Message 6, decoded: "Clipped wing, make yourself a martyr. Fly if you can, fall if you must. I will
+- Message 6, decoded: "Clipped wing, make yourself a master. Fly if you can, fall if you must. I will
   find you." The pictures: a bird rising up the tube among eyes; two paths out; the master's spiral.
   (Where you decode it depends on the path: in the cell, or at home before the mob comes.)
 
@@ -131,9 +131,9 @@ None for now: all answered (above). Small calls during the build are Claude's, m
 - **The trial:** at the morning rite the cage hangs in the tube's mouth and goes up; at the evening
   ceremony it comes back down with the bird still in it, and the crowd becomes a mob. The Tender hands
   you the bird as always ("It always comes back to you").
-- **Message 6:** two rows. *clipped · wing · make yourself a martyr (the master's spiral) · fly · if
-  (a fork: two paths) · can (a whole hand)* / *fall · if · must (a stroke and a dot) · I · will find
-  (an eye, a trail and a mark) · you*. Six new pictures: martyr, if, can, fall, must, find.
+- **Message 6:** two rows. *clipped · wing · make yourself a master (the master's spiral; designer, was "martyr") · fly · if
+  (a fork: two paths) · can (a tick)* / *fall · if · must (a stroke and a dot) · I · will find
+  (an eye, a trail and a mark) · you*. Six new pictures: master, if, can, fall, must, find.
 - **Home path:** a guard on your door. You carve at your bench, he walks you to the rite and back, and
   in the afternoon you slip out the rot gap in your cloak for goodbyes: Mum at home, your friend's window
   (if you confided), the archivist (if he's your ally). Talk to the guard when you're ready for the ceremony.

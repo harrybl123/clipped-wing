@@ -534,6 +534,7 @@ export class AreaScene extends Phaser.Scene {
 
   /** People following you (the girl in the back routes) walk after you, and catch up when you change level. */
   private updateFollowers(delta: number): void {
+    if (!this.player.body.enable) return; // e.g. rising up the tube: they stay where they are
     const { x, y } = this.player.feet;
     for (const entry of this.people.values()) {
       if (!entry.person.follow || !entry.image.visible) continue;

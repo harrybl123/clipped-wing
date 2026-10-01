@@ -804,16 +804,16 @@ export const MESSAGE_5_SLEEPS: Message = {
 
 // --- Message 6's new pictures ---
 
-/** "Make yourself a martyr": the master's spiral, cut into their last carving the night of the Ascension (design doc). */
-const MARTYR: DecodeSymbol = {
-  id: 'martyr',
+/** "Make yourself a master": the master's spiral, cut into their last carving the night of the Ascension (design doc). */
+const MASTER: DecodeSymbol = {
+  id: 'master',
   picture: scratches(16, 16, [[[1, 1], [14, 1], [14, 14], [3, 14], [3, 4], [11, 4], [11, 11], [6, 11], [6, 7], [8, 7], [8, 9]], [[1, 2], [13, 2], [13, 13]]]),
-  accepted: ['martyr', 'make yourself a martyr', 'a martyr', 'sacrifice', 'sacrifice yourself', 'give yourself', 'give yourself up', 'offering', 'offer yourself', 'saint', 'ascend', 'ascended', 'ascension', 'master', 'chosen', 'die for'],
+  accepted: ['master', 'make yourself a master', 'a master', 'masters', 'ascend', 'ascended', 'ascension', 'chosen', 'the chosen', 'martyr', 'saint', 'best', 'great carver', 'mastery'],
   near: [
-    { words: ['spiral', 'swirl', 'coil', 'maze', 'snail', 'whirl', 'mark', 'sign'], reply: "Warm. The master's spiral. What did the master do, for all of you?" },
+    { words: ['spiral', 'swirl', 'coil', 'maze', 'snail', 'whirl', 'mark', 'sign', 'carver', 'carving'], reply: "Warm. The spiral on a carving, the night of the Ascension. Whose mark was it?" },
   ],
-  nudge: "The master's mark, the spiral on their last carving, the night the whole tree sang them up the tube.",
-  hint: 'The master gave themself to the Tree, for all of you. What do you call someone who does that?',
+  nudge: "The mark on the last carving of the one the whole tree sang up the tube, the night of the Ascension.",
+  hint: 'Once a lifetime, the best carver in the tree goes up the tube. What do they call them?',
 };
 
 /** "If": a path splitting in two, one way up and one way down. */
@@ -859,20 +859,16 @@ const FALL: DecodeSymbol = {
   hint: "What a bird does when it can't fly.",
 };
 
-/** "Must": a great hand shoving someone forward. No choice. */
+/** "Must": a heavy stroke and a dot. Like the question's hook, but not a question. */
 const MUST: DecodeSymbol = {
   id: 'must',
-  picture: scratches(
-    24,
-    18,
-    [[[0, 8], [5, 8]], [[0, 10], [5, 10]], [[13, 7], [10, 11]], [[16, 13], [18, 17]], [[14, 13], [12, 17]], [[19, 4], [22, 4]], [[20, 7], [23, 7]], [[19, 10], [22, 10]]],
-    [{ poly: [[0, 5], [9, 5], [11, 6], [11, 12], [9, 13], [0, 13]] }, { disc: [17, 3, 2.2] }, { poly: [[13, 6], [18, 6], [18, 13], [14, 13]] }],
-  ),
+  picture: scratches(8, 18, [], [{ poly: [[2, 0], [6, 0], [5, 11], [3, 11]] }, { disc: [4, 15, 1.6] }]),
   accepted: ['must', 'have to', 'has to', 'need to', 'should', 'got to', 'no choice', 'shall', 'forced', 'made to', 'ought to'],
   near: [
-    { words: ['push', 'pushed', 'shove', 'shoved', 'hand', 'make', 'made', 'pressure'], reply: "Close. A hand shoving someone on. They've no choice. They ___." },
+    { words: ['would', 'question', 'ask', 'what', 'why', 'hook'], reply: "Close. Like the question's hook, but straight. It isn't asking." },
+    { words: ['line', 'stick', 'dot', 'stroke', 'mark', 'shout', 'loud', 'important', 'warning', 'danger'], reply: "Warm. Said hard, no arguing. Not 'you may'. You ___." },
   ],
-  nudge: 'A great hand shoving someone forward, whether they like it or not.',
+  nudge: 'A straight stroke, struck hard, with a dot under it. No question about it.',
   hint: 'Not "you could". Not "you might". No choice left: you ____.',
 };
 
@@ -894,15 +890,15 @@ const FIND: DecodeSymbol = {
   hint: "What you do with something that's lost, when you look hard enough.",
 };
 
-/** Message 6 (Day 7): "Clipped wing, make yourself a martyr. Fly if you can, fall if you must. I will find you." (designer) */
+/** Message 6 (Day 7): "Clipped wing, make yourself a master. Fly if you can, fall if you must. I will find you." (designer) */
 export const MESSAGE_6: Message = {
   id: 'message6',
-  line: 'Clipped wing, make yourself a martyr. Fly if you can, fall if you must. I will find you.',
+  line: 'Clipped wing, make yourself a master. Fly if you can, fall if you must. I will find you.',
   rows: [
-    ['clipped', 'wing', 'martyr', 'fly', 'if', 'can'],
+    ['clipped', 'wing', 'master', 'fly', 'if', 'can'],
     ['fall', 'if', 'must', 'self', 'find', 'you'],
   ],
-  symbols: [CLIPPED, WING, MARTYR, FLY, IF, CAN, FALL, MUST, SELF, FIND, YOU],
+  symbols: [CLIPPED, WING, MASTER, FLY, IF, CAN, FALL, MUST, SELF, FIND, YOU],
 };
 
 export const MESSAGES: Record<string, Message> = Object.fromEntries(
