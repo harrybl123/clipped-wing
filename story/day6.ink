@@ -390,7 +390,7 @@ The elders are on the dais in their high chairs, faces in shadow. The preacher s
 }
 "You've been seen in the lower roots. At night. With a girl from down there." #name:The preacher
 "Bring her in." #name:An elder
-They bring her in between two guards. Her hands are tied. She has a bruise on her cheek she didn't have this morning. #show:girl-shrine
+They bring her in between two guards. Her hands are tied. Her sleeve is torn, and there's dirt on her face, as if they dragged her here. #show:girl-shrine
 She looks at you, just once, and then at the floor.
 "The watch saw you at her door, at night. Twice." #name:An elder
 "A lower-roots girl. You know what they're like down there. Living in the rot, with their glowing paint and their thieving and their grudges against everyone above them." #name:The preacher
