@@ -80,6 +80,9 @@ the camera framing the action above it, more `#move:`/`#show:`-style staging in 
 - **The Day 4 night sneak is too easy.** Make it harder: more watchmen, longer lantern reach, fewer
   shadows, watchmen who turn unpredictably, lit windows, or neighbours who'd raise the alarm.
 
+- **Narration that doesn't match where you are**: e.g. Day 6, "You don't stop until you're home" while
+  you're still standing in the market until the conversation closes. Part of the same pass: scenes
+  should play out on screen, not only in text.
 - **The Night 6 interrogation is the scene the dialogue box hides most**: the elders, the guards and
   the girl all stand below the box's top edge. Fix in the "scenes keep moving" pass.
 

@@ -345,8 +345,8 @@ export const DODGER = (() => {
 /**
  * The hooded cloak from the boy (Day 6 on), drawn over the protagonist (facing right): a close, dark
  * hood with the face in its shadow, and a short cape to the waist that covers the red thread. Kept
- * discreet: dark wood colours, a faint lit edge, a couple of patches. 10×13; its bottom sits 13px above
- * the feet (10 more when crouching).
+ * discreet: dark wood colours, a faint lit edge, a couple of patches. 10×13, drawn onto the frames
+ * (PROTAGONIST_CLOAKED) one pixel in from the left.
  */
 export const CLOAK: RowSprite = {
   rows: [
@@ -367,16 +367,65 @@ export const CLOAK: RowSprite = {
   colours: { o: SHADES.shadow, c: SHADES.deep, k: SHADES.shadow, l: SHADES.woodLight, p: SHADES.greenDeep },
 };
 
-/** A crouching frame made from a standing one: the head and body lowered over bent legs (same 12×26 canvas, feet on the bottom row). */
-function crouched(frame: RowSprite): RowSprite {
-  const blank = '.'.repeat(frame.rows[0]!.length);
-  return { rows: [...Array<string>(10).fill(blank), ...frame.rows.slice(0, 13), ...frame.rows.slice(23)], colours: frame.colours };
+/**
+ * Crouching (Day 6 on: creeping through low tunnels): bent forward from the hips, head low and out in
+ * front, knees bent, the bandaged hand hanging forward; the red thread trails off the back of the neck.
+ * Same 12×26 canvas as standing (feet on the bottom row), so it swaps in place.
+ */
+const crouchFrame = (legs: [string, string, string, string]): RowSprite => ({
+  rows: [
+    ...Array<string>(10).fill('............'),
+    '.......ooo..',
+    '......ooooo.',
+    '......oooo#.',
+    '.....ooooo..',
+    '..r.ooooo...',
+    '.r.ooooooo..',
+    '..oooooooo#.',
+    '.eooooooo#..',
+    '.eoooooooo#.',
+    '..ooooooo.#.',
+    '..ooooo...hh',
+    '..oooooo..hh',
+    ...legs,
+  ],
+  colours: { o: SHADES.shadow, e: SHADES.woodLight, '#': SHADES.dim, h: SHADES.light, r: SHADES.red },
+});
+
+export const PROTAGONIST_CROUCH = {
+  idle: crouchFrame(['..oo..ooo...', '..oo...oo#..', '..oo...oo#..', '.ooo...ooo..']),
+  walk: [
+    crouchFrame(['..oo..ooo...', '..oo...oo#..', '..oo...oo#..', '.ooo...ooo..']),
+    crouchFrame(['..oo..ooo...', '...oo.oo#...', '...oo.oo#...', '..ooo.ooo...']),
+  ],
+};
+
+/** A frame with the cloak drawn onto it (`top`, `left` = where the hood starts: standing 0, 1; crouching, head forward, 10, 3). */
+function withCloak(frame: RowSprite, top: number, left = 1): RowSprite {
+  const rows = frame.rows.map((row, y) => {
+    const cloakRow = CLOAK.rows[y - top];
+    if (!cloakRow) return row;
+    return [...row].map((ch, x) => {
+      const c = cloakRow[x - left];
+      return c && c !== '.' ? `C${c}` : ch;
+    });
+  });
+  // Cloak pixels use upper-case keys (A.. ) so they can't clash with the frame's own colours.
+  const map: Record<string, string> = { Co: 'o', Cc: 'C', Ck: 'K', Cl: 'L', Cp: 'P' };
+  return {
+    rows: rows.map((r) => (typeof r === 'string' ? r : r.map((ch) => map[ch] ?? ch).join(''))),
+    colours: { ...frame.colours, o: SHADES.shadow, C: CLOAK.colours.c!, K: CLOAK.colours.k!, L: CLOAK.colours.l!, P: CLOAK.colours.p! },
+  };
 }
 
-/** Crouching (Day 6 on: creeping through low tunnels): still, and shuffling along. */
-export const PROTAGONIST_CROUCH = {
-  idle: crouched(PROTAGONIST.idle[0]!),
-  walk: [crouched(PROTAGONIST.walk[0]!), crouched(PROTAGONIST.walk[2]!)],
+/** Every protagonist frame with the cloak on (Day 6 on, wherever you're not expected). */
+export const PROTAGONIST_CLOAKED = {
+  idle: PROTAGONIST.idle.map((f) => withCloak(f, 0)),
+  walk: PROTAGONIST.walk.map((f) => withCloak(f, 0)),
+  jump: withCloak(PROTAGONIST.jump, 0),
+  fall: withCloak(PROTAGONIST.fall, 0),
+  crouch: withCloak(PROTAGONIST_CROUCH.idle, 10, 3),
+  crawl: PROTAGONIST_CROUCH.walk.map((f) => withCloak(f, 10, 3)),
 };
 
 /** Better-off residents of the middle tiers and upper branches: amber and pale accents, finer headwear (placeholder looks). */

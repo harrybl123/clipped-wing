@@ -153,6 +153,7 @@ VAR glossary_deep = ""
 VAR glossary_stayalive = ""
 VAR glossary_need = ""
 VAR glossary_hurry = ""
+VAR glossary_not = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink

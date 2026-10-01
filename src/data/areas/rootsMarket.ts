@@ -141,11 +141,12 @@ export const rootsMarket: AreaDefinition = {
     { type: 'swing', sprite: P.HAUL_BASKET, x: 150, y: 128, ropeTop: 12 },
     { type: 'swing', sprite: P.HAUL_BASKET, x: 280, y: 60, ropeTop: 12 },
     // Day 6: tailing the Tender and the preacher across the market to the ration hatch. He stops to talk at
-    // the fungi stall, looks back at the foot of the balcony steps, and again by the hatch; then they slip
+    // the fungi stall, looks back at the foot of the balcony steps, and again by the hatch (only twice: more
+    // looks round felt unnatural, designer); then they slip
     // behind it. Hide behind the stalls (or up on the balcony) when he looks round.
     {
       type: 'quarry', people: ['tender-tail', 'preacher-tail'], y: FLOOR, speed: 18, range: 110, lose: 200, reset: { x: 27, y: FLOOR }, showIf: 'tailing', done: 'tail_done',
-      path: [{ x: 116 }, { x: 132, wait: 2400 }, { x: 200, wait: 1800, look: true }, { x: 265, wait: 1600, look: true }, { x: 300, wait: 1000, look: true }, { x: 318 }],
+      path: [{ x: 116 }, { x: 132, wait: 2400 }, { x: 200, wait: 1800, look: true }, { x: 265, wait: 1200 }, { x: 300, wait: 1200, look: true }, { x: 318 }],
     },
     { type: 'shadow', x: 48, y: FLOOR, width: 38, showIf: 'tailing' }, // behind the stew stall
     { type: 'shadow', x: 110, y: FLOOR, width: 36, showIf: 'tailing' }, // behind the fungi stall

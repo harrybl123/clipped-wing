@@ -9,8 +9,9 @@
 // --- Morning, at home: hungry ---
 
 === day6_mum_morning ===
+{ day6_mum_morning > 1: -> again }
 Mum puts a bowl in front of you. There's barely anything in it.
-"No blessings came down for anyone last night. Not just us. The whole roots." #speaker:mum
+"Half a basket came down for the whole of the roots last night. Half a basket, for everyone." #speaker:mum
 "Eat it. I've had mine." #speaker:mum
 Her own bowl, on the side, is clean and dry. She hasn't had anything.
 + [Eat it]
@@ -21,6 +22,9 @@ Her own bowl, on the side, is clean and dry. She hasn't had anything.
     You leave it on the table for her. Neither of you mentions it again.
 - "They're saying it's because of you. All of it. The baskets coming down half empty." #speaker:mum
 "I told them it's nonsense. I don't know if I believe me any more." #speaker:mum
+-> END
+= again
+"Go on. Do what you have to." #speaker:mum
 -> END
 
 === day6_bench ===
@@ -52,10 +56,10 @@ Dawn. #end
 === day6_shrine ===
 The Tender is under the lamp, as always. But he isn't waiting for you. He's listening to something behind the curtain at the back of the dais.
 Voices. Low. One of them is the preacher's.
-He takes the bird without the cloth this time. He doesn't weigh it. He doesn't even look at it.
-He drops it into a basket of its own, a different one, and there's a mark chalked on the side.
+You hold out the bird. He takes it without the cloth this time, without even turning round. He doesn't weigh it. He doesn't look at it.
+He drops it into a basket of its own, a different one, with a mark chalked on the side.
 "Noon. Where we said. Not here." It's the preacher, behind the curtain. #name:A voice
-The Tender turns, and sees you still standing there.
+The Tender glances back at you, and sees from your face that you heard.
 "Go home. Stay home today. Do you understand me?" #speaker:tender
 + [Hide it: "Yes, Tender."]
     "Yes, Tender." #speaker:you
@@ -206,8 +210,11 @@ You crouch in the dark where the tunnel narrows, and listen.
 "It's a cause. Hunger without a cause is a riot. Hunger with a cause is a congregation." #name:The preacher
 A long silence.
 "Bring the carver in tonight. A hearing. It need only look like one." #name:An elder
-"And the girl from the lower roots. The one it's been seen with." #name:An elder
-"She'll do no harm, brought in. A little fear keeps the lower roots quiet." #name:The preacher
+"And the girl from the lower roots. The watch saw the carver going down there at night. To her door, they say." #name:An elder
+"Of course they did. Where else would a roots child learn to turn against the Tree?" #name:The preacher
+"The lower roots have always lived closest to the rot. Thieves and grumblers, half of them. They'd sell the bark off the tree and complain it was rough." #name:The preacher
+"Then she'll do. A lower-roots girl filling a cursed child's head with poison. The roots will believe that before they'll believe anything else." #name:An elder
+"And a little fear keeps the lower roots quiet." #name:The preacher
 You don't hear the rest. Your ears are ringing.
 The girl. They're going to take the girl.
 ~ meeting = false
@@ -247,7 +254,7 @@ Someone at the front screams.
 There's a bite out of it. A real bite: the marks of teeth, in the wood, where its tail should be. #shake
 "Teeth! It's been bitten!" #name:A woman
 "Something ate it. Something up there ate it!" #name:A man
-"Rot made flesh. That's what you've sent up to the Tree. Rot, and the Tree has spat it back with its teeth in it!" #name:The preacher
+"You sent rot up to the Tree, and the Tree bit into it and spat it back at you!" #name:The preacher
 A man faints. A child is sobbing and can't stop. People push back from you so hard the ring of chalk is lost under their feet. #recoil
 + [Hide it: shut your eyes and pray]
     You shut your eyes and pray, because everyone else is, and you don't know what else to do.
@@ -384,7 +391,10 @@ The elders are on the dais in their high chairs, faces in shadow. The preacher s
 "Bring her in." #name:An elder
 They bring her in between two guards. Her hands are tied. She has a bruise on her cheek she didn't have this morning. #show:girl-shrine
 She looks at you, just once, and then at the floor.
-"She's been kind to you. Why? What has she been putting in your head?" #name:The preacher
+"The watch saw you at her door, at night. Twice." #name:An elder
+"A lower-roots girl. You know what they're like down there. Living in the rot, with their glowing paint and their thieving and their grudges against everyone above them." #name:The preacher
+"She's been kind to you. Why? What would a girl like that want with a carver's child, except to drag it down to her level?" #name:The preacher
+"What has she been putting in your head?" #name:The preacher
 "Tell us the truth, carver. Who taught you to make birds the Tree won't take?" #name:An elder #dim:on
 This is it. They want someone to blame for the birds, and for the hunger. You, or her.
 - (choose)
@@ -427,7 +437,7 @@ They lock you in the back room of the shrine, in the dark, and you sit with your
 "It's her. She's been talking to me. About things beyond the bark. Things that aren't the Tree." #speaker:you #dim:off
 "I listened. I'm sorry. I listened." #speaker:you
 She doesn't look up. She doesn't argue. She doesn't say anything at all.
-"There. Lower-roots poison, in a roots child's ear. Just as I said." #name:The preacher
+"There. Lower-roots poison, in a roots child's ear. Just as I said. They're all the same down there." #name:The preacher
 "Take her down to the lower rot. Let her keep her ideas down there, where they can't do any harm." #name:An elder
 They take her out. She doesn't look back. Not once. #hide:girl-shrine
 "And the carver?" #speaker:tender

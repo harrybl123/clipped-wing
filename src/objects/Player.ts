@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { PROTAGONIST, PROTAGONIST_CROUCH } from '../ui/characters';
+import { PROTAGONIST, PROTAGONIST_CLOAKED, PROTAGONIST_CROUCH } from '../ui/characters';
 import { makeSpriteTexture } from '../ui/pixelTextures';
 import type { RowSprite } from '../ui/sprites';
 
@@ -12,18 +12,28 @@ const CROUCH_SPEED = 48;
 const STAND_HEIGHT = 24;
 const CROUCH_HEIGHT = 14;
 
-/** Makes the protagonist's frame textures and animations (once per game). */
+/**
+ * Makes the protagonist's frame textures and animations (once per game), plain and with the cloak on
+ * (keys ending "-cloak").
+ */
 function createAnimations(scene: Phaser.Scene): void {
   const tex = (key: string, s: RowSprite) => makeSpriteTexture(scene, key, s.rows, s.colours);
-  const idle = PROTAGONIST.idle.map((s, i) => ({ key: tex(`player-idle-${i}`, s) }));
-  const walk = PROTAGONIST.walk.map((s, i) => ({ key: tex(`player-walk-${i}`, s) }));
-  tex('player-jump', PROTAGONIST.jump);
-  tex('player-fall', PROTAGONIST.fall);
-  if (!scene.anims.exists('player-idle')) scene.anims.create({ key: 'player-idle', frames: idle, frameRate: 1.6, repeat: -1 });
-  if (!scene.anims.exists('player-walk')) scene.anims.create({ key: 'player-walk', frames: walk, frameRate: 9, repeat: -1 });
-  tex('player-crouch', PROTAGONIST_CROUCH.idle);
-  const crawl = PROTAGONIST_CROUCH.walk.map((s, i) => ({ key: tex(`player-crawl-${i}`, s) }));
-  if (!scene.anims.exists('player-crawl')) scene.anims.create({ key: 'player-crawl', frames: crawl, frameRate: 5, repeat: -1 });
+  const sets = [
+    { suffix: '', idle: PROTAGONIST.idle, walk: PROTAGONIST.walk, jump: PROTAGONIST.jump, fall: PROTAGONIST.fall, crouch: PROTAGONIST_CROUCH.idle, crawl: PROTAGONIST_CROUCH.walk },
+    { suffix: '-cloak', ...PROTAGONIST_CLOAKED },
+  ];
+  for (const set of sets) {
+    const anim = (name: string, frames: readonly RowSprite[], frameRate: number) => {
+      const keys = frames.map((s, i) => ({ key: tex(`player-${name}${set.suffix}-${i}`, s) }));
+      if (!scene.anims.exists(`player-${name}${set.suffix}`)) scene.anims.create({ key: `player-${name}${set.suffix}`, frames: keys, frameRate, repeat: -1 });
+    };
+    anim('idle', set.idle, 1.6);
+    anim('walk', set.walk, 9);
+    anim('crawl', set.crawl, 5);
+    tex(`player-jump${set.suffix}`, set.jump);
+    tex(`player-fall${set.suffix}`, set.fall);
+    tex(`player-crouch${set.suffix}`, set.crouch);
+  }
 }
 
 type MoveKeys = Record<'left' | 'right' | 'up' | 'down' | 'a' | 'd' | 'w' | 's' | 'space', Phaser.Input.Keyboard.Key>;
@@ -41,6 +51,8 @@ export class Player {
   /** (x, y) is where the feet stand. */
   /** Whether you're crouching. */
   crouching = false;
+  /** Wearing the cloak (Day 6 on, wherever you're not expected): set by the scene. */
+  cloaked = false;
 
   constructor(
     scene: Phaser.Scene,
@@ -110,17 +122,18 @@ export class Player {
   }
 
   private animate(direction: number): void {
+    const c = this.cloaked ? '-cloak' : '';
     if (this.crouching) {
-      if (direction !== 0) this.sprite.play('player-crawl', true);
+      if (direction !== 0) this.sprite.play(`player-crawl${c}`, true);
       else {
         this.sprite.anims.stop();
-        this.sprite.setTexture('player-crouch');
+        this.sprite.setTexture(`player-crouch${c}`);
       }
     } else if (!this.onGround) {
       this.sprite.anims.stop();
-      this.sprite.setTexture(this.body.velocity.y < 0 ? 'player-jump' : 'player-fall');
+      this.sprite.setTexture(`${this.body.velocity.y < 0 ? 'player-jump' : 'player-fall'}${c}`);
     } else {
-      this.sprite.play(direction !== 0 ? 'player-walk' : 'player-idle', true);
+      this.sprite.play(`${direction !== 0 ? 'player-walk' : 'player-idle'}${c}`, true);
     }
   }
 }

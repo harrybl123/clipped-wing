@@ -397,6 +397,19 @@ export const MESSAGE_2: Message = {
   symbols: [CLIPPED, WING, SELF, REST, BEYOND, BARK, WOULD, YOU, LIKE, TO, FLY],
 };
 
+/** "Not": a circle struck through. (Its own picture: "can't" and "not" are too different to share one, designer.) */
+const NOT: DecodeSymbol = {
+  id: 'not',
+  picture: scratches(16, 16, [ring(8, 8, 7, 7, 20), ring(8, 8, 6, 6, 20), [[3, 3], [13, 13]], [[3, 4], [12, 13]], [[4, 3], [13, 12]]]),
+  accepted: ['not', 'no', 'isnt', 'arent', 'never', 'none', 'nope', 'nothing'],
+  near: [
+    { words: ['cant', 'cannot', 'stop', 'forbidden', 'cross', 'circle', 'wrong', 'dont', 'wont'], reply: 'Close. A circle struck through. Simpler than that. Just...' },
+    { words: ['yes', 'is', 'are'], reply: 'Cold. The opposite.' },
+  ],
+  nudge: 'A circle with a line struck through it.',
+  hint: 'The smallest word for no.',
+};
+
 // --- Message 3's new pictures ---
 
 const YET: DecodeSymbol = {
@@ -513,10 +526,10 @@ export const MESSAGE_3_YES: Message = {
   id: 'message3_yes',
   line: 'Not yet. I am Grounded. There are many of us beyond the bark.',
   rows: [
-    ['cant', 'yet', 'self', 'am', 'grounded'],
+    ['not', 'yet', 'self', 'am', 'grounded'],
     ['many', 'beyond', 'bark'],
   ],
-  symbols: [CANT, YET, SELF, AM, GROUNDED, MANY, BEYOND, BARK],
+  symbols: [NOT, YET, SELF, AM, GROUNDED, MANY, BEYOND, BARK],
 };
 
 /** Message 3 (Day 4), after "I can't": "Neither can I. I am Grounded. There are many of us beyond the bark." */
@@ -579,13 +592,19 @@ const WATCHED = scratches(
 /** "They blame me; help me": hands pointing at you from both sides, and a hand reaching down from above. */
 const POINTING_HANDS = scratches(
   32,
-  20,
-  [...figureLimbs(16, 9), [[13, 2], [13, 5]], [[15, 2], [15, 6]], [[17, 2], [17, 6]], [[19, 2], [19, 5]]],
+  21,
   [
-    ...figureShapes(16, 9),
-    { poly: [[0, 10], [5, 10], [5, 11], [10, 11], [10, 12], [5, 12], [5, 15], [0, 15]] },
-    { poly: [[31, 10], [26, 10], [26, 11], [21, 11], [21, 12], [26, 12], [26, 15], [31, 15]] },
-    { poly: [[12, 0], [20, 0], [20, 2], [12, 2]] },
+    // You, one arm raised to the hand coming down.
+    [[17, 13], [19, 10]], [[15, 13], [13, 16]], [[15, 18], [14, 20]], [[17, 18], [18, 20]],
+    // The open hand reaching down from above: wrist, palm, spread fingers, thumb out to the side.
+    [[20, 0], [20, 2]], [[21, 0], [21, 2]], [[17, 6], [17, 8]], [[19, 6], [19, 9]], [[21, 6], [21, 9]], [[23, 6], [23, 8]], [[24, 3], [25, 5]],
+  ],
+  [
+    { disc: [16, 10, 2] },
+    { poly: [[13, 12], [19, 12], [18, 18], [14, 18]] },
+    { poly: [[17, 3], [24, 3], [24, 6], [17, 6]] },
+    { poly: [[0, 11], [5, 11], [5, 12], [10, 12], [10, 13], [5, 13], [5, 16], [0, 16]] },
+    { poly: [[31, 11], [26, 11], [26, 12], [21, 12], [21, 13], [26, 13], [26, 16], [31, 16]] },
   ],
 );
 
@@ -655,20 +674,24 @@ const LIVES: DecodeSymbol = {
   hint: 'The seed you sent. What has it done?',
 };
 
-/** "The rot": a glistening blob, dripping. */
+/** "The rot": a length of wood gone soft, eaten with holes, crumbling away underneath, with a stink rising off it. */
+const ROT_HOLES: [number, number][] = [[5, 9], [6, 10], [12, 10], [13, 11], [12, 11], [18, 9], [19, 10], [9, 12], [16, 12]];
 const ROT: DecodeSymbol = {
   id: 'rot',
   picture: scratches(
     24,
     18,
-    [[[7, 9], [7, 14]], [[12, 10], [12, 17]], [[17, 9], [17, 13]]],
-    [{ poly: [[2, 8], [5, 3], [10, 1], [16, 2], [21, 4], [22, 8], [18, 10], [12, 11], [6, 10]] }, { disc: [7, 15, 1.4] }, { disc: [17, 14, 1.4] }],
-  ),
-  accepted: ['rot', 'the rot', 'rotten', 'rotting', 'decay', 'decayed', 'mould', 'mold', 'blight', 'sickness', 'disease', 'filth', 'slime', 'corruption'],
+    [
+      [[4, 1], [5, 3], [4, 5]], [[11, 0], [12, 2], [11, 4]], [[18, 1], [19, 3], [18, 5]], // stink rising
+      [[3, 15], [3, 16]], [[9, 15], [9, 17]], [[15, 15], [15, 16]], [[20, 16], [20, 17]], // crumbs falling
+    ],
+    [{ poly: [[1, 7], [22, 7], [23, 9], [22, 13], [18, 14], [14, 13], [10, 14], [6, 13], [1, 13]] }],
+  ).map((row, y) => [...row].map((ch, x) => (ROT_HOLES.some(([hx, hy]) => hx === x && hy === y) ? '.' : ch)).join('')), // eaten through
+  accepted: ['rot', 'the rot', 'rotten', 'rotting', 'decay', 'decayed', 'decaying', 'mould', 'mold', 'blight', 'putrid', 'corruption'],
   near: [
-    { words: ['drip', 'drips', 'dripping', 'blob', 'goo', 'sticky', 'green', 'fungus', 'puddle', 'wet'], reply: "Warm. Something wet and dripping, the kind of thing the whole roots fears. What's it called?" },
+    { words: ['wood', 'log', 'holes', 'crumbling', 'soft', 'stink', 'smell', 'smelly', 'dead', 'sick', 'disease', 'fungus', 'worm', 'worms'], reply: 'Close. Wood gone soft and stinking, eaten through and crumbling away. What does the whole roots call that?' },
   ],
-  nudge: 'Something soft and wet, oozing and dripping. What the roots are frightened of.',
+  nudge: 'Wood eaten through with holes, crumbling away, a stink rising off it.',
   hint: 'What they call you, at the ceremonies: ___-hand.',
 };
 
@@ -680,9 +703,9 @@ const DEEP: DecodeSymbol = {
     18,
     [[[0, 3], [23, 3]], [[2, 7], [21, 7]], [[4, 11], [19, 11]], [[6, 15], [17, 15]], [[12, 0], [12, 15]], [[11, 0], [11, 15]], [[8, 12], [11, 17], [12, 17], [15, 12]]],
   ),
-  accepted: ['deep', 'deeper', 'depth', 'depths', 'below', 'down', 'under', 'beneath', 'far down', 'deep down', 'underneath', 'bottom'],
+  accepted: ['deep', 'deeper', 'depth', 'depths', 'deep down', 'far down', 'deeply'],
   near: [
-    { words: ['layers', 'arrow', 'lines', 'roots', 'ground', 'floor', 'under the tree'], reply: 'Warm. An arrow going down through layer after layer. How far down is it?' },
+    { words: ['down', 'below', 'under', 'beneath', 'underneath', 'bottom', 'layers', 'arrow', 'lines', 'roots', 'ground', 'floor'], reply: 'Close. Down, yes, through layer after layer. How far down? Very...' },
     { words: ['up', 'high', 'shallow', 'top'], reply: 'Cold. The opposite.' },
   ],
   nudge: 'An arrow going down through layer after layer, all the way to the bottom.',
@@ -715,9 +738,9 @@ const NEED: DecodeSymbol = {
     [[[3, 3], [3, 8]], [[5, 1], [5, 8]], [[7, 2], [7, 8]], [[1, 7], [2, 9]], [[16, 2], [16, 8]], [[18, 1], [18, 8]], [[20, 3], [20, 8]], [[22, 7], [21, 9]]],
     [{ poly: [[2, 8], [9, 8], [8, 14], [4, 14]] }, { poly: [[14, 8], [21, 8], [19, 14], [15, 14]] }, { poly: [[4, 14], [8, 14], [9, 17], [3, 17]] }, { poly: [[15, 14], [19, 14], [20, 17], [14, 17]] }],
   ),
-  accepted: ['need', 'needs', 'want', 'require', 'must have', 'ask', 'call', 'help', 'call for', 'ask for', 'beg'],
+  accepted: ['need', 'needs', 'want', 'require', 'must have', 'have to have', 'rely on', 'depend on'],
   near: [
-    { words: ['hands', 'hand', 'reach', 'reaching', 'grab', 'please', 'give', 'catch'], reply: 'Warm. Hands reaching out, open, for something they have to have. What do they do?' },
+    { words: ['ask', 'help', 'beg', 'call', 'hands', 'hand', 'reach', 'reaching', 'grab', 'please', 'give', 'catch'], reply: "Close. Hands reaching out for something they have to have, and can't do without. They ____ it." },
   ],
   nudge: 'Two open hands, reaching up for something they can\'t do without.',
   hint: 'What you feel for food, today. Not want. Something stronger.',
@@ -747,9 +770,9 @@ export const MESSAGE_5_LIVES: Message = {
   line: 'New life lives. Clipped wing, stay alive. You are not the rot. We need you. Hurry.',
   rows: [
     ['seed', 'lives', 'clipped', 'wing', 'stayalive'],
-    ['you', 'cant', 'rot', 'many', 'need', 'you', 'hurry'],
+    ['you', 'not', 'rot', 'many', 'need', 'you', 'hurry'],
   ],
-  symbols: [SEED, LIVES, CLIPPED, WING, STAY_ALIVE, YOU, CANT, ROT, MANY, NEED, HURRY],
+  symbols: [SEED, LIVES, CLIPPED, WING, STAY_ALIVE, YOU, NOT, ROT, MANY, NEED, HURRY],
 };
 
 /** Message 5 (Day 6), after the boy's seed: "New life sleeps. The rot is deep. Clipped wing, stay alive. You are not the rot. We need you. Hurry." */
@@ -758,9 +781,9 @@ export const MESSAGE_5_SLEEPS: Message = {
   line: 'New life sleeps. The rot is deep. Clipped wing, stay alive. You are not the rot. We need you. Hurry.',
   rows: [
     ['seed', 'rest', 'rot', 'deep', 'clipped', 'wing', 'stayalive'],
-    ['you', 'cant', 'rot', 'many', 'need', 'you', 'hurry'],
+    ['you', 'not', 'rot', 'many', 'need', 'you', 'hurry'],
   ],
-  symbols: [SEED, REST, ROT, DEEP, CLIPPED, WING, STAY_ALIVE, YOU, CANT, MANY, NEED, HURRY],
+  symbols: [SEED, REST, ROT, DEEP, CLIPPED, WING, STAY_ALIVE, YOU, NOT, MANY, NEED, HURRY],
 };
 
 export const MESSAGES: Record<string, Message> = Object.fromEntries(

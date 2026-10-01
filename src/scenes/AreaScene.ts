@@ -14,7 +14,7 @@ import { getSession } from '../session';
 import { DebugOverlay } from '../ui/DebugOverlay';
 import { DialogueBox } from '../ui/DialogueBox';
 import { paintArea } from '../ui/paintArea';
-import { CLOAK, WATCHMAN } from '../ui/characters';
+import { WATCHMAN } from '../ui/characters';
 import { SHADES } from '../ui/pixelArt';
 import { makePaintedTexture, makeSpriteTexture, PIXEL } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
@@ -252,8 +252,6 @@ export class AreaScene extends Phaser.Scene {
   private shadows: Extract<Feature, { type: 'shadow' }>[] = [];
   private shadowGraphics: Phaser.GameObjects.Graphics | null = null;
   private quarries: Quarry[] = [];
-  /** The hooded cloak over the player, once you have it (Day 6 on). */
-  private cloak!: Phaser.GameObjects.Image;
 
   constructor() {
     super('Area');
@@ -351,7 +349,6 @@ export class AreaScene extends Phaser.Scene {
     // Room to stand up: no solid wall or ceiling in the way (one-way platforms don't count).
     const canStand = (r: Phaser.Geom.Rectangle) => !area.solids.some((s) => !s.oneWay && r.right > s.x && r.left < s.x + s.width && r.bottom > s.y && r.top < s.y + s.height);
     this.player = new Player(this, arrival.x, arrival.y, canStand);
-    this.cloak = this.add.image(arrival.x, arrival.y, makeSpriteTexture(this, 'cloak', CLOAK.rows, CLOAK.colours)).setOrigin(0.5, 1).setDepth(11).setVisible(false);
     // Pressing down drops through one-way platforms (walkways, bridges, roofs, stairs).
     const notDroppingThrough = (_p: unknown, other: unknown) => !(this.player.dropping && (other as Phaser.GameObjects.GameObject).getData('oneWay'));
     this.physics.add.collider(this.player.sprite, solids, undefined, notDroppingThrough);
@@ -701,16 +698,19 @@ export class AreaScene extends Phaser.Scene {
     return this.shadows.some((s) => (!s.showIf || story.getVariable(s.showIf)) && Math.abs(y - s.y) <= 2 && x >= s.x && x <= s.x + s.width);
   }
 
-  /** The cloak over the player while you have it; you fade a little while you're hidden in a shadow that matters. */
+  /**
+   * The cloak: once you have it, you wear it wherever you're not expected (designer). Off at home, at
+   * the evening ceremony (you stand in the ring as yourself) and before the elders. You fade a little
+   * while you're hidden in a shadow that matters.
+   */
   private updateCloak(): void {
-    const { story } = getSession(this);
+    const { story, calendar } = getSession(this);
     const sprite = this.player.sprite;
-    const on = !!story.getVariable('has_disguise');
-    this.cloak.setVisible(on && sprite.visible).setPosition(Math.round(sprite.x + (sprite.flipX ? 1 : 0)), Math.round(sprite.y - 13 + (this.player.crouching ? 10 : 0))).setFlipX(sprite.flipX);
+    const expected = this.area.id === 'home' || (this.area.id === 'offering-floor' && calendar.slot === 'evening') || !!story.getVariable('interrogating');
+    this.player.cloaked = !!story.getVariable('has_disguise') && !expected;
     const watched = this.watchmen.some((w) => w.image.visible) || this.quarries.some((q) => !q.done && !!story.getVariable(q.feature.showIf));
     const hidden = watched && this.inShadow();
     sprite.setAlpha(hidden ? 0.45 : 1);
-    this.cloak.setAlpha(hidden ? 0.45 : 1);
     this.shadowGraphics?.setVisible(this.shadows.some((s) => !s.showIf || story.getVariable(s.showIf)));
   }
 
