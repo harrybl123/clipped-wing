@@ -343,31 +343,41 @@ export const DODGER = (() => {
 })();
 
 /**
- * The hooded cloak from the boy (Day 6 on), drawn over the protagonist (facing right): a deep hood with
- * the face in shadow, and a patched cape down to the knees that hides the red thread. 14×18; its
- * bottom sits 8px above the feet.
+ * The hooded cloak from the boy (Day 6 on), drawn over the protagonist (facing right): a close, dark
+ * hood with the face in its shadow, and a short cape to the waist that covers the red thread. Kept
+ * discreet: dark wood colours, a faint lit edge, a couple of patches. 10×13; its bottom sits 13px above
+ * the feet (10 more when crouching).
  */
-export const CLOAK: RowSprite = (() => {
-  const W = 14;
-  const H = 18;
-  const rows: string[] = [];
-  for (let y = 0; y < H; y++) {
-    let row = '';
-    for (let x = 0; x < W; x++) {
-      const half = y < 7 ? 4 + Math.min(y, 2) : 5 + Math.floor((y - 7) / 3);
-      const left = 7 - half;
-      const right = 7 + half - 1;
-      if (y === 0 && (x < 5 || x > 8)) row += '.';
-      else if (x < left || x > right) row += '.';
-      else if (y >= 2 && y <= 5 && x >= 8 && x <= right - 1) row += 'k'; // the face, deep in the hood
-      else if (x === right) row += 'l'; // lit edge
-      else if (x === left) row += 'o';
-      else row += (x * 3 + y * 5) % 11 === 0 ? 'p' : (x + y) % 7 === 0 ? 'f' : 'c';
-    }
-    rows.push(row);
-  }
-  return { rows, colours: { o: SHADES.shadow, c: SHADES.greenDeep, f: SHADES.shadow, p: SHADES.woodLight, l: SHADES.greenMid, k: SHADES.shadow } };
-})();
+export const CLOAK: RowSprite = {
+  rows: [
+    '...oooo...',
+    '..occccl..',
+    '.occckkl..',
+    '.occckkkl.',
+    '.occckkkl.',
+    '.occcckl..',
+    'occcpcccl.',
+    'occccccccl',
+    'occcccpccl',
+    'occccccccl',
+    '.occpccccl',
+    '.occcccccl',
+    '..ooooooo.',
+  ],
+  colours: { o: SHADES.shadow, c: SHADES.deep, k: SHADES.shadow, l: SHADES.woodLight, p: SHADES.greenDeep },
+};
+
+/** A crouching frame made from a standing one: the head and body lowered over bent legs (same 12×26 canvas, feet on the bottom row). */
+function crouched(frame: RowSprite): RowSprite {
+  const blank = '.'.repeat(frame.rows[0]!.length);
+  return { rows: [...Array<string>(10).fill(blank), ...frame.rows.slice(0, 13), ...frame.rows.slice(23)], colours: frame.colours };
+}
+
+/** Crouching (Day 6 on: creeping through low tunnels): still, and shuffling along. */
+export const PROTAGONIST_CROUCH = {
+  idle: crouched(PROTAGONIST.idle[0]!),
+  walk: [crouched(PROTAGONIST.walk[0]!), crouched(PROTAGONIST.walk[2]!)],
+};
 
 /** Better-off residents of the middle tiers and upper branches: amber and pale accents, finer headwear (placeholder looks). */
 export const RESIDENTS = ([

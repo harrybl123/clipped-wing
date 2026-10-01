@@ -156,6 +156,8 @@ interface Crumble {
   image: Phaser.GameObjects.Image;
   /** Ms since you first stood on it (null: not yet). */
   standing: number | null;
+  /** It holds while this ink variable is true. */
+  steadyIf?: string;
 }
 
 /** A stretch of tunnel coming down round you (see the `collapse` feature). */
@@ -346,7 +348,9 @@ export class AreaScene extends Phaser.Scene {
     }
 
     const arrival = this.start ?? area.exits.find((e) => e.to === this.from) ?? area.playerStart;
-    this.player = new Player(this, arrival.x, arrival.y);
+    // Room to stand up: no solid wall or ceiling in the way (one-way platforms don't count).
+    const canStand = (r: Phaser.Geom.Rectangle) => !area.solids.some((s) => !s.oneWay && r.right > s.x && r.left < s.x + s.width && r.bottom > s.y && r.top < s.y + s.height);
+    this.player = new Player(this, arrival.x, arrival.y, canStand);
     this.cloak = this.add.image(arrival.x, arrival.y, makeSpriteTexture(this, 'cloak', CLOAK.rows, CLOAK.colours)).setOrigin(0.5, 1).setDepth(11).setVisible(false);
     // Pressing down drops through one-way platforms (walkways, bridges, roofs, stairs).
     const notDroppingThrough = (_p: unknown, other: unknown) => !(this.player.dropping && (other as Phaser.GameObjects.GameObject).getData('oneWay'));
@@ -536,6 +540,7 @@ export class AreaScene extends Phaser.Scene {
     for (const c of this.crumbles) {
       const body = c.zone.body as Phaser.Physics.Arcade.StaticBody;
       if (!body.enable) continue;
+      if (c.steadyIf && getSession(this).story.getVariable(c.steadyIf)) continue;
       if (c.standing === null && this.player.onGround && Math.abs(y - c.y) <= 1 && x >= c.x && x <= c.x + c.width) c.standing = 0;
       if (c.standing === null) continue;
       c.standing += delta;
@@ -701,7 +706,7 @@ export class AreaScene extends Phaser.Scene {
     const { story } = getSession(this);
     const sprite = this.player.sprite;
     const on = !!story.getVariable('has_disguise');
-    this.cloak.setVisible(on && sprite.visible).setPosition(Math.round(sprite.x + (sprite.flipX ? 1 : -1)), Math.round(sprite.y - 8)).setFlipX(sprite.flipX);
+    this.cloak.setVisible(on && sprite.visible).setPosition(Math.round(sprite.x + (sprite.flipX ? 1 : 0)), Math.round(sprite.y - 13 + (this.player.crouching ? 10 : 0))).setFlipX(sprite.flipX);
     const watched = this.watchmen.some((w) => w.image.visible) || this.quarries.some((q) => !q.done && !!story.getVariable(q.feature.showIf));
     const hidden = watched && this.inShadow();
     sprite.setAlpha(hidden ? 0.45 : 1);
@@ -1306,7 +1311,7 @@ export class AreaScene extends Phaser.Scene {
         body.checkCollision.down = false;
         body.checkCollision.left = false;
         body.checkCollision.right = false;
-        this.crumbles.push({ x: feature.x, y: feature.y, width: feature.width, zone, image, standing: null });
+        this.crumbles.push({ x: feature.x, y: feature.y, width: feature.width, zone, image, standing: null, steadyIf: feature.steadyIf });
         break;
       }
       case 'rubble': {
@@ -1389,7 +1394,7 @@ export class AreaScene extends Phaser.Scene {
         const first = this.area.people.find((p) => p.id === feature.people[0]);
         const offsets = feature.people.map((id) => (this.area.people.find((p) => p.id === id)?.x ?? 0) - (first?.x ?? 0));
         const callout = new PixelText(this, 0, 0, '', { color: SHADES.amber, shadow: SHADES.shadow }).setDepth(21).setVisible(false);
-        this.quarries.push({ feature, offsets, next: 1, wait: 1500, looking: false, turnIn: 0, alarm: null, done: false, callout });
+        this.quarries.push({ feature, offsets, next: 1, wait: 3000, looking: false, turnIn: 0, alarm: null, done: false, callout });
         break;
       }
       case 'jars': {

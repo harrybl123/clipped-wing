@@ -190,6 +190,7 @@ You go down after them. #goto:back-routes:646:120:day6_tail_down
 === day6_tail_down ===
 The old routes, under the market. Voices, ahead, where the tunnel opens out under the offering floor.
 The tube's cold light falls through the grate there, onto the heads of the elders.
+The tunnel gets low before it opens out. You'll have to crawl to get close enough to hear.
 -> END
 
 // --- The elders' meeting, overheard ---

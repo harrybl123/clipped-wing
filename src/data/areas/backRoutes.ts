@@ -30,7 +30,8 @@ const TUNNELS: Rect[] = [
   { x: 16, y: 80, width: 424, height: 40 }, // upper left
   { x: 16, y: 48, width: 80, height: 72 }, // under the Tender's shrine
   { x: 432, y: 32, width: 128, height: 88 }, // under the offering floor
-  { x: 560, y: 80, width: 384, height: 40 }, // upper right, to your friend's window
+  { x: 560, y: 104, width: 32, height: 16 }, // a crawlway: crouch to get through (it opens into the chamber under the offering floor; its mouth is on solid floor, so down crouches rather than dropping)
+  { x: 592, y: 80, width: 352, height: 40 }, // upper right, to your friend's window
   { x: 704, y: 48, width: 32, height: 32 }, // a dead-end crack
   { x: 16, y: 320, width: 824, height: 40 }, // lower tunnel (the way in from the lower roots)
   { x: 480, y: 272, width: 120, height: 48 }, // where unwanted things end up
@@ -125,7 +126,7 @@ export const backRoutes: AreaDefinition = {
     { type: 'drips', xs: [806, 816, 826], top: 236, bottom: LOWER, count: 3, every: 4600, reset: { x: 788, y: LOWER } }, // a long gap between bursts (designer: it was impossible)
     { type: 'crumble', x: 800, y: 288, width: 32 },
     { type: 'beetle', from: 640, to: 770, y: MIDDLE, speed: 34, reset: { x: 792, y: MIDDLE } },
-    { type: 'crumble', x: 600, y: UPPER, width: 32 }, // over the top of the far shaft
+    { type: 'crumble', x: 600, y: UPPER, width: 32, steadyIf: 'meeting' }, // over the top of the far shaft (it holds on Day 6, by the crawlway)
     { type: 'crumble', x: 768, y: UPPER, width: 32 }, // over the old shaft: cross it quickly
     { type: 'collapse', from: 680, to: 900, y: UPPER, top: 82, reset: { x: 660, y: UPPER }, showIf: 'girl_with_you' },
     { type: 'collapse', from: 520, to: 900, y: UPPER, top: 82, reset: { x: 905, y: UPPER }, showIf: 'routes_collapsing' },
@@ -136,6 +137,7 @@ export const backRoutes: AreaDefinition = {
     { type: 'hint', x: 816, y: MIDDLE, reach: 26, text: '"Big one. Don\'t wake it. Jump it, or slip past. Then up the far shaft."', showIf: 'girl_with_you' },
     { type: 'hint', x: 650, y: UPPER, reach: 30, text: '"Hear that? The roof. Run!"', showIf: 'girl_with_you' },
     { type: 'hint', x: 905, y: UPPER, reach: 12, text: 'His window', showIf: 'girl_with_you' },
+    { type: 'hint', x: 640, y: UPPER, reach: 24, text: 'The tunnel gets low. Hold down (S) to crouch and creep closer.', showIf: 'meeting' },
     { type: 'motes', x: 496, top: 34, bottom: UPPER, halfWidth: 14 }, // dust in the light from the tube
     { type: 'drip', x: 720, y: 50, floorY: UPPER - 4 },
     { type: 'drip', x: 300, y: 324, floorY: LOWER - 4 },
@@ -160,7 +162,7 @@ export const backRoutes: AreaDefinition = {
     { id: 'broken-blessings', x: 540, y: LOWER, reach: 16, label: 'Search', knot: 'back_routes_broken_blessings' },
     { id: 'mark', x: 356, y: MIDDLE, reach: 8, label: 'Look', knot: 'back_routes_mark' },
     { id: 'friends-window', x: 912, y: UPPER, reach: 8, label: 'Knock', knot: 'back_routes_window' },
-    { id: 'listen-spot', x: 584, y: UPPER, reach: 10, label: 'Listen', knot: 'back_routes_listen' },
+    { id: 'listen-spot', x: 574, y: UPPER, reach: 10, label: 'Listen', knot: 'back_routes_listen' },
   ],
 
   exits: [

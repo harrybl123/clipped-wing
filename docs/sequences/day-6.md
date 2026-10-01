@@ -6,7 +6,8 @@ tail is the `quarry` feature in `src/data/areas/rootsMarket.ts`). Dev: `?day=6` 
 market is a short scripted scene; at the stew stall he stops to talk, then looks back at the foot of the
 balcony steps and by the ration hatch (with a pause before each look, "...", to get out of sight); the
 meeting is in the old chamber under the offering floor, listened to from the tunnel; a found plate
-adds a line and suspicion.
+adds a line and suspicion. After the designer's playtest: a discreet, dark cloak; the tail starts with them
+further ahead; crouching (new) to creep through a crawlway to the meeting.
 
 A plan for the designer to mark up before it's built. **(doc)** = design doc; **(designer)** = decided
 in conversation; **(suggestion)** = Claude's proposal. Dialogue here is a sketch; the full draft comes
