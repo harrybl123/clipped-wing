@@ -30,6 +30,22 @@ once the shape is agreed. The last day of Act 1.
 - **Both endings are possible from both paths** (custody or home). **(designer)**
 - **If you choose to fly, you're chased to the very top** (up to the Ascension gate and the tube).
   **(designer)**
+- **The choice is a fork in the escape:** the girl asks you where you want to go. **(designer)** Up
+  (fly) is the chase to the top; **down means you turn yourself in**, and they cast you into the lower
+  roots (the doc's "refuse and be cast into the lower roots"). **(designer)** On the home path, with no
+  girl there, it's your friend who asks (if you confided), or you choose alone at the same fork.
+  **(suggestion)**
+- **The chase to the top is platforming** (real-time, the mob behind you). **(designer)**
+- **Mum's fate stays ambiguous**, for tension into Chapter 2: she's lost in the chaos when the mob
+  comes, and you don't know what becomes of her. **(designer)**
+- **The custody carving is the normal carving.** **(designer)**
+- **Who comes with you (suggestion, accepted for now):**
+  - **Fly:** alone. The girl (custody path) gets you to the foot of the climb and stays behind to slow
+    the mob ("Go on. One of us should see what's up there."). Your friend, if you confided, helps on
+    the way up (a door held, a guard distracted); if you lied, he's in the crowd below.
+  - **Fall:** alone. You give yourself up, and they throw you down. If you saved the girl, she can't stop
+    it (she might come after you in Chapter 2). If you blamed her, you find her down there in the
+    lower rot, and the Act ends with the two of you, on bad terms, as natural light breaks in.
 
 ## The two ways the day starts (suggestion)
 
@@ -84,13 +100,4 @@ once the shape is agreed. The last day of Act 1.
   light breaks in.
 
 ## Open questions
-1. **The choice:** where do you make it, fly or fall? (Suggestion: at a fork in the escape, the
-   moment the two paths on message 6's plate come true: up the shaft towards the tube, or down into
-   the dark.)
-2. **The chase to the top:** real-time (the mob behind you, the hazards and the watch we have), or
-   timed scenes like the fight? (Suggestion: real-time platforming, the hardest yet, using the trunk
-   climb and the gate.)
-3. **Who comes with you?** Fly: alone? Fall: the girl? Does Mum come, or stay?
-4. **Mum's fate:** what happens to her when the mob comes? (Design decision for you.)
-5. **The custody carving:** is "work while the guard looks away" right, or should it be the normal
-   carving?
+None for now: all answered (above). Small calls during the build are Claude's, marked (suggestion).
