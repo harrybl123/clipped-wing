@@ -7,6 +7,14 @@ the `mob` feature in the trunk climb, middle tiers, upper halls and gate; the en
 `&at=evening`, `&at=night`, `&at=chase` or `&at=fall`; `&lied=1` if you lied to your friend. Claude's
 calls are under "Build shape" at the end. In custody you have no plate (the guards have it, or it's at
 home), so you scratch your picture on a sliver of the wood instead.
+After the designer's first playthrough: the guard speaks for himself (by situation, and if you try the
+door) and steps out while your friend is at the grate; the cage rises right out of sight; "can" is a
+tick (the opposite of "can't"'s cross) and "must" a great hand shoving someone on (designer: the hand and
+"!" didn't read); the spiral stays for "martyr" (designer: clever, and the answers are generous); long
+replies on the decoding screen wrap; the fork is weightier (the room dims, a beat on what each way
+means); on the custody path the girl comes up with you and sees you off at the gate ("Farewell,
+soldier", designer); the jump is a choice of its own, and you rise up the tube on screen; the girl in
+the rot is hostile; daylight comes in as a shaft from a crack in the wall (`#daylight`).
 
 A plan for the designer to mark up before it's built. **(doc)** = design doc; **(designer)** = decided
 in conversation; **(suggestion)** = Claude's proposal. Dialogue here is a sketch; the full draft comes

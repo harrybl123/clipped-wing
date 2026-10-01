@@ -1,4 +1,4 @@
-import { GUARD, MASTER, PREACHER, RESIDENTS, VILLAGERS } from '../../ui/characters';
+import { GIRL, GUARD, MASTER, PREACHER, RESIDENTS, VILLAGERS } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import * as P from './ascensionGateProps';
 import { handrail } from './friendsHomeProps';
@@ -104,6 +104,8 @@ export const ascensionGate: AreaDefinition = {
   ],
 
   people: [
+    // Day 7 (in custody, up): the girl, coming up with you to see you off at the gate.
+    { id: 'girl-run', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 40, y: FLOOR, knot: 'day7_girl_runs', showIf: 'girl_runs', follow: true },
     // Day 1: the master, brought on by the Ascension scene (story/day1.ink, #show:master).
     { id: 'master', sprite: MASTER.idle[0]!, idleFrames: MASTER.idle, x: 140, y: FLOOR, when: CEREMONY, hidden: true },
     // (Day 7: they've gone down to join the mob.)

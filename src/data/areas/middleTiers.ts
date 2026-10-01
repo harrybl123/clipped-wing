@@ -1,4 +1,4 @@
-import { FRIEND, GUARD, RESIDENTS } from '../../ui/characters';
+import { FRIEND, GIRL, GUARD, RESIDENTS } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import { handrail } from './friendsHomeProps';
 import * as P from './middleTiersProps';
@@ -137,6 +137,8 @@ export const middleTiers: AreaDefinition = {
   ],
 
   people: [
+    // Day 7 (in custody, up): the girl, coming up with you to see you off at the gate.
+    { id: 'girl-run', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 40, y: FLOOR, knot: 'day7_girl_runs', showIf: 'girl_runs', follow: true },
     { id: 'guard', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 160, y: FLOOR, knot: 'middle_guard', flipX: true },
     resident('carver', 3, 500, MID, { knot: 'middle_carver' }),
     // Day 5: your escort, up to the archivist.

@@ -379,6 +379,8 @@ export class AreaScene extends Phaser.Scene {
     // Room to stand up: no solid wall or ceiling in the way (one-way platforms don't count).
     const canStand = (r: Phaser.Geom.Rectangle) => !area.solids.some((s) => !s.oneWay && r.right > s.x && r.left < s.x + s.width && r.bottom > s.y && r.top < s.y + s.height);
     this.player = new Player(this, arrival.x, arrival.y, canStand);
+    // Anyone following you comes in with you.
+    for (const entry of this.people.values()) if (entry.person.follow && entry.image.visible) entry.image.setPosition(Math.max(this.area.cavity.x + 8, arrival.x - 16), arrival.y);
     // Pressing down drops through one-way platforms (walkways, bridges, roofs, stairs).
     const notDroppingThrough = (_p: unknown, other: unknown) => !(this.player.dropping && (other as Phaser.GameObjects.GameObject).getData('oneWay'));
     this.physics.add.collider(this.player.sprite, solids, undefined, notDroppingThrough);
@@ -1090,6 +1092,8 @@ export class AreaScene extends Phaser.Scene {
    *   #ending:<id>            after the conversation, an ending (e.g. loyal)
    *   #fight:<knot>[:<then>]  after the conversation, the fight close-up plays the knot; back here, <then> plays
    *   #turn                   the crowd turns its back on you
+   *   #rise                   you're taken up into the tube: you lift off the floor and rise out of sight
+   *   #daylight:<x>:<top>:<floor>  daylight breaks in through the wall at (x, top), a shaft down to the floor
    */
   private handleTags(tags: string[]): void {
     this.clearInset();
@@ -1170,6 +1174,12 @@ export class AreaScene extends Phaser.Scene {
         case 'turn':
           this.turnAway();
           break;
+        case 'rise':
+          this.riseUp();
+          break;
+        case 'daylight':
+          this.breakDaylight(Number(args[0]), Number(args[1]), Number(args[2]));
+          break;
         case 'when': {
           // The clock (if any) starts once the conversation closes, so it isn't running while you read.
           const [variable, knot, seconds] = args;
@@ -1229,6 +1239,40 @@ export class AreaScene extends Phaser.Scene {
       entry.image.setFlipX(dir > 0);
       this.tweens.add({ targets: entry.image, x, duration: 450, ease: 'Quad.easeOut', delay: Phaser.Math.Between(0, 200) });
     }
+  }
+
+  /** Into the tube: you lift off the floor, slowly at first, then faster, rising out of sight. */
+  private riseUp(): void {
+    const sprite = this.player.sprite;
+    this.player.body.enable = false;
+    this.cameras.main.stopFollow();
+    this.tweens.chain({
+      targets: sprite,
+      tweens: [
+        { y: sprite.y - 6, duration: 900, ease: 'Sine.easeOut' },
+        { y: sprite.y - 320, alpha: 0.2, duration: 2200, ease: 'Quad.easeIn' },
+      ],
+    });
+    this.cameras.main.shake(2400, 0.003);
+  }
+
+  /** Daylight breaking in: a bright crack in the wall, and a dusty shaft spreading down from it to the floor. */
+  private breakDaylight(x: number, top: number, floor: number): void {
+    const g = this.add.graphics().setDepth(12).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0);
+    // Layers of pale light, narrow at the crack and wide where it lands, brightest in the middle.
+    for (let i = 0; i < 7; i++) {
+      const spread = 30 + i * 22;
+      g.fillStyle(SHADES.white, 0.09).fillTriangle(x, top - 6, x, top + 14, x - spread * 2, floor);
+      g.fillTriangle(x, top + 14, x - spread * 2, floor, x - spread * 0.4, floor);
+    }
+    g.fillStyle(SHADES.white, 0.16).fillEllipse(x - 130, floor - 2, 260, 12); // where it lands
+    g.fillStyle(SHADES.white, 1).fillRect(x - 2, top - 6, 4, 20); // the crack itself
+    this.tweens.add({ targets: g, alpha: 1, duration: 2500, ease: 'Sine.easeOut' });
+    // Dust turning slowly in the light.
+    this.add.particles(0, 0, PIXEL, {
+      emitZone: { type: 'random', source: { getRandomPoint: (p) => { const t = Math.random(); p.x = x - t * 120 * Math.random() - t * 20; p.y = top + t * (floor - top); } } },
+      speedX: { min: -4, max: 4 }, speedY: { min: -3, max: 3 }, lifespan: 3000, frequency: 90, tint: SHADES.white, alpha: { start: 0.9, end: 0 },
+    }).setDepth(12);
   }
 
   /** The crowd turns its back on you, all at once. */

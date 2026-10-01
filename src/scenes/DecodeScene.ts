@@ -153,7 +153,7 @@ export class DecodeScene extends Phaser.Scene {
 
     this.prompt = new PixelText(this, 0, 6, 'Rub the soot off the plate.   Drag the mouse, or the arrow keys', { color: SHADES.light, shadow: SHADES.shadow });
     this.inputText = new PixelText(this, 0, 136, '', { color: SHADES.white, shadow: SHADES.shadow });
-    this.feedback = new PixelText(this, 0, 152, '', { color: SHADES.amber, shadow: SHADES.shadow });
+    this.feedback = new PixelText(this, 0, 152, '', { color: SHADES.amber, shadow: SHADES.shadow, wrapWidth: 440 });
     this.help = new PixelText(this, 0, 166, '', { color: SHADES.light, shadow: SHADES.shadow, wrapWidth: 400 });
     this.strip = new PixelText(this, 0, 218, '', { color: SHADES.dim, shadow: SHADES.shadow });
 
@@ -528,6 +528,8 @@ export class DecodeScene extends Phaser.Scene {
   }
 
   private centreText(): void {
+    // A long reply wraps onto a second line: the help moves down under it (until the plate's finished).
+    if (this.feedback.y === 152) this.help.setY(this.feedback.text ? Math.max(166, 152 + this.feedback.height + 4) : 166);
     for (const t of [this.prompt, this.inputText, this.feedback, this.help, this.strip]) t.setX(Math.round((W - t.width) / 2));
   }
 

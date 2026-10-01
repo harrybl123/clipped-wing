@@ -1,4 +1,4 @@
-import { FRIEND } from '../../ui/characters';
+import { FRIEND, GIRL } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import { FUNGI, LAMP } from '../../ui/sprites';
 import { PULLEY } from './homeProps';
@@ -136,6 +136,8 @@ export const trunkClimb: AreaDefinition = {
   ],
 
   people: [
+    // Day 7 (in custody, up): the girl, coming up with you to see you off at the gate.
+    { id: 'girl-run', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 60, y: FLOOR, knot: 'day7_girl_runs', showIf: 'girl_runs', follow: true },
     // Day 1 night: your friend partway up (by the rest nook), then at the lookout once you've met.
     { id: 'friend-on-climb', sprite: FRIEND.idle[0]!, idleFrames: FRIEND.idle, x: 112, y: 526, when: ['night'], showIf: 'climb_tutorial', hideIf: 'met_friend_climb', knot: 'trunk_friend_on_climb' },
     { id: 'friend-at-lookout', sprite: FRIEND.idle[0]!, idleFrames: FRIEND.idle, x: 300, y: TOP, when: ['night'], showIf: 'met_friend_climb', hideIf: 'watched_lights', flipX: true, knot: 'trunk_friend_at_lookout' },

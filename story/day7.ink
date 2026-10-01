@@ -55,7 +55,7 @@ There's a guard outside the door. You can see the shadow of his boots under it, 
 - -> END
 
 === day7_carving ===
-The last bird. You don't know how you know that, but you do.
+Your hands know what to do, even now. That's the worst of it. They don't know they're in trouble.
 { in_custody || plate_found:
     No plate this time. You shave a sliver off the block, thin as a fingernail, to scratch on instead.
 - else:
@@ -85,8 +85,20 @@ The wing. The eye.
 - day7 == "rite": -> day7_to_rite
 - day7 == "evening": -> day7_to_ceremony
 - day7 == "goodbyes": -> ready
-- else: "Carve. I'm not here to talk." #name:A guard
+- day7 == "carve" && in_custody: -> carve_cell
+- day7 == "carve": -> carve_home
+- day7 == "visits": -> waiting
 }
+He looks at the wall over your head.
+-> END
+= carve_cell
+{"Carve. I'm not here to talk."|"I said carve."|"The sooner it's done, the sooner I'm out of this room."} #name:A guard
+-> END
+= carve_home
+{"Get on with it. They want it at the rite."|"I don't like this any more than you do. Carve."} #name:A guard
+-> END
+= waiting
+{"Don't look at me like that. I've got a family too."|"It's not up to me. None of it's up to me."|"They say the baskets'll come down full again, once it's done with. You'd better hope so."} #name:A guard
 -> END
 = ready
 "Ceremony's at dusk. Say when." #name:A guard
@@ -132,7 +144,7 @@ They take your bird out of your hands and shut it inside. The latch clicks.
     "It isn't a trial. You've already decided." #speaker:you
     The preacher smiles at you, as if you'd said something kind.
 - The Tender lifts the cage into the mouth of the tube. He won't look at you. His hands are shaking.
-The light takes it. Up it goes, the little cage, turning, smaller and smaller. #flash:cyan #move:caged-bird:240:12
+The light takes it. Up it goes, the little cage, turning, smaller and smaller, and gone. #flash:cyan #move:caged-bird:240:-40
 Inside it, folded in the dark, is your bird. And inside that, a bird in a cage, scratched as small as you could make it.
 "Now we wait for the evening. Then we'll know." #name:An elder #hide:caged-bird
 ~ trial = false
@@ -192,11 +204,13 @@ She goes. She looks back twice. #hide:mum-cell
 }
 = archivist
 Later, the bolt again. You don't expect the man behind it. #show:archivist-cell
+He sends the guard out with a look. The upper branches can do that. #hide:guard-cell
 ~ objective = "Talk to the archivist"
 ~ objective_target = "shrine-cell:archivist-cell"
 -> END
 = friend
-Later, a scrape, under the floor. Someone's down in the back routes, under the grate. #show:friend-cell
+Later, someone calls the guard out into the shrine. The bolt goes across behind him. #hide:guard-cell
+And the moment it does: a scrape, under the floor. Someone's down in the back routes, under the grate. #show:friend-cell
 ~ objective = "Go to the grate"
 ~ objective_target = "shrine-cell:friend-cell"
 -> END
@@ -207,6 +221,7 @@ The archivist, out of breath from the stairs. He looks wrong down here, like a l
 He sits on the guard's stool and lowers his voice.
 -> day7_archivist_talk ->
 He stands, tugs his coat straight, and is an upper-branches man again. "Statement taken." #speaker:archivist #hide:archivist-cell
+The guard comes back in, scowling, and sits down by the door. #show:guard-cell
 -> day7_next_visitor
 
 === day7_friend_cell ===
@@ -217,7 +232,7 @@ Something moves in the tunnel behind him. He's gone, as quietly as he came. #hid
 -> day7_next_visitor
 
 === day7_cell_dusk ===
-The light under the door turns from grey to amber.
+The light under the door turns from grey to amber. The bolt; the guard, back on his stool. #show:guard-cell
 Outside, feet. A lot of them, all going the same way: down, to the offering floor.
 ~ day7 = "evening"
 ~ objective = "Go with the guard"
@@ -406,7 +421,10 @@ The girl's face, filthy, grinning up at you out of the dark.
 "Told you I'd owe you." #speaker:girl
 She heaves the grate aside. "Come on. Half the roots is at the front doors, and the other half's on its way." #speaker:girl
 "They went past your house on the way up. I didn't see your mum. I don't know. I'm sorry." #speaker:girl
-"So. Where do you want to go?" #speaker:girl
+Fly if you can. Fall if you must.
+Up: the tube, and whatever's at the top of it. Nobody has ever come back down to say.
+Down: the rot, where the tree throws everything it doesn't want.
+"So. Where do you want to go?" #speaker:girl #dim:on
 -> day7_fork
 = home
 Mum turns from the shutters. "They're coming. All of them." #speaker:mum #shake
@@ -416,9 +434,12 @@ Mum turns from the shutters. "They're coming. All of them." #speaker:mum #shake
     "Where will you go? Up, or down? Tell me, and I'll help." #speaker:friend
 - else:
     Through the gap in the shutters, the torches. And among them, near the front, a face you know. Your friend. He isn't shouting. He isn't stopping them, either.
-    Where do you go?
 }
 "Whatever you do, go now. I'll talk to them." Mum, at the door, with her hand on the bar. #speaker:mum
+Fly if you can. Fall if you must.
+Up: the tube, and whatever's at the top of it. Nobody has ever come back down to say.
+Down: the rot, where the tree throws everything it doesn't want.
+Where do you go? #dim:on
 -> day7_fork
 
 // --- Big choice 3: the fork (designer: up is flying, down is giving yourself up) ---
@@ -440,17 +461,18 @@ Mum turns from the shutters. "They're coming. All of them." #speaker:mum #shake
 
 = up
 ~ chased = true
+~ girl_runs = in_custody
 ~ friend_helps = confided
 ~ day7 = "chase"
 ~ objective = "Climb. Get to the top"
 ~ objective_target = "ascension-gate:gate;back-routes:to-shrine;tenders-shrine:up-to-trunk"
-"Up." #speaker:you
+"Up." #speaker:you #dim:off
 { in_custody: -> up_custody | -> up_home }
 
 = up_custody
 She looks at you for a long moment. Then she nods, as if she knew all along.
-"Then up. Back through the routes and out of the shrine's own grate, while they're all at the front. I'll give them something else to look at." #speaker:girl
-"Go on. One of us should see what's up there." #speaker:girl
+"Then up. Back through the routes and out of the shrine's own grate, while they're all at the front." #speaker:girl
+"And I'm coming. To the top, anyway. Somebody has to see you off." #speaker:girl
 She drops back into the dark, and you go down after her. #hide:girl-cell #goto:tenders-shrine:182:236:day7_shrine_escape
 -> END
 
@@ -464,7 +486,7 @@ Behind you, the front door crashes in. You hear Mum's voice, raised, and then yo
 
 = down
 ~ day7 = "fall"
-"Down." #speaker:you
+"Down." #speaker:you #dim:off
 { in_custody: -> down_custody | -> down_home }
 
 = down_custody
@@ -516,6 +538,11 @@ The routes, dark and dripping. Up above, the whole roots is at your door.
 The shrine's grate is at the top, at the far end. Nobody will be in the shrine tonight.
 -> END
 
+// The girl on the way up (in custody), if you stop to talk.
+=== day7_girl_runs ===
+{"Don't stop! Climb!"|"Talk at the top! Go!"|"They're right behind us!"} #speaker:girl
+-> END
+
 // The middle tiers: the guard at the post (a trigger as you reach it).
 === day7_middle_guard ===
 ~ guard_passed = true
@@ -534,14 +561,39 @@ The shrine's grate is at the top, at the far end. Nobody will be in the shrine t
 // The Ascension gate: the gate guards have gone down to join the mob.
 === day7_gate ===
 The gate. Up close it hums, a sound you feel in your teeth more than hear.
-Behind you, the torches. The first of them are already on the steps. #shake
-"Stop it! It's going for the gate!" #name:The crowd
+Behind you, the torches spill into the hall and stop at the foot of the steps. #shake
+Nobody comes up. Nobody has ever set foot on the dais but the masters. Not even now.
+"Come down! Come down from there!" #name:The crowd
+"Let it go. Let it go up, and let the Tree have it, and be done." #name:The preacher
+{ girl_runs: -> farewell }
+-> edge
+= farewell
+The girl comes up the last of the steps behind you, bent double, getting her breath back.
+"Well. This is it, then." #speaker:girl
++ [Hide it: "Come with me."]
+    "Come with me." #speaker:you
+    She looks at the light, and for a moment you think she will.
+    "Somebody's got to stay down here and be a nuisance." #speaker:girl
++ [Joke about it: "Race you to the top."]
+    "Race you to the top." #speaker:you
+    She laughs, and it cracks halfway. "You'd cheat." #speaker:girl
++ [Voice it: "I'm scared."]
+    "I'm scared." #speaker:you
+    "Good. Means you're not as mad as they say." #speaker:girl
+- She punches you on the arm, not gently, and doesn't let go of your sleeve straight away.
+"If you find him, tell him he owes me a feather." #speaker:girl
+"Farewell, soldier." #speaker:girl
+-> edge
+= edge
 The gate isn't locked. Nobody has ever needed to lock it.
-Inside, light. Nothing but light, rushing upwards, so bright it has a sound.
+Inside, light. Nothing but light, rushing upwards, so bright it has a sound. It pulls at your clothes, your hair, the red thread at your neck.
+Mum at the bench, the night of your very first bird. "Hold it gently, like it might fly off."
+The bird that came back, and back, and back.
 Fly if you can.
-~ chased = false
++ [Jump]
+- ~ chased = false
 ~ day7 = "done"
-You don't have wings. You never did. You go anyway. #flash:white #ending:fly
+You don't have wings. You never did. You go anyway. #rise #flash:white #ending:fly
 -> END
 
 // --- Fall: the rot ---
@@ -563,25 +615,27 @@ The rot goes on into the dark, further than you went with her that first night.
 === day7_girl_in_rot ===
 { day7_girl_in_rot > 1: -> again }
 She's sitting against the wall with her knees up, her sleeve still torn.
-She looks at you. She doesn't get up.
-"Well. Look who's come down in the world." #speaker:girl
+She sees who it is, and her face goes hard as bark.
+"Get away from me." #speaker:girl
 + [Hide it: "I'm sorry."]
     "I'm sorry. I'm so sorry." #speaker:you
-    "Are you." It isn't a question. #speaker:girl
+    "Sorry doesn't get me out of here. Sorry doesn't get my family their door back." #speaker:girl
 + [Joke about it: "Room for one more?"]
     "Room for one more?" #speaker:you
-    She just looks at you, until you look away.
+    She's on her feet before you see her move, and her hand's round your collar. #shake
+    "Say one more funny thing. Go on." #speaker:girl
+    She lets go. You don't say anything.
 + [Voice it: "I told them it was you because I was scared."]
     "I told them it was you because I was scared. That's all. There isn't a better reason." #speaker:you
-    "At least you're not pretending." #speaker:girl
-- "So they threw you down too. Good." #speaker:girl
-She gets up anyway, and brushes herself off, and looks into the dark the way you were going.
-"I've been down here a day. There's something at the far end. A draught. Cold." #speaker:girl
-"Don't think this means anything." #speaker:girl
+    "I was tied up in front of the elders while you told them I'd poisoned you. I was scared too." #speaker:girl
+- "So they threw you down as well. Good. I hope it stinks for you the way it stinks for me." #speaker:girl
+She looks off into the dark, the way you were going.
+"There's a draught at the far end. Cold. I'm going to it." #speaker:girl
+"Follow if you want. I won't wait, and I won't talk to you." #speaker:girl
 ~ girl_follows = true
 -> END
 = again
-"Keep walking." #speaker:girl
+She doesn't answer. She doesn't even look round.
 -> END
 
 === day7_light ===
@@ -591,9 +645,9 @@ She gets up anyway, and brushes herself off, and looks into the dark the way you
 }
 The end of the rot. A wall of dead wood, soft as bread, and a cold draught coming through it.
 You push your hand into it, and it gives. And your hand on the other side is cold. Cold like nothing in the tree is ever cold.
-{ girl_in_rot: She's beside you. She doesn't say anything. She starts digging too. }
+{ girl_in_rot: She doesn't look at you. She starts digging too, as far from you as the wall allows. }
 You dig. You don't know for how long.
-Then the wood gives way all at once, and light comes in. #show:daylight #flash:white
+Then the wood gives way all at once, and light comes in. #daylight:702:134:232 #flash:white
 Not the tube's light. Not lamplight, not fungus light. Something else: pale, and enormous, and moving, like breath.
 I will find you.
 ~ day7 = "done"

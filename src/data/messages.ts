@@ -810,7 +810,7 @@ const MARTYR: DecodeSymbol = {
   picture: scratches(16, 16, [[[1, 1], [14, 1], [14, 14], [3, 14], [3, 4], [11, 4], [11, 11], [6, 11], [6, 7], [8, 7], [8, 9]], [[1, 2], [13, 2], [13, 13]]]),
   accepted: ['martyr', 'make yourself a martyr', 'a martyr', 'sacrifice', 'sacrifice yourself', 'give yourself', 'give yourself up', 'offering', 'offer yourself', 'saint', 'ascend', 'ascended', 'ascension', 'master', 'chosen', 'die for'],
   near: [
-    { words: ['spiral', 'swirl', 'coil', 'maze', 'snail', 'whirl', 'mark', 'sign'], reply: "Warm. A spiral. You've seen it before: cut into a carving, the night someone went up the tube for everyone." },
+    { words: ['spiral', 'swirl', 'coil', 'maze', 'snail', 'whirl', 'mark', 'sign'], reply: "Warm. The master's spiral. What did the master do, for all of you?" },
   ],
   nudge: "The master's mark, the spiral on their last carving, the night the whole tree sang them up the tube.",
   hint: 'The master gave themself to the Tree, for all of you. What do you call someone who does that?',
@@ -822,28 +822,23 @@ const IF: DecodeSymbol = {
   picture: scratches(24, 16, [[[0, 8], [9, 8]], [[0, 9], [9, 9]], [[9, 8], [15, 3], [23, 3]], [[9, 9], [15, 13], [23, 13]], [[20, 0], [23, 3], [20, 6]], [[20, 10], [23, 13], [20, 16]]]),
   accepted: ['if', 'whether', 'either', 'or', 'choice', 'choose', 'when', 'unless', 'maybe', 'perhaps', 'in case'],
   near: [
-    { words: ['fork', 'split', 'path', 'paths', 'road', 'roads', 'way', 'ways', 'two', 'branch', 'arrows', 'up', 'down', 'apart'], reply: 'Warm. One way splitting into two: up, or down. Which one, depends... ___ this, or ___ that.' },
+    { words: ['fork', 'split', 'path', 'paths', 'road', 'roads', 'way', 'ways', 'two', 'branch', 'arrows', 'up', 'down', 'apart'], reply: 'Warm. One way splitting in two. It depends: ___ this, or that.' },
   ],
   nudge: "A path that splits in two: one way goes up, the other down. It depends which.",
   hint: "The little word that comes before a condition. \"___ it rains, stay in.\"",
 };
 
-/** "Can": a whole hand, every finger and thumb. */
+/** "Can": a tick, the opposite of the cross you know for "can't". */
 const CAN: DecodeSymbol = {
   id: 'can',
-  picture: scratches(
-    18,
-    18,
-    [[[5, 9], [5, 3]], [[7, 9], [7, 1]], [[9, 9], [9, 1]], [[11, 9], [11, 3]], [[12, 12], [15, 8], [16, 6]]],
-    [{ poly: [[4, 9], [13, 9], [12, 17], [5, 17]] }],
-  ),
-  accepted: ['can', 'could', 'able', 'are able', 'manage', 'possible', 'capable', 'may', 'yes'],
+  picture: scratches(18, 14, [[[1, 7], [6, 12], [16, 1]], [[1, 8], [6, 13], [17, 1]], [[2, 7], [6, 11], [16, 0]]]),
+  accepted: ['can', 'could', 'able', 'are able', 'manage', 'possible', 'capable', 'yes', 'ok', 'okay', 'right', 'allowed'],
   near: [
-    { words: ['hand', 'hands', 'fingers', 'finger', 'thumb', 'palm', 'five', 'whole', 'wave'], reply: "Warm. A whole hand, every finger and the thumb. Everything you'd need to carve. What does that make you? You ___." },
-    { words: ['cant', 'cannot', 'not', 'no'], reply: 'Cold. The opposite.' },
+    { words: ['tick', 'check', 'mark', 'correct', 'good', 'done'], reply: "Warm. A tick: the opposite of the cross for can't. So, not can't. Just..." },
+    { words: ['cant', 'cannot', 'not', 'no'], reply: "Cold. The opposite: it isn't crossed out." },
   ],
-  nudge: 'A whole hand, nothing missing. Able to do anything.',
-  hint: "The opposite of the crossed-out picture: not \"can't\". Just...",
+  nudge: "Not the cross you know for \"can't\". Its opposite.",
+  hint: "Cross a thing out and you can't. Tick it, and you...",
 };
 
 /** "Fall": someone tumbling head first, with lines streaming up above them. */
@@ -857,24 +852,28 @@ const FALL: DecodeSymbol = {
   ),
   accepted: ['fall', 'falling', 'fell', 'fallen', 'drop', 'dropping', 'dropped', 'tumble', 'plunge', 'plummet', 'go down', 'sink', 'descend'],
   near: [
-    { words: ['upside', 'upside down', 'head', 'person', 'dive', 'diving', 'jump', 'jumping', 'flip', 'lines'], reply: 'Warm. Someone upside down, head first, lines streaming up past them. What are they doing?' },
+    { words: ['upside', 'upside down', 'head', 'person', 'dive', 'diving', 'jump', 'jumping', 'flip', 'lines'], reply: 'Warm. Someone head first, the wind streaming past. What are they doing?' },
     { words: ['fly', 'rise', 'up', 'climb', 'float'], reply: "Cold. They're going the other way." },
   ],
   nudge: 'Someone head first, arms flung out, with the wind streaming up past them.',
   hint: "What a bird does when it can't fly.",
 };
 
-/** "Must": a heavy stroke and a dot. Like the question's hook, but not a question. */
+/** "Must": a great hand shoving someone forward. No choice. */
 const MUST: DecodeSymbol = {
   id: 'must',
-  picture: scratches(8, 18, [], [{ poly: [[2, 0], [6, 0], [5, 11], [3, 11]] }, { disc: [4, 15, 1.6] }]),
-  accepted: ['must', 'have to', 'has to', 'need to', 'should', 'got to', 'no choice', 'shall', 'forced', 'ought to'],
+  picture: scratches(
+    24,
+    18,
+    [[[0, 8], [5, 8]], [[0, 10], [5, 10]], [[13, 7], [10, 11]], [[16, 13], [18, 17]], [[14, 13], [12, 17]], [[19, 4], [22, 4]], [[20, 7], [23, 7]], [[19, 10], [22, 10]]],
+    [{ poly: [[0, 5], [9, 5], [11, 6], [11, 12], [9, 13], [0, 13]] }, { disc: [17, 3, 2.2] }, { poly: [[13, 6], [18, 6], [18, 13], [14, 13]] }],
+  ),
+  accepted: ['must', 'have to', 'has to', 'need to', 'should', 'got to', 'no choice', 'shall', 'forced', 'made to', 'ought to'],
   near: [
-    { words: ['would', 'question', 'ask', 'what', 'why', 'hook'], reply: "Close. It's like the question's hook and dot. But straight. This isn't asking anything." },
-    { words: ['line', 'stick', 'dot', 'stroke', 'mark', 'shout', 'loud', 'important', 'warning', 'danger'], reply: "Warm. Said hard, no arguing. Not 'you may'. You ___." },
+    { words: ['push', 'pushed', 'shove', 'shoved', 'hand', 'make', 'made', 'pressure'], reply: "Close. A hand shoving someone on. They've no choice. They ___." },
   ],
-  nudge: 'A straight stroke, struck hard, with a dot under it. No question about it.',
-  hint: 'Not "you could". Not "you might". Stronger. No choice left.',
+  nudge: 'A great hand shoving someone forward, whether they like it or not.',
+  hint: 'Not "you could". Not "you might". No choice left: you ____.',
 };
 
 /** "Will find": an eye, a winding trail, and a mark where it ends. */
@@ -888,7 +887,7 @@ const FIND: DecodeSymbol = {
   ),
   accepted: ['find', 'will find', 'found', 'finds', 'come for', 'come to', 'search', 'seek', 'look for', 'discover', 'track', 'reach', 'meet', 'get to'],
   near: [
-    { words: ['see', 'watch', 'eye', 'look', 'spot', 'trail', 'path', 'map', 'x', 'cross', 'mark', 'follow'], reply: "Close. More than seeing: looking, following the trail, and getting there in the end." },
+    { words: ['see', 'watch', 'eye', 'look', 'spot', 'trail', 'path', 'map', 'x', 'cross', 'mark', 'follow'], reply: 'Close. More than seeing: following the trail, and getting there.' },
     { words: ['lose', 'lost', 'hide'], reply: 'Cold. The opposite.' },
   ],
   nudge: 'An eye, a trail winding away from it, and a mark where it ends. Looking, and getting there.',

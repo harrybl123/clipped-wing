@@ -1,4 +1,4 @@
-import { ARCHIVIST, GUARD, RESIDENTS } from '../../ui/characters';
+import { ARCHIVIST, GIRL, GUARD, RESIDENTS } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import { handrail } from './friendsHomeProps';
 import { ARCHWAY } from './offeringFloorProps';
@@ -115,6 +115,8 @@ export const upperHalls: AreaDefinition = {
   ],
 
   people: [
+    // Day 7 (in custody, up): the girl, coming up with you to see you off at the gate.
+    { id: 'girl-run', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 40, y: FLOOR, knot: 'day7_girl_runs', showIf: 'girl_runs', follow: true },
     resident('doorman', 1, 80, FLOOR, { knot: 'upper_doorman', flipX: true }),
     resident('diner-1', 0, 112, FLOOR),
     resident('diner-2', 3, 226, FLOOR, { flipX: true }),

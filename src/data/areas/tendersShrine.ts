@@ -99,6 +99,8 @@ export const tendersShrine: AreaDefinition = {
   features: [],
 
   people: [
+    // Day 7 (in custody, up): the girl, coming up with you to see you off at the gate.
+    { id: 'girl-run', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 182, y: FLOOR, knot: 'day7_girl_runs', showIf: 'girl_runs', follow: true },
     { id: 'tender', sprite: TENDER.idle[0]!, idleFrames: TENDER.idle, x: 110, y: FLOOR, knot: 'shrine_tender', flipX: true, when: AFTERNOON },
     // Day 4 morning: he's sent for you, and waits by the stool under the lamp.
     { id: 'tender-summons', sprite: TENDER.idle[0]!, idleFrames: TENDER.idle, x: 244, y: FLOOR, knot: 'shrine_tender_summons', flipX: true, when: ['morning'], showIf: 'tender_waiting' },

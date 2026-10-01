@@ -29,19 +29,6 @@ const TUNNELS: Rect[] = [
 
 const [cavity, ...nooks] = TUNNELS;
 
-/** Day 7 (fall): daylight breaking in at the far end, a pale shaft thinning out as it falls. */
-const DAYLIGHT = {
-  rows: Array.from({ length: FLOOR - TOP }, (_, y) =>
-    Array.from({ length: 28 }, (_, x) => {
-      const edge = Math.abs(x - 13.5) / 14;
-      const fade = y / (FLOOR - TOP);
-      const n = (x * 7 + y * 13) % 5;
-      if (edge < 0.35 - fade * 0.15) return 'w';
-      return n / 5 > edge + fade * 0.6 ? 'c' : '.';
-    }).join(''),
-  ),
-  colours: { w: S.white, c: S.light },
-};
 
 export const theRot: AreaDefinition = {
   id: 'the-rot',
@@ -97,7 +84,6 @@ export const theRot: AreaDefinition = {
     // Day 7 (fall): if you blamed her, she's been down here all day; then she comes with you.
     { id: 'girl-fallen', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 610, y: FLOOR, flipX: true, knot: 'the_rot_girl_fallen', showIf: 'girl_in_rot', hideIf: 'girl_follows', when: ['night'] },
     { id: 'girl-rot-follow', sprite: GIRL.idle[0]!, idleFrames: GIRL.idle, x: 610, y: FLOOR, knot: 'the_rot_girl', showIf: 'girl_follows', follow: true },
-    { id: 'daylight', sprite: DAYLIGHT, x: 692, y: FLOOR, hidden: true },
   ],
 
   interactables: [

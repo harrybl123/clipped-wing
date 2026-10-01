@@ -391,7 +391,8 @@ describe('ink pipeline', () => {
       expect(v['friend_helps']).toBe(true);
       expect(play('day7_middle_guard')).toEqual(expect.arrayContaining(['show:friend-chase', 'hide:guard']));
       expect(v['guard_passed']).toBe(true);
-      expect(play('gate_gate')).toContain('ending:fly');
+      expect(v['girl_runs']).toBe(true);
+      expect(play('gate_gate', 0, 0)).toEqual(expect.arrayContaining(['rise', 'ending:fly']));
     });
 
     it('at home under guard: goodbyes in your cloak, then you give yourself up and find the girl in the rot', () => {
@@ -416,7 +417,7 @@ describe('ink pipeline', () => {
       expect(play('the_rot_crack')).not.toContain('ending:fall_together'); // not without her
       play('the_rot_girl_fallen', 0);
       expect(v['girl_follows']).toBe(true);
-      expect(play('the_rot_crack')).toEqual(expect.arrayContaining(['show:daylight', 'ending:fall_together']));
+      expect(play('the_rot_crack')).toEqual(expect.arrayContaining(['daylight:702:134:232', 'ending:fall_together']));
     });
   });
 

@@ -14,6 +14,17 @@ A bench, scored with marks. Someone kept count of their days on it, once.
 
 === shrine_cell_door ===
 Bolted, from the outside.
+{
+- day7 == "open" || day7 == "mob":
+    The guard's on the other side. You can hear him breathing.
+    "Don't. There's a hundred of them out there. You're safer in there than out here." #name:A guard
+- day7 == "carve":
+    "Try that again and I'll tie you to the bench." #name:A guard
+- day7 == "evening":
+    "Not yet. They'll come for you soon enough." #name:A guard
+- else:
+    "Nobody's going anywhere. Sit down." #name:A guard
+}
 -> END
 
 === shrine_cell_grate ===

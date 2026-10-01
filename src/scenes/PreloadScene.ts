@@ -128,7 +128,7 @@ export class PreloadScene extends Phaser.Scene {
       this.scene.start('Area', { areaId, start: { x, y } });
     } else if (at === 'chase') {
       calendar.advanceTo('night');
-      set({ reply5: 'caged', day7: 'chase', chased: true, friend_helps: !lied, objective: 'Climb. Get to the top', objective_target: 'ascension-gate:gate;back-routes:to-shrine;tenders-shrine:up-to-trunk' });
+      set({ reply5: 'caged', day7: 'chase', chased: true, friend_helps: !lied, girl_runs: !blamed, objective: 'Climb. Get to the top', objective_target: 'ascension-gate:gate;back-routes:to-shrine;tenders-shrine:up-to-trunk' });
       this.scene.start('Area', { areaId: 'tenders-shrine', start: { x: 182, y: 236 }, script: 'day7_shrine_escape' });
     } else if (at === 'fall') {
       calendar.advanceTo('night');

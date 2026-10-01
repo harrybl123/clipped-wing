@@ -138,6 +138,8 @@ VAR archivist_goodbye = false
 VAR chased = false
 VAR friend_helps = false
 VAR guard_passed = false
+// In custody, the girl comes up with you, to see you off at the gate.
+VAR girl_runs = false
 // Down in the rot, the girl comes with you (if you blamed her, she's been down there all day).
 VAR girl_follows = false
 
