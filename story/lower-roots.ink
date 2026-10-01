@@ -14,7 +14,7 @@
 - -> END
 
 = deal
-"By the boarded hole. Mind your pockets." #speaker:girl
+"Up on the high walkway. Mind your pockets." #speaker:girl
 -> END
 
 === lower_roots_local ===
@@ -41,8 +41,8 @@
 === lower_roots_dodger ===
 { day5 == "deal": -> day5_dodger }
 { seed == "roots": -> customer }
-{~"Looking for something? I've got it. Whatever it is."|"Psst. Rot-hand. Need anything? Food, light, a nice knife? Discreet."|"Don't look at me like that. I'm a businessman."} #name:The boy
+{~"Looking for something? I've got it. Whatever it is."|"Psst. Rot-hand. Need anything? Food, light, a nice knife? Discreet."|"Don't look at me like that. I'm a businessman."} #speaker:boy
 -> END
 = customer
-"My favourite customer! How's the seed? Growing nicely, I bet." #name:The boy
+"My favourite customer! How's the seed? Growing nicely, I bet." #speaker:boy
 -> END

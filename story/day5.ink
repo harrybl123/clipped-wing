@@ -112,6 +112,9 @@ People in the doorways stop talking as you pass. A woman pulls a curtain shut.
 === day5_archivist ===
 The archivist looks up from a heavy book open on the rail. Ink on his fingers, spectacles, a pale ribbon in his hair.
 "So you're the carver." #speaker:archivist
+He looks past you, at the guard standing at your shoulder.
+"Wait downstairs, would you? The carver's hardly going to make off with the books." #speaker:archivist
+The guard hesitates, then shrugs and goes back down the stairs. #hide:escort
 He studies you the way your mother studies a block of wood before she cuts it.
 "Sit. Please. I only want to ask a few questions." #speaker:archivist
 "I keep the records. Every Ascension, every family, every offering of note. For forty years nothing has come back down the tube that went up it." #speaker:archivist
@@ -140,7 +143,7 @@ He studies you the way your mother studies a block of wood before she cuts it.
     ~ archivist_trust += 1
     ~ suspicion += 1
     "That nobody knows what's up there. Not really." #speaker:you
-    He glances down at your escort, then back at you. He lowers his voice.
+    He glances at the stairs, where the guard went, then back at you. He lowers his voice.
     "No. We don't." #speaker:archivist
 - He takes off his spectacles and rubs his eyes.
 "May I tell you something? I've never said it aloud." #speaker:archivist
@@ -151,9 +154,9 @@ He studies you the way your mother studies a block of wood before she cuts it.
 He looks at you, and waits. He knows there's something you're not saying. #dim:on
 This is it. He's asking. If you tell him about the plates, there's no taking it back. If you don't, he'll write you down as cursed and close the book.
 - (choose)
-+ [Tell him about the messages]
-    Tell him everything: the seams, the plates, the pictures, Grounded. Trust a man from the upper branches with your life, and your mother's.
-    ++ [Yes. Tell him.]
++ [Show him the feather]
+    The feather is against your skin, under your shirt. Show it to him, and there'll be no taking it back: he'll want everything. Trust a man from the upper branches with your life, and your mother's.
+    ++ [Yes. Show him.]
         -> truth
     ++ [No. Think again.]
         -> choose
@@ -167,7 +170,15 @@ This is it. He's asking. If you tell him about the plates, there's no taking it 
 = truth
 ~ told_archivist = true
 ~ archivist_trust += 2
-You tell him. Quietly, so the escort can't hear. The seam in your bird. The plate, black with soot. The pictures. "I see you, clipped wing." #dim:off
+You reach under your shirt and take out the feather, and lay it on his open book. #dim:off #inset:feather
+He doesn't move. He doesn't breathe.
+Then he takes off his spectacles, very slowly, and bends so close his nose almost touches it.
+"That isn't carved." #speaker:archivist
+"That isn't carved. Look at it. Every strand. Nobody could... nothing in the tree could..." #speaker:archivist
+He reaches out one ink-stained finger, and stops just short of touching it, as if it might fly away.
+"Where did you get this?" #speaker:archivist
+"No. Wait. Sit down. Start at the beginning, and tell me everything. Everything." #speaker:archivist
+So you tell him. The seam in your bird. The plate, black with soot. The pictures. "I see you, clipped wing."
 He doesn't interrupt once. When you get to "beyond the bark", his hand goes to the rail, as if the floor has tilted.
 "Grounded," he says, very softly. "Many of us." #speaker:archivist
 "I knew it. I knew the records stopped too neatly." #speaker:archivist
@@ -303,8 +314,10 @@ You've never stolen anything in your life. Out through the rot gap, then. The ba
 -> END
 = roots
 ~ day5 = "roots"
-~ objective = "Find the girl"
-~ objective_target = "lower-roots:girl"
+~ sneaking = true
+~ girl_on_doorstep = true
+~ objective = "Get to the girl without being seen"
+~ objective_target = "lower-roots:girl-doorstep"
 Down, then. If anyone knows how to get hold of something they shouldn't, it's the girl.
 -> END
 
@@ -362,8 +375,10 @@ He doesn't. He's never been brave enough to do anything, and tonight that's the 
 ~ caught_stealing = true
 ~ suspicion += 1
 ~ day5 = "roots"
-~ objective = "Find the girl"
-~ objective_target = "lower-roots:girl"
+~ sneaking = true
+~ girl_on_doorstep = true
+~ objective = "Get to the girl without being seen"
+~ objective_target = "lower-roots:girl-doorstep"
 You climb back down into the dark with empty hands. There's one place left: the lower roots, and the girl. #goto:trunk-climb:201:118
 -> END
 
@@ -371,42 +386,43 @@ You climb back down into the dark with empty hands. There's one place left: the 
 
 === day5_girl_seed ===
 She's sitting on her doorstep in the dark, as if she was expecting somebody.
+"Get in the shadow, idiot. The watch'll be back round in a minute." #speaker:girl
 "Look who it is. Come to check the rot hasn't eaten me?" #speaker:girl
 You tell her: a seed. From the upper branches, or as near as you can get.
 "A seed. You came all the way down here at night for a seed." #speaker:girl
 "...Course I won't ask what for. Not my business. I'm going to ask later, though." #speaker:girl
-"There's someone. Down by the old boarded hole. He can get anything, if you don't ask where it came from, and you don't mind being robbed blind." #speaker:girl
+"There's someone. Up on the high walkway, by the great root, where the watch can't be bothered to climb. He can get anything, if you don't ask where it came from, and you don't mind being robbed blind." #speaker:girl
 "Don't let him near your pockets. And don't believe a word." #speaker:girl
 ~ day5 = "deal"
-~ objective = "Talk to the boy by the boarded hole"
+~ objective = "Find the boy on the high walkway"
 ~ objective_target = "lower-roots:dodger"
 -> END
 
 === day5_dodger ===
-A boy about your age is leaning against the great root, cleaning his nails with a little knife. He smiles as you come, and it's not a nice smile.
-"Well, well. The famous carver. Rot-hand, in person, in my humble shop." #name:The boy
-"What can I do you for? Don't be shy. Everyone wants something." #name:The boy
+A boy about your age is lounging on the high walkway with his legs dangling over the street, cleaning his nails with a little knife. He smiles as you come, and it's not a nice smile.
+"Well, well. The famous carver. Rot-hand, in person, in my humble shop." #speaker:boy
+"What can I do you for? Don't be shy. Everyone wants something." #speaker:boy
 You tell him. A seed.
-"A seed." He whistles. "Oh, that's a big ask, that is. Those are upper-branch goods. Very rare. Very dangerous." #name:The boy
+"A seed." He whistles. "Oh, that's a big ask, that is. Those are upper-branch goods. Very rare. Very dangerous." #speaker:boy
 He produces one from nowhere: small, dark, a little soft. He rolls it across his knuckles.
-"Straight from the grove. Fell off a cart. You know how it is." #name:The boy
-"Now. What's it worth to you?" #name:The boy
+"Straight from the grove. Fell off a cart. You know how it is." #speaker:boy
+"Now. What's it worth to you?" #speaker:boy
 + [Offer a jar of food]
     "A jar of food." #speaker:you
-    "A jar? For this? I'm wounded. Three." #name:The boy
+    "A jar? For this? I'm wounded. Three." #speaker:boy
     ++ [Two. That's all I can spare.]
         "Two. That's all we've got to spare." #speaker:you
-        "Two, and you owe me a favour. Done." #name:The boy
+        "Two, and you owe me a favour. Done." #speaker:boy
         ~ food_store -= 2
     ++ [Fine. Three.]
         ~ food_store -= 3
-        "Lovely doing business with you." #name:The boy
+        "Lovely doing business with you." #speaker:boy
 + [Ask him where it really came from]
     "Where did it really come from?" #speaker:you
-    "Where does anything come from? Up. Down. Round about." He grins. "Three jars, and I'll stop asking questions about your birds." #name:The boy
+    "Where does anything come from? Up. Down. Round about." He grins. "Three jars, and I'll stop asking questions about your birds." #speaker:boy
     ~ food_store -= 3
 - He drops the seed into your palm. It's lighter than you expected, and a little warm. It looks fine.
-"Pleasure. Come back any time. I'm always here. Like the rot." #name:The boy
+"Pleasure. Come back any time. I'm always here. Like the rot." #speaker:boy
 ~ seed = "roots"
 ~ day5 = "bed"
 ~ objective = "Go home to bed"
@@ -418,6 +434,8 @@ Your bed. The seed is in your fist. You don't let go of it.
 + [Sleep]
     ~ day5 = "done"
     ~ mum_in_bed = false
+    ~ sneaking = false
+    ~ girl_on_doorstep = false
     ~ objective = ""
     ~ objective_target = ""
     Tomorrow, the elders. Tomorrow, the seed goes up the tube. #endday:Day 6 (not built yet)

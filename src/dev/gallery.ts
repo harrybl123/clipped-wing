@@ -14,7 +14,7 @@ import * as middleTiersProps from '../data/areas/middleTiersProps';
 import * as seedGroveProps from '../data/areas/seedGroveProps';
 import * as tendersShrineProps from '../data/areas/tendersShrineProps';
 import * as rootsMarketProps from '../data/areas/rootsMarketProps';
-import { ARCHIVIST, ELDERS, FRIEND, GIRL, GUARD, MUM, PREACHER, RESIDENTS, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
+import { ARCHIVIST, DODGER, ELDERS, FRIEND, GIRL, GUARD, MUM, PREACHER, RESIDENTS, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
 import { hexString } from '../ui/pixelArt';
 import { SPEAKERS } from '../ui/portraits';
 import { BIRD, FIRE_FRAMES, FUNGI, LAMP, MORE_ARROW, type RowSprite } from '../ui/sprites';
@@ -50,6 +50,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       ...ELDERS.map((e, i): Entry => [`elder ${i}`, e.idle[0]!]),
       ['preacher', PREACHER.idle[0]!],
       ['guard', GUARD.idle[0]!],
+      ...DODGER.idle.map((f, i): Entry => [`boy idle ${i}`, f]),
       ...RESIDENTS.map((r, i): Entry => [`resident ${i}`, r.idle[0]!]),
       ...VILLAGERS.map((v, i): Entry => [`villager ${i}`, v.idle[0]!]),
     ],

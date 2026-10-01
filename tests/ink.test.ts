@@ -228,7 +228,9 @@ describe('ink pipeline', () => {
       expect(play('home_escort')).toContain('goto:middle-tiers:60:360:day5_checkpoint');
       expect(v['escorted']).toBe(true);
       // Big choice 2: tell him (0, then yes) or pander (1, then yes).
-      expect(play('upper_archivist', 2, 2, truth ? 0 : 1, 0)).toEqual(expect.arrayContaining(['dim:on', 'dim:off', 'time:evening', 'goto:offering-floor:60:236']));
+      const tags = play('upper_archivist', 2, 2, truth ? 0 : 1, 0);
+      expect(tags).toEqual(expect.arrayContaining(['hide:escort', 'dim:on', 'dim:off', 'time:evening', 'goto:offering-floor:60:236']));
+      expect(tags.includes('inset:feather')).toBe(truth); // you win him over with the feather
       expect(v['told_archivist']).toBe(truth);
       expect(play('offering_floor_chalk_ring', 0)).toEqual(expect.arrayContaining(['show:rejected-bird', 'goto:home:130:236:day5_mum_night']));
       expect(v['escorted']).toBe(false);
@@ -251,6 +253,8 @@ describe('ink pipeline', () => {
       const { v, play } = start(true);
       play('day5_decoded', 1);
       expect(v['day5']).toBe('roots');
+      expect(v['sneaking']).toBe(true); // the watch is out again
+      expect(v['objective_target']).toBe('lower-roots:girl-doorstep');
       play('lower_roots_girl');
       expect(v['objective_target']).toBe('lower-roots:dodger');
       play('lower_roots_dodger', 0, 0);

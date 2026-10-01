@@ -92,3 +92,10 @@ On Day 5, if you get your seed from the boy in the lower roots (a cheeky, salesy
 the girl takes you to) instead of from the archivist, it's the seed that eventually grows rot. This
 becomes significant in Chapter 2: come back to it when planning Act 2. (The design doc's "healthy
 seed" vs "rotten seed from the roots".)
+
+## Bring the boy back (designer, 2026-10-01)
+
+The sleazy boy who sells you the seed on Night 5 (the girl's contact in the lower roots; he hangs
+around the high walkway) could be used or introduced in another part of the story too, e.g. met
+earlier in passing, or turning up again on Days 6 and 7 (selling you out? helping, for a price?).
+Come back to this when planning the later days.

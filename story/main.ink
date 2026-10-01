@@ -103,6 +103,8 @@ VAR stealing = false
 VAR caught_stealing = false
 // The seed you got for Grounded: "healthy" (from the archivist) or "roots" (from the boy in the lower roots; it grows rot, Chapter 2).
 VAR seed = ""
+// Night 5: the girl waits on her doorstep while you sneak down to her (the watch is out again).
+VAR girl_on_doorstep = false
 
 // The glossary: each decoded symbol in the player's own words (glossary_<symbol id>, see src/data/messages.ts).
 // Little words like "that" fill themselves in and have no entry.

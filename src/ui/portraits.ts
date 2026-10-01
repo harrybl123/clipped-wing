@@ -279,6 +279,47 @@ export const ARCHIVIST_PORTRAIT: RowSprite = (() => {
 })();
 
 /** Portraits by the speaker id used in ink tags (`#speaker:mum`), with the name shown above the line. */
+/**
+ * The boy in the lower roots: a sleazy fixer. A cap pushed back and tilted, scruffy hair poking out,
+ * a narrow face, eyes squinting as he sizes you up, one brow cocked, a gap-toothed grin, bum fluff on
+ * his chin, a knotted neckerchief.
+ */
+export const BOY_PORTRAIT: RowSprite = (() => {
+  const face: Face = { cx: 24, cy: 24, rx: 8, ry: 11 };
+  const eyeY = face.cy + 1;
+  const mouthY = eyeY + 7;
+  return draw((x, y) => {
+    const u = x - face.cx;
+    const inFace = inEllipse(x, y, face.cx, face.cy, face.rx, face.ry);
+    // The cap: a round crown tilted back, and a brim jutting out to the right.
+    if (y <= 15 && inEllipse(x, y, face.cx - 1, 13, 10, 6)) return y === 15 || (x + y) % 6 === 0 ? 'A' : 's';
+    if (y >= 15 && y <= 16 && x >= face.cx - 2 && x <= face.cx + 14 - (y - 15) * 2) return y === 15 ? 'a' : 'A';
+    // Scruffy hair poking out under the cap, at the sides.
+    if (!inFace && y > 15 && y < face.cy + 3 && Math.abs(u) >= face.rx - 1 && Math.abs(u) <= face.rx + 2 && (x + y) % 3 !== 0) return 'h';
+    if (inFace) {
+      if (y <= 16) return 'h'; // hair under the brim
+      // Squinting eyes: narrow slits. A cocked brow on the right.
+      for (const ex of [face.cx - 4, face.cx + 2]) {
+        if (y === eyeY && x >= ex && x <= ex + 2) return x === ex + 2 && ex > face.cx ? 'w' : 'e';
+      }
+      if (y === eyeY - 2 && x >= face.cx - 5 && x <= face.cx - 2) return 'h';
+      if (y === eyeY - 3 && x >= face.cx + 2 && x <= face.cx + 5) return 'h';
+      if (x === face.cx + 1 && y >= eyeY + 1 && y <= eyeY + 4) return 'S'; // nose
+      // A lopsided, gap-toothed grin, higher on the right.
+      if (y === mouthY && x >= face.cx - 3 && x <= face.cx + 4) return x === face.cx - 3 || x === face.cx + 4 || x === face.cx + 1 ? 'e' : 'w';
+      if (y === mouthY + 1 && x >= face.cx - 2 && x <= face.cx + 3) return 'e';
+      if (y === mouthY - 1 && x === face.cx + 5) return 'e';
+      // Bum fluff on the chin.
+      if (y > mouthY + 1 && (x + y) % 3 === 0) return 'S';
+      return skin(x, face.cx, face.rx);
+    }
+    // A knotted neckerchief.
+    if (y >= 34 && y <= 37 && Math.abs(x - 24) <= 6 + (y - 34)) return x >= 28 && x <= 30 && y >= 35 ? 'a' : (x + y) % 4 === 0 ? 'A' : 's';
+    if (y >= 32 && y <= 34 && x >= 21 && x <= 27) return skin(x, 24, 4);
+    return body(x, y, 37) ?? '.';
+  });
+})();
+
 export const SPEAKERS: Record<string, { name: string; portrait: RowSprite }> = {
   you: { name: 'You', portrait: PROTAGONIST_PORTRAIT },
   mum: { name: 'Mum', portrait: MUM_PORTRAIT },
@@ -286,4 +327,5 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite }> = {
   friend: { name: 'Your friend', portrait: FRIEND_PORTRAIT },
   girl: { name: 'The girl', portrait: GIRL_PORTRAIT },
   archivist: { name: 'The archivist', portrait: ARCHIVIST_PORTRAIT },
+  boy: { name: 'The boy', portrait: BOY_PORTRAIT },
 };
