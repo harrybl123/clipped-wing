@@ -85,3 +85,10 @@ the camera framing the action above it, more `#move:`/`#show:`-style staging in 
 Across the story the protagonist should react to Grounded's messages with curiosity: inquisitive,
 slightly fearful, but drawn in. Days 2 to 4 now have beats like this when a bird is opened and when
 a plate is read; keep it up for messages 4 to 6.
+
+## The seed from the lower roots grows rot (designer, 2026-10-01; pays off in Chapter 2)
+
+On Day 5, if you get your seed from the boy in the lower roots (a cheeky, salesy Artful Dodger type
+the girl takes you to) instead of from the archivist, it's the seed that eventually grows rot. This
+becomes significant in Chapter 2: come back to it when planning Act 2. (The design doc's "healthy
+seed" vs "rotten seed from the roots".)

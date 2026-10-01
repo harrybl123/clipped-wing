@@ -1,0 +1,90 @@
+# Sequence plan: Day 5, The Archivist
+
+A plan for the designer to mark up before it's built. **(doc)** = design doc; **(designer)** = decided
+in conversation; **(suggestion)** = Claude's proposal. Dialogue here is a sketch; the full draft comes
+once the shape is agreed.
+
+## What the design doc asks for
+- Morning: you send your reply to message 3. **(doc)**
+- Message 4 and "summoned upward". **(doc)** Message 4: "Clipped wing, send me new life that can't
+  fly." The same words as message 1, but the picture is a seed with a sprout, by the upper
+  branches. **(doc)**
+- Night: the archive (with the archivist as an ally) or the heist (no ally); a healthy seed or a
+  rotten one from the roots. **(doc)**
+- Big choice 2: tell the archivist the truth, or pander. **(doc)** He's suspicious but never brave
+  enough to act; "voice it" answers earn his trust. **(doc)**
+- The upper halls brief: an escort brings you up for your first sight of the upper branches' wealth,
+  and the archivist asks to meet you there. **(doc)**
+
+## Decided in conversation
+- The afternoon is the archivist meeting: you're summoned upward. **(designer)**
+- Make it obvious that Grounded wants a seed. **(designer)**
+- If you befriend the archivist, you tell him the message and he gives you a seed: he's always
+  been suspicious about what's outside the tree. **(designer)**
+- If you told him the truth, at night you choose: go back up to him, or down to the lower roots.
+  If you didn't, you can only go to the lower roots. **(designer)**
+- In the lower roots you ask the girl if she knows anyone; she takes you to a strange, cheeky,
+  salesy boy (an Artful Dodger type), who sells you a seed. It's the seed that eventually grows rot
+  (Chapter 2; noted in `docs/ideas.md`). **(designer)**
+
+## The shape of the day (suggestion)
+
+| Time | Where | What happens | Objective shown |
+| --- | --- | --- | --- |
+| Morning | Home → Tender's shrine | Carve your reply to message 3 (three pictures again); take it to the Tender at dawn | "Answer Grounded" → "Take your offering to the shrine" |
+| Afternoon | Home → middle tiers → upper halls | An escort comes for you; up through the checkpoint; the upper halls' wealth; the archivist (truth or pander) | "Go with the escort" → "Meet the archivist" |
+| Evening | Offering floor | The fourth ceremony, in a new form; message 4 comes back | "Go to the evening ceremony" |
+| Evening | Home | Decode message 4: a seed, by the upper branches | "Open the bird" |
+| Night | Archive (if you told him) or lower roots | Get a seed | "Get a seed" |
+
+## Beats (suggestion)
+
+### 1. Morning: your reply to message 3
+- The same as Day 4: pick a picture, scratch it, hollow and seal the bird; take it to the Tender at
+  dawn (his new arrangement). A short, colder exchange than Day 4's.
+- The reply's three pictures: **open question**.
+
+### 2. Afternoon: summoned upward
+- **Who sends for you:** the archivist himself. The first rejection in living memory has to go into
+  the records, and he wants to see the carver it happened to. (Or the elders send you up to be
+  recorded: **open question**.)
+- **The escort:** a guard from the middle tiers comes to your door (the house is already watched).
+  Through the checkpoint where roots folk are turned back; people on the stair-street stare.
+- **The upper halls:** the Canopy's light through skylights, the feast while the roots go hungry,
+  the masterwork carving (height is skill). Your first sight of how the other end of the tree lives.
+- **The archivist:** suspicious, precise, and curious. He shows you your family's record (your
+  mother's marks, your own), and asks about the rejection. Underneath, he has always wondered about
+  what's beyond the bark, and has never dared to say so.
+- **Big choice 2:** tell him about the messages (show him the plate, or describe the pictures), or
+  pander (perform devotion, blame yourself, say nothing of the plates). Style choices along the way
+  build or lose his trust ("voice it" earns it).
+
+### 3. Evening: the ceremony and message 4
+- The ceremony changes form again (it's ritual on Day 4). Suggestion: **the escort** stays with you
+  on the floor, a guard at your shoulder, as if you were already accused.
+- Message 4: decoding is quick (most of it's in your glossary), and the new picture is a **seed with
+  a sprout, by the upper branches**: "send me new life" now clearly means a seed, and where to find
+  one. Your reaction: curious and afraid ("Why a seed? What would he grow out there?").
+
+### 4. Night: getting a seed
+- **If you told him the truth,** you choose:
+  - **Up to the archivist** (through the trunk climb's back hatch to the archive, the only unguarded
+    way in): he's waiting, frightened and excited. A short search in the records with him (the index
+    engine), and he gives you a healthy seed from the seed grove's store. He makes you promise to tell
+    him what happens.
+  - **Down to the lower roots:** as below.
+- **If you pandered,** only the lower roots: the girl ("You want a what? Up there? ... I might know
+  someone"), and the boy, who sells you a seed for whatever you've got left (food? a carving?). It
+  looks fine. It isn't.
+- Then home, and the seed goes into tomorrow's bird (Day 6: "the seed and pointing hands").
+
+## Open questions
+1. **Your reply to message 3:** what are the three pictures? (Suggestion: "Who are you?", "Take me",
+   "I'm afraid", each using his own symbols.)
+2. **Who summons you upward:** the archivist himself, or the elders sending you to be recorded?
+3. **The Dodger boy:** do you glimpse him before the night (in the lower roots or the market), or does
+   he only appear on that path?
+4. **Without the archivist, is there still a failed theft first** (the doc's heist: you try to steal
+   a seed from the archive and it goes wrong), or do you go straight to the lower roots?
+5. **What does the boy want for the seed?** (Suggestion: your food, which matters with the store so
+   low, or a carving.)
