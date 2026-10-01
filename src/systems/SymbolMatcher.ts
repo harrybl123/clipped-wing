@@ -102,6 +102,12 @@ export class SymbolMatcher {
     return { kind: 'wrong', wrongAttempts: progress.wrongAttempts, help: this.helpLevel(symbolId) };
   }
 
+  /** Marks a symbol solved without guessing (a glossary entry from an earlier message, or a little given word). */
+  preset(symbolId: string, answer: string): void {
+    this.symbol(symbolId);
+    this.progress.get(symbolId)!.answer = answer;
+  }
+
   helpLevel(symbolId: string): HelpLevel {
     this.symbol(symbolId);
     const n = this.progress.get(symbolId)!.wrongAttempts;

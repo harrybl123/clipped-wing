@@ -1,5 +1,7 @@
 # Sequence plan: Day 2, The Rejection
 
+Built 2026-10-01 (`story/day2.ink`; decoding in `src/scenes/DecodeScene.ts`, message data in `src/data/messages.ts`). The text below is the first plan; the built version follows the decisions underneath.
+
 A plan for the designer to mark up before it's built. **(doc)** = design doc; **(designer)** = decided
 in conversation; **(suggestion)** = Claude's proposal. All dialogue below is a **first draft** for the
 designer to rewrite; it keeps to the tree's faith and never hints at the truth.
@@ -26,6 +28,19 @@ designer to rewrite; it keeps to the tree's faith and never hints at the truth.
   when you shake it. You rescue it. **(designer)**
 - Then an interactive decoding, then the first big choice. **(designer)** The word game should take
   inspiration from other games to be engaging. **(designer)**
+- The rejection is met with real horror: shock, fear and disgust; nobody has ever seen one. **(designer)**
+- **One picture per word or phrase** on the plates (message 1: I, see, you, clipped, wing, send, me,
+  new, life, that, can't, fly), plain pictures, no puns. "I" and "me" share a picture; little words
+  like "that" fill themselves in. Words you've solved stay in the glossary, so message 4 (the same
+  words) arrives almost decoded. **(designer)**
+- **The afternoon:** fetching food for you and Mum from the ration hatch is compulsory; the other visit
+  is your friend *or* the thin man (made richer: your friend's flawed offering and their hidden
+  hunger; the thin man's fall from carving ladles by the market). **(designer)**
+- **The big choice is made obviously important:** the options say *(answer the message)* and *(ignore
+  the message)*, the room darkens, and each asks if you're sure. **(designer)** The very stern
+  warning goes on the second ignore (Day 3), which ends the game.
+- Open: the spiral as the master's *quirk* (a flaw their knife always leaves), not a signature,
+  mirroring how Grounded recognises your birds by their heavy wing (suggestion, awaiting the designer).
 
 ## The shape of the day (suggestion)
 
@@ -167,6 +182,10 @@ The word matching is already built and tested (`SymbolMatcher`). Needed: the dec
 near-word lists, and the memory hints (data, one message at a time in `src/data/`).
 
 ## Open questions
+Defaults used when building (suggestion): the thin man is the Day 1 grumbler; the plate is pale
+metal; you can't burn the bird at the fire (your hand won't let go); suspicion from your reaction is
+hide +0, joke +1, voice +2.
+
 1. The man in the outburst: a named local we'll see again, or anyone?
 2. The ration share: at the hatch with a child from the lower roots (as drafted), or somewhere else?
 3. At the fire: can you actually choose to burn it (an ignore path right away), or does the story

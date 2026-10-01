@@ -21,10 +21,13 @@ describe.each(Object.values(MESSAGES))('message $id', (message) => {
     }
   });
 
-  it('spreads the glints out across the turn, so each picture catches the light on its own', () => {
-    const glints = message.symbols.map((s) => s.glint).sort((a, b) => a - b);
-    for (const g of glints) expect(Math.abs(g)).toBeLessThanOrEqual(0.8);
-    for (let i = 1; i < glints.length; i++) expect(glints[i]! - glints[i - 1]!).toBeGreaterThanOrEqual(0.5);
+  it('lays out the plate in rows of known symbols, using every symbol, small enough to fit', () => {
+    const ids = new Set(message.symbols.map((s) => s.id));
+    const used = new Set(message.rows.flat());
+    for (const id of used) expect(ids.has(id), id).toBe(true);
+    expect([...ids].filter((id) => !used.has(id))).toEqual([]);
+    for (const row of message.rows) expect(row.length).toBeLessThanOrEqual(7);
+    for (const s of message.symbols) expect(s.picture[0]!.length <= 26 && s.picture.length <= 16, s.id).toBe(true);
   });
 
   it('never lists a word as both near and right', () => {
@@ -37,16 +40,18 @@ describe.each(Object.values(MESSAGES))('message $id', (message) => {
   it('has a glossary variable in ink for every symbol', () => {
     const result = compileInk();
     const story = new StoryBridge(readFileSync(result.outFile, 'utf8'));
-    for (const s of message.symbols) expect(story.variableNames()).toContain(glossaryVariable(s.id));
+    for (const s of message.symbols) if (!s.given) expect(story.variableNames()).toContain(glossaryVariable(s.id));
   });
 });
 
 describe('message 1', () => {
   it('accepts the words the design doc gives (the eye: see, watch, look, notice), and others like them', () => {
     const symbols = MESSAGES.message1!.symbols;
-    for (const w of ['see', 'watching', 'Looks', 'noticed']) expect(new SymbolMatcher(symbols).guess('eye', w).kind, w).toBe('correct');
+    for (const w of ['see', 'watching', 'Looks', 'noticed']) expect(new SymbolMatcher(symbols).guess('see', w).kind, w).toBe('correct');
     const matcher = new SymbolMatcher(symbols);
-    expect(matcher.guess('clipped_bird', "can't fly").kind).toBe('correct');
-    expect(matcher.guess('fledgling', 'a baby bird').kind).toBe('correct');
+    expect(matcher.guess('self', 'I').kind).toBe('correct');
+    expect(matcher.guess('cant', "can't").kind).toBe('correct');
+    expect(matcher.guess('clipped', 'cut off').kind).toBe('correct');
+    expect(matcher.guess('fly', 'flying').kind).toBe('correct');
   });
 });

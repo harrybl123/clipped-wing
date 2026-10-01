@@ -5,7 +5,7 @@
 
 === friends_home_friend ===
 { day1 == "friend": -> day1_friend }
-{ day2 == "afternoon": {day2_friend: -> day2_already_visited | -> day2_friend} }
+{ day2 == "afternoon": {day2_friend: -> day2_already_visited} {afternoon_with != "": -> day2_no_time} -> day2_friend }
 [PLACEHOLDER] "Did you see the lights last night? One day that'll be me going up." #speaker:friend
 + [Tease them]
     [PLACEHOLDER] "You'd miss us." #speaker:you

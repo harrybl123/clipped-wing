@@ -126,6 +126,8 @@ export class AreaScene extends Phaser.Scene {
   /** Things to do once the current conversation closes (e.g. travel after a #goto: tag). */
   private afterClose: (() => void)[] = [];
   private inset: Phaser.GameObjects.Container | null = null;
+  /** Darkens the room for a weighty moment (#dim:on / #dim:off). */
+  private dimmer!: Phaser.GameObjects.Rectangle;
   private script: string | undefined;
   /** Frame on which the dialogue closed, so the key that closed it doesn't also jump or reopen it. */
   private dialogueClosedFrame = -1;
@@ -216,6 +218,7 @@ export class AreaScene extends Phaser.Scene {
     this.prompt = new PixelText(this, 0, 0, '', { color: SHADES.white }).setDepth(20).setVisible(false);
     this.dialogue = new DialogueBox(this, session.story, (tags) => this.handleTags(tags));
     this.objective = new ObjectiveMarker(this);
+    this.dimmer = this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, SHADES.shadow).setOrigin(0).setScrollFactor(0).setDepth(28).setAlpha(0);
     this.hintText = new PixelText(this, 0, 18, '', { color: SHADES.white, shadow: SHADES.shadow }).setScrollFactor(0).setDepth(26).setVisible(false);
     this.refreshObjective();
     if (this.script) {
@@ -436,6 +439,7 @@ export class AreaScene extends Phaser.Scene {
    *   #shake                  the screen shakes
    *   #recoil                 the crowd steps back from you
    *   #decode:<message>[:<knot>]  after the conversation, the decoding screen; then the knot plays
+   *   #dim:on / #dim:off      the room darkens around the conversation, or lightens again
    */
   private handleTags(tags: string[]): void {
     this.clearInset();
@@ -492,6 +496,9 @@ export class AreaScene extends Phaser.Scene {
           break;
         case 'recoil':
           this.recoil();
+          break;
+        case 'dim':
+          this.tweens.add({ targets: this.dimmer, alpha: args[0] === 'off' ? 0 : 0.75, duration: 900 });
           break;
         case 'decode': {
           const [message, then] = args;

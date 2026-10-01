@@ -1,11 +1,11 @@
 // ============================================================================
 // Day 2: the rejection. Draft text from docs/sequences/day-2.md, for the designer to rewrite.
 // The day moves on through the stages in `day2` (main.ink); the area knots send you here at the right
-// stage. Afternoon visits (your friend, the ration hatch, Mum, the thin man) each end in
-// day2_visit_done, which counts them down; after two, the evening comes.
+// stage. The afternoon (designer): fetch your share from the ration hatch, which you must, and see
+// either your friend or the thin man (not both); day2_afternoon_done brings the evening once both are done.
 // Extra tags: #shake (the screen shakes) · #recoil (the crowd steps back from you)
 // · #decode:<message>:<knot> (after the conversation, the decoding screen; then <knot> plays)
-// · #endday:<card> (the day ends, with that card on the next morning)
+// · #endday:<card> (the day ends, with that card on the next morning) · #dim:on / #dim:off (the room darkens)
 // ============================================================================
 
 // --- Morning, at home ---
@@ -49,15 +49,37 @@ Then it's your turn. You hold up your bird.
 "The carver from the edge. Same as ever." #speaker:tender
 The Tender lays it in the basket with the rest. The tube brightens. #flash:cyan
 ~ day2 = "afternoon"
-~ visits_left = 2
-~ objective = "Spend the afternoon (2 visits left)"
-~ objective_target = ""
-The crowd breaks up, muttering. The afternoon is yours: time for two visits. #time:afternoon
+~ objective = "Fetch your rations, then see your friend or the thin man"
+~ objective_target = "roots-market:ration-hatch"
+The crowd breaks up, muttering. You need to fetch your share from the hatch, for you and Mum. And there's time for one visit before the evening. #time:afternoon
 -> END
 
-// --- The afternoon: two visits ---
+// --- The afternoon: the hatch, and your friend or the thin man ---
+
+=== day2_ration ===
+"One share for the carver's house. Less than yesterday, I know. Don't look at me like that." #name:Hatch keeper
+You take the little bundle: food for you and Mum. It weighs almost nothing.
+Outside the hatch, a small child from the lower roots is watching it in your hands.
++ [Keep it. Mum will need it.]
+    ~ food_store += 1
+    You tuck it away and don't look back.
++ [Share some]
+    ~ shared_ration = true
+    You break off a piece and hold it out. The child snatches it and runs.
+-
+~ got_rations = true
+-> day2_afternoon_done
+
+=== day2_mum_afternoon ===
+{ got_rations:
+    "Is that our share? That's all? Well. Put it in the store, love." #speaker:mum
+- else:
+    "Have you fetched our share yet? Go on, before the hatch shuts." #speaker:mum
+}
+-> END
 
 === day2_friend ===
+Your friend is at their bench by the window, turning something over and over in their hands.
 "Did you hear that man this morning? In front of the Tender!" #speaker:friend
 + [He shouldn't have said it. Not there.]
     "He shouldn't have said it. Not there." #speaker:you
@@ -68,47 +90,82 @@ The crowd breaks up, muttering. The afternoon is yours: time for two visits. #ti
 + [Is he wrong? People are hungry.]
     "Is he wrong? People are hungry." #speaker:you
     "...The Tree knows what it's doing. It always has." #speaker:friend
-- -> day2_visit_done
-
-=== day2_ration ===
-"One share. Less than yesterday, I know. Don't look at me like that." #name:Hatch keeper
-You take the little bundle. It weighs almost nothing.
-Outside the hatch, a small child from the lower roots is watching it in your hands.
-+ [Keep it. Mum will need it.]
-    ~ food_store += 1
-    You tuck it away and don't look back.
-+ [Share some]
-    ~ shared_ration = true
-    You break off a piece and hold it out. The child snatches it and runs.
-- -> day2_visit_done
-
-=== day2_mum_visit ===
-"A man shouting at the rite. In front of the Tender. What's the tree coming to?" #speaker:mum
-"Keep your head down, love. The Tree looks after those who look after it." #speaker:mum
--> day2_visit_done
+- "Look. My offering for tomorrow. Tell me honestly." #speaker:friend
+"A lamp hook, twisted like a vine. Mother says it's my best yet." #speaker:friend
+You see it at once: the twist runs against the grain. It'll crack within a season. Your eyes see everything your hands can't make.
++ [Tell them the truth]
+    "The twist runs against the grain. It'll split." #speaker:you
+    They stare at it for a long moment.
+    "...You're right. You always see it." #speaker:friend
+    ~ friend_trust += 1
++ [Tell them it's perfect]
+    "It's perfect. The Tree will love it." #speaker:you
+    "Really? You'd tell me if it wasn't." #speaker:friend
+- They lower their voice.
+"Our share was smaller too. Mother pretends it isn't. She gave hers to my little brother last night." #speaker:friend
+"It's a test. That's all. The Tree's testing us. Isn't it?" #speaker:friend
++ [It's a test. We'll pass it.]
+    "It's a test. We'll pass it." #speaker:you
+    "We will." #speaker:friend
++ [I don't know.]
+    "I don't know." #speaker:you
+    They don't answer.
+- They press a little root cake into your hand. "For your mum. Don't tell mine." #speaker:friend
+~ food_store += 1
+~ afternoon_with = "friend"
+-> day2_afternoon_done
 
 === day2_thin_man ===
-"Go on. Tell me I'm wrong." #name:Thin man
-He won't look at you.
-"My little one hasn't eaten since yesterday." #name:Thin man
--> day2_visit_done
+The thin man is alone on the floor, scraping at the empty blessing baskets with his fingers. He freezes when he sees you.
+"Go on. Tell the Tender. Everyone else will." #name:Thin man
++ [I won't tell anyone.]
+    "I won't tell anyone." #speaker:you
+    His shoulders drop, a little.
++ [You shouldn't have said it. Not at the rite.]
+    "You shouldn't have said it. Not at the rite." #speaker:you
+    "You think I don't know that?" #name:Thin man
++ [You only said what everyone's thinking.]
+    "You only said what everyone's thinking." #speaker:you
+    ~ suspicion += 1
+    Across the floor, a passer-by slows down, listening.
+- "My little one hasn't eaten in two days. What was I meant to do? Smile, and send up my best?" #name:Thin man
+"I carved ladles once. Good ones. We lived up by the market then." #name:Thin man
+He holds up his hands. They shake.
+"Then my hands went. The work goes, the food goes, the house goes. Fair, they call it." #name:Thin man
++ {got_rations} [Give him some of your rations]
+    ~ food_store -= 1
+    ~ shared_ration = true
+    You hold out part of your share. He stares at it, then takes it, and can't say anything at all.
++ [Leave him be]
+    You leave him to the empty baskets.
+- "If the Tree turns its face from anyone, let it be me. Not my little one." #name:Thin man
+~ afternoon_with = "thin_man"
+-> day2_afternoon_done
 
-// Said instead if you go back to someone you've already visited today (doesn't use a visit).
+// Said instead if you go back to someone you've already seen today, or try for both visits.
 === day2_already_visited ===
 You've already spent time here today.
 -> END
 
-=== day2_visit_done ===
-~ visits_left -= 1
-{ visits_left > 0:
-    ~ objective = "Spend the afternoon (1 visit left)"
-    -> END
+=== day2_no_time ===
+There isn't time for this as well, not today. The evening ceremony will be starting soon.
+-> END
+
+=== day2_afternoon_done ===
+{
+- got_rations && afternoon_with != "":
+    ~ day2 = "evening"
+    ~ mum_at_ceremony = true
+    ~ objective = "Go to the evening ceremony"
+    ~ objective_target = "offering-floor:tender"
+    The light in the tube is turning gold. It's time for the evening ceremony. #time:evening
+- got_rations:
+    ~ objective = "See your friend or the thin man"
+    ~ objective_target = ""
+- else:
+    ~ objective = "Fetch your rations from the hatch"
+    ~ objective_target = "roots-market:ration-hatch"
 }
-~ day2 = "evening"
-~ mum_at_ceremony = true
-~ objective = "Go to the evening ceremony"
-~ objective_target = "offering-floor:tender"
-The light in the tube is turning gold. It's time for the evening ceremony. #time:evening
 -> END
 
 // --- The evening: the rejection ---
@@ -196,18 +253,31 @@ You tilt it towards the fire. #decode:message1:day2_decoded
 === day2_decoded ===
 "I see you, clipped wing. Send me new life that can't fly." #speaker:you
 You drop the empty bird into the fire. It catches at once.
-Tomorrow's offering. What will you carve?
-+ [A fledgling, with a clipped wing]
-    ~ reply1 = "fledgling"
-    A fledgling, then. Small enough to hold a secret.
-+ [Your usual bird]
-    ~ reply1 = "usual"
-    ~ times_ignored += 1
-    Your usual bird. The Tree will take it this time. It has to.
+The house is silent. Tomorrow, something of yours goes up the tube. #dim:on
+Whatever you carve tonight is your answer. This choice can't be undone.
+- (choose)
++ [Carve a fledgling with a clipped wing (answer the message)]
+    A fledgling with a clipped wing: nothing like anything you've ever sent up.
+    If anyone looks closely, they'll wonder why. And once it goes up the tube, there's no taking it back.
+    ++ [Yes. Carve the fledgling.]
+        ~ reply1 = "fledgling"
+        You pick up your knife. A fledgling, then. Small enough to hold a secret.
+    ++ [No. Think again.]
+        -> choose
++ [Carve your usual bird (ignore the message)]
+    Your usual bird. You'd be turning away from whoever made this plate, as if it never came.
+    The Tree sent your bird back once already. Are you sure?
+    ++ [Yes. Carve my usual bird.]
+        ~ reply1 = "usual"
+        ~ times_ignored += 1
+        Your usual bird. The Tree will take it this time. It has to.
+    ++ [No. Think again.]
+        -> choose
 -
 ~ day2 = "hide"
 ~ objective = "Hide the plate"
 ~ objective_target = "home:hiding-spot"
+You'll carve it at first light. #dim:off
 -> END
 
 === day2_hide_plate ===

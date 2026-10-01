@@ -115,4 +115,11 @@ describe('SymbolMatcher', () => {
     expect(() => new SymbolMatcher([{ id: 'a', accepted: [] }])).toThrow('no accepted words');
     expect(() => new SymbolMatcher([{ id: 'a', accepted: ['x'] }, { id: 'a', accepted: ['y'] }])).toThrow('duplicate');
   });
+
+  it('can preset a symbol as solved (an earlier glossary entry)', () => {
+    const m = new SymbolMatcher([{ id: 'eye', accepted: ['see'] }]);
+    m.preset('eye', 'watch');
+    expect(m.isSolved('eye')).toBe(true);
+    expect(m.guess('eye', 'see')).toEqual({ kind: 'already-solved', answer: 'watch' });
+  });
 });

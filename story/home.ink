@@ -14,7 +14,7 @@
 - day1 == "home": -> day1_mum_blessing
 - day2 == "wake": -> day2_mum_morning
 - day2 == "bench" || day2 == "rite": -> day2_mum_go_on
-- day2 == "afternoon": {day2_mum_visit: -> day2_already_visited | -> day2_mum_visit}
+- day2 == "afternoon": -> day2_mum_afternoon
 - day2 == "burn" || day2 == "hide" || day2 == "bed": -> day2_mum_asleep
 }
 [PLACEHOLDER] "Get some rest, love." #speaker:mum

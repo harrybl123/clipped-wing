@@ -28,7 +28,7 @@
 
 === offering_floor_grumbler ===
 // On Day 2 he's the thin man from the morning's outburst.
-{ day2 == "afternoon": {day2_thin_man: -> day2_already_visited | -> day2_thin_man} }
+{ day2 == "afternoon": {day2_thin_man: -> day2_already_visited} {afternoon_with != "": -> day2_no_time} -> day2_thin_man }
 [PLACEHOLDER] "Portions are smaller again. Don't tell me you haven't noticed."
 -> END
 

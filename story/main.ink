@@ -26,9 +26,12 @@ VAR watched_lights = false
 
 // Day 2 (story/day2.ink). Stages: wake, bench, rite, afternoon, evening, burn, hide, bed, done.
 VAR day2 = ""
-// Afternoon visits left today (two a day from Day 2).
-VAR visits_left = 0
+// The afternoon: your share from the ration hatch (you must), and one visit: "friend" or "thin_man".
+VAR got_rations = false
+VAR afternoon_with = ""
 VAR shared_ration = false
+// Your friend's trust in you (design doc: tracked through the act).
+VAR friend_trust = 0
 VAR mum_at_ceremony = false
 VAR mum_in_bed = false
 // Big choice 1, the reply to message 1: "fledgling" (reply) or "usual" (ignore). Ignoring twice gives the loyal ending.
@@ -36,9 +39,17 @@ VAR reply1 = ""
 VAR times_ignored = 0
 
 // The glossary: each decoded symbol in the player's own words (glossary_<symbol id>, see src/data/messages.ts).
-VAR glossary_eye = ""
-VAR glossary_clipped_bird = ""
-VAR glossary_fledgling = ""
+// Little words like "that" fill themselves in and have no entry.
+VAR glossary_self = ""
+VAR glossary_see = ""
+VAR glossary_you = ""
+VAR glossary_clipped = ""
+VAR glossary_wing = ""
+VAR glossary_send = ""
+VAR glossary_new = ""
+VAR glossary_life = ""
+VAR glossary_cant = ""
+VAR glossary_fly = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink

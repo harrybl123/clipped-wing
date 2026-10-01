@@ -63,24 +63,27 @@ describe('ink pipeline', () => {
     play('home_bench', 0);
     expect(v['objective_target']).toBe('offering-floor:tender');
     expect(play('offering_floor_tender').tags).toContain('time:afternoon');
-    expect(v['visits_left']).toBe(2);
+    expect(v['objective_target']).toBe('roots-market:ration-hatch');
 
-    play('home_mum');
-    expect(v['objective']).toContain('1 visit left');
-    expect(play('home_mum').text).toContain('already');
+    // The hatch is compulsory; then one visit, your friend or the thin man, not both.
     const food = v['food_store'] as number;
+    play('offering_floor_grumbler', 2, 0);
+    expect(v['suspicion']).toBe(1);
+    expect(v['day2']).toBe('afternoon');
+    expect(play('friends_home_friend').text).toContain("isn't time");
     expect(play('market_ration_hatch', 0).tags).toContain('time:evening');
     expect(v['food_store']).toBe(food + 1);
     expect(v['objective_target']).toBe('offering-floor:tender');
 
     const rejection = play('offering_floor_tender', 2);
     expect(rejection.tags).toEqual(expect.arrayContaining(['show:rejected-bird', 'recoil', 'goto:home:130:236:day2_mum_burn']));
-    expect(v['suspicion']).toBe(2);
+    expect(v['suspicion']).toBe(3);
 
     play('day2_mum_burn', 0);
     expect(v['objective_target']).toBe('home:hearth');
     expect(play('home_hearth', 0, 0).tags).toContain('decode:message1:day2_decoded');
-    play('day2_decoded', 1);
+    // The big choice asks you to be sure: thinking again goes back to the choice.
+    play('day2_decoded', 1, 1, 1, 0);
     expect(v['reply1']).toBe('usual');
     expect(v['times_ignored']).toBe(1);
     play('home_hiding_spot');
