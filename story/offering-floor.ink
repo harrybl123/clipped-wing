@@ -5,6 +5,8 @@
 
 === offering_floor_tender ===
 { day1 == "rite": -> day1_rite }
+{ day2 == "rite": -> day2_rite }
+{ day2 == "evening": -> day2_rejection }
 [PLACEHOLDER] The Tender looks down from the landing. "Child of the roots." #speaker:tender
 [PLACEHOLDER] "The Tree gives, and the Tree takes. What do you bring?" #speaker:tender
 + [Hide it: "Only my devotion."]
@@ -25,6 +27,8 @@
 -> END
 
 === offering_floor_grumbler ===
+// On Day 2 he's the thin man from the morning's outburst.
+{ day2 == "afternoon": {day2_thin_man: -> day2_already_visited | -> day2_thin_man} }
 [PLACEHOLDER] "Portions are smaller again. Don't tell me you haven't noticed."
 -> END
 

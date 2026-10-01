@@ -1,6 +1,6 @@
-import { GIRL, TENDER, VILLAGERS } from '../../ui/characters';
+import { GIRL, MUM, TENDER, VILLAGERS } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
-import { FUNGI, LAMP } from '../../ui/sprites';
+import { BIRD, FUNGI, LAMP } from '../../ui/sprites';
 import * as P from './offeringFloorProps';
 import type { AreaDefinition, Person, Solid } from './types';
 
@@ -97,6 +97,11 @@ export const offeringFloor: AreaDefinition = {
     // The Tender, on the landing under the lamp, watching the tube.
     { id: 'tender', sprite: TENDER.idle[0]!, idleFrames: TENDER.idle, x: 262, y: LANDING.y, knot: 'offering_floor_tender', flipX: true, when: ['morning', 'evening'] }, // afternoons in the shrine
     ...crowd(),
+    // Day 2: the thin man in the morning crowd (the outburst; the same man as the afternoon grumbler).
+    { id: 'thin-man', sprite: VILLAGERS[2]!.idle[0]!, idleFrames: VILLAGERS[2]!.idle, x: 92, y: FLOOR, when: ['morning'], showIf: 'day2' },
+    // Day 2 evening: Mum at the ceremony, and your bird, rejected, in the basin (#show:rejected-bird).
+    { id: 'mum-ceremony', sprite: MUM.idle[0]!, idleFrames: MUM.idle, x: 124, y: FLOOR, when: ['evening'], showIf: 'mum_at_ceremony' },
+    { id: 'rejected-bird', sprite: BIRD, x: TUBE_X, y: LANDING.y, when: ['evening'], hidden: true },
     // Quieter in the afternoon: a couple of people passing through.
     { id: 'grumbler', sprite: VILLAGERS[2]!.idle[0]!, idleFrames: VILLAGERS[2]!.idle, x: 62, y: FLOOR, knot: 'offering_floor_grumbler', when: ['afternoon'] },
     { id: 'passer-by', sprite: VILLAGERS[5]!.idle[0]!, idleFrames: VILLAGERS[5]!.idle, x: 410, y: FLOOR, flipX: true, when: ['afternoon'] },

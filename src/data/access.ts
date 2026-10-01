@@ -4,17 +4,27 @@ import type { Day, TimeSlot } from '../systems/Calendar';
 // (the designer: "we don't have to introduce all the areas at once"). Scripted travel (e.g. going up
 // to the Ascension) ignores this. Pure data, unit-tested; later days are still to be decided.
 
+/** Held back until the story reaches them (Days 1 and 2). */
+const HELD_BACK: Record<string, string> = {
+  'back-routes': "You don't know any way into the back routes.",
+  'lower-roots': 'Nobody goes down to the lower roots without a reason.',
+  'middle-tiers': 'The way up is guarded. Roots folk only go up when they are sent for.',
+  'upper-halls': 'The upper halls are no place for someone from the roots.',
+  archive: 'The archive is for the upper branches.',
+  'seed-grove': 'The seed grove is for the upper branches.',
+};
+
 /** Areas that are closed on a given day, with the line shown if you try to go. */
 const CLOSED: Partial<Record<Day, Record<string, string>>> = {
   1: {
-    'back-routes': "You don't know any way into the back routes.",
-    'lower-roots': 'Nobody goes down to the lower roots without a reason.',
-    'middle-tiers': 'The way up is guarded. Roots folk only go up when they are sent for.',
-    'upper-halls': 'The upper halls are no place for someone from the roots.',
-    archive: 'The archive is for the upper branches.',
-    'seed-grove': 'The seed grove is for the upper branches.',
+    ...HELD_BACK,
     'ascension-gate': 'Everyone goes up together, for the Ascension this evening.',
     'trunk-climb': 'Not now. The climb is for tonight, to watch the lights.',
+  },
+  2: {
+    ...HELD_BACK,
+    'ascension-gate': 'The gate is only opened for an Ascension.',
+    'trunk-climb': "There's no reason to climb today.",
   },
 };
 

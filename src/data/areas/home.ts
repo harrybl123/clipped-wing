@@ -115,7 +115,7 @@ export const home: AreaDefinition = {
     { type: 'jars', sprite: P.JAR, x: 393, y: 204, variable: 'food_store', max: 16, perRow: 8, rowSpacing: 28 },
   ],
 
-  people: [{ id: 'mum', sprite: MUM.idle[0]!, idleFrames: MUM.idle, x: 150, y: FLOOR, knot: 'home_mum', flipX: true }],
+  people: [{ id: 'mum', sprite: MUM.idle[0]!, idleFrames: MUM.idle, x: 150, y: FLOOR, knot: 'home_mum', flipX: true, hideIf: 'mum_in_bed' }],
 
   interactables: [
     { id: 'kitchen', x: 58, y: FLOOR, reach: 12, label: 'Look', knot: 'home_kitchen' },

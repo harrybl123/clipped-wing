@@ -27,5 +27,6 @@
 -> END
 
 === market_ration_hatch ===
+{ day2 == "afternoon": {day2_ration: -> day2_already_visited | -> day2_ration} }
 [PLACEHOLDER] The ration hatch. The shutter is half down and the shelf behind it is thin.
 -> END

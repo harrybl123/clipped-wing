@@ -5,6 +5,7 @@ import { AREAS, PLANNED_AREAS } from '../data/areas';
 import type { AreaDefinition, Exit, Feature, Person } from '../data/areas/types';
 import { nextHop } from '../data/route';
 import { Player } from '../objects/Player';
+import type { DecodeResult, DecodeSceneData } from './DecodeScene';
 import type { MapSceneData } from './MapScene';
 import { getSession } from '../session';
 import { DebugOverlay } from '../ui/DebugOverlay';
@@ -225,6 +226,13 @@ export class AreaScene extends Phaser.Scene {
 
     if (this.card) this.showCard(this.card);
 
+    // Coming back from the decoding screen: play the knot it hands back, if any.
+    const resumed = (_sys: unknown, data?: DecodeResult) => {
+      if (data?.script) this.dialogue.open(data.script, closed);
+    };
+    this.events.on(Phaser.Scenes.Events.RESUME, resumed);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off(Phaser.Scenes.Events.RESUME, resumed));
+
     // Dev builds only: M opens the map from anywhere, for quick testing.
     if (import.meta.env.DEV) {
       this.input.keyboard?.on('keydown-M', () => {
@@ -424,7 +432,10 @@ export class AreaScene extends Phaser.Scene {
    *   #lights:<x>:<top>:<bottom>  lights rise up the tube
    *   #card:<text>            a title card
    *   #goto:<area>[:<x>:<y>[:<knot>]]  after the conversation, go there (optionally to a spot, playing a knot)
-   *   #endday                 after the conversation, the day ends
+   *   #endday[:<card>]        after the conversation, the day ends (the card shows on the next morning)
+   *   #shake                  the screen shakes
+   *   #recoil                 the crowd steps back from you
+   *   #decode:<message>[:<knot>]  after the conversation, the decoding screen; then the knot plays
    */
   private handleTags(tags: string[]): void {
     this.clearInset();
@@ -473,8 +484,19 @@ export class AreaScene extends Phaser.Scene {
           break;
         }
         case 'endday':
-          this.afterClose.push(() => this.endDay());
+          this.afterClose.push(() => this.endDay(args.join(':') || undefined));
           break;
+        case 'shake':
+          this.cameras.main.shake(260, 0.006);
+          break;
+        case 'recoil':
+          this.recoil();
+          break;
+        case 'decode': {
+          const [message, then] = args;
+          if (message) this.afterClose.push(() => this.openDecode({ message, then: then || undefined }));
+          break;
+        }
       }
     }
   }
@@ -506,15 +528,33 @@ export class AreaScene extends Phaser.Scene {
     }
   }
 
-  /** The end of the day: for now, just to the next morning with a note (later days aren't built yet). */
-  private endDay(): void {
+  /** The crowd steps back from you: everyone here but the Tender and Mum, as far as the walls allow. */
+  private recoil(): void {
+    const px = this.player.feet.x;
+    for (const [id, entry] of this.people) {
+      if (!entry.image.visible || entry.person.wander || id === 'tender' || id.startsWith('mum')) continue;
+      const dir = entry.image.x < px ? -1 : 1;
+      const x = Phaser.Math.Clamp(entry.image.x + dir * Phaser.Math.Between(18, 34), 20, this.area.width - 20);
+      entry.image.setFlipX(dir > 0);
+      this.tweens.add({ targets: entry.image, x, duration: 700, ease: 'Sine.easeOut', delay: Phaser.Math.Between(0, 250) });
+    }
+  }
+
+  /** Opens the decoding screen over this area (paused); it resumes the area when the plate is put down. */
+  private openDecode(data: DecodeSceneData): void {
+    this.scene.pause();
+    this.scene.launch('Decode', data);
+  }
+
+  /** The end of the day: on to the next morning, waking in bed, with a card (days not built yet say so). */
+  private endDay(card?: string): void {
     const { calendar } = getSession(this);
     const next = calendar.day === 'prologue' ? 1 : Math.min(7, calendar.day + 1);
     this.leaving = true;
     this.cameras.main.fadeOut(1200, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       calendar.jumpTo(next as typeof calendar.day);
-      this.scene.restart({ areaId: 'home', start: this.area.id === 'home' ? { x: 50, y: 150 } : undefined, card: `Day ${next} (not built yet)` } satisfies AreaSceneData);
+      this.scene.restart({ areaId: 'home', start: this.area.id === 'home' ? { x: 50, y: 150 } : undefined, card: card ?? `Day ${next} (not built yet)` } satisfies AreaSceneData);
     });
   }
 

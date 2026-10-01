@@ -174,8 +174,9 @@ A small bundle of food sits on the table: your blessing.
 Your bed. The lights are still rising behind your eyes.
 + [Sleep]
     ~ day1 = "done"
-    ~ objective = ""
-    ~ objective_target = ""
-    You close your eyes. #endday
+    ~ day2 = "wake"
+    ~ objective = "Talk to Mum"
+    ~ objective_target = "home:mum"
+    You close your eyes. #endday:Day 2
 + [Not yet]
 - -> END

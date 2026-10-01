@@ -24,8 +24,25 @@ VAR climb_tutorial = false
 VAR met_friend_climb = false
 VAR watched_lights = false
 
+// Day 2 (story/day2.ink). Stages: wake, bench, rite, afternoon, evening, burn, hide, bed, done.
+VAR day2 = ""
+// Afternoon visits left today (two a day from Day 2).
+VAR visits_left = 0
+VAR shared_ration = false
+VAR mum_at_ceremony = false
+VAR mum_in_bed = false
+// Big choice 1, the reply to message 1: "fledgling" (reply) or "usual" (ignore). Ignoring twice gives the loyal ending.
+VAR reply1 = ""
+VAR times_ignored = 0
+
+// The glossary: each decoded symbol in the player's own words (glossary_<symbol id>, see src/data/messages.ts).
+VAR glossary_eye = ""
+VAR glossary_clipped_bird = ""
+VAR glossary_fledgling = ""
+
 INCLUDE prologue.ink
 INCLUDE day1.ink
+INCLUDE day2.ink
 INCLUDE home.ink
 INCLUDE offering-floor.ink
 INCLUDE roots-market.ink

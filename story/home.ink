@@ -12,11 +12,16 @@
 - day1 == "friend" || day1 == "ascension": -> day1_mum_afternoon
 - day1 == "climb": -> day1_mum_climb
 - day1 == "home": -> day1_mum_blessing
+- day2 == "wake": -> day2_mum_morning
+- day2 == "bench" || day2 == "rite": -> day2_mum_go_on
+- day2 == "afternoon": {day2_mum_visit: -> day2_already_visited | -> day2_mum_visit}
+- day2 == "burn" || day2 == "hide" || day2 == "bed": -> day2_mum_asleep
 }
 [PLACEHOLDER] "Get some rest, love." #speaker:mum
 -> END
 
 === home_hearth ===
+{ day2 == "burn": -> day2_hearth }
 [PLACEHOLDER] The hearth. The fire is low.
 -> END
 
@@ -33,15 +38,18 @@
 
 === home_bed ===
 { day1 == "bed": -> day1_sleep }
+{ day2 == "bed": -> day2_sleep }
 [PLACEHOLDER] Your bed. Not yet.
 -> END
 
 === home_bench ===
 { day1 == "bench": -> day1_take_bird }
+{ day2 == "bench": -> day2_take_bird }
 [PLACEHOLDER] Your carving bench. A bird is half finished.
 -> END
 
 === home_hiding_spot ===
+{ day2 == "hide": -> day2_hide_plate }
 [PLACEHOLDER] A loose board. Something could be hidden under here.
 -> END
 
