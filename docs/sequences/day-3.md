@@ -32,8 +32,10 @@ comes once the shape is agreed.
 - The second rejection: something thrown, Mum shoved, blessings withheld from your house. **(designer)**
 - The girl comes through the back routes with you. **(designer)**
 - After the loyal ending, retry from the beginning of Day 2. **(designer)**
-- No timer on hiding the evidence: your friend waits, knocking, until everything's hidden. **(designer)**
-  (So he never sees anything for now; the ink still has the "he saw something" lie for later.)
+- Hiding the evidence has 10 seconds; whatever's still out when he climbs in, he sees, and a lie is
+  harder to make stick. **(designer)**
+- Your friend notices the girl at the window; the pits are small enough to jump under the tunnel's low
+  ceiling; two more beetles in the lower tunnel. **(designer)**
 - Playtest notes (designer), now built: carving is timing games, not holding; a few crowd members to
   talk to at both rites; a longer conversation with the girl, with more choices; the girl hops after
   you; clearer directions (hints, the marker at the screen edge); the tunnel comes down round you on

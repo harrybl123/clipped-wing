@@ -5,7 +5,7 @@
 // and the second, stern choice follows; ignoring again is the loyal ending (#ending:loyal).
 // Extra tags: #carve:<knot> (after the conversation, the carving close-up plays that knot)
 // · #step:<stage> (carving only: that stage's timing game) · #throw (something is thrown at you)
-// · #when:<variable>:<knot> (once the variable reaches 0, the knot plays)
+// · #when:<variable>:<knot>[:<seconds>] (once the variable reaches 0, or the time runs out, the knot plays)
 // · #ending:loyal (the loyal ending)
 // ============================================================================
 
@@ -170,7 +170,13 @@ A shadow moves. Then his face. He pushes the window open and leans out. #show:fr
     "Nice to see you too." #speaker:you
 + [I need to tell you the truth.]
     "I need to tell you the truth. About the bird." #speaker:you
-- "Not here. Not now." #speaker:friend
+- Then he sees who's behind you, and goes quiet.
+"Who's that?" #speaker:friend
+"Charmed, I'm sure." #speaker:girl
+"You're from the lower roots. You're..." #speaker:friend
+"Cursed? Rotten? Go on, I've heard them all." #speaker:girl
+He looks from her to you as if he doesn't know you any more.
+"Not here. Not now." #speaker:friend
 A voice from inside calls his name. He looks over his shoulder.
 "Tonight. I'll come to you. I promise." #speaker:friend
 The window shuts. #hide:friend-window
@@ -178,9 +184,6 @@ The window shuts. #hide:friend-window
 + [Thank you. Really.]
     "Thank you. Really." #speaker:you
     "Don't. You'll ruin my reputation." #speaker:girl
-+ [Were you listening?]
-    "Were you listening?" #speaker:you
-    "Every word. It's a tunnel. Sound carries." #speaker:girl
 + [Will I see you again?]
     "Will I see you again?" #speaker:you
     "Maybe. If you don't get yourself squashed on the way back." #speaker:girl
@@ -377,7 +380,7 @@ It's him. And the plate, the {answered_late: bird|fledgling} and your shavings a
 ~ evidence_shavings = true
 ~ objective = "Hide everything (3 left)"
 ~ objective_target = "home:evidence-plate"
-He taps again, louder. Hide them before you let him in. #when:evidence_left:day3_visit
+He's already at the window. Hide them, quickly! #when:evidence_left:day3_visit:10
 -> END
 
 === day3_hide_plate ===
@@ -417,6 +420,7 @@ You sweep the shavings into the kindling.
 
 === day3_visit ===
 ~ objective = ""
+{ evidence_left > 0: Too late. The window creaks open. }
 He drops down from the window, out of breath. #show:friend-visit
 "I said I'd come." #speaker:friend
 { evidence_plate: His eyes go straight to the kitchen, to the blackened plate lying by the board. }

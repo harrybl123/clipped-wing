@@ -20,8 +20,8 @@ const UPPER = 120;
 const MIDDLE = 232;
 const LOWER = 360;
 
-/** Rot pits in the lower tunnel's floor: [x, width]. Each is a jump (the last has a rotten board in the middle). */
-const PITS: [number, number][] = [[256, 24], [432, 40], [600, 56], [704, 72]];
+/** Rot pits in the lower tunnel's floor: [x, width]. Small, because the tunnel's low ceiling cuts jumps short (the last has a rotten board in the middle). */
+const PITS: [number, number][] = [[256, 16], [432, 16], [600, 16], [704, 32]];
 
 /** The carved tunnels; everything else is heartwood. */
 const TUNNELS: Rect[] = [
@@ -118,7 +118,10 @@ export const backRoutes: AreaDefinition = {
     // thing at a time: rot pits to jump (lower), rot dripping down the shaft (time it), a beetle in the
     // middle (jump it or slip past), then the top tunnel coming down round you. Rotten boards give way.
     ...PITS.map(([x, width]) => ({ type: 'rot' as const, x, y: LOWER + 22, width, height: 10, reset: { x: x - 18, y: LOWER } })),
-    { type: 'crumble', x: 728, y: LOWER, width: 24 }, // in the middle of the widest pit
+    { type: 'crumble', x: 714, y: LOWER, width: 12 }, // in the middle of the widest pit
+    // More beetles along the lower tunnel, between the pits.
+    { type: 'beetle', from: 296, to: 410, y: LOWER, speed: 30, reset: { x: 238, y: LOWER } },
+    { type: 'beetle', from: 478, to: 584, y: LOWER, speed: 38, reset: { x: 414, y: LOWER } },
     { type: 'drips', xs: [806, 816, 826], top: 236, bottom: LOWER, count: 3, every: 2600, reset: { x: 788, y: LOWER } },
     { type: 'crumble', x: 800, y: 288, width: 32 },
     { type: 'beetle', from: 640, to: 770, y: MIDDLE, speed: 34, reset: { x: 792, y: MIDDLE } },

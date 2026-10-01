@@ -11,8 +11,8 @@ export interface Session {
   saves: SaveSystem;
   /** How each day began (ink and calendar), so an ending can send you back to the start of a day. Not saved yet. */
   dayStarts: Partial<Record<number, { ink: string; calendar: CalendarState }>>;
-  /** A knot waiting for an ink variable to reach 0 (#when), kept here so it survives travelling between areas. */
-  waiting: { variable: string; knot: string } | null;
+  /** A knot waiting for an ink variable to reach 0 (#when), or for time to run out if `left` (ms) is set; kept here so it survives travelling between areas. */
+  waiting: { variable: string; knot: string; left?: number } | null;
 }
 
 const REGISTRY_KEY = 'session';

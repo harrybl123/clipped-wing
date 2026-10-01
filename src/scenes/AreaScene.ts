@@ -161,6 +161,7 @@ export class AreaScene extends Phaser.Scene {
   /** Frame on which the dialogue closed, so the key that closed it doesn't also jump or reopen it. */
   private dialogueClosedFrame = -1;
   private crumbles: Crumble[] = [];
+  private countdownText!: PixelText;
   private collapses: Collapse[] = [];
   /** Hazards that knock you back on touch: rot pools, and beetles (whose rectangles move). */
   private hazards: { rect: () => Phaser.Geom.Rectangle; reset: { x: number; y: number } }[] = [];
@@ -269,6 +270,7 @@ export class AreaScene extends Phaser.Scene {
     this.prompt = new PixelText(this, 0, 0, '', { color: SHADES.white }).setDepth(20).setVisible(false);
     this.dialogue = new DialogueBox(this, session.story, (tags) => this.handleTags(tags));
     this.objective = new ObjectiveMarker(this);
+    this.countdownText = new PixelText(this, 0, 18, '', { color: SHADES.amber, shadow: SHADES.shadow, scale: 2 }).setScrollFactor(0).setDepth(27).setVisible(false);
     this.dimmer = this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, SHADES.shadow).setOrigin(0).setScrollFactor(0).setDepth(28).setAlpha(0);
     this.hintText = new PixelText(this, 0, 18, '', { color: SHADES.white, shadow: SHADES.shadow }).setScrollFactor(0).setDepth(26).setVisible(false);
     this.refreshObjective();
@@ -308,7 +310,7 @@ export class AreaScene extends Phaser.Scene {
     this.updateCollapses(delta);
     this.updateBeetles(delta);
     this.checkHazards();
-    this.updateWaiting();
+    this.updateWaiting(delta);
     this.updateHints();
     this.objective.pointAt(this.onScreen(this.objectivePoint()));
 
@@ -456,11 +458,25 @@ export class AreaScene extends Phaser.Scene {
     }
   }
 
-  /** #when: once its variable reaches 0, its knot plays (after any conversation that's open). */
-  private updateWaiting(): void {
+  /** #when: once its variable reaches 0, or its time runs out, its knot plays (after any conversation that's open). */
+  private updateWaiting(delta: number): void {
     const session = getSession(this);
     const w = session.waiting;
-    if (!w || this.leaving || Number(session.story.getVariable(w.variable)) > 0) return;
+    if (!w || this.leaving) {
+      this.countdownText.setVisible(false);
+      return;
+    }
+    if (w.left !== undefined) w.left -= delta;
+    const outOfTime = w.left !== undefined && w.left <= 0;
+    if (!outOfTime && Number(session.story.getVariable(w.variable)) > 0) {
+      if (w.left !== undefined) {
+        const text = String(Math.ceil(w.left / 1000));
+        if (this.countdownText.text !== text) this.countdownText.setText(text).setX(Math.round((GAME_WIDTH - this.countdownText.width) / 2));
+        this.countdownText.setVisible(true);
+      }
+      return;
+    }
+    this.countdownText.setVisible(false);
     session.waiting = null;
     const play = () => this.dialogue.open(w.knot, () => this.conversationClosed());
     if (this.dialogue.isOpen) this.afterClose.push(play);
@@ -677,7 +693,7 @@ export class AreaScene extends Phaser.Scene {
    *   #dim:on / #dim:off      the room darkens around the conversation, or lightens again
    *   #throw                  something is thrown at you from the crowd
    *   #carve:<knot>           after the conversation, the carving close-up plays the knot
-   *   #when:<variable>:<knot>  once the variable reaches 0 (e.g. everything hidden), the knot plays
+   *   #when:<variable>:<knot>[:<seconds>]  once the variable reaches 0 (e.g. everything hidden), or the time runs out, the knot plays
    *   #ending:<id>            after the conversation, an ending (e.g. loyal)
    */
   private handleTags(tags: string[]): void {
@@ -746,8 +762,9 @@ export class AreaScene extends Phaser.Scene {
           break;
         }
         case 'when': {
-          const [variable, knot] = args;
-          if (variable && knot) getSession(this).waiting = { variable, knot };
+          // The clock (if any) starts once the conversation closes, so it isn't running while you read.
+          const [variable, knot, seconds] = args;
+          if (variable && knot) this.afterClose.push(() => (getSession(this).waiting = { variable, knot, left: seconds ? Number(seconds) * 1000 : undefined }));
           break;
         }
         case 'ending':
