@@ -91,7 +91,7 @@ You hold out a carving to the stew seller: a little bird, your best. "Anything. 
 The stew seller looks at you. Then at the people behind you. #shake
 "It's the carver." #name:Someone
 And it spreads, the way it always does now.
-"It's its fault. Since it started, the baskets come down half empty." #name:A woman
+"It's your fault! Since you started, the baskets come down half empty." #name:A woman
 "The Tree's starving us to get at it." #name:A man
 "My children haven't eaten in two days. Two days! Because of you!" #name:A mother
 + [Hide it: "I'm sorry. I'll go."]
@@ -135,13 +135,14 @@ She points him out, and doesn't come any closer. "I don't do business with him. 
 
 === day6_dodger_disguise ===
 { seed == "roots":
-    "Back again? Business is booming." #speaker:boy
-    "Let me guess. Something to hide that famous face." #speaker:boy
+    "Back again? Business is booming. What is it this time?" #speaker:boy
 - else:
     A boy about your age is lounging on the high walkway, legs dangling over the street.
     "Well, well. The famous carver. Rot-hand, in person. My lucky day." #speaker:boy
-    "Word travels. You need a face that isn't yours. I've got just the thing." #speaker:boy
+    "What can I do you for? Don't be shy." #speaker:boy
 }
+You ask him for something to hide your face. Something so nobody knows you.
+"Ah. Thought you might." He grins. "I've got just the thing." #speaker:boy
 He pulls a cloak out of a bundle: patched, hooded, lower-roots cloth, smelling of fungus.
 "One cloak. Nobody'll look at you twice in this. Down here, nobody looks at anybody." #speaker:boy
 "Food, of course. Everyone's paying in food this week." #speaker:boy
@@ -301,10 +302,10 @@ You open it. A plate. And the seed's gone.
 === day6_decoded ===
 { seed == "healthy":
     "New life lives. Clipped wing, stay alive. You are not the rot. We need you. Hurry." #speaker:you
-    It lives. The seed you sent: he planted it, out there, and it's growing.
+    It lives. It's been a day: it can't have grown yet. But he knows it's alive, somehow, the way you know a block of wood is sound by the weight of it in your hand.
 - else:
     "New life sleeps. The rot is deep. Clipped wing, stay alive. You are not the rot. We need you. Hurry." #speaker:you
-    It sleeps. The seed didn't grow. Something was wrong with it. The rot is deep. Does he mean the seed? Or the tree?
+    It sleeps. It's only been a day, but he already knows it won't wake. Something was wrong with it. The rot is deep. Does he mean the seed? Or the tree?
 }
 "You are not the rot." Nobody has said that to you in days. Nobody has said anything kind to you at all.
 "We need you." Who? For what? "Hurry." Hurry where?
@@ -316,7 +317,7 @@ The plate's in your hand, and the bird's on the hearth, opened up for anyone to 
 ~ evidence_plate = true
 ~ objective = "Hide the plate! (1 left)"
 ~ objective_target = "home:evidence-plate"
-Hide it! #when:evidence_left:day6_guards:15
+Hide it! #when:evidence_left:day6_guards:5
 -> END
 
 === day6_hide_plate ===

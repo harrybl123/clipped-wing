@@ -318,7 +318,7 @@ describe('ink pipeline', () => {
       expect(play('offering_floor_chalk_ring', 2)).toEqual(expect.arrayContaining(['show:bitten-bird', 'recoil', 'goto:home:130:236:day6_mum_night']));
       play('day6_mum_night');
       expect(play('home_hearth')).toContain(seed === 'healthy' ? 'decode:message5_lives:day6_decoded' : 'decode:message5_sleeps:day6_decoded');
-      expect(play('day6_decoded')).toContain('when:evidence_left:day6_guards:15');
+      expect(play('day6_decoded')).toContain('when:evidence_left:day6_guards:5');
       return { v, play };
     };
 

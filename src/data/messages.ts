@@ -589,20 +589,19 @@ const WATCHED = scratches(
   [{ disc: [12, 4, 2.2] }, ...figureShapes(12, 12)],
 );
 
-/** "They blame me; help me": hands pointing at you from both sides, and a hand reaching down from above. */
+/** "They blame me; help me": hands pointing at you from both sides, and you with both arms thrown up, calling for help. */
 const POINTING_HANDS = scratches(
   32,
   21,
   [
-    // You, one arm raised to the hand coming down.
-    [[17, 13], [19, 10]], [[15, 13], [13, 16]], [[15, 18], [14, 20]], [[17, 18], [18, 20]],
-    // The open hand reaching down from above: wrist, palm, spread fingers, thumb out to the side.
-    [[20, 0], [20, 2]], [[21, 0], [21, 2]], [[17, 6], [17, 8]], [[19, 6], [19, 9]], [[21, 6], [21, 9]], [[23, 6], [23, 8]], [[24, 3], [25, 5]],
+    // Both arms thrown up in a V, open hands at the ends; legs apart.
+    [[14, 10], [11, 5]], [[18, 10], [21, 5]], [[11, 5], [10, 2]], [[11, 5], [12, 2]], [[21, 5], [20, 2]], [[21, 5], [22, 2]], [[11, 5], [9, 4]], [[21, 5], [23, 4]],
+    [[15, 18], [13, 20]], [[17, 18], [19, 20]],
   ],
   [
-    { disc: [16, 10, 2] },
-    { poly: [[13, 12], [19, 12], [18, 18], [14, 18]] },
-    { poly: [[17, 3], [24, 3], [24, 6], [17, 6]] },
+    { disc: [16, 7, 2.2] },
+    { poly: [[13, 10], [19, 10], [18, 18], [14, 18]] },
+    // The pointing hands, either side.
     { poly: [[0, 11], [5, 11], [5, 12], [10, 12], [10, 13], [5, 13], [5, 16], [0, 16]] },
     { poly: [[31, 11], [26, 11], [26, 12], [21, 12], [21, 13], [26, 13], [26, 16], [31, 16]] },
   ],

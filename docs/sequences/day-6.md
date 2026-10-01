@@ -44,7 +44,8 @@ once the shape is agreed.
 - **The bitten bird:** the people see pure evil; you wonder if Grounded is telling you something
   (hungry? angry?) and can't tell. A strong reaction. **(designer)**
 - **The interrogation comes after the ceremony:** guards come to your house. **(designer)** You have
-  **15 seconds** to hide the plate first (Day 3's 10 was too short; Day 3 is now 15 too). **(designer)**
+  **5 seconds** to hide the plate first: 5 a thing, so Day 3's three things get 15 (designer: 10 was too short
+  for three; 15 too long for one). **(designer)**
   Any search stays simple for now. **(designer)**
 - **What they want to know:** what's different about you and the birds you've been sending.
   **(designer)**
