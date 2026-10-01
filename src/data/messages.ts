@@ -2,7 +2,7 @@ import type { SymbolDefinition } from '../systems/SymbolMatcher';
 
 // Grounded's messages: tiny plates of pale metal hidden in hollowed birds, each a sentence of
 // scratched pictures, one picture per word or phrase (designer). The decoding screen
-// (src/scenes/DecodeScene.ts) shows one: you turn the plate in the firelight to find the pictures,
+// (src/scenes/DecodeScene.ts) shows one: you rub the soot off the plate to find the pictures,
 // then type what you think each means. Close but wrong guesses get a warmer reply; after a couple of
 // misses a nudge, after a few more a stronger hint (a memory from the story where there is one), and
 // after six the picture solves itself (SymbolMatcher). Each solved picture goes into the glossary in

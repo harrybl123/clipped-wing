@@ -4,7 +4,7 @@ import { glossaryVariable, MESSAGES, type DecodeSymbol, type Message } from '../
 import { comparable, SymbolMatcher } from '../systems/SymbolMatcher';
 import { getSession } from '../session';
 import { addLight, falloff, noise, rgb, SHADES, type RGB } from '../ui/pixelArt';
-import { makePaintedTexture, makeSpriteTexture } from '../ui/pixelTextures';
+import { makePaintedTexture, makeSpriteTexture, PIXEL } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
 import { playConfirm, playMove } from '../ui/sfx';
 import { FIRE_FRAMES } from '../ui/sprites';
@@ -27,16 +27,17 @@ const ROW_Y = [46, 98];
 /** Space each picture takes along a row. */
 const SLOT_WIDTH = 56;
 const PICTURE_SCALE = 2;
-/** How near the band of firelight (px) must be for a picture to catch it. */
-const GLINT_REACH = 40;
-/** How long a picture must catch the light to be found, in ms. */
-const FIND_TIME = 150;
-const TURN_SPEED = 0.6; // tilt per second
+/** The rag's reach (px) when rubbing the soot away. */
+const RUB_RADIUS = 8;
+/** How fast the rag moves with the arrow keys, px per second. */
+const RAG_SPEED = 150;
+/** How much of a picture must be rubbed clean before it counts as found. */
+const FOUND_AT = 0.5;
 const MAX_INPUT = 20;
 const COLD = ['Cold.', 'No. Look again.', "That's not it."];
 
-/** turn: finding the pictures; read: typing; solved: the line is on its way; done: it's shown. */
-type Phase = 'turn' | 'read' | 'solved' | 'done';
+/** rub: rubbing off the soot to find the pictures; read: typing; solved: the line is on its way; done: it's shown. */
+type Phase = 'rub' | 'read' | 'solved' | 'done';
 
 /** One place on the plate. The same symbol can sit in more than one place ("I" … "me"). */
 interface Slot {
@@ -46,13 +47,21 @@ interface Slot {
   scratch: Phaser.GameObjects.Image;
   glint: Phaser.GameObjects.Image;
   found: boolean;
-  litFor: number;
+  /** Indexes into the soot grid of the pixels this picture's scratches cover. */
+  pixels: number[];
 }
+
+/** A rag for rubbing (light cloth with a darker fold). */
+const RAG = {
+  rows: ['..llll.', '.llllll', 'llddlll', 'lllldll', '.llllll', '..lll..'],
+  colours: { l: SHADES.light, d: SHADES.dim },
+};
 
 /**
  * The decoding screen: the plate from inside a bird, by firelight, a sentence of pictures in two
- * rows, one per word. First you turn it (Left/Right, or the mouse) and a band of firelight slides
- * across, picking out the faint scratches; then you pick a picture and type what you think it means.
+ * rows, one per word. It comes out of the fire black with soot: first you rub it clean with a rag
+ * (drag the mouse, or the arrow keys) and the scratches appear where you rub; then you pick a
+ * picture and type what you think it means.
  * Close guesses are warm, others cold; nudges, then hints, then the picture solves itself, so nobody
  * gets stuck. Pictures already in your glossary (ink) come filled in. Your words fill a strip along
  * the bottom; when all are solved your inner voice reads the line, and the area resumes with the next
@@ -63,8 +72,16 @@ export class DecodeScene extends Phaser.Scene {
   private then: string | undefined;
   private matcher!: SymbolMatcher;
   private slots: Slot[] = [];
-  private phase: Phase = 'turn';
-  private tilt = 0;
+  private phase: Phase = 'rub';
+  /** Soot over the plate: drawn on a canvas, rubbed away pixel by pixel. */
+  private soot!: Phaser.Textures.CanvasTexture;
+  private sootImage!: Phaser.GameObjects.Image;
+  private clean!: Uint8Array;
+  private sootDirty = false;
+  private rag!: Phaser.GameObjects.Image;
+  private ragAt: { x: number; y: number } | null = null;
+  private rubbing = false;
+  private dust!: Phaser.GameObjects.Particles.ParticleEmitter;
   private selected = 0;
   private typed = '';
   private coldIndex = 0;
@@ -77,7 +94,7 @@ export class DecodeScene extends Phaser.Scene {
   private strip!: PixelText;
   private cursorOn = true;
   private leaving = false;
-  private keys!: Record<'left' | 'right' | 'a' | 'd', Phaser.Input.Keyboard.Key>;
+  private keys!: Record<'left' | 'right' | 'up' | 'down' | 'a' | 'd' | 'w' | 's', Phaser.Input.Keyboard.Key>;
 
   constructor() {
     super('Decode');
@@ -90,8 +107,9 @@ export class DecodeScene extends Phaser.Scene {
     this.then = data.then;
     this.matcher = new SymbolMatcher(message.symbols);
     this.slots = [];
-    this.phase = 'turn';
-    this.tilt = -1;
+    this.phase = 'rub';
+    this.ragAt = null;
+    this.rubbing = false;
     this.selected = 0;
     this.typed = '';
     this.leaving = false;
@@ -119,13 +137,18 @@ export class DecodeScene extends Phaser.Scene {
         const y = ROW_Y[r]!;
         const scratch = this.add.image(x, y, makeSpriteTexture(this, `glyph-${id}`, symbol.picture, { '#': SHADES.deep })).setScale(PICTURE_SCALE).setDepth(2);
         // The light catching the lower edge of each scratch.
-        const glint = this.add.image(x, y + 1, makeSpriteTexture(this, `glyph-${id}-lit`, symbol.picture, { '#': SHADES.white })).setScale(PICTURE_SCALE).setDepth(1);
-        this.slots.push({ symbol, x, y, scratch, glint, found: false, litFor: 0 });
+        const glint = this.add.image(x, y + 1, makeSpriteTexture(this, `glyph-${id}-lit`, symbol.picture, { '#': SHADES.white })).setScale(PICTURE_SCALE).setDepth(1).setAlpha(0.5);
+        this.slots.push({ symbol, x, y, scratch, glint, found: false, pixels: this.picturePixels(symbol, x, y) });
       });
     });
-    this.frame = this.add.graphics().setDepth(3);
+    this.drawPlate();
+    this.makeSoot();
+    this.frame = this.add.graphics().setDepth(5);
+    this.rag = this.add.image(PLATE.x, PLATE.y + PLATE.height / 2 + 14, makeSpriteTexture(this, 'rag', RAG.rows, RAG.colours)).setScale(2).setDepth(6);
+    this.ragAt = { x: this.rag.x, y: this.rag.y };
+    this.dust = this.add.particles(0, 0, PIXEL, { speedY: { min: 10, max: 30 }, speedX: { min: -8, max: 8 }, lifespan: 700, tint: [SHADES.deep, SHADES.woodLight], alpha: { start: 0.9, end: 0 }, emitting: false }).setDepth(6);
 
-    this.prompt = new PixelText(this, 0, 6, 'Turn the plate in the firelight.   Left / Right', { color: SHADES.light, shadow: SHADES.shadow });
+    this.prompt = new PixelText(this, 0, 6, 'Rub the soot off the plate.   Drag the mouse, or the arrow keys', { color: SHADES.light, shadow: SHADES.shadow });
     this.inputText = new PixelText(this, 0, 136, '', { color: SHADES.white, shadow: SHADES.shadow });
     this.feedback = new PixelText(this, 0, 152, '', { color: SHADES.amber, shadow: SHADES.shadow });
     this.help = new PixelText(this, 0, 166, '', { color: SHADES.light, shadow: SHADES.shadow, wrapWidth: 400 });
@@ -133,12 +156,16 @@ export class DecodeScene extends Phaser.Scene {
 
     const kb = this.input.keyboard!;
     const K = Phaser.Input.Keyboard.KeyCodes;
-    this.keys = { left: kb.addKey(K.LEFT), right: kb.addKey(K.RIGHT), a: kb.addKey(K.A, false), d: kb.addKey(K.D, false) };
+    this.keys = {
+      left: kb.addKey(K.LEFT), right: kb.addKey(K.RIGHT), up: kb.addKey(K.UP), down: kb.addKey(K.DOWN),
+      a: kb.addKey(K.A, false), d: kb.addKey(K.D, false), w: kb.addKey(K.W, false), s: kb.addKey(K.S, false),
+    };
     kb.on('keydown', this.onKey, this);
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
-      if (this.phase === 'turn') this.tilt = Phaser.Math.Clamp((p.x - PLATE.x) / (PLATE.width / 2), -1, 1);
+      if (this.phase === 'rub') this.moveRag(p.x, p.y, p.isDown);
     });
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      if (this.phase === 'rub') this.moveRag(p.x, p.y, true);
       if (this.phase !== 'read') return;
       const hit = this.slots.findIndex((s) => !s.symbol.given && Math.abs(p.x - s.x) < SLOT_WIDTH / 2 && Math.abs(p.y - s.y) < 24);
       if (hit >= 0) this.select(hit);
@@ -149,72 +176,149 @@ export class DecodeScene extends Phaser.Scene {
   }
 
   override update(_time: number, delta: number): void {
-    if (this.phase === 'turn') {
-      const dir = (this.keys.right.isDown || this.keys.d.isDown ? 1 : 0) - (this.keys.left.isDown || this.keys.a.isDown ? 1 : 0);
-      this.tilt = Phaser.Math.Clamp(this.tilt + dir * TURN_SPEED * (delta / 1000), -1, 1);
-    }
-    const band = this.drawPlate();
-    for (const slot of this.slots) {
-      const light = band === null ? 0.35 : Phaser.Math.Clamp(1 - Math.abs(band - slot.scratch.x) / GLINT_REACH, 0, 1);
-      if (this.phase === 'turn' && !slot.found) {
-        slot.litFor = light > 0.4 ? slot.litFor + delta : 0;
-        if (slot.litFor >= FIND_TIME) this.find(slot);
+    if (this.phase === 'rub') {
+      const dx = (this.keys.right.isDown || this.keys.d.isDown ? 1 : 0) - (this.keys.left.isDown || this.keys.a.isDown ? 1 : 0);
+      const dy = (this.keys.down.isDown || this.keys.s.isDown ? 1 : 0) - (this.keys.up.isDown || this.keys.w.isDown ? 1 : 0);
+      if (dx || dy) {
+        const step = (RAG_SPEED * delta) / 1000 / Math.hypot(dx, dy);
+        this.moveRag(this.rag.x + dx * step, this.rag.y + dy * step, true);
       }
-      slot.scratch.setAlpha(slot.found ? 1 : 0.08 + 0.92 * light);
-      slot.glint.setAlpha(slot.found ? Math.max(0.35, light) : light);
+      // A little scrubbing wobble while rubbing.
+      this.rag.setAngle(this.rubbing ? Math.sin(_time / 40) * 12 : 0);
+      this.rubbing = false;
+    }
+    if (this.sootDirty) {
+      this.soot.refresh();
+      this.sootDirty = false;
     }
     this.drawFrame();
   }
 
-  // --- Turning the plate ---
+  // --- Rubbing off the soot ---
+
+  /** The plate pixels under each scratch of a picture (one per picture pixel, at its centre). */
+  private picturePixels(symbol: DecodeSymbol, x: number, y: number): number[] {
+    const w = symbol.picture[0]!.length;
+    const h = symbol.picture.length;
+    const left = Math.round(x - (w * PICTURE_SCALE) / 2 - (PLATE.x - PLATE.width / 2));
+    const top = Math.round(y - (h * PICTURE_SCALE) / 2 - (PLATE.y - PLATE.height / 2));
+    const out: number[] = [];
+    symbol.picture.forEach((row, py) => [...row].forEach((ch, px) => ch === '#' && out.push((top + py * PICTURE_SCALE) * PLATE.width + left + px * PICTURE_SCALE)));
+    return out;
+  }
+
+  /** A thick, uneven layer of soot over the whole plate. */
+  private makeSoot(): void {
+    const { width: w, height: h } = PLATE;
+    if (this.textures.exists('decode-soot')) this.textures.remove('decode-soot');
+    this.soot = this.textures.createCanvas('decode-soot', w, h)!;
+    const ctx = this.soot.getContext();
+    const image = ctx.createImageData(w, h);
+    const tones = [SHADES.shadow, SHADES.deep, SHADES.deep, SHADES.wood, SHADES.woodLight].map(rgb);
+    for (let i = 0; i < w * h; i++) {
+      const x = i % w;
+      const y = Math.floor(i / w);
+      const n = 0.5 + 0.5 * noise(x * 0.13 + noise(y * 0.21) * 4);
+      const c = tones[Math.min(tones.length - 1, Math.floor(n * 3 + Math.random() * 2))]!;
+      image.data.set([c[0], c[1], c[2], 255], i * 4);
+    }
+    ctx.putImageData(image, 0, 0);
+    this.soot.refresh();
+    this.sootImage = this.add.image(PLATE.x - w / 2, PLATE.y - h / 2, 'decode-soot').setOrigin(0).setDepth(4);
+    this.clean = new Uint8Array(w * h);
+  }
+
+  /** Moves the rag to (x, y), rubbing the soot away along the way if `rub`. */
+  private moveRag(x: number, y: number, rub: boolean): void {
+    const left = PLATE.x - PLATE.width / 2;
+    const top = PLATE.y - PLATE.height / 2;
+    x = Phaser.Math.Clamp(x, left - 4, left + PLATE.width + 4);
+    y = Phaser.Math.Clamp(y, top - 4, top + PLATE.height + 20);
+    const from = this.ragAt ?? { x, y };
+    this.rag.setPosition(Math.round(x), Math.round(y));
+    this.ragAt = { x, y };
+    if (!rub) return;
+    this.rubbing = true;
+    const steps = Math.max(1, Math.ceil(Math.hypot(x - from.x, y - from.y) / 3));
+    for (let i = 1; i <= steps; i++) this.rubAt(from.x + ((x - from.x) * i) / steps - left, from.y + ((y - from.y) * i) / steps - top);
+    this.checkFound();
+  }
+
+  /** Clears the soot in a rough circle around (cx, cy), in plate coordinates. */
+  private rubAt(cx: number, cy: number): void {
+    const ctx = this.soot.getContext();
+    let cleared = 0;
+    for (let dy = -RUB_RADIUS; dy <= RUB_RADIUS; dy++) {
+      for (let dx = -RUB_RADIUS; dx <= RUB_RADIUS; dx++) {
+        const x = Math.round(cx + dx);
+        const y = Math.round(cy + dy);
+        if (x < 0 || y < 0 || x >= PLATE.width || y >= PLATE.height) continue;
+        // A ragged edge: the outer ring only comes clean some of the time.
+        const d = Math.hypot(dx, dy) / RUB_RADIUS;
+        if (d > 1 || (d > 0.7 && Math.random() < 0.6)) continue;
+        const i = y * PLATE.width + x;
+        if (this.clean[i]) continue;
+        this.clean[i] = 1;
+        ctx.clearRect(x, y, 1, 1);
+        cleared++;
+      }
+    }
+    if (cleared > 0) {
+      this.sootDirty = true;
+      if (Math.random() < 0.5) this.dust.emitParticleAt(PLATE.x - PLATE.width / 2 + cx, PLATE.y - PLATE.height / 2 + cy, 1);
+    }
+  }
+
+  /** Any picture rubbed clean enough is found: the rest of its soot falls away. */
+  private checkFound(): void {
+    for (const slot of this.slots) {
+      if (slot.found) continue;
+      const cleaned = slot.pixels.filter((i) => this.clean[i]).length;
+      if (cleaned / slot.pixels.length >= FOUND_AT) this.find(slot);
+    }
+  }
 
   private find(slot: Slot): void {
     slot.found = true;
+    // Wipe the soot off the whole picture.
+    const w = slot.symbol.picture[0]!.length * PICTURE_SCALE + 6;
+    const h = slot.symbol.picture.length * PICTURE_SCALE + 6;
+    const x0 = Math.round(slot.x - w / 2 - (PLATE.x - PLATE.width / 2));
+    const y0 = Math.round(slot.y - h / 2 - (PLATE.y - PLATE.height / 2));
+    this.soot.getContext().clearRect(x0, y0, w, h);
+    for (let y = Math.max(0, y0); y < Math.min(PLATE.height, y0 + h); y++) this.clean.fill(1, y * PLATE.width + Math.max(0, x0), y * PLATE.width + Math.min(PLATE.width, x0 + w));
+    this.sootDirty = true;
     this.tweens.add({ targets: slot.scratch, scale: PICTURE_SCALE * 1.15, duration: 120, yoyo: true });
     const left = this.slots.filter((s) => !s.found).length;
     if (left > 0) {
       playMove(this);
-      this.setPrompt(`${this.slots.length - left} of ${this.slots.length} pictures found.   Left / Right`);
+      this.setPrompt(`${this.slots.length - left} of ${this.slots.length} pictures found.   Keep rubbing`);
       return;
     }
     playConfirm(this);
     this.phase = 'read';
+    this.tweens.add({ targets: [this.sootImage, this.rag], alpha: 0, duration: 700 });
     this.time.delayedCall(500, () => {
-      this.setPrompt('Left / Right: choose a picture.   Type what it means, then Enter.');
+      this.setPrompt('Left / Right or click: choose a picture.   Type what it means, then Enter.');
       const first = this.nextUnsolvedFrom(-1);
       if (first === null) this.complete();
       else this.select(first);
     });
   }
 
-  /** The plate: pale metal, narrower as it turns away, with a band of firelight sliding across it. Returns the band's x while turning. */
-  private drawPlate(): number | null {
+  /** The plate: pale metal, finely machined. */
+  private drawPlate(): void {
     const g = this.plate.clear();
-    const squash = 1 - 0.06 * Math.abs(this.tilt);
-    const w = Math.round(PLATE.width * squash);
-    const left = Math.round(PLATE.x - w / 2);
-    const top = PLATE.y - PLATE.height / 2;
-    g.fillStyle(SHADES.deep).fillRect(left - 2, top - 2, w + 4, PLATE.height + 4);
-    g.fillStyle(SHADES.dim).fillRect(left, top, w, PLATE.height);
-    g.fillStyle(SHADES.light).fillRect(left + 1, top + 1, w - 2, PLATE.height - 3);
+    const { width: w, height: h } = PLATE;
+    const left = PLATE.x - w / 2;
+    const top = PLATE.y - h / 2;
+    g.fillStyle(SHADES.deep).fillRect(left - 2, top - 2, w + 4, h + 4);
+    g.fillStyle(SHADES.dim).fillRect(left, top, w, h);
+    g.fillStyle(SHADES.light).fillRect(left + 1, top + 1, w - 2, h - 3);
     g.fillStyle(SHADES.white).fillRect(left + 1, top + 1, w - 2, 1);
     // Fine machining lines across the metal (a precision no tree carver could manage).
     g.fillStyle(SHADES.dim, 0.25);
-    for (let y = top + 5; y < top + PLATE.height - 3; y += 4) g.fillRect(left + 3, y, w - 6, 1);
-    for (const slot of this.slots) {
-      const x = Math.round(PLATE.x + (slot.x - PLATE.x) * squash);
-      slot.scratch.setX(x);
-      slot.glint.setX(x + (this.phase === 'turn' ? Math.sign(this.tilt) : 0));
-    }
-    if (this.phase !== 'turn') return null;
-    const band = PLATE.x + this.tilt * (w / 2);
-    const x0 = Math.max(left + 1, Math.round(band - 20));
-    const x1 = Math.min(left + w - 1, Math.round(band + 20));
-    if (x1 > x0) {
-      g.fillStyle(SHADES.white, 0.35).fillRect(x0, top + 1, x1 - x0, PLATE.height - 3);
-      g.fillStyle(SHADES.amber, 0.2).fillRect(x0 + 6, top + 1, Math.max(0, x1 - x0 - 12), PLATE.height - 3);
-    }
-    return band;
+    for (let y = top + 5; y < top + h - 3; y += 4) g.fillRect(left + 3, y, w - 6, 1);
   }
 
   /** The amber frame around the chosen picture, and a small mark under each solved one. */
@@ -225,11 +329,11 @@ export class DecodeScene extends Phaser.Scene {
     this.slots.forEach((slot) => {
       const w = slot.symbol.picture[0]!.length * PICTURE_SCALE + 8;
       const h = slot.symbol.picture.length * PICTURE_SCALE + 8;
-      const x = Math.round(slot.scratch.x - w / 2);
+      const x = Math.round(slot.x - w / 2);
       const y = Math.round(slot.y - h / 2);
       // Every place the chosen symbol appears is framed: solving it fills them all.
       if (slot.symbol === chosen) g.lineStyle(1, SHADES.amber).strokeRect(x, y, w, h);
-      if (this.matcher.isSolved(slot.symbol.id) && !slot.symbol.given) g.fillStyle(SHADES.amberDeep).fillRect(Math.round(slot.scratch.x - 5), y + h + 1, 10, 2);
+      if (this.matcher.isSolved(slot.symbol.id) && !slot.symbol.given) g.fillStyle(SHADES.amberDeep).fillRect(Math.round(slot.x - 5), y + h + 1, 10, 2);
     });
   }
 

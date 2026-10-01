@@ -246,8 +246,8 @@ You shake it. Something rattles inside.
     -> seam
 + [Open it]
 - You work the seam open with the tip of your knife. It gives far too easily, as if it was made to.
-Inside, wedged in the hollow: a thin plate of pale metal, no bigger than your thumbnail was, covered in tiny scratches.
-You tilt it towards the fire. #decode:message1:day2_decoded
+Inside, wedged in the hollow: a thin plate of metal, no bigger than your thumbnail was, black with soot from the fire.
+Under the soot, something is scratched into it. #decode:message1:day2_decoded
 -> END
 
 === day2_decoded ===
