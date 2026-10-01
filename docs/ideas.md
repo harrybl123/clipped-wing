@@ -71,6 +71,15 @@ makes the story feel more dynamic. **Do this once all the scenes are pinned down
 remaining days are built), as a pass across the whole game: e.g. a smaller or repositionable box,
 the camera framing the action above it, more `#move:`/`#show:`-style staging in the ink.
 
+## Polish pass, once there's a first draft of the whole week (designer, 2026-10-01)
+
+- **Every [E] interaction should change with the story.** Many people and objects still say their
+  first placeholder line whatever has happened (e.g. stallholders who don't react to the cursed
+  child, Mum's food store line). Each knot should check how far the story has got (and how people
+  feel about you) and react to you.
+- **The Day 4 night sneak is too easy.** Make it harder: more watchmen, longer lantern reach, fewer
+  shadows, watchmen who turn unpredictably, lit windows, or neighbours who'd raise the alarm.
+
 ## Reactions to the messages (designer, 2026-10-01)
 
 Across the story the protagonist should react to Grounded's messages with curiosity: inquisitive,

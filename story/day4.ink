@@ -343,17 +343,55 @@ The light's going. The ceremony will be starting. #time:evening
 He points with his staff to the foot of the stairs.
 -> END
 
+// The crowd before the ritual: talk to them first if you like (src/data/areas/offeringFloor.ts).
+=== day4_crowd_mother ===
+She sees you coming and turns her children round by the shoulders, so they face the tube.
+"We've been told not to speak to you. I'm sorry. I've got to think of them." #name:A mother
+-> END
+
+=== day4_crowd_old_man ===
+"The elders came round this afternoon. Every house in the roots." #name:An old man
+"Told us how it would be tonight. Not to shout. Not to throw. Just to turn away, all together, if it comes back." #name:An old man
++ [Why are you telling me?]
+    "Why are you telling me?" #speaker:you
+    "Because somebody ought to warn you. And because I'm old, and nobody listens to me anyway." #name:An old man
++ [Will you turn away too?]
+    "Will you turn away too?" #speaker:you
+    He doesn't answer. He looks at his feet.
+- -> END
+
+=== day4_crowd_zealot ===
+{
+- fight_won:
+    The young man from the market has a split lip, and a crowd of friends round him now. He doesn't come near you.
+    "Look at it. Rot-hand. Couldn't wait to lay hands on a believer." #name:The young man
+    "Everyone saw. Everyone." #name:The young man
+- fought:
+    The young man from the market grins when he sees you holding your ribs.
+    "Still standing? The Tree'll see to that." #name:The young man
+- else:
+    The young man from the market smirks.
+    "Your mother's carrying her own basket tonight, is she? Good." #name:The young man
+}
+-> END
+
 === day4_ritual ===
 A ring has been chalked on the floor at the foot of the stairs, away from everyone. Nobody needs to tell you who it's for.
 You step into it.
 Mum starts towards you. A woman takes her arm, gently, and steers her back among the others. #move:mum-ceremony:62
 "Not with them, love. Stand with us." #name:A woman
 Nobody shouts tonight. Nobody throws anything. It's worse.
+The whispering starts at the back, and moves forward like a draught.
+"Third time, if it comes back." #name:Someone in the crowd
+"It'll come back. Look at it, standing there." #name:Someone else
+"My sister's boy had the cough after the last one. Since it touched the basin." #name:A woman
+"Hush. Don't look at it. They said not to look at it." #name:A man
 "A blessing, for the weavers. A blessing, for the potters. A blessing, for the lamp-makers." #speaker:tender
 The tube goes dark. #flash:dark
 Your bird drops into the basin. #show:rejected-bird
+A gasp goes round the floor, then a sound like a breath let out. Some of them were praying it wouldn't. Some of them were praying it would.
 Nobody makes a sound. Then, all together, as if they'd practised it, the whole crowd turns its back on you. #turn
-Even the children.
+Even the children. A small girl peeks back over her shoulder at you, and her father turns her head away.
 + [Hide it: bow your head]
     You bow your head, the way you would at a blessing.
 + [Joke about it: "Was it something I said?"]
