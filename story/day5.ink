@@ -29,12 +29,12 @@ So many questions. Room on the plate for one. #plate:reply3
     ~ reply3 = "who"
 + [You, and an arrow over the bark: take me]
     ~ reply3 = "take"
-+ [You, small, under a great eye: I'm afraid]
-    ~ reply3 = "afraid"
++ [You, small, under a great eye: I'm being watched]
+    ~ reply3 = "watched"
 - { reply3:
 - "who": Who is he? Who are any of them? What do they look like, out there?
 - "take": Take me with you. You've never said anything so dangerous, even in your head.
-- else: The truth. You're frightened. Of him, of the Tree, of what's happening to you.
+- else: The guard across the way. The Tender weighing your bird. The whole floor turning its back. Every eye in the tree is on you now. He should know.
 }
 You scratch it into the metal. #step:scratch
 Another fledgling. #step:rough
@@ -91,8 +91,8 @@ A guard from the middle tiers fills the doorway: cap, amber band, a staff. He lo
 ~ escort_waiting = false
 ~ escorted = true
 ~ day5 = "upper"
-~ objective = "Go up to the upper halls"
-~ objective_target = "middle-tiers:to-upper-halls"
+~ objective = "Meet the archivist in the upper halls"
+~ objective_target = "middle-tiers:to-upper-halls;upper-halls:archivist"
 He walks you up through the roots, past the shrine, to the foot of the great stair. #goto:middle-tiers:60:360:day5_checkpoint
 -> END
 

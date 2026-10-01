@@ -33,7 +33,7 @@ once the shape is agreed.
   archive's mark ("The archivist wants you, this afternoon. I don't know why, and I don't like it");
   a guard checks it at the checkpoint and escorts you up. His reason: the first rejection in living
   memory has to go into the records. Partly true; underneath, he wants to know why.
-- Your reply to message 3 (suggestion, accepted for now): "Who are you?", "Take me", "I'm afraid".
+- Your reply to message 3 (suggestion, accepted for now): "Who are you?", "Take me", "I'm being watched" (designer: the third changed from "I'm afraid", same picture).
   Message 4's words are fixed, so it only changes flavour. **(designer)**
 - The boy hangs around the lower roots as someone you can meet and talk to; make him quite sleazy.
   **(designer)**

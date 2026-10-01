@@ -567,8 +567,8 @@ const TAKE_ME = scratches(
   [...figureShapes(4, 4)],
 );
 
-/** "I'm afraid": you, small, under a great eye. */
-const AFRAID = scratches(
+/** "I'm being watched": you, small, under a great eye. */
+const WATCHED = scratches(
   24,
   26,
   [[[2, 4], [6, 1], [12, 0], [18, 1], [22, 4]], [[2, 4], [6, 7], [12, 8], [18, 7], [22, 4]], ...figureLimbs(12, 12), [[7, 15], [6, 17], [7, 19]], [[17, 15], [18, 17], [17, 19]]],
@@ -585,8 +585,8 @@ export interface ReplyOption {
 export const REPLY_SETS: Record<string, { variable: string; options: ReplyOption[] }> = {
   // Day 4, to message 2: yes (open wings) / I can't (a clipped wing) / why? (a hook and a dot).
   reply2: { variable: 'reply2', options: [{ value: 'yes', picture: FLY.picture }, { value: 'cant', picture: CLIPPED_WING }, { value: 'why', picture: WOULD.picture }] },
-  // Day 5, to message 3: who are you? / take me / I'm afraid.
-  reply3: { variable: 'reply3', options: [{ value: 'who', picture: WHO_ARE_YOU }, { value: 'take', picture: TAKE_ME }, { value: 'afraid', picture: AFRAID }] },
+  // Day 5, to message 3: who are you? / take me / I'm being watched.
+  reply3: { variable: 'reply3', options: [{ value: 'who', picture: WHO_ARE_YOU }, { value: 'take', picture: TAKE_ME }, { value: 'watched', picture: WATCHED }] },
 };
 
 // --- Message 4 ---

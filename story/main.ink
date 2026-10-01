@@ -89,7 +89,7 @@ VAR sneaking = false
 
 // Day 5 (story/day5.ink). Stages: wake, carve, shrine, escort, upper, evening, open, archive, steal, roots, deal, bed, done.
 VAR day5 = ""
-// Your reply to message 3: "who" (who are you?), "take" (take me) or "afraid" (I'm afraid).
+// Your reply to message 3: "who" (who are you?), "take" (take me) or "watched" (I'm being watched).
 VAR reply3 = ""
 // The guard sent to take you up to the archivist, and keep you at the ceremony.
 VAR escort_waiting = false
