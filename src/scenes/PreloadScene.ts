@@ -32,7 +32,7 @@ export class PreloadScene extends Phaser.Scene {
     // prologue; ?scene=decode opens the first message's decoding; ?day=2 to 6 wakes at home on that day;
     // ?day=5&at=archivist jumps to the archivist (big choice 2), ?day=5&at=night to the night's choice (&told=1 if you told him);
     // ?day=6 (&seed=healthy for the archivist's seed) with &at=tail (the market, cloaked) or &at=interrogation (&plate=1 if they found it);
-    // ?day=7 wakes in the cell (you saved the girl; &girl=blamed wakes at home under guard), with &at=evening (the cage comes back),
+    // ?day=7 wakes in the cell (you saved the girl; &girl=blamed wakes at home under guard), with &at=trial (the cage goes up), &at=visits (the cell's visitors), &at=evening (the cage comes back),
     // &at=night (message 6 by the bench or hearth), &at=chase (up through the shrine, the mob behind) or &at=fall (thrown into the rot);
     // &told=1 if you told the archivist, &lied=1 if you lied to your friend.
     const params = import.meta.env.DEV ? new URLSearchParams(window.location.search) : null;
@@ -117,7 +117,14 @@ export class PreloadScene extends Phaser.Scene {
     const wake = blamed ? undefined : { areaId: 'shrine-cell', start: { x: 250, y: 236 }, script: 'day7_cell_wake' };
     session.dayStarts[7] = { ink: story.saveState(), calendar: calendar.toJSON(), wake };
     const here = (home: { areaId: string; x: number; y: number }, cell: { areaId: string; x: number; y: number }) => (blamed ? home : cell);
-    if (at === 'evening') {
+    if (at === 'trial') {
+      set({ reply5: 'caged', day7: 'rite', trial: true });
+      this.scene.start('Area', { areaId: 'offering-floor', start: { x: 104, y: 236 }, script: 'day7_trial' });
+    } else if (at === 'visits' && !blamed) {
+      calendar.advanceTo('afternoon');
+      set({ reply5: 'caged', day7: 'visits', told_archivist: true, archivist_trust: 3 });
+      this.scene.start('Area', { areaId: 'shrine-cell', start: { x: 250, y: 236 }, script: 'day7_cell_afternoon' });
+    } else if (at === 'evening') {
       calendar.advanceTo('evening');
       set({ reply5: 'caged', day7: 'evening', trial: true });
       this.scene.start('Area', { areaId: 'offering-floor', start: { x: 104, y: 236 }, script: 'day7_return' });
