@@ -197,15 +197,16 @@ const SEND: DecodeSymbol = {
   picture: scratches(
     24,
     18,
-    [...figureLimbs(4, 3), [[7, 7], [19, 7]], [[7, 8], [19, 8]]],
-    [...figureShapes(4, 3), { poly: [[18, 3], [23, 7], [18, 12]] }],
+    // A sealed letter on its way, with speed lines trailing behind it.
+    [[[6, 3], [23, 3], [23, 15], [6, 15], [6, 3]], [[6, 3], [14, 10], [23, 3]], [[7, 4], [14, 9], [22, 4]], [[0, 6], [3, 6]], [[1, 9], [4, 9]], [[0, 12], [3, 12]]],
+    [{ disc: [14, 10, 1.6] }],
   ),
   accepted: ['send', 'sent', 'give', 'offer', 'deliver', 'pass', 'post', 'throw', 'hand over', 'pass on', 'dispatch', 'gift'],
   near: [
-    { words: ['arrow', 'away', 'go', 'leave', 'up', 'out', 'away from'], reply: 'Warm. Something going away from someone. Like an offering, going up the tube.' },
+    { words: ['letter', 'envelope', 'mail', 'message', 'note', 'parcel', 'away', 'go', 'leave', 'out', 'away from'], reply: 'Warm. A letter, on its way. What do you do with a letter, to get it to someone?' },
     { words: ['tube', 'rite', 'basket'], reply: 'Close. Not where it goes. What you do with it.' },
   ],
-  nudge: 'Someone, and an arrow leaving their hand.',
+  nudge: 'A sealed letter, flying off to someone.',
   hint: 'Every morning the tree does this with its best work: up the tube it goes.',
 };
 
