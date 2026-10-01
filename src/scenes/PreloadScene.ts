@@ -29,7 +29,8 @@ export class PreloadScene extends Phaser.Scene {
     g.generateTexture(PIXEL, 1, 1);
     g.destroy();
     // Dev builds only: ?area=<id> skips the title and opens that area directly; ?scene=prologue opens the
-    // prologue; ?scene=decode opens the first message's decoding; ?day=2 to 5 wakes at home on that day.
+    // prologue; ?scene=decode opens the first message's decoding; ?day=2 to 5 wakes at home on that day;
+    // ?day=5&at=archivist jumps to the archivist (big choice 2), ?day=5&at=night to the night's choice (&told=1 if you told him).
     const params = import.meta.env.DEV ? new URLSearchParams(window.location.search) : null;
     const areaId = params?.get('area');
     if (areaId && areaId in AREAS) this.scene.start('Area', { areaId });
@@ -37,12 +38,12 @@ export class PreloadScene extends Phaser.Scene {
     else if (params?.get('scene') === 'decode') this.scene.start('Decode', { message: 'message1' });
     else if (params && ['2', '3', '4', '5'].includes(params.get('day') ?? '')) {
       const day = Number(params.get('day')) as 2 | 3 | 4 | 5;
-      this.devStartDay(day, params.get('reply') === 'usual' ? 'usual' : 'fledgling');
+      this.devStartDay(day, params.get('reply') === 'usual' ? 'usual' : 'fledgling', params.get('at'), params.get('told') === '1');
     } else this.scene.start('Title');
   }
 
   /** Dev only: wakes at home on Day 2 to 5 with the story as if the earlier days had been played (?day=3&reply=usual for the ignore path). */
-  private devStartDay(day: 2 | 3 | 4 | 5, reply: 'fledgling' | 'usual'): void {
+  private devStartDay(day: 2 | 3 | 4 | 5, reply: 'fledgling' | 'usual', at: string | null = null, told = false): void {
     const session = getSession(this);
     const { story, calendar } = session;
     const set = (vars: Record<string, string | number | boolean>) => Object.entries(vars).forEach(([k, v]) => story.setVariable(k, v));
@@ -69,6 +70,16 @@ export class PreloadScene extends Phaser.Scene {
       for (const [k, v] of Object.entries({ because: 'because', carve: 'carve', grounded: 'grounded', many: 'many' })) story.setVariable(`glossary_${k}`, v);
       session.dayStarts[5] = { ink: story.saveState(), calendar: calendar.toJSON() };
     }
-    this.scene.start('Area', { areaId: 'home', start: { x: 50, y: 150 }, card: `Day ${day}` });
+    if (day === 5 && at === 'archivist') {
+      // Up in the upper halls with the escort, just before the archivist.
+      calendar.advanceTo('afternoon');
+      set({ day5: 'upper', reply3: 'who', escorted: true, objective: 'Meet the archivist in the upper halls', objective_target: 'upper-halls:archivist' });
+      this.scene.start('Area', { areaId: 'upper-halls', start: { x: 578, y: 156 } });
+    } else if (day === 5 && at === 'night') {
+      // At home after the ceremony, message 4 ready by the hearth.
+      calendar.advanceTo('night');
+      set({ day5: 'open', reply3: 'who', told_archivist: told, archivist_trust: told ? 3 : 0, mum_in_bed: true, objective: 'Open the bird', objective_target: 'home:hearth' });
+      this.scene.start('Area', { areaId: 'home', start: { x: 120, y: 236 } });
+    } else this.scene.start('Area', { areaId: 'home', start: { x: 50, y: 150 }, card: `Day ${day}` });
   }
 }
