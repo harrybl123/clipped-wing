@@ -26,6 +26,18 @@ once the shape is agreed.
 - In the lower roots you ask the girl if she knows anyone; she takes you to a strange, cheeky,
   salesy boy (an Artful Dodger type), who sells you a seed. It's the seed that eventually grows rot
   (Chapter 2; noted in `docs/ideas.md`). **(designer)**
+- The archivist sends for you himself. **(designer)** How (suggestion): through the Tender, the
+  official channel. At dawn, with your offering, the Tender hands you a brass token stamped with the
+  archive's mark ("The archivist wants you, this afternoon. I don't know why, and I don't like it");
+  a guard checks it at the checkpoint and escorts you up. His reason: the first rejection in living
+  memory has to go into the records. Partly true; underneath, he wants to know why.
+- Your reply to message 3 (suggestion, accepted for now): "Who are you?", "Take me", "I'm afraid".
+  Message 4's words are fixed, so it only changes flavour. **(designer)**
+- The boy hangs around the lower roots as someone you can meet and talk to; make him quite sleazy.
+  **(designer)**
+- Night: if you pandered, you go back up to steal a seed, and the theft fails; then the lower roots.
+  If you told the truth, you choose: ask the archivist peacefully, or go down to the roots. **(designer)**
+- The boy wants food for the seed. **(designer)**
 
 ## The shape of the day (suggestion)
 
@@ -79,12 +91,4 @@ once the shape is agreed.
 - Then home, and the seed goes into tomorrow's bird (Day 6: "the seed and pointing hands").
 
 ## Open questions
-1. **Your reply to message 3:** what are the three pictures? (Suggestion: "Who are you?", "Take me",
-   "I'm afraid", each using his own symbols.)
-2. **Who summons you upward:** the archivist himself, or the elders sending you to be recorded?
-3. **The Dodger boy:** do you glimpse him before the night (in the lower roots or the market), or does
-   he only appear on that path?
-4. **Without the archivist, is there still a failed theft first** (the doc's heist: you try to steal
-   a seed from the archive and it goes wrong), or do you go straight to the lower roots?
-5. **What does the boy want for the seed?** (Suggestion: your food, which matters with the store so
-   low, or a carving.)
+None for now: all answered (above).
