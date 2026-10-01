@@ -387,7 +387,7 @@ It's him. And the plate, the {answered_late: bird|fledgling} and your shavings a
 ~ evidence_shavings = true
 ~ objective = "Hide everything (3 left)"
 ~ objective_target = "home:evidence-plate"
-He's already at the window. Hide them, quickly! #when:evidence_left:day3_visit:10
+He's already at the window. Hide them, quickly! #when:evidence_left:day3_visit:15
 -> END
 
 === day3_hide_plate ===

@@ -123,7 +123,7 @@ describe('ink pipeline', () => {
     expect(v['food_store']).toBe(food - 2);
     play('day3_mum_night');
     expect(play('home_hearth')).toContain('decode:message2:day3_decoded');
-    expect(play('day3_decoded')).toContain('when:evidence_left:day3_visit:10');
+    expect(play('day3_decoded')).toContain('when:evidence_left:day3_visit:15');
     play('day3_hide_plate');
     expect(v['objective']).toBe('Hide everything (2 left)');
     expect(v['objective_target']).toBe('home:evidence-shavings');

@@ -99,3 +99,13 @@ The sleazy boy who sells you the seed on Night 5 (the girl's contact in the lowe
 around the high walkway) could be used or introduced in another part of the story too, e.g. met
 earlier in passing, or turning up again on Days 6 and 7 (selling you out? helping, for a price?).
 Come back to this when planning the later days.
+
+## Later passes (designer, 2026-10-01)
+
+- **The hunger and the blame should build before Day 6.** By Day 6 the roots connect you with why
+  the total food has been going down; weave hints of it into Days 4 and 5 (a crowd line or two about
+  smaller rations "since it started", the Tender's tallies, the market).
+- **The lie system** ("every lie has to hold" in the Night 6 interrogation): build properly later.
+  For now, cracks only change lines and suspicion.
+- **Searches and other mechanics** (e.g. guards searching your home for the plate): keep simple
+  now, add depth in a later pass.
