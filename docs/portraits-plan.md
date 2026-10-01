@@ -17,12 +17,17 @@ proposal, for the designer to mark up.
 - About 17 placeholder lines in the area knots (the middle tiers' carver and lift keeper, the
   market's stallholders, the gate guard and so on) have no tag at all, so they read as narration.
 
-## The approach (suggestion)
-1. **One portrait generator for NPCs**, in the same style as the hand-made seven: a bust drawn from
+## The approach
+1. **A baseline face for NPCs, varied by hair and items (designer: "a baseline with different hair
+   or items, maybe you decide").** One shared bust in the style of the hand-made seven, with Claude
+   choosing the variations: hair (style and colour: cropped, long, bun, balding, grey), headwear (cap,
+   hood, scarf), items (a guard's band, an elder's stole, a stallholder's apron, a pipe, beads, a
+   tube token, spectacles), plus a little face variety (beard, age lines, a brow). It's drawn from
    the same look the world sprite uses (`VillagerLook` in `src/ui/characters.ts`: headwear (bare,
    hood, cap, bun), hair colour (grey for elders), the accent colour of their clothes, a stole for
    elders, a guard's cap and band), plus a few face settings (face shape, age lines, beard, brow,
-   expression). **The face you see should match the person on screen:** the guard's portrait has the
+   expression). The recurring cast gets more than a swap of hair and items (point 2), and the
+   one-offs and crowd voices are the baseline plus their swaps. **The face you see should match the person on screen:** the guard's portrait has the
    guard's amber band, an elder has the grey hair and pale stole. Red stays off everyone but you.
 2. **Hand-tuned faces for the recurring cast**, built with the generator and then adjusted:
    - **The preacher:** hungry, smiling, the face of the one who means it most.
