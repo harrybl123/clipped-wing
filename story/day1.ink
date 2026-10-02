@@ -26,6 +26,7 @@
     "Oh, love. Not today. Today's a good day." #speaker:mum
 - "A master goes up tonight. The whole tree will be watching." #speaker:mum
 "Imagine being chosen. The Tree taking you up, right into the Canopy's light." #speaker:mum
+"The rest of us just go back to the wood when our time comes. But a master never dies." #speaker:mum
 "Do you think they're happy up there?" #speaker:you
 "Happier than anyone's ever been. Now fetch your bird. We don't want to be last to the rite." #speaker:mum
 ~ day1 = "bench"
@@ -50,7 +51,7 @@ Your bird for the rite. The best you could make. The left wing sits heavy, the w
 // --- The morning rite, on the offering floor ---
 
 === day1_rite ===
-"Quickly now, quickly. The Tree doesn't wait." #speaker:tender
+"Quickly now, quickly. The Tree doesn't wait." #speaker:tender #show:friend-rite #move:friend-rite:284:156
 "The carver from the edge of the roots. Same bird as ever, I see." #speaker:tender
 + [The best I have, for the Tree.]
     "The best I have, for the Tree." #speaker:you
@@ -61,20 +62,26 @@ Your bird for the rite. The best you could make. The left wing sits heavy, the w
 + [Is it good enough?]
     "Is it good enough?" #speaker:you
     "It's not for me to say. The Tree decides." #speaker:tender
-- The Tender lays your bird in the basket with the rest. The tube brightens, and the whole floor sighs. #flash:cyan
+- The Tender lays your bird in the basket with the rest.
+Your friend is next in line, holding his offering out in both hands as if it might break.
+The tube brightens, and the whole floor sighs. #flash:cyan
+As the crowd begins to drift away, he catches your sleeve.
+"Come round after. There's something I want to show you." #speaker:friend
 ~ rite_done = true
 ~ day1 = "friend"
-~ objective = "Find your friend"
+~ objective = "Go round to your friend's"
 ~ objective_target = "friends-home:friend"
-The crowd begins to drift away. The day is yours until the Ascension. #time:afternoon
+The day is yours until the Ascension. #time:afternoon
 -> END
 
 // --- The afternoon ---
 
 === day1_friend ===
-"There you are! Did you see how bright the tube was this morning?" #speaker:friend
-"Tonight's master. Imagine it. Everything you've ever made, and the Tree says: yes, you. Come up." #speaker:friend
-"One day that'll be me. I've been practising every night." #speaker:friend
+"There you are! Come and look. Quick, before my father finds us both jobs." #speaker:friend
+He lifts a cloth off the windowsill. Underneath, a little carved figure with its arms raised, climbing towards a light. Smoothed until it shines.
+"I've been working on it every night. A bit better every time." #speaker:friend
+"Tonight's master. Imagine it. Everything you've ever made, and the Tree says: yes, you. Come up. And you never have to die." #speaker:friend
+"One day that'll be me. And when it is, this is going up with me." #speaker:friend
 + [You'll be chosen. Anyone can see it.]
     "You'll be chosen. Anyone can see it." #speaker:you
     "You always say the right thing." #speaker:friend
@@ -110,6 +117,7 @@ The whole tree is climbing to the gate, carrying lamps. Go up to the Ascension?
 The gate is packed. Lamps on every balcony, braziers burning on the dais.
 "The Tree gives to those who give. And tonight, it asks for its finest." #speaker:preacher
 "A life of perfect work. Hands that never slipped. The Tree has seen, and it calls." #speaker:preacher
+"For the rest of us, the wood. For them, the Canopy, for ever." #speaker:preacher
 The master comes through the crowd: old, calm, carrying one last carving. #show:master
 They climb the steps to the dais. #move:master:216:204
 As they pass, you see it. Cut into the carving: a spiral. #inset:spiral
@@ -140,7 +148,7 @@ Later, the crowds drift home. Your friend will be waiting on the climb. #time:ni
 === day1_lookout ===
 "You made it! Look. There." #speaker:friend
 Lights rise up the tube, one after another, climbing towards the Canopy. #lights:416:10:430
-"Every one of those is a blessing for the master. They're up there now." #speaker:friend
+"Every one of those is a blessing for the master. They're up there now. They'll never grow old." #speaker:friend
 + [It's beautiful.]
     "It's beautiful." #speaker:you
     "Isn't it?" #speaker:friend
@@ -151,6 +159,8 @@ Lights rise up the tube, one after another, climbing towards the Canopy. #lights
     "Where do they actually go?" #speaker:you
     "Up. To the Canopy. Where else?" #speaker:friend
 - "One day, it'll be me. You'll watch from here, and you'll wave." #speaker:friend
+The last light fades into the Canopy. Below, the lamps on the climb are going out one by one.
+"I'd better get back before my father notices I'm gone. Night. See you at the rite." #speaker:friend #hop:friend-at-lookout:250:118:175:160:260:200:165:240:80:282:170:322:275:362:330:400:250:444:170:484:112:526:150:568:230:610:165:648:70:692:150:736:200:780
 ~ watched_lights = true
 ~ climb_tutorial = false
 ~ day1 = "home"

@@ -42,6 +42,7 @@ A carver with a ruined hand makes flawed birds. And in the tree, what you make d
 I still see every bird perfectly in my head. My hands just can't make it. #narration
 The tree is fair, they say. You give your work, and it gives back in kind. #tableau:tree #narration
 The finest makers rise: better wood, better food, homes in the high branches. The rest stay low. #narration
+And the very finest, at the end of a life of perfect work, the Tree chooses. It takes them up the tube, into the Canopy, and they never die. The rest of us go back to the wood. #narration
 Each morning our best work goes up the tube. Each evening, blessings come down to those who earned them. #tableau:tube #narration
 It is fair. As long as your hands can do what your mind can. #narration #end
 -> END

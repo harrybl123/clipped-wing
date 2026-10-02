@@ -223,7 +223,7 @@ A mother pulls her children behind her skirts as you come near.
 === day3_crowd_old_man ===
 { day3 == "evening": -> evening }
 "My grandmother told me about a rejection once. I thought it was just a story." #speaker:old_man
-"The whole family was gone within the week." #speaker:old_man
+"The whole family went back to the wood within the week." #speaker:old_man
 + [Gone where?]
     "Gone where?" #speaker:you
     He won't meet your eyes. "Nobody would say." #speaker:old_man

@@ -7,7 +7,7 @@ This is a condensed version of the full design doc, written as build context. Wh
 - **The tree** is vast. Its people live inside the trunk in a hierarchy of craft skill: the best makers live high in the warm upper branches; the least skilled live in the dark, crowded roots. Writing belongs to high society; roots-dwellers can't read.
 - **The tube** is a glowing channel running up the middle of the trunk. Offerings go up at a **morning rite**; blessings (food, cloth, light) and rejections come down at an **evening ceremony**. The exchange is holy: nobody inspects an offering once given.
 - **Rejection is unheard of.** A rejected piece is unclean; nobody touches or opens it, and it goes straight back to its shamed maker.
-- **The Ascension:** the finest makers are given to the tube in a sacred ceremony at the **Ascension gate**, high on the tube. Everyone believes it's a holy sacrifice.
+- **The Ascension:** the finest makers are given to the tube in a sacred ceremony at the **Ascension gate**, high on the tube. Everyone believes it's a holy sacrifice. It's their afterlife (designer, 2026-10-02): people believe only those the Tree chooses ever reach the Canopy, and never die; everyone else "goes back to the wood" when their time comes. Kept subtle, woven through the story.
 - **Blessings are shrinking** all week, getting visibly worse, before and after the protagonist's first rejection.
 - **Technological gifts:** people believe a god sends them technological gifts down the tube. The higher up the tree, the more technology you see; the roots are mainly natural, with scavenged odd bits here and there that found their way back down.
 - **The Canopy** at the top is blinding white. In Act 1 nothing up there can be seen.

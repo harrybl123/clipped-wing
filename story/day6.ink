@@ -237,6 +237,7 @@ They're getting up. You back away into the dark before they come past. #time:eve
 === day6_crowd_old_man ===
 "I've never been hungry like this. Not in seventy years." #speaker:old_man
 "I don't believe in curses, child. But I'm hungry enough to start." #speaker:old_man
+"I always hoped the Tree might take me, at the end. Seventy years of good work. Now I'd settle for supper." #speaker:old_man
 -> END
 
 === day6_crowd_zealot ===
