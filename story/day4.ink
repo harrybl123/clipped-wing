@@ -26,6 +26,7 @@ Mum has seen it too. She's gone pale.
     "What does he want with me?" #speaker:you
     "I don't know. Nobody ever comes back and says." #speaker:mum
 - "Take him something. Something good. Show him there's still faith in your hands." #speaker:mum
+"And come straight back to me after. Straight back." #speaker:mum
 "I'll go to the market this afternoon. Blessings or no blessings, we have to eat." #speaker:mum
 ~ day4 = "carve"
 ~ objective = "Answer the message"

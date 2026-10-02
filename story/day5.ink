@@ -12,6 +12,7 @@
 Mum is at the table, turning an empty jar round and round in her hands.
 "There's a man still out there. He changed over in the night. A different one." #speaker:mum
 "Go and do whatever it is you do at that bench. Just don't tell me about it." #speaker:mum
+"If anyone asks me, I want to be able to say I don't know." #speaker:mum
 -> END
 
 === day5_bench ===
@@ -81,6 +82,7 @@ By the time you're home, the morning has gone. #time:afternoon
 === day5_mum_escort ===
 Mum is standing well back from the door, as if the guard might bite.
 "A guard. From up there. In my house." #speaker:mum
+She straightens your collar, as if that would help.
 "Whatever they ask you, love... be careful what you say." #speaker:mum
 -> END
 
@@ -117,7 +119,7 @@ He looks past you, at the guard standing at your shoulder.
 The guard hesitates, then shrugs and goes back down the stairs. #hide:escort
 He studies you the way your mother studies a block of wood before she cuts it.
 "Sit. Please. I only want to ask a few questions." #speaker:archivist
-"I keep the records. Every Ascension, every family, every offering of note. For forty years nothing has come back down the tube that went up it." #speaker:archivist
+"I keep the records. Every Ascension, every family, every offering of note. In all the records, back to the very first plaque, nothing has ever come back down the tube that went up it." #speaker:archivist
 "Until you. So you're going in the book, and I'd like to get it right." #speaker:archivist
 + [Hide it: "I'll help however I can."]
     "I'll help however I can." #speaker:you
@@ -261,6 +263,7 @@ Then he walks you home, and leaves you at the door, and goes to stand with the w
 === day5_mum_night ===
 "The elders." Mum sits down very slowly. #speaker:mum
 "My mother used to say you'd go before the elders once in your life, if you were very good or very bad." #speaker:mum
+She takes your face in her hands and looks at you for a long moment, as if she's trying to remember it.
 "I'm going to bed. I can't... I'm going to bed." #speaker:mum
 ~ mum_in_bed = true
 ~ objective = "Open the bird"

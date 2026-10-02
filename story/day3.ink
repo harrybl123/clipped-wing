@@ -14,7 +14,7 @@
 === day3_mum_morning ===
 Mum is already up. She doesn't look as if she slept.
 "Carve something today. Anything. Let them see you're still faithful." #speaker:mum
-"And keep your head down at the rite. Please." #speaker:mum
+"And keep your head down at the rite. Stay close to me. Please." #speaker:mum
 ~ day3 = "carve"
 ~ objective = "Carve your offering"
 ~ objective_target = "home:bench"
@@ -222,11 +222,12 @@ A mother pulls her children behind her skirts as you come near.
 
 === day3_crowd_old_man ===
 { day3 == "evening": -> evening }
-"My grandmother told me about a rejection once. I thought it was just a story." #speaker:old_man
-"The whole family went back to the wood within the week." #speaker:old_man
-+ [Gone where?]
-    "Gone where?" #speaker:you
-    He won't meet your eyes. "Nobody would say." #speaker:old_man
+"My grandmother used to frighten us with a story. A bird the Tree sent back." #speaker:old_man
+"Just a story. It never happened. Never, not once, in all the years of the tube. Until you." #speaker:old_man
+"In the story, the whole family went back to the wood within the week." #speaker:old_man
++ [All of them?]
+    "All of them?" #speaker:you
+    He won't meet your eyes. "That's how the story goes." #speaker:old_man
 + [It's only a story.]
     "It's only a story." #speaker:you
     "Hope so. For your sake." #speaker:old_man
@@ -312,7 +313,8 @@ Mum doesn't say a word all the way home. #time:night #goto:home:130:236:day3_mum
     "They put their hands on me, love. On me." #speaker:mum
     "Forty years I've stood on that floor." #speaker:mum
 }
-"I'm going to bed. Get rid of that thing." #speaker:mum
+She pulls the shutter closed, and stands with her back against it for a long moment.
+"I'm going to bed. Get rid of that thing, love. For both our sakes." #speaker:mum
 ~ mum_in_bed = true
 ~ day3 = "open"
 { reply1 == "usual":

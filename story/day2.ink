@@ -179,6 +179,7 @@ The light comes back. Something drops into the basin with a hard knock. #show:re
 Your bird. Untouched.
 The Tender stares at it. The staff is shaking in their hand.
 "...Rejected." #speaker:tender
+Nobody on the floor has ever heard the word said out loud. Not about an offering. Not ever.
 A woman screams. Someone drops their blessing, and it rolls across the floor, and nobody picks it up.
 "It sent it back. The Tree sent it back!" #speaker:crowd_woman
 "Never. Not once. Not in my grandmother's time, not in hers." #speaker:old_man
@@ -223,7 +224,8 @@ Mum holds your arm all the way home, and doesn't let go. #time:night #goto:home:
 + [It's my bird. Why should I burn it?]
     "It's my bird. Why should I burn it?" #speaker:you
     "Because the Tree said no. That's why." #speaker:mum
-- "I'm going to bed. It had better be gone by morning." #speaker:mum
+- "Burn it, love. Please. Before anyone thinks to come asking about it." #speaker:mum
+She checks the bar on the door before she goes to bed. She's never done that before.
 ~ mum_in_bed = true
 ~ day2 = "burn"
 ~ objective = "Burn the bird"
