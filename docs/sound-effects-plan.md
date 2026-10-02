@@ -64,6 +64,35 @@ in pitch, length and timing, over filtered noise.
 `creak` (the window, Day 3), `thump` (falling in the fight), `whoosh` (dodging, throwing), `rush`,
 `boom`, `shimmer`, `rise`, `heartbeat`.
 
+## To do later: recordings for the crowds
+
+**(designer, 2026-10-02)** The synthesised crowd reactions didn't sound real ("I can tell what you're
+trying to do with the imitation"), so they're **silent until recordings are found**: `murmur`, `gasp`,
+`roar`, `jeer`, `chant`, `whispers`, `scream`, `sob` (`AWAITING_RECORDING` in `src/ui/soundscape.ts`;
+their synthesised versions are kept in the code). Everything else stays synthesised.
+
+To add one, drop a file named after the sound into `src/assets/audio/sfx/` (`roar.ogg`, `gasp.mp3`…):
+it plays everywhere that sound already plays, a little varied in pitch each time, with nothing else to
+change (`src/ui/recordings.ts`). The same works for any other sound, later, if one needs replacing.
+
+What to look for (short clips, a few seconds; no clear English words, since the game's voices are
+wordless; dry rather than echoey, since the game adds the room):
+
+| Sound | Look for |
+| --- | --- |
+| `gasp` | a crowd gasping in shock |
+| `murmur` | a crowd muttering, uneasy |
+| `roar` | an angry crowd swelling; a cheering crowd for the Ascension would also do |
+| `jeer` | a crowd laughing cruelly, jeering |
+| `chant` | a crowd chanting a two-beat word (wordless, or in another language) |
+| `whispers` | many people whispering |
+| `scream` | one woman's short scream |
+| `sob` | a child crying |
+
+Where: [Freesound](https://freesound.org) (filter by the CC0 licence, no credit needed), Sonniss's free
+GDC game audio bundles, or any library with a licence that allows use in a game. Note each file's
+source and licence in `src/assets/audio/sfx/README.md`.
+
 ## Not in this pass
 
 - Individual voices crying out (Mum's "No, no, no", the girl shouting your name): the dialogue voices

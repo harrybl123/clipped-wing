@@ -1,4 +1,5 @@
 import type Phaser from 'phaser';
+import { loadRecordings } from './recordings';
 
 // The mix: three volumes (music, sounds, voices) under Phaser's master volume and mute, ready for a
 // settings screen. Synthesised sounds connect to a bus here instead of straight to the speakers. Every
@@ -69,6 +70,7 @@ export function audioOut(scene: Phaser.Scene, bus: Bus): AudioOut | null {
     };
     mix = { buses: { music: make('music'), sounds: make('sounds'), voices: make('voices') }, room, wet, acoustics: null };
     mixes.set(ctx, mix);
+    loadRecordings(ctx); // any recorded sound effects, in the background
   }
   return { ctx, out: mix.buses[bus] };
 }

@@ -5,7 +5,8 @@
 import type Phaser from 'phaser';
 import { ACOUSTICS, setAcoustics, type Acoustics } from '../ui/audioMix';
 import { duckScore, stopScore, updateScore } from '../ui/score';
-import { playSound, SOUND_IDS, type SoundId } from '../ui/soundscape';
+import { RECORDINGS } from '../ui/recordings';
+import { AWAITING_RECORDING, playSound, SOUND_IDS, type SoundId } from '../ui/soundscape';
 import { playSyllable } from '../ui/voice';
 import { typeLine, VOICES } from '../systems/voices';
 
@@ -109,7 +110,8 @@ for (const group of GROUPS) {
   const grid = el('div', 'grid');
   for (const [id, what] of group.sounds) {
     listed.add(id);
-    grid.append(button(id, what, () => playSound(scene, id)));
+    const status = RECORDINGS.has(id) ? ' (recorded)' : AWAITING_RECORDING.has(id) ? ' (silent: waiting for a recording)' : '';
+    grid.append(button(id + status, what, () => playSound(scene, id)));
   }
   root.append(grid);
 }

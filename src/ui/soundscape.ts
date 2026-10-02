@@ -2,6 +2,7 @@ import type Phaser from 'phaser';
 import type { AmbienceLayer, AmbienceSound, Surface } from '../data/areas/types';
 import { CROWD_VOICES, type Syllable, VOICES } from '../systems/voices';
 import { ACOUSTICS, type Acoustics, audioOut, noiseBuffer, setAcoustics } from './audioMix';
+import { playRecording } from './recordings';
 import { playSyllable } from './voice';
 
 // The sound of the tree (docs/audio-plan.md), all synthesised with Web Audio, no files:
@@ -21,6 +22,13 @@ export const SOUND_IDS = [
   'chop', 'shave', 'skid', 'scratch', 'pop', 'rub', 'slip',
 ] as const;
 export type SoundId = (typeof SOUND_IDS)[number];
+
+/**
+ * Sounds that stay silent until a recording is dropped in (src/assets/audio/sfx/): the crowds
+ * (designer: the synthesised ones didn't sound real; get recordings later). Their synthesised versions
+ * are kept below in case they're wanted again.
+ */
+export const AWAITING_RECORDING: ReadonlySet<SoundId> = new Set(['murmur', 'gasp', 'roar', 'jeer', 'chant', 'whispers', 'scream', 'sob']);
 
 /** Things that make sound where they are. */
 export type EmitterSound = 'tube' | 'fire' | 'creak' | 'skitter' | 'footsteps' | 'mob' | 'bubbles' | 'rope';
@@ -172,6 +180,8 @@ function crowdOf(t: number, count: number, spread: number, make: (at: number) =>
 
 /** Plays a one-off sound into `dest` at time `t`. `v` scales the loudness. Built from noise where it can be: earthy, not synthy (designer). */
 function oneShot(a: Out, dest: AudioNode, t: number, id: SoundId, v: number, surface: Surface = 'wood'): void {
+  // A recording, if one's been dropped in, plays instead; the crowds are silent without one.
+  if (playRecording(a.ctx, dest, t, id, v) || AWAITING_RECORDING.has(id)) return;
   switch (id) {
     case 'plink': {
       // A water drop: a tiny bubble that rises, low and soft (it was a high falling "pew").
