@@ -14,7 +14,7 @@ import { playSyllable } from './voice';
 /** One-off sounds, for code and for ink (`#sound:<id>`). */
 export const SOUND_IDS = [
   'plink', 'splash', 'crackle', 'creak', 'thump', 'crack', 'rumble', 'skitter', 'bloop', 'tick', 'tap', 'chime',
-  'jump', 'land', 'knock', 'door', 'rush', 'boom', 'shimmer', 'shuffle', 'whoosh', 'rise', 'step',
+  'jump', 'land', 'knock', 'door', 'rush', 'boom', 'shimmer', 'shuffle', 'whoosh', 'rise', 'step', 'sting', 'resolve', 'heartbeat',
 ] as const;
 export type SoundId = (typeof SOUND_IDS)[number];
 
@@ -230,6 +230,26 @@ function oneShot(a: Out, dest: AudioNode, t: number, id: SoundId, v: number, sur
     case 'whoosh':
       noise(a, dest, t, 'bandpass', 350, 1.5, 0.25, 0.3 * v, 0.05, 1200);
       break;
+    case 'sting':
+      // A big choice (the room dims): a deep boom, a hit like a fist on wood, and a low rumble rising under it.
+      tone(a, dest, t, 'sine', 52, 28, 2.4, 0.7 * v, 0.01);
+      noise(a, dest, t, 'bandpass', 170, 3, 0.35, 0.6 * v, 0.004);
+      noise(a, dest, t, 'lowpass', 90, 1, 2.2, 0.4 * v, 0.05);
+      noise(a, dest, t + 0.2, 'bandpass', 110, 2, 2.2, 0.2 * v, 1.4, 500);
+      break;
+    case 'resolve':
+      // The choice made (the room comes back): one low thud, and a breath out.
+      tone(a, dest, t, 'sine', 70, 35, 0.6, 0.5 * v, 0.006);
+      noise(a, dest, t, 'lowpass', 160, 1, 0.5, 0.3 * v, 0.006);
+      noise(a, dest, t + 0.1, 'lowpass', 600, 0.7, 0.8, 0.06 * v, 0.2);
+      break;
+    case 'heartbeat':
+      // Lub-dub.
+      tone(a, dest, t, 'sine', 68, 42, 0.12, 0.45 * v, 0.006);
+      noise(a, dest, t, 'lowpass', 120, 1, 0.1, 0.25 * v, 0.004);
+      tone(a, dest, t + 0.26, 'sine', 62, 40, 0.1, 0.3 * v, 0.006);
+      noise(a, dest, t + 0.26, 'lowpass', 110, 1, 0.08, 0.15 * v, 0.004);
+      break;
     case 'rise':
       noise(a, dest, t, 'bandpass', 200, 1.5, 3.2, 0.35 * v, 1, 2500);
       noise(a, dest, t, 'lowpass', 150, 1, 3.2, 0.3 * v, 1.2);
@@ -415,6 +435,9 @@ export class Soundscape {
   private listener = { x: 0, y: 0 };
   private stopped = false;
   private bedOut: GainNode | null = null;
+  /** A big choice: seconds since it began (your heartbeat), or null. */
+  private tension: number | null = null;
+  private nextBeat = 0;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -465,6 +488,19 @@ export class Soundscape {
     oneShot(a, dest, a.ctx.currentTime, id, v, surface);
   }
 
+  /**
+   * A big choice (the room dims): a sting, then your heartbeat, slowly quickening, with the area pulled
+   * back so you hear it. Off again (the room comes back): one thud, and the area returns.
+   */
+  setTension(on: boolean): void {
+    if (on === (this.tension !== null)) return;
+    const a = this.out();
+    this.tension = on ? 0 : null;
+    this.nextBeat = 1.4;
+    this.play(on ? 'sting' : 'resolve');
+    if (a && this.bedOut) this.bedOut.gain.setTargetAtTime(on ? 0.3 : 1, a.ctx.currentTime, on ? 0.4 : 1);
+  }
+
   update(delta: number, listener: { x: number; y: number }): void {
     const a = this.out();
     if (!a) return;
@@ -476,6 +512,13 @@ export class Soundscape {
       g.connect(a.out);
       return g;
     })();
+    if (this.tension !== null) {
+      this.tension += dt;
+      if ((this.nextBeat -= dt) <= 0) {
+        this.play('heartbeat', undefined, Math.min(1, 0.6 + this.tension * 0.02));
+        this.nextBeat = Math.max(0.68, 1 - this.tension * 0.012);
+      }
+    }
     for (const bed of this.beds) this.updateBed(a, bed, dt);
     for (const e of this.emitters) this.updateEmitter(a, e, dt);
   }

@@ -1394,6 +1394,8 @@ export class AreaScene extends Phaser.Scene {
           break;
         case 'dim':
           this.tweens.add({ targets: this.dimmer, alpha: args[0] === 'off' ? 0 : 0.75, duration: 900 });
+          // The big choices: a sting, then your heartbeat until it's made.
+          this.soundscape.setTension(args[0] !== 'off');
           break;
         case 'decode': {
           const [message, then] = args;
