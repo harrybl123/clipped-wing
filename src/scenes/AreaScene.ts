@@ -780,11 +780,11 @@ export class AreaScene extends Phaser.Scene {
     }
   }
 
-  /** Whether you're standing in a dark doorway or nook (a `shadow` that's active now). */
+  /** Whether you're hidden in a dark doorway or nook (a `shadow` that's active now), or crouched behind low cover (`crouch`). */
   private inShadow(): boolean {
     const { story } = getSession(this);
     const { x, y } = this.player.feet;
-    return this.shadows.some((s) => (!s.showIf || story.getVariable(s.showIf)) && Math.abs(y - s.y) <= 2 && x >= s.x && x <= s.x + s.width);
+    return this.shadows.some((s) => (!s.showIf || story.getVariable(s.showIf)) && (!s.crouch || this.player.crouching) && Math.abs(y - s.y) <= 2 && x >= s.x && x <= s.x + s.width);
   }
 
   /**

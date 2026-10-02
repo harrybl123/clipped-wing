@@ -92,12 +92,12 @@ export const seedGrove: AreaDefinition = {
     { type: 'drip', x: 405, y: 55, floorY: TERRACE - 10 },
     { type: 'drip', x: 495, y: 55, floorY: FLOOR - 10 },
     // Night 5, with the archivist: the guard walks the beds with his lantern. He doesn't look up at the
-    // terrace, and you can't be seen crouched behind a bed. Seen: back to the bridge.
+    // terrace, and you can't be seen crouched behind a bed (standing, you can). Seen: back to the bridge.
     { type: 'watch', from: 150, to: 520, y: FLOOR, speed: 20, range: 52, pause: 2200, see: 24, reset: { x: 36, y: FLOOR }, showIf: 'grove_sneak' },
-    { type: 'shadow', x: 128, y: FLOOR, width: 60, showIf: 'grove_sneak' },
-    { type: 'shadow', x: 222, y: FLOOR, width: 48, showIf: 'grove_sneak' },
-    { type: 'shadow', x: 486, y: FLOOR, width: 48, showIf: 'grove_sneak' },
-    { type: 'hint', x: 70, y: FLOOR, reach: 60, text: 'Stay out of his light: behind the beds, or up on the terrace.', showIf: 'grove_sneak' },
+    { type: 'shadow', x: 128, y: FLOOR, width: 60, crouch: true, showIf: 'grove_sneak' },
+    { type: 'shadow', x: 222, y: FLOOR, width: 48, crouch: true, showIf: 'grove_sneak' },
+    { type: 'shadow', x: 486, y: FLOOR, width: 48, crouch: true, showIf: 'grove_sneak' },
+    { type: 'hint', x: 70, y: FLOOR, reach: 60, text: 'Stay out of his light: crouch behind the beds (hold down), or go up on the terrace.', showIf: 'grove_sneak' },
     { type: 'trigger', x: 586, y: FLOOR, reach: 14, knot: 'day5_grove_vault', showIf: 'grove_sneak' },
   ],
 

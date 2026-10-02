@@ -333,7 +333,7 @@ He looks at the drawers behind the glass, and shakes his head.
 "If it matters, and I think it does, it should be a living one. From the grove." #speaker:archivist
 "There's a guard on it at night. I'm allowed to be there. You're not." #speaker:archivist
 "I'll wait at the bridge. If he comes my way, I'll keep him talking. You get to the vault at the far end." #speaker:archivist
-"He walks the beds, and he never looks up. Remember that." #speaker:archivist
+"He walks the beds, and he never looks up. Keep low, and remember that." #speaker:archivist
 ~ archivist_waiting = false
 ~ in_grove = true
 ~ grove_sneak = true
@@ -352,7 +352,7 @@ Down among the beds, a lantern swings. The guard.
 
 === day5_grove_archivist ===
 { grove_sneak:
-    "Go on. Behind the beds, or up on the terrace. He never looks up." #speaker:archivist
+    "Go on. Keep low behind the beds, or go up on the terrace. He never looks up." #speaker:archivist
 - else:
     "Quickly, now." #speaker:archivist
 }
