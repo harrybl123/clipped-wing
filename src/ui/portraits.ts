@@ -1,4 +1,5 @@
 import { ELDER_LOOKS, FRIEND_FATHER_LOOK, GUARD_LOOK, PREACHER_LOOK, RESIDENT_LOOKS, VILLAGER_LOOKS, type VillagerLook } from './characters';
+import type { VoiceId } from '../systems/voices';
 import { SHADES } from './pixelArt';
 import type { RowSprite } from './sprites';
 
@@ -627,47 +628,47 @@ const HATCH_KEEPER_LOOK: VillagerLook = { height: 24, width: 3, head: 'cap', acc
  * Portraits by the speaker id used in ink tags (`#speaker:mum`), with the name shown above the line. A
  * `#name:` tag on the same line overrides the name (the escort is "The guard" until he's "Your escort").
  */
-export const SPEAKERS: Record<string, { name: string; portrait: RowSprite }> = {
-  you: { name: 'You', portrait: PROTAGONIST_PORTRAIT },
-  mum: { name: 'Mum', portrait: MUM_PORTRAIT },
-  tender: { name: 'The Tender', portrait: TENDER_PORTRAIT },
-  friend: { name: 'Your friend', portrait: FRIEND_PORTRAIT },
-  girl: { name: 'The girl', portrait: GIRL_PORTRAIT },
-  archivist: { name: 'The archivist', portrait: ARCHIVIST_PORTRAIT },
-  boy: { name: 'The boy', portrait: BOY_PORTRAIT },
+export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice: VoiceId | 'crowd' }> = {
+  you: { name: 'You', portrait: PROTAGONIST_PORTRAIT , voice: 'you' },
+  mum: { name: 'Mum', portrait: MUM_PORTRAIT , voice: 'mum' },
+  tender: { name: 'The Tender', portrait: TENDER_PORTRAIT , voice: 'tender' },
+  friend: { name: 'Your friend', portrait: FRIEND_PORTRAIT , voice: 'friend' },
+  girl: { name: 'The girl', portrait: GIRL_PORTRAIT , voice: 'girl' },
+  archivist: { name: 'The archivist', portrait: ARCHIVIST_PORTRAIT , voice: 'archivist' },
+  boy: { name: 'The boy', portrait: BOY_PORTRAIT , voice: 'boy' },
 
   // The recurring cast.
-  preacher: { name: 'The preacher', portrait: npcPortrait(PREACHER_LOOK, { build: 'narrow', age: 1, eyes: 'wide', brow: 'raised', mouth: 'grin' }) },
-  elder_amber: { name: 'An elder', portrait: npcPortrait(ELDER_LOOKS[0]!, ELDER_FACE) }, // the eldest, who leads
-  elder_cyan: { name: 'An elder', portrait: npcPortrait(ELDER_LOOKS[1]!, ELDER_FACE) },
-  elder_green: { name: 'An elder', portrait: npcPortrait(ELDER_LOOKS[2]!, ELDER_FACE) },
-  elder_pale: { name: 'An elder', portrait: npcPortrait(ELDER_LOOKS[3]!, ELDER_FACE) },
-  guard: { name: 'A guard', portrait: guardFace({ build: 'broad', age: 1, brow: 'heavy', beard: 'stubble' }) },
-  escort: { name: 'The guard', portrait: guardFace({ brow: 'knit', mouth: 'frown', beard: 'moustache' }) },
-  post_guard: { name: 'The guard at the post', portrait: guardFace({ build: 'round', eyes: 'narrow', mouth: 'sneer' }) },
-  gate_guard: { name: 'The gate guard', portrait: guardFace({ build: 'narrow', eyes: 'narrow', brow: 'raised' }) },
-  zealot: { name: 'The young man', portrait: npcPortrait(VILLAGER_LOOKS[0]!, { build: 'narrow', brow: 'knit', eyes: 'wide', mouth: 'sneer', beard: 'stubble' }) },
-  old_man: { name: 'An old man', portrait: npcPortrait(VILLAGER_LOOKS[1]!, { hairColour: SHADES.light, age: 2, eyes: 'tired', brow: 'heavy', beard: 'moustache', mouth: 'frown', items: ['pipe'] }) },
-  mother: { name: 'A mother', portrait: npcPortrait(VILLAGER_LOOKS[6]!, { build: 'round', hair: 'long', eyes: 'tired', brow: 'knit', mouth: 'frown', items: ['scarf'] }) },
-  thin_man: { name: 'Thin man', portrait: npcPortrait(VILLAGER_LOOKS[2]!, { build: 'narrow', hair: 'messy', age: 1, eyes: 'hollow', beard: 'stubble' }) },
+  preacher: { name: 'The preacher', portrait: npcPortrait(PREACHER_LOOK, { build: 'narrow', age: 1, eyes: 'wide', brow: 'raised', mouth: 'grin' }), voice: 'preacher' },
+  elder_amber: { name: 'An elder', portrait: npcPortrait(ELDER_LOOKS[0]!, ELDER_FACE), voice: 'elder' }, // the eldest, who leads
+  elder_cyan: { name: 'An elder', portrait: npcPortrait(ELDER_LOOKS[1]!, ELDER_FACE), voice: 'elder' },
+  elder_green: { name: 'An elder', portrait: npcPortrait(ELDER_LOOKS[2]!, ELDER_FACE), voice: 'elder' },
+  elder_pale: { name: 'An elder', portrait: npcPortrait(ELDER_LOOKS[3]!, ELDER_FACE), voice: 'elder' },
+  guard: { name: 'A guard', portrait: guardFace({ build: 'broad', age: 1, brow: 'heavy', beard: 'stubble' }), voice: 'guard' },
+  escort: { name: 'The guard', portrait: guardFace({ brow: 'knit', mouth: 'frown', beard: 'moustache' }), voice: 'guard' },
+  post_guard: { name: 'The guard at the post', portrait: guardFace({ build: 'round', eyes: 'narrow', mouth: 'sneer' }), voice: 'guard' },
+  gate_guard: { name: 'The gate guard', portrait: guardFace({ build: 'narrow', eyes: 'narrow', brow: 'raised' }), voice: 'guard' },
+  zealot: { name: 'The young man', portrait: npcPortrait(VILLAGER_LOOKS[0]!, { build: 'narrow', brow: 'knit', eyes: 'wide', mouth: 'sneer', beard: 'stubble' }), voice: 'young' },
+  old_man: { name: 'An old man', portrait: npcPortrait(VILLAGER_LOOKS[1]!, { hairColour: SHADES.light, age: 2, eyes: 'tired', brow: 'heavy', beard: 'moustache', mouth: 'frown', items: ['pipe'] }), voice: 'old' },
+  mother: { name: 'A mother', portrait: npcPortrait(VILLAGER_LOOKS[6]!, { build: 'round', hair: 'long', eyes: 'tired', brow: 'knit', mouth: 'frown', items: ['scarf'] }), voice: 'roots_woman' },
+  thin_man: { name: 'Thin man', portrait: npcPortrait(VILLAGER_LOOKS[2]!, { build: 'narrow', hair: 'messy', age: 1, eyes: 'hollow', beard: 'stubble' }), voice: 'roots_man' },
 
   // One-offs, from the looks of the people standing there.
-  hatch_keeper: { name: 'Hatch keeper', portrait: npcPortrait(HATCH_KEEPER_LOOK, { build: 'round', age: 1, brow: 'raised', items: ['apron'] }) },
-  stew_seller: { name: 'The stew seller', portrait: npcPortrait(VILLAGER_LOOKS[3]!, { build: 'broad', age: 1, mouth: 'smile', items: ['apron', 'earring'] }) },
-  fungus_seller: { name: 'The glowcap seller', portrait: npcPortrait(VILLAGER_LOOKS[0]!, { build: 'round', eyes: 'narrow', mouth: 'smile', items: ['beads'] }) },
-  cloth_seller: { name: 'The cloth seller', portrait: npcPortrait(VILLAGER_LOOKS[1]!, { hair: 'long', mouth: 'smile', items: ['scarf'] }) },
-  curio_seller: { name: 'The curio seller', portrait: npcPortrait(VILLAGER_LOOKS[5]!, { build: 'narrow', age: 2, eyes: 'narrow', beard: 'long', mouth: 'smile', items: ['earring'] }) },
-  local: { name: 'A local', portrait: npcPortrait(VILLAGER_LOOKS[5]!, { build: 'round', beard: 'stubble', mouth: 'smile', items: ['earring'] }) },
-  friend_father: { name: 'His father', portrait: npcPortrait(FRIEND_FATHER_LOOK, { build: 'broad', age: 1, brow: 'knit', beard: 'full', mouth: 'frown', items: ['token'] }) },
-  carver: { name: 'A carver', portrait: npcPortrait(RESIDENT_LOOKS[3]!, { build: 'narrow', hair: 'long', age: 1, items: ['spectacles'] }) },
-  lift_keeper: { name: 'The lift keeper', portrait: npcPortrait(RESIDENT_LOOKS[1]!, { build: 'round', eyes: 'narrow', beard: 'moustache', mouth: 'smile' }) },
-  doorman: { name: 'The doorman', portrait: npcPortrait(RESIDENT_LOOKS[1]!, { build: 'narrow', eyes: 'narrow', brow: 'raised' }) },
-  gardener: { name: 'The gardener', portrait: npcPortrait(RESIDENT_LOOKS[2]!, { hair: 'bun', age: 1 }) },
+  hatch_keeper: { name: 'Hatch keeper', portrait: npcPortrait(HATCH_KEEPER_LOOK, { build: 'round', age: 1, brow: 'raised', items: ['apron'] }), voice: 'roots_man' },
+  stew_seller: { name: 'The stew seller', portrait: npcPortrait(VILLAGER_LOOKS[3]!, { build: 'broad', age: 1, mouth: 'smile', items: ['apron', 'earring'] }), voice: 'roots_woman' },
+  fungus_seller: { name: 'The glowcap seller', portrait: npcPortrait(VILLAGER_LOOKS[0]!, { build: 'round', eyes: 'narrow', mouth: 'smile', items: ['beads'] }), voice: 'roots_woman' },
+  cloth_seller: { name: 'The cloth seller', portrait: npcPortrait(VILLAGER_LOOKS[1]!, { hair: 'long', mouth: 'smile', items: ['scarf'] }), voice: 'roots_woman' },
+  curio_seller: { name: 'The curio seller', portrait: npcPortrait(VILLAGER_LOOKS[5]!, { build: 'narrow', age: 2, eyes: 'narrow', beard: 'long', mouth: 'smile', items: ['earring'] }), voice: 'old' },
+  local: { name: 'A local', portrait: npcPortrait(VILLAGER_LOOKS[5]!, { build: 'round', beard: 'stubble', mouth: 'smile', items: ['earring'] }), voice: 'roots_man' },
+  friend_father: { name: 'His father', portrait: npcPortrait(FRIEND_FATHER_LOOK, { build: 'broad', age: 1, brow: 'knit', beard: 'full', mouth: 'frown', items: ['token'] }), voice: 'roots_man' },
+  carver: { name: 'A carver', portrait: npcPortrait(RESIDENT_LOOKS[3]!, { build: 'narrow', hair: 'long', age: 1, items: ['spectacles'] }), voice: 'upper' },
+  lift_keeper: { name: 'The lift keeper', portrait: npcPortrait(RESIDENT_LOOKS[1]!, { build: 'round', eyes: 'narrow', beard: 'moustache', mouth: 'smile' }), voice: 'upper' },
+  doorman: { name: 'The doorman', portrait: npcPortrait(RESIDENT_LOOKS[1]!, { build: 'narrow', eyes: 'narrow', brow: 'raised' }), voice: 'upper' },
+  gardener: { name: 'The gardener', portrait: npcPortrait(RESIDENT_LOOKS[2]!, { hair: 'bun', age: 1 }), voice: 'upper' },
 
   // Voices from the crowd, each with the face of someone standing in it.
-  crowd_woman: { name: 'A woman', portrait: npcPortrait(VILLAGER_LOOKS[3]!, { eyes: 'wide', brow: 'knit', mouth: 'open' }) },
-  crowd_man: { name: 'A man', portrait: npcPortrait(VILLAGER_LOOKS[4]!, { build: 'broad', brow: 'heavy', beard: 'full', mouth: 'open' }) },
-  crowd_someone: { name: 'Someone', portrait: npcPortrait(VILLAGER_LOOKS[5]!, { build: 'round', eyes: 'narrow' }) },
-  crowd_someone_else: { name: 'Someone else', portrait: npcPortrait(VILLAGER_LOOKS[1]!, { hair: 'long', eyes: 'wide', mouth: 'frown', items: ['earring'] }) },
-  crowd: { name: 'The crowd', portrait: CROWD_PORTRAIT },
+  crowd_woman: { name: 'A woman', portrait: npcPortrait(VILLAGER_LOOKS[3]!, { eyes: 'wide', brow: 'knit', mouth: 'open' }), voice: 'roots_woman' },
+  crowd_man: { name: 'A man', portrait: npcPortrait(VILLAGER_LOOKS[4]!, { build: 'broad', brow: 'heavy', beard: 'full', mouth: 'open' }), voice: 'roots_man' },
+  crowd_someone: { name: 'Someone', portrait: npcPortrait(VILLAGER_LOOKS[5]!, { build: 'round', eyes: 'narrow' }), voice: 'young' },
+  crowd_someone_else: { name: 'Someone else', portrait: npcPortrait(VILLAGER_LOOKS[1]!, { hair: 'long', eyes: 'wide', mouth: 'frown', items: ['earring'] }), voice: 'roots_woman' },
+  crowd: { name: 'The crowd', portrait: CROWD_PORTRAIT , voice: 'crowd' },
 };

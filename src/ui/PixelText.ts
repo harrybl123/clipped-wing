@@ -19,6 +19,9 @@ let nextId = 0;
 export class PixelText extends Phaser.GameObjects.Image {
   private readonly key: string;
   private content = '';
+  /** How many characters of the laid-out text to draw (typing out), or null for all of it. */
+  private revealed: number | null = null;
+  private lines: string[] = [];
   private style: Required<Omit<PixelTextStyle, 'shadow' | 'chisel'>> & { shadow: number | null; chisel: PixelTextStyle['chisel'] | null };
 
   constructor(scene: Phaser.Scene, x: number, y: number, text: string, style: PixelTextStyle) {
@@ -39,7 +42,25 @@ export class PixelText extends Phaser.GameObjects.Image {
 
   setText(text: string): this {
     this.content = text;
+    this.revealed = null;
     this.redraw();
+    return this;
+  }
+
+  /** The text as it's laid out, lines joined by newlines: what `setRevealed` counts through. */
+  get laidOut(): string {
+    return this.lines.join('\n');
+  }
+
+  /**
+   * Draws only the first `count` characters of `laidOut` (null for everything). The size stays that of
+   * the whole text, so words never jump from one line to the next as they type out.
+   */
+  setRevealed(count: number | null): this {
+    if (count !== this.revealed) {
+      this.revealed = count;
+      this.redraw();
+    }
     return this;
   }
 
@@ -62,6 +83,13 @@ export class PixelText extends Phaser.GameObjects.Image {
   private redraw(): void {
     const { scale, wrapWidth, color, shadow, chisel } = this.style;
     const { lines, width, height } = layout(this.content, wrapWidth / scale);
+    this.lines = lines;
+    let left = this.revealed ?? Infinity;
+    const shown = lines.map((line) => {
+      const part = line.slice(0, Math.max(0, left));
+      left -= line.length + 1; // and the newline
+      return part;
+    });
     const pad = shadow === null ? 0 : 1;
     const texture = this.scene.textures.get(this.key) as Phaser.Textures.CanvasTexture;
     texture.setSize(Math.max(1, width * scale + pad), Math.max(1, height * scale + pad));
@@ -69,7 +97,7 @@ export class PixelText extends Phaser.GameObjects.Image {
     ctx.clearRect(0, 0, texture.width, texture.height);
     const pass = (fill: number, offset: number) => {
       ctx.fillStyle = `#${fill.toString(16).padStart(6, '0')}`;
-      lines.forEach((line, i) => drawLine(ctx, line, offset, offset + i * LINE_HEIGHT * scale, scale));
+      shown.forEach((line, i) => drawLine(ctx, line, offset, offset + i * LINE_HEIGHT * scale, scale));
     };
     pass(color, 0);
     if (chisel && scale >= 3) this.carve(ctx, texture.width, texture.height, chisel);

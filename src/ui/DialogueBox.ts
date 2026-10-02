@@ -5,7 +5,9 @@ import { SHADES } from './pixelArt';
 import { makeSpriteTexture } from './pixelTextures';
 import { PORTRAIT_SIZE, SPEAKERS } from './portraits';
 import { PixelText } from './PixelText';
+import { CROWD_VOICES, FACELESS_VOICES, type TypedLetter, typeLine, type Voice, VOICES } from '../systems/voices';
 import { playConfirm, playMove } from './sfx';
+import { playSyllable } from './voice';
 import { MORE_ARROW } from './sprites';
 
 const MARGIN = 8;
@@ -46,6 +48,10 @@ export class DialogueBox {
   private selected = 0;
   private onClose: (() => void) | null = null;
   private _isOpen = false;
+  /** The line typing out: its letters' timing, how far it's got, and the voice speaking it. */
+  private typing: { letters: TypedLetter[]; index: number; wait: number; voices: Voice[]; muffled: boolean } | null = null;
+  /** Choices to show once the line has finished typing. */
+  private pendingChoices: MenuOption[] | null = null;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -83,9 +89,11 @@ export class DialogueBox {
 
     scene.input.keyboard?.on('keydown', this.handleKey, this);
     scene.input.on('pointerdown', this.handlePointer, this);
+    scene.events.on(Phaser.Scenes.Events.UPDATE, this.tick, this);
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       scene.input.keyboard?.off('keydown', this.handleKey, this);
       scene.input.off('pointerdown', this.handlePointer, this);
+      scene.events.off(Phaser.Scenes.Events.UPDATE, this.tick, this);
     });
   }
 
@@ -106,7 +114,7 @@ export class DialogueBox {
    */
   openMenu(text: string, options: MenuOption[], onClose?: () => void): void {
     this.show('menu', onClose);
-    this.setLine(text, []);
+    this.setLine(text, [], false);
     this.showChoices(options.map((o) => ({ label: o.label, run: () => { this.close(); o.run(); } })));
     this.continueHint.setVisible(false);
   }
@@ -115,7 +123,7 @@ export class DialogueBox {
   say(text: string, onClose?: () => void): void {
     this.show('message', onClose);
     this.setLine(text, []);
-    this.continueHint.setVisible(true);
+    this.continueHint.setVisible(false);
   }
 
   /**
@@ -125,7 +133,7 @@ export class DialogueBox {
   line(text: string, tags: string[], onClose?: () => void): void {
     this.show('message', onClose);
     this.setLine(text, tags);
-    this.continueHint.setVisible(true);
+    this.continueHint.setVisible(false);
   }
 
   /** Shows one line that stays up, ignoring key presses, until code calls close() (e.g. while the player follows an instruction). */
@@ -137,17 +145,70 @@ export class DialogueBox {
 
   private show(mode: 'ink' | 'menu' | 'message' | 'held', onClose?: () => void): void {
     this.clearChoices();
+    this.typing = null;
+    this.pendingChoices = null;
     this.mode = mode;
     this.onClose = onClose ?? null;
     this._isOpen = true;
     this.container.setVisible(true);
   }
 
-  private setLine(text: string, tags: string[]): void {
+  /** Shows a line, typing it out (unless `type` is false) in the speaker's voice. */
+  private setLine(text: string, tags: string[], type = true): void {
     this.onLine?.(tags);
     this.showSpeaker(tags);
     this.lineText.setText(text);
     this.fit();
+    this.typing = null;
+    if (!type) return;
+    const { voices, muffled } = this.voiceFor(tags);
+    const letters = typeLine(this.lineText.laidOut, voices[0]);
+    this.typing = { letters, index: 0, wait: 0, voices, muffled };
+    this.lineText.setRevealed(0);
+  }
+
+  /** The voice a line is spoken in: the speaker's; a faceless voice's own (muffled behind a curtain or shutter); none for narration or a quote. */
+  private voiceFor(tags: string[]): { voices: Voice[]; muffled: boolean } {
+    if (tags.includes('quote')) return { voices: [], muffled: false };
+    const id = tags.find((t) => t.startsWith('speaker:'))?.slice('speaker:'.length).trim();
+    const voice = id ? SPEAKERS[id]?.voice : undefined;
+    if (voice === 'crowd') return { voices: CROWD_VOICES.map((v) => VOICES[v]), muffled: false };
+    if (voice) return { voices: [VOICES[voice]], muffled: false };
+    const name = tags.find((t) => t.startsWith('name:'))?.slice('name:'.length).trim();
+    const faceless = name ? FACELESS_VOICES[name] : undefined;
+    return faceless ? { voices: [VOICES[faceless]], muffled: name !== 'Mum' } : { voices: [], muffled: false };
+  }
+
+  get isTyping(): boolean {
+    return this.typing !== null;
+  }
+
+  /** Types the line out letter by letter, sounding each syllable. */
+  private tick(_time: number, delta: number): void {
+    const t = this.typing;
+    if (!t || !this._isOpen) return;
+    t.wait -= delta / 1000;
+    while (t.wait <= 0 && t.index < t.letters.length) {
+      const letter = t.letters[t.index]!;
+      t.index++;
+      this.lineText.setRevealed(t.index);
+      if (letter.syllable) {
+        // The crowd: several voices at once, slightly out of step.
+        t.voices.forEach((v, i) => playSyllable(this.scene, v, letter.syllable!, { muffled: t.muffled, gain: t.voices.length > 1 ? 0.55 : 1, delay: i * 0.018 + (i > 0 ? Math.random() * 0.03 : 0) }));
+      }
+      t.wait += t.letters[t.index]?.delay ?? 0;
+    }
+    if (t.index >= t.letters.length) this.finishTyping();
+  }
+
+  /** Shows the whole line at once (a key press while typing, or when it's done), then any choices. */
+  private finishTyping(): void {
+    this.typing = null;
+    this.lineText.setRevealed(null);
+    const pending = this.pendingChoices;
+    this.pendingChoices = null;
+    if (pending) this.showChoices(pending);
+    if (this.mode !== 'held' && this.mode !== 'menu') this.continueHint.setVisible(this.choiceTexts.length === 0);
   }
 
   /**
@@ -187,6 +248,8 @@ export class DialogueBox {
     if (line === null) {
       // Nothing more to say: either ink is waiting on a choice (keep the last line up) or it's over.
       if (this.story.choices().length > 0) {
+        this.typing = null;
+        this.lineText.setRevealed(null);
         this.showChoices(this.inkOptions());
         this.continueHint.setVisible(false);
       } else {
@@ -195,9 +258,9 @@ export class DialogueBox {
       return;
     }
     this.setLine(line.text, line.tags);
-    // If ink now wants a choice, show the options under this line straight away.
-    if (!this.story.canContinue) this.showChoices(this.inkOptions());
-    this.continueHint.setVisible(this.choiceTexts.length === 0);
+    // If ink now wants a choice, show the options under this line once it has typed out.
+    if (!this.story.canContinue) this.pendingChoices = this.inkOptions();
+    this.continueHint.setVisible(false);
   }
 
   /**
@@ -274,6 +337,10 @@ export class DialogueBox {
     if (!this._isOpen || event.repeat || this.mode === 'held') return;
     const key = event.key.toLowerCase();
     const confirm = key === ' ' || key === 'enter' || key === 'e';
+    if (this.typing) {
+      if (confirm) this.finishTyping(); // the first press shows the whole line
+      return;
+    }
     if (this.choiceTexts.length > 0) {
       if (key === 'arrowup' || key === 'w') this.select(this.selected - 1);
       else if (key === 'arrowdown' || key === 's') this.select(this.selected + 1);
@@ -288,6 +355,8 @@ export class DialogueBox {
   }
 
   private handlePointer(): void {
-    if (this._isOpen && this.mode !== 'held' && this.choiceTexts.length === 0) this.advance();
+    if (!this._isOpen || this.mode === 'held') return;
+    if (this.typing) this.finishTyping();
+    else if (this.choiceTexts.length === 0) this.advance();
   }
 }
