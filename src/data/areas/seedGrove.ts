@@ -103,7 +103,8 @@ export const seedGrove: AreaDefinition = {
     { id: 'seed-vault', x: 586, y: FLOOR, reach: 14, label: 'Look', knot: 'grove_seed_vault' },
   ],
 
-  ambience: [{ sound: 'wind', volume: 0.3 }, { sound: 'leaves', volume: 0.5 }, { sound: 'chime', volume: 0.5 }],
+  acoustics: 'high',
+  ambience: [{ sound: 'wind', volume: 0.35 }, { sound: 'leaves', volume: 0.6 }, { sound: 'chime', volume: 0.5 }],
   surface: 'fungus',
   exits: [{ id: 'to-upper-halls', x: 27, y: FLOOR, reach: 12, to: 'upper-halls' }],
 };

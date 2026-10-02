@@ -1,7 +1,7 @@
 import type Phaser from 'phaser';
 import type { AmbienceLayer, AmbienceSound, Surface } from '../data/areas/types';
 import { CROWD_VOICES, type Syllable, VOICES } from '../systems/voices';
-import { audioOut, noiseBuffer } from './audioMix';
+import { ACOUSTICS, type Acoustics, audioOut, noiseBuffer, setAcoustics } from './audioMix';
 import { playSyllable } from './voice';
 
 // The sound of the tree (docs/audio-plan.md), all synthesised with Web Audio, no files:
@@ -60,140 +60,179 @@ function noise(a: Out, dest: AudioNode, t: number, filter: BiquadFilterType, fre
   src.stop(t + attack + decay + 0.05);
 }
 
-/** Footsteps, by what you're walking on. */
+/**
+ * A creak: wood rubbing on wood. Noise chopped by a stick-slip judder, rung through two narrow,
+ * gliding resonances (not a tone, which sounded synthetic).
+ */
+function creak(a: Out, dest: AudioNode, t: number, v: number): void {
+  const len = rand(0.35, 1);
+  const src = a.ctx.createBufferSource();
+  src.buffer = noiseBuffer(a.ctx);
+  const judder = a.ctx.createGain();
+  judder.gain.value = 0;
+  const slip = a.ctx.createOscillator();
+  slip.type = 'sawtooth';
+  slip.frequency.setValueAtTime(rand(18, 35), t);
+  slip.frequency.linearRampToValueAtTime(rand(18, 45), t + len);
+  slip.connect(judder.gain);
+  const env = a.ctx.createGain();
+  env.gain.setValueAtTime(0, t);
+  env.gain.linearRampToValueAtTime(0.5 * v, t + len * 0.4);
+  env.gain.linearRampToValueAtTime(0, t + len);
+  const base = rand(260, 520);
+  src.connect(judder);
+  for (const [mult, q, level] of [[1, 12, 1], [2.3, 9, 0.4]] as const) {
+    const band = a.ctx.createBiquadFilter();
+    band.type = 'bandpass';
+    band.Q.value = q;
+    band.frequency.setValueAtTime(base * mult, t);
+    band.frequency.linearRampToValueAtTime(base * mult * rand(0.8, 1.25), t + len);
+    const g = a.ctx.createGain();
+    g.gain.value = level;
+    judder.connect(band).connect(g).connect(env);
+  }
+  env.connect(dest);
+  src.start(t, Math.random());
+  slip.start(t);
+  src.stop(t + len + 0.05);
+  slip.stop(t + len + 0.05);
+}
+
+/**
+ * Footsteps, by what you're walking on: a soft heel and a toe a moment later, every one a little
+ * different in weight, pitch and timing (designer: too regular). Low and woody, not clicky.
+ */
 function step(a: Out, dest: AudioNode, t: number, surface: Surface, v: number): void {
+  v *= rand(0.7, 1.1);
+  const toe = t + rand(0.03, 0.06);
+  const p = rand(0.85, 1.15);
   switch (surface) {
     case 'plank':
-      noise(a, dest, t, 'bandpass', rand(900, 1300), 1.5, 0.05, 0.22 * v);
-      tone(a, dest, t, 'sine', rand(190, 230), 120, 0.06, 0.12 * v);
+      noise(a, dest, t, 'lowpass', 900 * p, 1, 0.05, 0.3 * v, 0.004);
+      noise(a, dest, t, 'bandpass', 220 * p, 3, 0.07, 0.25 * v, 0.004); // the board's hollow
+      noise(a, dest, toe, 'lowpass', 1200 * p, 1, 0.03, 0.1 * v);
+      if (Math.random() < 0.15) creak(a, dest, t, v * 0.25);
       break;
     case 'metal':
-      noise(a, dest, t, 'bandpass', rand(2600, 3400), 6, 0.1, 0.16 * v);
-      tone(a, dest, t, 'triangle', rand(1500, 1900), 1400, 0.12, 0.03 * v);
+      noise(a, dest, t, 'bandpass', 1800 * p, 5, 0.09, 0.15 * v);
+      noise(a, dest, toe, 'bandpass', 2200 * p, 6, 0.06, 0.06 * v);
       break;
     case 'fungus':
-      noise(a, dest, t, 'lowpass', 450, 1, 0.08, 0.2 * v, 0.01);
+      noise(a, dest, t, 'lowpass', 380 * p, 0.7, 0.09, 0.3 * v, 0.012);
+      noise(a, dest, toe, 'lowpass', 600 * p, 0.7, 0.05, 0.08 * v, 0.01);
       break;
     case 'wet':
-      noise(a, dest, t, 'bandpass', 650, 2, 0.07, 0.2 * v, 0.01);
-      tone(a, dest, t + 0.02, 'sine', rand(280, 340), 140, 0.05, 0.06 * v);
+      noise(a, dest, t, 'lowpass', 500 * p, 1, 0.08, 0.3 * v, 0.01);
+      noise(a, dest, toe, 'bandpass', 900 * p, 2, 0.07, 0.12 * v, 0.015, 600); // the squelch
       break;
     default:
-      noise(a, dest, t, 'bandpass', rand(700, 1000), 1.2, 0.045, 0.2 * v);
-      tone(a, dest, t, 'sine', rand(130, 160), 80, 0.04, 0.1 * v);
+      noise(a, dest, t, 'lowpass', 650 * p, 0.8, 0.06, 0.32 * v, 0.004);
+      noise(a, dest, t, 'bandpass', 140 * p, 2, 0.06, 0.25 * v, 0.004); // weight on the floor
+      noise(a, dest, toe, 'lowpass', 1000 * p, 0.8, 0.03, 0.09 * v);
   }
 }
 
-/** Plays a one-off sound into `dest` at time `t`. `v` scales the loudness. */
+/** Plays a one-off sound into `dest` at time `t`. `v` scales the loudness. Built from noise where it can be: earthy, not synthy (designer). */
 function oneShot(a: Out, dest: AudioNode, t: number, id: SoundId, v: number, surface: Surface = 'wood'): void {
   switch (id) {
     case 'plink': {
-      const p = rand(0.85, 1.2);
-      tone(a, dest, t, 'sine', 1500 * p, 700 * p, 0.09, 0.2 * v);
-      tone(a, dest, t + 0.13, 'sine', 1400 * p, 650 * p, 0.08, 0.05 * v); // the echo
+      // A water drop: a tiny bubble that rises, low and soft (it was a high falling "pew").
+      const p = rand(0.8, 1.25);
+      tone(a, dest, t, 'sine', 380 * p, 720 * p, 0.035, 0.12 * v, 0.003);
+      noise(a, dest, t, 'bandpass', 900 * p, 2, 0.03, 0.06 * v);
       break;
     }
     case 'splash':
-      noise(a, dest, t, 'bandpass', 1800, 1, 0.12, 0.18 * v);
-      tone(a, dest, t, 'sine', 600, 250, 0.08, 0.08 * v);
+      noise(a, dest, t, 'lowpass', 1400, 0.7, 0.14, 0.2 * v);
+      noise(a, dest, t + 0.03, 'bandpass', 600, 2, 0.1, 0.1 * v);
       break;
     case 'crackle':
-      noise(a, dest, t, 'bandpass', rand(2000, 4500), 2, rand(0.008, 0.03), rand(0.08, 0.3) * v);
-      if (Math.random() < 0.25) noise(a, dest, t, 'lowpass', 300, 1, 0.06, 0.15 * v);
+      noise(a, dest, t, 'bandpass', rand(1200, 3000), 1.5, rand(0.006, 0.025), rand(0.06, 0.25) * v);
+      if (Math.random() < 0.3) noise(a, dest, t, 'lowpass', 250, 1, 0.08, 0.15 * v);
       break;
-    case 'creak': {
-      const f = rand(80, 140);
-      const osc = a.ctx.createOscillator();
-      osc.type = 'sawtooth';
-      const len = rand(0.35, 0.9);
-      osc.frequency.setValueAtTime(f, t);
-      osc.frequency.linearRampToValueAtTime(f * rand(0.75, 1.3), t + len);
-      const band = a.ctx.createBiquadFilter();
-      band.type = 'bandpass';
-      band.frequency.value = rand(500, 900);
-      band.Q.value = 4;
-      const g = a.ctx.createGain();
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.linearRampToValueAtTime(0.06 * v, t + len * 0.4);
-      g.gain.linearRampToValueAtTime(0.0001, t + len);
-      osc.connect(band).connect(g).connect(dest);
-      osc.start(t);
-      osc.stop(t + len + 0.05);
+    case 'creak':
+      creak(a, dest, t, v);
       break;
-    }
     case 'thump':
-      tone(a, dest, t, 'sine', 110, 40, 0.25, 0.5 * v);
-      noise(a, dest, t, 'lowpass', 400, 1, 0.15, 0.3 * v);
+      tone(a, dest, t, 'sine', 90, 45, 0.2, 0.35 * v);
+      noise(a, dest, t, 'lowpass', 300, 0.7, 0.18, 0.35 * v);
       break;
     case 'crack':
-      noise(a, dest, t, 'highpass', 1500, 1, 0.05, 0.4 * v);
-      tone(a, dest, t, 'square', 300, 90, 0.04, 0.08 * v);
-      for (let i = 1; i <= 4; i++) noise(a, dest, t + 0.08 * i + rand(0, 0.04), 'bandpass', rand(600, 1500), 2, 0.03, 0.12 * v);
+      noise(a, dest, t, 'bandpass', 1400, 1, 0.04, 0.4 * v);
+      noise(a, dest, t, 'lowpass', 400, 1, 0.08, 0.3 * v);
+      for (let i = 1; i <= 4; i++) noise(a, dest, t + 0.08 * i + rand(0, 0.05), 'bandpass', rand(400, 1000), 2, 0.035, 0.12 * v);
       break;
     case 'rumble':
-      noise(a, dest, t, 'lowpass', 140, 1, 1.6, 0.7 * v, 0.3);
-      for (let i = 0; i < 6; i++) noise(a, dest, t + rand(0.1, 1.4), 'bandpass', rand(300, 900), 2, 0.05, 0.15 * v);
+      noise(a, dest, t, 'lowpass', 120, 1, 1.6, 0.7 * v, 0.3);
+      for (let i = 0; i < 7; i++) noise(a, dest, t + rand(0.1, 1.4), 'lowpass', rand(300, 700), 1, 0.06, 0.18 * v);
       break;
     case 'skitter':
-      for (let i = 0; i < 6; i++) noise(a, dest, t + i * 0.028, 'bandpass', rand(3500, 5000), 4, 0.012, 0.15 * v);
+      // Legs on wood: a few low, dry scratches (it rattled like maracas).
+      for (let i = 0; i < 3; i++) noise(a, dest, t + i * rand(0.05, 0.09), 'lowpass', rand(500, 900), 1, 0.04, 0.12 * v, 0.01);
       break;
     case 'bloop':
-      tone(a, dest, t, 'sine', rand(120, 170), rand(260, 360), 0.08, 0.15 * v, 0.01);
+      tone(a, dest, t, 'sine', rand(90, 130), rand(170, 240), 0.09, 0.12 * v, 0.012);
+      noise(a, dest, t, 'lowpass', 300, 1, 0.06, 0.06 * v);
       break;
     case 'tick':
-      noise(a, dest, t, 'highpass', rand(2800, 3600), 1, 0.008, 0.15 * v);
+      // A wooden tock, not an electronic click.
+      noise(a, dest, t, 'bandpass', rand(1100, 1500), 5, 0.025, 0.2 * v);
       break;
     case 'tap':
-      noise(a, dest, t, 'bandpass', rand(1300, 2000), 3, 0.02, 0.25 * v);
-      tone(a, dest, t, 'sine', rand(250, 350), 200, 0.03, 0.1 * v);
+      noise(a, dest, t, 'bandpass', rand(700, 1100), 4, 0.03, 0.28 * v);
+      noise(a, dest, t, 'lowpass', 250, 1, 0.04, 0.12 * v);
       break;
     case 'chime': {
-      const note = [1568, 1760, 2093, 2349, 2637][Math.floor(Math.random() * 5)]!;
-      tone(a, dest, t, 'sine', note, note, 1.4, 0.05 * v, 0.01);
-      tone(a, dest, t, 'sine', note * 2.01, note * 2.01, 0.6, 0.015 * v, 0.01);
+      // The seeds: a soft, low, hollow knock that rings a little, like a gourd.
+      const note = [392, 440, 523, 587, 659][Math.floor(Math.random() * 5)]!;
+      noise(a, dest, t, 'bandpass', note, 25, 0.9, 0.5 * v, 0.004);
+      noise(a, dest, t, 'bandpass', note * 2.7, 20, 0.4, 0.12 * v, 0.004);
       break;
     }
     case 'step':
       step(a, dest, t, surface, v);
       break;
     case 'jump':
-      noise(a, dest, t, 'bandpass', 900, 1, 0.08, 0.1 * v, 0.02);
+      noise(a, dest, t, 'lowpass', 700, 0.7, 0.09, 0.12 * v, 0.02); // a breath of cloth
       break;
     case 'land':
       step(a, dest, t, surface, v * 1.3);
-      noise(a, dest, t, 'lowpass', 300, 1, 0.08, 0.2 * v);
+      noise(a, dest, t, 'lowpass', 220, 1, 0.1, 0.25 * v);
       break;
     case 'knock':
       for (let i = 0; i < 3; i++) {
-        tone(a, dest, t + i * 0.2, 'sine', 140, 70, 0.1, 0.5 * v);
-        noise(a, dest, t + i * 0.2, 'bandpass', 500, 2, 0.06, 0.4 * v);
+        const k = t + i * rand(0.17, 0.22);
+        tone(a, dest, k, 'sine', 120, 70, 0.08, 0.35 * v);
+        noise(a, dest, k, 'bandpass', 380, 2.5, 0.07, 0.45 * v);
       }
       break;
     case 'door':
-      oneShot(a, dest, t, 'creak', v * 1.5);
-      tone(a, dest, t + 0.5, 'sine', 120, 50, 0.2, 0.3 * v);
+      creak(a, dest, t, v * 1.2);
+      tone(a, dest, t + 0.6, 'sine', 100, 50, 0.2, 0.3 * v);
+      noise(a, dest, t + 0.6, 'lowpass', 300, 1, 0.15, 0.3 * v);
       break;
-    case 'rush': // the offerings going up the tube, the blessings coming down
-      noise(a, dest, t, 'bandpass', 300, 1.5, 1.4, 0.35 * v, 0.4, 3500);
-      tone(a, dest, t, 'sine', 500, 1800, 1.4, 0.06 * v, 0.4);
+    case 'rush': // the offerings going up the tube, the blessings coming down: a rush of air
+      noise(a, dest, t, 'bandpass', 250, 1.2, 1.5, 0.4 * v, 0.5, 2200);
+      noise(a, dest, t, 'lowpass', 180, 1, 1.4, 0.25 * v, 0.5);
       break;
     case 'boom':
-      tone(a, dest, t, 'sine', 70, 28, 1.3, 0.6 * v);
-      noise(a, dest, t, 'lowpass', 200, 1, 0.9, 0.3 * v);
+      tone(a, dest, t, 'sine', 60, 28, 1.3, 0.5 * v);
+      noise(a, dest, t, 'lowpass', 160, 1, 1, 0.35 * v);
       break;
     case 'shimmer':
-      for (const f of [1500, 1900, 2400, 3000]) tone(a, dest, t + rand(0, 0.1), 'sine', f * rand(0.98, 1.02), f, 1.6, 0.03 * v, 0.05);
+      // Light: a soft swell of air, not bells.
+      noise(a, dest, t, 'bandpass', 1300, 1.5, 1.6, 0.15 * v, 0.5, 2000);
       break;
     case 'shuffle':
-      for (let i = 0; i < 14; i++) noise(a, dest, t + rand(0, 0.9), 'lowpass', rand(700, 1400), 1, rand(0.05, 0.12), rand(0.06, 0.15) * v, 0.01);
+      for (let i = 0; i < 14; i++) noise(a, dest, t + rand(0, 0.9), 'lowpass', rand(500, 1000), 0.8, rand(0.05, 0.12), rand(0.06, 0.15) * v, 0.01);
       break;
     case 'whoosh':
-      noise(a, dest, t, 'bandpass', 400, 2, 0.25, 0.3 * v, 0.05, 1600);
+      noise(a, dest, t, 'bandpass', 350, 1.5, 0.25, 0.3 * v, 0.05, 1200);
       break;
     case 'rise':
-      tone(a, dest, t, 'sine', 180, 1600, 3.2, 0.12 * v, 0.8);
-      tone(a, dest, t, 'triangle', 270, 2400, 3.2, 0.04 * v, 0.8);
-      noise(a, dest, t, 'bandpass', 300, 1, 3.2, 0.25 * v, 1, 4000);
+      noise(a, dest, t, 'bandpass', 200, 1.5, 3.2, 0.35 * v, 1, 2500);
+      noise(a, dest, t, 'lowpass', 150, 1, 3.2, 0.3 * v, 1.2);
+      tone(a, dest, t, 'sine', 110, 220, 3.2, 0.05 * v, 1.2);
       break;
   }
 }
@@ -220,7 +259,7 @@ function loopNoise(a: Out, dest: AudioNode, filter: BiquadFilterType, freq: numb
 }
 
 /** The continuous sounds. */
-function makeLoop(a: Out, dest: AudioNode, sound: 'room' | 'hum' | 'wind' | 'fizz' | 'leaves' | 'fire'): Loop {
+function makeLoop(a: Out, dest: AudioNode, sound: 'room' | 'hum' | 'buzz' | 'wind' | 'fizz' | 'leaves' | 'fire', hush = 160): Loop {
   const gain = a.ctx.createGain();
   gain.gain.value = 0;
   gain.connect(dest);
@@ -228,7 +267,7 @@ function makeLoop(a: Out, dest: AudioNode, sound: 'room' | 'hum' | 'wind' | 'fiz
   let tick: Loop['tick'];
   switch (sound) {
     case 'room': {
-      const n = loopNoise(a, gain, 'lowpass', 160, 0.7);
+      const n = loopNoise(a, gain, 'lowpass', hush, 0.7);
       const g = a.ctx.createGain();
       g.gain.value = 0.5;
       n.filter.disconnect();
@@ -237,31 +276,70 @@ function makeLoop(a: Out, dest: AudioNode, sound: 'room' | 'hum' | 'wind' | 'fiz
       break;
     }
     case 'hum': {
-      // The tube: a low chord that breathes, and a faint bright shimmer over it.
+      // The tube: a deep, breathing resonance, air through a vast pipe (no pure tones, no thin whine on top).
       const mix = a.ctx.createGain();
-      mix.gain.value = 0.18;
+      mix.gain.value = 1;
       mix.connect(gain);
-      for (const [f, level] of [[55, 1], [110.4, 0.6], [164.8, 0.35], [220.9, 0.2]] as const) {
-        const osc = a.ctx.createOscillator();
-        osc.frequency.value = f;
+      for (const [f, q, level] of [[55, 18, 1.4], [110, 14, 0.7], [165, 10, 0.25]] as const) {
+        const n = loopNoise(a, mix, 'bandpass', f, q);
+        n.filter.disconnect();
         const g = a.ctx.createGain();
         g.gain.value = level;
-        osc.connect(g).connect(mix);
-        osc.start();
-        stops.push(() => osc.stop());
+        n.filter.connect(g).connect(mix);
+        stops.push(() => n.src.stop());
       }
+      const body = a.ctx.createOscillator();
+      body.frequency.value = 55;
+      const bodyLevel = a.ctx.createGain();
+      bodyLevel.gain.value = 0.03;
+      body.connect(bodyLevel).connect(mix);
+      body.start();
       const lfo = a.ctx.createOscillator();
-      lfo.frequency.value = 0.15;
+      lfo.frequency.value = 0.12;
       const depth = a.ctx.createGain();
-      depth.gain.value = 0.06;
+      depth.gain.value = 0.25;
       lfo.connect(depth).connect(mix.gain);
       lfo.start();
-      stops.push(() => lfo.stop());
-      const shimmer = a.ctx.createGain();
-      shimmer.gain.value = 0.04;
-      shimmer.connect(gain);
-      const n = loopNoise(a, shimmer, 'bandpass', 2400, 6);
-      stops.push(() => n.src.stop());
+      stops.push(() => body.stop(), () => lfo.stop());
+      break;
+    }
+    case 'buzz': {
+      // The tube up close, at the gate: a loud, thick, living buzz, rich in the low end, wavering.
+      const mix = a.ctx.createGain();
+      mix.gain.value = 1;
+      mix.connect(gain);
+      const tone = a.ctx.createOscillator();
+      tone.type = 'sawtooth';
+      tone.frequency.value = 55;
+      const drift = a.ctx.createOscillator();
+      drift.frequency.value = 0.3;
+      const driftDepth = a.ctx.createGain();
+      driftDepth.gain.value = 0.6;
+      drift.connect(driftDepth).connect(tone.frequency);
+      const soften = a.ctx.createBiquadFilter();
+      soften.type = 'lowpass';
+      soften.frequency.value = 420;
+      soften.Q.value = 2;
+      const toneLevel = a.ctx.createGain();
+      toneLevel.gain.value = 0.18;
+      tone.connect(soften).connect(toneLevel).connect(mix);
+      for (const [f, q, level] of [[55, 16, 1.6], [110, 12, 1], [220, 8, 0.4]] as const) {
+        const n = loopNoise(a, mix, 'bandpass', f, q);
+        n.filter.disconnect();
+        const g = a.ctx.createGain();
+        g.gain.value = level;
+        n.filter.connect(g).connect(mix);
+        stops.push(() => n.src.stop());
+      }
+      const flutter = a.ctx.createOscillator();
+      flutter.frequency.value = 0.4;
+      const flutterDepth = a.ctx.createGain();
+      flutterDepth.gain.value = 0.2;
+      flutter.connect(flutterDepth).connect(mix.gain);
+      tone.start();
+      drift.start();
+      flutter.start();
+      stops.push(() => tone.stop(), () => drift.stop(), () => flutter.stop());
       break;
     }
     case 'wind': {
@@ -284,10 +362,11 @@ function makeLoop(a: Out, dest: AudioNode, sound: 'room' | 'hum' | 'wind' | 'fiz
       break;
     }
     case 'fizz': {
+      // The fungi: a faint, soft fizz, well below the hiss it was.
       const g = a.ctx.createGain();
-      g.gain.value = 0.05;
+      g.gain.value = 0.04;
       g.connect(gain);
-      const n = loopNoise(a, g, 'highpass', 6000, 0.7);
+      const n = loopNoise(a, g, 'bandpass', 2200, 0.6);
       const lfo = a.ctx.createOscillator();
       lfo.frequency.value = 3;
       const depth = a.ctx.createGain();
@@ -301,7 +380,7 @@ function makeLoop(a: Out, dest: AudioNode, sound: 'room' | 'hum' | 'wind' | 'fiz
       const g = a.ctx.createGain();
       g.gain.value = 0.12;
       g.connect(gain);
-      const n = loopNoise(a, g, 'bandpass', 2600, 0.6);
+      const n = loopNoise(a, g, 'bandpass', 1700, 0.6);
       stops.push(() => n.src.stop());
       tick = () => g.gain.setTargetAtTime(rand(0.04, 0.18), a.ctx.currentTime, 0.8);
       break;
@@ -315,10 +394,10 @@ function makeLoop(a: Out, dest: AudioNode, sound: 'room' | 'hum' | 'wind' | 'fiz
   return { gain, tick, stop: () => stops.forEach((s) => { try { s(); } catch { /* already stopped */ } }) };
 }
 
-const LOOPED: Partial<Record<AmbienceSound, 'room' | 'hum' | 'wind' | 'fizz' | 'leaves'>> = { room: 'room', hum: 'hum', wind: 'wind', fizz: 'fizz', leaves: 'leaves' };
+const LOOPED: Partial<Record<AmbienceSound, 'room' | 'hum' | 'buzz' | 'wind' | 'fizz' | 'leaves'>> = { room: 'room', hum: 'hum', buzz: 'buzz', wind: 'wind', fizz: 'fizz', leaves: 'leaves' };
 
 /** How often (per second) each kind of moment happens in a bed, at full volume. */
-const RATES: Partial<Record<AmbienceSound, number>> = { chatter: 5, crowd: 12, creaks: 0.15, drips: 0.6, bubbles: 1.5, clock: 1, workshop: 0.8, engine: 0.4, chime: 0.25, hearth: 6 };
+const RATES: Partial<Record<AmbienceSound, number>> = { footfall: 3, pages: 0.3, chatter: 5, crowd: 12, creaks: 0.15, drips: 0.6, bubbles: 1.5, clock: 1, workshop: 0.8, engine: 0.4, chime: 0.25, hearth: 6 };
 
 interface Bed {
   layer: AmbienceLayer;
@@ -356,6 +435,9 @@ export class Soundscape {
     layers: AmbienceLayer[],
     /** Whether a layer is on now (time of day, story). */
     private readonly isOn: (layer: AmbienceLayer) => boolean,
+    private readonly acoustics: Acoustics = 'small',
+    /** The floor, for other people's footsteps. */
+    private readonly surface: Surface = 'wood',
   ) {
     this.beds = layers.map((layer) => ({ layer, loop: null, on: false, wait: Math.random(), ticks: 0 }));
   }
@@ -403,6 +485,7 @@ export class Soundscape {
     this.listener = listener;
     const dt = delta / 1000;
     this.bedOut ??= (() => {
+      setAcoustics(this.scene, this.acoustics);
       const g = a.ctx.createGain();
       g.connect(a.out);
       return g;
@@ -419,7 +502,7 @@ export class Soundscape {
     }
     const looped = LOOPED[bed.layer.sound];
     if (looped) {
-      bed.loop ??= makeLoop(a, this.bedOut!, looped);
+      bed.loop ??= makeLoop(a, this.bedOut!, looped, ACOUSTICS[this.acoustics].hush);
       bed.loop.gain.gain.setTargetAtTime(bed.on ? volume : 0, a.ctx.currentTime, 0.8);
       bed.loop.tick?.(dt);
       return;
@@ -436,6 +519,20 @@ export class Soundscape {
         playSyllable(this.scene, voice, murmur(), { bus: 'sounds', muffled: true, gain: volume * 0.5, pan: rand(-0.7, 0.7) });
         break;
       }
+      case 'footfall': {
+        // Someone walking past: a few steps, somewhere to the left or right, near or far.
+        const panner = a.ctx.createStereoPanner();
+        panner.pan.value = rand(-0.8, 0.8);
+        panner.connect(this.bedOut!);
+        const count = Math.floor(rand(2, 6));
+        const pace = rand(0.3, 0.45);
+        const v = volume * rand(0.3, 0.9);
+        for (let i = 0; i < count; i++) oneShot(a, panner, t + i * pace * rand(0.9, 1.1), 'step', v, this.surface);
+        break;
+      }
+      case 'pages':
+        noise(a, this.bedOut!, t, 'bandpass', rand(2000, 3200), 0.8, rand(0.15, 0.3), 0.08 * volume, 0.05, rand(1500, 2500));
+        break;
       case 'creaks':
         oneShot(a, this.bedOut!, t, 'creak', volume);
         break;
@@ -501,7 +598,7 @@ export class Soundscape {
         if (moved) play('creak', 0.5);
         break;
       case 'skitter':
-        e.wait = 0.25;
+        e.wait = rand(0.25, 0.45);
         if (moved) play('skitter');
         break;
       case 'footsteps':

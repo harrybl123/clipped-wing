@@ -66,12 +66,13 @@ export type Feature =
 
 /**
  * A sound the whole area makes, under everything else (docs/audio-plan.md). Continuous: `room` (the tree's
- * body, a low hush), `hum` (the tube), `wind`, `fizz` (fungi), `leaves`. Made of moments: `chatter` (people
- * talking nearby), `crowd` (a murmuring crowd), `creaks` (the tree settling), `drips`, `bubbles` (the
+ * body, a low hush), `hum` (the tube), `buzz` (the tube up close: loud), `wind`, `fizz` (fungi), `leaves`.
+ * Made of moments: `chatter` (people talking nearby), `crowd` (a murmuring crowd), `footfall` (other
+ * people walking about, on the area's floor), `pages` (paper), `creaks` (the tree settling), `drips`, `bubbles` (the
  * rot), `clock`, `workshop` (tapping), `engine` (the archive's clicking), `chime` (the seeds), `hearth`
  * (a fire's crackle, heard from anywhere in the room).
  */
-export type AmbienceSound = 'room' | 'hum' | 'wind' | 'fizz' | 'leaves' | 'chatter' | 'crowd' | 'creaks' | 'drips' | 'bubbles' | 'clock' | 'workshop' | 'engine' | 'chime' | 'hearth';
+export type AmbienceSound = 'room' | 'hum' | 'buzz' | 'wind' | 'fizz' | 'leaves' | 'chatter' | 'crowd' | 'footfall' | 'creaks' | 'drips' | 'bubbles' | 'clock' | 'workshop' | 'engine' | 'pages' | 'chime' | 'hearth';
 
 export interface AmbienceLayer {
   sound: AmbienceSound;
@@ -170,6 +171,8 @@ export interface AreaDefinition {
   exits: Exit[];
   /** The area's sound bed, layered (docs/audio-plan.md). */
   ambience?: AmbienceLayer[];
+  /** The space, for echo and the room's hush (default small). */
+  acoustics?: 'small' | 'hall' | 'tunnel' | 'street' | 'high';
   /** What the floor's made of (footsteps; default wood). One-way boards always sound like planks. */
   surface?: Surface;
 }

@@ -157,7 +157,8 @@ export const middleTiers: AreaDefinition = {
     { id: 'clock', x: 876, y: MID, reach: 10, label: 'Look', knot: 'middle_clock' },
   ],
 
-  ambience: [{ sound: 'room', volume: 0.3 }, { sound: 'workshop', volume: 0.5, when: ['morning', 'afternoon'] }, { sound: 'chatter', volume: 0.35, when: ['morning', 'afternoon', 'evening'] }, { sound: 'wind', volume: 0.15 }],
+  acoustics: 'street',
+  ambience: [{ sound: 'room', volume: 0.25 }, { sound: 'workshop', volume: 0.7, when: ['morning', 'afternoon'] }, { sound: 'footfall', volume: 0.5, when: ['morning', 'afternoon', 'evening'] }, { sound: 'chatter', volume: 0.3, when: ['morning', 'afternoon', 'evening'] }, { sound: 'wind', volume: 0.2 }],
   exits: [
     { id: 'to-trunk-climb', x: 27, y: FLOOR, reach: 12, to: 'trunk-climb' },
     { id: 'to-upper-halls', x: 795, y: TOP, reach: 12, to: 'upper-halls' },

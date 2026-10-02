@@ -92,7 +92,8 @@ export const theRot: AreaDefinition = {
     { id: 'crack', x: 694, y: FLOOR, reach: 8, label: 'Look', knot: 'the_rot_crack' },
   ],
 
-  ambience: [{ sound: 'room', volume: 0.5 }, { sound: 'bubbles', volume: 0.6 }, { sound: 'drips', volume: 0.5 }, { sound: 'fizz', volume: 0.3 }],
+  acoustics: 'tunnel',
+  ambience: [{ sound: 'room', volume: 0.5 }, { sound: 'bubbles', volume: 0.7 }, { sound: 'drips', volume: 0.55 }, { sound: 'fizz', volume: 0.3 }],
   surface: 'wet',
   exits: [],
 };

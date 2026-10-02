@@ -165,6 +165,7 @@ export const backRoutes: AreaDefinition = {
     { id: 'listen-spot', x: 574, y: UPPER, reach: 10, label: 'Listen', knot: 'back_routes_listen' },
   ],
 
+  acoustics: 'tunnel',
   ambience: [{ sound: 'room', volume: 0.6 }, { sound: 'drips', volume: 0.5 }, { sound: 'creaks', volume: 0.7 }, { sound: 'fizz', volume: 0.25 }],
   exits: [
     { id: 'to-shrine', x: 36, y: UPPER, reach: 12, to: 'tenders-shrine' },

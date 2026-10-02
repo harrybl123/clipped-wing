@@ -2,7 +2,8 @@
 // (docs/audio-plan.md). This file is pure (no Phaser, no Web Audio): the voice presets as numbers, and
 // the timing of a line, which letters sound and where it pauses. `src/ui/voice.ts` plays them.
 
-export type Wave = 'sine' | 'triangle' | 'square' | 'sawtooth';
+/** Rounded tones only: buzzier waves sounded alien and abrasive (designer). */
+export type Wave = 'sine' | 'triangle';
 
 export interface Voice {
   /** Base pitch in Hz. */
@@ -29,23 +30,23 @@ export interface Voice {
   volume: number;
 }
 
-/** The fifteen voices (suggestion in docs/audio-plan.md, tuned by ear). */
+/** The fifteen voices (suggestion in docs/audio-plan.md, tuned by ear). Rounded tones only (sine, triangle): softer and smoother (designer). */
 export const VOICES = {
-  you: { pitch: 210, spread: 2, wave: 'triangle', length: 0.07, speed: 1, every: 2, glide: -1, breath: 0.35, wobble: 0, formant: 1, volume: 0.8 },
-  mum: { pitch: 180, spread: 1.5, wave: 'triangle', length: 0.09, speed: 0.85, every: 3, glide: -0.5, breath: 0.2, wobble: 0.15, formant: 0.95, volume: 0.8 },
-  girl: { pitch: 290, spread: 3, wave: 'square', length: 0.05, speed: 1.2, every: 2, glide: 1, breath: 0.15, wobble: 0, formant: 1.15, volume: 0.55 },
-  friend: { pitch: 250, spread: 2.5, wave: 'triangle', length: 0.065, speed: 1.1, every: 2, glide: 1.5, breath: 0.1, wobble: 0, formant: 1.05, volume: 0.8 },
-  archivist: { pitch: 240, spread: 2, wave: 'sine', length: 0.045, speed: 1.3, every: 2, glide: 0.5, breath: 0.1, wobble: 0.5, formant: 1.2, volume: 0.9 },
-  boy: { pitch: 230, spread: 5, wave: 'sawtooth', length: 0.06, speed: 1.2, every: 2, glide: 3, breath: 0.05, wobble: 0, formant: 1.25, volume: 0.4 },
-  tender: { pitch: 95, spread: 1.5, wave: 'triangle', length: 0.12, speed: 0.75, every: 3, glide: -0.5, breath: 0.25, wobble: 0.1, formant: 0.8, volume: 1 },
-  preacher: { pitch: 140, spread: 4, wave: 'sawtooth', length: 0.1, speed: 0.95, every: 3, glide: 2, breath: 0.05, wobble: 0.3, formant: 0.95, volume: 0.45 },
-  elder: { pitch: 115, spread: 1, wave: 'square', length: 0.07, speed: 0.8, every: 3, glide: -1.5, breath: 0.3, wobble: 0, formant: 0.85, volume: 0.45 },
-  guard: { pitch: 105, spread: 1, wave: 'square', length: 0.06, speed: 1, every: 3, glide: -1, breath: 0.2, wobble: 0, formant: 0.8, volume: 0.5 },
-  roots_man: { pitch: 140, spread: 2, wave: 'triangle', length: 0.07, speed: 1, every: 2, glide: -0.5, breath: 0.2, wobble: 0, formant: 0.9, volume: 0.85 },
-  roots_woman: { pitch: 230, spread: 2, wave: 'triangle', length: 0.07, speed: 1, every: 2, glide: 0, breath: 0.2, wobble: 0, formant: 1.05, volume: 0.8 },
-  old: { pitch: 150, spread: 2, wave: 'triangle', length: 0.1, speed: 0.75, every: 3, glide: -1, breath: 0.4, wobble: 0.9, formant: 0.9, volume: 0.85 },
-  young: { pitch: 175, spread: 3, wave: 'sawtooth', length: 0.05, speed: 1.15, every: 2, glide: -2, breath: 0.1, wobble: 0, formant: 1, volume: 0.4 },
-  upper: { pitch: 165, spread: 1.5, wave: 'sine', length: 0.08, speed: 0.9, every: 3, glide: 0.5, breath: 0.1, wobble: 0, formant: 1.15, volume: 0.9 },
+  you: { pitch: 200, spread: 1.5, wave: 'triangle', length: 0.085, speed: 1, every: 2, glide: -0.7, breath: 0.4, wobble: 0, formant: 1, volume: 0.9 },
+  mum: { pitch: 175, spread: 1.2, wave: 'sine', length: 0.1, speed: 0.85, every: 3, glide: -0.5, breath: 0.3, wobble: 0.12, formant: 0.95, volume: 1 },
+  girl: { pitch: 255, spread: 2.5, wave: 'triangle', length: 0.07, speed: 1.15, every: 2, glide: 0.6, breath: 0.3, wobble: 0, formant: 1.1, volume: 0.85 },
+  friend: { pitch: 235, spread: 2, wave: 'sine', length: 0.08, speed: 1.1, every: 2, glide: 0.8, breath: 0.2, wobble: 0, formant: 1.05, volume: 1 },
+  archivist: { pitch: 225, spread: 1.5, wave: 'sine', length: 0.06, speed: 1.25, every: 2, glide: 0.3, breath: 0.15, wobble: 0.35, formant: 1.15, volume: 1 },
+  boy: { pitch: 215, spread: 3.5, wave: 'triangle', length: 0.075, speed: 1.15, every: 2, glide: 1.5, breath: 0.15, wobble: 0, formant: 1.2, volume: 0.85 },
+  tender: { pitch: 98, spread: 1.2, wave: 'triangle', length: 0.13, speed: 0.75, every: 3, glide: -0.4, breath: 0.35, wobble: 0.1, formant: 0.8, volume: 1 },
+  preacher: { pitch: 135, spread: 3, wave: 'triangle', length: 0.11, speed: 0.95, every: 3, glide: 1.2, breath: 0.15, wobble: 0.25, formant: 0.95, volume: 0.9 },
+  elder: { pitch: 112, spread: 1, wave: 'triangle', length: 0.09, speed: 0.8, every: 3, glide: -1, breath: 0.4, wobble: 0, formant: 0.85, volume: 0.9 },
+  guard: { pitch: 104, spread: 1, wave: 'triangle', length: 0.075, speed: 1, every: 3, glide: -0.8, breath: 0.3, wobble: 0, formant: 0.8, volume: 0.95 },
+  roots_man: { pitch: 135, spread: 1.5, wave: 'triangle', length: 0.085, speed: 1, every: 2, glide: -0.4, breath: 0.3, wobble: 0, formant: 0.9, volume: 0.95 },
+  roots_woman: { pitch: 215, spread: 1.5, wave: 'sine', length: 0.085, speed: 1, every: 2, glide: 0, breath: 0.3, wobble: 0, formant: 1.05, volume: 1 },
+  old: { pitch: 145, spread: 1.5, wave: 'triangle', length: 0.11, speed: 0.75, every: 3, glide: -0.7, breath: 0.5, wobble: 0.6, formant: 0.9, volume: 0.95 },
+  young: { pitch: 165, spread: 2.5, wave: 'triangle', length: 0.07, speed: 1.1, every: 2, glide: -1.2, breath: 0.25, wobble: 0, formant: 1, volume: 0.9 },
+  upper: { pitch: 160, spread: 1.2, wave: 'sine', length: 0.095, speed: 0.9, every: 3, glide: 0.3, breath: 0.15, wobble: 0, formant: 1.1, volume: 1 },
 } satisfies Record<string, Voice>;
 
 export type VoiceId = keyof typeof VOICES;

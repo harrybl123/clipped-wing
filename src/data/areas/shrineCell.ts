@@ -87,6 +87,7 @@ export const shrineCell: AreaDefinition = {
     { id: 'grate', x: 238, y: FLOOR, reach: 8, label: 'Look', knot: 'shrine_cell_grate' },
   ],
 
-  ambience: [{ sound: 'room', volume: 0.45 }, { sound: 'creaks', volume: 0.25 }, { sound: 'crowd', volume: 0.4, when: ['evening', 'night'], showIf: 'day7' }],
+  acoustics: 'small',
+  ambience: [{ sound: 'room', volume: 0.45 }, { sound: 'creaks', volume: 0.25 }, { sound: 'footfall', volume: 0.2, showIf: 'in_custody', when: ['morning', 'afternoon'] }, { sound: 'crowd', volume: 0.4, when: ['evening', 'night'], showIf: 'day7' }],
   exits: [],
 };

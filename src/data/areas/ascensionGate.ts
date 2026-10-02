@@ -121,7 +121,8 @@ export const ascensionGate: AreaDefinition = {
 
   interactables: [{ id: 'gate', x: TUBE_X + 16, y: DAIS, reach: 16, label: 'Look', knot: 'gate_gate' }],
 
-  ambience: [{ sound: 'wind', volume: 0.55 }, { sound: 'crowd', volume: 0.45, when: ['evening'] }],
+  acoustics: 'high',
+  ambience: [{ sound: 'buzz', volume: 0.9 }, { sound: 'wind', volume: 0.5 }, { sound: 'crowd', volume: 0.45, when: ['evening'] }, { sound: 'footfall', volume: 0.4, when: ['evening'] }],
   exits: [
     { id: 'to-upper-halls', x: 27, y: FLOOR, reach: 12, to: 'upper-halls' },
     { id: 'to-archive', x: W - 27, y: FLOOR, reach: 12, to: 'archive' },

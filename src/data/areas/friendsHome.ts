@@ -125,7 +125,8 @@ export const friendsHome: AreaDefinition = {
     { id: 'drawings', x: 296, y: UPPER.y, reach: 14, label: 'Look', knot: 'friends_home_drawings' },
   ],
 
-  ambience: [{ sound: 'room', volume: 0.35 }, { sound: 'hum', volume: 0.12 }, { sound: 'creaks', volume: 0.2 }],
+  acoustics: 'small',
+  ambience: [{ sound: 'room', volume: 0.3 }, { sound: 'clock', volume: 0.3 }, { sound: 'hum', volume: 0.08 }, { sound: 'creaks', volume: 0.15 }],
   surface: 'plank',
   exits: [
     { id: 'front-door', x: 28, y: FLOOR, reach: 14, to: 'roots-market' },

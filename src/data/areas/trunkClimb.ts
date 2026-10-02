@@ -148,7 +148,8 @@ export const trunkClimb: AreaDefinition = {
     { id: 'lookout', x: 360, y: TOP, reach: 14, label: 'Watch', knot: 'trunk_lookout' },
   ],
 
-  ambience: [{ sound: 'room', volume: 0.3 }, { sound: 'wind', volume: 0.4 }, { sound: 'creaks', volume: 0.5 }],
+  acoustics: 'high',
+  ambience: [{ sound: 'wind', volume: 0.65 }, { sound: 'hum', volume: 0.15 }, { sound: 'creaks', volume: 0.6 }],
   exits: [
     { id: 'down-to-shrine', x: 27, y: FLOOR, reach: 12, to: 'tenders-shrine' },
     { id: 'to-middle-tiers', x: 33, y: TOP, reach: 12, to: 'middle-tiers' },

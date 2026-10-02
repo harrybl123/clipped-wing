@@ -121,7 +121,8 @@ export const tendersShrine: AreaDefinition = {
     { id: 'blessing', x: 345, y: DAIS, reach: 8, label: 'Look', knot: 'shrine_blessing' },
   ],
 
-  ambience: [{ sound: 'room', volume: 0.35 }, { sound: 'hum', volume: 0.18 }, { sound: 'creaks', volume: 0.15 }, { sound: 'crowd', volume: 0.3, showIf: 'interrogating' }],
+  acoustics: 'hall',
+  ambience: [{ sound: 'room', volume: 0.3 }, { sound: 'hum', volume: 0.2 }, { sound: 'pages', volume: 0.5, when: ['afternoon'] }, { sound: 'footfall', volume: 0.2, when: ['afternoon'] }, { sound: 'crowd', volume: 0.3, showIf: 'interrogating' }],
   exits: [
     { id: 'to-offering-floor', x: 27, y: FLOOR, reach: 12, to: 'offering-floor' },
     { id: 'down-to-back-routes', x: 182, y: FLOOR, reach: 8, to: 'back-routes' },

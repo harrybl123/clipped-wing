@@ -316,11 +316,11 @@ export class AreaScene extends Phaser.Scene {
   /** The area's sounds (docs/audio-plan.md). */
   private soundscape!: Soundscape;
   /** For footsteps, jumps and landings: distance walked since the last step, and last frame's state. */
-  private stepping = { since: 0, wasOnGround: true, fallSpeed: 0 };
+  private stepping = { since: 0, next: 15, wasOnGround: true, fallSpeed: 0 };
 
   create(): void {
     const { area } = this;
-    this.soundscape = new Soundscape(this, area.ambience ?? [], (layer) => this.layerOn(layer));
+    this.soundscape = new Soundscape(this, area.ambience ?? [], (layer) => this.layerOn(layer), area.acoustics, area.surface);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.soundscape.stop());
     this.cameras.main.setBackgroundColor(SHADES.shadow).fadeIn(400);
     this.physics.world.setBounds(0, 0, area.width, area.height);
@@ -491,9 +491,10 @@ export class AreaScene extends Phaser.Scene {
     if (!onGround && st.wasOnGround && body.velocity.y < -50) this.soundscape.play('jump', undefined, 0.4);
     if (onGround && Math.abs(body.velocity.x) > 5) {
       st.since += (Math.abs(body.velocity.x) * delta) / 1000;
-      const stride = this.player.crouching ? 10 : 15;
-      if (st.since >= stride) {
+      if (st.since >= st.next) {
         st.since = 0;
+        // Not quite even (designer: too regular): each stride a little longer or shorter.
+        st.next = (this.player.crouching ? 10 : 15) * Phaser.Math.FloatBetween(0.82, 1.2);
         this.soundscape.play('step', undefined, this.player.crouching ? 0.25 : 0.45, undefined, this.surfaceUnderfoot());
       }
     }
@@ -1624,7 +1625,12 @@ export class AreaScene extends Phaser.Scene {
       case 'beetle': {
         const frames = BEETLE_FRAMES.map((f, i) => makeSpriteTexture(this, `beetle-${i}`, f.rows, f.colours));
         const image = this.add.image(feature.from, feature.y, frames[0]!).setOrigin(0.5, 1).setDepth(9);
-        this.soundscape.addEmitter('skitter', () => (image.visible ? { x: image.x, y: image.y } : null), 70);
+        // Silent while it paces (a constant rattle, designer); a scratch of legs only when it rushes you.
+        this.soundscape.addEmitter('skitter', () => {
+          const { x, y } = this.player.feet;
+          const rushing = Math.abs(y - feature.y) <= 4 && Math.abs(x - image.x) < 56;
+          return rushing && image.visible ? { x: image.x, y: image.y } : null;
+        }, 70, 0.7);
         this.beetles.push({ image, feature, dir: 1, frames, step: 0 });
         this.hazards.push({ rect: () => new Phaser.Geom.Rectangle(image.x - image.width / 2 + 2, image.y - image.height + 2, image.width - 4, image.height - 2), reset: feature.reset });
         break;

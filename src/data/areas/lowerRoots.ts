@@ -197,7 +197,9 @@ export const lowerRoots: AreaDefinition = {
     { id: 'girls-door', x: HER_DOOR, y: FLOOR, reach: 8, label: 'Knock', knot: 'lower_roots_girls_door' },
   ],
 
-  ambience: [{ sound: 'room', volume: 0.45 }, { sound: 'fizz', volume: 0.5 }, { sound: 'drips', volume: 0.45 }, { sound: 'chatter', volume: 0.4, when: ['morning', 'afternoon', 'evening'] }, { sound: 'creaks', volume: 0.35, when: ['night'] }],
+  acoustics: 'street',
+  surface: 'fungus',
+  ambience: [{ sound: 'room', volume: 0.45 }, { sound: 'fizz', volume: 0.6 }, { sound: 'drips', volume: 0.6 }, { sound: 'chatter', volume: 0.35, when: ['morning', 'afternoon', 'evening'] }, { sound: 'footfall', volume: 0.45, when: ['morning', 'afternoon', 'evening'] }, { sound: 'bubbles', volume: 0.12 }, { sound: 'creaks', volume: 0.35, when: ['night'] }],
   exits: [
     { id: 'up-to-home', x: 34, y: HIGH, reach: 12, to: 'home' },
     { id: 'to-back-routes', x: 34, y: FLOOR, reach: 12, to: 'back-routes' },
