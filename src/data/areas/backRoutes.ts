@@ -166,7 +166,7 @@ export const backRoutes: AreaDefinition = {
   ],
 
   acoustics: 'tunnel',
-  ambience: [{ sound: 'room', volume: 0.6 }, { sound: 'drips', volume: 0.5 }, { sound: 'creaks', volume: 0.7 }, { sound: 'fizz', volume: 0.25 }],
+  ambience: [{ sound: 'room', volume: 0.6 }, { sound: 'drips', volume: 0.5 }, { sound: 'creaks', volume: 0.7 }],
   exits: [
     { id: 'to-shrine', x: 36, y: UPPER, reach: 12, to: 'tenders-shrine' },
     { id: 'to-offering-floor', x: 496, y: UPPER, reach: 10, to: 'offering-floor' },

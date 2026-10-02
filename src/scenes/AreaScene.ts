@@ -1608,7 +1608,7 @@ export class AreaScene extends Phaser.Scene {
                 onComplete: () => {
                   this.hazards = this.hazards.filter((h) => h !== hazard);
                   bead.destroy();
-                  this.soundscape.play('splash', { x, y: feature.bottom }, 0.4, 90);
+                  this.soundscape.play('splash', { x, y: feature.bottom }, 0.3, 70);
                   this.add.particles(0, 0, PIXEL, { speed: { min: 10, max: 30 }, angle: { min: 200, max: 340 }, lifespan: 300, tint: SHADES.green, emitting: false }).setDepth(11).explode(4, x, feature.bottom - 1);
                 },
               });

@@ -143,8 +143,9 @@ function oneShot(a: Out, dest: AudioNode, t: number, id: SoundId, v: number, sur
       break;
     }
     case 'splash':
-      noise(a, dest, t, 'lowpass', 1400, 0.7, 0.14, 0.2 * v);
-      noise(a, dest, t + 0.03, 'bandpass', 600, 2, 0.1, 0.1 * v);
+      // A drop of rot landing: a low, thick plop (no hiss; in bursts it sounded like a shaker).
+      tone(a, dest, t, 'sine', rand(140, 180), rand(80, 100), 0.07, 0.12 * v, 0.004);
+      noise(a, dest, t, 'lowpass', 350, 1, 0.05, 0.08 * v);
       break;
     case 'crackle':
       noise(a, dest, t, 'bandpass', rand(1200, 3000), 1.5, rand(0.006, 0.025), rand(0.06, 0.25) * v);
@@ -259,7 +260,7 @@ function loopNoise(a: Out, dest: AudioNode, filter: BiquadFilterType, freq: numb
 }
 
 /** The continuous sounds. */
-function makeLoop(a: Out, dest: AudioNode, sound: 'room' | 'hum' | 'buzz' | 'wind' | 'fizz' | 'leaves' | 'fire', hush = 160): Loop {
+function makeLoop(a: Out, dest: AudioNode, sound: 'room' | 'hum' | 'buzz' | 'wind' | 'leaves' | 'fire', hush = 160): Loop {
   const gain = a.ctx.createGain();
   gain.gain.value = 0;
   gain.connect(dest);
@@ -361,21 +362,6 @@ function makeLoop(a: Out, dest: AudioNode, sound: 'room' | 'hum' | 'buzz' | 'win
       };
       break;
     }
-    case 'fizz': {
-      // The fungi: a faint, soft fizz, well below the hiss it was.
-      const g = a.ctx.createGain();
-      g.gain.value = 0.04;
-      g.connect(gain);
-      const n = loopNoise(a, g, 'bandpass', 2200, 0.6);
-      const lfo = a.ctx.createOscillator();
-      lfo.frequency.value = 3;
-      const depth = a.ctx.createGain();
-      depth.gain.value = 0.03;
-      lfo.connect(depth).connect(g.gain);
-      lfo.start();
-      stops.push(() => n.src.stop(), () => lfo.stop());
-      break;
-    }
     case 'leaves': {
       const g = a.ctx.createGain();
       g.gain.value = 0.12;
@@ -394,10 +380,10 @@ function makeLoop(a: Out, dest: AudioNode, sound: 'room' | 'hum' | 'buzz' | 'win
   return { gain, tick, stop: () => stops.forEach((s) => { try { s(); } catch { /* already stopped */ } }) };
 }
 
-const LOOPED: Partial<Record<AmbienceSound, 'room' | 'hum' | 'buzz' | 'wind' | 'fizz' | 'leaves'>> = { room: 'room', hum: 'hum', buzz: 'buzz', wind: 'wind', fizz: 'fizz', leaves: 'leaves' };
+const LOOPED: Partial<Record<AmbienceSound, 'room' | 'hum' | 'buzz' | 'wind' | 'leaves'>> = { room: 'room', hum: 'hum', buzz: 'buzz', wind: 'wind', leaves: 'leaves' };
 
 /** How often (per second) each kind of moment happens in a bed, at full volume. */
-const RATES: Partial<Record<AmbienceSound, number>> = { footfall: 3, pages: 0.3, chatter: 5, crowd: 12, creaks: 0.15, drips: 0.6, bubbles: 1.5, clock: 1, workshop: 0.8, engine: 0.4, chime: 0.25, hearth: 6 };
+const RATES: Partial<Record<AmbienceSound, number>> = { fizz: 1.2, footfall: 3, pages: 0.3, chatter: 5, crowd: 12, creaks: 0.15, drips: 0.6, bubbles: 1.5, clock: 1, workshop: 0.8, engine: 0.4, chime: 0.25, hearth: 6 };
 
 interface Bed {
   layer: AmbienceLayer;
@@ -530,6 +516,10 @@ export class Soundscape {
         for (let i = 0; i < count; i++) oneShot(a, panner, t + i * pace * rand(0.9, 1.1), 'step', v, this.surface);
         break;
       }
+      case 'fizz':
+        // The fungi: now and then a tiny, soft pop (it was a hiss that fluttered like a shaker).
+        noise(a, this.bedOut!, t, 'lowpass', rand(700, 1200), 1, rand(0.01, 0.02), 0.06 * volume * rand(0.5, 1), 0.004);
+        break;
       case 'pages':
         noise(a, this.bedOut!, t, 'bandpass', rand(2000, 3200), 0.8, rand(0.15, 0.3), 0.08 * volume, 0.05, rand(1500, 2500));
         break;

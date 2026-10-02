@@ -66,9 +66,9 @@ export type Feature =
 
 /**
  * A sound the whole area makes, under everything else (docs/audio-plan.md). Continuous: `room` (the tree's
- * body, a low hush), `hum` (the tube), `buzz` (the tube up close: loud), `wind`, `fizz` (fungi), `leaves`.
+ * body, a low hush), `hum` (the tube), `buzz` (the tube up close: loud), `wind`, `leaves`.
  * Made of moments: `chatter` (people talking nearby), `crowd` (a murmuring crowd), `footfall` (other
- * people walking about, on the area's floor), `pages` (paper), `creaks` (the tree settling), `drips`, `bubbles` (the
+ * people walking about, on the area's floor), `pages` (paper), `fizz` (the fungi: tiny soft pops), `creaks` (the tree settling), `drips`, `bubbles` (the
  * rot), `clock`, `workshop` (tapping), `engine` (the archive's clicking), `chime` (the seeds), `hearth`
  * (a fire's crackle, heard from anywhere in the room).
  */
