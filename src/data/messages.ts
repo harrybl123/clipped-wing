@@ -421,20 +421,21 @@ const NOT: DecodeSymbol = {
 
 // --- Message 3's new pictures ---
 
+/** "Yet": an hourglass, most of the sand still to fall (designer picked it over the half-risen sun). */
 const YET: DecodeSymbol = {
   id: 'yet',
   picture: scratches(
-    24,
-    13,
-    [[[0, 11], [23, 11]], [[12, 1], [12, 3]], [[5, 4], [6, 5]], [[19, 4], [18, 5]], [[2, 9], [4, 9]], [[20, 9], [22, 9]]],
-    [{ disc: [12, 11, 5.4] }],
+    16,
+    20,
+    [[[2, 0], [13, 0]], [[2, 19], [13, 19]], [[3, 1], [3, 4], [7, 9], [7, 10], [3, 15], [3, 18]], [[12, 1], [12, 4], [8, 9], [8, 10], [12, 15], [12, 18]], [[7, 10], [7, 16]]],
+    [{ poly: [[4, 3], [11, 3], [11, 4], [8, 8], [7, 8], [4, 4]] }, { poly: [[5, 17], [10, 17], [11, 18], [4, 18]] }],
   ),
   accepted: ['yet', 'not yet', 'soon', 'later', 'wait', 'someday', 'one day', 'in time', 'eventually', 'still', 'almost', 'nearly'],
   near: [
-    { words: ['sun', 'sunrise', 'dawn', 'morning', 'rising', 'horizon', 'day', 'light'], reply: "Warm. The sun, only halfway up. It hasn't happened... not ___." },
-    { words: ['now', 'already', 'done'], reply: 'Cold. The opposite: it hasn\'t happened.' },
+    { words: ['hourglass', 'sand', 'time', 'timer', 'clock', 'glass', 'hours', 'counting', 'slow'], reply: "Warm. An hourglass, and most of the sand still at the top. It hasn't run out... not ___." },
+    { words: ['now', 'already', 'done', 'over', 'finished'], reply: "Cold. The opposite: the sand hasn't run through." },
   ],
-  nudge: "Something only halfway risen. It's coming, but it isn't here.",
+  nudge: "An hourglass, nearly full at the top. Whatever it's counting down to hasn't come.",
   hint: 'What Mum says when you ask if supper is ready: "Not ___."',
 };
 
@@ -450,19 +451,20 @@ const ALSO: DecodeSymbol = {
   hint: 'When your friend said he was scared too, you said: "Me ___."',
 };
 
+/** "Because": dominoes, the first one pushed, knocking down the rest (designer picked it over the arrow and burst). */
 const BECAUSE: DecodeSymbol = {
   id: 'because',
   picture: scratches(
-    24,
-    14,
-    [[[6, 7], [16, 7]], [[13, 4], [16, 7], [13, 10]], [[20, 2], [20, 4]], [[20, 10], [20, 12]], [[17, 7], [17, 7]], [[23, 7], [22, 7]], [[18, 4], [18, 4]], [[22, 4], [22, 4]], [[18, 10], [18, 10]], [[22, 10], [22, 10]]],
-    [{ disc: [3, 7, 2.6] }, { disc: [20, 7, 1.6] }],
+    26,
+    18,
+    [[[0, 17], [25, 17]], [[0, 4], [4, 4]], [[2, 2], [4, 4], [2, 6]]],
+    [{ poly: [[3, 16], [5, 16], [13, 9], [12, 7]] }, { poly: [[10, 16], [12, 16], [17, 6], [15, 5]] }, { poly: [[17, 6], [19, 6], [19, 16], [17, 16]] }, { poly: [[22, 6], [24, 6], [24, 16], [22, 16]] }],
   ),
   accepted: ['because', 'since', 'cause', 'reason', 'so', 'as', 'for', 'why', 'caused', 'due to', 'because of', 'thanks to'],
   near: [
-    { words: ['arrow', 'then', 'leads', 'makes', 'after', 'next', 'burst', 'start'], reply: "Warm. One thing making another happen. Why did the second happen? ___ of the first." },
+    { words: ['domino', 'dominoes', 'push', 'pushed', 'knock', 'fall', 'falling', 'chain', 'then', 'leads', 'makes', 'after', 'next', 'start'], reply: "Warm. Push the first, and the rest go down. Why did the last one fall? ___ of the first." },
   ],
-  nudge: 'A dot, and an arrow from it to a burst: one thing makes the next one happen.',
+  nudge: 'Blocks standing in a row, the first one pushed over into the next: one thing makes the next happen.',
   hint: 'You asked him "why?". How does anyone start the answer to that?',
 };
 
