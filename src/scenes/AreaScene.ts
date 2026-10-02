@@ -16,6 +16,7 @@ import { DialogueBox } from '../ui/DialogueBox';
 import { paintArea } from '../ui/paintArea';
 import { VILLAGERS, WATCHMAN } from '../ui/characters';
 import { SHADES } from '../ui/pixelArt';
+import { duckScore, updateScore, type ScoreId } from '../ui/score';
 import { setMuted } from '../ui/soundSetting';
 import { makePaintedTexture, makeSpriteTexture, PIXEL } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
@@ -495,6 +496,7 @@ export class AreaScene extends Phaser.Scene {
     this.updateMobs(delta);
     this.updateTriggers();
     this.updateBarks(delta);
+    updateScore(this, this.scoreForToday(), delta);
     this.updateCloak();
     this.checkHazards();
     this.updateWaiting(delta);
@@ -508,6 +510,12 @@ export class AreaScene extends Phaser.Scene {
       this.current.use();
       this.setCurrent(null);
     }
+  }
+
+  /** The day's music, if it has any: Day 6 is eerie from start to finish (designer). */
+  private scoreForToday(): ScoreId | null {
+    const { story } = getSession(this);
+    return story.getVariable('day6') !== '' && story.getVariable('day7') === '' ? 'day6' : null;
   }
 
   /** Lines spoken over people's heads, one after another, while you keep playing. */
@@ -1416,6 +1424,7 @@ export class AreaScene extends Phaser.Scene {
           this.tweens.add({ targets: this.dimmer, alpha: args[0] === 'off' ? 0 : 0.75, duration: 900 });
           // The big choices: a sting, then your heartbeat until it's made.
           this.soundscape.setTension(args[0] !== 'off');
+          duckScore(this, args[0] !== 'off');
           break;
         case 'decode': {
           const [message, then] = args;

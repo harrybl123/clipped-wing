@@ -4,6 +4,7 @@ import { addLight, falloff, noise, rgb, SHADES, smoothstep, type PixelColour, ty
 import { makePaintedTexture, makeSpriteTexture, PIXEL, stampRows } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
 import { playConfirm, playMove } from '../ui/sfx';
+import { stopScore } from '../ui/score';
 import { BIRD, FUNGI, LAMP } from '../ui/sprites';
 
 // Title screen, visual only: looking up the inside of the trunk at the tube rising into the
@@ -54,6 +55,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create(): void {
+    stopScore(this);
     this.phase = 'gate';
     this.selected = 0;
     this.cameras.main.fadeIn(800);
