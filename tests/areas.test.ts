@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { compileInk } from '../scripts/ink.mjs';
+import { ON_FOOT } from '../src/data/access';
 import { AREA_NAMES, AREAS, PLANNED_AREAS } from '../src/data/areas';
 import type { AreaDefinition } from '../src/data/areas/types';
 import { StoryBridge } from '../src/systems/StoryBridge';
@@ -65,5 +66,12 @@ describe.each(Object.values(AREAS))('area $id', (area) => {
     for (const f of area.features) if (f.type === 'jars') expect(story.variableNames()).toContain(f.variable);
     const conditions = [...area.people.flatMap((p) => [p.showIf, p.hideIf].flat()), ...area.features.flatMap((f) => ('showIf' in f ? [f.showIf] : [])), ...(area.ambience ?? []).flatMap((l) => [l.showIf, l.hideIf].flat())];
     for (const name of conditions.filter((c): c is string => !!c)) expect(story.variableNames(), name).toContain(name);
+  });
+});
+
+describe('journeys on foot', () => {
+  it('only uses ink variables that exist', () => {
+    const story = compileStory();
+    for (const name of ON_FOOT) expect(story.variableNames(), name).toContain(name);
   });
 });

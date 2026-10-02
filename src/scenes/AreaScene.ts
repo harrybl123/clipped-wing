@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
-import { closedReason } from '../data/access';
+import { closedReason, ON_FOOT } from '../data/access';
 import { AREAS, AREA_NAMES } from '../data/areas';
 import type { AmbienceLayer, AreaDefinition, Exit, Feature, Person, Surface } from '../data/areas/types';
 import { nextHop } from '../data/route';
@@ -1595,6 +1595,8 @@ export class AreaScene extends Phaser.Scene {
     const built = exit.to in AREAS;
     const { calendar } = getSession(this);
     const shut = exit.secret ? null : closedReason(exit.to, calendar.day, calendar.slot);
+    const { story } = getSession(this);
+    const onFoot = ON_FOOT.some((v) => story.getVariable(v));
     if (shut) {
       this.dialogue.say(shut, closed);
       return;
@@ -1606,7 +1608,8 @@ export class AreaScene extends Phaser.Scene {
           label: built ? `Go to ${name}` : `Go to ${name} (not built yet)`,
           run: () => (built ? this.goTo(exit.to) : this.dialogue.say(`${capitalise(name)} isn't built yet.`, closed)),
         },
-        { label: 'Open the map', run: () => this.openMap() },
+        // On a journey that has to be made on foot, the map isn't offered: door to door.
+        ...(onFoot ? [] : [{ label: 'Open the map', run: () => this.openMap() }]),
         { label: 'Stay', run: () => {} },
       ],
       closed,
