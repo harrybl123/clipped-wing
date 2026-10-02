@@ -374,6 +374,7 @@ function npcPick(look: VillagerLook, o: NpcFace, cx: number, cy: number, scale =
   const hairStyle = look.head === 'bun' ? 'bun' : (o.hair ?? 'cropped');
   const hood = look.head === 'hood';
   const cap = look.head === 'cap';
+  const helmet = look.head === 'helmet';
   const top = f.cy + f.ry + 2; // shoulders
   const browKind = o.brow ?? 'plain';
   const eyes = o.eyes ?? 'plain';
@@ -487,6 +488,24 @@ function npcPick(look: VillagerLook, o: NpcFace, cx: number, cy: number, scale =
       if (y <= capBase && inEllipse(x, y, f.cx - 1, capBase - 1, f.rx + 1.5, 6)) return y === capBase || (x + y) % 6 === 0 ? 'Z' : 'z';
       if (y === capBase + 1 && x >= f.cx - 2 && x <= f.cx + f.rx + 5) return 'Z';
     }
+    // A guard's formal hat: a tall, flat-topped crown, a band of the accent colour with a pale badge,
+    // and a stiff peak casting a shadow over the brow.
+    if (helmet) {
+      const hatTop = f.cy - f.ry - 5;
+      const bandTop = f.cy - f.ry + 2;
+      const peak = bandTop + 2;
+      const half = f.rx + 1 + (y < hatTop + 2 ? 1 : 0); // flared at the top
+      if (y >= hatTop && y < peak && Math.abs(u) <= half) {
+        if (Math.abs(u - 1) + Math.abs(y - (bandTop - 1)) <= 2) return Math.abs(u - 1) + Math.abs(y - (bandTop - 1)) <= 1 ? 'b' : 'B'; // the badge
+        if (y >= bandTop) return y === bandTop ? 'z' : 'Z';
+        if (y === hatTop) return 'o';
+        if (u === half) return 'X';
+        if (u === -half) return 'o';
+        return 'T';
+      }
+      if (y === peak && u >= -f.rx - 1 && u <= f.rx + 3) return u > f.rx - 2 ? 'X' : 'o';
+      if (y === peak + 1 && inFace(x, y)) return 'E'; // the peak's shadow
+    }
     // A hood round the face, falling to the shoulders.
     if (hood) {
       const outer = inEllipse(x, y, f.cx, f.cy, f.rx + 5, f.ry + 5) || (y > f.cy + 6 && Math.abs(u) <= f.rx - 1 + (y - f.cy - 6) * 1.5);
@@ -500,7 +519,8 @@ function npcPick(look: VillagerLook, o: NpcFace, cx: number, cy: number, scale =
       const crown = inEllipse(x, y, f.cx, f.cy - 2, f.rx + 1.5, f.ry + 0.5);
       const sides = !inFace(x, y) && Math.abs(u) >= f.rx - 1 && y < f.cy + 1;
       let hair = false;
-      if (cap) hair = sides && Math.abs(u) <= f.rx + 1 && y > f.cy - f.ry + 6 && (x + y) % 3 !== 0;
+      if (helmet) hair = sides && Math.abs(u) <= f.rx + 1 && y > f.cy - f.ry + 5 && (x + y) % 3 !== 0;
+      else if (cap) hair = sides && Math.abs(u) <= f.rx + 1 && y > f.cy - f.ry + 6 && (x + y) % 3 !== 0;
       else if (hairStyle === 'balding') hair = !inFace(x, y) ? crown && Math.abs(u) >= f.rx - 1 && y > f.cy - 7 : Math.abs(u) >= f.rx - 2 && y > f.cy - 6 && y < f.cy - 1;
       else if (hairStyle === 'messy') hair = crown && (y < f.cy - 6 + ((x * 7) % 5 === 0 ? 2 : (x * 3) % 4 === 0 ? 1 : 0) || sides);
       else hair = crown && (y < f.cy - 6 || sides);
@@ -557,6 +577,8 @@ const npcColours = (look: VillagerLook, o: NpcFace) => {
     F: robe === SHADES.deep ? SHADES.wood : look.robe === SHADES.dim ? SHADES.light : SHADES.woodPale,
     z: look.accent,
     Z: darker(look.accent),
+    T: SHADES.woodLight, // a guard's hat
+    X: SHADES.dim,
     K: hoodColour,
     J: hoodColour === SHADES.woodLight ? SHADES.wood : SHADES.woodPale,
     u: SHADES.amberDeep,

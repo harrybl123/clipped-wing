@@ -210,7 +210,8 @@ export const TENDER = { idle: [tender(false), tender(true)] };
 export interface VillagerLook {
   height: number; // 21–26
   width: number; // body half-width 2–4
-  head: 'bare' | 'hood' | 'cap' | 'bun';
+  /** `helmet`: a guard's formal hat, a tall flat-topped crown with a band of the accent colour and a stiff peak. */
+  head: 'bare' | 'hood' | 'cap' | 'bun' | 'helmet';
   /** Something carried on the back side. */
   bundle?: boolean;
   /** Skirt or robe to the floor instead of legs. */
@@ -242,13 +243,19 @@ function villager(look: VillagerLook, breathe: boolean, stride = 0): RowSprite {
   if (look.head === 'hood') {
     span(g, headTop + b, cx - 2, cx + 2, 'o');
     for (let y = 1; y <= 5; y++) put(g, cx - 3, y + b, 'o');
+  } else if (look.head === 'helmet') {
+    span(g, headTop + b, cx - 3, cx + 3, 'o'); // the flat top, a little wider than the head
+    put(g, cx + 4, headTop + b, '#');
+    span(g, headTop + 1 + b, cx - 2, cx + 3, 'c'); // the band
+    put(g, cx + 4, headTop + 2 + b, 'o'); // the peak
+    put(g, cx + 5, headTop + 2 + b, 'o');
   } else if (look.head === 'cap') {
     span(g, headTop + b, cx - 2, cx + 3, 'c');
     put(g, cx + 4, headTop + 1 + b, 'c');
   } else if (look.head === 'bun') {
     span(g, headTop + b, cx - 1, cx, look.hair ? 'h' : 'o');
   }
-  if (look.hair && look.head !== 'hood' && look.head !== 'cap') {
+  if (look.hair && look.head !== 'hood' && look.head !== 'cap' && look.head !== 'helmet') {
     span(g, headTop + 1 + b, cx - 2, cx + 1, 'h');
     put(g, cx - 2, headTop + 2 + b, 'h');
   }
@@ -336,7 +343,7 @@ export const MASTER = (() => {
 })();
 
 /** A guard of the middle tiers' checkpoint: capped, amber-banded, with a staff (placeholder look). */
-export const GUARD_LOOK: VillagerLook = { height: 25, width: 3, head: 'cap', accent: SHADES.amber, staff: true };
+export const GUARD_LOOK: VillagerLook = { height: 25, width: 3, head: 'helmet', accent: SHADES.amber, staff: true };
 export const GUARD = (() => {
   const look = GUARD_LOOK;
   return { idle: [villager(look, false), villager(look, true)] };
