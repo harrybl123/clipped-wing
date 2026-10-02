@@ -41,6 +41,11 @@ export class PreloadScene extends Phaser.Scene {
     const areaId = params?.get('area');
     if (areaId && areaId in AREAS) this.scene.start('Area', { areaId });
     else if (params?.get('scene') === 'prologue') this.scene.start('Prologue');
+    else if (params?.get('scene') === 'chapter') {
+      // The chapter card after the prologue, then Day 1.
+      getSession(this).calendar.jumpTo(1);
+      this.scene.start('Chapter', { number: 'Chapter 1', title: 'Seen', next: { areaId: 'home', start: { x: 50, y: 150 }, card: 'Day 1: Ascension Day' } });
+    }
     else if (params?.get('scene') === 'decode') this.scene.start('Decode', { message: 'message1' });
     else if (params?.get('ending')) this.scene.start('Ending', { ending: params.get('ending')! });
     else if (params && ['2', '3', '4', '5', '6', '7'].includes(params.get('day') ?? '')) {

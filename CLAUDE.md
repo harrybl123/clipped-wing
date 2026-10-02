@@ -65,6 +65,8 @@ The game is pixel art, so darker and lighter **shades** of these colours are all
 
 (Record decisions here as they're made, newest first.)
 
+- **2026-10-02 — Chapter card.** (Designer.) After the prologue, a title card on black: "Chapter 1", then "Seen" in the title's carved letters, a small red bird (`ChapterScene`, `{ number, title, next }`; skippable after a second), then Day 1. Dev: `?scene=chapter`. (The Day 7 endings still say "End of Act 1".)
+
 - **2026-10-02 — Answering a day late.** (Designer: option A.) If you ignore message 1 and answer at the second chance (`answered_late`), Day 4 catches up: you carve and send the fledgling (no plate, no question), and it comes back that evening with message 2 folded into message 3 (`message3_late`: "Clipped wing, I rest beyond the bark. I am Grounded. There are many of us."), with the feather. From Day 5 the paths are the same; `reply2` stays empty on this path. Dev: `?day=4&late=1`.
 
 - **2026-10-02 — Journeys on foot.** (Designer: the map let you skip journeys that should be walked.) While any variable in `ON_FOOT` (`src/data/access.ts`) is true, door menus don't offer the map, so you go door to door: the girl leading you through the back routes (Day 3), sneaking (Nights 4 and 5), the escort (Day 5), going up to the archivist and the grove, or stealing (Night 5), tailing (Day 6), the chase (Day 7). Dev M still opens the map.

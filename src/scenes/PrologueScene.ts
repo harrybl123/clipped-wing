@@ -9,6 +9,7 @@ import { PixelText } from '../ui/PixelText';
 import * as Art from '../ui/prologueArt';
 import { MORE_ARROW, type RowSprite } from '../ui/sprites';
 import type { AreaSceneData } from './AreaScene';
+import type { ChapterSceneData } from './ChapterScene';
 import { paintTree } from './MapScene';
 
 // The prologue: a close-up memory. The workbench by firelight, the half-carved bird big in the middle,
@@ -481,13 +482,15 @@ export class PrologueScene extends Phaser.Scene {
     t.add(this.add.image(W / 2 - 12, 0, makeSpriteTexture(this, 'prologue-tube', column.rows, column.colours)).setOrigin(0));
   }
 
-  /** The end of the prologue: into Day 1, waking at home. */
+  /** The end of the prologue: the chapter's title card, then Day 1, waking at home. */
   private finish(): void {
     this.waitingForNarration = false;
     this.cameras.main.fadeOut(1400, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       getSession(this).calendar.jumpTo(1);
-      this.scene.start('Area', { areaId: 'home', start: { x: 50, y: 150 }, card: 'Day 1: Ascension Day' } satisfies AreaSceneData);
+      // The chapter's title card, then waking at home on Day 1.
+      const next: AreaSceneData = { areaId: 'home', start: { x: 50, y: 150 }, card: 'Day 1: Ascension Day' };
+      this.scene.start('Chapter', { number: 'Chapter 1', title: 'Seen', next } satisfies ChapterSceneData);
     });
   }
 }
