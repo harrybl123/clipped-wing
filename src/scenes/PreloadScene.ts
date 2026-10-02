@@ -46,6 +46,8 @@ export class PreloadScene extends Phaser.Scene {
     else if (params && ['2', '3', '4', '5', '6', '7'].includes(params.get('day') ?? '')) {
       const day = Number(params.get('day')) as 2 | 3 | 4 | 5 | 6 | 7;
       this.devStartDay(day, params.get('reply') === 'usual' ? 'usual' : 'fledgling', params.get('at'), params.get('told') === '1' || params.get('seed') === 'healthy', params.get('plate') === '1');
+      // &late=1: you answered message 1 a day late (Day 4 sends the fledgling; message 3 has message 2 folded in).
+      if (day === 4 && params.get('late') === '1') getSession(this).story.setVariable('answered_late', true);
       if (day === 7) this.devDay7(params.get('girl') === 'blamed', params.get('lied') === '1', params.get('at'));
     } else this.scene.start('Title');
   }

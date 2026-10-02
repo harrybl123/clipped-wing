@@ -1,5 +1,7 @@
 # Sequence plan: Day 4, The Girl in the Roots
 
+**2026-10-02, answering a day late (designer: option A):** if you ignored message 1 and answered at the second chance, Day 4 catches up. You carve and send the fledgling in the morning (no plate yet), and it comes back hollowed that evening with message 2 folded into message 3 (`message3_late`: "Clipped wing, I rest beyond the bark. I am Grounded. There are many of us.") and the feather. From Day 5 both paths are the same. Dev: `?day=4&late=1`.
+
 Built 2026-10-01 (`story/day4.ink`; the reply and the hollow bird in `src/scenes/CarveScene.ts`, the
 fight in `src/scenes/FightScene.ts`, message 3 in `src/data/messages.ts`, her home and the rot in
 `src/data/areas/girlsHome.ts` and `theRot.ts`). Dev: `?day=4`.

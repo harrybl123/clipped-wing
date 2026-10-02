@@ -565,6 +565,21 @@ export const MESSAGE_3_WHY: Message = {
 
 
 
+/**
+ * Message 3 (Day 4) if you answered message 1 a day late (designer: option A, the paths meet again on
+ * Day 5): message 2 folded into message 3. "Clipped wing, I rest beyond the bark. I am Grounded. There
+ * are many of us." No question this time, so no yes / can't / why.
+ */
+export const MESSAGE_3_LATE: Message = {
+  id: 'message3_late',
+  line: 'Clipped wing, I rest beyond the bark. I am Grounded. There are many of us.',
+  rows: [
+    ['clipped', 'wing', 'self', 'rest', 'beyond', 'bark'],
+    ['self', 'am', 'grounded', 'many'],
+  ],
+  symbols: [CLIPPED, WING, SELF, REST, BEYOND, BARK, AM, GROUNDED, MANY],
+};
+
 /** A wing cut off short, the way you clip a fledgling's: your "I can't". */
 const CLIPPED_WING = scratches(
   24,
@@ -911,5 +926,5 @@ export const MESSAGE_6: Message = {
 };
 
 export const MESSAGES: Record<string, Message> = Object.fromEntries(
-  [MESSAGE_1, MESSAGE_2, MESSAGE_3_YES, MESSAGE_3_CANT, MESSAGE_3_WHY, MESSAGE_4, MESSAGE_5_LIVES, MESSAGE_5_SLEEPS, MESSAGE_6].map((m) => [m.id, m]),
+  [MESSAGE_1, MESSAGE_2, MESSAGE_3_YES, MESSAGE_3_CANT, MESSAGE_3_WHY, MESSAGE_3_LATE, MESSAGE_4, MESSAGE_5_LIVES, MESSAGE_5_SLEEPS, MESSAGE_6].map((m) => [m.id, m]),
 );

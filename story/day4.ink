@@ -38,7 +38,11 @@ Mum has seen it too. She's gone pale.
 -> END
 
 === day4_bench ===
-Your bench. His plate is under the board where you hid it, and there's wood enough for one more fledgling.
+{ answered_late:
+    Your bench. A small block of wood, just big enough for a fledgling. A day late. You hope it isn't too late.
+- else:
+    Your bench. His plate is under the board where you hid it, and there's wood enough for one more fledgling.
+}
 + [Answer him]
     You fetch the plate and sit down at the bench. #carve:day4_carving
 + [Not yet]
@@ -47,6 +51,7 @@ Your bench. His plate is under the board where you hid it, and there's wood enou
 // --- The carving close-up: your reply, and a hollow bird to carry it ---
 
 === day4_carving ===
+{ answered_late: -> late }
 First light. You turn his plate over. The back is bare metal, smooth as water.
 He asked you a question. "Would you like to fly?"
 You can't write. Nobody in the roots can. But you can answer him in his own pictures. #plate:reply2
@@ -72,6 +77,36 @@ You give it the clipped wing and the eye, quick and sure. Your hands remember ye
 ~ objective = "Go to the Tender's shrine"
 ~ objective_target = "tenders-shrine:tender-summons"
 Downstairs, the door closes softly: Mum, gone out already. The bird feels like any other in your hand. Only a little lighter. #end
+-> END
+
+// If you answered message 1 a day late (Day 3 night): the fledgling now, the answer he asked for twice.
+= late
+First light. A fledgling with a clipped wing: the answer he asked for twice, a day late.
+How small should it be?
++ [Tiny, small enough to cup in one hand]
+    ~ fledgling_size = "tiny"
++ [Small, but strong enough to last]
+    ~ fledgling_size = "small"
+- You rough out the shape. #step:rough
+Now smooth it. Slowly, the way Mum taught you. #step:smooth
+Which wing do you clip?
++ [The left, like your hand]
+    ~ fledgling_wing = "left"
++ [The right]
+    ~ fledgling_wing = "right"
+- You cut the wing short, clean and straight. #step:wing
+And the eye. Open, or half closed?
++ [Open, looking up]
+    ~ fledgling_eye = "open"
++ [Half closed, as if asleep]
+    ~ fledgling_eye = "sleepy"
+- One small cut. #step:eye
+~ day4 = "shrine"
+~ tender_waiting = true
+~ mum_away = true
+~ objective = "Go to the Tender's shrine"
+~ objective_target = "tenders-shrine:tender-summons"
+Downstairs, the door closes softly: Mum, gone out already. It sits in your palm: a fledgling that will never fly. Will he still be there? #end
 -> END
 
 // --- The Tender's shrine: the long conversation ---
@@ -440,6 +475,7 @@ She doesn't ask about the bird. She doesn't want to know.
 -> END
 
 === day4_open_bird ===
+{ answered_late: -> late }
 You sit by the hearth with the bird. The seam along its belly is there again: opened, and closed.
 Your plate is gone. In its place, another, blackened like the others.
 And something else, tucked in beside it. Something soft. You put it to one side; the plate first.
@@ -452,7 +488,16 @@ You realise you've been waiting for this all day: through the shrine, the market
 }
 -> END
 
+= late
+You sit by the hearth with the fledgling. There's a seam along its belly: opened, and closed.
+He's hollowed it out, neatly, from the inside. You'd never get a wall that thin with your hands.
+Inside, a plate, blackened like the others. And something else, tucked in beside it. Something soft. You put it to one side; the plate first.
+He answered. A day late, and he answered anyway. He waited for you.
+You start rubbing at the soot. #decode:message3_late:day4_decoded
+-> END
+
 === day4_decoded ===
+{ answered_late: -> late }
 { reply2:
 - "yes": "Not yet. I am Grounded. There are many of us beyond the bark." #speaker:you
 - "cant": "Neither can I. I am Grounded. There are many of us beyond the bark." #speaker:you
@@ -465,6 +510,7 @@ How many? What do they eat? What do they worship, out there, with no tube and no
 Do they know about you? Has he told them about the clipped wing in the roots?
 You should be terrified, and you are: of being found out, of what the elders would do to you, and to Mum. Of what you're turning into.
 But you can't stop now. You need to know.
+- (feather)
 Then you remember the other thing, and take it out. #inset:feather
 A feather. Not carved: real. Light as ash, and red, red like nothing else in the tree.
 You've carved ten thousand feathers. You've never touched one.
@@ -480,6 +526,18 @@ And you remember the girl. "Come after dark. Don't let anyone see you."
 ~ objective_target = "lower-roots:girls-door"
 Not by the front door, with a man watching it. The rot gap, then, and down through the back routes.
 -> END
+
+// A day late: message 2 folded into message 3, so the outside, and his name, all at once.
+= late
+"Clipped wing, I rest beyond the bark. I am Grounded. There are many of us." #speaker:you
+The words go through you like cold water.
+Beyond the bark. Outside the tree. Nobody lives outside the tree. Is there even an outside? The tree is the world.
+Grounded. He has a name. A name like a bird that can't fly. Like yours. Is that why he chose you?
+And there are many of them. Out there, where nobody lives. How many? What do they eat? What do they worship, with no tube and no Tree?
+You turned away from him once, and answered a day late, and he wrote back anyway, as if he'd known all along you would.
+You should be terrified, and you are: of being found out, of what the elders would do to you, and to Mum. Of what you're turning into.
+But you can't stop now. You need to know.
+-> day4_decoded.feather
 
 // --- Night: her home, and the rot beneath it ---
 

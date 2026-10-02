@@ -138,6 +138,37 @@ describe('ink pipeline', () => {
     expect(v['objective_target']).toBe('home:summons');
   });
 
+  it('on Day 4, if you answered a day late, you send the fledgling, and message 3 comes back with message 2 folded in', () => {
+    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const v = story.variablesState;
+    const play = (knot: string, ...choices: number[]) => {
+      story.ChoosePathString(knot);
+      const tags: string[] = [];
+      for (;;) {
+        while (story.canContinue) {
+          story.Continue();
+          tags.push(...(story.currentTags ?? []));
+        }
+        const next = choices.shift();
+        if (next === undefined || story.currentChoices.length === 0) break;
+        story.ChooseChoiceIndex(next);
+      }
+      return tags;
+    };
+    Object.entries({ dialogue_style: 'voice', day1: 'done', day2: 'done', day3: 'done', reply1: 'fledgling', answered_late: true, day4: 'carve' }).forEach(([k, x]) => (v[k] = x));
+    const carving = play('day4_carving', 0, 0, 0);
+    expect(carving).toEqual(expect.arrayContaining(['step:rough', 'step:smooth', 'step:wing', 'step:eye', 'end']));
+    expect(carving).not.toContain('plate:reply2'); // no question to answer yet
+    expect(v['reply2']).toBe('');
+    expect(v['day4']).toBe('shrine');
+    v['day4'] = 'open';
+    v['mum_in_bed'] = true;
+    expect(play('home_hearth')).toContain('decode:message3_late:day4_decoded');
+    expect(play('day4_decoded')).toContain('inset:feather');
+    expect(v['has_feather']).toBe(true);
+    expect(v['day4']).toBe('sneak');
+  });
+
   it('plays Day 4 through: the summons, the reply, the shrine, the market, the girl, the ritual, message 3, the night', () => {
     const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
     const v = story.variablesState;
