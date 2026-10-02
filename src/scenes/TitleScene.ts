@@ -5,6 +5,8 @@ import { makePaintedTexture, makeSpriteTexture, PIXEL, stampRows } from '../ui/p
 import { PixelText } from '../ui/PixelText';
 import { playConfirm, playMove } from '../ui/sfx';
 import { stopScore } from '../ui/score';
+import { savedScreenFit, setScreenFit, toggleFullscreen } from '../ui/displaySetting';
+import { setMuted } from '../ui/soundSetting';
 import { BIRD, FUNGI, LAMP } from '../ui/sprites';
 
 // Title screen, visual only: looking up the inside of the trunk at the tube rising into the
@@ -76,25 +78,60 @@ export class TitleScene extends Phaser.Scene {
     this.pressAnyKey.setAlpha(0);
     this.tweens.add({ targets: this.pressAnyKey, alpha: 1, duration: 1200, delay: 900, ease: 'Sine.easeOut', onComplete: () => this.tweens.add({ targets: this.pressAnyKey, alpha: 0.5, duration: 2200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }) });
 
-    this.menu = [
-      { label: 'New Game', action: () => this.startGame() },
-      { label: 'Continue', action: () => this.showNotice('Not built yet.') },
-      { label: 'Settings', action: () => this.showNotice('Not built yet.') },
-      { label: 'Credits', action: () => this.showNotice('Not built yet.') },
-    ];
-    this.items = this.menu.map((item, i) =>
-      new PixelText(this, MENU_X, MENU_Y + i * MENU_SPACING, item.label, { color: SHADES.dim })
-        .setVisible(false)
-        .setInteractive({ useHandCursor: true })
-        .on('pointerover', () => this.phase === 'menu' && this.select(i))
-        .on('pointerdown', () => this.phase === 'menu' && this.choose()),
-    );
+    this.setMenu(this.mainMenu(), false);
     const birdSprite = this.add.image(0, 0, makeSpriteTexture(this, 'bird', BIRD.rows, BIRD.colours));
     this.bird = this.add.container(MENU_X - 14, MENU_Y + 4, [birdSprite]).setVisible(false);
     this.tweens.add({ targets: birdSprite, y: -1, duration: 450, yoyo: true, repeat: -1, ease: 'Stepped', easeParams: [1] });
 
     this.input.keyboard?.on('keydown', this.handleKey, this);
     this.input.on('pointerdown', () => this.phase === 'gate' && this.openMenu());
+  }
+
+  private mainMenu(): MenuItem[] {
+    return [
+      { label: 'New Game', action: () => this.startGame() },
+      { label: 'Continue', action: () => this.showNotice('Not built yet.') },
+      { label: 'Settings', action: () => this.setMenu(this.settingsMenu()) },
+      { label: 'Credits', action: () => this.showNotice('Not built yet.') },
+    ];
+  }
+
+  /** Settings: how the game fills the screen, sound, fullscreen. Each choice shows what it's set to and changes it. */
+  private settingsMenu(): MenuItem[] {
+    const fit = savedScreenFit();
+    return [
+      {
+        label: `Screen: ${fit === 'fill' ? 'fill the window' : 'sharp pixels'}`,
+        action: () => {
+          setScreenFit(this.game, fit === 'fill' ? 'sharp' : 'fill');
+          this.setMenu(this.settingsMenu(), true, 0);
+        },
+      },
+      {
+        label: `Sound: ${this.sound.mute ? 'off' : 'on'}`,
+        action: () => {
+          setMuted(this.game, !this.sound.mute);
+          this.time.delayedCall(50, () => this.setMenu(this.settingsMenu(), true, 1)); // mute lands a moment later
+        },
+      },
+      { label: 'Fullscreen (F)', action: () => toggleFullscreen(this.game) },
+      { label: 'Back', action: () => this.setMenu(this.mainMenu(), true, 2) },
+    ];
+  }
+
+  /** Shows a menu (the main one or settings), with `selected` highlighted. */
+  private setMenu(menu: MenuItem[], visible = true, selected = 0): void {
+    for (const item of this.items) item.destroy();
+    this.notice?.destroy();
+    this.menu = menu;
+    this.items = menu.map((item, i) =>
+      new PixelText(this, MENU_X, MENU_Y + i * MENU_SPACING, item.label, { color: SHADES.dim })
+        .setVisible(visible)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerover', () => this.phase === 'menu' && this.select(i))
+        .on('pointerdown', () => this.phase === 'menu' && this.choose()),
+    );
+    if (visible) this.select(selected, false);
   }
 
   private addMotes(): void {
@@ -198,6 +235,7 @@ export class TitleScene extends Phaser.Scene {
     if (key === 'arrowup' || key === 'w') this.select(this.selected - 1);
     else if (key === 'arrowdown' || key === 's') this.select(this.selected + 1);
     else if (key === 'enter' || key === ' ' || key === 'e') this.choose();
+    else if (key === 'escape' && this.menu[this.menu.length - 1]?.label === 'Back') this.menu[this.menu.length - 1]!.action();
   }
 }
 
