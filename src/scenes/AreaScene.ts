@@ -470,7 +470,7 @@ export class AreaScene extends Phaser.Scene {
     this.checkHazards();
     this.updateWaiting(delta);
     this.updateHints();
-    this.objective.pointAt(this.onScreen(this.objectivePoint()));
+    this.objective.pointAt(this.objectivePoints());
     this.updatePlayerSounds(delta);
     this.soundscape.update(delta, this.player.feet);
 
@@ -1177,9 +1177,23 @@ export class AreaScene extends Phaser.Scene {
    * can list several places separated by ";" (e.g. the way in, then the person): one in this area wins,
    * otherwise the first one there's a way to.
    */
-  private objectivePoint(): { x: number; y: number } | null {
-    const { story, calendar } = getSession(this);
-    const targets = String(story.getVariable('objective_target') ?? '').split(';').map((t) => t.split(':') as [string, string | undefined]).filter(([a]) => a);
+  /**
+   * Every marker to show: the target can offer a choice of places separated by "," (your friend or the
+   * thin man), each getting a bird (one, if they're through the same door). Kept on screen.
+   */
+  private objectivePoints(): { x: number; y: number }[] {
+    const choices = String(getSession(this).story.getVariable('objective_target') ?? '').split(',');
+    const points: { x: number; y: number }[] = [];
+    for (const choice of choices) {
+      const at = this.onScreen(this.objectivePoint(choice));
+      if (at && !points.some((p) => Math.abs(p.x - at.x) < 6 && Math.abs(p.y - at.y) < 6)) points.push(at);
+    }
+    return points;
+  }
+
+  private objectivePoint(target: string): { x: number; y: number } | null {
+    const { calendar } = getSession(this);
+    const targets = target.split(';').map((t) => t.split(':') as [string, string | undefined]).filter(([a]) => a);
     // The first one here that's showing (e.g. someone you're following, then where they went).
     const here = targets.filter(([areaId]) => areaId === this.area.id);
     for (const [, thing] of here) {

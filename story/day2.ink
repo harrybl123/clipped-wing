@@ -161,7 +161,7 @@ There isn't time for this as well, not today. The evening ceremony will be start
     The light in the tube is turning gold. It's time for the evening ceremony. #time:evening
 - got_rations:
     ~ objective = "See your friend or the thin man"
-    ~ objective_target = ""
+    ~ objective_target = "friends-home:friend,offering-floor:grumbler"
 - else:
     ~ objective = "Fetch your rations from the hatch"
     ~ objective_target = "roots-market:ration-hatch"

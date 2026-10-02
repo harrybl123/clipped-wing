@@ -78,9 +78,11 @@ export class MapScene extends Phaser.Scene {
     }
 
     // The objective: a red bird bobbing over the place you need to go (the same marker as in the areas).
-    const target = String(getSession(this).story.getVariable('objective_target') ?? '').split(':')[0];
-    const goal = MAP_PLACES.find((p) => p.id === target);
-    if (goal) {
+    // A choice (",") gets a bird over each place.
+    const targets = String(getSession(this).story.getVariable('objective_target') ?? '').split(',').map((t) => t.split(':')[0]);
+    for (const target of new Set(targets)) {
+      const goal = MAP_PLACES.find((p) => p.id === target);
+      if (!goal) continue;
       const marker = this.add.image(goal.x, goal.y - 6, makeSpriteTexture(this, 'bird', BIRD.rows, BIRD.colours)).setOrigin(0.5, 1);
       this.tweens.add({ targets: marker, y: goal.y - 9, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     }
