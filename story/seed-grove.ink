@@ -4,7 +4,7 @@
 // ============================================================================
 
 === grove_gardener ===
-[PLACEHOLDER] "Careful where you tread. Every one of these is worth more than your street."
+[PLACEHOLDER] "Careful where you tread. Every one of these is worth more than your street." #speaker:gardener
 -> END
 
 === grove_cloche ===

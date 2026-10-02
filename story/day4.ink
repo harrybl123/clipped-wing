@@ -208,15 +208,15 @@ The Tender sees you at the edge of the crowd and gives a small shake of the head
 Mum is at the stew stall with her basket, holding out a jar to trade.
 "Two bowls, please. Whatever you've got." #speaker:mum
 The stew seller looks at her, then at you behind her, and puts the lid back on the pot.
-"Not today, love. I'm sorry." #name:The stew seller
+"Not today, love. I'm sorry." #speaker:stew_seller
 "I've bought from you for twenty years." #speaker:mum
-"I know. I've got children." #name:The stew seller
+"I know. I've got children." #speaker:stew_seller
 The people in the queue have stepped away from her. Nobody wants to stand near the carver's house. #recoil
 Then someone shoves through the crowd: the young man from the rite, in his zealot's stole. #show:zealot-market
-"You've got a nerve, bringing that out among decent people." #name:The young man
+"You've got a nerve, bringing that out among decent people." #speaker:zealot
 He knocks Mum's basket out of her hands. Jars roll across the floor. One breaks. #shake
 ~ food_store -= 1
-"Rot-hand's mother. Buying rot-hand's supper." #name:The young man
+"Rot-hand's mother. Buying rot-hand's supper." #speaker:zealot
 + [Step in]
     ~ fought = true
     You step between them. #fight:day4_fight:day4_after_fight
@@ -229,7 +229,7 @@ He knocks Mum's basket out of her hands. Jars roll across the floor. One breaks.
 You don't move. You tell yourself it's because it would only make things worse.
 Mum gets down on her knees and gathers the jars back into her basket, one by one. She looks up once, and sees you standing there.
 She doesn't say anything. She doesn't need to.
-"That's right. Know your place." #name:The young man
+"That's right. Know your place." #speaker:zealot
 He walks off laughing. #hide:zealot-market
 -> after
 
@@ -274,13 +274,13 @@ His fist catches you under the ribs, and the floor comes up to meet you. #end
 { fight_won:
     He's on the floor among the jars, and the whole market is staring at you. #show:zealot-market
     ~ suspicion += 2
-    "Did you see that? Rot-hand went for him!" #name:Someone
-    He gets up, wiping his mouth, and backs away. "You'll pay for that. All of you." #name:The young man
+    "Did you see that? Rot-hand went for him!" #speaker:crowd_someone
+    He gets up, wiping his mouth, and backs away. "You'll pay for that. All of you." #speaker:zealot
 - else:
     You're on the floor. Your lip is split and every breath hurts. #show:zealot-market
     ~ hurt = true
     ~ food_store -= 2
-    He takes two jars out of Mum's basket, tucks them under his arm, and strolls away. "For the shrine. Since you owe it."  #name:The young man
+    He takes two jars out of Mum's basket, tucks them under his arm, and strolls away. "For the shrine. Since you owe it."  #speaker:zealot
 }
 He's gone. #hide:zealot-market
 -> day4_market.after
@@ -346,15 +346,15 @@ He points with his staff to the foot of the stairs.
 // The crowd before the ritual: talk to them first if you like (src/data/areas/offeringFloor.ts).
 === day4_crowd_mother ===
 She sees you coming and turns her children round by the shoulders, so they face the tube.
-"We've been told not to speak to you. I'm sorry. I've got to think of them." #name:A mother
+"We've been told not to speak to you. I'm sorry. I've got to think of them." #speaker:mother
 -> END
 
 === day4_crowd_old_man ===
-"The elders came round this afternoon. Every house in the roots." #name:An old man
-"Told us how it would be tonight. Not to shout. Not to throw. Just to turn away, all together, if it comes back." #name:An old man
+"The elders came round this afternoon. Every house in the roots." #speaker:old_man
+"Told us how it would be tonight. Not to shout. Not to throw. Just to turn away, all together, if it comes back." #speaker:old_man
 + [Why are you telling me?]
     "Why are you telling me?" #speaker:you
-    "Because somebody ought to warn you. And because I'm old, and nobody listens to me anyway." #name:An old man
+    "Because somebody ought to warn you. And because I'm old, and nobody listens to me anyway." #speaker:old_man
 + [Will you turn away too?]
     "Will you turn away too?" #speaker:you
     He doesn't answer. He looks at his feet.
@@ -364,14 +364,14 @@ She sees you coming and turns her children round by the shoulders, so they face 
 {
 - fight_won:
     The young man from the market has a split lip, and a crowd of friends round him now. He doesn't come near you.
-    "Look at it. Rot-hand. Couldn't wait to lay hands on a believer." #name:The young man
-    "Everyone saw. Everyone." #name:The young man
+    "Look at it. Rot-hand. Couldn't wait to lay hands on a believer." #speaker:zealot
+    "Everyone saw. Everyone." #speaker:zealot
 - fought:
     The young man from the market grins when he sees you holding your ribs.
-    "Still standing? The Tree'll see to that." #name:The young man
+    "Still standing? The Tree'll see to that." #speaker:zealot
 - else:
     The young man from the market smirks.
-    "Your mother's carrying her own basket tonight, is she? Good." #name:The young man
+    "Your mother's carrying her own basket tonight, is she? Good." #speaker:zealot
 }
 -> END
 
@@ -379,13 +379,13 @@ She sees you coming and turns her children round by the shoulders, so they face 
 A ring has been chalked on the floor at the foot of the stairs, away from everyone. Nobody needs to tell you who it's for.
 You step into it.
 Mum starts towards you. A woman takes her arm, gently, and steers her back among the others. #move:mum-ceremony:62
-"Not with them, love. Stand with us." #name:A woman
+"Not with them, love. Stand with us." #speaker:crowd_woman
 Nobody shouts tonight. Nobody throws anything. It's worse.
 The whispering starts at the back, and moves forward like a draught.
-"Third time, if it comes back." #name:Someone in the crowd
-"It'll come back. Look at it, standing there." #name:Someone else
-"My sister's boy had the cough after the last one. Since it touched the basin." #name:A woman
-"Hush. Don't look at it. They said not to look at it." #name:A man
+"Third time, if it comes back." #speaker:crowd_someone #name:Someone in the crowd
+"It'll come back. Look at it, standing there." #speaker:crowd_someone_else
+"My sister's boy had the cough after the last one. Since it touched the basin." #speaker:crowd_woman
+"Hush. Don't look at it. They said not to look at it." #speaker:crowd_man
 "A blessing, for the weavers. A blessing, for the potters. A blessing, for the lamp-makers." #speaker:tender
 The tube goes dark. #flash:dark
 Your bird drops into the basin. #show:rejected-bird

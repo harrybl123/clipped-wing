@@ -202,12 +202,14 @@ export class DialogueBox {
 
   /**
    * Shows the portrait and name for a `speaker:<id>` tag, just a name for a `name:<Name>` tag (a voice
-   * with no face, as in the prologue), or neither for narration.
+   * with no face, as in the prologue), or neither for narration. With both, the name overrides the
+   * speaker's usual one ("Your escort").
    */
   private showSpeaker(tags: string[]): void {
     const id = tags.find((t) => t.startsWith('speaker:'))?.slice('speaker:'.length).trim();
     const speaker = id ? SPEAKERS[id] : undefined;
-    const nameOnly = speaker ? undefined : tags.find((t) => t.startsWith('name:'))?.slice('name:'.length).trim();
+    const name = tags.find((t) => t.startsWith('name:'))?.slice('name:'.length).trim();
+    const nameOnly = speaker ? undefined : name;
     for (const o of [this.portraitFrame, this.portraitBack, this.portrait]) o.setVisible(!!speaker);
     this.nameText.setVisible(!!speaker || !!nameOnly);
     const textX = MARGIN + PADDING + (speaker ? PORTRAIT_SIZE + PORTRAIT_GAP : 0);
@@ -216,7 +218,7 @@ export class DialogueBox {
     if (nameOnly) this.nameText.setText(nameOnly).setX(textX);
     if (!speaker || !id) return;
     this.portrait.setTexture(makeSpriteTexture(this.scene, `portrait-${id}`, speaker.portrait.rows, speaker.portrait.colours));
-    this.nameText.setText(speaker.name).setX(textX);
+    this.nameText.setText(name ?? speaker.name).setX(textX);
   }
 
   /** The story's current choices as options: choosing one continues the story. */

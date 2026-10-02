@@ -1,3 +1,4 @@
+import { ELDER_LOOKS, FRIEND_FATHER_LOOK, GUARD_LOOK, PREACHER_LOOK, RESIDENT_LOOKS, VILLAGER_LOOKS, type VillagerLook } from './characters';
 import { SHADES } from './pixelArt';
 import type { RowSprite } from './sprites';
 
@@ -278,7 +279,6 @@ export const ARCHIVIST_PORTRAIT: RowSprite = (() => {
   });
 })();
 
-/** Portraits by the speaker id used in ink tags (`#speaker:mum`), with the name shown above the line. */
 /**
  * The boy in the lower roots: a sleazy fixer. A cap pushed back and tilted, scruffy hair poking out,
  * a narrow face, eyes squinting as he sizes you up, one brow cocked, a gap-toothed grin, bum fluff on
@@ -320,6 +320,291 @@ export const BOY_PORTRAIT: RowSprite = (() => {
   });
 })();
 
+// --- Everyone else: one baseline bust, varied ---
+
+/**
+ * A face for anyone you speak to who isn't one of the main cast (designer: "a baseline with different
+ * hair or items"). The clothes, headwear, hair colour, robe, stole, staff and bundle come from the same
+ * `VillagerLook` as their sprite, so the face matches the figure on screen; the rest is the face itself.
+ */
+export interface NpcFace {
+  /** Face shape: narrow (thin, long), plain, round or broad. */
+  build?: 'narrow' | 'plain' | 'round' | 'broad';
+  /** Hair on a bare head (under a cap only the sides show; a hood hides it; a bun look always has a bun). */
+  hair?: 'cropped' | 'long' | 'bun' | 'balding' | 'messy' | 'shaven';
+  /** Hair colour, if not the look's. */
+  hairColour?: number;
+  /** 0 young, 1 middle-aged (a line on the brow), 2 old (lines, sunken cheeks). */
+  age?: 0 | 1 | 2;
+  beard?: 'stubble' | 'moustache' | 'full' | 'long';
+  brow?: 'plain' | 'heavy' | 'knit' | 'raised';
+  eyes?: 'plain' | 'narrow' | 'wide' | 'tired' | 'hollow';
+  mouth?: 'flat' | 'frown' | 'smile' | 'grin' | 'sneer' | 'open';
+  items?: ('beads' | 'pipe' | 'token' | 'spectacles' | 'scarf' | 'earring' | 'apron')[];
+}
+
+/** A darker shade of each clothing colour, for folds and shadow. */
+const DARKER: Record<number, number> = {
+  [SHADES.amber]: SHADES.amberDeep,
+  [SHADES.amberDeep]: SHADES.woodLight,
+  [SHADES.cyanMid]: SHADES.cyanDeep,
+  [SHADES.cyanDeep]: SHADES.deep,
+  [SHADES.greenMid]: SHADES.greenDeep,
+  [SHADES.greenDeep]: SHADES.deep,
+  [SHADES.light]: SHADES.dim,
+  [SHADES.dim]: SHADES.woodPale,
+  [SHADES.woodPale]: SHADES.woodLight,
+  [SHADES.woodLight]: SHADES.deep,
+};
+const darker = (c: number) => DARKER[c] ?? SHADES.deep;
+
+const BUILDS: Record<NonNullable<NpcFace['build']>, [rx: number, ry: number]> = { narrow: [7, 12], plain: [9, 12], round: [10, 11], broad: [10, 12] };
+
+/**
+ * The pixel picker for one NPC bust centred at (cx, cy), or '.' where it's empty. Shared by
+ * `npcPortrait` and the crowd's group portrait, which packs several smaller ones into the frame.
+ */
+function npcPick(look: VillagerLook, o: NpcFace, cx: number, cy: number, scale = 1): Pick {
+  const [brx, bry] = BUILDS[o.build ?? 'plain'];
+  const f: Face = { cx, cy, rx: Math.round(brx * scale), ry: Math.round(bry * scale) };
+  const age = o.age ?? 0;
+  const eyeY = f.cy + 1;
+  const mouthY = eyeY + Math.round(f.ry * 0.65);
+  const items = new Set(o.items ?? []);
+  const hairStyle = look.head === 'bun' ? 'bun' : (o.hair ?? 'cropped');
+  const hood = look.head === 'hood';
+  const cap = look.head === 'cap';
+  const top = f.cy + f.ry + 2; // shoulders
+  const browKind = o.brow ?? 'plain';
+  const eyes = o.eyes ?? 'plain';
+
+  const inFace = (x: number, y: number) => inEllipse(x, y, f.cx, f.cy, f.rx, f.ry);
+
+  const beard = (x: number, y: number): string | null => {
+    const u = x - f.cx;
+    switch (o.beard) {
+      case 'stubble':
+        return inFace(x, y) && y >= mouthY - 1 && (x + y) % 2 === 0 && !(y === mouthY && Math.abs(u) <= 2) ? (u < -3 ? 'E' : 'S') : null;
+      case 'moustache':
+        return y === mouthY - 1 && u >= -3 && u <= 3 ? 'h' : null;
+      case 'full':
+        if (y === mouthY && Math.abs(u) <= 2) return null;
+        if ((inFace(x, y) && y >= mouthY - 2 && Math.abs(u) >= (y < mouthY + 1 ? 3 : 0)) || (y > f.cy && inEllipse(x, y, f.cx, f.cy + 2, f.rx, f.ry + 2) && !inFace(x, y)))
+          return (x * 3 + y) % 13 === 0 ? 'k' : 'h';
+        if (inFace(x, y) && y >= eyeY + 4 && Math.abs(u) >= f.rx - 2) return 'h'; // up the jaw to the ears
+        return null;
+      case 'long': {
+        if (y === mouthY && Math.abs(u) <= 2) return null;
+        const half = y < top + 2 ? f.rx - 2 - Math.max(0, (y - mouthY) * 0.15) : Math.max(0, f.rx - 2 - (y - top) * 0.7);
+        if ((y >= mouthY - 1 && Math.abs(u) <= half && (inFace(x, y) || y > f.cy)) || (inFace(x, y) && y >= eyeY + 3 && Math.abs(u) >= f.rx - 2))
+          return (x * 3 + y) % 7 === 0 ? 'k' : 'h';
+        return null;
+      }
+      default:
+        return null;
+    }
+  };
+
+  const featureAt = (x: number, y: number): string | null => {
+    const u = x - f.cx;
+    for (const ex of [f.cx - 4, f.cx + 3]) {
+      const lit = ex > f.cx;
+      const inner = lit ? ex - 1 : ex + 2; // the brow's end nearest the nose
+      // Eyes.
+      if (y === eyeY && (x === ex || x === ex + 1)) return eyes !== 'narrow' && lit && x === ex + 1 ? 'w' : 'e';
+      if (eyes === 'wide' && y === eyeY - 1 && x === ex + (lit ? 0 : 1)) return 'e';
+      if ((eyes === 'tired' || eyes === 'hollow') && y === eyeY + 1 && (x === ex || x === ex + 1)) return eyes === 'hollow' ? 'E' : 'S';
+      if (eyes === 'hollow' && y === eyeY - 1 && (x === ex - 1 || x === ex + 2)) return 'S';
+      // Brows.
+      const inBrow = x >= ex - 1 && x <= ex + 2;
+      if (browKind === 'plain' && y === eyeY - 2 && inBrow) return 'h';
+      if (browKind === 'heavy' && (y === eyeY - 2 || y === eyeY - 3) && inBrow && !(y === eyeY - 3 && x === ex + (lit ? 2 : -1))) return 'h';
+      if (browKind === 'knit' && inBrow && y === (x === inner || x === inner + (lit ? 1 : -1) ? eyeY - 2 : eyeY - 3)) return 'h';
+      if (browKind === 'raised' && inBrow && y === (x === ex || x === ex + 1 ? eyeY - 4 : eyeY - 3)) return 'h';
+    }
+    // Nose.
+    if (x === f.cx + 1 && y >= eyeY + 1 && y < mouthY - 3) return 'S';
+    if (y === mouthY - 3 && x === f.cx + 2) return 'S';
+    // Mouth.
+    switch (o.mouth ?? 'flat') {
+      case 'flat':
+        if (y === mouthY && Math.abs(u) <= 2) return 'e';
+        break;
+      case 'frown':
+        if (y === mouthY && Math.abs(u) <= 1) return 'e';
+        if (y === mouthY + 1 && Math.abs(u) === 2) return 'e';
+        break;
+      case 'smile':
+        if (y === mouthY && Math.abs(u) <= 1) return 'e';
+        if (y === mouthY - 1 && Math.abs(u) === 2) return 'e';
+        break;
+      case 'grin': // too many teeth
+        if (y === mouthY && Math.abs(u) <= 3) return Math.abs(u) === 3 ? 'e' : 'w';
+        if (y === mouthY - 1 && Math.abs(u) === 4) return 'e';
+        if (y === mouthY + 1 && Math.abs(u) <= 2) return 'e';
+        break;
+      case 'sneer':
+        if (y === mouthY && u >= -2 && u <= 1) return 'e';
+        if (y === mouthY - 1 && u === 2) return 'e';
+        break;
+      case 'open': // shouting
+        if ((y === mouthY || y === mouthY + 1) && Math.abs(u) <= 1) return 'e';
+        if (y === mouthY - 1 && Math.abs(u) <= 1) return 'S';
+        break;
+    }
+    // Age.
+    if (age >= 1 && y === f.cy - 5 && Math.abs(u) <= 2) return 'S';
+    if (age >= 2) {
+      if (y === f.cy - 6 && Math.abs(u) <= 1) return 'S';
+      if ((x === f.cx - 5 || x === f.cx + 5) && y >= mouthY - 3 && y <= mouthY - 1) return 'S'; // lines from the nose
+      if (x <= f.cx - 5 && y >= eyeY + 2 && y <= eyeY + 4 && x > f.cx - f.rx + 1) return 'E'; // sunken cheek
+    }
+    return null;
+  };
+
+  return (x, y) => {
+    const u = x - f.cx;
+    // A guard's staff, held up at the right edge.
+    if (look.staff && (x === f.cx + 17 || x === f.cx + 18) && y >= 2) return y < 6 ? 't' : x === f.cx + 18 ? 'f' : 'w';
+    // A pipe from the corner of the mouth.
+    if (items.has('pipe')) {
+      if (y === mouthY && u >= 3 && u <= 8) return 'u';
+      if (u >= 8 && u <= 10 && y >= mouthY - 3 && y <= mouthY) return y === mouthY - 3 ? 'o' : x === f.cx + 10 ? 'U' : 'u';
+    }
+    // Spectacles.
+    if (items.has('spectacles') && inFace(x, y)) {
+      for (const ex of [f.cx - 3.5, f.cx + 3.5]) {
+        const r = Math.hypot(x - ex, y - eyeY);
+        if (r > 2.4 && r < 3.4) return 'o';
+      }
+      if (y === eyeY && x === f.cx) return 'o';
+    }
+    // An earring on the lit side.
+    if (items.has('earring') && x === f.cx + f.rx && (y === eyeY + 2 || y === eyeY + 3)) return y === eyeY + 3 ? 'p' : 'o';
+    // A cap, in the clothes' accent colour, the brim jutting out to the right.
+    if (cap) {
+      const capBase = f.cy - f.ry + 5;
+      if (y <= capBase && inEllipse(x, y, f.cx - 1, capBase - 1, f.rx + 1.5, 6)) return y === capBase || (x + y) % 6 === 0 ? 'Z' : 'z';
+      if (y === capBase + 1 && x >= f.cx - 2 && x <= f.cx + f.rx + 5) return 'Z';
+    }
+    // A hood round the face, falling to the shoulders.
+    if (hood) {
+      const outer = inEllipse(x, y, f.cx, f.cy, f.rx + 5, f.ry + 5) || (y > f.cy + 6 && Math.abs(u) <= f.rx - 1 + (y - f.cy - 6) * 1.5);
+      if (outer && !inFace(x, y) && y < top + 3) {
+        if (!inEllipse(x, y, f.cx, f.cy, f.rx + 4, f.ry + 4) && y <= f.cy + 6) return u > 0 ? 'J' : 'o';
+        return u > f.rx + 1 ? 'J' : 'K';
+      }
+    }
+    // Hair.
+    if (!hood && hairStyle !== 'shaven') {
+      const crown = inEllipse(x, y, f.cx, f.cy - 2, f.rx + 1.5, f.ry + 0.5);
+      const sides = !inFace(x, y) && Math.abs(u) >= f.rx - 1 && y < f.cy + 1;
+      let hair = false;
+      if (cap) hair = sides && Math.abs(u) <= f.rx + 1 && y > f.cy - f.ry + 6 && (x + y) % 3 !== 0;
+      else if (hairStyle === 'balding') hair = !inFace(x, y) ? crown && Math.abs(u) >= f.rx - 1 && y > f.cy - 7 : Math.abs(u) >= f.rx - 2 && y > f.cy - 6 && y < f.cy - 1;
+      else if (hairStyle === 'messy') hair = crown && (y < f.cy - 6 + ((x * 7) % 5 === 0 ? 2 : (x * 3) % 4 === 0 ? 1 : 0) || sides);
+      else hair = crown && (y < f.cy - 6 || sides);
+      if (hairStyle === 'long' && !inFace(x, y) && Math.abs(u) >= f.rx - 1 && Math.abs(u) <= f.rx + 2 && y >= f.cy - 4 && y <= top + 4) hair = true;
+      if (hairStyle === 'bun' && inEllipse(x, y, f.cx - 1, f.cy - f.ry - 1, 4.5, 3.5)) hair = true;
+      if (hair) return u > 1 && (x + y) % 5 === 0 ? 'k' : 'h';
+    }
+    if (inFace(x, y)) {
+      const b = beard(x, y);
+      if (b) return b;
+      const feature = featureAt(x, y);
+      if (feature) return feature;
+      if (hood && y < f.cy - f.ry + 4) return u > f.rx - 3 ? 'S' : 'E'; // in the hood's shadow
+      return skin(x, f.cx, f.rx);
+    }
+    const b = beard(x, y);
+    if (b) return b;
+    // Neck: a scarf, beads or a token on a cord.
+    const neckTop = f.cy + f.ry - 2;
+    if (y >= neckTop && y < top + 1 && Math.abs(u) <= 4) {
+      if (items.has('scarf') && y >= top - 2) return (x + y) % 3 === 0 ? 'Z' : 'z';
+      return skin(x, f.cx, 5);
+    }
+    if (items.has('beads') && y >= top && y <= top + 4 && Math.abs(u) === 5 - (y - top) && (x + y) % 2 === 0) return y % 4 === 0 ? 'q' : 'n';
+    if (items.has('token')) {
+      if (inEllipse(x, y, f.cx, top + 5, 1.6, 1.6)) return x >= f.cx && y <= top + 5 ? 'Q' : 'q';
+      for (const side of [-1, 1]) if (y >= top && y <= top + 3 && x === f.cx + side * (4 - Math.round((y - top) * 0.7))) return 'E';
+    }
+    // Shoulders and chest: the look's clothes, its accent band, a stole, a bundle's strap, an apron.
+    if (y >= top) {
+      const spread = Math.round((8 + (y - top) * 1.6) * scale);
+      if (Math.abs(u) > spread) return '.';
+      if (Math.abs(u) > spread - 1) return u > 0 ? 'F' : 'o';
+      if (look.stole && u >= 3 && u <= 5) return u === 5 ? 'B' : 'b';
+      if (look.bundle && Math.abs(u - (y - top - 6)) <= 0) return 'u';
+      if (items.has('apron') && y >= top + 5 && Math.abs(u) <= 6) return Math.abs(u) === 6 ? 'o' : 'P';
+      if (y === top + 3 || y === top + 4) return y === top + 4 ? 'Z' : 'z';
+      if ((x + Math.floor(y / 3)) % 9 === 0 && y > top + 5) return 'F';
+      return 'R';
+    }
+    return '.';
+  };
+}
+
+const npcColours = (look: VillagerLook, o: NpcFace) => {
+  const hair = o.hairColour ?? look.hair ?? SHADES.shadow;
+  const robe = look.robe ?? SHADES.deep;
+  const hoodColour = look.robe ?? SHADES.woodLight;
+  return {
+    ...COLOURS,
+    h: hair,
+    k: hair === SHADES.shadow ? SHADES.woodLight : hair === SHADES.light ? SHADES.white : hair === SHADES.amberDeep ? SHADES.amber : SHADES.light,
+    R: robe,
+    F: robe === SHADES.deep ? SHADES.wood : look.robe === SHADES.dim ? SHADES.light : SHADES.woodPale,
+    z: look.accent,
+    Z: darker(look.accent),
+    K: hoodColour,
+    J: hoodColour === SHADES.woodLight ? SHADES.wood : SHADES.woodPale,
+    u: SHADES.amberDeep,
+    U: SHADES.amber,
+    P: SHADES.woodPale,
+  };
+};
+
+/** A face for an NPC, drawn from their sprite's look plus a few face settings. */
+export function npcPortrait(look: VillagerLook, face: NpcFace = {}): RowSprite {
+  const pick = npcPick(look, face, 24, face.build === 'narrow' ? 21 : 22);
+  const rows = Array.from({ length: PORTRAIT_SIZE }, (_, y) => Array.from({ length: PORTRAIT_SIZE }, (_, x) => pick(x, y)).join(''));
+  return { rows, colours: npcColours(look, face) };
+}
+
+/** "The crowd", all at once: three heads crammed into the frame, shouting; the two at the back in shadow. */
+export const CROWD_PORTRAIT: RowSprite = (() => {
+  const front = npcPick(VILLAGER_LOOKS[4]!, { hair: 'messy', mouth: 'open', brow: 'knit' }, 24, 28, 0.85);
+  const back = [
+    npcPick(VILLAGER_LOOKS[0]!, { build: 'round', mouth: 'open' }, 11, 17, 0.7),
+    npcPick(VILLAGER_LOOKS[1]!, { mouth: 'open', brow: 'knit', hair: 'long' }, 37, 15, 0.7),
+  ];
+  const SHADOWED: Record<string, string> = { L: 'S', M: 'S', S: 'E', w: 'e', k: 'h', z: 'V', Z: 'V', R: 'c', F: 'f', J: 'K', t: 'S' };
+  const rows = Array.from({ length: PORTRAIT_SIZE }, (_, y) =>
+    Array.from({ length: PORTRAIT_SIZE }, (_, x) => {
+      const near = front(x, y);
+      if (near !== '.') return near;
+      for (const head of back) {
+        const c = head(x, y);
+        if (c !== '.') return SHADOWED[c] ?? c;
+      }
+      return '.';
+    }).join(''),
+  );
+  return { rows, colours: { ...npcColours(VILLAGER_LOOKS[4]!, {}), V: SHADES.greenDeep } };
+})();
+
+/** The guards share the guard's look (cap, amber band, staff); their faces tell them apart. */
+const guardFace = (face: NpcFace) => npcPortrait(GUARD_LOOK, face);
+/** The elders share one face (designer), told apart by their robes. */
+const ELDER_FACE: NpcFace = { hair: 'balding', age: 2, brow: 'heavy', eyes: 'tired', mouth: 'frown', beard: 'full' };
+/** The hatch keeper, behind the ration hatch: never seen in full. */
+const HATCH_KEEPER_LOOK: VillagerLook = { height: 24, width: 3, head: 'cap', accent: SHADES.woodPale };
+
+/**
+ * Portraits by the speaker id used in ink tags (`#speaker:mum`), with the name shown above the line. A
+ * `#name:` tag on the same line overrides the name (the escort is "The guard" until he's "Your escort").
+ */
 export const SPEAKERS: Record<string, { name: string; portrait: RowSprite }> = {
   you: { name: 'You', portrait: PROTAGONIST_PORTRAIT },
   mum: { name: 'Mum', portrait: MUM_PORTRAIT },
@@ -328,4 +613,39 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite }> = {
   girl: { name: 'The girl', portrait: GIRL_PORTRAIT },
   archivist: { name: 'The archivist', portrait: ARCHIVIST_PORTRAIT },
   boy: { name: 'The boy', portrait: BOY_PORTRAIT },
+
+  // The recurring cast.
+  preacher: { name: 'The preacher', portrait: npcPortrait(PREACHER_LOOK, { build: 'narrow', age: 1, eyes: 'wide', brow: 'raised', mouth: 'grin' }) },
+  elder_amber: { name: 'An elder', portrait: npcPortrait(ELDER_LOOKS[0]!, ELDER_FACE) }, // the eldest, who leads
+  elder_cyan: { name: 'An elder', portrait: npcPortrait(ELDER_LOOKS[1]!, ELDER_FACE) },
+  elder_green: { name: 'An elder', portrait: npcPortrait(ELDER_LOOKS[2]!, ELDER_FACE) },
+  elder_pale: { name: 'An elder', portrait: npcPortrait(ELDER_LOOKS[3]!, ELDER_FACE) },
+  guard: { name: 'A guard', portrait: guardFace({ build: 'broad', age: 1, brow: 'heavy', beard: 'stubble' }) },
+  escort: { name: 'The guard', portrait: guardFace({ brow: 'knit', mouth: 'frown', beard: 'moustache' }) },
+  post_guard: { name: 'The guard at the post', portrait: guardFace({ build: 'round', eyes: 'narrow', mouth: 'sneer' }) },
+  gate_guard: { name: 'The gate guard', portrait: guardFace({ build: 'narrow', eyes: 'narrow', brow: 'raised' }) },
+  zealot: { name: 'The young man', portrait: npcPortrait(VILLAGER_LOOKS[0]!, { build: 'narrow', brow: 'knit', eyes: 'wide', mouth: 'sneer', beard: 'stubble' }) },
+  old_man: { name: 'An old man', portrait: npcPortrait(VILLAGER_LOOKS[1]!, { hairColour: SHADES.light, age: 2, eyes: 'tired', brow: 'heavy', beard: 'moustache', mouth: 'frown', items: ['pipe'] }) },
+  mother: { name: 'A mother', portrait: npcPortrait(VILLAGER_LOOKS[6]!, { build: 'round', hair: 'long', eyes: 'tired', brow: 'knit', mouth: 'frown', items: ['scarf'] }) },
+  thin_man: { name: 'Thin man', portrait: npcPortrait(VILLAGER_LOOKS[2]!, { build: 'narrow', hair: 'messy', age: 1, eyes: 'hollow', beard: 'stubble' }) },
+
+  // One-offs, from the looks of the people standing there.
+  hatch_keeper: { name: 'Hatch keeper', portrait: npcPortrait(HATCH_KEEPER_LOOK, { build: 'round', age: 1, brow: 'raised', items: ['apron'] }) },
+  stew_seller: { name: 'The stew seller', portrait: npcPortrait(VILLAGER_LOOKS[3]!, { build: 'broad', age: 1, mouth: 'smile', items: ['apron', 'earring'] }) },
+  fungus_seller: { name: 'The glowcap seller', portrait: npcPortrait(VILLAGER_LOOKS[0]!, { build: 'round', eyes: 'narrow', mouth: 'smile', items: ['beads'] }) },
+  cloth_seller: { name: 'The cloth seller', portrait: npcPortrait(VILLAGER_LOOKS[1]!, { hair: 'long', mouth: 'smile', items: ['scarf'] }) },
+  curio_seller: { name: 'The curio seller', portrait: npcPortrait(VILLAGER_LOOKS[5]!, { build: 'narrow', age: 2, eyes: 'narrow', beard: 'long', mouth: 'smile', items: ['earring'] }) },
+  local: { name: 'A local', portrait: npcPortrait(VILLAGER_LOOKS[5]!, { build: 'round', beard: 'stubble', mouth: 'smile', items: ['earring'] }) },
+  friend_father: { name: 'His father', portrait: npcPortrait(FRIEND_FATHER_LOOK, { build: 'broad', age: 1, brow: 'knit', beard: 'full', mouth: 'frown', items: ['token'] }) },
+  carver: { name: 'A carver', portrait: npcPortrait(RESIDENT_LOOKS[3]!, { build: 'narrow', hair: 'long', age: 1, items: ['spectacles'] }) },
+  lift_keeper: { name: 'The lift keeper', portrait: npcPortrait(RESIDENT_LOOKS[1]!, { build: 'round', eyes: 'narrow', beard: 'moustache', mouth: 'smile' }) },
+  doorman: { name: 'The doorman', portrait: npcPortrait(RESIDENT_LOOKS[1]!, { build: 'narrow', eyes: 'narrow', brow: 'raised' }) },
+  gardener: { name: 'The gardener', portrait: npcPortrait(RESIDENT_LOOKS[2]!, { hair: 'bun', age: 1 }) },
+
+  // Voices from the crowd, each with the face of someone standing in it.
+  crowd_woman: { name: 'A woman', portrait: npcPortrait(VILLAGER_LOOKS[3]!, { eyes: 'wide', brow: 'knit', mouth: 'open' }) },
+  crowd_man: { name: 'A man', portrait: npcPortrait(VILLAGER_LOOKS[4]!, { build: 'broad', brow: 'heavy', beard: 'full', mouth: 'open' }) },
+  crowd_someone: { name: 'Someone', portrait: npcPortrait(VILLAGER_LOOKS[5]!, { build: 'round', eyes: 'narrow' }) },
+  crowd_someone_else: { name: 'Someone else', portrait: npcPortrait(VILLAGER_LOOKS[1]!, { hair: 'long', eyes: 'wide', mouth: 'frown', items: ['earring'] }) },
+  crowd: { name: 'The crowd', portrait: CROWD_PORTRAIT },
 };

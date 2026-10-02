@@ -36,8 +36,8 @@ Your bird for the rite. The same as ever, the left wing a little heavy.
 === day2_rite ===
 The crowd is quieter than yesterday. The bowls were thin this morning.
 As the Tender lifts the basket, a thin man pushes to the front. #move:thin-man:112
-"Offerings! Look at us. Half a bowl a day, and we're still sending our best up the tube." #name:Thin man
-"Somebody up there needs to buck their ideas up!" #name:Thin man
+"Offerings! Look at us. Half a bowl a day, and we're still sending our best up the tube." #speaker:thin_man
+"Somebody up there needs to buck their ideas up!" #speaker:thin_man
 The whole floor goes still.
 "Enough." #speaker:tender
 The Tender's staff comes down on the landing. The crack rings round the floor. #shake
@@ -57,7 +57,7 @@ The crowd breaks up, muttering. You need to fetch your share from the hatch, for
 // --- The afternoon: the hatch, and your friend or the thin man ---
 
 === day2_ration ===
-"One share for the carver's house. Less than yesterday, I know. Don't look at me like that." #name:Hatch keeper
+"One share for the carver's house. Less than yesterday, I know. Don't look at me like that." #speaker:hatch_keeper
 You take the little bundle: food for you and Mum. It weighs almost nothing.
 Outside the hatch, a small child from the lower roots is watching it in your hands.
 + [Keep it. Mum will need it.]
@@ -117,28 +117,28 @@ You see it at once: the twist runs against the grain. It'll crack within a seaso
 
 === day2_thin_man ===
 The thin man is alone on the floor, scraping at the empty blessing baskets with his fingers. He freezes when he sees you.
-"Go on. Tell the Tender. Everyone else will." #name:Thin man
+"Go on. Tell the Tender. Everyone else will." #speaker:thin_man
 + [I won't tell anyone.]
     "I won't tell anyone." #speaker:you
     His shoulders drop, a little.
 + [You shouldn't have said it. Not at the rite.]
     "You shouldn't have said it. Not at the rite." #speaker:you
-    "You think I don't know that?" #name:Thin man
+    "You think I don't know that?" #speaker:thin_man
 + [You only said what everyone's thinking.]
     "You only said what everyone's thinking." #speaker:you
     ~ suspicion += 1
     Across the floor, a passer-by slows down, listening.
-- "My little one hasn't eaten in two days. What was I meant to do? Smile, and send up my best?" #name:Thin man
-"I carved ladles once. Good ones. We lived up by the market then." #name:Thin man
+- "My little one hasn't eaten in two days. What was I meant to do? Smile, and send up my best?" #speaker:thin_man
+"I carved ladles once. Good ones. We lived up by the market then." #speaker:thin_man
 He holds up his hands. They shake.
-"Then my hands went. The work goes, the food goes, the house goes. Fair, they call it." #name:Thin man
+"Then my hands went. The work goes, the food goes, the house goes. Fair, they call it." #speaker:thin_man
 + {got_rations} [Give him some of your rations]
     ~ food_store -= 1
     ~ shared_ration = true
     You hold out part of your share. He stares at it, then takes it, and can't say anything at all.
 + [Leave him be]
     You leave him to the empty baskets.
-- "If the Tree turns its face from anyone, let it be me. Not my little one." #name:Thin man
+- "If the Tree turns its face from anyone, let it be me. Not my little one." #speaker:thin_man
 ~ afternoon_with = "thin_man"
 -> day2_afternoon_done
 
@@ -180,28 +180,28 @@ Your bird. Untouched.
 The Tender stares at it. The staff is shaking in their hand.
 "...Rejected." #speaker:tender
 A woman screams. Someone drops their blessing, and it rolls across the floor, and nobody picks it up.
-"It sent it back. The Tree sent it back!" #name:A woman
-"Never. Not once. Not in my grandmother's time, not in hers." #name:An old man
-"What did you put in it? What did you do?" #name:A man
+"It sent it back. The Tree sent it back!" #speaker:crowd_woman
+"Never. Not once. Not in my grandmother's time, not in hers." #speaker:old_man
+"What did you put in it? What did you do?" #speaker:crowd_man
 They're pulling their children behind their legs. Backing away from you as if you were rot. #recoil
 + [Bow your head.]
     You bow your head and say nothing.
-    "Look at it. Can't even meet our eyes." #name:A man
+    "Look at it. Can't even meet our eyes." #speaker:crowd_man
 + [Maybe it just... fell?]
     "Maybe it just... fell?" #speaker:you
     ~ suspicion += 1
-    "Fell? It thinks this is funny!" #name:A woman
+    "Fell? It thinks this is funny!" #speaker:crowd_woman
 + [Why?]
     "Why?" #speaker:you
     ~ suspicion += 2
     The whole floor gasps.
-    "It asks the Tree why. It asks the Tree why!" #name:An old man
+    "It asks the Tree why. It asks the Tree why!" #speaker:old_man
 - "Silence!" #speaker:tender
 "The Tree has spoken. Take it out of the basin. It is not ours to touch." #speaker:tender
 You climb the steps and take it. Nobody else will go near it. #hide:rejected-bird
 Someone spits at your feet. #recoil
-"Rot-hand." #name:A man
-"Cursed." The word goes round the floor, from mouth to mouth. Cursed. Cursed.
+"Rot-hand." #speaker:crowd_man
+"Cursed." The word goes round the floor, from mouth to mouth. Cursed. Cursed. #speaker:crowd
 Mum's face has gone the colour of ash.
 "Come. Now. Don't look at anyone." #speaker:mum
 ~ mum_at_ceremony = false
@@ -256,7 +256,7 @@ Under the soot, something is scratched into it. #decode:message1:day2_decoded
 === day2_decoded ===
 "I see you, clipped wing. Send me new life that can't fly." #speaker:you
 You read it again. And again.
-"I see you." Who sees you? From where? The Tree doesn't speak in pictures. Does it?
+"I see you." Who sees you? From where? The Tree doesn't speak in pictures. Does it? #quote
 Clipped wing. They know about your hand. They know about your birds. Someone has been watching you, closely, for a long time.
 It should frighten you. It does. But underneath the fear there's something else, small and bright, that you haven't felt in years.
 Somebody looked at your work and saw you.

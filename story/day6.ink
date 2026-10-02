@@ -89,14 +89,14 @@ The market's half empty. The stalls that are open have hardly anything on them.
 A woman is sitting on the floor by the ration hatch, white in the face. Someone's fanning her. She fainted in the queue.
 You hold out a carving to the stew seller: a little bird, your best. "Anything. Whatever you've got." #speaker:you
 The stew seller looks at you. Then at the people behind you. #shake
-"It's the carver." #name:Someone
+"It's the carver." #speaker:crowd_someone
 And it spreads, the way it always does now.
-"It's your fault! Since you started, the baskets come down half empty." #name:A woman
-"The Tree's starving us to get at it." #name:A man
-"My children haven't eaten in two days. Two days! Because of you!" #name:A mother
+"It's your fault! Since you started, the baskets come down half empty." #speaker:crowd_woman
+"The Tree's starving us to get at it." #speaker:crowd_man
+"My children haven't eaten in two days. Two days! Because of you!" #speaker:mother
 + [Hide it: "I'm sorry. I'll go."]
     "I'm sorry. I'll go." #speaker:you
-    "Sorry!" Someone laughs. "It's sorry!"
+    "Sorry!" Someone laughs. "It's sorry!" #speaker:crowd_someone
 + [Joke about it: "I'm hungry too, you know."]
     "I'm hungry too, you know." #speaker:you
     That was the wrong thing to say.
@@ -202,20 +202,20 @@ The tunnel gets low before it opens out. You'll have to crawl to get close enoug
 
 === day6_meeting ===
 You crouch in the dark where the tunnel narrows, and listen.
-"...fewer every week. Half what came down last season. Less." #name:An elder
+"...fewer every week. Half what came down last season. Less." #speaker:elder_green
 "The tallies don't lie. The Tree is giving less, and it has been for a long time." #speaker:tender
-"And the roots are counting their bowls." #name:An elder
-"Then give them something else to count." The preacher. #name:The preacher
-"The carver's bird comes back, and the baskets come down light. The roots have already made the connection. We only have to agree with them." #name:The preacher
+"And the roots are counting their bowls." #speaker:elder_green
+"Then give them something else to count." The preacher. #speaker:preacher
+"The carver's bird comes back, and the baskets come down light. The roots have already made the connection. We only have to agree with them." #speaker:preacher
 "It's a child. A child with a ruined hand." #speaker:tender
-"It's a cause. Hunger without a cause is a riot. Hunger with a cause is a congregation." #name:The preacher
+"It's a cause. Hunger without a cause is a riot. Hunger with a cause is a congregation." #speaker:preacher
 A long silence.
-"Bring the carver in tonight. A hearing. It need only look like one." #name:An elder
-"And the girl from the lower roots. The watch saw the carver going down there at night. To her door, they say." #name:An elder
-"Of course they did. Where else would a roots child learn to turn against the Tree?" #name:The preacher
-"The lower roots have always lived closest to the rot. Thieves and grumblers, half of them. They'd sell the bark off the tree and complain it was rough." #name:The preacher
-"Then she'll do. A lower-roots girl filling a cursed child's head with poison. The roots will believe that before they'll believe anything else." #name:An elder
-"And a little fear keeps the lower roots quiet." #name:The preacher
+"Bring the carver in tonight. A hearing. It need only look like one." #speaker:elder_amber
+"And the girl from the lower roots. The watch saw the carver going down there at night. To her door, they say." #speaker:elder_cyan
+"Of course they did. Where else would a roots child learn to turn against the Tree?" #speaker:preacher
+"The lower roots have always lived closest to the rot. Thieves and grumblers, half of them. They'd sell the bark off the tree and complain it was rough." #speaker:preacher
+"Then she'll do. A lower-roots girl filling a cursed child's head with poison. The roots will believe that before they'll believe anything else." #speaker:elder_cyan
+"And a little fear keeps the lower roots quiet." #speaker:preacher
 You don't hear the rest. Your ears are ringing.
 The girl. They're going to take the girl.
 ~ meeting = false
@@ -231,16 +231,16 @@ They're getting up. You back away into the dark before they come past. #time:eve
 // --- The evening: the bitten bird ---
 
 === day6_crowd_mother ===
-"Look at it. It's eating. It's eating, and my children aren't." #name:A mother
+"Look at it. It's eating. It's eating, and my children aren't." #speaker:mother
 -> END
 
 === day6_crowd_old_man ===
-"I've never been hungry like this. Not in seventy years." #name:An old man
-"I don't believe in curses, child. But I'm hungry enough to start." #name:An old man
+"I've never been hungry like this. Not in seventy years." #speaker:old_man
+"I don't believe in curses, child. But I'm hungry enough to start." #speaker:old_man
 -> END
 
 === day6_crowd_zealot ===
-"Tonight they'll ask you what you are. And then they'll know what to do with you." #name:The young man
+"Tonight they'll ask you what you are. And then they'll know what to do with you." #speaker:zealot
 -> END
 
 === day6_ceremony ===
@@ -253,9 +253,9 @@ The tube goes dark. #flash:dark
 Your bird drops into the basin. #show:bitten-bird
 Someone at the front screams.
 There's a bite out of it. A real bite: the marks of teeth, in the wood, where its tail should be. #shake
-"Teeth! It's been bitten!" #name:A woman
-"Something ate it. Something up there ate it!" #name:A man
-"You sent rot up to the Tree, and the Tree bit into it and spat it back at you!" #name:The preacher
+"Teeth! It's been bitten!" #speaker:crowd_woman
+"Something ate it. Something up there ate it!" #speaker:crowd_man
+"You sent rot up to the Tree, and the Tree bit into it and spat it back at you!" #speaker:preacher
 A man faints. A child is sobbing and can't stop. People push back from you so hard the ring of chalk is lost under their feet. #recoil
 + [Hide it: shut your eyes and pray]
     You shut your eyes and pray, because everyone else is, and you don't know what else to do.
@@ -307,10 +307,10 @@ You open it. A plate. And the seed's gone.
     "New life sleeps. The rot is deep. Clipped wing, stay alive. You are not the rot. We need you. Hurry." #speaker:you
     It sleeps. It's only been a day, but he already knows it won't wake. Something was wrong with it. The rot is deep. Does he mean the seed? Or the tree?
 }
-"You are not the rot." Nobody has said that to you in days. Nobody has said anything kind to you at all.
-"We need you." Who? For what? "Hurry." Hurry where?
+"You are not the rot." Nobody has said that to you in days. Nobody has said anything kind to you at all. #quote
+"We need you." Who? For what? "Hurry." Hurry where? #quote
 Then: boots, outside. Several. And a fist on the door. #shake
-"Open up! In the name of the elders!" #name:A guard
+"Open up! In the name of the elders!" #speaker:guard
 The plate's in your hand, and the bird's on the hearth, opened up for anyone to see.
 ~ day6 = "hide"
 ~ evidence_left = 1
@@ -334,13 +334,13 @@ You shove the plate into the loose board under the loft ladder and kick ash over
 ~ evidence_left = 0
 The door gives. Three guards, and the Tender's lamp behind them.
 { plate_found:
-    One of them goes straight to the hearth and picks up the blackened plate. He turns it to the light, frowning at the scratches. #name:A guard
-    "What's this, then?" He drops it into a bag. "The elders will want to see that." #name:A guard
+    One of them goes straight to the hearth and picks up the blackened plate. He turns it to the light, frowning at the scratches.
+    "What's this, then?" He drops it into a bag. "The elders will want to see that." #speaker:guard
     ~ suspicion += 2
 - else:
-    They look around. The hearth, the ash, the bed. They don't know what they're looking for. #name:A guard
+    They look around. The hearth, the ash, the bed. They don't know what they're looking for.
 }
-"You're to come with us. Now." #name:A guard
+"You're to come with us. Now." #speaker:guard
 Mum is in the doorway of her room. She doesn't say anything. She can't.
 ~ day6 = "interrogation"
 ~ interrogating = true
@@ -353,8 +353,8 @@ They march you through the dark, up to the shrine. #goto:tenders-shrine:218:236:
 === day6_interrogation ===
 The shrine. The stool, alone under the lamp. They sit you on it.
 The elders are on the dais in their high chairs, faces in shadow. The preacher stands at the end. The Tender is at his desk with his tallies, and won't look at you.
-"Carver." The eldest elder. "Your birds have come back to the Tree five times. Never in living memory has the Tree refused an offering. We would like to understand why." #name:An elder
-"What is different about you?" #name:An elder
+"Carver." The eldest elder. "Your birds have come back to the Tree five times. Never in living memory has the Tree refused an offering. We would like to understand why." #speaker:elder_amber
+"What is different about you?" #speaker:elder_amber
 + [Hide it: "Nothing. I've carved like my mother taught me."]
     "Nothing. I've carved the way my mother taught me, every day of my life." #speaker:you
 + [Joke about it: "I'm a bit short on fingers."]
@@ -363,7 +363,7 @@ The elders are on the dais in their high chairs, faces in shadow. The preacher s
 + [Voice it: "You tell me. You're the ones who know the Tree."]
     ~ suspicion += 1
     "You tell me. You're the ones who speak for the Tree." #speaker:you
-- "Your first returned bird was your usual. Then you changed. A fledgling, with a clipped wing. Why?" #name:An elder
+- "Your first returned bird was your usual. Then you changed. A fledgling, with a clipped wing. Why?" #speaker:elder_amber
 + [Hide it: "To be humble. To show the Tree I knew I was flawed."]
     "To be humble. To show the Tree I know my flaws." #speaker:you
 + [Joke about it: "I was bored of the old one."]
@@ -372,31 +372,31 @@ The elders are on the dais in their high chairs, faces in shadow. The preacher s
 + [Voice it: "Because something asked me to."]
     ~ suspicion += 2
     "Because something asked me to." #speaker:you
-    The elders look at each other. "Something," one repeats. "The Tree?" You don't answer.
-- "The Tender says your birds have been lighter." #name:An elder
+    The elders look at each other. "Something," one repeats. "The Tree?" You don't answer. #speaker:elder_pale
+- "The Tender says your birds have been lighter." #speaker:elder_green
 "Lighter than your usual. Every one." #speaker:tender
 { plate_found:
-    "And this was in your home." The guard's bag is upended on the floor in front of you. The blackened plate. #name:An elder
-    "Scratches. Pictures. Like children's marks. What is it?" #name:An elder
+    "And this was in your home." The guard's bag is upended on the floor in front of you. The blackened plate. #speaker:elder_cyan
+    "Scratches. Pictures. Like children's marks. What is it?" #speaker:elder_cyan
     You say it's nothing. A scrap. They don't believe you, and you don't expect them to.
 }
 { told_archivist:
-    "You were seen going up to the archive. What did the archivist want with you?" #name:An elder
+    "You were seen going up to the archive. What did the archivist want with you?" #speaker:elder_pale
     "To record the rejection. That's all." You keep your face still. You promised him. #speaker:you
 }
 { caught_stealing:
-    "And the archivist tells us someone was in the archive at night. Someone small. Someone who ran." #name:An elder
+    "And the archivist tells us someone was in the archive at night. Someone small. Someone who ran." #speaker:elder_pale
     He didn't say it was you. He didn't say it wasn't.
 }
-"You've been seen in the lower roots. At night. With a girl from down there." #name:The preacher
-"Bring her in." #name:An elder
+"You've been seen in the lower roots. At night. With a girl from down there." #speaker:preacher
+"Bring her in." #speaker:elder_amber
 They bring her in between two guards. Her hands are tied. Her sleeve is torn, and there's dirt on her face, as if they dragged her here. #show:girl-shrine
 She looks at you, just once, and then at the floor.
-"The watch saw you at her door, at night. Twice." #name:An elder
-"A lower-roots girl. You know what they're like down there. Living in the rot, with their glowing paint and their thieving and their grudges against everyone above them." #name:The preacher
-"She's been kind to you. Why? What would a girl like that want with a carver's child, except to drag it down to her level?" #name:The preacher
-"What has she been putting in your head?" #name:The preacher
-"Tell us the truth, carver. Who taught you to make birds the Tree won't take?" #name:An elder #dim:on
+"The watch saw you at her door, at night. Twice." #speaker:elder_cyan
+"A lower-roots girl. You know what they're like down there. Living in the rot, with their glowing paint and their thieving and their grudges against everyone above them." #speaker:preacher
+"She's been kind to you. Why? What would a girl like that want with a carver's child, except to drag it down to her level?" #speaker:preacher
+"What has she been putting in your head?" #speaker:preacher
+"Tell us the truth, carver. Who taught you to make birds the Tree won't take?" #speaker:elder_amber #dim:on
 This is it. They want someone to blame for the birds, and for the hunger. You, or her.
 - (choose)
 + [Save her: "There's something beyond the Tree"]
@@ -419,9 +419,9 @@ This is it. They want someone to blame for the birds, and for the hunger. You, o
 "She's never said a word to me about the Tree. It's me." #speaker:you #dim:off
 "There's something beyond the bark. Something other than the Tree. I know there is. I've always known." #speaker:you
 The shrine goes so quiet you can hear the lamp.
-"Blasphemy." The preacher, almost happy. "There. You hear it. It's mad. The child is mad." #name:The preacher
-"A madness the Tree can see, and won't accept. That's your rejection. That's your hunger." #name:The preacher
-"Let the girl go. She's nothing. Lock the carver in the back room until we decide." #name:An elder
+"Blasphemy." The preacher, almost happy. "There. You hear it. It's mad. The child is mad." #speaker:preacher
+"A madness the Tree can see, and won't accept. That's your rejection. That's your hunger." #speaker:preacher
+"Let the girl go. She's nothing. Lock the carver in the back room until we decide." #speaker:elder_amber
 They cut her ropes. On the way past, she looks at you, and her face does something you've never seen it do. #hide:girl-shrine
 "Idiot," she whispers. "Thank you." #speaker:girl
 ~ in_custody = true
@@ -441,11 +441,11 @@ They lock you in the back room of the shrine, in the dark, and you sit with your
 "It's her. She's been talking to me. About things beyond the bark. Things that aren't the Tree." #speaker:you #dim:off
 "I listened. I'm sorry. I listened." #speaker:you
 She doesn't look up. She doesn't argue. She doesn't say anything at all.
-"There. Lower-roots poison, in a roots child's ear. Just as I said. They're all the same down there." #name:The preacher
-"Take her down to the lower rot. Let her keep her ideas down there, where they can't do any harm." #name:An elder
+"There. Lower-roots poison, in a roots child's ear. Just as I said. They're all the same down there." #speaker:preacher
+"Take her down to the lower rot. Let her keep her ideas down there, where they can't do any harm." #speaker:elder_cyan
 They take her out. She doesn't look back. Not once. #hide:girl-shrine
 "And the carver?" #speaker:tender
-"Home. Under guard. Its birds will be watched until the Tree is satisfied." #name:An elder
+"Home. Under guard. Its birds will be watched until the Tree is satisfied." #speaker:elder_amber
 ~ interrogating = false
 ~ day6 = "bed"
 ~ objective = "Go home"

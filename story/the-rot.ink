@@ -6,7 +6,7 @@
 === the_rot_girl ===
 { girl_follows: -> day7_girl_in_rot.again }
 { girl_in_rot: -> day7_girl_in_rot }
-{~"Don't stop. It's sticky."|"Watch the green."|"Under my bed. Far end."}
+{~"Don't stop. It's sticky."|"Watch the green."|"Under my bed. Far end."} #speaker:girl
 -> END
 
 === the_rot_dying_root ===

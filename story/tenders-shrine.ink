@@ -8,11 +8,11 @@
 -> END
 
 === shrine_elder ===
-[PLACEHOLDER] "The council is sitting, child. Wait outside."
+[PLACEHOLDER] "The council is sitting, child. Wait outside." #speaker:elder_cyan
 -> END
 
 === shrine_preacher ===
-[PLACEHOLDER] "The Tree gives to those who give. Remember it."
+[PLACEHOLDER] "The Tree gives to those who give. Remember it." #speaker:preacher
 -> END
 
 === shrine_tallies ===

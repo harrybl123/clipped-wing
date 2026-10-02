@@ -4,7 +4,7 @@
 // ============================================================================
 
 === upper_doorman ===
-[PLACEHOLDER] "You've come a long way up. Try not to touch anything."
+[PLACEHOLDER] "You've come a long way up. Try not to touch anything." #speaker:doorman
 -> END
 
 === upper_archivist ===

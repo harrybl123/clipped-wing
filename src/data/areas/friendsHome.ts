@@ -1,4 +1,4 @@
-import { FRIEND, VILLAGERS } from '../../ui/characters';
+import { FRIEND, FRIEND_FATHER, VILLAGERS } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import { FUNGI, LAMP } from '../../ui/sprites';
 import * as P from './friendsHomeProps';
@@ -115,7 +115,7 @@ export const friendsHome: AreaDefinition = {
 
   people: [
     { id: 'friend', sprite: FRIEND.idle[0]!, idleFrames: FRIEND.idle, x: 336, y: UPPER.y, knot: 'friends_home_friend', flipX: true, when: ['morning', 'afternoon'] },
-    { id: 'parent', sprite: VILLAGERS[3]!.idle[0]!, idleFrames: VILLAGERS[3]!.idle, x: 162, y: FLOOR, knot: 'friends_home_parent', flipX: true, when: HOME },
+    { id: 'parent', sprite: FRIEND_FATHER.idle[0]!, idleFrames: FRIEND_FATHER.idle, x: 162, y: FLOOR, knot: 'friends_home_parent', flipX: true, when: HOME },
     { id: 'other-parent', sprite: VILLAGERS[4]!.idle[0]!, idleFrames: VILLAGERS[4]!.idle, x: 312, y: FLOOR, when: HOME },
   ],
 

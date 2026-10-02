@@ -12,7 +12,7 @@
 === day7_cell_wake ===
 Grey light under the door. You slept sitting up against it, and every part of you aches.
 The bolt goes back. A guard, with a block of wood under one arm, holding out a knife handle first, as if you might bite.
-"Elders' orders. One bird, same as always. They want it for the rite." #name:A guard
+"Elders' orders. One bird, same as always. They want it for the rite." #speaker:guard
 He puts them on the bench, sits down on the stool by the door, and doesn't take his eyes off you.
 ~ day7 = "carve"
 ~ objective = "Carve your offering"
@@ -75,7 +75,7 @@ The wing. The eye.
 - else:
     ~ objective_target = "home:guard-door"
 }
-"Done? Up, then. They're waiting." #name:A guard #end
+"Done? Up, then. They're waiting." #speaker:guard #end
 -> END
 
 // --- The guard ---
@@ -92,20 +92,20 @@ The wing. The eye.
 He looks at the wall over your head.
 -> END
 = carve_cell
-{"Carve. I'm not here to talk."|"I said carve."|"The sooner it's done, the sooner I'm out of this room."} #name:A guard
+{"Carve. I'm not here to talk."|"I said carve."|"The sooner it's done, the sooner I'm out of this room."} #speaker:guard
 -> END
 = carve_home
-{"Get on with it. They want it at the rite."|"I don't like this any more than you do. Carve."} #name:A guard
+{"Get on with it. They want it at the rite."|"I don't like this any more than you do. Carve."} #speaker:guard
 -> END
 = waiting
-{"Don't look at me like that. I've got a family too."|"It's not up to me. None of it's up to me."|"They say the baskets'll come down full again, once it's done with. You'd better hope so."} #name:A guard
+{"Don't look at me like that. I've got a family too."|"It's not up to me. None of it's up to me."|"They say the baskets'll come down full again, once it's done with. You'd better hope so."} #speaker:guard
 -> END
 = ready
-"Ceremony's at dusk. Say when." #name:A guard
+"Ceremony's at dusk. Say when." #speaker:guard
 + [Go to the ceremony]
     ~ day7 = "evening"
     "Now, then." #speaker:you
-    He looks at you as if he'd rather be anywhere else. "Walk in front." #name:A guard #time:evening
+    He looks at you as if he'd rather be anywhere else. "Walk in front." #speaker:guard #time:evening
     -> day7_to_ceremony
 + [Not yet]
     -> END
@@ -115,7 +115,7 @@ He looks at the wall over your head.
 { in_custody:
     He ties your hands in front of you, loosely, so you can carry the bird.
 - else:
-    He looks at the bird, then at you. "Walk in front." #name:A guard
+    He looks at the bird, then at you. "Walk in front." #speaker:guard
 }
 They're all there. Every family in the roots, on the offering floor, at dawn. #goto:offering-floor:104:236:day7_trial
 -> END
@@ -125,14 +125,14 @@ They're all there. Every family in the roots, on the offering floor, at dawn. #g
 === day7_trial ===
 The whole of the roots is on the floor, and nobody is talking.
 Up on the landing, beside the Tender, two of the elders. The preacher stands on the stairs below them, where everyone can see him.
-"Carver. Come up." #name:An elder
+"Carver. Come up." #speaker:elder_amber
 You climb the stairs with the bird in your hands. A hundred eyes, every step.
-"The Tree has refused this child's birds five times. And every time, our baskets have come down lighter." #name:The preacher
-"So today we ask the Tree directly. In front of everyone." #name:The preacher
+"The Tree has refused this child's birds five times. And every time, our baskets have come down lighter." #speaker:preacher
+"So today we ask the Tree directly. In front of everyone." #speaker:preacher
 An elder holds up a cage, a little thing of bent wire, like the ones the upper branches keep songbirds in. #show:caged-bird
 They take your bird out of your hands and shut it inside. The latch clicks.
-"If the Tree takes it, the carver is clean, and we'll all beg the carver's pardon." #name:An elder
-"If it comes back, we'll know what the carver is." #name:An elder
+"If the Tree takes it, the carver is clean, and we'll all beg the carver's pardon." #speaker:elder_amber
+"If it comes back, we'll know what the carver is." #speaker:elder_cyan
 + [Hide it: bow your head]
     You bow your head, the way you're supposed to.
 + [Joke about it: "And if it gets stuck halfway?"]
@@ -146,7 +146,7 @@ They take your bird out of your hands and shut it inside. The latch clicks.
 - The Tender lifts the cage into the mouth of the tube. He won't look at you. His hands are shaking.
 The light takes it. Up it goes, the little cage, turning, smaller and smaller, and gone. #flash:cyan #move:caged-bird:240:-40
 Inside it, folded in the dark, is your bird. And inside that, a bird in a cage, scratched as small as you could make it.
-"Now we wait for the evening. Then we'll know." #name:An elder #hide:caged-bird
+"Now we wait for the evening. Then we'll know." #speaker:elder_amber #hide:caged-bird
 ~ trial = false
 { in_custody: -> custody | -> home }
 = custody
@@ -192,7 +192,7 @@ She doesn't say anything at first. She takes your face in both hands and looks a
 - "Whatever happens tonight..." #speaker:mum
 She can't finish it. She presses something into your hand: a heel of bread, wrapped in a cloth.
 "Eat it. Don't argue with me. Not today." #speaker:mum
-"Time." The guard, at the door. #name:A guard
+"Time." The guard, at the door. #speaker:guard
 She goes. She looks back twice. #hide:mum-cell
 -> day7_next_visitor
 
@@ -239,7 +239,7 @@ Outside, feet. A lot of them, all going the same way: down, to the offering floo
 ~ day7 = "evening"
 ~ objective = "Go with the guard"
 ~ objective_target = "shrine-cell:guard-cell"
-"Up. They want you to see this." #name:A guard #time:evening
+"Up. They want you to see this." #speaker:guard #time:evening
 -> END
 
 // --- The afternoon, at home: goodbyes, in your cloak ---
@@ -352,10 +352,10 @@ Then the tube goes dark. #flash:dark
 And the cage drops into the basin, and your bird is still inside it. #show:caged-bird #shake
 For a moment there's no sound at all.
 Then all of it, at once. #recoil
-"It came back! It came back!" #name:A woman
-"The Tree's answered! You heard the elders! Now we know what it is!" #name:A man
-"The Tree has spoken. This child is the rot in the root." #name:The preacher
-"Rot-hand! Rot-hand! Rot-hand!" #name:The crowd #throw
+"It came back! It came back!" #speaker:crowd_woman
+"The Tree's answered! You heard the elders! Now we know what it is!" #speaker:crowd_man
+"The Tree has spoken. This child is the rot in the root." #speaker:preacher
+"Rot-hand! Rot-hand! Rot-hand!" #speaker:crowd #throw
 + [Hide it: cover your head]
     You cover your head with your arms, and make yourself small.
 + [Joke about it: "Best of three?"]
@@ -416,7 +416,7 @@ I will find you.
 { in_custody: -> custody | -> home }
 = custody
 Outside, the roar comes closer, and closer, and stops. Right outside. #shake
-"Burn it out! Burn out the rot!" #name:The crowd
+"Burn it out! Burn out the rot!" #speaker:crowd
 Fists on the shrine's front doors. Then something heavier. #shake
 Under you, a scrape. The grate in the floor lifts an inch, falls back, and lifts again. #show:girl-cell
 The girl's face, filthy, grinning up at you out of the dark.
@@ -523,7 +523,7 @@ You go to the door, and knock, and wait for them to open it.
 For a moment, nobody moves. They came to drag you out, and you've walked out on your own.
 "I'm the one you want." #speaker:you
 Then they have you. Hands everywhere: on your arms, your collar, your hair. #shake
-"Down! Throw it down! Down where the rot belongs!" #name:The crowd
+"Down! Throw it down! Down where the rot belongs!" #speaker:crowd
 They carry you down. Through the roots, past doors you know, down the long stairs into the lower roots, with faces at every window.
 To a boarded-up hole where a house once fell into the rot. They tear the boards up. Green light, and the smell.
 { girl_fate == "saved": Somewhere behind the crowd, someone's shouting your name. The girl. She can't get through. }
@@ -558,7 +558,7 @@ The shrine's grate is at the top, at the far end. Nobody will be in the shrine t
     Your friend doesn't look at you. His hands are shaking. He sets off after the guard, still yelling, pointing the wrong way. #move:friend-chase:20
     Then they're both gone, down towards the trunk. #hide:guard #hide:friend-chase
 - else:
-    The guard at the post steps out, staff up. "Stop! Stop there!" #name:A guard
+    The guard at the post steps out, staff up. "Stop! Stop there!" #speaker:post_guard
     You duck under his staff, and he grabs at your cloak and gets a handful of nothing, and you're past.
 }
 -> END
@@ -568,8 +568,8 @@ The shrine's grate is at the top, at the far end. Nobody will be in the shrine t
 The gate. Up close it hums, a sound you feel in your teeth more than hear.
 Behind you, the torches spill into the hall and stop at the foot of the steps. #shake
 Nobody comes up. Nobody has ever set foot on the dais but the masters. Not even now.
-"Come down! Come down from there!" #name:The crowd
-"Let it go. Let it go up, and let the Tree have it, and be done." #name:The preacher
+"Come down! Come down from there!" #speaker:crowd
+"Let it go. Let it go up, and let the Tree have it, and be done." #speaker:preacher
 { girl_runs: -> farewell }
 -> edge
 = farewell

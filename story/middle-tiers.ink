@@ -4,15 +4,15 @@
 // ============================================================================
 
 === middle_guard ===
-[PLACEHOLDER] "Roots? Then you'll need to be sent for. Nobody goes up without a reason."
+[PLACEHOLDER] "Roots? Then you'll need to be sent for. Nobody goes up without a reason." #speaker:post_guard
 -> END
 
 === middle_carver ===
-[PLACEHOLDER] "Mind the shelves. Each of those took a season. The best go up the tube, of course."
+[PLACEHOLDER] "Mind the shelves. Each of those took a season. The best go up the tube, of course." #speaker:carver
 -> END
 
 === middle_lift_keeper ===
-[PLACEHOLDER] "The lift's for those who can pay. The stairs are free, if your legs are."
+[PLACEHOLDER] "The lift's for those who can pay. The stairs are free, if your legs are." #speaker:lift_keeper
 -> END
 
 === middle_workshop ===
@@ -29,5 +29,5 @@
 
 // Day 5: the escort, following you up.
 === middle_escort ===
-"Keep moving." #name:The guard
+"Keep moving." #speaker:escort
 -> END

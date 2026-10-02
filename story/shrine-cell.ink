@@ -17,13 +17,13 @@ Bolted, from the outside.
 {
 - day7 == "open" || day7 == "mob":
     The guard's on the other side. You can hear him breathing.
-    "Don't. There's a hundred of them out there. You're safer in there than out here." #name:A guard
+    "Don't. There's a hundred of them out there. You're safer in there than out here." #speaker:guard
 - day7 == "carve":
-    "Try that again and I'll tie you to the bench." #name:A guard
+    "Try that again and I'll tie you to the bench." #speaker:guard
 - day7 == "evening":
-    "Not yet. They'll come for you soon enough." #name:A guard
+    "Not yet. They'll come for you soon enough." #speaker:guard
 - else:
-    "Nobody's going anywhere. Sit down." #name:A guard
+    "Nobody's going anywhere. Sit down." #speaker:guard
 }
 -> END
 

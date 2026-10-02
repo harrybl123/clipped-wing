@@ -82,14 +82,14 @@ The same bird as ever. The Tree will take it this time. It has to. #end
 === day3_rite ===
 The floor is packed: people on the stairs, in the archways, people you've never seen at a roots rite.
 They part around you as you come through. Nobody lets their sleeve touch yours.
-"That's the one." #name:Someone in the crowd
-"Cursed." #name:Someone else
+"That's the one." #speaker:crowd_someone #name:Someone in the crowd
+"Cursed." #speaker:crowd_someone_else
 The Tender sees you coming and takes a cloth from their robe before reaching for your offering.
 "Not with the others." #speaker:tender
 Your {reply1 == "usual": bird|fledgling} goes into a basket of its own, and the basket goes up last. #flash:cyan
 Across the floor, you see your friend. He sees you too, and starts towards you. #show:friend-rite
 His father grabs his arm and pulls him back, out through the archway. #move:friend-rite:452 #move:friend-parent-rite:452
-"Stay away from my son!" #name:His father
+"Stay away from my son!" #speaker:friend_father
 They're gone. #hide:friend-rite #hide:friend-parent-rite
 You need to tell him. You need to tell someone.
 Someone is leaning in the far archway, watching you. The girl from the lower roots. #show:girl-rite
@@ -101,7 +101,7 @@ Someone is leaning in the far archway, watching you. The girl from the lower roo
 === day3_girl ===
 "You look like you've been spat at. Oh, wait. You have." #speaker:girl
 She pushes off the archway and looks you up and down.
-"You all right? Honestly. Nobody else is going to ask you."
+"You all right? Honestly. Nobody else is going to ask you." #speaker:girl
 + [I'm fine. Really.]
     "I'm fine. Really." #speaker:you
     "Course you are. That's why your hands are shaking." #speaker:girl
@@ -156,7 +156,7 @@ She leads you down, and down, to where the roots end. #time:afternoon #goto:lowe
 -> END
 
 === day3_girl_follow ===
-{~"Keep moving."|"Up the shaft, then along. You'll see."|"Don't stand on the soft boards. Or do, and find out."|"Watch the dust. When it falls, something follows."}
+{~"Keep moving."|"Up the shaft, then along. You'll see."|"Don't stand on the soft boards. Or do, and find out."|"Watch the dust. When it falls, something follows."} #speaker:girl
 -> END
 
 === day3_window ===
@@ -201,7 +201,7 @@ Somewhere above you, the evening ceremony will be starting. #time:evening
 -> END
 
 === day3_parent ===
-"Out. Out of my house. Now." #name:His father
+"Out. Out of my house. Now." #speaker:friend_father
 -> END
 
 // --- The crowd at the rites (talk to them before the Tender) ---
@@ -209,43 +209,43 @@ Somewhere above you, the evening ceremony will be starting. #time:evening
 === day3_crowd_mother ===
 { day3 == "evening": -> evening }
 A mother pulls her children behind her skirts as you come near.
-"Don't you come near my children." #name:A mother
+"Don't you come near my children." #speaker:mother
 + [I'd never hurt them.]
     "I'd never hurt them." #speaker:you
-    "That's what the rot says too, before it gets in." #name:A mother
+    "That's what the rot says too, before it gets in." #speaker:mother
 + [Say nothing]
     You say nothing. She backs away, still facing you, until the crowd swallows her.
 - -> END
 = evening
-"Come to watch it come back, have you? Or to make sure it does?" #name:A mother
+"Come to watch it come back, have you? Or to make sure it does?" #speaker:mother
 -> END
 
 === day3_crowd_old_man ===
 { day3 == "evening": -> evening }
-"My grandmother told me about a rejection once. I thought it was just a story." #name:An old man
-"The whole family was gone within the week." #name:An old man
+"My grandmother told me about a rejection once. I thought it was just a story." #speaker:old_man
+"The whole family was gone within the week." #speaker:old_man
 + [Gone where?]
     "Gone where?" #speaker:you
-    He won't meet your eyes. "Nobody would say."
+    He won't meet your eyes. "Nobody would say." #speaker:old_man
 + [It's only a story.]
     "It's only a story." #speaker:you
-    "Hope so. For your sake." #name:An old man
+    "Hope so. For your sake." #speaker:old_man
 - -> END
 = evening
-"If it comes back again, the Tender will have to do something. They'll have no choice." #name:An old man
+"If it comes back again, the Tender will have to do something. They'll have no choice." #speaker:old_man
 -> END
 
 === day3_crowd_zealot ===
 { day3 == "evening": -> evening }
-A young man on the stairs spits as you pass. "Rot-hand." #name:A young man
+A young man on the stairs spits as you pass. "Rot-hand." #speaker:zealot #name:A young man
 + [What did you call me?]
     "What did you call me?" #speaker:you
-    "You heard. Clean hands make clean offerings. Everyone knows that." #name:A young man
+    "You heard. Clean hands make clean offerings. Everyone knows that." #speaker:zealot #name:A young man
 + [Walk away]
     You walk away. He laughs at your back.
 - -> END
 = evening
-"Twice, and we'll know for sure what you are." #name:A young man
+"Twice, and we'll know for sure what you are." #speaker:zealot #name:A young man
 -> END
 
 // --- The evening: the second rejection, worse than the first ---
@@ -256,10 +256,10 @@ The floor is packed before the blessings even start. There's a space around you 
 The Tender doesn't look your way when the tube goes dark. #flash:dark
 Your {reply1 == "usual": bird|fledgling} drops into the basin. #show:rejected-bird #shake
 This time, nobody screams. They were waiting for it.
-"Again." #name:A woman
-"Twice! The Tree's sent it back twice!" #name:An old man
+"Again." #speaker:crowd_woman
+"Twice! The Tree's sent it back twice!" #speaker:old_man
 Something hits your shoulder: a rotten root, thrown from the back of the crowd. #throw #shake
-"Get it out of here!" #name:A man
+"Get it out of here!" #speaker:crowd_man
 Someone shoves Mum. She stumbles against the steps. #move:mum-ceremony:150
 + [Go to Mum, head down]
     You go to her and help her up, and keep your eyes on the floor.
@@ -271,10 +271,10 @@ Someone shoves Mum. She stumbles against the steps. #move:mum-ceremony:150
     "Leave her alone!" #speaker:you
     For a moment the whole floor goes quiet. Then the shouting is twice as loud.
 - A young man shoves through to the front and plants himself in front of you. A zealot's stole, a carver's hands.
-"Say it. Say what you did to make the Tree spit you out." #name:The young man
+"Say it. Say what you did to make the Tree spit you out." #speaker:zealot
 + [I didn't do anything.]
     "I didn't do anything." #speaker:you
-    "Twice. Twice, and he did nothing." #name:The young man
+    "Twice. Twice, and he did nothing." #speaker:zealot
     The crowd laughs, and it's an ugly sound.
 + [Ask the Tree yourself.]
     ~ suspicion += 1
@@ -283,7 +283,7 @@ Someone shoves Mum. She stumbles against the steps. #move:mum-ceremony:150
 + [Push past him]
     ~ suspicion += 1
     You try to push past. He shoves you back into the space around you, and the crowd closes it again. #shake
-- Low at first, from the back, then all round the floor: "Cursed. Cursed. Cursed." #shake
+- Low at first, from the back, then all round the floor: "Cursed. Cursed. Cursed." #speaker:crowd #shake
 "Enough!" #speaker:tender
 "Until the Tree is appeased, no blessings will come down for the carver's house." #speaker:tender
 ~ food_store -= 2
@@ -346,7 +346,7 @@ You already know what it says before you've rubbed it clean. #decode:message1:da
 Beyond the bark. Outside the tree. Nobody lives outside the tree.
 Do they? Is there even an outside? You've never thought about it, not properly. Nobody does. The tree is the world.
 You look at the wall, at the dark wood your whole life has happened inside, and for the first time you wonder how thick it is.
-"Would you like to fly?" It's a question. They're asking you something. They want to know what you think.
+"Would you like to fly?" It's a question. They're asking you something. They want to know what you think. #quote
 You turn the hollow fledgling over in your hands. Whoever did this wants you to see how it's done.
 To carve a bird empty, and put something inside it.
 To answer.

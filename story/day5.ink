@@ -23,7 +23,7 @@ Your bench. Last night's plate, his words still on it. The back is bare.
 
 === day5_carving ===
 First light. You turn the plate over.
-"I am Grounded. There are many of us beyond the bark."
+"I am Grounded. There are many of us beyond the bark." #quote
 So many questions. Room on the plate for one. #plate:reply3
 + [A pointing hand and a hook: who are you?]
     ~ reply3 = "who"
@@ -86,8 +86,8 @@ Mum is standing well back from the door, as if the guard might bite.
 
 === day5_escort ===
 A guard from the middle tiers fills the doorway: cap, amber band, a staff. He looks at the token in your hand, not at you.
-"The archive's mark. Right. Come on, then." #name:The guard
-"Stay close. Don't touch anything. Don't talk to anyone." #name:The guard
+"The archive's mark. Right. Come on, then." #speaker:escort
+"Stay close. Don't touch anything. Don't talk to anyone." #speaker:escort
 ~ escort_waiting = false
 ~ escorted = true
 ~ day5 = "upper"
@@ -98,11 +98,11 @@ He walks you up through the roots, past the shrine, to the foot of the great sta
 
 === day5_checkpoint ===
 The guard post at the foot of the stair. The guard there steps out to bar the way.
-"Roots folk don't come up here." #name:The guard at the post
+"Roots folk don't come up here." #speaker:post_guard
 Your escort holds up the token.
-"This one's sent for. The archivist." #name:Your escort
+"This one's sent for. The archivist." #speaker:escort #name:Your escort
 The guard at the post looks at your hand, and steps aside like you might be catching.
-"Up you go, then. Mind the stairs. They're clean." #name:The guard at the post
+"Up you go, then. Mind the stairs. They're clean." #speaker:post_guard
 -> END
 
 === day5_middle_stare ===
@@ -210,30 +210,30 @@ The escort doesn't take you home. He takes you straight down to the ceremony. #t
 
 === day5_crowd_mother ===
 She sees the guard behind you, and pulls her children closer.
-"They've sent a guard for it now. Thank the Tree. Someone's finally doing something." #name:A mother
+"They've sent a guard for it now. Thank the Tree. Someone's finally doing something." #speaker:mother
 -> END
 
 === day5_crowd_old_man ===
-"A guard from up the trunk." He shakes his head. "That's not the Tender's doing. That's the elders." #name:An old man
-"When the elders start, child, they don't stop." #name:An old man
+"A guard from up the trunk." He shakes his head. "That's not the Tender's doing. That's the elders." #speaker:old_man
+"When the elders start, child, they don't stop." #speaker:old_man
 -> END
 
 === day5_crowd_zealot ===
 The young man from the market is in the front row tonight, his stole freshly washed.
-"Four times, and they still let it walk around. Not for much longer." #name:The young man
+"Four times, and they still let it walk around. Not for much longer." #speaker:zealot
 -> END
 
 === day5_ceremony ===
 You step into the chalk ring. The guard steps in behind you, one hand on his staff, close enough that you can hear him breathing.
 Mum is across the floor among the others. She doesn't come over. She's not allowed.
 The crowd is quieter than ever. Some of them are watching the guard more than you.
-"Why's he got a guard? What's it done now?" #name:Someone in the crowd
-"I heard it went up to the archive. Up the trunk. Like it had business there." #name:Someone else
+"Why's he got a guard? What's it done now?" #speaker:crowd_someone #name:Someone in the crowd
+"I heard it went up to the archive. Up the trunk. Like it had business there." #speaker:crowd_someone_else
 "A blessing, for the weavers. A blessing, for the potters." #speaker:tender
 The tube goes dark. #flash:dark
 Your bird drops into the basin. #show:rejected-bird
 Nobody gasps this time. Nobody turns away. They just look at you, and then at the guard, as if they're waiting for him to do something.
-"Four." #name:The young man
+"Four." #speaker:zealot
 "The carver's case will go before the elders." #speaker:tender
 A murmur goes round the floor. Nobody ever goes before the elders. Not from the roots.
 + [Hide it: lower your eyes]
@@ -284,7 +284,7 @@ And how is someone from the roots supposed to get one?
     You think of the archivist, his bright, frightened eyes. "If anything else comes down to you, come to me."
     And you think of the girl. If anyone in the lower roots can get hold of something, it's someone she knows.
 - else:
-    "Even a seed of everything the grove has ever grown, in the drawers downstairs." The archive.
+    "Even a seed of everything the grove has ever grown, in the drawers downstairs." The archive. #quote
     The archivist wrote you down as cursed and closed the book. He won't help you.
     But there's a hatch at the top of the trunk climb, and everyone says nobody watches the archive at night.
 }

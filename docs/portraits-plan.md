@@ -4,7 +4,19 @@ Designer, 2026-10-01: "one of the highest leverage things we can do for this gam
 for everyone you speak to, even if it's an NPC." **(designer)** = decided; **(suggestion)** = Claude's
 proposal, for the designer to mark up.
 
-## Where we are
+**Built 2026-10-02.** `npcPortrait(look, face)` in `src/ui/portraits.ts` draws the baseline bust from
+a sprite's `VillagerLook` plus face settings (build, hair, age, beard, brow, eyes, mouth, items: beads,
+pipe, token, spectacles, scarf, earring, apron); `CROWD_PORTRAIT` is the group. 29 new speakers in
+`SPEAKERS` (the preacher; four elders, one face, robes amber (the eldest), cyan, green and pale; four
+guards: `guard`, `escort`, `post_guard`, `gate_guard`; the zealot, old man, mother, thin man; the market
+stallholders, hatch keeper, his father, carver, lift keeper, doorman, gardener, a local; four crowd
+voices and the crowd). Every `#name:` line is retagged; a `#name:` beside a `#speaker:` overrides the
+name ("Your escort", "A young man"). Lines that only quote words (a message, a memory read aloud) carry
+`#quote`. `tests/speakers.test.ts` fails if a line of speech has no face. The gallery shows each portrait
+beside its sprite. Your friend's father has his own sprite now (`FRIEND_FATHER`), and the elders' sprites
+wear their robe colours.
+
+## Where we were
 - Seven speakers have portraits (`SPEAKERS` in `src/ui/portraits.ts`, 48×48 busts, lit from the
   right): you, Mum, the Tender, your friend, the girl, the archivist, the boy. Ink shows one with
   `#speaker:<id>`.

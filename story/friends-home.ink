@@ -15,7 +15,7 @@
 
 === friends_home_parent ===
 { day3 != "" && day3 != "done": -> day3_parent }
-[PLACEHOLDER] "They're upstairs. Wipe your feet, and mind the shrine."
+[PLACEHOLDER] "They're upstairs. Wipe your feet, and mind the shrine." #speaker:friend_father
 -> END
 
 === friends_home_shrine ===

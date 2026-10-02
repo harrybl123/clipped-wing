@@ -4,7 +4,7 @@
 // ============================================================================
 
 === gate_guard ===
-[PLACEHOLDER] "Only the chosen go up those steps. Stand back."
+[PLACEHOLDER] "Only the chosen go up those steps. Stand back." #speaker:gate_guard
 -> END
 
 === gate_gate ===

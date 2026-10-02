@@ -19,7 +19,7 @@
 -> END
 
 === lower_roots_local ===
-[PLACEHOLDER] "Mind your elbows, it's packed down here."
+[PLACEHOLDER] "Mind your elbows, it's packed down here." #speaker:local
 -> END
 
 === lower_roots_pot ===

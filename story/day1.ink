@@ -108,8 +108,8 @@ The whole tree is climbing to the gate, carrying lamps. Go up to the Ascension?
 
 === day1_ascension ===
 The gate is packed. Lamps on every balcony, braziers burning on the dais.
-"The Tree gives to those who give. And tonight, it asks for its finest." #name:The preacher
-"A life of perfect work. Hands that never slipped. The Tree has seen, and it calls." #name:The preacher
+"The Tree gives to those who give. And tonight, it asks for its finest." #speaker:preacher
+"A life of perfect work. Hands that never slipped. The Tree has seen, and it calls." #speaker:preacher
 The master comes through the crowd: old, calm, carrying one last carving. #show:master
 They climb the steps to the dais. #move:master:216:204
 As they pass, you see it. Cut into the carving: a spiral. #inset:spiral
@@ -117,7 +117,7 @@ As they pass, you see it. Cut into the carving: a spiral. #inset:spiral
 The master stands before the gate. #move:master:280:204
 They step into the light. #hide:master #flash:white
 The tube blazes. The crowd falls silent, then roars.
-"Rise, and be blessed." #name:The preacher
+"Rise, and be blessed." #speaker:preacher
 ~ day1 = "climb"
 ~ climb_tutorial = true
 ~ objective = "Climb the trunk to the lookout"

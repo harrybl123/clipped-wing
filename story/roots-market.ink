@@ -5,26 +5,26 @@
 
 === market_food_seller ===
 { day6 == "market": -> day6_market }
-[PLACEHOLDER] "Root stew! Hot root stew! Smaller bowls, same price, don't ask me why."
+[PLACEHOLDER] "Root stew! Hot root stew! Smaller bowls, same price, don't ask me why." #speaker:stew_seller
 -> END
 
 === market_fungus_seller ===
-[PLACEHOLDER] "Glowcaps, fresh from the lower roots. Light your supper, love."
+[PLACEHOLDER] "Glowcaps, fresh from the lower roots. Light your supper, love." #speaker:fungus_seller
 -> END
 
 === market_cloth_seller ===
-[PLACEHOLDER] "Blessing cloth, straight down the tube. Well, near enough."
+[PLACEHOLDER] "Blessing cloth, straight down the tube. Well, near enough." #speaker:cloth_seller
 -> END
 
 === market_curio_seller ===
-[PLACEHOLDER] "Found that one in last week's blessings. Glows on its own. Nobody knows what it's for."
+[PLACEHOLDER] "Found that one in last week's blessings. Glows on its own. Nobody knows what it's for." #speaker:curio_seller
 + [Look closer]
     [PLACEHOLDER] A cracked, smooth pane that glows cyan, like the tube.
 + [Leave it]
 - -> END
 
 === market_grumbler ===
-[PLACEHOLDER] "Portions are smaller again. Don't tell me you haven't noticed."
+[PLACEHOLDER] "Portions are smaller again. Don't tell me you haven't noticed." #speaker:thin_man
 -> END
 
 === market_ration_hatch ===

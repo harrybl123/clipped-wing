@@ -14,7 +14,7 @@ import * as middleTiersProps from '../data/areas/middleTiersProps';
 import * as seedGroveProps from '../data/areas/seedGroveProps';
 import * as tendersShrineProps from '../data/areas/tendersShrineProps';
 import * as rootsMarketProps from '../data/areas/rootsMarketProps';
-import { ARCHIVIST, DODGER, ELDERS, FRIEND, GIRL, GUARD, MUM, PREACHER, RESIDENTS, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
+import { ARCHIVIST, DODGER, ELDERS, FRIEND, FRIEND_FATHER, GIRL, GUARD, MUM, PREACHER, RESIDENTS, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
 import { hexString } from '../ui/pixelArt';
 import { SPEAKERS } from '../ui/portraits';
 import { BIRD, FIRE_FRAMES, FUNGI, LAMP, MORE_ARROW, type RowSprite } from '../ui/sprites';
@@ -32,6 +32,19 @@ const propEntries = (props: Record<string, unknown>): Entry[] => Object.entries(
   }
   return [];
 });
+
+/** The world sprite each speaker's portrait should match. */
+const v = (i: number) => VILLAGERS[i]!.idle[0]!;
+const r = (i: number) => RESIDENTS[i]!.idle[0]!;
+const FIGURES: Record<string, RowSprite> = {
+  you: PROTAGONIST.idle[0]!, mum: MUM.idle[0]!, tender: TENDER.idle[0]!, friend: FRIEND.idle[0]!, girl: GIRL.idle[0]!,
+  archivist: ARCHIVIST.idle[0]!, boy: DODGER.idle[0]!, preacher: PREACHER.idle[0]!,
+  elder_amber: ELDERS[0]!.idle[0]!, elder_cyan: ELDERS[1]!.idle[0]!, elder_green: ELDERS[2]!.idle[0]!, elder_pale: ELDERS[3]!.idle[0]!,
+  guard: GUARD.idle[0]!, escort: GUARD.idle[0]!, post_guard: GUARD.idle[0]!, gate_guard: GUARD.idle[0]!,
+  zealot: v(0), old_man: v(1), mother: v(6), thin_man: v(2), stew_seller: v(3), fungus_seller: v(0), cloth_seller: v(1),
+  curio_seller: v(5), local: v(5), friend_father: FRIEND_FATHER.idle[0]!, carver: r(3), lift_keeper: r(1), doorman: r(1),
+  gardener: r(2), crowd_woman: v(3), crowd_man: v(4), crowd_someone: v(5), crowd_someone_else: v(1),
+};
 
 const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: { label: string; frames: RowSprite[]; fps: number }[] }[] = [
   {
@@ -64,7 +77,15 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       ...VILLAGERS.slice(0, 3).map((v, i) => ({ label: `villager ${i} walk`, frames: v.walk, fps: 5.5 })),
     ],
   },
-  { title: 'Portraits', scale: 4, entries: Object.entries(SPEAKERS).map(([id, s]): Entry => [id, s.portrait]) },
+  // Each portrait beside the figure you see in the world, to check they match.
+  {
+    title: 'Portraits',
+    scale: 4,
+    entries: Object.entries(SPEAKERS).flatMap(([id, s]): Entry[] => {
+      const figure = FIGURES[id];
+      return [[`${id} (${s.name})`, s.portrait], ...(figure ? [[`${id} in the world`, figure] as Entry] : [])];
+    }),
+  },
   {
     title: 'Shared sprites',
     scale: 6,

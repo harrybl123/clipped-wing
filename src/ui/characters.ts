@@ -207,7 +207,7 @@ export const TENDER = { idle: [tender(false), tender(true)] };
 
 // --- Villagers ---
 
-interface VillagerLook {
+export interface VillagerLook {
   height: number; // 21–26
   width: number; // body half-width 2–4
   head: 'bare' | 'hood' | 'cap' | 'bun';
@@ -223,6 +223,8 @@ interface VillagerLook {
   stole?: boolean;
   /** A tall staff held in front, with a pale tip (guards). */
   staff?: boolean;
+  /** The colour of the robe or clothes themselves (elders, told apart by their robes); default the body's shadow. */
+  robe?: number;
 }
 
 /** A background figure, varied by `look`. Same lighting as everyone: rim on the right, faint edge on the left. */
@@ -257,6 +259,8 @@ function villager(look: VillagerLook, breathe: boolean, stride = 0): RowSprite {
     span(g, y + b, cx - look.width, cx + look.width, 'o');
     put(g, cx + look.width + 1, y + b, '#');
   }
+  // Coloured robes inside the outline.
+  if (look.robe !== undefined) for (let y = bodyTop + 1; y < legTop; y++) span(g, y + b, cx - look.width + 1, cx + look.width - 1, 'R');
   // A band of accent colour across the chest.
   span(g, bodyTop + 2 + b, cx - look.width + 1, cx + look.width - 1, 'c');
   if (look.stole) for (let y = bodyTop + 1; y < H - 1; y++) put(g, cx + 1, y + (y < legTop ? b : 0), 's');
@@ -267,6 +271,7 @@ function villager(look: VillagerLook, breathe: boolean, stride = 0): RowSprite {
       const w = look.width + Math.floor((y - legTop) / 3);
       const sway = y > legTop + 3 ? stride : 0; // the hem swings when walking
       span(g, y, cx - w + sway, cx + w + sway, 'o');
+      if (look.robe !== undefined && y < H - 1) span(g, y, cx - w + 1 + sway, cx + w - 1 + sway, 'R');
       put(g, cx + w + 1 + sway, y, '#');
     } else {
       // Legs apart when striding: the back leg angles back, the front leg forward.
@@ -285,10 +290,11 @@ function villager(look: VillagerLook, breathe: boolean, stride = 0): RowSprite {
     for (let y = 0; y < H; y++) put(g, sx, y, y < 2 ? 't' : 'w');
     put(g, sx - 1, 8 + b, 'o'); // hand on the staff
   }
-  return { rows: rows(g), colours: { o: SHADES.shadow, e: SHADES.woodLight, '#': SHADES.dim, t: SHADES.light, w: SHADES.woodPale, c: look.accent, u: SHADES.amberDeep, h: look.hair ?? SHADES.shadow, s: SHADES.woodPale } };
+  return { rows: rows(g), colours: { o: SHADES.shadow, e: SHADES.woodLight, '#': SHADES.dim, t: SHADES.light, w: SHADES.woodPale, c: look.accent, u: SHADES.amberDeep, h: look.hair ?? SHADES.shadow, s: SHADES.woodPale, R: look.robe ?? SHADES.shadow } };
 }
 
-const LOOKS: VillagerLook[] = [
+/** Background villagers' looks (the crowd, stallholders); their portraits are drawn from the same looks. */
+export const VILLAGER_LOOKS: VillagerLook[] = [
   { height: 25, width: 3, head: 'hood', accent: SHADES.greenDeep },
   { height: 23, width: 3, head: 'cap', accent: SHADES.cyanDeep },
   { height: 26, width: 2, head: 'bare', bundle: true, accent: SHADES.amberDeep },
@@ -299,19 +305,24 @@ const LOOKS: VillagerLook[] = [
 ];
 
 /**
- * The elders who meet with the Tender in the shrine: old, grey-haired, long robes with an amber band
- * and a pale stole (placeholder looks until the designer describes them).
+ * The elders who meet with the Tender in the shrine: old and grey, in long robes with a pale stole. They
+ * share one look and are told apart by the colour of their robes (designer): amber (the eldest, who
+ * leads), cyan, green and pale. Their portraits match.
  */
-export const ELDERS = ([
-  { height: 24, width: 3, head: 'bare', long: true, accent: SHADES.amberDeep, hair: SHADES.light, stole: true },
-  { height: 23, width: 3, head: 'bun', long: true, accent: SHADES.amberDeep, hair: SHADES.dim, stole: true },
-  { height: 25, width: 2, head: 'bare', long: true, accent: SHADES.amberDeep, hair: SHADES.dim, stole: true },
-  { height: 22, width: 3, head: 'hood', long: true, accent: SHADES.amberDeep, stole: true },
-] satisfies VillagerLook[]).map((look) => ({ idle: [villager(look, false), villager(look, true)] }));
+export const ELDER_LOOKS: VillagerLook[] = (
+  [
+    [SHADES.amberDeep, SHADES.amber],
+    [SHADES.cyanDeep, SHADES.cyanMid],
+    [SHADES.greenDeep, SHADES.greenMid],
+    [SHADES.dim, SHADES.light],
+  ] as const
+).map(([robe, accent]) => ({ height: 24, width: 3, head: 'bare', long: true, accent, robe, hair: SHADES.light, stole: true }));
+export const ELDERS = ELDER_LOOKS.map((look) => ({ idle: [villager(look, false), villager(look, true)] }));
 
 /** The preacher: tall and thin in a long hooded robe with a band of the tube's cyan (placeholder look). */
+export const PREACHER_LOOK: VillagerLook = { height: 26, width: 2, head: 'hood', long: true, accent: SHADES.cyanMid, stole: true };
 export const PREACHER = (() => {
-  const look: VillagerLook = { height: 26, width: 2, head: 'hood', long: true, accent: SHADES.cyanMid, stole: true };
+  const look = PREACHER_LOOK;
   return { idle: [villager(look, false), villager(look, true)] };
 })();
 
@@ -325,8 +336,9 @@ export const MASTER = (() => {
 })();
 
 /** A guard of the middle tiers' checkpoint: capped, amber-banded, with a staff (placeholder look). */
+export const GUARD_LOOK: VillagerLook = { height: 25, width: 3, head: 'cap', accent: SHADES.amber, staff: true };
 export const GUARD = (() => {
-  const look: VillagerLook = { height: 25, width: 3, head: 'cap', accent: SHADES.amber, staff: true };
+  const look = GUARD_LOOK;
   return { idle: [villager(look, false), villager(look, true)] };
 })();
 
@@ -429,18 +441,23 @@ export const PROTAGONIST_CLOAKED = {
 };
 
 /** Better-off residents of the middle tiers and upper branches: amber and pale accents, finer headwear (placeholder looks). */
-export const RESIDENTS = ([
+export const RESIDENT_LOOKS: VillagerLook[] = [
   { height: 24, width: 3, head: 'bun', long: true, accent: SHADES.amber, hair: SHADES.dim },
   { height: 25, width: 3, head: 'cap', accent: SHADES.light },
   { height: 23, width: 3, head: 'bare', long: true, accent: SHADES.cyanMid, hair: SHADES.woodLight },
   { height: 26, width: 2, head: 'bare', accent: SHADES.amberDeep, hair: SHADES.amberDeep, stole: true },
-] satisfies VillagerLook[]).map((look) => ({
+];
+export const RESIDENTS = RESIDENT_LOOKS.map((look) => ({
   idle: [villager(look, false), villager(look, true)],
   walk: [villager(look, false, 2), villager(look, true, 0)],
 }));
 
+/** Your friend's father: devout and well kept, fair like his son, a band of the tube's cyan (placeholder look). */
+export const FRIEND_FATHER_LOOK: VillagerLook = { height: 26, width: 3, head: 'bare', accent: SHADES.cyanMid, hair: SHADES.amberDeep };
+export const FRIEND_FATHER = { idle: [villager(FRIEND_FATHER_LOOK, false), villager(FRIEND_FATHER_LOOK, true)] };
+
 /** Background villagers, each with a 2-frame breathing idle and a 2-frame walk. */
-export const VILLAGERS = LOOKS.map((look) => ({
+export const VILLAGERS = VILLAGER_LOOKS.map((look) => ({
   idle: [villager(look, false), villager(look, true)],
   walk: [villager(look, false, 2), villager(look, true, 0)],
 }));
