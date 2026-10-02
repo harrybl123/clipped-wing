@@ -1577,14 +1577,22 @@ export class AreaScene extends Phaser.Scene {
   private stepUp(): void {
     const body = this.player.body;
     if (!body.blocked.down || body.velocity.x === 0 || this.player.dropping) return;
-    const ahead = body.velocity.x > 0 ? body.right + 1 : body.left - 1;
-    for (const s of this.area.solids) {
-      if (!s.oneWay) continue;
+    const right = body.velocity.x > 0;
+    const ahead = right ? body.right + 1 : body.left - 1;
+    // The edge of a ledge you'd walk into: its left side going right, its right side going left.
+    const edgeOf = (s: { x: number; width: number }) => (right ? s.x : s.x + s.width);
+    const ledges = this.area.solids.filter((s) => s.oneWay);
+    for (const s of ledges) {
       const rise = Math.round(body.bottom) - s.y;
-      if (rise >= 1 && rise <= MAX_STEP && ahead >= s.x && ahead <= s.x + s.width) {
-        this.player.sprite.y -= rise;
-        return;
-      }
+      if (rise < 1 || rise > MAX_STEP || ahead < s.x || ahead > s.x + s.width) continue;
+      // Only from its edge, not from partway along it (walking through under a staircase).
+      const edge = edgeOf(s);
+      if (Math.abs(ahead - edge) > 4) continue;
+      // The back of a staircase: every step's block ends at the same edge there, so walk along the bottom
+      // instead of climbing (designer). Up the front, each step's edge is its own.
+      if (ledges.some((o) => o !== s && o.y !== s.y && edgeOf(o) === edge)) continue;
+      this.player.sprite.y -= rise;
+      return;
     }
   }
 
