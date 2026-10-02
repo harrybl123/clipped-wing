@@ -93,7 +93,7 @@ export class PrologueScene extends Phaser.Scene {
     this.layers = { closeup, tableau, black };
 
     this.hint = new PixelText(this, 0, 0, '', { color: SHADES.light, shadow: SHADES.shadow }).setDepth(45).setVisible(false);
-    this.narration = new PixelText(this, 0, 0, '', { color: SHADES.light, wrapWidth: 340 }).setDepth(50).setVisible(false);
+    this.narration = new PixelText(this, 0, 0, '', { color: SHADES.light, wrapWidth: 340, centred: true }).setDepth(50).setVisible(false);
     this.narrationArrow = this.add.image(0, 0, makeSpriteTexture(this, 'more-arrow', MORE_ARROW.rows, MORE_ARROW.colours)).setDepth(50).setVisible(false);
     this.tweens.add({ targets: this.narrationArrow, y: '+=1', duration: 400, yoyo: true, repeat: -1 });
     this.dialogue = new DialogueBox(this, getSession(this).story);

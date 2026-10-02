@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { drawLine, layout, LINE_HEIGHT } from './pixelFont';
+import { drawLine, layout, LINE_HEIGHT, measure } from './pixelFont';
 
 export interface PixelTextStyle {
   color: number;
@@ -11,6 +11,8 @@ export interface PixelTextStyle {
   shadow?: number;
   /** At scale 3+, draw each font pixel as a chiselled block: lit top row, shadowed bottom row. */
   chisel?: { light: number; dark: number };
+  /** Each line centred in the block (narration on black), rather than starting at the left. */
+  centred?: boolean;
 }
 
 let nextId = 0;
@@ -29,7 +31,7 @@ export class PixelText extends Phaser.GameObjects.Image {
     scene.textures.createCanvas(key, 1, 1);
     super(scene, x, y, key);
     this.key = key;
-    this.style = { scale: 1, wrapWidth: Infinity, ...style, shadow: style.shadow ?? null, chisel: style.chisel ?? null };
+    this.style = { scale: 1, wrapWidth: Infinity, centred: false, ...style, shadow: style.shadow ?? null, chisel: style.chisel ?? null };
     this.setOrigin(0);
     scene.add.existing(this);
     this.once(Phaser.GameObjects.Events.DESTROY, () => scene.textures.remove(key));
@@ -81,7 +83,7 @@ export class PixelText extends Phaser.GameObjects.Image {
   }
 
   private redraw(): void {
-    const { scale, wrapWidth, color, shadow, chisel } = this.style;
+    const { scale, wrapWidth, color, shadow, chisel, centred } = this.style;
     const { lines, width, height } = layout(this.content, wrapWidth / scale);
     this.lines = lines;
     let left = this.revealed ?? Infinity;
@@ -97,7 +99,8 @@ export class PixelText extends Phaser.GameObjects.Image {
     ctx.clearRect(0, 0, texture.width, texture.height);
     const pass = (fill: number, offset: number) => {
       ctx.fillStyle = `#${fill.toString(16).padStart(6, '0')}`;
-      shown.forEach((line, i) => drawLine(ctx, line, offset, offset + i * LINE_HEIGHT * scale, scale));
+      // Centred lines sit where the whole line will end up, so typing it out never shifts it.
+      shown.forEach((line, i) => drawLine(ctx, line, offset + (centred ? Math.floor((width - measure(lines[i]!)) / 2) * scale : 0), offset + i * LINE_HEIGHT * scale, scale));
     };
     pass(color, 0);
     if (chisel && scale >= 3) this.carve(ctx, texture.width, texture.height, chisel);

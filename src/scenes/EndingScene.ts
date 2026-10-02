@@ -88,7 +88,7 @@ export class EndingScene extends Phaser.Scene {
     // Each line under the last (long ones wrap onto two).
     let y = 106;
     ending.lines.forEach((line, i) => {
-      const t = centre(new PixelText(this, 0, y, line, { color: SHADES.light, wrapWidth: 400 })).setAlpha(0);
+      const t = centre(new PixelText(this, 0, y, line, { color: SHADES.light, wrapWidth: 400, centred: true })).setAlpha(0);
       y += t.height + 7;
       this.tweens.add({ targets: t, alpha: 1, duration: 1200, delay: 2400 + i * 1600 });
     });
