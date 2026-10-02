@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Clipped Wing — soundboard (dev)</title>
+    <style>
+      body { margin: 0; padding: 16px 24px 48px; background: #1c1611; color: #b3a898; font: 13px/1.4 Menlo, monospace; }
+      h1 { font-size: 16px; color: #f4f1e8; } h2 { font-size: 14px; color: #f2b45a; margin: 26px 0 8px; }
+      p.note { max-width: 75ch; }
+      .bar { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin: 10px 0; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+      button { font: inherit; text-align: left; background: #2a221b; color: #f4f1e8; border: 1px solid #4a3d31; padding: 7px 10px; cursor: pointer; }
+      button:hover { border-color: #f2b45a; } button:active { background: #3a2e24; } button.on { border-color: #6fe0c0; color: #6fe0c0; }
+      button .id { display: block; } button .what { display: block; font-size: 11px; color: #b3a898; margin-top: 2px; }
+      select, input { font: inherit; background: #2a221b; color: #f4f1e8; border: 1px solid #4a3d31; padding: 4px 6px; }
+      label { display: flex; gap: 6px; align-items: center; }
+    </style>
+  </head>
+  <body>
+    <h1>Soundboard (dev only)</h1>
+    <p class="note">Every sound in the game, synthesised exactly as the game makes it. Click to play. The room changes the echo, as each area does. Sounds are in <code>src/ui/soundscape.ts</code>, the list and where each plays in <code>docs/sound-effects-plan.md</code>.</p>
+    <div id="board"></div>
+    <script type="module" src="/src/dev/soundboard.ts"></script>
+  </body>
+</html>
