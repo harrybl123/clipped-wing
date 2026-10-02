@@ -18,7 +18,7 @@ const FORMANTS: Record<Syllable['vowel'], [number, number]> = {
 
 const LOUDNESS = 0.2;
 
-export function playSyllable(scene: Phaser.Scene, voice: Voice, syllable: Syllable, options: { muffled?: boolean; gain?: number; delay?: number; bus?: Bus; pan?: number } = {}): void {
+export function playSyllable(scene: Phaser.Scene, voice: Voice, syllable: Syllable, options: { muffled?: boolean; gain?: number; delay?: number; bus?: Bus; pan?: number; dest?: AudioNode } = {}): void {
   const a = audioOut(scene, options.bus ?? 'voices');
   if (!a) return;
   const { ctx } = a;
@@ -40,11 +40,12 @@ export function playSyllable(scene: Phaser.Scene, voice: Voice, syllable: Syllab
   warm.frequency.value = (options.muffled ? 450 : 1600) * voice.formant;
   warm.Q.value = 0.3;
   env.connect(warm);
+  const out = options.dest ?? a.out;
   if (options.pan) {
     const panner = ctx.createStereoPanner();
     panner.pan.value = options.pan;
-    warm.connect(panner).connect(a.out);
-  } else warm.connect(a.out);
+    warm.connect(panner).connect(out);
+  } else warm.connect(out);
 
   const end = t + length * 2;
   // The tone, drifting by `glide`, with a wobble, and a little natural unsteadiness.

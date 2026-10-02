@@ -231,24 +231,27 @@ function oneShot(a: Out, dest: AudioNode, t: number, id: SoundId, v: number, sur
       noise(a, dest, t, 'bandpass', 350, 1.5, 0.25, 0.3 * v, 0.05, 1200);
       break;
     case 'sting':
-      // A big choice (the room dims): a deep boom, a hit like a fist on wood, and a low rumble rising under it.
-      tone(a, dest, t, 'sine', 52, 28, 2.4, 0.7 * v, 0.01);
-      noise(a, dest, t, 'bandpass', 170, 3, 0.35, 0.6 * v, 0.004);
-      noise(a, dest, t, 'lowpass', 90, 1, 2.2, 0.4 * v, 0.05);
-      noise(a, dest, t + 0.2, 'bandpass', 110, 2, 2.2, 0.2 * v, 1.4, 500);
+      // A big choice (the room dims; designer: severe). A hard hit you hear even on small speakers: a body
+      // blow of low noise, a falling drum, a crack of wood; then the drone (held by Soundscape) swells in.
+      noise(a, dest, t, 'lowpass', 1200, 0.8, 0.6, 1.2 * v, 0.002);
+      noise(a, dest, t, 'bandpass', 160, 2.5, 0.9, 1.2 * v, 0.002);
+      tone(a, dest, t, 'sine', 130, 40, 1.6, 1.1 * v, 0.003);
+      tone(a, dest, t, 'triangle', 260, 90, 0.5, 0.35 * v, 0.002);
+      noise(a, dest, t, 'bandpass', 900, 3, 0.12, 0.5 * v, 0.001);
+      noise(a, dest, t + 0.05, 'lowpass', 300, 1, 2.5, 0.35 * v, 0.1);
       break;
     case 'resolve':
-      // The choice made (the room comes back): one low thud, and a breath out.
-      tone(a, dest, t, 'sine', 70, 35, 0.6, 0.5 * v, 0.006);
-      noise(a, dest, t, 'lowpass', 160, 1, 0.5, 0.3 * v, 0.006);
-      noise(a, dest, t + 0.1, 'lowpass', 600, 0.7, 0.8, 0.06 * v, 0.2);
+      // The choice made (the room comes back): one heavy thud, and a breath out.
+      noise(a, dest, t, 'lowpass', 700, 0.8, 0.4, 0.9 * v, 0.002);
+      tone(a, dest, t, 'sine', 110, 40, 0.8, 0.9 * v, 0.003);
+      noise(a, dest, t + 0.15, 'lowpass', 500, 0.7, 1, 0.1 * v, 0.3);
       break;
     case 'heartbeat':
-      // Lub-dub.
-      tone(a, dest, t, 'sine', 68, 42, 0.12, 0.45 * v, 0.006);
-      noise(a, dest, t, 'lowpass', 120, 1, 0.1, 0.25 * v, 0.004);
-      tone(a, dest, t + 0.26, 'sine', 62, 40, 0.1, 0.3 * v, 0.006);
-      noise(a, dest, t + 0.26, 'lowpass', 110, 1, 0.08, 0.15 * v, 0.004);
+      // Lub-dub, with enough of a knock in it to hear on small speakers.
+      tone(a, dest, t, 'sine', 95, 48, 0.16, 0.9 * v, 0.004);
+      noise(a, dest, t, 'lowpass', 450, 1, 0.07, 0.6 * v, 0.002);
+      tone(a, dest, t + 0.27, 'sine', 85, 45, 0.13, 0.6 * v, 0.004);
+      noise(a, dest, t + 0.27, 'lowpass', 400, 1, 0.06, 0.4 * v, 0.002);
       break;
     case 'rise':
       noise(a, dest, t, 'bandpass', 200, 1.5, 3.2, 0.35 * v, 1, 2500);
@@ -280,7 +283,7 @@ function loopNoise(a: Out, dest: AudioNode, filter: BiquadFilterType, freq: numb
 }
 
 /** The continuous sounds. */
-function makeLoop(a: Out, dest: AudioNode, sound: 'room' | 'hum' | 'buzz' | 'wind' | 'leaves' | 'fire', hush = 160): Loop {
+function makeLoop(a: Out, dest: AudioNode, sound: 'room' | 'hum' | 'buzz' | 'wind' | 'leaves' | 'fire' | 'drone', hush = 160): Loop {
   const gain = a.ctx.createGain();
   gain.gain.value = 0;
   gain.connect(dest);
@@ -363,6 +366,38 @@ function makeLoop(a: Out, dest: AudioNode, sound: 'room' | 'hum' | 'buzz' | 'win
       stops.push(() => tone.stop(), () => drift.stop(), () => flutter.stop());
       break;
     }
+    case 'drone': {
+      // Under a big choice: a dark, dissonant low chord (two tones a little apart, beating against each
+      // other) and a breath of low noise, slowly wavering. Pitched where small speakers can carry it.
+      const mix = a.ctx.createGain();
+      mix.gain.value = 1;
+      const dark = a.ctx.createBiquadFilter();
+      dark.type = 'lowpass';
+      dark.frequency.value = 700;
+      mix.connect(dark).connect(gain);
+      for (const [f, type, level] of [[110, 'triangle', 0.35], [116.5, 'triangle', 0.3], [55, 'sine', 0.5], [164.8, 'sine', 0.12]] as const) {
+        const osc = a.ctx.createOscillator();
+        osc.type = type;
+        osc.frequency.value = f;
+        const g = a.ctx.createGain();
+        g.gain.value = level;
+        osc.connect(g).connect(mix);
+        osc.start();
+        stops.push(() => osc.stop());
+      }
+      const breath = a.ctx.createGain();
+      breath.gain.value = 0.25;
+      breath.connect(mix);
+      const n = loopNoise(a, breath, 'bandpass', 220, 1.2);
+      const lfo = a.ctx.createOscillator();
+      lfo.frequency.value = 0.18;
+      const depth = a.ctx.createGain();
+      depth.gain.value = 0.25;
+      lfo.connect(depth).connect(mix.gain);
+      lfo.start();
+      stops.push(() => n.src.stop(), () => lfo.stop());
+      break;
+    }
     case 'wind': {
       const g = a.ctx.createGain();
       g.gain.value = 0.4;
@@ -434,7 +469,11 @@ export class Soundscape {
   private emitters: Emitter[] = [];
   private listener = { x: 0, y: 0 };
   private stopped = false;
+  /** Everything the place makes (the bed, its things, footsteps): faded right down for a big choice. */
+  private world: GainNode | null = null;
   private bedOut: GainNode | null = null;
+  /** The drone held under a big choice. */
+  private drone: Loop | null = null;
   /** A big choice: seconds since it began (your heartbeat), or null. */
   private tension: number | null = null;
   private nextBeat = 0;
@@ -474,7 +513,8 @@ export class Soundscape {
   play(id: SoundId, at?: { x: number; y: number }, volume = 1, range = 120, surface?: Surface): void {
     const a = this.out();
     if (!a) return;
-    let dest: AudioNode = a.out;
+    const tense = id === 'sting' || id === 'resolve' || id === 'heartbeat';
+    let dest: AudioNode = tense ? a.out : this.worldOut(a);
     let v = volume;
     if (at) {
       const { gain, pan } = this.place(at.x, at.y, range);
@@ -482,7 +522,7 @@ export class Soundscape {
       v *= gain;
       const panner = a.ctx.createStereoPanner();
       panner.pan.value = pan;
-      panner.connect(a.out);
+      panner.connect(dest);
       dest = panner;
     }
     oneShot(a, dest, a.ctx.currentTime, id, v, surface);
@@ -496,9 +536,30 @@ export class Soundscape {
     if (on === (this.tension !== null)) return;
     const a = this.out();
     this.tension = on ? 0 : null;
-    this.nextBeat = 1.4;
+    this.nextBeat = 1.6;
     this.play(on ? 'sting' : 'resolve');
-    if (a && this.bedOut) this.bedOut.gain.setTargetAtTime(on ? 0.3 : 1, a.ctx.currentTime, on ? 0.4 : 1);
+    if (!a) return;
+    // The place falls almost silent (designer), and comes back slowly afterwards.
+    this.worldOut(a).gain.setTargetAtTime(on ? 0.03 : 1, a.ctx.currentTime, on ? 0.25 : 1.2);
+    if (on) {
+      this.drone?.stop();
+      this.drone = makeLoop(a, a.out, 'drone');
+      this.drone.gain.gain.setTargetAtTime(0.5, a.ctx.currentTime + 0.3, 1.2);
+    } else if (this.drone) {
+      const d = this.drone;
+      this.drone = null;
+      d.gain.gain.setTargetAtTime(0, a.ctx.currentTime, 0.4);
+      setTimeout(() => d.stop(), 2500);
+    }
+  }
+
+  /** The place's own output (made on first use). */
+  private worldOut(a: Out): GainNode {
+    if (!this.world) {
+      this.world = a.ctx.createGain();
+      this.world.connect(a.out);
+    }
+    return this.world;
   }
 
   update(delta: number, listener: { x: number; y: number }): void {
@@ -509,7 +570,7 @@ export class Soundscape {
     this.bedOut ??= (() => {
       setAcoustics(this.scene, this.acoustics);
       const g = a.ctx.createGain();
-      g.connect(a.out);
+      g.connect(this.worldOut(a));
       return g;
     })();
     if (this.tension !== null) {
@@ -545,7 +606,7 @@ export class Soundscape {
       case 'chatter':
       case 'crowd': {
         const voice = VOICE_LIST[Math.floor(Math.random() * VOICE_LIST.length)]!;
-        playSyllable(this.scene, voice, murmur(), { bus: 'sounds', muffled: true, gain: volume * 0.5, pan: rand(-0.7, 0.7) });
+        playSyllable(this.scene, voice, murmur(), { bus: 'sounds', muffled: true, gain: volume * 0.5, pan: rand(-0.7, 0.7), dest: this.bedOut! });
         break;
       }
       case 'footfall': {
@@ -602,7 +663,7 @@ export class Soundscape {
     if (e.sound === 'tube' || e.sound === 'fire') {
       if (!e.loop) {
         e.panner = a.ctx.createStereoPanner();
-        e.panner.connect(a.out);
+        e.panner.connect(this.worldOut(a));
         e.loop = makeLoop(a, e.panner, e.sound === 'tube' ? 'hum' : 'fire');
       }
       e.loop.gain.gain.setTargetAtTime(placed.gain * e.volume * (e.sound === 'fire' ? 0.5 : 1), a.ctx.currentTime, 0.2);
@@ -614,7 +675,7 @@ export class Soundscape {
     const play = (id: SoundId, v = 1, surface?: Surface) => {
       const panner = a.ctx.createStereoPanner();
       panner.pan.value = placed.pan;
-      panner.connect(a.out);
+      panner.connect(this.worldOut(a));
       oneShot(a, panner, a.ctx.currentTime, id, v * placed.gain * e.volume, surface);
     };
     switch (e.sound) {
@@ -645,7 +706,7 @@ export class Soundscape {
       case 'mob':
         e.wait = rand(0.04, 0.12);
         playSyllable(this.scene, VOICE_LIST[Math.floor(Math.random() * VOICE_LIST.length)]!, murmur(Math.random() < 0.5), {
-          bus: 'sounds', gain: placed.gain * e.volume * 0.9, pan: placed.pan + rand(-0.2, 0.2),
+          bus: 'sounds', gain: placed.gain * e.volume * 0.9, pan: placed.pan + rand(-0.2, 0.2), dest: this.worldOut(a),
         });
         break;
     }
@@ -660,6 +721,7 @@ export class Soundscape {
       setTimeout(() => loop.stop(), 600);
     };
     this.beds.forEach((b) => fadeOut(b.loop));
+    fadeOut(this.drone);
     this.emitters.forEach((e) => fadeOut(e.loop));
   }
 }
