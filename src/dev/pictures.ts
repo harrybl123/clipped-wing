@@ -3,6 +3,7 @@
 // Plain canvas, no Phaser.
 
 import { MESSAGES, REPLY_SETS, type DecodeSymbol } from '../data/messages';
+import { PICTURE_OPTIONS } from './pictureOptions';
 
 const METAL = '#d8d2c2';
 const SCRATCH = '#2a221b';
@@ -38,6 +39,20 @@ function figure(rows: string[], scale: number, word: string, also = '', used = '
 
 const root = document.getElementById('pictures')!;
 const messages = Object.values(MESSAGES);
+
+// 0. Pictures being redrawn: the current one, and the options to pick from.
+const allSymbols = new Map(messages.flatMap((m) => m.symbols).map((s) => [s.id, s]));
+if (PICTURE_OPTIONS.length) {
+  root.append(el('h2', '', 'To choose: other drawings'));
+  for (const { id, options } of PICTURE_OPTIONS) {
+    const current = allSymbols.get(id)!;
+    root.append(el('h3', '', current.accepted[0]!));
+    const r = el('div', 'grid');
+    r.append(figure(current.picture, 5, 'now', current.nudge));
+    for (const o of options) r.append(figure(o.picture, 5, o.label));
+    root.append(r);
+  }
+}
 
 // 1. Every picture once, in the order you first meet it, with the words it accepts.
 root.append(el('h2', '', 'Every picture he sends'));
