@@ -113,7 +113,7 @@ export class PreloadScene extends Phaser.Scene {
       // Night 5 with the archivist: at the seed grove's bridge, the guard walking the beds.
       calendar.advanceTo('night');
       set({ day5: 'grove', reply3: 'who', told_archivist: true, archivist_trust: 3, mum_in_bed: true, in_grove: true, grove_sneak: true, objective: 'Get to the seed vault without being seen', objective_target: 'seed-grove:seed-vault' });
-      this.scene.start('Area', { areaId: 'seed-grove', start: { x: 36, y: 236 }, script: 'day5_grove_arrive' });
+      this.scene.start('Area', { areaId: 'seed-grove', start: { x: 156, y: 236 }, script: 'day5_grove_arrive' });
     } else if (day < 7 && !(day === 3 && at === 'night')) this.scene.start('Area', { areaId: 'home', start: { x: 50, y: 150 }, card: `Day ${day}` });
   }
 

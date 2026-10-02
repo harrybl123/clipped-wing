@@ -91,21 +91,42 @@ export const seedGrove: AreaDefinition = {
     { type: 'drip', x: 225, y: 55, floorY: FLOOR - 10 },
     { type: 'drip', x: 405, y: 55, floorY: TERRACE - 10 },
     { type: 'drip', x: 495, y: 55, floorY: FLOOR - 10 },
-    // Night 5, with the archivist: the guard walks the beds with his lantern. He doesn't look up at the
-    // terrace, and you can't be seen crouched behind a bed (standing, you can). Seen: back to the bridge.
-    { type: 'watch', from: 150, to: 520, y: FLOOR, speed: 20, range: 52, pause: 2200, see: 24, reset: { x: 36, y: FLOOR }, showIf: 'grove_sneak' },
+    // Night 5, with the archivist: a set piece. You start crouched behind the first bed; the archivist
+    // calls the guard over from the far end, and he walks right past you to the bridge. Then he stands
+    // with his back to the grove while the archivist keeps him talking, and you creep to the vault. Now
+    // and then he glances back down the grove with his lantern ("...", then a long look): be crouched
+    // behind a bed or up on the terrace (he doesn't look up). Seen: back behind the first bed, and he
+    // walks over again.
+    {
+      type: 'watch', start: 520, from: 124, to: 124, face: -1, y: FLOOR, speed: 28, range: 60, see: 24, reset: { x: 156, y: FLOOR }, showIf: 'grove_sneak',
+      glance: { every: 5200, for: 2400, range: 270, tell: '...', back: { who: 'archivist-grove', text: 'No, no, here. Look at this.' } },
+    },
+    {
+      type: 'barks', showIf: 'grove_sneak', loopFrom: 3,
+      lines: [
+        { who: 'archivist-grove', text: 'You there! Guard! A word, if you would.', wait: 3200 },
+        { who: 'watch', text: 'Archivist? At this hour?' },
+        { who: 'archivist-grove', text: "Can't sleep. I never can, in the frost." },
+        { who: 'archivist-grove', text: "These saplings by the bridge. The cold's got into them. See?", wait: 3200 },
+        { who: 'watch', text: 'They look all right to me, sir.' },
+        { who: 'archivist-grove', text: "And that pipe's been dripping since spring. Somebody ought to write it down.", wait: 3400 },
+        { who: 'watch', text: 'Yes, sir.' },
+        { who: 'archivist-grove', text: "Forty years I've been coming up here. It's never been this cold.", wait: 3200 },
+        { who: 'watch', text: 'No, sir.' },
+      ],
+    },
     { type: 'shadow', x: 128, y: FLOOR, width: 60, crouch: true, showIf: 'grove_sneak' },
     { type: 'shadow', x: 222, y: FLOOR, width: 48, crouch: true, showIf: 'grove_sneak' },
     { type: 'shadow', x: 486, y: FLOOR, width: 48, crouch: true, showIf: 'grove_sneak' },
-    { type: 'hint', x: 70, y: FLOOR, reach: 60, text: 'Stay out of his light: crouch behind the beds (hold down), or go up on the terrace.', showIf: 'grove_sneak' },
+    { type: 'hint', x: 160, y: FLOOR, reach: 50, text: 'Keep low behind the beds (hold down). When he looks round, stay out of his light.', showIf: 'grove_sneak' },
     { type: 'trigger', x: 586, y: FLOOR, reach: 14, knot: 'day5_grove_vault', showIf: 'grove_sneak' },
   ],
 
   people: [
     { id: 'gardener', sprite: RESIDENTS[2]!.idle[0]!, idleFrames: RESIDENTS[2]!.idle, x: 250, y: FLOOR, knot: 'grove_gardener', when: DAY },
     { id: 'night-guard', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 400, y: FLOOR, when: ['night'], wander: { from: 140, to: 550 }, walkFrames: GUARD.idle, hideIf: 'in_grove' },
-    // Night 5: the archivist, waiting at the end of the bridge, then at the vault.
-    { id: 'archivist-grove', sprite: ARCHIVIST.idle[0]!, idleFrames: ARCHIVIST.idle, x: 124, y: FLOOR, knot: 'day5_grove_archivist', when: ['night'], showIf: 'in_grove' },
+    // Night 5: the archivist, keeping the guard talking at the bridge, then at the vault.
+    { id: 'archivist-grove', sprite: ARCHIVIST.idle[0]!, idleFrames: ARCHIVIST.idle, x: 98, y: FLOOR, flipX: true, knot: 'day5_grove_archivist', when: ['night'], showIf: 'in_grove' },
   ],
 
   interactables: [

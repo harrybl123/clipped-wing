@@ -244,7 +244,7 @@ describe('ink pipeline', () => {
       play('day5_decoded', 0);
       expect(v['day5']).toBe('archive');
       expect(v['objective_target']).toBe('archive:archivist-night');
-      expect(play('archive_archivist')).toContain('goto:seed-grove:36:236:day5_grove_arrive');
+      expect(play('archive_archivist')).toContain('goto:seed-grove:156:236:day5_grove_arrive');
       expect(v['grove_sneak']).toBe(true); // past the guard to the vault
       expect(v['objective_target']).toBe('seed-grove:seed-vault');
       expect(play('day5_grove_vault', 0, 2)).toContain('goto:archive:60:236'); // the wrong mark, then the right one

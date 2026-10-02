@@ -332,27 +332,28 @@ He looks at the drawers behind the glass, and shakes his head.
 "Not from in there. Those are records. A seed forty years in a drawer may never wake." #speaker:archivist
 "If it matters, and I think it does, it should be a living one. From the grove." #speaker:archivist
 "There's a guard on it at night. I'm allowed to be there. You're not." #speaker:archivist
-"I'll wait at the bridge. If he comes my way, I'll keep him talking. You get to the vault at the far end." #speaker:archivist
-"He walks the beds, and he never looks up. Keep low, and remember that." #speaker:archivist
+"So you go in first and keep low. I'll call him over and keep him talking. You get to the vault at the far end." #speaker:archivist
+"He'll look round now and then. He never looks up. Remember that." #speaker:archivist
 ~ archivist_waiting = false
 ~ in_grove = true
 ~ grove_sneak = true
 ~ day5 = "grove"
 ~ objective = "Get to the seed vault without being seen"
 ~ objective_target = "seed-grove:seed-vault"
-He takes you up through the sleeping halls, past the feast tables and the skylights, to the rope bridge. #goto:seed-grove:36:236:day5_grove_arrive
+He takes you up through the sleeping halls, past the feast tables and the skylights, to the rope bridge. #goto:seed-grove:156:236:day5_grove_arrive
 -> END
 
 // --- Night: the seed grove, with the archivist ---
 
 === day5_grove_arrive ===
 Gardens. Real ones, out on the branch, under a hole in the bark full of night sky. You've never smelt anything like it.
-Down among the beds, a lantern swings. The guard.
+At the far end, a lantern. The guard.
+You drop down behind the nearest bed. Behind you, on the bridge, the archivist clears his throat.
 -> END
 
 === day5_grove_archivist ===
 { grove_sneak:
-    "Go on. Keep low behind the beds, or go up on the terrace. He never looks up." #speaker:archivist
+    "Go on. Keep low." #speaker:archivist
 - else:
     "Quickly, now." #speaker:archivist
 }
@@ -360,7 +361,7 @@ Down among the beds, a lantern swings. The guard.
 
 === day5_grove_vault ===
 The vault: a cabinet of glass jars at the end of the branch, every one glowing a soft amber.
-Behind you, the archivist's voice, loud and cheerful, calls the guard down to the bridge: something about frost on the saplings. The lantern swings away.
+Behind you, the archivist says goodnight, loud and cheerful, and sends the guard down for a lamp to look at the saplings by. The lantern goes off over the bridge.
 ~ grove_sneak = false
 A moment later the archivist is beside you, out of breath, with a key on a ribbon. #move:archivist-grove:568:236
 "Help me find it. My eyes aren't what they were, and you know marks better than I do." #speaker:archivist

@@ -187,6 +187,16 @@ interface Watchman {
   walkKeys: string[];
   idleKey: string;
   step: number;
+  /** With `start`: whether he's reached his post. */
+  arrived: boolean;
+  /** With `glance`: facing his usual way, saying his tell, or looking back. */
+  glance: 'idle' | 'tell' | 'look';
+}
+
+interface Barks {
+  feature: Extract<Feature, { type: 'barks' }>;
+  index: number;
+  left: number;
 }
 
 /** People you're tailing (the `quarry` feature). */
@@ -253,6 +263,8 @@ export class AreaScene extends Phaser.Scene {
   private people = new Map<string, PersonEntry>();
   private hints: Extract<Feature, { type: 'hint' }>[] = [];
   private hintText!: PixelText;
+  /** A dark plate behind the hint, so it reads over bright backdrops. */
+  private hintPlate!: Phaser.GameObjects.Rectangle;
   private objective!: ObjectiveMarker;
   /** Things to do once the current conversation closes (e.g. travel after a #goto: tag). */
   private afterClose: (() => void)[] = [];
@@ -275,6 +287,9 @@ export class AreaScene extends Phaser.Scene {
   private quarries: Quarry[] = [];
   private mobs: Mob[] = [];
   private triggers: Extract<Feature, { type: 'trigger' }>[] = [];
+  private barks: Barks[] = [];
+  /** Lines over people's heads, by who's saying them. */
+  private speech = new Map<string, { text: PixelText; left: number }>();
   /** Where you came in (the mob throws you back here). */
   private arrival = { x: 0, y: 0 };
   /** Where tomorrow starts, if not in your bed (#wake). */
@@ -404,6 +419,7 @@ export class AreaScene extends Phaser.Scene {
     this.countdownText = new PixelText(this, 0, 18, '', { color: SHADES.amber, shadow: SHADES.shadow, scale: 2 }).setScrollFactor(0).setDepth(27).setVisible(false);
     this.dimmer = this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, SHADES.shadow).setOrigin(0).setScrollFactor(0).setDepth(28).setAlpha(0);
     this.hintText = new PixelText(this, 0, 18, '', { color: SHADES.white, shadow: SHADES.shadow }).setScrollFactor(0).setDepth(26).setVisible(false);
+    this.hintPlate = this.add.rectangle(0, 0, 1, 1, SHADES.shadow, 0.75).setOrigin(0).setScrollFactor(0).setDepth(25).setVisible(false);
     this.refreshObjective();
     if (this.script) {
       const knot = this.script;
@@ -447,6 +463,7 @@ export class AreaScene extends Phaser.Scene {
     this.updateQuarries(delta);
     this.updateMobs(delta);
     this.updateTriggers();
+    this.updateBarks(delta);
     this.updateCloak();
     this.checkHazards();
     this.updateWaiting(delta);
@@ -460,6 +477,53 @@ export class AreaScene extends Phaser.Scene {
       this.current.use();
       this.setCurrent(null);
     }
+  }
+
+  /** Lines spoken over people's heads, one after another, while you keep playing. */
+  private updateBarks(delta: number): void {
+    const { story } = getSession(this);
+    for (const b of this.barks) {
+      const f = b.feature;
+      if (f.showIf && !story.getVariable(f.showIf)) continue;
+      if (this.dialogue.isOpen) continue;
+      b.left -= delta;
+      if (b.left > 0) continue;
+      const line = f.lines[b.index];
+      if (!line) continue;
+      const wait = line.wait ?? 2600;
+      this.say(line.who, line.text, wait - 300);
+      b.left = wait;
+      b.index = b.index + 1 < f.lines.length ? b.index + 1 : (f.loopFrom ?? 0);
+    }
+    for (const [who, s] of this.speech) {
+      s.left -= delta;
+      const at = this.speakerAt(who);
+      // The watchman's own "..." (his tell) takes the place of anything he's saying.
+      const busy = who === 'watch' && this.watchmen.some((w) => w.glance !== 'idle');
+      if (s.left <= 0 || !at || busy || this.dialogue.isOpen) s.text.setVisible(false);
+      else s.text.setPosition(Math.round(Phaser.Math.Clamp(at.x - s.text.width / 2, 4, this.area.width - s.text.width - 4)), at.y - 40);
+    }
+  }
+
+  /** Where someone speaking over their head is: a person, or `watch` for the area's watchman. */
+  private speakerAt(who: string): { x: number; y: number } | null {
+    if (who === 'watch') {
+      const w = this.watchmen.find((m) => m.image.visible);
+      return w ? { x: w.image.x, y: w.image.y } : null;
+    }
+    const entry = this.people.get(who);
+    return entry && entry.image.visible ? { x: entry.image.x, y: entry.image.y } : null;
+  }
+
+  /** Shows a line over someone's head for `ms`. */
+  private say(who: string, text: string, ms: number): void {
+    let s = this.speech.get(who);
+    if (!s) {
+      s = { text: new PixelText(this, 0, 0, '', { color: SHADES.white, shadow: SHADES.shadow, wrapWidth: 150 }).setDepth(21), left: 0 };
+      this.speech.set(who, s);
+    }
+    s.text.setText(text).setVisible(true);
+    s.left = ms;
   }
 
   /** Whether an ambience layer is playing now: its time of day and story variables. */
@@ -741,6 +805,48 @@ export class AreaScene extends Phaser.Scene {
           w.alarm = null;
           w.callout.setVisible(false);
           this.knockBack(f.reset);
+          if (f.start !== undefined) {
+            // Back to the start of the scene: he walks to his post again.
+            w.image.x = f.start;
+            w.arrived = false;
+            w.glance = 'idle';
+          }
+        }
+      } else if (!w.arrived) {
+        // Walking to his post (holding still while a conversation's open).
+        if (!this.dialogue.isOpen) {
+          w.dir = f.from < w.image.x ? -1 : 1;
+          w.image.x += w.dir * f.speed * (delta / 1000);
+          w.step += delta;
+          w.image.setTexture(w.walkKeys[Math.floor(w.step / 220) % w.walkKeys.length]!);
+          if (Math.abs(w.image.x - f.from) < 1) {
+            w.image.x = f.from;
+            w.arrived = true;
+            w.dir = f.face ?? w.dir;
+            w.wait = f.glance?.every ?? f.pause ?? WATCH_PAUSE;
+            w.image.setTexture(w.idleKey);
+          }
+        }
+      } else if (f.from === f.to && f.glance) {
+        // Facing his usual way; now and then a tell, then a look back over his shoulder.
+        const g = f.glance;
+        w.wait -= this.dialogue.isOpen ? 0 : delta;
+        if (w.wait <= 0) {
+          if (w.glance === 'idle') {
+            w.glance = 'tell';
+            w.wait = 1000;
+            w.callout.setText(g.tell ?? '...').setPosition(Math.round(w.image.x - w.callout.width / 2), f.y - 44).setVisible(true);
+          } else if (w.glance === 'tell') {
+            w.glance = 'look';
+            w.wait = g.for;
+            w.dir = (f.face ?? 1) > 0 ? -1 : 1;
+            w.callout.setVisible(false);
+          } else {
+            w.glance = 'idle';
+            w.wait = g.every * Phaser.Math.FloatBetween(0.8, 1.2);
+            w.dir = f.face ?? 1;
+            if (g.back) this.say(g.back.who, g.back.text, 2200);
+          }
         }
       } else if (f.from === f.to) {
         // Standing watch: turns round now and then.
@@ -765,13 +871,16 @@ export class AreaScene extends Phaser.Scene {
       w.image.setFlipX(w.dir < 0);
       const lx = Math.round(w.image.x + w.dir * 6);
       const ly = f.y - 13;
+      const range = w.glance === 'look' ? (f.glance?.range ?? f.range) : f.range;
       w.lantern.setPosition(lx, ly);
       // The lantern's light: a wedge spreading out ahead of him.
-      w.cone.clear().fillStyle(SHADES.amber, w.alarm !== null ? 0.28 : 0.13).fillTriangle(lx, ly, lx + w.dir * f.range, f.y - (f.see ?? WATCH_VIEW_Y), lx + w.dir * f.range, f.y + 2);
-      w.cone.fillTriangle(lx, ly, lx + w.dir * f.range, f.y + 2, lx, f.y + 2);
+      w.cone.clear().fillStyle(SHADES.amber, w.alarm !== null ? 0.28 : 0.13).fillTriangle(lx, ly, lx + w.dir * range, f.y - (f.see ?? WATCH_VIEW_Y), lx + w.dir * range, f.y + 2);
+      w.cone.fillTriangle(lx, ly, lx + w.dir * range, f.y + 2, lx, f.y + 2);
       if (w.alarm !== null || this.dialogue.isOpen || this.leaving) continue;
       const ahead = (px - w.image.x) * w.dir;
-      const seen = !inShadow && py <= f.y + 4 && f.y - py <= (f.see ?? WATCH_VIEW_Y) && ahead >= -8 && ahead <= f.range;
+      // Up in the air (jumping), you're in his light whatever `see` says: only standing somewhere high (a terrace) is out of it.
+      const seeUp = this.player.onGround ? (f.see ?? WATCH_VIEW_Y) : WATCH_VIEW_Y;
+      const seen = !inShadow && py <= f.y + 4 && f.y - py <= seeUp && ahead >= -8 && ahead <= range;
       if (seen) {
         w.alarm = 900;
         w.callout.setText("Who's there?").setPosition(Math.round(w.image.x - w.callout.width / 2), f.y - 44).setVisible(true);
@@ -1120,10 +1229,12 @@ export class AreaScene extends Phaser.Scene {
     const hint = this.dialogue.isOpen ? undefined : this.hints.find((h) => Math.abs(x - h.x) <= h.reach && Math.abs(y - h.y) <= 40 && (!h.showIf || story.getVariable(h.showIf)));
     if (!hint) {
       this.hintText.setVisible(false);
+      this.hintPlate.setVisible(false);
       return;
     }
     if (this.hintText.text !== hint.text) this.hintText.setText(hint.text);
     this.hintText.setPosition(Math.round((GAME_WIDTH - this.hintText.width) / 2), 18).setVisible(true);
+    this.hintPlate.setPosition(this.hintText.x - 4, 15).setSize(this.hintText.width + 8, this.hintText.height + 6).setVisible(true);
   }
 
   /**
@@ -1638,13 +1749,13 @@ export class AreaScene extends Phaser.Scene {
       case 'watch': {
         const idleKey = makeSpriteTexture(this, 'watchman-0', WATCHMAN.idle[0]!.rows, WATCHMAN.idle[0]!.colours);
         const walkKeys = WATCHMAN.walk.map((f, i) => makeSpriteTexture(this, `watchman-walk-${i}`, f.rows, f.colours));
-        const start = feature.from === feature.to ? feature.from : Math.round((feature.from + feature.to) / 2);
+        const start = feature.start ?? (feature.from === feature.to ? feature.from : Math.round((feature.from + feature.to) / 2));
         const image = this.add.image(start, feature.y, idleKey).setOrigin(0.5, 1).setDepth(9);
         this.soundscape.addEmitter('footsteps', () => (image.visible ? { x: image.x, y: image.y } : null), 90);
         const lantern = this.add.rectangle(start, feature.y - 13, 3, 4, SHADES.amber).setStrokeStyle(1, SHADES.deep).setDepth(10);
         const cone = this.add.graphics().setDepth(7);
         const callout = new PixelText(this, 0, 0, '', { color: SHADES.amber, shadow: SHADES.shadow }).setDepth(21).setVisible(false);
-        this.watchmen.push({ feature, image, lantern, cone, callout, dir: 1, wait: feature.pause ?? WATCH_PAUSE, alarm: null, walkKeys, idleKey, step: 0 });
+        this.watchmen.push({ feature, image, lantern, cone, callout, dir: feature.face ?? 1, wait: feature.pause ?? WATCH_PAUSE, alarm: null, walkKeys, idleKey, step: 0, arrived: feature.start === undefined, glance: 'idle' });
         break;
       }
       case 'shadow': {
@@ -1681,6 +1792,9 @@ export class AreaScene extends Phaser.Scene {
       }
       case 'trigger':
         this.triggers.push(feature);
+        break;
+      case 'barks':
+        this.barks.push({ feature, index: 0, left: 0 });
         break;
       case 'jars': {
         const { story } = getSession(this);
