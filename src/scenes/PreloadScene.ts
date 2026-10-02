@@ -36,6 +36,8 @@ export class PreloadScene extends Phaser.Scene {
     // &at=night (message 6 by the bench or hearth), &at=chase (up through the shrine, the mob behind) or &at=fall (thrown into the rot);
     // &told=1 if you told the archivist, &lied=1 if you lied to your friend.
     const params = import.meta.env.DEV ? new URLSearchParams(window.location.search) : null;
+    // Dev: &mute=1 starts with all sound off.
+    if (params?.get('mute') === '1') this.sound.setMute(true);
     const areaId = params?.get('area');
     if (areaId && areaId in AREAS) this.scene.start('Area', { areaId });
     else if (params?.get('scene') === 'prologue') this.scene.start('Prologue');
@@ -107,6 +109,11 @@ export class PreloadScene extends Phaser.Scene {
       calendar.advanceTo('night');
       set({ day5: 'open', reply3: 'who', told_archivist: told, archivist_trust: told ? 3 : 0, mum_in_bed: true, objective: 'Open the bird', objective_target: 'home:hearth' });
       this.scene.start('Area', { areaId: 'home', start: { x: 120, y: 236 } });
+    } else if (day === 5 && at === 'grove') {
+      // Night 5 with the archivist: at the seed grove's bridge, the guard walking the beds.
+      calendar.advanceTo('night');
+      set({ day5: 'grove', reply3: 'who', told_archivist: true, archivist_trust: 3, mum_in_bed: true, in_grove: true, grove_sneak: true, objective: 'Get to the seed vault without being seen', objective_target: 'seed-grove:seed-vault' });
+      this.scene.start('Area', { areaId: 'seed-grove', start: { x: 36, y: 236 }, script: 'day5_grove_arrive' });
     } else if (day < 7 && !(day === 3 && at === 'night')) this.scene.start('Area', { areaId: 'home', start: { x: 50, y: 150 }, card: `Day ${day}` });
   }
 

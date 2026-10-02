@@ -328,27 +328,62 @@ He's waiting by the index engine with a shaded lamp, in a coat over his nightclo
 "You came. I hoped you would. I've hardly slept." #speaker:archivist
 You tell him: the fourth plate, the seed, the upper branches.
 "A seed." He breathes out. "Of course. Something that grows. Something to start with." #speaker:archivist
+He looks at the drawers behind the glass, and shakes his head.
+"Not from in there. Those are records. A seed forty years in a drawer may never wake." #speaker:archivist
+"If it matters, and I think it does, it should be a living one. From the grove." #speaker:archivist
+"There's a guard on it at night. I'm allowed to be there. You're not." #speaker:archivist
+"I'll wait at the bridge. If he comes my way, I'll keep him talking. You get to the vault at the far end." #speaker:archivist
+"He walks the beds, and he never looks up. Remember that." #speaker:archivist
+~ archivist_waiting = false
+~ in_grove = true
+~ grove_sneak = true
+~ day5 = "grove"
+~ objective = "Get to the seed vault without being seen"
+~ objective_target = "seed-grove:seed-vault"
+He takes you up through the sleeping halls, past the feast tables and the skylights, to the rope bridge. #goto:seed-grove:36:236:day5_grove_arrive
+-> END
+
+// --- Night: the seed grove, with the archivist ---
+
+=== day5_grove_arrive ===
+Gardens. Real ones, out on the branch, under a hole in the bark full of night sky. You've never smelt anything like it.
+Down among the beds, a lantern swings. The guard.
+-> END
+
+=== day5_grove_archivist ===
+{ grove_sneak:
+    "Go on. Behind the beds, or up on the terrace. He never looks up." #speaker:archivist
+- else:
+    "Quickly, now." #speaker:archivist
+}
+-> END
+
+=== day5_grove_vault ===
+The vault: a cabinet of glass jars at the end of the branch, every one glowing a soft amber.
+Behind you, the archivist's voice, loud and cheerful, calls the guard down to the bridge: something about frost on the saplings. The lantern swings away.
+~ grove_sneak = false
+A moment later the archivist is beside you, out of breath, with a key on a ribbon. #move:archivist-grove:568:236
 "Help me find it. My eyes aren't what they were, and you know marks better than I do." #speaker:archivist
-He turns the crank. Drawers slide past behind the glass, each with a mark: a hand, a flame, a fish, a leaf curled round a seed. #shake
+Each jar has a mark scratched on its lid: a thorn, a vine, a fish, a leaf curled round a seed.
 - (search)
-+ [The hand]
-    "The tanners' records. Not that one." #speaker:archivist
++ [The thorn]
+    "Bramble. Grows anywhere and chokes everything. Not that one." #speaker:archivist
     -> search
-+ [The flame]
-    "The lamp-makers. No." #speaker:archivist
++ [The vine]
+    "Gourds. No." #speaker:archivist
     -> search
 + [The leaf curled round a seed]
-    He stops the engine. The lens glows over a long, flat drawer.
-- Inside, in rows of tiny wells: seeds. Hundreds of them, every one labelled in writing you can't read.
-He picks one out with tweezers and drops it into your palm. Small, hard, warm from the lamp.
-"A healthy one. From the grove's first planting. If anything should go where he wants it to go, it should be that." #speaker:archivist
+    He turns the key. The glass door swings open with a breath of warm air.
+- He tips one seed out of the jar into your palm. Small, hard, and warm, as if it's been holding its breath.
+"From the grove's first planting. Alive. You can feel it, can't you?" #speaker:archivist
 "Tell me what happens. Promise me. Even if it's nothing." #speaker:archivist
 ~ seed = "healthy"
-~ archivist_waiting = false
+~ in_grove = false
 ~ day5 = "bed"
 ~ objective = "Go home to bed"
 ~ objective_target = "home:bed"
-"Now go, before the watchman does his round." #speaker:archivist
+"Now go. I'll see you out the back way, before the watchman does his round." #speaker:archivist
+He takes you back over the bridge and down through the halls, to the hatch at the back of the archive. #goto:archive:60:236
 -> END
 
 // --- Night: the archive (you didn't tell him): the theft that fails ---

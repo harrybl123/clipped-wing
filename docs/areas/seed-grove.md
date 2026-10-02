@@ -28,6 +28,7 @@ Talk to the gardener; look at a cloche, the saplings and the vault. Placeholder 
 ## Exits
 Left, over the bridge → the upper halls.
 
-## Open questions
-- How the heist fails, and where the rotten roots seed comes from.
-- Does the healthy seed (the ally route) come from here too, handed over by the archivist?
+## In the story (2026-10-02, designer)
+Night 5, if you told the archivist: he brings you here for a living seed, and you sneak past the night
+guard to the vault while he waits at the bridge (behind the beds, or up on the terrace). The failed theft
+(if you didn't tell him) happens in the archive instead, and the rotten seed comes from the boy.

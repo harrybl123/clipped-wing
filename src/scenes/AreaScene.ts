@@ -767,11 +767,11 @@ export class AreaScene extends Phaser.Scene {
       const ly = f.y - 13;
       w.lantern.setPosition(lx, ly);
       // The lantern's light: a wedge spreading out ahead of him.
-      w.cone.clear().fillStyle(SHADES.amber, w.alarm !== null ? 0.28 : 0.13).fillTriangle(lx, ly, lx + w.dir * f.range, f.y - WATCH_VIEW_Y, lx + w.dir * f.range, f.y + 2);
+      w.cone.clear().fillStyle(SHADES.amber, w.alarm !== null ? 0.28 : 0.13).fillTriangle(lx, ly, lx + w.dir * f.range, f.y - (f.see ?? WATCH_VIEW_Y), lx + w.dir * f.range, f.y + 2);
       w.cone.fillTriangle(lx, ly, lx + w.dir * f.range, f.y + 2, lx, f.y + 2);
       if (w.alarm !== null || this.dialogue.isOpen || this.leaving) continue;
       const ahead = (px - w.image.x) * w.dir;
-      const seen = !inShadow && py <= f.y + 4 && f.y - py <= WATCH_VIEW_Y && ahead >= -8 && ahead <= f.range;
+      const seen = !inShadow && py <= f.y + 4 && f.y - py <= (f.see ?? WATCH_VIEW_Y) && ahead >= -8 && ahead <= f.range;
       if (seen) {
         w.alarm = 900;
         w.callout.setText("Who's there?").setPosition(Math.round(w.image.x - w.callout.width / 2), f.y - 44).setVisible(true);

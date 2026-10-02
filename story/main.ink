@@ -98,6 +98,9 @@ VAR escorted = false
 VAR told_archivist = false
 VAR archivist_trust = 0
 VAR archivist_waiting = false
+// Night 5, with the archivist in the seed grove: the whole visit, and the sneak past the guard to the vault.
+VAR in_grove = false
+VAR grove_sneak = false
 // You didn't tell him, so you try to steal a seed from the archive; it fails.
 VAR stealing = false
 VAR caught_stealing = false

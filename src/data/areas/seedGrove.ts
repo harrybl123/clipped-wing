@@ -1,4 +1,4 @@
-import { GUARD, RESIDENTS } from '../../ui/characters';
+import { ARCHIVIST, GUARD, RESIDENTS } from '../../ui/characters';
 import { SHADES as S } from '../../ui/pixelArt';
 import { ARCHWAY } from './offeringFloorProps';
 import * as P from './seedGroveProps';
@@ -6,8 +6,9 @@ import { ropeBridge } from './lowerRootsProps';
 import { PLANTER } from './middleTiersProps';
 import type { AreaDefinition, Person, Solid } from './types';
 
-// The seed grove: where healthy seeds grow, out along a branch (Night 5: the heist, if the
-// archivist isn't your ally). Reached over a rope bridge from the upper halls. The only gardens in
+// The seed grove: where healthy seeds grow, out along a branch. Night 5, if you told the archivist
+// the truth: he brings you here for a living seed, and keeps out of the guard's way at the bridge while
+// you slip past him to the vault (behind the beds, or up on the terrace, where he never looks). Reached over a rope bridge from the upper halls. The only gardens in
 // the tree, lit by the Canopy's light pouring in through an opening in the branch: raised beds,
 // saplings, glass cloches, a vine-covered trellis, irrigation from scavenged pipes, and at the far
 // end a locked vault of seeds. A gardener by day; a guard walks it at night, and the beds and the
@@ -90,11 +91,21 @@ export const seedGrove: AreaDefinition = {
     { type: 'drip', x: 225, y: 55, floorY: FLOOR - 10 },
     { type: 'drip', x: 405, y: 55, floorY: TERRACE - 10 },
     { type: 'drip', x: 495, y: 55, floorY: FLOOR - 10 },
+    // Night 5, with the archivist: the guard walks the beds with his lantern. He doesn't look up at the
+    // terrace, and you can't be seen crouched behind a bed. Seen: back to the bridge.
+    { type: 'watch', from: 150, to: 520, y: FLOOR, speed: 20, range: 52, pause: 2200, see: 24, reset: { x: 36, y: FLOOR }, showIf: 'grove_sneak' },
+    { type: 'shadow', x: 128, y: FLOOR, width: 60, showIf: 'grove_sneak' },
+    { type: 'shadow', x: 222, y: FLOOR, width: 48, showIf: 'grove_sneak' },
+    { type: 'shadow', x: 486, y: FLOOR, width: 48, showIf: 'grove_sneak' },
+    { type: 'hint', x: 70, y: FLOOR, reach: 60, text: 'Stay out of his light: behind the beds, or up on the terrace.', showIf: 'grove_sneak' },
+    { type: 'trigger', x: 586, y: FLOOR, reach: 14, knot: 'day5_grove_vault', showIf: 'grove_sneak' },
   ],
 
   people: [
     { id: 'gardener', sprite: RESIDENTS[2]!.idle[0]!, idleFrames: RESIDENTS[2]!.idle, x: 250, y: FLOOR, knot: 'grove_gardener', when: DAY },
-    { id: 'night-guard', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 400, y: FLOOR, when: ['night'], wander: { from: 140, to: 550 }, walkFrames: GUARD.idle },
+    { id: 'night-guard', sprite: GUARD.idle[0]!, idleFrames: GUARD.idle, x: 400, y: FLOOR, when: ['night'], wander: { from: 140, to: 550 }, walkFrames: GUARD.idle, hideIf: 'in_grove' },
+    // Night 5: the archivist, waiting at the end of the bridge, then at the vault.
+    { id: 'archivist-grove', sprite: ARCHIVIST.idle[0]!, idleFrames: ARCHIVIST.idle, x: 124, y: FLOOR, knot: 'day5_grove_archivist', when: ['night'], showIf: 'in_grove' },
   ],
 
   interactables: [

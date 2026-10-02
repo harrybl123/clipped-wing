@@ -16,5 +16,6 @@
 -> END
 
 === grove_seed_vault ===
+{ grove_sneak: The vault. Get to it without the guard seeing you. -> END }
 [PLACEHOLDER] A locked cabinet of glass jars. The seeds inside glow a warm amber.
 -> END

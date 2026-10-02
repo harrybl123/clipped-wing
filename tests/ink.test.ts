@@ -239,12 +239,17 @@ describe('ink pipeline', () => {
       return { v, play };
     };
 
-    it('if you told the archivist, you can go back up and he gives you a healthy seed', () => {
+    it('if you told the archivist, you go back up, he takes you to the seed grove, and you get a living seed', () => {
       const { v, play } = start(true);
       play('day5_decoded', 0);
       expect(v['day5']).toBe('archive');
       expect(v['objective_target']).toBe('archive:archivist-night');
-      play('archive_archivist', 0, 2); // the wrong mark, then the right one
+      expect(play('archive_archivist')).toContain('goto:seed-grove:36:236:day5_grove_arrive');
+      expect(v['grove_sneak']).toBe(true); // past the guard to the vault
+      expect(v['objective_target']).toBe('seed-grove:seed-vault');
+      expect(play('day5_grove_vault', 0, 2)).toContain('goto:archive:60:236'); // the wrong mark, then the right one
+      expect(v['grove_sneak']).toBe(false);
+      expect(v['in_grove']).toBe(false);
       expect(v['seed']).toBe('healthy');
       expect(play('home_bed', 0)).toContain('endday:Day 6');
       expect(v['day6']).toBe('wake');
