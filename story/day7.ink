@@ -294,7 +294,8 @@ The archivist looks up from his desk, and goes white, and then comes round it qu
 "...I'm glad you came." #speaker:archivist
 -> day7_archivist_talk ->
 ~ archivist_goodbye = false
-"Now go, before the watch changes." #speaker:archivist
+"And listen. If they shut you in tonight, whoever they set to watch you will find he's wanted up here. Some urgent matter of the records." #speaker:archivist
+"It's the one thing I can do. Go, before the watch changes." #speaker:archivist
 -> END
 = again
 "Go!" #speaker:archivist
@@ -395,6 +396,7 @@ You can hear the roots, not far off. Roaring.
 
 === day7_home_night ===
 Mum is at the shutters, watching the torches gather on the floor.
+"They've found the gap. There's a man down in the routes with a lamp, right under it." #speaker:mum
 "Open it," she says, without turning round. "Whatever's in it. Quickly." #speaker:mum
 -> END
 
@@ -437,6 +439,12 @@ Down: the rot, where the tree throws everything it doesn't want.
 = home
 Mum turns from the shutters.
 "They're coming. All of them." #speaker:mum #shake
+{ told_archivist:
+    Under the floor, a voice calls down into the routes: a runner, out of breath. "The archive wants you. Now. Some business with the records." The man by the gap swears, and his lamp goes bobbing away. #sound:shuffle
+    The archivist. He kept his word.
+- else:
+    Under the floor, the lamp by the gap doesn't move.
+}
 { confided:
     Something bangs in the gap by the rot, and your friend tumbles out of it, black with dust. #show:friend-home
     "They're coming! Now! I ran the back way..." #speaker:friend
@@ -453,14 +461,26 @@ Where do you go? #dim:on
 
 // --- Big choice 3: the fork (designer: up is flying, down is giving yourself up) ---
 
+// Fly if you can (designer): only if someone has opened the way. In custody, the girl you saved is at
+// the grate; at home, the archivist has the man on your gap called away. If you turned your back on
+// both, "Up" is there, but it fails: fall if you must.
 === day7_fork ===
 - (choose)
-+ [Up: fly if you can]
++ { in_custody || told_archivist } [Up: fly if you can]
     Up. Up the trunk, all the way to the top, and into the tube. They'll be behind you every step.
     ++ [Yes. Up.]
         -> up
     ++ [No. Think again.]
         -> choose
+* { not (in_custody || told_archivist) } [Up: fly if you can]
+    Up. You drop to your knees by the gap.
+    The lamp swings up into your face. "Back up there, carver. Or I'll come up and fetch you." #speaker:guard
+    { confided:
+        Your friend looks down at the lamp, then at you. "There's no way past him. I'm sorry. I'm so sorry." #speaker:friend
+    }
+    The front door, then. Through the shutters: torches, and more coming.
+    There's no way up. Nobody's coming to open one. Not for you. Not tonight.
+    -> choose
 + [Down: fall if you must]
     Down. Walk out to them. Let them throw you down into the rot, and stop running.
     ++ [Yes. Down.]

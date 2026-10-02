@@ -51,6 +51,12 @@ once the shape is agreed. The last day of Act 1.
   roots (the doc's "refuse and be cast into the lower roots"). **(designer)** On the home path, with no
   girl there, it's your friend who asks (if you confided), or you choose alone at the same fork.
   **(suggestion)**
+- **Fly if you can: only with the girl or the archivist.** **(designer, 2026-10-02)** Someone has to
+  open the way up. In custody, the girl you saved lifts the grate. At home, they've found your gap and
+  put a man on it; if you told the archivist, he has the man called away to the archive (he promises it
+  at the afternoon goodbye, and keeps his word whether you went or not). Turn your back on both, and
+  "Up" is still there, but it fails (the lamp in your face; your friend can't get past him either), and
+  down is the only way. Your friend doesn't count: he helps on the way up, but can't open it.
 - **The chase to the top is platforming** (real-time, the mob behind you). **(designer)**
 - **Mum's fate stays ambiguous**, for tension into Chapter 2: she's lost in the chaos when the mob
   comes, and you don't know what becomes of her. **(designer)**

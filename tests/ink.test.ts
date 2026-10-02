@@ -457,6 +457,27 @@ describe('ink pipeline', () => {
       expect(v['girl_follows']).toBe(true);
       expect(play('the_rot_crack')).toEqual(expect.arrayContaining(['daylight:702:134:232', 'ending:fall_together']));
     });
+
+    // Fly if you can (designer): only if the girl (saved) or the archivist (told) opens the way up.
+    const atTheFork = (vars: Record<string, unknown>) => {
+      const { v, play } = start({ girl_fate: 'blamed', girl_in_rot: true, house_guarded: true, day7: 'open', ...vars });
+      return { v, play };
+    };
+
+    it('if you turned your back on the girl and the archivist, up fails, and you must fall', () => {
+      const { v, play } = atTheFork({ told_archivist: false, confided: true });
+      // Up (it fails, and goes), then the only choice left: down, and yes.
+      const tags = play('day7_decoded', 0, 0, 0);
+      expect(tags).toContain('goto:the-rot:100:232:day7_cast_down');
+      expect(v['chased']).toBe(false);
+      expect(v['day7']).toBe('fall');
+    });
+
+    it('if you told the archivist, he has the man on your gap called away, and you can fly', () => {
+      const { v, play } = atTheFork({ told_archivist: true, confided: false });
+      expect(play('day7_decoded', 0, 0)).toContain('goto:back-routes:120:232:day7_routes_escape');
+      expect(v['chased']).toBe(true);
+    });
   });
 
   it('on Day 4, holding back at the market skips the fight, and winning it raises suspicion', () => {
