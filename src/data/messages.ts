@@ -631,6 +631,37 @@ const POINTING_HANDS = scratches(
   ],
 );
 
+/** Day 6, with the pointing hands, what you ask him. "Help me": a hand reaching down to you, your arms up to it. */
+const HELP_ME = scratches(
+  24,
+  22,
+  [
+    [[1, 0], [7, 5]], [[2, 0], [8, 5]], [[7, 9], [6, 12]], [[9, 9], [9, 13]], [[11, 9], [12, 12]], [[12, 6], [14, 7]], // the arm, the fingers, the thumb
+    [[15, 17], [14, 14]], [[21, 17], [22, 14]], [[14, 14], [13, 12]], [[14, 14], [15, 12]], [[22, 14], [21, 12]], [[22, 14], [23, 12]], // your arms up, open hands
+  ],
+  [{ poly: [[6, 5], [12, 5], [12, 9], [6, 9]] }, { disc: [18, 15, 2] }, { poly: [[15, 17], [21, 17], [20, 21], [16, 21]] }],
+);
+
+/** "What do I do?": you, a question over your head, and a way out on either side. */
+const WHAT_DO_I_DO = scratches(
+  24,
+  22,
+  [
+    [[9, 4], [10, 1], [12, 0], [14, 1], [15, 3], [13, 5], [12, 6], [12, 8]], [[10, 4], [11, 2], [12, 1], [14, 2], [14, 3], [12, 5], [11, 6], [11, 8]],
+    ...figureLimbs(12, 12),
+    [[3, 18], [0, 18]], [[2, 16], [0, 18], [2, 20]], [[21, 18], [23, 18]], [[21, 16], [23, 18], [21, 20]],
+  ],
+  [...figureShapes(12, 12)],
+);
+
+/** "Why me?": the question, and you with your hand on your chest. */
+const WHY_ME = scratches(
+  24,
+  22,
+  [[[1, 6], [2, 3], [5, 1], [8, 2], [9, 5], [7, 8], [5, 10], [5, 13]], [[2, 6], [3, 3], [5, 2], [8, 3], [8, 5], [6, 8], [4, 10], [4, 13]], ...figureLimbs(17, 7).slice(1), [[14, 11], [17, 13]]],
+  [{ disc: [4.5, 17, 1.4] }, ...figureShapes(17, 7)],
+);
+
 // --- Your plate on Day 7 ---
 
 /** "I'm trapped": a bird in a cage. */
@@ -652,12 +683,30 @@ export interface ReplyOption {
   picture: string[];
 }
 
+export interface ReplySet {
+  variable: string;
+  options: ReplyOption[];
+  /** A picture already scratched on the plate before this one (Day 6: the pointing hands, then what you ask). */
+  after?: string[];
+}
+
+/** Two pictures side by side on one plate (the shorter one sits at the bottom), with a gap between. */
+export function besidePictures(left: string[], right: string[], gap = 4): string[] {
+  const h = Math.max(left.length, right.length);
+  const pad = (p: string[]) => [...Array<string>(h - p.length).fill('.'.repeat(p[0]!.length)), ...p];
+  const l = pad(left);
+  const r = pad(right);
+  return l.map((row, i) => row + '.'.repeat(gap) + r[i]!);
+}
+
 /** Your replies, scratched on the back of his plate in his own pictures (#plate:<set> in the carving): which ink variable each set fills, and its three pictures in the order of the choices. */
-export const REPLY_SETS: Record<string, { variable: string; options: ReplyOption[] }> = {
+export const REPLY_SETS: Record<string, ReplySet> = {
   // Day 4, to message 2: yes (open wings) / I can't (a clipped wing) / why? (a hook and a dot).
   reply2: { variable: 'reply2', options: [{ value: 'yes', picture: FLY.picture }, { value: 'cant', picture: CLIPPED_WING }, { value: 'why', picture: WOULD.picture }] },
-  // Day 6: one picture, no choice: everyone pointing at you, and a hand reaching down (they blame me; help me).
+  // Day 6: one picture, no choice: everyone pointing at you (they blame me)...
   blame: { variable: 'reply4', options: [{ value: 'blame', picture: POINTING_HANDS }] },
+  // ...and beside it, what you ask him: help me / what do I do? / why me?
+  ask: { variable: 'reply4_ask', after: POINTING_HANDS, options: [{ value: 'help', picture: HELP_ME }, { value: 'todo', picture: WHAT_DO_I_DO }, { value: 'why', picture: WHY_ME }] },
   // Day 7: one picture, no choice: a bird in a cage (I'm trapped).
   caged: { variable: 'reply5', options: [{ value: 'caged', picture: CAGED }] },
   // Day 5, to message 3: who are you? / take me / I'm being watched.
@@ -684,6 +733,57 @@ const SEED: DecodeSymbol = {
 };
 
 /** Message 4 (Day 5): "Clipped wing, send me new life that can't fly." The same words as message 1, but new life is a seed, by the upper branches (design doc). */
+/** "Hide": someone peering out from behind a wall, one hand on its edge. */
+const HIDE: DecodeSymbol = {
+  id: 'hide',
+  picture: scratches(
+    24,
+    18,
+    [[[10, 0], [10, 17]], [[11, 0], [11, 17]], [[11, 4], [23, 4]], [[11, 9], [23, 9]], [[11, 14], [23, 14]], [[17, 0], [17, 4]], [[14, 4], [14, 9]], [[20, 4], [20, 9]], [[17, 9], [17, 14]], [[14, 14], [14, 17]], [[20, 14], [20, 17]], [[0, 17], [9, 17]], [[7, 10], [10, 10]]],
+    [{ disc: [8, 6, 2.6] }],
+  ),
+  accepted: ['hide', 'hiding', 'hidden', 'hid', 'conceal', 'concealed', 'cover', 'take cover', 'duck', 'lie low', 'stay hidden', 'keep hidden', 'out of sight', 'secret', 'sneak'],
+  near: [
+    { words: ['wall', 'peek', 'peeking', 'peep', 'behind', 'look', 'watch', 'spy', 'shy', 'scared', 'afraid', 'safe'], reply: "Warm. Someone keeping out of sight behind a wall, just peering round. What are they doing?" },
+  ],
+  nudge: 'Someone tucked behind a wall, only their head showing round the edge.',
+  hint: 'What you did with his first plate, under the loose board.',
+};
+
+/** Message 4 (Day 5), after "Who are you?": "You are Grounded too. Clipped wing, send me new life that can't fly." */
+export const MESSAGE_4_WHO: Message = {
+  id: 'message4_who',
+  line: "You are Grounded too. Clipped wing, send me new life that can't fly.",
+  rows: [
+    ['you', 'grounded', 'also', 'clipped', 'wing'],
+    ['send', 'self', 'seed', 'that', 'cant', 'fly'],
+  ],
+  symbols: [YOU, GROUNDED, ALSO, CLIPPED, WING, SEND, SELF, SEED, THAT, CANT, FLY],
+};
+
+/** Message 4 (Day 5), after "Take me": "Soon. Clipped wing, send me new life that can't fly." */
+export const MESSAGE_4_TAKE: Message = {
+  id: 'message4_take',
+  line: "Soon. Clipped wing, send me new life that can't fly.",
+  rows: [
+    ['yet', 'clipped', 'wing', 'send', 'self'],
+    ['seed', 'that', 'cant', 'fly'],
+  ],
+  symbols: [YET, CLIPPED, WING, SEND, SELF, SEED, THAT, CANT, FLY],
+};
+
+/** Message 4 (Day 5), after "I'm being watched": "Hide, as I do. Clipped wing, send me new life that can't fly." */
+export const MESSAGE_4_WATCHED: Message = {
+  id: 'message4_watched',
+  line: "Hide, as I do. Clipped wing, send me new life that can't fly.",
+  rows: [
+    ['hide', 'self', 'also', 'clipped', 'wing'],
+    ['send', 'self', 'seed', 'that', 'cant', 'fly'],
+  ],
+  symbols: [HIDE, SELF, ALSO, CLIPPED, WING, SEND, SEED, THAT, CANT, FLY],
+};
+
+/** Message 4 with no answer to anything (dev links that skip your reply). */
 export const MESSAGE_4: Message = {
   id: 'message4',
   line: "Clipped wing, send me new life that can't fly.",
@@ -804,27 +904,49 @@ const HURRY: DecodeSymbol = {
   hint: 'What everyone says when the guards are coming.',
 };
 
-/** Message 5 (Day 6), after the archivist's seed: "New life lives. Clipped wing, stay alive. You are not the rot. We need you. Hurry." */
-export const MESSAGE_5_LIVES: Message = {
-  id: 'message5_lives',
-  line: 'New life lives. Clipped wing, stay alive. You are not the rot. We need you. Hurry.',
-  rows: [
-    ['seed', 'lives', 'clipped', 'wing', 'stayalive'],
-    ['you', 'not', 'rot', 'many', 'need', 'you', 'hurry'],
+/** "Climb": a ladder going up, someone on it, and an arrow pointing the way. */
+const CLIMB: DecodeSymbol = {
+  id: 'climb',
+  picture: scratches(
+    24,
+    18,
+    [[[14, 0], [14, 17]], [[21, 0], [21, 17]], [[14, 2], [21, 2]], [[14, 6], [21, 6]], [[14, 10], [21, 10]], [[14, 14], [21, 14]], [[3, 17], [3, 2]], [[4, 17], [4, 2]], [[0, 5], [3, 1], [4, 1], [7, 5]], [[18, 8], [20, 3]], [[17, 8], [15, 11]], [[17, 12], [16, 16]], [[18, 12], [20, 15]]],
+    [{ disc: [17.5, 5, 1.7] }, { poly: [[17, 7], [19, 7], [18, 12], [17, 12]] }],
+  ),
+  accepted: ['climb', 'climbing', 'climbed', 'go up', 'up', 'upward', 'upwards', 'rise', 'scale', 'ladder', 'higher', 'go higher', 'come up', 'ascend', 'mount'],
+  near: [
+    { words: ['top', 'stairs', 'steps', 'trunk', 'tube', 'canopy', 'arrow', 'escape', 'run', 'out'], reply: 'Warm. Someone on a ladder, an arrow pointing the way. Which way, and how?' },
+    { words: ['down', 'fall', 'drop', 'descend'], reply: 'Cold. The arrow points the other way.' },
   ],
-  symbols: [SEED, LIVES, CLIPPED, WING, STAY_ALIVE, YOU, NOT, ROT, MANY, NEED, HURRY],
+  nudge: 'A ladder, someone on it, and an arrow beside it pointing up.',
+  hint: 'What you did with your friend on Ascension night, all the way to the lookout.',
 };
 
-/** Message 5 (Day 6), after the boy's seed: "New life sleeps. The rot is deep. Clipped wing, stay alive. You are not the rot. We need you. Hurry." */
-export const MESSAGE_5_SLEEPS: Message = {
-  id: 'message5_sleeps',
-  line: 'New life sleeps. The rot is deep. Clipped wing, stay alive. You are not the rot. We need you. Hurry.',
-  rows: [
-    ['seed', 'rest', 'rot', 'deep', 'clipped', 'wing', 'stayalive'],
-    ['you', 'not', 'rot', 'many', 'need', 'you', 'hurry'],
-  ],
-  symbols: [SEED, REST, ROT, DEEP, CLIPPED, WING, STAY_ALIVE, YOU, NOT, MANY, NEED, HURRY],
+/** The two openings of message 5: the archivist's seed lives, the boy's seed sleeps. */
+const SEED_LINES = {
+  lives: { line: 'New life lives. Clipped wing, stay alive.', row: ['seed', 'lives', 'clipped', 'wing', 'stayalive'], symbols: [SEED, LIVES, CLIPPED, WING, STAY_ALIVE] },
+  sleeps: { line: 'New life sleeps. The rot is deep. Clipped wing, stay alive.', row: ['seed', 'rest', 'rot', 'deep', 'clipped', 'wing', 'stayalive'], symbols: [SEED, REST, ROT, DEEP, CLIPPED, WING, STAY_ALIVE] },
 };
+
+/** And how he answers what you asked him (the plate holds seven pictures a row, so "why me?" ends in "Hurry", not "We need you"). */
+const ANSWERS = {
+  help: { line: 'You are not the rot. We need you. Hurry.', row: ['you', 'not', 'rot', 'many', 'need', 'you', 'hurry'], symbols: [YOU, NOT, ROT, MANY, NEED, HURRY] },
+  todo: { line: 'You are not the rot. Climb. Hurry.', row: ['you', 'not', 'rot', 'climb', 'hurry'], symbols: [YOU, NOT, ROT, CLIMB, HURRY] },
+  why: { line: 'You are not the rot. Because you carve. Hurry.', row: ['you', 'not', 'rot', 'because', 'you', 'carve', 'hurry'], symbols: [YOU, NOT, ROT, BECAUSE, CARVE, HURRY] },
+};
+
+/**
+ * Message 5 (Day 6): which seed you sent, then the answer to what you asked (`message5_<seed>_<ask>`).
+ * "New life lives. Clipped wing, stay alive. You are not the rot. We need you. Hurry." and so on.
+ */
+const MESSAGES_5: Message[] = (Object.keys(SEED_LINES) as (keyof typeof SEED_LINES)[]).flatMap((seed) =>
+  (Object.keys(ANSWERS) as (keyof typeof ANSWERS)[]).map((ask) => {
+    const opening = SEED_LINES[seed];
+    const answer = ANSWERS[ask];
+    const symbols = [...opening.symbols, ...answer.symbols].filter((s, i, all) => all.findIndex((t) => t.id === s.id) === i);
+    return { id: `message5_${seed}_${ask}`, line: `${opening.line} ${answer.line}`, rows: [opening.row, answer.row], symbols };
+  }),
+);
 
 // --- Message 6's new pictures ---
 
@@ -926,5 +1048,5 @@ export const MESSAGE_6: Message = {
 };
 
 export const MESSAGES: Record<string, Message> = Object.fromEntries(
-  [MESSAGE_1, MESSAGE_2, MESSAGE_3_YES, MESSAGE_3_CANT, MESSAGE_3_WHY, MESSAGE_3_LATE, MESSAGE_4, MESSAGE_5_LIVES, MESSAGE_5_SLEEPS, MESSAGE_6].map((m) => [m.id, m]),
+  [MESSAGE_1, MESSAGE_2, MESSAGE_3_YES, MESSAGE_3_CANT, MESSAGE_3_WHY, MESSAGE_3_LATE, MESSAGE_4, MESSAGE_4_WHO, MESSAGE_4_TAKE, MESSAGE_4_WATCHED, ...MESSAGES_5, MESSAGE_6].map((m) => [m.id, m]),
 );

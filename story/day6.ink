@@ -37,8 +37,20 @@ Your bench. The seed, wrapped in a scrap of cloth. A blank plate.
 === day6_carving ===
 First light. You turn the seed over in your fingers. Small enough to lose.
 He asked for new life. Here it is. And you need to tell him what's happening to you.
-Hands, pointing. All of them, at you. And one more, reaching down. Help me. #plate:blame
+Hands, pointing. All of them, at you. They blame me. #plate:blame
 ~ reply4 = "blame"
+And beside it, room for one more picture. What do you ask him? #plate:ask
++ [A hand reaching down to you: help me]
+    ~ reply4_ask = "help"
++ [You, a question, two ways out: what do I do?]
+    ~ reply4_ask = "todo"
++ [The question, and you: why me?]
+    ~ reply4_ask = "why"
+- { reply4_ask:
+- "help": Help me. You've never asked anyone for help. Not since the bench.
+- "todo": What do I do? Tell me. Anyone. Tell me what to do.
+- else: Why me? Of everyone in the tree. Why the carver with the ruined hand?
+}
 You scratch it into the metal. #step:scratch
 A fledgling, big enough to hold a seed. #step:rough
 Hollow it, gently. #step:hollow
@@ -299,22 +311,40 @@ You sit by the hearth with the bitten bird. Your fingers find the teeth marks in
 The seam is still there, under the bite. Whatever bit it didn't get inside.
 You open it. A plate. And the seed's gone.
 { seed == "healthy":
-    You start rubbing at the soot. #decode:message5_lives:day6_decoded
+    { reply4_ask:
+    - "todo": You start rubbing at the soot. #decode:message5_lives_todo:day6_decoded
+    - "why": You start rubbing at the soot. #decode:message5_lives_why:day6_decoded
+    - else: You start rubbing at the soot. #decode:message5_lives_help:day6_decoded
+    }
 - else:
-    You start rubbing at the soot. #decode:message5_sleeps:day6_decoded
+    { reply4_ask:
+    - "todo": You start rubbing at the soot. #decode:message5_sleeps_todo:day6_decoded
+    - "why": You start rubbing at the soot. #decode:message5_sleeps_why:day6_decoded
+    - else: You start rubbing at the soot. #decode:message5_sleeps_help:day6_decoded
+    }
 }
 -> END
 
 === day6_decoded ===
 { seed == "healthy":
-    "New life lives. Clipped wing, stay alive. You are not the rot. We need you. Hurry." #speaker:you
+    "New life lives. Clipped wing, stay alive." #speaker:you
     It lives. It's been a day: it can't have grown yet. But he knows it's alive, somehow, the way you know a block of wood is sound by the weight of it in your hand.
 - else:
-    "New life sleeps. The rot is deep. Clipped wing, stay alive. You are not the rot. We need you. Hurry." #speaker:you
+    "New life sleeps. The rot is deep. Clipped wing, stay alive." #speaker:you
     It sleeps. It's only been a day, but he already knows it won't wake. Something was wrong with it. The rot is deep. Does he mean the seed? Or the tree?
 }
 "You are not the rot." Nobody has said that to you in days. Nobody has said anything kind to you at all. #quote
-"We need you." Who? For what? "Hurry." Hurry where? #quote
+{ reply4_ask:
+- "todo":
+    "Climb. Hurry." #quote
+    You asked him what to do, and he told you. Climb. Climb where? Up the trunk? Up past the halls, where nobody from the roots goes? Up to what?
+- "why":
+    "Because you carve. Hurry." #quote
+    Because you carve. Not because you're good, or brave, or chosen. Because of your hands. These hands, that everyone else has given up on.
+- else:
+    "We need you. Hurry." #quote
+    You asked him for help, and he says he needs you. Who? For what? Hurry where?
+}
 Then: boots, outside. Several. And a fist on the door. #shake #sound:knock
 "Open up! In the name of the elders!" #speaker:guard
 The plate's in your hand, and the bird's on the hearth, opened up for anyone to see.

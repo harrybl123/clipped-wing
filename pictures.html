@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Clipped Wing — message pictures (dev)</title>
+    <style>
+      body { margin: 0; padding: 16px 24px 48px; background: #1c1611; color: #b3a898; font: 13px/1.4 Menlo, monospace; }
+      h1 { font-size: 16px; color: #f4f1e8; } h2 { font-size: 14px; color: #f2b45a; margin-top: 32px; }
+      h3 { font-size: 13px; color: #f4f1e8; margin: 22px 0 4px; } .line { font-style: italic; margin: 0 0 10px; }
+      .grid { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+      .plate { display: flex; flex-direction: column; gap: 10px; background: #2a221b; padding: 12px; width: max-content; border: 1px solid #4a3d31; }
+      .row { display: flex; gap: 12px; align-items: flex-start; }
+      figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; max-width: 150px; text-align: center; }
+      canvas { image-rendering: pixelated; }
+      .word { color: #f4f1e8; font-size: 13px; } .also { font-size: 10px; opacity: 0.7; } .used { font-size: 10px; color: #6fe0c0; opacity: 0.8; }
+      p.note { max-width: 70ch; }
+    </style>
+  </head>
+  <body>
+    <h1>Message pictures (dev only)</h1>
+    <p class="note">Every picture scratched on Grounded's plates, beside the word it stands for, and the pictures you can scratch back. Pictures are drawn in <code>src/data/messages.ts</code>.</p>
+    <div id="pictures"></div>
+    <script type="module" src="/src/dev/pictures.ts"></script>
+  </body>
+</html>

@@ -284,10 +284,30 @@ She takes your face in her hands and looks at you for a long moment, as if she's
 === day5_open_bird ===
 You sit by the hearth with the bird. The seam. The plate.
 Your reply's gone. He's read it. He's read your words, out there, wherever he is.
-You start rubbing at the soot. #decode:message4:day5_decoded
+{ reply3:
+- "who": You start rubbing at the soot. #decode:message4_who:day5_decoded
+- "take": You start rubbing at the soot. #decode:message4_take:day5_decoded
+- "watched": You start rubbing at the soot. #decode:message4_watched:day5_decoded
+- else: You start rubbing at the soot. #decode:message4:day5_decoded
+}
 -> END
 
+// He answers what you asked (reply3), then asks for a seed.
 === day5_decoded ===
+{ reply3:
+- "who":
+    "You are Grounded too." #speaker:you
+    You asked who he is, and he told you who you are.
+    Grounded. A bird that can't fly. A carver whose hand slipped. Is that what he means? That you're one of them, whatever they are, and always were?
+- "take":
+    "Soon." #speaker:you
+    Not no. Not never. Soon.
+    You say it again in your head, and again, and it frightens you how much you want it.
+- "watched":
+    "Hide, as I do." #speaker:you
+    As he does. So he's hiding too, out there. From what? Who watches someone beyond the bark?
+    The plate's suddenly heavy in your hand. You look at the shutter, at the gap under the door.
+}
 "Clipped wing, send me new life that can't fly." #speaker:you
 The same words as the first plate. Almost.
 But where "new life" was an egg and a shoot, this time it's a seed. A seed, sprouting. And above it, branches: the upper branches.

@@ -117,6 +117,8 @@ VAR girl_on_doorstep = false
 VAR day6 = ""
 // Your plate on Day 6: the pointing hands ("they blame me; help me"). One picture, no choice.
 VAR reply4 = ""
+// Day 6, what you ask him beside the pointing hands: "help" (help me), "todo" (what do I do?) or "why" (why me?). Message 5 answers it.
+VAR reply4_ask = ""
 // The hooded cloak from the boy: worn from now on wherever you're not expected (designer).
 VAR has_disguise = false
 // Tailing the Tender and the preacher across the market (the `quarry` feature sets tail_done when they slip behind the ration hatch), then the elders' meeting.
@@ -187,6 +189,8 @@ VAR glossary_can = ""
 VAR glossary_fall = ""
 VAR glossary_must = ""
 VAR glossary_find = ""
+VAR glossary_hide = ""
+VAR glossary_climb = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink

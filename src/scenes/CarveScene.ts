@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH as W } from '../config';
-import { REPLY_SETS, type ReplyOption } from '../data/messages';
+import { besidePictures, REPLY_SETS, type ReplyOption } from '../data/messages';
 import { getSession } from '../session';
 import { bellyPosition, bodyPoint, carvedBird, CARVE_H, CARVE_W, eyePosition, wingPosition, type CarveOptions, type CarveStage } from '../ui/carveArt';
 import { SHADES } from '../ui/pixelArt';
@@ -449,10 +449,12 @@ export class CarveScene extends StepScene {
     });
   }
 
-  /** The picture you chose from the current set (the first, if somehow none). */
+  /** The picture you chose from the current set (the first, if somehow none), beside any picture already on the plate (Day 6). */
   private reply(): ReplyOption {
     const chosen = String(getSession(this).story.getVariable(this.replySet.variable));
-    return this.replySet.options.find((o) => o.value === chosen) ?? this.replySet.options[0]!;
+    const option = this.replySet.options.find((o) => o.value === chosen) ?? this.replySet.options[0]!;
+    const { after } = this.replySet;
+    return after ? { value: `${this.replySet.variable}-${option.value}`, picture: besidePictures(after, option.picture) } : option;
   }
 
   protected startStep(name: string): void {

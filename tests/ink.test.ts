@@ -266,7 +266,7 @@ describe('ink pipeline', () => {
       expect(play('offering_floor_chalk_ring', 0)).toEqual(expect.arrayContaining(['show:rejected-bird', 'goto:home:130:236:day5_mum_night']));
       expect(v['escorted']).toBe(false);
       play('day5_mum_night');
-      expect(play('home_hearth')).toContain('decode:message4:day5_decoded');
+      expect(play('home_hearth')).toContain('decode:message4_take:day5_decoded'); // he answers "take me"
       return { v, play };
     };
 
@@ -335,7 +335,9 @@ describe('ink pipeline', () => {
       Object.entries({ dialogue_style: 'voice', day1: 'done', day2: 'done', day3: 'done', day4: 'done', day5: 'done', reply1: 'fledgling', seed, day6: 'wake', food_store: 3 }).forEach(([k, x]) => (v[k] = x));
       play('home_mum', 0);
       expect(play('home_bench', 0)).toContain('carve:day6_carving');
-      expect(play('day6_carving')).toEqual(expect.arrayContaining(['plate:blame', 'step:scratch', 'step:seal', 'end']));
+      // What you ask him beside the pointing hands: why me? (or, with the boy's seed, what do I do?).
+      expect(play('day6_carving', seed === 'healthy' ? 2 : 1)).toEqual(expect.arrayContaining(['plate:blame', 'plate:ask', 'step:scratch', 'step:seal', 'end']));
+      expect(v['reply4_ask']).toBe(seed === 'healthy' ? 'why' : 'todo');
       expect(play('shrine_tender_summons', 2)).not.toContain('time:afternoon');
       expect(v['objective_target']).toBe('roots-market:food-seller');
       expect(play('market_food_seller', 2)).toEqual(expect.arrayContaining(['throw', 'time:afternoon', 'goto:home:40:236']));
@@ -353,7 +355,7 @@ describe('ink pipeline', () => {
       expect(play('back_routes_listen')).toContain('time:evening');
       expect(play('offering_floor_chalk_ring', 2)).toEqual(expect.arrayContaining(['show:bitten-bird', 'recoil', 'goto:home:130:236:day6_mum_night']));
       play('day6_mum_night');
-      expect(play('home_hearth')).toContain(seed === 'healthy' ? 'decode:message5_lives:day6_decoded' : 'decode:message5_sleeps:day6_decoded');
+      expect(play('home_hearth')).toContain(seed === 'healthy' ? 'decode:message5_lives_why:day6_decoded' : 'decode:message5_sleeps_todo:day6_decoded');
       expect(play('day6_decoded')).toContain('when:evidence_left:day6_guards:5');
       return { v, play };
     };
