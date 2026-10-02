@@ -122,7 +122,7 @@ As they pass, you see it. Cut into the carving: a spiral. #inset:spiral
 The spiral. Every master cuts it into their last piece, the one they carry up. The same mark, for every one of them.
 The master stands before the gate. #move:master:280:204
 They step into the light. #hide:master #flash:white
-The tube blazes. The crowd falls silent, then roars.
+The tube blazes. The crowd falls silent, then roars. #sound:roar
 "Rise, and be blessed." #speaker:preacher
 ~ day1 = "climb"
 ~ climb_tutorial = true

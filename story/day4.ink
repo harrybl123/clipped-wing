@@ -257,7 +257,7 @@ The stew seller looks at her, then at you behind her, and puts the lid back on t
 The people in the queue have stepped away from her. Nobody wants to stand near the carver's house. #recoil
 Then someone shoves through the crowd: the young man from the rite, in his zealot's stole. #show:zealot-market
 "You've got a nerve, bringing that out among decent people." #speaker:zealot
-He knocks Mum's basket out of her hands. Jars roll across the floor. One breaks. #shake
+He knocks Mum's basket out of her hands. Jars roll across the floor. One breaks. #shake #sound:smash
 ~ food_store -= 1
 "Rot-hand's mother. Buying rot-hand's supper." #speaker:zealot
 + [Step in]
@@ -425,7 +425,7 @@ You step into it.
 Mum starts towards you. A woman takes her arm, gently, and steers her back among the others. #move:mum-ceremony:62
 "Not with them, love. Stand with us." #speaker:crowd_woman
 Nobody shouts tonight. Nobody throws anything. It's worse.
-The whispering starts at the back, and moves forward like a draught.
+The whispering starts at the back, and moves forward like a draught. #sound:whispers
 "Third time, if it comes back." #speaker:crowd_someone #name:Someone in the crowd
 "It'll come back. Look at it, standing there." #speaker:crowd_someone_else
 "My sister's boy had the cough after the last one. Since it touched the basin." #speaker:crowd_woman
@@ -433,7 +433,7 @@ The whispering starts at the back, and moves forward like a draught.
 "A blessing, for the weavers. A blessing, for the potters. A blessing, for the lamp-makers." #speaker:tender
 The tube goes dark. #flash:dark
 Your bird drops into the basin. #show:rejected-bird
-A gasp goes round the floor, then a sound like a breath let out. Some of them were praying it wouldn't. Some of them were praying it would.
+A gasp goes round the floor, then a sound like a breath let out. Some of them were praying it wouldn't. Some of them were praying it would. #sound:gasp
 Nobody makes a sound. Then, all together, as if they'd practised it, the whole crowd turns its back on you. #turn
 Even the children. A small girl peeks back over her shoulder at you, and her father turns her head away.
 + [Hide it: bow your head]
@@ -487,7 +487,7 @@ She doesn't ask about the bird. She doesn't want to know.
 You sit by the hearth with the bird. The seam along its belly is there again: opened, and closed.
 Your plate is gone. In its place, another, blackened like the others.
 And something else, tucked in beside it. Something soft. You put it to one side; the plate first.
-Your hands know the way now: the seam, the soot, the rag. A third one. They wrote back again.
+Your hands know the way now: the seam, the soot, the rag. A third one. They wrote back again. #sound:pop
 You realise you've been waiting for this all day: through the shrine, the market, the turned backs. This.
 { reply2:
 - "yes": You start rubbing at the soot. #decode:message3_yes:day4_decoded
@@ -497,7 +497,7 @@ You realise you've been waiting for this all day: through the shrine, the market
 -> END
 
 = late
-You sit by the hearth with the fledgling. There's a seam along its belly: opened, and closed.
+You sit by the hearth with the fledgling. There's a seam along its belly: opened, and closed. #sound:pop
 He's hollowed it out, neatly, from the inside. You'd never get a wall that thin with your hands.
 Inside, a plate, blackened like the others. And something else, tucked in beside it. Something soft. You put it to one side; the plate first.
 He answered. A day late, and he answered anyway. He waited for you.

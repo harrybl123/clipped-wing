@@ -7,6 +7,7 @@ import { addLight, falloff, noise, rgb, SHADES, type RGB } from '../ui/pixelArt'
 import { makePaintedTexture, makeSpriteTexture, PIXEL } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
 import { playConfirm, playMove } from '../ui/sfx';
+import { playSound } from '../ui/soundscape';
 import { FIRE_FRAMES } from '../ui/sprites';
 
 export interface DecodeSceneData {
@@ -81,6 +82,7 @@ export class DecodeScene extends Phaser.Scene {
   private rag!: Phaser.GameObjects.Image;
   private ragAt: { x: number; y: number } | null = null;
   private rubbing = false;
+  private lastRub = 0;
   private dust!: Phaser.GameObjects.Particles.ParticleEmitter;
   /** Patches of soot crumbling away round found pictures (plate pixel indexes still to clear). */
   private dissolving: number[][] = [];
@@ -243,6 +245,11 @@ export class DecodeScene extends Phaser.Scene {
     this.ragAt = { x, y };
     if (!rub) return;
     this.rubbing = true;
+    // The rag on the metal, a scrub at a time.
+    if (this.time.now - this.lastRub > 110 && Math.hypot(x - from.x, y - from.y) > 0.5) {
+      this.lastRub = this.time.now;
+      playSound(this, 'rub', 0.8);
+    }
     const steps = Math.max(1, Math.ceil(Math.hypot(x - from.x, y - from.y) / 3));
     for (let i = 1; i <= steps; i++) this.rubAt(from.x + ((x - from.x) * i) / steps - left, from.y + ((y - from.y) * i) / steps - top);
     this.checkFound();
@@ -284,6 +291,7 @@ export class DecodeScene extends Phaser.Scene {
 
   private find(slot: Slot): void {
     slot.found = true;
+    for (let i = 0; i < 3; i++) this.time.delayedCall(i * 70, () => playSound(this, 'crackle', 0.7)); // the soot crumbling away
     this.dissolveAround(slot);
     this.tweens.add({ targets: slot.scratch, scale: PICTURE_SCALE * 1.15, duration: 120, yoyo: true });
     // A picture you've read before: your words come back to you.

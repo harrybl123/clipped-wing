@@ -254,7 +254,7 @@ A mother pulls her children behind her skirts as you come near.
 
 === day3_crowd_zealot ===
 { day3 == "evening": -> evening }
-A young man on the stairs spits as you pass. "Rot-hand." #speaker:zealot #name:A young man
+A young man on the stairs spits as you pass. "Rot-hand." #speaker:zealot #name:A young man #sound:spit
 + [What did you call me?]
     "What did you call me?" #speaker:you
     "You heard. Clean hands make clean offerings. Everyone knows that." #speaker:zealot #name:A young man
@@ -286,26 +286,26 @@ Someone shoves Mum. She stumbles against the steps. #move:mum-ceremony:150
 + [Leave her alone!]
     ~ suspicion += 2
     "Leave her alone!" #speaker:you
-    For a moment the whole floor goes quiet. Then the shouting is twice as loud.
+    For a moment the whole floor goes quiet. Then the shouting is twice as loud. #sound:roar
 - A young man shoves through to the front and plants himself in front of you. A zealot's stole, a carver's hands.
 "Say it. Say what you did to make the Tree spit you out." #speaker:zealot
 + [I didn't do anything.]
     "I didn't do anything." #speaker:you
     "Twice. Twice, and he did nothing." #speaker:zealot
-    The crowd laughs, and it's an ugly sound.
+    The crowd laughs, and it's an ugly sound. #sound:jeer
 + [Ask the Tree yourself.]
     ~ suspicion += 1
     "Ask the Tree yourself." #speaker:you
-    He hits you. Not hard; he doesn't need to. #shake
+    He hits you. Not hard; he doesn't need to. #shake #sound:punch
 + [Push past him]
     ~ suspicion += 1
     You try to push past. He shoves you back into the space around you, and the crowd closes it again. #shake
-- Low at first, from the back, then all round the floor: "Cursed. Cursed. Cursed." #speaker:crowd #shake
-"Enough!" #speaker:tender
+- Low at first, from the back, then all round the floor: "Cursed. Cursed. Cursed." #speaker:crowd #shake #sound:chant
+"Enough!" #speaker:tender #sound:staff
 "Until the Tree is appeased, no blessings will come down for the carver's house." #speaker:tender
 ~ food_store -= 2
 ~ blessings_withheld = true
-A murmur goes round the floor. Some of them sound pleased.
+A murmur goes round the floor. Some of them sound pleased. #sound:murmur
 "Take it. And take yourselves home." #speaker:tender
 You climb the steps and take your {reply1 == "usual": bird|fledgling} out of the basin. #hide:rejected-bird
 ~ mum_at_ceremony = false
@@ -344,7 +344,7 @@ She goes to bed without looking at it.
 
 === day3_open_bird ===
 You sit by the hearth with your {reply1 == "usual": bird|fledgling} in your hands.
-There's a seam along the belly again. Someone has been inside it.
+There's a seam along the belly again. Someone has been inside it. #sound:pop
 { reply1 == "usual": -> ignore_again }
 You work it open. Inside is a plate, blackened like the first. On purpose, you think. To keep it hidden.
 They answered. You sent a fledgling up into the light, and whoever is up there understood it, and wrote back.
@@ -448,7 +448,9 @@ You sweep the shavings into the kindling.
 
 === day3_visit ===
 ~ objective = ""
-{ evidence_left > 0: Too late. The window creaks open. }
+{ evidence_left > 0:
+    Too late. The window creaks open. #sound:creak
+}
 He drops down from the window, out of breath. #show:friend-visit
 "I said I'd come." #speaker:friend
 { evidence_plate: His eyes go straight to the kitchen, to the blackened plate lying by the board. }

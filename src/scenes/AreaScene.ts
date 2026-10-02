@@ -1375,15 +1375,18 @@ export class AreaScene extends Phaser.Scene {
           break;
         case 'recoil':
           this.recoil();
+          this.soundscape.play('gasp');
           this.soundscape.play('shuffle');
           break;
         case 'throw':
           this.throwAtPlayer();
           this.soundscape.play('whoosh');
+          this.time.delayedCall(280, () => this.soundscape.play('hit')); // and it lands
           break;
         case 'sound':
-          // A sound for a moment in the story (a knock at the door): any one-off sound by name.
-          if (args[0]) this.soundscape.play(args[0] as SoundId);
+          // A sound for a moment in the story (a knock at the door): any one-off sound by name, or
+          // several in turn (#sound:pound:crash), a moment apart.
+          args.forEach((id, i) => this.time.delayedCall(i * 600, () => this.soundscape.play(id as SoundId)));
           break;
         case 'carve': {
           const knot = args[0];

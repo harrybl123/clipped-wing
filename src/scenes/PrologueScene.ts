@@ -10,6 +10,7 @@ import * as Art from '../ui/prologueArt';
 import { MORE_ARROW, type RowSprite } from '../ui/sprites';
 import type { AreaSceneData } from './AreaScene';
 import type { ChapterSceneData } from './ChapterScene';
+import { playSound } from '../ui/soundscape';
 import { paintTree } from './MapScene';
 
 // The prologue: a close-up memory. The workbench by firelight, the half-carved bird big in the middle,
@@ -267,6 +268,7 @@ export class PrologueScene extends Phaser.Scene {
     if (time - step.lastChip > 140) {
       step.lastChip = time;
       this.chip(tip);
+      playSound(this, 'shave', 0.7);
     }
     if (step.kind === 'slip' && step.progress >= SLIP_AT) return this.slip();
     if (step.progress >= 1) {
@@ -317,6 +319,7 @@ export class PrologueScene extends Phaser.Scene {
   private rock(step: Extract<Step, { kind: 'smooth' }>, dir: 'left' | 'right'): void {
     step.last = dir;
     step.rocks += 1;
+    playSound(this, 'rub', 0.9);
     this.tweens.add({ targets: this.bird, x: Art.BIRD_CX + (dir === 'left' ? -3 : 3), duration: 90, yoyo: true, ease: 'Sine.easeOut' });
     const head = this.onBird(Art.HEAD);
     for (let i = 0; i < 3; i++) {
@@ -341,6 +344,7 @@ export class PrologueScene extends Phaser.Scene {
     const hit = Phaser.Input.Keyboard.JustDown(this.keys.e) || Phaser.Input.Keyboard.JustDown(this.keys.space) || (pointer.isDown && pointer.downTime > this.stepStarted && pointer.getDuration() < 30);
     if (!hit) return;
     if (radius < 5 || step.misses >= EYE_MISSES) {
+      playSound(this, 'tap');
       step.ring.destroy();
       this.carved.eye = true;
       this.bird.setTexture(this.birdTexture(this.facing));
@@ -389,7 +393,9 @@ export class PrologueScene extends Phaser.Scene {
       const t = i / 24;
       this.guide.fillStyle(SHADES.shadow).fillRect(Math.round(from.x + (to.x - from.x) * t * 0.6 + (i % 3) - 1), Math.round(from.y + (to.y - from.y) * t * 0.6), 1, 1);
     }
+    playSound(this, 'skid');
     this.time.delayedCall(70, () => {
+      playSound(this, 'slip', 1.2);
       this.cameras.main.flash(160, 216, 50, 58);
       this.cameras.main.shake(260, 0.012);
       this.bleed(from);

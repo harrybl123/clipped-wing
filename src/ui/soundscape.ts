@@ -15,6 +15,10 @@ import { playSyllable } from './voice';
 export const SOUND_IDS = [
   'plink', 'splash', 'crackle', 'creak', 'thump', 'crack', 'rumble', 'skitter', 'bloop', 'tick', 'tap', 'chime',
   'jump', 'land', 'knock', 'door', 'rush', 'boom', 'shimmer', 'shuffle', 'whoosh', 'rise', 'step', 'sting', 'resolve', 'heartbeat',
+  // The story's sounds (docs/sound-effects-plan.md): crowds, things hitting and breaking, your hands.
+  'murmur', 'gasp', 'roar', 'jeer', 'chant', 'whispers', 'scream', 'sob',
+  'hit', 'spit', 'smash', 'staff', 'latch', 'bolt', 'pound', 'crash', 'hammer', 'splinter', 'grate', 'boots', 'punch',
+  'chop', 'shave', 'skid', 'scratch', 'pop', 'rub', 'slip',
 ] as const;
 export type SoundId = (typeof SOUND_IDS)[number];
 
@@ -130,6 +134,40 @@ function step(a: Out, dest: AudioNode, t: number, surface: Surface, v: number): 
       noise(a, dest, t, 'bandpass', 140 * p, 2, 0.06, 0.25 * v, 0.004); // weight on the floor
       noise(a, dest, toe, 'lowpass', 1000 * p, 0.8, 0.03, 0.09 * v);
   }
+}
+
+/**
+ * One voice in a crowd: a tone shaped into a vowel (`vowel`, the formant's Hz), with breath under it,
+ * swelling and fading over `len` seconds, its pitch sliding by `glide` semitones.
+ */
+function voiceBlob(a: Out, dest: AudioNode, t: number, pitch: number, len: number, v: number, vowel: number, glide = 0, breath = 0.3): void {
+  const { ctx } = a;
+  const env = ctx.createGain();
+  env.gain.setValueAtTime(0, t);
+  env.gain.linearRampToValueAtTime(v, t + Math.min(0.04, len * 0.3));
+  env.gain.linearRampToValueAtTime(v * 0.7, t + len * 0.7);
+  env.gain.linearRampToValueAtTime(0, t + len);
+  const formant = ctx.createBiquadFilter();
+  formant.type = 'bandpass';
+  formant.frequency.value = vowel;
+  formant.Q.value = 1.6;
+  const warm = ctx.createBiquadFilter();
+  warm.type = 'lowpass';
+  warm.frequency.value = 1500;
+  env.connect(formant).connect(warm).connect(dest);
+  const osc = ctx.createOscillator();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(pitch, t);
+  osc.frequency.linearRampToValueAtTime(pitch * 2 ** (glide / 12), t + len);
+  osc.connect(env);
+  osc.start(t);
+  osc.stop(t + len + 0.05);
+  if (breath > 0) noise(a, dest, t, 'bandpass', vowel * 1.4, 1.2, len * 0.8, v * breath, Math.min(0.04, len * 0.3));
+}
+
+/** Many voices at once: `count` blobs scattered over `spread` seconds. */
+function crowdOf(t: number, count: number, spread: number, make: (at: number) => void): void {
+  for (let i = 0; i < count; i++) make(t + Math.random() * spread);
 }
 
 /** Plays a one-off sound into `dest` at time `t`. `v` scales the loudness. Built from noise where it can be: earthy, not synthy (designer). */
@@ -252,6 +290,197 @@ function oneShot(a: Out, dest: AudioNode, t: number, id: SoundId, v: number, sur
       noise(a, dest, t, 'lowpass', 450, 1, 0.07, 0.6 * v, 0.002);
       tone(a, dest, t + 0.27, 'sine', 85, 45, 0.13, 0.6 * v, 0.004);
       noise(a, dest, t + 0.27, 'lowpass', 400, 1, 0.06, 0.4 * v, 0.002);
+      break;
+    // --- Crowds ---
+    case 'murmur':
+      // A low babble, rising and settling.
+      noise(a, dest, t, 'lowpass', 600, 0.7, 1.6, 0.08 * v, 0.5);
+      crowdOf(t, 26, 2, (at) => voiceBlob(a, dest, at, rand(100, 250), rand(0.12, 0.26), rand(0.03, 0.06) * v, rand(400, 800), rand(-2, 2)));
+      break;
+    case 'gasp':
+      // Everyone drawing breath at once.
+      noise(a, dest, t, 'bandpass', 1000, 1.2, 0.35, 0.45 * v, 0.12, 2000);
+      crowdOf(t, 10, 0.12, (at) => voiceBlob(a, dest, at, rand(180, 340), rand(0.12, 0.2), 0.045 * v, rand(700, 1000), 4, 0.8));
+      break;
+    case 'roar':
+      // A swell of shouting, held, then falling away.
+      noise(a, dest, t, 'bandpass', 500, 0.7, 2.2, 0.55 * v, 0.6);
+      noise(a, dest, t, 'lowpass', 250, 1, 2.2, 0.35 * v, 0.6);
+      crowdOf(t, 40, 2, (at) => voiceBlob(a, dest, at, rand(110, 300), rand(0.25, 0.6), rand(0.05, 0.1) * v, rand(600, 900), rand(-3, 3), 0.5));
+      break;
+    case 'jeer':
+      // Ugly laughter: several people, each a run of "ha"s falling in pitch.
+      for (let p = 0; p < 6; p++) {
+        const start = t + rand(0, 0.4);
+        const pitch = rand(120, 260);
+        const n = Math.floor(rand(4, 7));
+        for (let i = 0; i < n; i++) voiceBlob(a, dest, start + i * rand(0.13, 0.17), pitch * (1 - i * 0.03), 0.09, 0.07 * v, 700, -1, 0.6);
+      }
+      break;
+    case 'chant':
+      // A two-beat word shouted together, three times: Cur-sed. Cur-sed. Cur-sed.
+      for (let r = 0; r < 3; r++) {
+        for (const [beat, vowel] of [[0, 550], [0.28, 750]] as const) {
+          const at = t + r * 0.75 + beat;
+          noise(a, dest, at, 'bandpass', 600, 1, 0.18, 0.18 * v, 0.02);
+          crowdOf(at, 12, 0.04, (when) => voiceBlob(a, dest, when, rand(110, 220), 0.2, 0.06 * v, vowel, -1, 0.4));
+        }
+      }
+      break;
+    case 'whispers':
+      // Hissing, half-heard words all round (kept low: no whine).
+      for (let i = 0; i < 18; i++) noise(a, dest, t + rand(0, 2), 'bandpass', rand(1400, 2000), 1.5, rand(0.12, 0.25), rand(0.04, 0.08) * v, 0.03);
+      break;
+    case 'scream': {
+      // One voice, a short cry: up, then breaking down.
+      const { ctx } = a;
+      const env = ctx.createGain();
+      env.gain.setValueAtTime(0, t);
+      env.gain.linearRampToValueAtTime(0.16 * v, t + 0.06);
+      env.gain.linearRampToValueAtTime(0.1 * v, t + 0.6);
+      env.gain.linearRampToValueAtTime(0, t + 0.9);
+      const formant = ctx.createBiquadFilter();
+      formant.type = 'bandpass';
+      formant.frequency.value = 1000;
+      formant.Q.value = 1.2;
+      env.connect(formant).connect(dest);
+      const osc = ctx.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(460, t);
+      osc.frequency.linearRampToValueAtTime(680, t + 0.25);
+      osc.frequency.linearRampToValueAtTime(500, t + 0.9);
+      osc.connect(env);
+      osc.start(t);
+      osc.stop(t + 0.95);
+      noise(a, dest, t, 'bandpass', 1300, 1, 0.8, 0.06 * v, 0.05);
+      break;
+    }
+    case 'sob': {
+      // A child crying, catching breath.
+      let at = t;
+      for (let i = 0; i < 4; i++) {
+        voiceBlob(a, dest, at, rand(280, 330), 0.14, 0.06 * v, 650, -3, 1);
+        noise(a, dest, at + 0.18, 'bandpass', 1100, 1, 0.12, 0.05 * v, 0.05, 1600); // the breath in
+        at += rand(0.3, 0.45);
+      }
+      break;
+    }
+    // --- Things hitting, breaking, opening ---
+    case 'hit':
+      noise(a, dest, t, 'lowpass', 500, 1, 0.12, 0.5 * v, 0.002);
+      tone(a, dest, t, 'sine', 140, 70, 0.1, 0.3 * v);
+      noise(a, dest, t, 'bandpass', 1200, 2, 0.02, 0.15 * v);
+      break;
+    case 'spit':
+      noise(a, dest, t, 'bandpass', 2000, 1.2, 0.06, 0.22 * v, 0.004);
+      noise(a, dest, t + 0.03, 'bandpass', 900, 1.5, 0.04, 0.1 * v);
+      break;
+    case 'smash':
+      // Clay jars breaking, the pieces skittering, one rolling away.
+      noise(a, dest, t, 'bandpass', 1500, 0.8, 0.25, 0.4 * v, 0.002);
+      noise(a, dest, t, 'lowpass', 400, 1, 0.2, 0.4 * v, 0.002);
+      for (let i = 0; i < 8; i++) noise(a, dest, t + rand(0.02, 0.5), 'bandpass', rand(1500, 3000), 8, 0.05, 0.1 * v);
+      for (let i = 0; i < 3; i++) noise(a, dest, t + 0.6 + i * rand(0.15, 0.25), 'bandpass', rand(700, 1000), 4, 0.03, 0.12 * v);
+      break;
+    case 'staff':
+      // A staff cracked down on wood, ringing round the floor.
+      noise(a, dest, t, 'bandpass', 1300, 2, 0.06, 0.6 * v, 0.001);
+      tone(a, dest, t, 'sine', 180, 120, 0.45, 0.25 * v);
+      noise(a, dest, t, 'lowpass', 300, 1, 0.15, 0.4 * v);
+      break;
+    case 'latch':
+      noise(a, dest, t, 'bandpass', 2000, 6, 0.02, 0.25 * v);
+      noise(a, dest, t + 0.07, 'bandpass', 1400, 6, 0.03, 0.3 * v);
+      break;
+    case 'bolt':
+      // A bolt sliding, then home with a clunk.
+      noise(a, dest, t, 'bandpass', 900, 3, 0.25, 0.2 * v, 0.05, 600);
+      tone(a, dest, t + 0.3, 'sine', 110, 60, 0.12, 0.4 * v);
+      noise(a, dest, t + 0.3, 'bandpass', 500, 2, 0.08, 0.35 * v);
+      break;
+    case 'pound': {
+      // Fists on a door, many and heavy.
+      let at = t;
+      for (let i = 0; i < 6; i++) {
+        tone(a, dest, at, 'sine', 80, 40, 0.15, 0.6 * v);
+        noise(a, dest, at, 'lowpass', 400, 1, 0.12, 0.5 * v);
+        noise(a, dest, at, 'bandpass', 250, 2, 0.1, 0.3 * v);
+        at += rand(0.18, 0.32);
+      }
+      break;
+    }
+    case 'crash':
+      // A door broken in: a boom, splintering, and pieces falling.
+      tone(a, dest, t, 'sine', 70, 30, 0.9, 0.7 * v);
+      noise(a, dest, t, 'lowpass', 300, 1, 0.8, 0.6 * v, 0.002);
+      noise(a, dest, t, 'bandpass', 1400, 1, 0.05, 0.5 * v);
+      for (let i = 0; i < 10; i++) noise(a, dest, t + rand(0, 0.6), 'bandpass', rand(600, 1600), 3, rand(0.03, 0.06), 0.15 * v);
+      for (let i = 0; i < 6; i++) noise(a, dest, t + rand(0.3, 1.2), 'lowpass', 700, 1, 0.05, 0.12 * v);
+      break;
+    case 'hammer':
+      // Boards nailed down, one blow after another.
+      for (let i = 0; i < 7; i++) {
+        const at = t + i * rand(0.4, 0.55);
+        noise(a, dest, at, 'bandpass', 900, 3, 0.04, 0.4 * v);
+        tone(a, dest, at, 'sine', 160, 90, 0.07, 0.3 * v);
+      }
+      break;
+    case 'splinter':
+      // Boards torn up: a groan, a rip, cracks.
+      creak(a, dest, t, v);
+      noise(a, dest, t + 0.3, 'bandpass', 400, 1.5, 0.3, 0.3 * v, 0.02, 1500);
+      for (let i = 0; i < 5; i++) noise(a, dest, t + 0.3 + rand(0, 0.5), 'bandpass', rand(500, 1300), 2, 0.04, 0.2 * v);
+      break;
+    case 'grate':
+      // A heavy grate scraping up, then set down.
+      noise(a, dest, t, 'bandpass', 600, 4, 0.6, 0.3 * v, 0.1, 800);
+      creak(a, dest, t, v * 0.6);
+      tone(a, dest, t + 0.75, 'sine', 120, 60, 0.15, 0.35 * v);
+      noise(a, dest, t + 0.75, 'bandpass', 450, 2, 0.1, 0.3 * v);
+      break;
+    case 'boots':
+      // Two or three people's heavy steps, out of step with each other.
+      for (let p = 0; p < 3; p++) {
+        const off = rand(0, 0.15);
+        for (let i = 0; i < 5; i++) {
+          const at = t + off + i * rand(0.26, 0.32);
+          noise(a, dest, at, 'lowpass', 500, 1, 0.08, 0.3 * v, 0.003);
+          noise(a, dest, at, 'bandpass', 120, 2, 0.07, 0.3 * v, 0.003);
+        }
+      }
+      break;
+    case 'punch':
+      tone(a, dest, t, 'sine', 110, 50, 0.12, 0.6 * v);
+      noise(a, dest, t, 'lowpass', 600, 1, 0.08, 0.5 * v, 0.002);
+      noise(a, dest, t, 'bandpass', 1500, 2, 0.02, 0.1 * v); // cloth
+      break;
+    // --- Your hands ---
+    case 'chop':
+      noise(a, dest, t, 'bandpass', rand(1100, 1500), 3, 0.03, 0.35 * v, 0.001);
+      noise(a, dest, t, 'lowpass', 400, 1, 0.06, 0.25 * v);
+      tone(a, dest, t, 'sine', 200, 120, 0.05, 0.1 * v);
+      break;
+    case 'shave':
+      noise(a, dest, t, 'bandpass', 1400, 2, 0.22, 0.12 * v, 0.04, 900);
+      break;
+    case 'skid':
+      noise(a, dest, t, 'bandpass', 1200, 2, 0.12, 0.2 * v, 0.01, 1700);
+      noise(a, dest, t, 'bandpass', 800, 4, 0.03, 0.15 * v);
+      break;
+    case 'scratch':
+      for (let i = 0; i < 3; i++) noise(a, dest, t + i * 0.05, 'bandpass', rand(1400, 1700), 4, 0.05, 0.08 * v, 0.01);
+      break;
+    case 'pop':
+      tone(a, dest, t, 'sine', 300, 150, 0.05, 0.25 * v);
+      noise(a, dest, t, 'bandpass', 900, 2, 0.03, 0.2 * v);
+      break;
+    case 'rub':
+      noise(a, dest, t, 'bandpass', 700, 1, 0.12, 0.1 * v, 0.04);
+      break;
+    case 'slip':
+      // The knife slipping into flesh: a snick, and a sharp breath in.
+      noise(a, dest, t, 'bandpass', 1800, 3, 0.05, 0.3 * v, 0.001);
+      noise(a, dest, t + 0.12, 'bandpass', 1000, 1.2, 0.25, 0.25 * v, 0.08, 2000);
       break;
     case 'rise':
       noise(a, dest, t, 'bandpass', 200, 1.5, 3.2, 0.35 * v, 1, 2500);
@@ -724,4 +953,10 @@ export class Soundscape {
     fadeOut(this.drone);
     this.emitters.forEach((e) => fadeOut(e.loop));
   }
+}
+
+/** Plays a one-off sound now, from a scene with no soundscape of its own (the close-ups). */
+export function playSound(scene: Phaser.Scene, id: SoundId, volume = 1): void {
+  const a = audioOut(scene, 'sounds');
+  if (a) oneShot(a, a.out, a.ctx.currentTime, id, volume);
 }

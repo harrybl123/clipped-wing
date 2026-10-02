@@ -40,7 +40,7 @@ As the Tender lifts the basket, a thin man pushes to the front. #move:thin-man:1
 "Somebody up there needs to buck their ideas up!" #speaker:thin_man
 The whole floor goes still.
 "Enough." #speaker:tender
-The Tender's staff comes down on the landing. The crack rings round the floor. #shake
+The Tender's staff comes down on the landing. The crack rings round the floor. #shake #sound:staff
 "The Tree sees every hand that gives, and every mouth that grumbles." #speaker:tender
 "Hunger is a test. The Tree has never failed us. It will not start now." #speaker:tender
 The thin man shrinks back into the crowd. #move:thin-man:92
@@ -180,7 +180,7 @@ Your bird. Untouched.
 The Tender stares at it. The staff is shaking in his hand.
 "...Rejected." #speaker:tender
 Nobody on the floor has ever heard the word said out loud. Not about an offering. Not ever.
-A woman screams. Someone drops their blessing, and it rolls across the floor, and nobody picks it up.
+A woman screams. Someone drops their blessing, and it rolls across the floor, and nobody picks it up. #sound:scream
 "It sent it back. The Tree sent it back!" #speaker:crowd_woman
 "Never. Not once. Not in my grandmother's time, not in hers." #speaker:old_man
 "What did you put in it? What did you do?" #speaker:crowd_man
@@ -195,14 +195,14 @@ They're pulling their children behind their legs. Backing away from you as if yo
 + [Why?]
     "Why?" #speaker:you
     ~ suspicion += 2
-    The whole floor gasps.
+    The whole floor gasps. #sound:gasp
     "It asks the Tree why. It asks the Tree why!" #speaker:old_man
 - "Silence!" #speaker:tender
 "The Tree has spoken. Take it out of the basin. It is not ours to touch." #speaker:tender
 You climb the steps and take it. Nobody else will go near it. #hide:rejected-bird
-Someone spits at your feet. #recoil
+Someone spits at your feet. #recoil #sound:spit
 "Rot-hand." #speaker:crowd_man
-"Cursed." The word goes round the floor, from mouth to mouth. Cursed. Cursed. #speaker:crowd
+"Cursed." The word goes round the floor, from mouth to mouth. Cursed. Cursed. #speaker:crowd #sound:chant
 Mum's face has gone the colour of ash.
 "Come. Now. Don't look at anyone." #speaker:mum
 ~ mum_at_ceremony = false
@@ -247,7 +247,7 @@ You shake it. Something rattles inside.
     Your hand won't let go. Not until you know what's inside.
     -> seam
 + [Open it]
-- You work the seam open with the tip of your knife. It gives far too easily, as if it was made to.
+- You work the seam open with the tip of your knife. It gives far too easily, as if it was made to. #sound:pop
 Inside, wedged in the hollow: a thin plate of metal, no bigger than your thumbnail was, black with soot from the fire.
 You almost drop it. Nobody puts things inside offerings. Nobody would dare.
 But somebody has. And it was meant for you: it came back in your bird, to your hands.

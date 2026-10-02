@@ -243,12 +243,12 @@ The crowd presses right up to the edge of the chalk. The guard has to hold his s
 "A blessing, for the weavers. A blessing, for the potters." #speaker:tender
 The tube goes dark. #flash:dark
 Your bird drops into the basin. #show:rejected-bird
-Nobody gasps this time. Nobody turns away. A low sound goes round the floor, like something growling.
+Nobody gasps this time. Nobody turns away. A low sound goes round the floor, like something growling. #sound:murmur
 "Four." #speaker:zealot
-Someone starts counting, out loud, and the floor takes it up: "One. Two. Three. Four." #speaker:crowd
+Someone starts counting, out loud, and the floor takes it up: "One. Two. Three. Four." #speaker:crowd #sound:chant
 A stone cracks against the guard's staff. It was meant for you. He doesn't even look round to see who threw it. #throw #shake
 "The carver's case will go before the elders." #speaker:tender
-A murmur goes round the floor. Nobody ever goes before the elders. Not from the roots.
+A murmur goes round the floor. Nobody ever goes before the elders. Not from the roots. #sound:murmur
 + [Hide it: lower your eyes]
     You lower your eyes, and keep them on the chalk.
 + [Joke about it: "Can I bring a friend?"]
@@ -282,7 +282,7 @@ She takes your face in her hands and looks at you for a long moment, as if she's
 -> END
 
 === day5_open_bird ===
-You sit by the hearth with the bird. The seam. The plate.
+You sit by the hearth with the bird. The seam. The plate. #sound:pop
 Your reply's gone. He's read it. He's read your words, out there, wherever he is.
 { reply3:
 - "who": You start rubbing at the soot. #decode:message4_who:day5_decoded

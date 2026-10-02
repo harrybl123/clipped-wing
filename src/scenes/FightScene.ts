@@ -4,7 +4,8 @@ import { getSession } from '../session';
 import { PROTAGONIST, VILLAGERS } from '../ui/characters';
 import { addLight, falloff, noise, rgb, SHADES } from '../ui/pixelArt';
 import { makePaintedTexture, makeSpriteTexture } from '../ui/pixelTextures';
-import { playConfirm, playMove } from '../ui/sfx';
+import { playConfirm } from '../ui/sfx';
+import { playSound } from '../ui/soundscape';
 import { StepScene } from './StepScene';
 
 // The market fight (Day 4): you and the young zealot face to face, close up. A timing scene for now
@@ -130,10 +131,12 @@ export class FightScene extends StepScene {
     story.setVariable(variable, Number(story.getVariable(variable)) + 1);
     if (won) {
       playConfirm(this);
+      playSound(this, step.kind === 'dodge' ? 'whoosh' : 'punch');
       if (step.kind === 'dodge') this.tweens.add({ targets: this.you, x: YOU_X - 14, y: FLOOR + 2, duration: 140, yoyo: true });
       else this.tweens.add({ targets: this.him, x: HIM_X + 24, duration: 160, yoyo: true, hold: 200 });
     } else {
-      playMove(this);
+      playSound(this, 'punch', 1.2);
+      this.time.delayedCall(180, () => playSound(this, 'thump', 0.6));
       this.cameras.main.shake(260, 0.012).flash(200, 244, 241, 232);
       this.tweens.add({ targets: this.you, x: YOU_X - 20, angle: -8, duration: 140, yoyo: true, hold: 200 });
       this.tweens.add({ targets: this.him, x: HIM_X - 40, duration: 140, yoyo: true, hold: 200 });

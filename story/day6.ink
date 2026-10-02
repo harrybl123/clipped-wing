@@ -109,7 +109,7 @@ And it spreads, the way it always does now.
 "My children haven't eaten in two days. Two days! Because of you!" #speaker:mother
 + [Hide it: "I'm sorry. I'll go."]
     "I'm sorry. I'll go." #speaker:you
-    "Sorry!" Someone laughs. "It's sorry!" #speaker:crowd_someone
+    "Sorry!" Someone laughs. "It's sorry!" #speaker:crowd_someone #sound:jeer
 + [Joke about it: "I'm hungry too, you know."]
     "I'm hungry too, you know." #speaker:you
     That was the wrong thing to say.
@@ -268,12 +268,12 @@ Nobody whispers tonight. They're too hungry to waste the breath.
 One basket comes down for all the weavers. One for the potters. The crowd watches every one like a dog watches a table.
 The tube goes dark. #flash:dark
 Your bird drops into the basin. #show:bitten-bird
-Someone at the front screams.
+Someone at the front screams. #sound:scream
 There's a bite out of it. A real bite: the marks of teeth, in the wood, where its tail should be. #shake
 "Teeth! It's been bitten!" #speaker:crowd_woman
 "Something ate it. Something up there ate it!" #speaker:crowd_man
 "You sent rot up to the Tree, and the Tree bit into it and spat it back at you!" #speaker:preacher
-A man faints. A child is sobbing and can't stop. People push back from you so hard the ring of chalk is lost under their feet. #recoil
+A man faints. A child is sobbing and can't stop. People push back from you so hard the ring of chalk is lost under their feet. #recoil #sound:sob
 Somebody at the back shouts for a torch. Nobody tells him to be quiet.
 + [Hide it: shut your eyes and pray]
     You shut your eyes and pray, because everyone else is, and you don't know what else to do.
@@ -308,7 +308,7 @@ She goes to bed, but you can hear she isn't sleeping.
 
 === day6_open_bird ===
 You sit by the hearth with the bitten bird. Your fingers find the teeth marks in the dark. Small. Sharp.
-The seam is still there, under the bite. Whatever bit it didn't get inside.
+The seam is still there, under the bite. Whatever bit it didn't get inside. #sound:pop
 You open it. A plate. And the seed's gone.
 { seed == "healthy":
     { reply4_ask:
@@ -345,7 +345,7 @@ You open it. A plate. And the seed's gone.
     "We need you. Hurry." #quote
     You asked him for help, and he says he needs you. Who? For what? Hurry where?
 }
-Then: boots, outside. Several. And a fist on the door. #shake #sound:knock
+Then: boots, outside. Several. And a fist on the door. #shake #sound:boots:pound
 "Open up! In the name of the elders!" #speaker:guard
 The plate's in your hand, and the bird's on the hearth, opened up for anyone to see.
 ~ day6 = "hide"
@@ -368,7 +368,7 @@ You shove the plate into the loose board under the loft ladder and kick ash over
 ~ plate_found = evidence_plate
 ~ evidence_plate = false
 ~ evidence_left = 0
-The door gives. Three guards, and the Tender's lamp behind them.
+The door gives. Three guards, and the Tender's lamp behind them. #sound:crash
 { plate_found:
     One of them goes straight to the hearth and picks up the blackened plate. He turns it to the light, frowning at the scratches.
     "What's this, then?" He drops it into a bag. "The elders will want to see that." #speaker:guard

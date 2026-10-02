@@ -57,7 +57,7 @@ describe('story sounds', () => {
     const { join } = await import('node:path');
     const { SOUND_IDS } = await import('../src/ui/soundscape');
     const dir = join(__dirname, '..', 'story');
-    const used = readdirSync(dir).filter((f) => f.endsWith('.ink')).flatMap((f) => [...readFileSync(join(dir, f), 'utf8').matchAll(/#sound:([a-z]+)/g)].map((m) => m[1]!));
+    const used = readdirSync(dir).filter((f) => f.endsWith('.ink')).flatMap((f) => [...readFileSync(join(dir, f), 'utf8').matchAll(/#sound:([a-z:]+)/g)].flatMap((m) => m[1]!.split(':')));
     expect(used.length).toBeGreaterThan(0);
     for (const id of used) expect(SOUND_IDS as readonly string[]).toContain(id);
   });

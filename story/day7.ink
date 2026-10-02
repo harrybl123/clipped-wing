@@ -11,7 +11,7 @@
 
 === day7_cell_wake ===
 Grey light under the door. You slept sitting up against it, and every part of you aches.
-The bolt goes back. A guard, with a block of wood under one arm, holding out a knife handle first, as if you might bite.
+The bolt goes back. A guard, with a block of wood under one arm, holding out a knife handle first, as if you might bite. #sound:bolt
 "Elders' orders. One bird, same as always. They want it for the rite." #speaker:guard
 He puts them on the bench, sits down on the stool by the door, and doesn't take his eyes off you.
 ~ day7 = "carve"
@@ -131,7 +131,7 @@ You climb the stairs with the bird in your hands. A hundred eyes, every step.
 "The Tree has refused this child's birds five times. And every time, our baskets have come down lighter." #speaker:preacher
 "So today we ask the Tree directly. In front of everyone." #speaker:preacher
 An elder holds up a cage, a little thing of bent wire, like the ones the upper branches keep songbirds in. #show:caged-bird
-They take your bird out of your hands and shut it inside. The latch clicks.
+They take your bird out of your hands and shut it inside. The latch clicks. #sound:latch
 {
 - carve_flaws >= 5: The preacher holds the cage up high, so the floor can see. "Look at it. Hacked about. Is that an offering, or an insult?" #speaker:preacher
 - carve_flaws < 2: The pale-robed elder peers in at it. "It's good work. That's what I don't understand." #speaker:elder_pale
@@ -143,7 +143,7 @@ They take your bird out of your hands and shut it inside. The latch clicks.
 + [Joke about it: "And if it gets stuck halfway?"]
     ~ suspicion += 1
     "And if it gets stuck halfway?" #speaker:you
-    Nobody laughs. Somebody at the back spits.
+    Nobody laughs. Somebody at the back spits. #sound:spit
 + [Voice it: "It isn't a trial. You've already decided."]
     ~ suspicion += 1
     "It isn't a trial. You've already decided." #speaker:you
@@ -158,7 +158,7 @@ Inside it, folded in the dark, is your bird. And inside that, a bird in a cage, 
 ~ day7 = "visits"
 ~ objective = "Wait"
 ~ objective_target = ""
-They take you back to the room behind the shrine, and bolt the door. #time:afternoon #goto:shrine-cell:250:236:day7_cell_afternoon
+They take you back to the room behind the shrine, and bolt the door. #time:afternoon #goto:shrine-cell:250:236:day7_cell_afternoon #sound:bolt
 -> END
 = home
 ~ day7 = "goodbyes"
@@ -173,7 +173,7 @@ The guard walks you home, and takes up his place outside the door again. #time:a
 === day7_cell_afternoon ===
 The afternoon goes by in the strip of light under the door.
 Then voices outside. The guard, arguing with someone. A woman's voice, not giving up.
-The bolt goes back. #show:mum-cell
+The bolt goes back. #show:mum-cell #sound:bolt
 ~ objective = "Talk to Mum"
 ~ objective_target = "shrine-cell:mum-cell"
 -> END
@@ -209,13 +209,13 @@ She goes. She looks back twice. #hide:mum-cell
 - else: -> day7_cell_dusk
 }
 = archivist
-Later, the bolt again. You don't expect the man behind it. #show:archivist-cell
+Later, the bolt again. You don't expect the man behind it. #show:archivist-cell #sound:bolt
 He sends the guard out with a look. The upper branches can do that. #hide:guard-cell
 ~ objective = "Talk to the archivist"
 ~ objective_target = "shrine-cell:archivist-cell"
 -> END
 = friend
-Later, someone calls the guard out into the shrine. The bolt goes across behind him. #hide:guard-cell
+Later, someone calls the guard out into the shrine. The bolt goes across behind him. #hide:guard-cell #sound:bolt
 And the moment it does: a scrape, under the floor. Someone's down in the back routes, under the grate. #show:friend-cell
 ~ objective = "Go to the grate"
 ~ objective_target = "shrine-cell:friend-cell"
@@ -239,7 +239,7 @@ Something moves in the tunnel behind him. He's gone, as quietly as he came. #hid
 -> day7_next_visitor
 
 === day7_cell_dusk ===
-The light under the door turns from grey to amber. The bolt; the guard, back on his stool. #show:guard-cell
+The light under the door turns from grey to amber. The bolt; the guard, back on his stool. #show:guard-cell #sound:bolt
 Outside, feet. A lot of them, all going the same way: down, to the offering floor.
 ~ day7 = "evening"
 ~ objective = "Go with the guard"
@@ -357,11 +357,11 @@ One basket. Half full. Nobody even looks at it.
 Then the tube goes dark. #flash:dark
 And the cage drops into the basin, and your bird is still inside it. #show:caged-bird #shake
 For a moment there's no sound at all.
-Then all of it, at once. #recoil
+Then all of it, at once. #recoil #sound:roar
 "It came back! It came back!" #speaker:crowd_woman
 "The Tree's answered! You heard the elders! Now we know what it is!" #speaker:crowd_man
 "The Tree has spoken. This child is the rot in the root." #speaker:preacher
-"Rot-hand! Rot-hand! Rot-hand!" #speaker:crowd #throw
+"Rot-hand! Rot-hand! Rot-hand!" #speaker:crowd #throw #sound:chant
 + [Hide it: cover your head]
     You cover your head with your arms, and make yourself small.
 + [Joke about it: "Best of three?"]
@@ -380,7 +380,7 @@ The Tender reaches into the basin, opens the cage, and holds out your bird, the 
 { in_custody: -> custody | -> home }
 = custody
 ~ objective_target = "shrine-cell:bench"
-They drag you back up to the shrine and bolt the door, and the noise follows you all the way. #time:night #goto:shrine-cell:250:236:day7_cell_night
+They drag you back up to the shrine and bolt the door, and the noise follows you all the way. #time:night #goto:shrine-cell:250:236:day7_cell_night #sound:bolt
 -> END
 = home
 ~ objective_target = "home:hearth"
@@ -391,7 +391,7 @@ The guard gets you home with his staff held out in front of him. At the door he 
 
 === day7_cell_night ===
 No guard on the stool tonight. He's outside, with his back to the door, and from the sound of him he's afraid.
-You can hear the roots, not far off. Roaring.
+You can hear the roots, not far off. Roaring. #sound:roar
 -> END
 
 === day7_home_night ===
@@ -406,7 +406,7 @@ Mum is at the shutters, watching the torches gather on the floor.
 
 === day7_open_bird ===
 Your hands are shaking so much you nearly drop it.
-The seam, under the wing. You work the plug out with the tip of the knife.
+The seam, under the wing. You work the plug out with the tip of the knife. #sound:pop
 Your sliver of scratches is gone. In its place, a plate, black with soot, like all the others.
 You start rubbing. #decode:message6:day7_decoded
 -> END
@@ -423,13 +423,13 @@ I will find you.
 ~ objective_target = ""
 { in_custody: -> custody | -> home }
 = custody
-Outside, the roar comes closer, and closer, and stops. Right outside. #shake
+Outside, the roar comes closer, and closer, and stops. Right outside. #shake #sound:roar
 "Burn it out! Burn out the rot!" #speaker:crowd
-Fists on the shrine's front doors. Then something heavier. #shake
+Fists on the shrine's front doors. Then something heavier. #shake #sound:pound
 Under you, a scrape. The grate in the floor lifts an inch, falls back, and lifts again. #show:girl-cell
 The girl's face, filthy, grinning up at you out of the dark.
 "Told you I'd owe you." #speaker:girl
-She heaves the grate aside.
+She heaves the grate aside. #sound:grate
 "Come on. Half the roots is at the front doors, and the other half's on its way." #speaker:girl
 "They went past your house on the way up. I didn't see your mum. I don't know. I'm sorry." #speaker:girl
 Fly if you can. Fall if you must.
@@ -511,7 +511,7 @@ She drops back into the dark, and you go down after her. #hide:girl-cell #goto:t
     "Up. Right." He's pale, but he nods. "Through the routes and up the shrine's grate. Then the trunk. I'll go round by the stairs and slow them down." #speaker:friend
     He's gone back into the gap before you can thank him. #hide:friend-home
 }
-Behind you, the front door crashes in. You hear Mum's voice, raised, and then you're in the gap, and you can't hear her any more. #shake #goto:back-routes:120:232:day7_routes_escape
+Behind you, the front door crashes in. You hear Mum's voice, raised, and then you're in the gap, and you can't hear her any more. #shake #goto:back-routes:120:232:day7_routes_escape #sound:crash
 -> END
 
 = down
@@ -540,7 +540,7 @@ You go to the door, and knock, and wait for them to open it.
 
 === day7_given_up ===
 { in_custody:
-    The bolt goes back. It isn't the guard. It's all of them.
+    The bolt goes back. It isn't the guard. It's all of them. #sound:bolt
 - else:
     You lift the bar off the door. Mum grabs for your sleeve, and misses.
     "No. No, no, no..." #speaker:mum
@@ -549,9 +549,9 @@ You go to the door, and knock, and wait for them to open it.
 For a moment, nobody moves. They came to drag you out, and you've walked out on your own.
 "I'm the one you want." #speaker:you
 Then they have you. Hands everywhere: on your arms, your collar, your hair. #shake
-"Down! Throw it down! Down where the rot belongs!" #speaker:crowd
+"Down! Throw it down! Down where the rot belongs!" #speaker:crowd #sound:roar
 They carry you down. Through the roots, past doors you know, down the long stairs into the lower roots, with faces at every window.
-To a boarded-up hole where a house once fell into the rot. They tear the boards up. Green light, and the smell.
+To a boarded-up hole where a house once fell into the rot. They tear the boards up. Green light, and the smell. #sound:splinter
 { girl_fate == "saved": Somewhere behind the crowd, someone's shouting your name. The girl. She can't get through. }
 They throw you in. #flash:dark #goto:the-rot:100:232:day7_cast_down
 -> END
@@ -592,7 +592,7 @@ The shrine's grate is at the top, at the far end. Nobody will be in the shrine t
 // The Ascension gate: the gate guards have gone down to join the mob.
 === day7_gate ===
 The gate. Up close it hums, a sound you feel in your teeth more than hear.
-Behind you, the torches spill into the hall and stop at the foot of the steps. #shake
+Behind you, the torches spill into the hall and stop at the foot of the steps. #shake #sound:roar
 Nobody comes up. Nobody has ever set foot on the dais but the masters. Not even now.
 "Come down! Come down from there!" #speaker:crowd
 "Let it go. Let it go up, and let the Tree have it, and be done." #speaker:preacher
@@ -632,7 +632,7 @@ You don't have wings. You never did. You go anyway. #rise #flash:white #ending:f
 
 === day7_cast_down ===
 You land in something soft and wet that gives under you like rotten fruit.
-Above you, the square of torchlight, and faces looking down. Then the boards go back over the hole, and the hammering starts, and then there's only the green.
+Above you, the square of torchlight, and faces looking down. Then the boards go back over the hole, and the hammering starts, and then there's only the green. #sound:hammer
 ~ objective = "Find a way through"
 { girl_in_rot:
     ~ objective_target = "the-rot:girl-fallen;the-rot:crack"

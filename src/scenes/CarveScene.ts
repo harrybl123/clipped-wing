@@ -7,7 +7,8 @@ import { SHADES } from '../ui/pixelArt';
 import { makePaintedTexture, makeSpriteTexture, PIXEL } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
 import * as Art from '../ui/prologueArt';
-import { playConfirm, playMove } from '../ui/sfx';
+import { playConfirm } from '../ui/sfx';
+import { playSound } from '../ui/soundscape';
 import { StepScene, type StepSceneData } from './StepScene';
 
 // The carving close-up (Day 3 onwards): the bench by firelight, like the prologue, but older, and with
@@ -142,6 +143,7 @@ export class CarveScene extends StepScene {
         if (green) {
           step.inGreen += delta;
           if (Math.random() < delta / 120) this.chip();
+          if (Math.random() < delta / 260) playSound(this, 'shave', 0.8);
         }
         if (step.needle > 0.9 && !this.tooHard) {
           this.tooHard = true;
@@ -159,6 +161,7 @@ export class CarveScene extends StepScene {
         if (green) {
           step.inGreen += delta;
           if (Math.random() < delta / 160) this.chip();
+          if (Math.random() < delta / 300) playSound(this, 'shave', 0.6);
         }
         if (step.needle > HOLLOW_GREEN[1] + 0.08) this.setHint('Careful! The wall is thin.');
         else if (green) this.setHint(HINTS.hollow!);
@@ -197,7 +200,7 @@ export class CarveScene extends StepScene {
       case 'scratch': {
         if (step.marker >= step.zone[0] && step.marker <= step.zone[1]) {
           step.strikes += 1;
-          playMove(this);
+          playSound(this, step.kind === 'scratch' ? 'scratch' : 'chop');
           for (let i = 0; i < 4; i++) this.chip();
           this.cameras.main.shake(80, 0.003);
           if (step.kind === 'scratch') this.showReply(step.strikes / STRIKES_NEEDED);
@@ -206,16 +209,19 @@ export class CarveScene extends StepScene {
           this.setHint(`${HINTS[step.kind]} (${step.strikes} of ${STRIKES_NEEDED})`);
         } else {
           this.miss(step.kind === 'scratch' ? 'The point skids across the metal.' : 'The knife skids off the grain.');
+          playSound(this, 'skid');
           if (step.kind === 'rough') this.scar(true);
         }
         break;
       }
       case 'wing': {
         if (Math.abs(step.blade - step.mark) < 0.06) {
+          playSound(this, 'chop', 1.2);
           for (let i = 0; i < 6; i++) this.chip();
           this.completeStep();
         } else {
           this.miss('Not there. Wait for the mark.');
+          playSound(this, 'skid');
           const wing = wingPosition(this.birdOptions());
           // Where the blade was, kept on the wing.
           const along = wing.from - 10 + (wing.x + 40 - wing.from) * Phaser.Math.Clamp(step.blade, 0, 1);
@@ -225,10 +231,14 @@ export class CarveScene extends StepScene {
       }
       case 'eye':
       case 'seal': {
-        if (this.ringRadius(step.phase) < 3.6 || step.misses >= RING_MISSES) this.completeStep();
+        if (this.ringRadius(step.phase) < 3.6 || step.misses >= RING_MISSES) {
+          playSound(this, step.kind === 'seal' ? 'pop' : 'tap');
+          this.completeStep();
+        }
         else {
           step.misses += 1;
           this.miss(step.kind === 'seal' ? "It won't go in straight. Again." : 'Your hand trembles. Again.');
+          playSound(this, 'skid', 0.6);
           const at = step.kind === 'eye' ? eyePosition(this.birdOptions()) : bellyPosition(this.birdOptions());
           this.scar(false, { x: at.x + Phaser.Math.Between(-6, 6), y: at.y + Phaser.Math.Between(-5, 5) });
         }
@@ -281,7 +291,7 @@ export class CarveScene extends StepScene {
     step.needle = 0.1;
     step.velocity = 0;
     this.cameras.main.shake(260, 0.01);
-    playMove(this);
+    playSound(this, 'crack');
     const at = this.onBird(bellyPosition(this.birdOptions()).x, bellyPosition(this.birdOptions()).y);
     const crack = this.add.graphics().setDepth(6).lineStyle(1, SHADES.white).lineBetween(at.x - 4, at.y - 14, at.x + 2, at.y - 6).lineBetween(at.x + 2, at.y - 6, at.x - 2, at.y + 2);
     this.tweens.add({ targets: crack, alpha: 0, duration: 1200, delay: 400, onComplete: () => crack.destroy() });
