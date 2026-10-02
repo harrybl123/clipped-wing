@@ -57,7 +57,7 @@ export class PreloadScene extends Phaser.Scene {
       this.devStartDay(day, params.get('reply') === 'usual' ? 'usual' : 'fledgling', params.get('at'), params.get('told') === '1' || params.get('seed') === 'healthy', params.get('plate') === '1');
       // &late=1: you answered message 1 a day late (Day 4 sends the fledgling; message 3 has message 2 folded in).
       if (day === 4 && params.get('late') === '1') getSession(this).story.setVariable('answered_late', true);
-      if (day === 7) this.devDay7(params.get('girl') === 'blamed', params.get('lied') === '1', params.get('at'));
+      if (day === 7) this.devDay7(params.get('girl') === 'blamed', params.get('lied') === '1', params.get('at'), params.get('told') === '1');
     } else this.scene.start('Title');
   }
 
@@ -134,12 +134,12 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   /** Dev only: Day 7, in custody (you saved the girl) or at home under guard (you blamed her), optionally jumping ahead. */
-  private devDay7(blamed: boolean, lied: boolean, at: string | null): void {
+  private devDay7(blamed: boolean, lied: boolean, at: string | null, told = false): void {
     const session = getSession(this);
     const { story, calendar } = session;
     const set = (vars: Record<string, string | number | boolean>) => Object.entries(vars).forEach(([k, v]) => story.setVariable(k, v));
     calendar.jumpTo(7);
-    set({ day6: 'done', reply4: 'blame', has_disguise: true, suspicion: 7, food_store: 1, confided: !lied, friend_trust: lied ? 0 : 2 });
+    set({ day6: 'done', reply4: 'blame', has_disguise: true, suspicion: 7, food_store: 1, confided: !lied, friend_trust: lied ? 0 : 2, told_archivist: told, archivist_trust: told ? 3 : 0, archivist_goodbye: told && blamed });
     for (const [k, v] of Object.entries({ seed: 'seed', lives: 'lives', stayalive: 'stay alive', not: 'not', rot: 'rot', need: 'need', hurry: 'hurry' })) story.setVariable(`glossary_${k}`, v);
     if (blamed) set({ girl_fate: 'blamed', girl_trust: -2, girl_in_rot: true, house_guarded: true, day7: 'carve', objective: 'Carve your offering', objective_target: 'home:bench' });
     else set({ girl_fate: 'saved', girl_trust: 4, in_custody: true, day7: 'wake' });
