@@ -343,11 +343,15 @@ You already know what it says before you've rubbed it clean. #decode:message1:da
 
 === day3_decoded ===
 "Clipped wing, I rest beyond the bark. Would you like to fly?" #speaker:you
+The words go through you like cold water.
 Beyond the bark. Outside the tree. Nobody lives outside the tree.
 Do they? Is there even an outside? You've never thought about it, not properly. Nobody does. The tree is the world.
 You look at the wall, at the dark wood your whole life has happened inside, and for the first time you wonder how thick it is.
 "Would you like to fly?" It's a question. They're asking you something. They want to know what you think. #quote
-You turn the hollow fledgling over in your hands. Whoever did this wants you to see how it's done.
+Fly. The master flew, two nights ago, into the light. Only the chosen fly. Is that what this is? The Tree, asking? Or something pretending to be it?
+And you answered them once already, and the Tree sent your bird back again. Twice now, in front of everyone. What happens the third time?
+You should burn it. You should burn all of it and carve the bird Mum taught you, and never think about this again.
+You don't. You turn the hollow fledgling over in your hands. Whoever did this wants you to see how it's done.
 To carve a bird empty, and put something inside it.
 To answer.
 -> day3_knock

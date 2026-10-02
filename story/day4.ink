@@ -462,7 +462,8 @@ A name like a bird that can't fly. Like yours. Is that why he chose you?
 And there are many of them. Out there, beyond the bark, where nobody lives.
 How many? What do they eat? What do they worship, out there, with no tube and no Tree?
 Do they know about you? Has he told them about the clipped wing in the roots?
-You should be terrified. You are, a little. But mostly you want to know more.
+You should be terrified, and you are: of being found out, of what the elders would do to you, and to Mum. Of what you're turning into.
+But you can't stop now. You need to know.
 Then you remember the other thing, and take it out. #inset:feather
 A feather. Not carved: real. Light as ash, and red, red like nothing else in the tree.
 You've carved ten thousand feathers. You've never touched one.

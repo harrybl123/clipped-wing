@@ -255,10 +255,14 @@ Under the soot, something is scratched into it. #decode:message1:day2_decoded
 
 === day2_decoded ===
 "I see you, clipped wing. Send me new life that can't fly." #speaker:you
-You read it again. And again.
+You read it again. And again. Your hands are shaking so badly the plate rattles against the hearthstone.
 "I see you." Who sees you? From where? The Tree doesn't speak in pictures. Does it? #quote
 Clipped wing. They know about your hand. They know about your birds. Someone has been watching you, closely, for a long time.
-It should frighten you. It does. But underneath the fear there's something else, small and bright, that you haven't felt in years.
+Why you? Of everyone in the tree, why a carver from the edge of the roots, with a ruined hand?
+And your bird came back. The first time in living memory. Is this why? Did the Tree send it back because of what was inside it?
+If anyone found this. Mum. The Tender. You think of the floor tonight, the way they all stepped back from you, and your stomach turns over.
+"New life that can't fly." What does that even mean? Life that can't fly. A bird that can't fly? #quote
+It frightens you. It frightens you more than the crowd did. But underneath the fear there's something else, small and bright, that you haven't felt in years.
 Somebody looked at your work and saw you.
 You drop the empty bird into the fire. It catches at once.
 The house is silent. Tomorrow, something of yours goes up the tube. #dim:on

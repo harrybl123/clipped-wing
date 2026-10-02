@@ -215,8 +215,17 @@ const NEW: DecodeSymbol = {
   picture: scratches(
     24,
     18,
-    [ring(12, 12, 7, 5, 20).filter(([, y]) => y >= 11), [[5, 11], [7, 9], [9, 11], [11, 8], [13, 11], [15, 9], [17, 11], [19, 11]], [[6, 6], [8, 3], [12, 1], [16, 2], [18, 5]], [[6, 6], [8, 4], [10, 6], [12, 4], [14, 6], [16, 4], [18, 5]], [[14, 9], [16, 9]], [[2, 4], [3, 4]], [[21, 3], [22, 3]]],
-    [{ disc: [12, 9, 2] }],
+    // A chick hatching (designer: the old picture didn't read): the cracked bottom half of an egg, a round
+    // head peeping out of it with an eye and a beak, the top of the shell knocked off to one side, and two
+    // little sparkles: just made.
+    [
+      ring(12, 12, 7, 5, 24).slice(0, 13), // the egg's bottom half
+      [[5, 12], [7, 10], [9, 12], [11, 10], [13, 12], [15, 10], [17, 12], [19, 12]], // its broken edge
+      ring(12, 7, 3, 3, 16).filter(([, y]) => y <= 10), // the head, rising out of the shell
+      [[1, 6], [2, 3], [5, 1]], [[1, 6], [3, 5], [5, 6]], // the top of the shell, knocked off to the left
+      [[20, 1], [20, 3]], [[19, 2], [21, 2]], [[22, 6], [23, 6]], // sparkles
+    ],
+    [{ disc: [13, 6, 0.6] }, { poly: [[15, 6], [18, 7], [15, 8]] }],
   ),
   accepted: ['new', 'fresh', 'born', 'newborn', 'hatch', 'hatched', 'young', 'begin', 'beginning', 'start', 'birth', 'brand new'],
   near: [
