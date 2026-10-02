@@ -5,6 +5,7 @@ import { AREAS } from '../data/areas';
 import { getSession } from '../session';
 import { SHADES } from '../ui/pixelArt';
 import { PIXEL } from '../ui/pixelTextures';
+import { savedMuted } from '../ui/soundSetting';
 
 /** Loads assets (the title music; everything else is generated) with a progress bar, then shows the title. */
 export class PreloadScene extends Phaser.Scene {
@@ -36,7 +37,10 @@ export class PreloadScene extends Phaser.Scene {
     // &at=night (message 6 by the bench or hearth), &at=chase (up through the shrine, the mob behind) or &at=fall (thrown into the rot);
     // &told=1 if you told the archivist, &lied=1 if you lied to your friend.
     const params = import.meta.env.DEV ? new URLSearchParams(window.location.search) : null;
-    // Dev: &mute=1 starts with all sound off.
+    // Sound as the player left it (the speaker in the corner), always there from here on.
+    this.sound.setMute(savedMuted());
+    this.scene.launch('SoundButton');
+    // Dev: &mute=1 starts with all sound off (this visit only).
     if (params?.get('mute') === '1') this.sound.setMute(true);
     const areaId = params?.get('area');
     if (areaId && areaId in AREAS) this.scene.start('Area', { areaId });

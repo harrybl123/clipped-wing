@@ -16,6 +16,7 @@ import { DialogueBox } from '../ui/DialogueBox';
 import { paintArea } from '../ui/paintArea';
 import { VILLAGERS, WATCHMAN } from '../ui/characters';
 import { SHADES } from '../ui/pixelArt';
+import { setMuted } from '../ui/soundSetting';
 import { makePaintedTexture, makeSpriteTexture, PIXEL } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
 import { ObjectiveMarker } from '../ui/ObjectiveMarker';
@@ -472,7 +473,7 @@ export class AreaScene extends Phaser.Scene {
         if (!this.dialogue.isOpen && !this.leaving) this.openMap();
       });
       // N mutes and unmutes everything.
-      this.input.keyboard?.on('keydown-N', () => this.sound.setMute(!this.sound.mute));
+      this.input.keyboard?.on('keydown-N', () => setMuted(this.game, !this.sound.mute));
     }
   }
 

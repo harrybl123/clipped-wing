@@ -304,13 +304,13 @@ The archivist looks up from his desk, and goes white, and then comes round it qu
 // --- Shared: what the archivist found, and what your friend says (custody or home) ---
 
 === day7_archivist_talk ===
-"I went through the Ascension records last night. Every master who's ever gone up the tube, back to the very first. Name, mark, the day they went up." #speaker:archivist
+"I went through the Ascension records last night. Every master who's ever gone up the tube, back to the very first. Name, and the day they went up." #speaker:archivist
 "And nothing after. Not one word. Not ever. As if they stopped being anything the moment the gate shut." #speaker:archivist
-"The last one's mark. You'll have seen it." #speaker:archivist #inset:spiral
-The spiral. Cut into the master's last carving, the night of the Ascension.
-+ [Hide it: "It's just a mark."]
-    "It's just a mark. Plenty of carvers use a spiral." #speaker:you
-    "Do they? Name one." #speaker:archivist
+"And the same mark beside every one. You'll have seen it." #speaker:archivist #inset:spiral
+The spiral. Every master cuts it into their last carving, the one they carry up.
++ [Hide it: "It's just the masters' mark."]
+    "It's just the masters' mark. Everyone knows that." #speaker:you
+    "Everyone knows it. Nobody asks why it's the same one, every time. As if, once they're gone, nobody's meant to tell one from another." #speaker:archivist
 + [Joke about it: "So they're all up there having a feast."]
     "So they're all up there having a feast, and nobody thought to write home." #speaker:you
     He almost smiles.
@@ -414,6 +414,7 @@ You start rubbing. #decode:message6:day7_decoded
 === day7_decoded ===
 "Clipped wing, make yourself a master. Fly if you can, fall if you must. I will find you." #speaker:you
 A master. The spiral on the master's last carving, the night of the Ascension, the whole tree singing them up the tube. Gone, and never a word after.
+Every master's last piece carries it. The same mark, every one. Cut it into yours, and up there, who could tell you from one of them?
 Fly if you can. Fall if you must.
 He isn't telling you what to do. He's telling you there are two ways out, and he'll be waiting at the end of either one.
 I will find you.

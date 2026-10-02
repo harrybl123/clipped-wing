@@ -25,8 +25,7 @@
     "Tired. I dreamt about the bench again." #speaker:you
     "Oh, love. Not today. Today's a good day." #speaker:mum
 - "A master goes up tonight. The whole tree will be watching." #speaker:mum
-"Imagine being chosen. The Tree taking you up, right into the Canopy's light." #speaker:mum
-"The rest of us just go back to the wood when our time comes. But a master never dies." #speaker:mum
+"Imagine being chosen. Taken up into the Canopy's light, while the rest of us go back to the wood." #speaker:mum
 "Do you think they're happy up there?" #speaker:you
 "Happier than anyone's ever been. Now fetch your bird. We don't want to be last to the rite." #speaker:mum
 ~ day1 = "bench"
@@ -80,7 +79,7 @@ The day is yours until the Ascension. #time:afternoon
 "There you are! Come and look. Quick, before my father finds us both jobs." #speaker:friend
 He lifts a cloth off the windowsill. Underneath, a little carved figure with its arms raised, climbing towards a light. Smoothed until it shines.
 "I've been working on it every night. A bit better every time." #speaker:friend
-"Tonight's master. Imagine it. Everything you've ever made, and the Tree says: yes, you. Come up. And you never have to die." #speaker:friend
+"Tonight's master. Imagine it. Everything you've ever made, and the Tree says: yes, you. Come up." #speaker:friend
 "One day that'll be me. And when it is, this is going up with me." #speaker:friend
 + [You'll be chosen. Anyone can see it.]
     "You'll be chosen. Anyone can see it." #speaker:you
@@ -117,11 +116,10 @@ The whole tree is climbing to the gate, carrying lamps. Go up to the Ascension?
 The gate is packed. Lamps on every balcony, braziers burning on the dais.
 "The Tree gives to those who give. And tonight, it asks for its finest." #speaker:preacher
 "A life of perfect work. Hands that never slipped. The Tree has seen, and it calls." #speaker:preacher
-"For the rest of us, the wood. For them, the Canopy, for ever." #speaker:preacher
 The master comes through the crowd: old, calm, carrying one last carving. #show:master
 They climb the steps to the dais. #move:master:216:204
 As they pass, you see it. Cut into the carving: a spiral. #inset:spiral
-"A spiral. Their mark. Every piece they ever made must carry it." #speaker:you
+The spiral. Every master cuts it into their last piece, the one they carry up. The same mark, for every one of them.
 The master stands before the gate. #move:master:280:204
 They step into the light. #hide:master #flash:white
 The tube blazes. The crowd falls silent, then roars.
@@ -148,7 +146,7 @@ Later, the crowds drift home. Your friend will be waiting on the climb. #time:ni
 === day1_lookout ===
 "You made it! Look. There." #speaker:friend
 Lights rise up the tube, one after another, climbing towards the Canopy. #lights:416:10:430
-"Every one of those is a blessing for the master. They're up there now. They'll never grow old." #speaker:friend
+"Every one of those is a blessing for the master. They're up there now." #speaker:friend
 + [It's beautiful.]
     "It's beautiful." #speaker:you
     "Isn't it?" #speaker:friend

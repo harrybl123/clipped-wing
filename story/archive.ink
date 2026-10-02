@@ -22,11 +22,11 @@ Drawer after drawer of records. The writing means nothing to you, but here and t
 -> END
 
 === archive_records ===
-A wall of plaques, one for each of the Ascended. You can't read the names, but every plaque has a maker's mark. So many of them. All chosen. All gone up.
+A wall of plaques, one for each of the Ascended. You can't read the names. But every one of them carries the same mark: a spiral. So many of them. All chosen. All gone up.
 -> END
 
 === archive_newest_record ===
-The newest plaque, its wood still pale from the chisel. A spiral: the master you watched go up on Ascension Day.
+The newest plaque, its wood still pale from the chisel. The same spiral as all the rest: the master you watched go up on Ascension Day.
 -> END
 
 // Day 5 night: he catches you at the drawers (the theft that fails).

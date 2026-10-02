@@ -952,15 +952,15 @@ const MESSAGES_5: Message[] = (Object.keys(SEED_LINES) as (keyof typeof SEED_LIN
 
 // --- Message 6's new pictures ---
 
-/** "Make yourself a master": the master's spiral, cut into their last carving the night of the Ascension (design doc). */
+/** "A master": the spiral, the mark every master cuts into their last carving, the one they carry up (designer: the same for all of them, so up there nobody can tell one from another). With "carve" before it: make yourself a master. */
 const MASTER: DecodeSymbol = {
   id: 'master',
   picture: scratches(16, 16, [[[1, 1], [14, 1], [14, 14], [3, 14], [3, 4], [11, 4], [11, 11], [6, 11], [6, 7], [8, 7], [8, 9]], [[1, 2], [13, 2], [13, 13]]]),
   accepted: ['master', 'make yourself a master', 'a master', 'masters', 'ascend', 'ascended', 'ascension', 'chosen', 'the chosen', 'martyr', 'saint', 'best', 'great carver', 'mastery'],
   near: [
-    { words: ['spiral', 'swirl', 'coil', 'maze', 'snail', 'whirl', 'mark', 'sign', 'carver', 'carving'], reply: "Warm. The spiral on a carving, the night of the Ascension. Whose mark was it?" },
+    { words: ['spiral', 'swirl', 'coil', 'maze', 'snail', 'whirl', 'mark', 'sign', 'carver', 'carving'], reply: "Warm. The spiral on a carving, the night of the Ascension. Whose mark is it? Every one of them carries it." },
   ],
-  nudge: "The mark on the last carving of the one the whole tree sang up the tube, the night of the Ascension.",
+  nudge: "The mark every master cuts into their last carving, the one they carry up the tube. The same for every one of them.",
   hint: 'Once a lifetime, the best carver in the tree goes up the tube. What do they call them?',
 };
 
@@ -1043,10 +1043,10 @@ export const MESSAGE_6: Message = {
   id: 'message6',
   line: 'Clipped wing, make yourself a master. Fly if you can, fall if you must. I will find you.',
   rows: [
-    ['clipped', 'wing', 'master', 'fly', 'if', 'can'],
+    ['clipped', 'wing', 'carve', 'master', 'fly', 'if', 'can'],
     ['fall', 'if', 'must', 'self', 'find', 'you'],
   ],
-  symbols: [CLIPPED, WING, MASTER, FLY, IF, CAN, FALL, MUST, SELF, FIND, YOU],
+  symbols: [CLIPPED, WING, CARVE, MASTER, FLY, IF, CAN, FALL, MUST, SELF, FIND, YOU],
 };
 
 export const MESSAGES: Record<string, Message> = Object.fromEntries(
