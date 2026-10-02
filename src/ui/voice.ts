@@ -1,6 +1,6 @@
 import type Phaser from 'phaser';
 import type { Syllable, Voice } from '../systems/voices';
-import { audioOut, noiseBuffer } from './audioMix';
+import { audioOut, type Bus, noiseBuffer } from './audioMix';
 
 // Plays one syllable of a voice (src/systems/voices.ts) with Web Audio: a tone shaped into a vowel by
 // two band-pass filters (the vowel's formants), a breath of noise under it, a little vibrato, and a short
@@ -17,8 +17,8 @@ const FORMANTS: Record<Syllable['vowel'], [number, number]> = {
 
 const LOUDNESS = 0.22;
 
-export function playSyllable(scene: Phaser.Scene, voice: Voice, syllable: Syllable, options: { muffled?: boolean; gain?: number; delay?: number } = {}): void {
-  const a = audioOut(scene, 'voices');
+export function playSyllable(scene: Phaser.Scene, voice: Voice, syllable: Syllable, options: { muffled?: boolean; gain?: number; delay?: number; bus?: Bus; pan?: number } = {}): void {
+  const a = audioOut(scene, options.bus ?? 'voices');
   if (!a) return;
   const { ctx } = a;
   const t = ctx.currentTime + (options.delay ?? 0);
@@ -41,7 +41,11 @@ export function playSyllable(scene: Phaser.Scene, voice: Voice, syllable: Syllab
     env.connect(muffle);
     tail = muffle;
   }
-  tail.connect(a.out);
+  if (options.pan) {
+    const panner = ctx.createStereoPanner();
+    panner.pan.value = options.pan;
+    tail.connect(panner).connect(a.out);
+  } else tail.connect(a.out);
 
   // The tone, sliding by `glide`, with a wobble.
   const osc = ctx.createOscillator();

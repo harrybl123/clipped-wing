@@ -82,5 +82,6 @@ export const girlsHome: AreaDefinition = {
     { id: 'curtain', x: 344, y: FLOOR, reach: 8, label: 'Look', knot: 'girls_home_curtain' },
   ],
 
+  ambience: [{ sound: 'room', volume: 0.45 }, { sound: 'fizz', volume: 0.4 }, { sound: 'drips', volume: 0.3 }],
   exits: [],
 };

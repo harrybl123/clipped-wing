@@ -146,6 +146,7 @@ export const home: AreaDefinition = {
     { id: 'hiding-spot', x: 266, y: LOFT, reach: 9, label: 'Search', knot: 'home_hiding_spot' },
   ],
 
+  ambience: [{ sound: 'room', volume: 0.5 }, { sound: 'creaks', volume: 0.5 }, { sound: 'drips', volume: 0.25 }, { sound: 'bubbles', volume: 0.12 }],
   exits: [
     { id: 'door', x: 28, y: FLOOR, reach: 14, to: 'offering-floor' },
     { id: 'rot-gap', x: 451, y: FLOOR, reach: 8, to: 'back-routes' },

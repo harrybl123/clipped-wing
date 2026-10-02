@@ -131,6 +131,7 @@ export const archive: AreaDefinition = {
     { id: 'newest-record', x: 520, y: GALLERY, reach: 10, label: 'Look', knot: 'archive_newest_record' },
   ],
 
+  ambience: [{ sound: 'room', volume: 0.25 }, { sound: 'engine', volume: 0.4 }, { sound: 'creaks', volume: 0.15 }],
   exits: [
     { id: 'down-to-trunk-climb', x: 38, y: FLOOR, reach: 10, to: 'trunk-climb' },
     { id: 'to-ascension-gate', x: 615, y: GALLERY, reach: 12, to: 'ascension-gate' },

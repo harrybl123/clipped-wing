@@ -4,7 +4,23 @@ Designer, 2026-10-02: "the next two big things that would make the game come ali
 sounds (need a plan for how many types we need), and environment sounds. Once we have these we can think
 about music." **(designer)** = decided; **(suggestion)** = Claude's proposal, for the designer to mark up.
 
-## Where we are
+**Built 2026-10-02** (designer: "this seems like a really solid plan", so the suggestions stand: made in
+code, 15 voices, narration silent, lines type out).
+- **Voices:** `src/systems/voices.ts` (presets and timing, tested), `src/ui/voice.ts` (one syllable),
+  `DialogueBox` types lines out (a press shows the whole line; choices appear once it's typed).
+  `SPEAKERS` entries carry their `voice`. `#quote` lines are silent; the voice behind the curtain and
+  your friend through the shutter are muffled.
+- **The mix:** `src/ui/audioMix.ts`, three buses (music, sounds, voices), ready for a settings screen.
+- **The tree:** `src/ui/soundscape.ts`. Areas have `ambience` (layers with `when`/`showIf`/`hideIf`)
+  and a `surface` for footsteps; features make their own sounds (the tube, fires, drips, swinging lamps,
+  the lift, beetles, the watch, the mob, rot pools; boards cracking, rubble, collapses); you have
+  footsteps, a jump and a landing; story tags sound (`#flash` cyan rush / white shimmer / dark boom,
+  `#shake`, `#throw`, `#recoil`, `#turn`, `#rise`, `#daylight`), and `#sound:<id>` plays any one-off
+  sound from ink (the knock on Day 6, the tap at the window on Day 3).
+- Dev: N mutes everything.
+- **To tune by ear** (designer): every voice and sound is a few numbers in those files.
+
+## Where we were
 - Sound so far: the title music (the designer's track), and small UI sounds synthesised in code
   (`src/ui/sfx.ts`: a tick when a cursor moves, a chime when you choose). There are also a chisel
   scrape, a fire crackle and the slip, written for the prologue but switched off.

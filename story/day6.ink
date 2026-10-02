@@ -309,7 +309,7 @@ You open it. A plate. And the seed's gone.
 }
 "You are not the rot." Nobody has said that to you in days. Nobody has said anything kind to you at all. #quote
 "We need you." Who? For what? "Hurry." Hurry where? #quote
-Then: boots, outside. Several. And a fist on the door. #shake
+Then: boots, outside. Several. And a fist on the door. #shake #sound:knock
 "Open up! In the name of the elders!" #speaker:guard
 The plate's in your hand, and the bird's on the hearth, opened up for anyone to see.
 ~ day6 = "hide"

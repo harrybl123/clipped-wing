@@ -137,6 +137,7 @@ export const upperHalls: AreaDefinition = {
     { id: 'books', x: 530, y: MEZZ, reach: 10, label: 'Look', knot: 'upper_books' },
   ],
 
+  ambience: [{ sound: 'wind', volume: 0.25 }, { sound: 'clock', volume: 0.25 }, { sound: 'chatter', volume: 0.25, when: ['morning', 'afternoon', 'evening'] }],
   exits: [
     { id: 'to-middle-tiers', x: 27, y: FLOOR, reach: 12, to: 'middle-tiers' },
     { id: 'to-seed-grove', x: 697, y: FLOOR, reach: 12, to: 'seed-grove' },

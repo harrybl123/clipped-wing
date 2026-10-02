@@ -50,3 +50,15 @@ describe('voices', () => {
     for (const v of Object.values(FACELESS_VOICES)) expect(v in VOICES).toBe(true);
   });
 });
+
+describe('story sounds', () => {
+  it('every #sound: in the ink is a sound that exists', async () => {
+    const { readdirSync, readFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const { SOUND_IDS } = await import('../src/ui/soundscape');
+    const dir = join(__dirname, '..', 'story');
+    const used = readdirSync(dir).filter((f) => f.endsWith('.ink')).flatMap((f) => [...readFileSync(join(dir, f), 'utf8').matchAll(/#sound:([a-z]+)/g)].map((m) => m[1]!));
+    expect(used.length).toBeGreaterThan(0);
+    for (const id of used) expect(SOUND_IDS as readonly string[]).toContain(id);
+  });
+});

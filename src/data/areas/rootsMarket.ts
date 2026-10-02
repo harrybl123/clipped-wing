@@ -180,6 +180,8 @@ export const rootsMarket: AreaDefinition = {
 
   interactables: [{ id: 'ration-hatch', x: 310, y: FLOOR, reach: 7, label: 'Look', knot: 'market_ration_hatch' }],
 
+  ambience: [{ sound: 'room', volume: 0.35 }, { sound: 'chatter', volume: 0.7, when: ['morning', 'afternoon'] }, { sound: 'chatter', volume: 0.3, when: ['evening'] }, { sound: 'workshop', volume: 0.35, when: ['morning', 'afternoon'] }, { sound: 'creaks', volume: 0.3, when: ['night'] }],
+  surface: 'plank',
   exits: [
     { id: 'to-offering-floor', x: 27, y: FLOOR, reach: 12, to: 'offering-floor' },
     { id: 'to-friends-home', x: 453, y: FLOOR, reach: 12, to: 'friends-home' },

@@ -158,6 +158,7 @@ export const offeringFloor: AreaDefinition = {
     { id: 'baskets', x: 95, y: FLOOR, reach: 7, label: 'Look', knot: 'offering_floor_baskets' },
   ],
 
+  ambience: [{ sound: 'room', volume: 0.4 }, { sound: 'crowd', volume: 0.5, when: ['morning', 'evening'] }, { sound: 'chatter', volume: 0.35, when: ['afternoon'] }, { sound: 'creaks', volume: 0.3 }],
   exits: [
     { id: 'to-home', x: 27, y: FLOOR, reach: 12, to: 'home' },
     { id: 'to-market', x: 453, y: FLOOR, reach: 12, to: 'roots-market' },

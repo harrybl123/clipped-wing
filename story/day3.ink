@@ -377,7 +377,7 @@ The plate is warm from the fire, and the Tree is above you, as it always has bee
         -> choose
 
 === day3_knock ===
-A tap at the window. Three taps: the knock you made up together when you were small.
+A tap at the window. Three taps: the knock you made up together when you were small. #sound:knock
 It's him. And the plate, the {answered_late: bird|fledgling} and your shavings are all out in the open.
 ~ day3 = "hide"
 ~ evidence_left = 3

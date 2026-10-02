@@ -64,6 +64,30 @@ export type Feature =
   | { type: 'trigger'; x: number; y: number; reach: number; knot: string; showIf?: string; hideIf?: string } // plays a knot by itself once when you reach this spot on surface y (while showIf is true and hideIf isn't; the knot should set hideIf so it doesn't play again on the next visit)
   | { type: 'quarry'; people: string[]; y: number; path: { x: number; wait?: number; look?: boolean }[]; speed: number; range: number; lose: number; reset: { x: number; y: number }; showIf: string; done: string }; // people you tail (the first leads, the rest keep their distance from him): they walk the path on floor y, stopping `wait` ms at each point, and at `look` points turn round. If they see you (in front of them, too close, or behind within `range` while they look, not in a shadow), or you fall more than `lose` px behind, you're back at `reset` and they start again. At the end they slip away and the ink variable `done` becomes true. Only while showIf is true
 
+/**
+ * A sound the whole area makes, under everything else (docs/audio-plan.md). Continuous: `room` (the tree's
+ * body, a low hush), `hum` (the tube), `wind`, `fizz` (fungi), `leaves`. Made of moments: `chatter` (people
+ * talking nearby), `crowd` (a murmuring crowd), `creaks` (the tree settling), `drips`, `bubbles` (the
+ * rot), `clock`, `workshop` (tapping), `engine` (the archive's clicking), `chime` (the seeds), `hearth`
+ * (a fire's crackle, heard from anywhere in the room).
+ */
+export type AmbienceSound = 'room' | 'hum' | 'wind' | 'fizz' | 'leaves' | 'chatter' | 'crowd' | 'creaks' | 'drips' | 'bubbles' | 'clock' | 'workshop' | 'engine' | 'chime' | 'hearth';
+
+export interface AmbienceLayer {
+  sound: AmbienceSound;
+  /** 0–1, default 0.5. */
+  volume?: number;
+  /** Only at these times of day. */
+  when?: TimeSlot[];
+  /** Only while this ink variable is true. */
+  showIf?: string;
+  /** Not while this ink variable (or any of these) is true. */
+  hideIf?: string | string[];
+}
+
+/** What the floor's made of, for footsteps. */
+export type Surface = 'wood' | 'plank' | 'metal' | 'fungus' | 'wet';
+
 /** Something the player can walk up to and press E on, which runs an ink knot. */
 export interface Interactable {
   id: string;
@@ -144,4 +168,8 @@ export interface AreaDefinition {
   people: Person[];
   interactables: Interactable[];
   exits: Exit[];
+  /** The area's sound bed, layered (docs/audio-plan.md). */
+  ambience?: AmbienceLayer[];
+  /** What the floor's made of (footsteps; default wood). One-way boards always sound like planks. */
+  surface?: Surface;
 }

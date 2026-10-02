@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { closedReason } from '../data/access';
 import { AREAS, AREA_NAMES } from '../data/areas';
-import type { AreaDefinition, Exit, Feature, Person } from '../data/areas/types';
+import type { AmbienceLayer, AreaDefinition, Exit, Feature, Person, Surface } from '../data/areas/types';
 import { nextHop } from '../data/route';
 import { Player } from '../objects/Player';
 import type { CarveSceneData } from './CarveScene';
@@ -19,6 +19,7 @@ import { SHADES } from '../ui/pixelArt';
 import { makePaintedTexture, makeSpriteTexture, PIXEL } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
 import { ObjectiveMarker } from '../ui/ObjectiveMarker';
+import { type SoundId, Soundscape } from '../ui/soundscape';
 import { FIRE_FRAMES, type RowSprite } from '../ui/sprites';
 
 export interface AreaSceneData {
@@ -312,8 +313,15 @@ export class AreaScene extends Phaser.Scene {
     this.triggers = [];
   }
 
+  /** The area's sounds (docs/audio-plan.md). */
+  private soundscape!: Soundscape;
+  /** For footsteps, jumps and landings: distance walked since the last step, and last frame's state. */
+  private stepping = { since: 0, wasOnGround: true, fallSpeed: 0 };
+
   create(): void {
     const { area } = this;
+    this.soundscape = new Soundscape(this, area.ambience ?? [], (layer) => this.layerOn(layer));
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.soundscape.stop());
     this.cameras.main.setBackgroundColor(SHADES.shadow).fadeIn(400);
     this.physics.world.setBounds(0, 0, area.width, area.height);
     this.cameras.main.setBounds(0, 0, area.width, area.height);
@@ -417,6 +425,8 @@ export class AreaScene extends Phaser.Scene {
       this.input.keyboard?.on('keydown-M', () => {
         if (!this.dialogue.isOpen && !this.leaving) this.openMap();
       });
+      // N mutes and unmutes everything.
+      this.input.keyboard?.on('keydown-N', () => this.sound.setMute(!this.sound.mute));
     }
   }
 
@@ -442,12 +452,53 @@ export class AreaScene extends Phaser.Scene {
     this.updateWaiting(delta);
     this.updateHints();
     this.objective.pointAt(this.onScreen(this.objectivePoint()));
+    this.updatePlayerSounds(delta);
+    this.soundscape.update(delta, this.player.feet);
 
     this.setCurrent(this.dialogue.isOpen || !this.player.onGround ? null : this.nearestInteractable());
     if (this.current && interactPressed && !blocked) {
       this.current.use();
       this.setCurrent(null);
     }
+  }
+
+  /** Whether an ambience layer is playing now: its time of day and story variables. */
+  private layerOn(layer: AmbienceLayer): boolean {
+    const { calendar, story } = getSession(this);
+    if (layer.when && !layer.when.includes(calendar.slot)) return false;
+    if (layer.showIf && !story.getVariable(layer.showIf)) return false;
+    return ![layer.hideIf ?? []].flat().some((v) => story.getVariable(v));
+  }
+
+  /** What's underfoot: boards (one-way platforms, lifts) sound like planks; otherwise the area's floor. */
+  private surfaceUnderfoot(): Surface {
+    const { x, y } = this.player.feet;
+    const onBoard = this.area.solids.some((s) => s.oneWay && Math.abs(s.y - y) <= 1 && x >= s.x && x <= s.x + s.width)
+      || this.movers.some((m) => Math.abs(m.image.y - y) <= 2 && x >= m.image.x && x <= m.image.x + m.width);
+    return onBoard ? 'plank' : (this.area.surface ?? 'wood');
+  }
+
+  /** Footsteps as you walk (softer and slower crouching), a breath of cloth when you jump, a landing by how hard you fell. */
+  private updatePlayerSounds(delta: number): void {
+    const body = this.player.body;
+    const onGround = this.player.onGround;
+    const st = this.stepping;
+    if (!body.enable) return;
+    if (onGround && !st.wasOnGround) {
+      if (st.fallSpeed > 60) this.soundscape.play('land', undefined, Math.min(1, st.fallSpeed / 260) * 0.6, undefined, this.surfaceUnderfoot());
+      st.since = 0;
+    }
+    if (!onGround && st.wasOnGround && body.velocity.y < -50) this.soundscape.play('jump', undefined, 0.4);
+    if (onGround && Math.abs(body.velocity.x) > 5) {
+      st.since += (Math.abs(body.velocity.x) * delta) / 1000;
+      const stride = this.player.crouching ? 10 : 15;
+      if (st.since >= stride) {
+        st.since = 0;
+        this.soundscape.play('step', undefined, this.player.crouching ? 0.25 : 0.45, undefined, this.surfaceUnderfoot());
+      }
+    }
+    st.fallSpeed = onGround ? 0 : Math.max(st.fallSpeed, body.velocity.y);
+    st.wasOnGround = onGround;
   }
 
   /** The closest interactable whose zone the player's feet are in, on the same surface. */
@@ -580,6 +631,7 @@ export class AreaScene extends Phaser.Scene {
       if (c.standing < CRUMBLE_HOLD) continue;
       body.enable = false;
       c.standing = null;
+      this.soundscape.play('crack', { x: c.x + c.width / 2, y: c.y });
       this.tweens.add({ targets: c.image, y: c.y + 40, alpha: 0, duration: 600, ease: 'Quad.easeIn' });
       this.time.delayedCall(CRUMBLE_REGROW, () => {
         body.enable = true;
@@ -628,6 +680,7 @@ export class AreaScene extends Phaser.Scene {
         c.enteredFrom = x - f.from < f.to - x ? -1 : 1;
         c.untilNext = 0;
         this.cameras.main.shake(400, 0.004);
+        this.soundscape.play('rumble');
       }
       if (!inside) {
         c.active = false;
@@ -956,6 +1009,7 @@ export class AreaScene extends Phaser.Scene {
           }
         },
         onComplete: () => {
+          this.soundscape.play('thump', { x, y: floorY }, 0.8);
           lump.destroy();
           mark.destroy();
           dust.explode(8, x, floorY - 2);
@@ -1127,6 +1181,8 @@ export class AreaScene extends Phaser.Scene {
           // dark: the light goes out for a moment and slowly comes back.
           const [r, g, b] = args[0] === 'cyan' ? [174, 246, 247] : args[0] === 'dark' ? [0, 0, 0] : [244, 241, 232];
           this.cameras.main.flash(args[0] === 'dark' ? 1600 : 700, r, g, b);
+          // cyan: the offerings rushing up the tube, or the blessings coming down; white: a bright shimmer; dark: a boom.
+          this.soundscape.play(args[0] === 'cyan' ? 'rush' : args[0] === 'dark' ? 'boom' : 'shimmer');
           break;
         }
         case 'inset':
@@ -1153,12 +1209,19 @@ export class AreaScene extends Phaser.Scene {
         }
         case 'shake':
           this.cameras.main.shake(260, 0.006);
+          this.soundscape.play('thump', undefined, 0.7);
           break;
         case 'recoil':
           this.recoil();
+          this.soundscape.play('shuffle');
           break;
         case 'throw':
           this.throwAtPlayer();
+          this.soundscape.play('whoosh');
+          break;
+        case 'sound':
+          // A sound for a moment in the story (a knock at the door): any one-off sound by name.
+          if (args[0]) this.soundscape.play(args[0] as SoundId);
           break;
         case 'carve': {
           const knot = args[0];
@@ -1174,12 +1237,17 @@ export class AreaScene extends Phaser.Scene {
         }
         case 'turn':
           this.turnAway();
+          this.soundscape.play('shuffle');
           break;
         case 'rise':
           this.riseUp();
+          this.soundscape.play('rise');
           break;
         case 'daylight':
           this.breakDaylight(Number(args[0]), Number(args[1]), Number(args[2]));
+          // The first sound from outside: real wind.
+          this.soundscape.play('shimmer', undefined, 0.6);
+          this.soundscape.addLayer({ sound: 'wind', volume: 0.7 });
           break;
         case 'when': {
           // The clock (if any) starts once the conversation closes, so it isn't running while you read.
@@ -1402,6 +1470,7 @@ export class AreaScene extends Phaser.Scene {
       case 'fire': {
         const keys = FIRE_FRAMES.map((f, i) => makeSpriteTexture(this, `fire-${i}`, f.rows, f.colours));
         const fire = this.add.image(feature.x, feature.y, keys[0]!).setOrigin(0.5, 1).setDepth(5);
+        this.soundscape.addEmitter('fire', () => ({ x: feature.x, y: feature.y }), 70);
         let frame = 0;
         this.time.addEvent({ delay: 140, loop: true, callback: () => fire.setTexture(keys[(frame = (frame + 1) % keys.length)]!) });
         this.add.particles(0, 0, PIXEL, {
@@ -1420,6 +1489,7 @@ export class AreaScene extends Phaser.Scene {
         const rope = this.add.line(0, 0, feature.x, feature.ropeTop, feature.x, feature.y, SHADES.woodPale).setOrigin(0).setDepth(4);
         const key = makeSpriteTexture(this, `swing-${feature.x}-${feature.y}`, feature.sprite.rows, feature.sprite.colours);
         const item = this.add.image(feature.x, feature.y, key).setOrigin(0.5, 0).setDepth(4);
+        this.soundscape.addEmitter('creak', () => ({ x: feature.x, y: feature.y }), 50, 0.5);
         const sway = { offset: -1 };
         this.tweens.add({
           targets: sway, offset: 1, duration: 1800, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
@@ -1441,10 +1511,13 @@ export class AreaScene extends Phaser.Scene {
         body.checkCollision.left = false;
         body.checkCollision.right = false;
         const ropes = feature.ropeTop === undefined ? undefined : { graphics: this.add.graphics().setDepth(5), top: feature.ropeTop };
+        this.soundscape.addEmitter('rope', () => ({ x: image.x + width / 2, y: image.y }), 90);
         this.movers.push({ image, from: { x: feature.x, y: feature.y }, to: feature.to, speed: feature.speed, dir: 1, pause: MOVER_PAUSE, width, ropes });
         break;
       }
       case 'motes': {
+        // The tube hums all along its length: heard from the nearest point of it.
+        this.soundscape.addEmitter('tube', () => ({ x: feature.x, y: Phaser.Math.Clamp(this.player?.feet.y ?? feature.bottom, feature.top, feature.bottom) }), 110);
         this.add.particles(0, 0, PIXEL, {
           emitZone: {
             type: 'random',
@@ -1467,7 +1540,13 @@ export class AreaScene extends Phaser.Scene {
         const drop = this.add.rectangle(feature.x, feature.y, 1, 2, SHADES.light).setOrigin(0).setDepth(4).setVisible(false);
         const fall = () => {
           drop.setPosition(feature.x, feature.y).setVisible(true);
-          this.tweens.add({ targets: drop, y: feature.floorY, duration: 700, ease: 'Quad.easeIn', onComplete: () => drop.setVisible(false) });
+          this.tweens.add({
+            targets: drop, y: feature.floorY, duration: 700, ease: 'Quad.easeIn',
+            onComplete: () => {
+              drop.setVisible(false);
+              this.soundscape.play('plink', { x: feature.x, y: feature.floorY }, 0.6, 90);
+            },
+          });
         };
         this.time.addEvent({ delay: 2600, loop: true, callback: fall });
         break;
@@ -1508,6 +1587,7 @@ export class AreaScene extends Phaser.Scene {
         this.add.particles(0, 0, PIXEL, { x: { min: feature.x + 1, max: feature.x + feature.width - 1 }, y: feature.y, speedY: { min: -14, max: -6 }, lifespan: 900, frequency: 180, tint: SHADES.green, alpha: { start: 1, end: 0 } }).setDepth(7);
         const rect = new Phaser.Geom.Rectangle(feature.x, feature.y, feature.width, feature.height);
         this.hazards.push({ rect: () => rect, reset: feature.reset });
+        this.soundscape.addEmitter('bubbles', () => ({ x: feature.x + feature.width / 2, y: feature.y }), 60);
         break;
       }
       case 'drips': {
@@ -1527,6 +1607,7 @@ export class AreaScene extends Phaser.Scene {
                 onComplete: () => {
                   this.hazards = this.hazards.filter((h) => h !== hazard);
                   bead.destroy();
+                  this.soundscape.play('splash', { x, y: feature.bottom }, 0.4, 90);
                   this.add.particles(0, 0, PIXEL, { speed: { min: 10, max: 30 }, angle: { min: 200, max: 340 }, lifespan: 300, tint: SHADES.green, emitting: false }).setDepth(11).explode(4, x, feature.bottom - 1);
                 },
               });
@@ -1543,6 +1624,7 @@ export class AreaScene extends Phaser.Scene {
       case 'beetle': {
         const frames = BEETLE_FRAMES.map((f, i) => makeSpriteTexture(this, `beetle-${i}`, f.rows, f.colours));
         const image = this.add.image(feature.from, feature.y, frames[0]!).setOrigin(0.5, 1).setDepth(9);
+        this.soundscape.addEmitter('skitter', () => (image.visible ? { x: image.x, y: image.y } : null), 70);
         this.beetles.push({ image, feature, dir: 1, frames, step: 0 });
         this.hazards.push({ rect: () => new Phaser.Geom.Rectangle(image.x - image.width / 2 + 2, image.y - image.height + 2, image.width - 4, image.height - 2), reset: feature.reset });
         break;
@@ -1552,6 +1634,7 @@ export class AreaScene extends Phaser.Scene {
         const walkKeys = WATCHMAN.walk.map((f, i) => makeSpriteTexture(this, `watchman-walk-${i}`, f.rows, f.colours));
         const start = feature.from === feature.to ? feature.from : Math.round((feature.from + feature.to) / 2);
         const image = this.add.image(start, feature.y, idleKey).setOrigin(0.5, 1).setDepth(9);
+        this.soundscape.addEmitter('footsteps', () => (image.visible ? { x: image.x, y: image.y } : null), 90);
         const lantern = this.add.rectangle(start, feature.y - 13, 3, 4, SHADES.amber).setStrokeStyle(1, SHADES.deep).setDepth(10);
         const cone = this.add.graphics().setDepth(7);
         const callout = new PixelText(this, 0, 0, '', { color: SHADES.amber, shadow: SHADES.shadow }).setDepth(21).setVisible(false);
@@ -1581,6 +1664,10 @@ export class AreaScene extends Phaser.Scene {
         });
         const callout = new PixelText(this, 0, 0, '', { color: SHADES.amber, shadow: SHADES.shadow }).setDepth(21).setVisible(false);
         const mob: Mob = { feature, trail: [], head: 0, wait: 0, alarm: null, members, callout, step: 0 };
+        this.soundscape.addEmitter('mob', () => {
+          const lead = members.find((m) => m.image.visible);
+          return lead ? { x: lead.image.x, y: lead.image.y } : null;
+        }, 120);
         this.mobs.push(mob);
         // The player isn't placed yet: set off once the scene has started.
         this.time.delayedCall(0, () => this.resetMob(mob));
