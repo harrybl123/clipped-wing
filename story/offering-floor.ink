@@ -1,6 +1,6 @@
 // ============================================================================
-// TEMPORARY PLACEHOLDER — interactions on the offering floor.
-// One knot per interactable/person in src/data/areas/offeringFloor.ts. All text is placeholder.
+// Interactions on the offering floor: one knot per interactable or person in src/data/areas/offeringFloor.ts.
+// Day-specific scenes divert to the day files; the rest is draft text for the designer to rewrite.
 // ============================================================================
 
 === offering_floor_tender ===
@@ -14,34 +14,30 @@
 { day5 == "evening": -> day4_tender_evening }
 { day6 == "evening": -> day4_tender_evening }
 { day6 == "shrine": -> day6_not_here }
-[PLACEHOLDER] The Tender looks down from the landing. "Child of the roots." #speaker:tender
-[PLACEHOLDER] "The Tree gives, and the Tree takes. What do you bring?" #speaker:tender
-+ [Hide it: "Only my devotion."]
-    [PLACEHOLDER] "Only my devotion." #speaker:you
-+ [Joke about it: "Nothing that'll fit up there."]
-    [PLACEHOLDER] "Nothing that'll fit up there." #speaker:you
-+ [Voice it: "Where does it all go?"]
-    [PLACEHOLDER] "Where does it all go?" #speaker:you
-- [PLACEHOLDER] The Tender turns back to the light. #speaker:tender
+{ today() >= 3:
+    The Tender sees you, and looks away, back to the light.
+- else:
+    "Child of the roots. The Tree sees every hand that gives." #speaker:tender
+    The Tender turns back to the light.
+}
 -> END
 
 === offering_floor_tube ===
-[PLACEHOLDER] The tube comes down through the ceiling into the carved basin. Nobody touches it.
+The tube comes down through the ceiling into the carved basin. Nobody touches it. Nobody has ever touched it.
 -> END
 
 === offering_floor_baskets ===
-[PLACEHOLDER] Baskets for the blessings that come down in the evening. Mostly empty.
+Baskets for the blessings that come down in the evening. {today() >= 4: Emptier every night.| Mostly empty.}
 -> END
 
 === offering_floor_grumbler ===
 // On Day 2 he's the thin man from the morning's outburst.
 { day2 == "afternoon": {day2_thin_man: -> day2_already_visited} {afternoon_with != "": -> day2_no_time} -> day2_thin_man }
-[PLACEHOLDER] "Portions are smaller again. Don't tell me you haven't noticed." #speaker:thin_man
--> END
+-> thin_man
 
 === offering_floor_ascension_way ===
 { day1 == "ascension": -> day1_go_up }
-[PLACEHOLDER] The tube rises up through the ceiling. On Ascension Day, the whole tree climbs to the gate.
+The way up to the gate. On Ascension Day, the whole tree climbs it together.
 -> END
 
 === offering_floor_girl_rite ===

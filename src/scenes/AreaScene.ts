@@ -42,10 +42,36 @@ interface PersonEntry {
   scriptHidden: boolean;
   /** A shy person who has slipped away. */
   gone: boolean;
-  /** A follower mid-hop to catch up with you. */
-  hopping?: boolean;
+  /** A follower's copy of the path you took, and how far along it they've walked. */
+  trail?: { x: number; y: number; d: number }[];
+  along?: number;
   /** Jumping along a route set by `#hop:` (shown until they land, whatever the story says). */
   racing?: boolean;
+}
+
+/** A `barks` condition: a variable that's true, or `<variable>=<value>`. */
+function barksOn(condition: string, get: (variable: string) => unknown): boolean {
+  const [variable, value] = condition.split('=');
+  return value === undefined ? !!get(variable!) : String(get(variable!)) === value;
+}
+
+/** How far behind you (along your path) a follower walks, in px. */
+const FOLLOW_GAP = 16;
+
+/** The point `d` px along a path of points (each with its distance from the start). */
+function pointAlong(t: { x: number; y: number; d: number }[], d: number): { x: number; y: number } {
+  let lo = 0;
+  let hi = t.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (t[mid]!.d <= d) lo = mid;
+    else hi = mid - 1;
+  }
+  const a = t[lo]!;
+  const b = t[lo + 1];
+  if (!b) return { x: a.x, y: a.y };
+  const f = (d - a.d) / (b.d - a.d || 1);
+  return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
 }
 
 /** A small carving shown up close for a moment during a scripted scene (#inset:<id>). */
@@ -328,6 +354,8 @@ export class AreaScene extends Phaser.Scene {
     this.wakeAt = null;
     this.mobs = [];
     this.triggers = [];
+    this.barks = [];
+    this.speech = new Map();
   }
 
   /** The area's sounds (docs/audio-plan.md). */
@@ -486,7 +514,7 @@ export class AreaScene extends Phaser.Scene {
     const { story } = getSession(this);
     for (const b of this.barks) {
       const f = b.feature;
-      if (f.showIf && !story.getVariable(f.showIf)) continue;
+      if (f.showIf && !barksOn(f.showIf, (v) => story.getVariable(v))) continue;
       if (this.dialogue.isOpen) continue;
       b.left -= delta;
       if (b.left > 0) continue;
@@ -650,37 +678,40 @@ export class AreaScene extends Phaser.Scene {
     }
   }
 
-  /** People following you (the girl in the back routes) walk after you, and catch up when you change level. */
+  /**
+   * People following you (the girl in the back routes, the escort) walk the path you took, a little way
+   * behind: up the stairs a step at a time, along the ledges, over the gaps you jumped (designer: they
+   * flew straight up to your level). Close by on the same level, they just stand and wait.
+   */
   private updateFollowers(delta: number): void {
     if (!this.player.body.enable) return; // e.g. rising up the tube: they stay where they are
     const { x, y } = this.player.feet;
     for (const entry of this.people.values()) {
       if (!entry.person.follow || !entry.image.visible) continue;
       const img = entry.image;
-      if (entry.hopping) continue;
-      const behind = x + (this.player.sprite.flipX ? 16 : -16);
-      if (this.player.onGround && Math.abs(img.y - y) > 2) {
-        // You've changed level: she jumps (or drops) after you, in an arc.
-        const from = { x: img.x, y: img.y };
-        const peak = Math.min(from.y, y) - 24;
-        const hop = { t: 0 };
-        entry.hopping = true;
-        img.setFlipX(behind < from.x);
-        this.tweens.add({
-          targets: hop, t: 1, duration: 420 + Math.min(300, Math.abs(y - from.y) * 2), ease: 'Sine.easeInOut',
-          onUpdate: () => {
-            const t = hop.t;
-            img.setPosition(from.x + (behind - from.x) * t, (1 - t) ** 2 * from.y + 2 * (1 - t) * t * peak + t * t * y);
-          },
-          onComplete: () => (entry.hopping = false),
-        });
+      let trail = entry.trail;
+      const last = trail?.[trail.length - 1];
+      // A fresh start: just arrived, or you were thrown back, or you're right beside them.
+      if (!trail || !last || Math.hypot(x - last.x, y - last.y) > 40 || (Math.abs(img.y - y) <= 2 && Math.abs(img.x - x) <= 20)) {
+        trail = entry.trail = [{ x: img.x, y: img.y, d: 0 }];
+        entry.along = 0;
+      }
+      const end = trail[trail.length - 1]!;
+      const moved = Math.hypot(x - end.x, y - end.y);
+      if (moved >= 2) trail.push({ x, y, d: end.d + moved });
+      const total = trail[trail.length - 1]!.d;
+      const gap = total - FOLLOW_GAP - (entry.along ?? 0);
+      if (gap <= 0) {
+        img.setFlipX(x < img.x);
         continue;
       }
-      const dx = behind - img.x;
-      if (Math.abs(dx) > 3) {
-        img.x += Math.sign(dx) * Math.min(Math.abs(dx), (Math.abs(dx) > 60 ? 140 : 70) * (delta / 1000));
-        img.setFlipX(dx < 0);
-      }
+      // A little quicker than you when they've fallen behind.
+      entry.along = (entry.along ?? 0) + Math.min(gap, (gap > 40 ? 150 : 95) * (delta / 1000));
+      const at = pointAlong(trail, entry.along);
+      if (Math.abs(at.x - img.x) > 0.2) img.setFlipX(at.x < img.x);
+      img.setPosition(at.x, at.y);
+      // Forget the path they've already walked.
+      while (trail.length > 2 && trail[1]!.d < entry.along) trail.shift();
     }
   }
 
@@ -1054,19 +1085,7 @@ export class AreaScene extends Phaser.Scene {
 
   /** The point `d` px along the mob's copy of your path. */
   private alongTrail(m: Mob, d: number): { x: number; y: number } {
-    const t = m.trail;
-    let lo = 0;
-    let hi = t.length - 1;
-    while (lo < hi) {
-      const mid = (lo + hi + 1) >> 1;
-      if (t[mid]!.d <= d) lo = mid;
-      else hi = mid - 1;
-    }
-    const a = t[lo]!;
-    const b = t[lo + 1];
-    if (!b) return a;
-    const f = (d - a.d) / (b.d - a.d || 1);
-    return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
+    return pointAlong(m.trail, d);
   }
 
   /** The mob starts again from where you came in. */

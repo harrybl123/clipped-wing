@@ -1,30 +1,38 @@
 // ============================================================================
-// TEMPORARY PLACEHOLDER — interactions in the Tender's shrine.
-// One knot per interactable/person in src/data/areas/tendersShrine.ts. All text is placeholder.
+// Interactions in the Tender's shrine: one knot per interactable or person in src/data/areas/tendersShrine.ts.
+// Day-specific scenes divert to the day files; the rest is draft text for the designer to rewrite.
 // ============================================================================
 
 === shrine_tender ===
-[PLACEHOLDER] "Every offering counted, every blessing shared out fairly. Someone has to keep the tally." #speaker:tender
+{ today() >= 4:
+    "Not now, child." #speaker:tender
+    -> END
+}
+"Every offering counted, every blessing shared out fairly. Someone has to keep the tally." #speaker:tender
 -> END
 
 === shrine_elder ===
-[PLACEHOLDER] "The council is sitting, child. Wait outside." #speaker:elder_cyan
+"The council is sitting, child. Wait outside." #speaker:elder_cyan
 -> END
 
 === shrine_preacher ===
-[PLACEHOLDER] "The Tree gives to those who give. Remember it." #speaker:preacher
+{ today() >= 3:
+    "The Tree sees what you are, carver. So do I." #speaker:preacher
+    -> END
+}
+"The Tree gives to those who give. Remember it." #speaker:preacher
 -> END
 
 === shrine_tallies ===
-[PLACEHOLDER] Boards of notches beside little pictures: every family's offerings, counted.
+Boards of notches beside little pictures: every family's offerings, counted. {today() >= 3: Beside your family's mark, a row of crosses.}
 -> END
 
 === shrine_stool ===
-[PLACEHOLDER] A single stool, alone under the lamp, facing the council's chairs.
+A single stool, alone under the lamp, facing the council's chairs.
 -> END
 
 === shrine_blessing ===
-[PLACEHOLDER] A blessing set into the wall in a carved frame. It glows like the tube, and nobody touches it.
+A blessing set into the wall in a carved frame. It glows like the tube, and nobody touches it.
 -> END
 
 // Day 4 morning: the Tender, waiting for you (the summons).

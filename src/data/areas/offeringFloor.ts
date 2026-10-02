@@ -68,6 +68,20 @@ function extraCrowd(): Person[] {
   });
 }
 
+/** What the crowd mutters as you come onto the floor, day by day: [who, line]. */
+const CROWD_MUTTERING: { when: string; lines: [string, string][] }[] = [
+  // Day 3, the morning after the first rejection: staring, keeping their distance.
+  { when: 'day3=rite', lines: [['crowd-1', "That's the one."], ['crowd-6', "Don't let it near the basket."], ['crowd-stairs-right-0', "What's it doing here?"], ['crowd-3', "Shh. It'll hear you."]] },
+  // Day 3, waiting for it to come back.
+  { when: 'day3=evening', lines: [['crowd-0', 'Here it comes.'], ['crowd-7', "Watch. It'll come back."], ['crowd-stairs-right-1', 'Keep the children back.'], ['crowd-4', 'Rot-hand.'], ['crowd-stairs-left-1', "Shouldn't even let it in."]] },
+  // Day 4: told not to speak to you, so they whisper about you instead.
+  { when: 'day4=evening', lines: [['crowd-1', "Don't look at it."], ['crowd-6', 'They said not to talk to it.'], ['crowd-stairs-right-0', 'Rot-hand.'], ['crowd-3', "My boy's still coughing."], ['crowd-stairs-left-2', 'Three times, and then what?']] },
+  // Day 5: a guard at your shoulder, and they want more.
+  { when: 'day5=evening', lines: [['crowd-0', 'About time they sent a guard.'], ['crowd-7', 'Should have sent ten.'], ['crowd-stairs-right-1', 'Lock it up!'], ['crowd-4', 'It went up the trunk. Bold as you like.'], ['crowd-stairs-left-1', 'Rot-hand!'], ['crowd-6', 'Spit on it.']] },
+  // Day 6: hungry, and ready to do something about it.
+  { when: 'day6=evening', lines: [['crowd-1', 'Thief.'], ['crowd-stairs-right-0', "It's eating our food!"], ['crowd-3', 'Throw it in the rot!'], ['crowd-7', 'Starve it. See how it likes it.'], ['crowd-stairs-left-2', 'Burn it.'], ['crowd-0', 'My baby cries all night because of you!']] },
+];
+
 export const offeringFloor: AreaDefinition = {
   id: 'offering-floor',
   name: 'the offering floor',
@@ -117,7 +131,13 @@ export const offeringFloor: AreaDefinition = {
     { sprite: FUNGI.droop, x: 383, y: FLOOR - 5 },
   ],
 
-  features: [{ type: 'motes', x: TUBE_X, top: 10, bottom: LANDING.y, halfWidth: 5 }],
+  features: [
+    { type: 'motes', x: TUBE_X, top: 10, bottom: LANDING.y, halfWidth: 5 },
+    // The crowd muttering about you before the Tender begins, worse every day (designer: it should get
+    // progressively worse). Draft lines. The people you can talk to (the mother, the old man, the young
+    // man on the stairs) have their own say in ink.
+    ...CROWD_MUTTERING.map(({ when, lines }) => ({ type: 'barks' as const, showIf: when, lines: lines.map(([who, text]) => ({ who, text, wait: 3400 })) })),
+  ],
 
   people: [
     // Day 1: the girl in the roots watches you from the edge of the crowd at the morning rite, and slips away if you come close.

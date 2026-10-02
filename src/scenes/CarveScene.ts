@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { GAME_WIDTH as W } from '../config';
 import { REPLY_SETS, type ReplyOption } from '../data/messages';
 import { getSession } from '../session';
-import { bellyPosition, carvedBird, CARVE_H, CARVE_W, eyePosition, wingPosition, type CarveOptions, type CarveStage } from '../ui/carveArt';
+import { bellyPosition, bodyPoint, carvedBird, CARVE_H, CARVE_W, eyePosition, wingPosition, type CarveOptions, type CarveStage } from '../ui/carveArt';
 import { SHADES } from '../ui/pixelArt';
 import { makePaintedTexture, makeSpriteTexture, PIXEL } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
@@ -22,7 +22,10 @@ import { StepScene, type StepSceneData } from './StepScene';
 //   seal     press when the ring round the plug is smallest
 // A line tagged #plate:<set> shows the three pictures you can reply with (REPLY_SETS), beside the choices (Day 4 on).
 // Your missing thumb makes everything a little shaky. Misses never fail you: you just go again (the eye
-// and the seal give in after a few).
+// and the seal give in after a few). But every slip on the bird leaves its mark (designer: if you do it
+// badly, it should show): a nick or a gouge that stays, and one more in `carve_flaws`, which the story
+// reads (how the bird turned out, and what the Tender and the elders make of it). Slips on the plate
+// don't count: that's for him, not the Tree.
 
 export type CarveSceneData = StepSceneData;
 
@@ -76,6 +79,11 @@ export class CarveScene extends StepScene {
   private platePicture: Phaser.GameObjects.Image | null = null;
   /** The hole in the bird's belly, between hollowing and sealing. */
   private holeOpen = false;
+  /** The marks your slips left on the bird (canvas coordinates), drawn over it. */
+  private scars: { x: number; y: number; long: boolean }[] = [];
+  private scarLayer!: Phaser.GameObjects.Graphics;
+  /** Smoothing: whether the needle is past "too hard" (one gouge each time it gets there). */
+  private tooHard = false;
   /** Which set of reply pictures the last #plate line offered. */
   private replySet = REPLY_SETS.reply2!;
 
@@ -91,6 +99,8 @@ export class CarveScene extends StepScene {
     this.plate = null;
     this.platePicture = null;
     this.holeOpen = false;
+    this.scars = [];
+    this.tooHard = false;
   }
 
   create(): void {
@@ -99,7 +109,9 @@ export class CarveScene extends StepScene {
     this.add.image(96, 170, makeSpriteTexture(this, 'prologue-shavings', Art.SHAVINGS.rows, Art.SHAVINGS.colours)).setOrigin(0);
     this.bird = this.add.image(W / 2, BIRD_Y, this.birdTexture()).setOrigin(0.5).setScale(BIRD_SCALE);
     this.knife = this.add.image(W / 2 + 120, 40, makeSpriteTexture(this, 'prologue-knife', Art.CARVING_KNIFE.rows, Art.CARVING_KNIFE.colours)).setOrigin(0, 1).setDepth(5);
+    this.scarLayer = this.add.graphics().setDepth(2);
     this.hole = this.add.graphics().setDepth(3);
+    getSession(this).story.setVariable('carve_flaws', 0);
     this.ui = this.add.graphics().setDepth(4);
     const K = Phaser.Input.Keyboard.KeyCodes;
     this.keys = this.input.keyboard!.addKeys({ e: K.E, space: K.SPACE }) as typeof this.keys;
@@ -109,6 +121,7 @@ export class CarveScene extends StepScene {
   override update(time: number, delta: number): void {
     const step = this.step;
     this.drawHole();
+    this.scarLayer.setVisible(this.bird.visible).setAlpha(this.bird.alpha);
     if (!step) return;
     const dt = delta / 1000;
     // Your hand isn't steady: a little tremor on everything.
@@ -130,6 +143,10 @@ export class CarveScene extends StepScene {
           step.inGreen += delta;
           if (Math.random() < delta / 120) this.chip();
         }
+        if (step.needle > 0.9 && !this.tooHard) {
+          this.tooHard = true;
+          this.scar(true);
+        } else if (step.needle < 0.8) this.tooHard = false;
         if (step.needle > 0.9) this.setHint('Too hard! Ease off.');
         else if (green) this.setHint(HINTS.smooth!);
         if (step.inGreen >= SMOOTH_TIME) return this.completeStep();
@@ -187,14 +204,23 @@ export class CarveScene extends StepScene {
           if (step.strikes >= STRIKES_NEEDED) return this.completeStep();
           step.zone = this.randomZone(0.16);
           this.setHint(`${HINTS[step.kind]} (${step.strikes} of ${STRIKES_NEEDED})`);
-        } else this.miss(step.kind === 'scratch' ? 'The point skids across the metal.' : 'The knife skids off the grain.');
+        } else {
+          this.miss(step.kind === 'scratch' ? 'The point skids across the metal.' : 'The knife skids off the grain.');
+          if (step.kind === 'rough') this.scar(true);
+        }
         break;
       }
       case 'wing': {
         if (Math.abs(step.blade - step.mark) < 0.06) {
           for (let i = 0; i < 6; i++) this.chip();
           this.completeStep();
-        } else this.miss('Not there. Wait for the mark.');
+        } else {
+          this.miss('Not there. Wait for the mark.');
+          const wing = wingPosition(this.birdOptions());
+          // Where the blade was, kept on the wing.
+          const along = wing.from - 10 + (wing.x + 40 - wing.from) * Phaser.Math.Clamp(step.blade, 0, 1);
+          this.scar(false, { x: Math.round(Phaser.Math.Clamp(along, wing.from + 2, wing.x - 2)), y: wing.y + Phaser.Math.Between(-3, 3) });
+        }
         break;
       }
       case 'eye':
@@ -203,6 +229,8 @@ export class CarveScene extends StepScene {
         else {
           step.misses += 1;
           this.miss(step.kind === 'seal' ? "It won't go in straight. Again." : 'Your hand trembles. Again.');
+          const at = step.kind === 'eye' ? eyePosition(this.birdOptions()) : bellyPosition(this.birdOptions());
+          this.scar(false, { x: at.x + Phaser.Math.Between(-6, 6), y: at.y + Phaser.Math.Between(-5, 5) });
         }
         break;
       }
@@ -220,6 +248,33 @@ export class CarveScene extends StepScene {
     this.time.delayedCall(900, () => this.step && this.setHint(HINTS[this.step.kind]!));
   }
 
+  /** A slip on the bird: a nick (or a long gouge) that stays, at `at` or somewhere on its body. */
+  private scar(long: boolean, at?: { x: number; y: number }): void {
+    this.scars.push({ ...(at ?? bodyPoint(this.birdOptions(), Phaser.Math.FloatBetween(-0.8, 0.8), Phaser.Math.FloatBetween(-0.8, 0.8))), long });
+    this.addFlaw();
+    this.drawScars();
+  }
+
+  private addFlaw(): void {
+    const { story } = getSession(this);
+    story.setVariable('carve_flaws', Number(story.getVariable('carve_flaws')) + 1);
+  }
+
+  /** Each mark: a dark slash across the grain, with the pale torn wood along its lower edge. */
+  private drawScars(): void {
+    const g = this.scarLayer.clear();
+    for (const { x, y, long } of this.scars) {
+      const p = this.onBird(x, y);
+      const len = long ? 4 : 2;
+      for (let i = -len; i <= len; i++) {
+        const sx = Math.round(p.x + i * BIRD_SCALE);
+        const sy = Math.round(p.y - i);
+        g.fillStyle(SHADES.deep).fillRect(sx, sy, BIRD_SCALE, BIRD_SCALE);
+        g.fillStyle(SHADES.white).fillRect(sx, sy + BIRD_SCALE, BIRD_SCALE, 1);
+      }
+    }
+  }
+
   /** Too hard: the wall of the bird splits. You start the hollowing again (the crack is glued and clamped off-screen). */
   private crack(step: Extract<Step, { kind: 'hollow' }>): void {
     step.inGreen = 0;
@@ -231,6 +286,11 @@ export class CarveScene extends StepScene {
     const crack = this.add.graphics().setDepth(6).lineStyle(1, SHADES.white).lineBetween(at.x - 4, at.y - 14, at.x + 2, at.y - 6).lineBetween(at.x + 2, at.y - 6, at.x - 2, at.y + 2);
     this.tweens.add({ targets: crack, alpha: 0, duration: 1200, delay: 400, onComplete: () => crack.destroy() });
     this.setHint('It cracked! Start again, gently.');
+    // Glued and clamped, but the line of it stays.
+    const belly = bellyPosition(this.birdOptions());
+    this.scars.push({ x: belly.x - 2, y: belly.y - 7, long: true }, { x: belly.x, y: belly.y - 3, long: true });
+    this.addFlaw();
+    this.drawScars();
     this.time.delayedCall(1400, () => this.step === step && this.setHint(HINTS.hollow!));
   }
 
@@ -242,6 +302,7 @@ export class CarveScene extends StepScene {
     if (this.stepName === 'seal') this.holeOpen = false;
     if (this.stepName === 'scratch') this.putPlateAside();
     this.bird.setTexture(this.birdTexture());
+    this.drawScars();
     this.ui.clear();
     playConfirm(this);
     for (let i = 0; i < 6; i++) this.chip();

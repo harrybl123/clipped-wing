@@ -1,22 +1,22 @@
 // ============================================================================
-// TEMPORARY PLACEHOLDER — interactions in the back routes.
-// One knot per interactable in src/data/areas/backRoutes.ts. All text is placeholder.
+// Interactions in the back routes: one knot per interactable or person in src/data/areas/backRoutes.ts.
+// Day-specific scenes divert to the day files; the rest is draft text for the designer to rewrite.
 // ============================================================================
 
 === back_routes_shrine_grate ===
-[PLACEHOLDER] Warm light through a grate overhead. Above it, the Tender's shrine. Voices carry down.
+Warm light through a grate overhead: the Tender's shrine. Every word said up there falls straight down here.
 -> END
 
 === back_routes_offering_grate ===
-[PLACEHOLDER] The underside of the offering floor. The tube's glow falls through the grate in a cold column.
+The underside of the offering floor. The tube's glow falls through the grate in a cold column. Footsteps cross it, back and forth.
 -> END
 
 === back_routes_broken_blessings ===
-[PLACEHOLDER] Things nobody wanted, thrown down here: splinters, a bent coil, a cracked cell that barely glows.
+Things nobody wanted, thrown down here: splinters, a bent coil, a cracked cell that barely glows. Blessings, once.
 -> END
 
 === back_routes_mark ===
-[PLACEHOLDER] A mark in glowing fungus ink, painted by someone who knows the way.
+A mark in glowing fungus ink, painted by someone who knows the way. An arrow, and a little sign for danger.
 -> END
 
 // The girl, showing you the way (Day 3).

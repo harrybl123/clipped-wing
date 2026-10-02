@@ -1,6 +1,6 @@
 // ============================================================================
-// TEMPORARY PLACEHOLDER — interactions in the girl's home (off the map; through her door in the lower roots).
-// One knot per interactable/person in src/data/areas/girlsHome.ts. All text is placeholder.
+// Interactions in the girl's home (off the map; through her door in the lower roots): one knot per interactable or person in src/data/areas/girlsHome.ts.
+// Day-specific scenes divert to the day files; the rest is draft text for the designer to rewrite.
 // ============================================================================
 
 === girls_home_girl ===

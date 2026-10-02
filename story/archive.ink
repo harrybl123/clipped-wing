@@ -1,11 +1,11 @@
 // ============================================================================
-// TEMPORARY PLACEHOLDER — interactions in the archive.
-// One knot per interactable/person in src/data/areas/archive.ts. All text is placeholder.
+// Interactions in the archive: one knot per interactable or person in src/data/areas/archive.ts.
+// Day-specific scenes divert to the day files; the rest is draft text for the designer to rewrite.
 // ============================================================================
 
 === archive_archivist ===
 { day5 == "archive": -> day5_archive }
-[PLACEHOLDER] "Every one of the Ascended, recorded. Name, craft, the day the Tree took them." #speaker:archivist
+"Every one of the Ascended, recorded. Name, craft, the day the Tree took them up." #speaker:archivist
 -> END
 
 // Day 7 afternoon (at home under guard): a goodbye, if he's your ally.
@@ -13,20 +13,20 @@
 -> day7_archivist_goodbye
 
 === archive_index_engine ===
-[PLACEHOLDER] A cabinet of drawers worked by a crank and a great gear. A glass eye glows over one drawer.
+A cabinet of drawers worked by a crank and a great gear. A glass eye glows over one of them, as if it knows which one you want.
 -> END
 
 === archive_drawers ===
 { day5 == "steal": -> day5_theft }
-[PLACEHOLDER] Drawer after drawer of records. The writing means nothing to you, but some have pictures.
+Drawer after drawer of records. The writing means nothing to you, but here and there a maker's mark you almost know.
 -> END
 
 === archive_records ===
-[PLACEHOLDER] A wall of plaques, one for each of the Ascended. You can't read the names, but every plaque has a maker's mark.
+A wall of plaques, one for each of the Ascended. You can't read the names, but every plaque has a maker's mark. So many of them. All chosen. All gone up.
 -> END
 
 === archive_newest_record ===
-[PLACEHOLDER] The newest plaque, its wood still pale from the chisel.
+The newest plaque, its wood still pale from the chisel. A spiral: the master you watched go up on Ascension Day.
 -> END
 
 // Day 5 night: he catches you at the drawers (the theft that fails).

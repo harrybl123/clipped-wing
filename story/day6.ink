@@ -44,6 +44,7 @@ A fledgling, big enough to hold a seed. #step:rough
 Hollow it, gently. #step:hollow
 The plate goes in, and the seed with it, and the plug after. #step:seal
 The wing, the eye.
+-> carve_verdict ->
 ~ day6 = "shrine"
 ~ tender_waiting = true
 ~ objective = "Take your offering to the shrine"
@@ -232,16 +233,19 @@ They're getting up. You back away into the dark before they come past. #time:eve
 
 === day6_crowd_mother ===
 "Look at it. It's eating. It's eating, and my children aren't." #speaker:mother
+"If the elders don't do something tonight, we will." #speaker:mother
 -> END
 
 === day6_crowd_old_man ===
 "I've never been hungry like this. Not in seventy years." #speaker:old_man
 "I don't believe in curses, child. But I'm hungry enough to start." #speaker:old_man
 "I always hoped the Tree might take me, at the end. Seventy years of good work. Now I'd settle for supper." #speaker:old_man
+"Go away from me now, child. I mean it. Go away." #speaker:old_man
 -> END
 
 === day6_crowd_zealot ===
 "Tonight they'll ask you what you are. And then they'll know what to do with you." #speaker:zealot
+"And if they don't, we'll find out for ourselves." He shows you the knife in his belt. #speaker:zealot
 -> END
 
 === day6_ceremony ===
@@ -258,6 +262,7 @@ There's a bite out of it. A real bite: the marks of teeth, in the wood, where it
 "Something ate it. Something up there ate it!" #speaker:crowd_man
 "You sent rot up to the Tree, and the Tree bit into it and spat it back at you!" #speaker:preacher
 A man faints. A child is sobbing and can't stop. People push back from you so hard the ring of chalk is lost under their feet. #recoil
+Somebody at the back shouts for a torch. Nobody tells him to be quiet.
 + [Hide it: shut your eyes and pray]
     You shut your eyes and pray, because everyone else is, and you don't know what else to do.
 + [Joke about it: "At least something's eating."]

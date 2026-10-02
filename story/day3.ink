@@ -59,10 +59,11 @@ And the eye. Open, or half closed?
 + [Half closed, as if asleep]
     ~ fledgling_eye = "sleepy"
 - One small cut. #step:eye
+-> carve_verdict ->
 ~ day3 = "rite"
 ~ objective = "Give your offering to the Tender"
 ~ objective_target = "offering-floor:tender"
-It sits in your palm: a fledgling that will never fly. It's the best thing you've made in years. #end
+It sits in your palm: a fledgling that will never fly.{carve_flaws < 2: It's the best thing you've made in years.} #end
 -> END
 
 = usual
@@ -71,11 +72,21 @@ You rough out the shape. #step:rough
 Smooth it. #step:smooth
 The wing, the way it always comes out: a little heavy. #step:wing
 The eye. #step:eye
+-> carve_verdict ->
 ~ day3 = "rite"
 ~ objective = "Give your offering to the Tender"
 ~ objective_target = "offering-floor:tender"
 The same bird as ever. The Tree will take it this time. It has to. #end
 -> END
+
+// How today's bird turned out (every carving plays this once the knife's done).
+=== carve_verdict ===
+{
+- carve_flaws >= 5: Gouges all over it, where the knife skidded and your hand gave way. It looks like exactly what it is: the work of a ruined hand.
+- carve_flaws >= 2: A few nicks where the knife slipped. You rub at them, but they won't come out.
+- else: Not a mark on it. For once, your hand held.
+}
+->->
 
 // --- The morning rite: the crowd, your friend, the girl ---
 
@@ -84,8 +95,13 @@ The floor is packed: people on the stairs, in the archways, people you've never 
 They part around you as you come through. Nobody lets their sleeve touch yours.
 "That's the one." #speaker:crowd_someone #name:Someone in the crowd
 "Cursed." #speaker:crowd_someone_else
-The Tender sees you coming and takes a cloth from their robe before reaching for your offering.
+The Tender sees you coming and takes a cloth from his robe before reaching for your offering.
 "Not with the others." #speaker:tender
+{
+- carve_flaws >= 5: The Tender turns it over in the cloth, and frowns at the gouges. "And look at the state of it. Is this what you think the Tree wants from you?" #speaker:tender
+- carve_flaws >= 2: A thumb runs over the nicks in the wood. "Careless." #speaker:tender
+- else: The Tender looks at it a moment longer than he needs to. Something like surprise. Then it's gone.
+}
 Your {reply1 == "usual": bird|fledgling} goes into a basket of its own, and the basket goes up last. #flash:cyan
 Across the floor, you see your friend. He sees you too, and starts towards you. #show:friend-rite
 His father grabs his arm and pulls him back, out through the archway. #move:friend-rite:452 #move:friend-parent-rite:452

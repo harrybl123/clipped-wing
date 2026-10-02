@@ -1,6 +1,6 @@
 // ============================================================================
-// TEMPORARY PLACEHOLDER — interactions in the rot (off the map; under the girl's home).
-// One knot per interactable/person in src/data/areas/theRot.ts. All text is placeholder.
+// Interactions in the rot (off the map; under the girl's home): one knot per interactable or person in src/data/areas/theRot.ts.
+// Day-specific scenes divert to the day files; the rest is draft text for the designer to rewrite.
 // ============================================================================
 
 === the_rot_girl ===

@@ -79,7 +79,7 @@ Outside the hatch, a small child from the lower roots is watching it in your han
 -> END
 
 === day2_friend ===
-Your friend is at their bench by the window, turning something over and over in their hands.
+Your friend is at his bench by the window, turning something over and over in his hands.
 "Did you hear that man this morning? In front of the Tender!" #speaker:friend
 + [He shouldn't have said it. Not there.]
     "He shouldn't have said it. Not there." #speaker:you
@@ -177,7 +177,7 @@ Then the tube goes dark. #flash:dark
 Every voice on the floor stops.
 The light comes back. Something drops into the basin with a hard knock. #show:rejected-bird #shake
 Your bird. Untouched.
-The Tender stares at it. The staff is shaking in their hand.
+The Tender stares at it. The staff is shaking in his hand.
 "...Rejected." #speaker:tender
 Nobody on the floor has ever heard the word said out loud. Not about an offering. Not ever.
 A woman screams. Someone drops their blessing, and it rolls across the floor, and nobody picks it up.

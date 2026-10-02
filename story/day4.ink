@@ -71,6 +71,7 @@ Now a bird to carry it: another fledgling, like the one he sent back to you. #st
 Then the hard part. You hollow it from the inside, the way he hollowed yours. Too hard and the wall will crack. #step:hollow
 The plate slides inside. Now a plug of wood, cut to fit, so nobody would ever know. #step:seal
 You give it the clipped wing and the eye, quick and sure. Your hands remember yesterday.
+-> carve_verdict ->
 ~ day4 = "shrine"
 ~ tender_waiting = true
 ~ mum_away = true
@@ -101,6 +102,7 @@ And the eye. Open, or half closed?
 + [Half closed, as if asleep]
     ~ fledgling_eye = "sleepy"
 - One small cut. #step:eye
+-> carve_verdict ->
 ~ day4 = "shrine"
 ~ tender_waiting = true
 ~ mum_away = true
@@ -214,6 +216,11 @@ He turns them over in his own, slowly, as if something might be written there.
 "If it happens again, it won't be up to me." #speaker:tender
 "Now. Your offering." #speaker:tender
 You hold out the bird. He takes it with the cloth, like yesterday, and weighs it in his hand.
+{
+- carve_flaws >= 5: "Rough. Your mother would never have let this leave the bench." #speaker:tender
+- carve_flaws >= 2: He frowns at the nicks in the wing, but says nothing.
+- else: "Good work. Better than I've seen from you in years." #speaker:tender
+}
 Then he stops.
 "Lighter than your usual." #speaker:tender
 A long moment. The lamp hums. You don't breathe. #dim:on
@@ -382,7 +389,8 @@ He points with his staff to the foot of the stairs.
 // The crowd before the ritual: talk to them first if you like (src/data/areas/offeringFloor.ts).
 === day4_crowd_mother ===
 She sees you coming and turns her children round by the shoulders, so they face the tube.
-"We've been told not to speak to you. I'm sorry. I've got to think of them." #speaker:mother
+"We've been told not to speak to it." She says it to her children, not to you. #speaker:mother
+"And I've nothing to say to it anyway." #speaker:mother
 -> END
 
 === day4_crowd_old_man ===

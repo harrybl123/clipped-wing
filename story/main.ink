@@ -1,7 +1,7 @@
 // ============================================================================
-// TEMPORARY PLACEHOLDER STORY — technical setup only.
-// Nothing here is real story content. Replace it when the designer supplies
-// Day 1 / prologue text.
+// The story's state: every variable the game reads or writes, and a few helpers. The days are in
+// story/day*.ink, each area's people and things in story/<area>.ink. Draft text throughout, for the
+// designer to rewrite.
 // ============================================================================
 
 // Narrative state lives here, in ink, and nowhere else (see CLAUDE.md).
@@ -44,6 +44,10 @@ VAR day3 = ""
 VAR fledgling_size = ""
 VAR fledgling_wing = ""
 VAR fledgling_eye = ""
+// How many times the knife slipped carving today's bird (CarveScene counts them; every slip leaves a mark).
+// 0–1 clean, 2–4 nicked, 5 or more botched. The Tender and the elders notice.
+VAR carve_flaws = 0
+
 VAR girl_with_you = false
 // The top way back through the back routes starts coming down (after the window).
 VAR routes_collapsing = false
@@ -212,3 +216,15 @@ INCLUDE ascension-gate.ink
 // The game starts conversations by knot name via StoryBridge, so the root
 // flow does nothing.
 -> END
+
+// Which day it is (1–7), from how far the days have got. For people whose lines change as the week goes on.
+=== function today() ===
+{
+- day7 != "": ~ return 7
+- day6 != "": ~ return 6
+- day5 != "": ~ return 5
+- day4 != "": ~ return 4
+- day3 != "": ~ return 3
+- day2 != "": ~ return 2
+- else: ~ return 1
+}

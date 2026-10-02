@@ -68,6 +68,7 @@ A fledgling. The clipped wing. #step:rough
 Hollow it, gently. #step:hollow
 In it goes. The plug goes in after it. #step:seal
 The wing. The eye.
+-> carve_verdict ->
 ~ day7 = "rite"
 ~ objective = "Go with the guard"
 { in_custody:
@@ -131,6 +132,10 @@ You climb the stairs with the bird in your hands. A hundred eyes, every step.
 "So today we ask the Tree directly. In front of everyone." #speaker:preacher
 An elder holds up a cage, a little thing of bent wire, like the ones the upper branches keep songbirds in. #show:caged-bird
 They take your bird out of your hands and shut it inside. The latch clicks.
+{
+- carve_flaws >= 5: The preacher holds the cage up high, so the floor can see. "Look at it. Hacked about. Is that an offering, or an insult?" #speaker:preacher
+- carve_flaws < 2: The pale-robed elder peers in at it. "It's good work. That's what I don't understand." #speaker:elder_pale
+}
 "If the Tree takes it, the carver is clean, and we'll all beg the carver's pardon." #speaker:elder_amber
 "If it comes back, we'll know what the carver is." #speaker:elder_cyan
 + [Hide it: bow your head]

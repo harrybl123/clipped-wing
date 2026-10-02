@@ -39,6 +39,12 @@ export function bellyPosition(opts: CarveOptions): { x: number; y: number } {
   return { x: Math.round(cx - 4 * k), y: Math.round(cy + 6 * k) };
 }
 
+/** A point on the bird's body, from u, v in -1..1 (kept well inside the edge): where a slip leaves its mark. */
+export function bodyPoint(opts: CarveOptions, u: number, v: number): { x: number; y: number } {
+  const { fledgling, k, cx, cy } = frame(opts);
+  return { x: Math.round(cx + u * 24 * k), y: Math.round(cy + v * (fledgling ? 14 : 11) * k) };
+}
+
 /** Where the wing ends (a fledgling's is clipped there): the x on the canvas, and the wing's centre y. */
 export function wingPosition(opts: CarveOptions): { x: number; y: number; from: number } {
   const { fledgling, k, cx, cy } = frame(opts);

@@ -42,6 +42,7 @@ Another fledgling. #step:rough
 Hollow it, gently. #step:hollow
 The plate goes in, and the plug after it. #step:seal
 The wing, the eye. Your hands know it by heart now.
+-> carve_verdict ->
 ~ day5 = "shrine"
 ~ tender_waiting = true
 ~ objective = "Take your offering to the shrine"
@@ -55,6 +56,11 @@ Dawn. The Tender will be waiting. #end
 The Tender is waiting under the lamp, the same as yesterday. He doesn't ask you to sit.
 He holds out the cloth. You put the bird in it.
 He weighs it. He looks at you. He says nothing about the weight this time, and somehow that's worse.
+{
+- carve_flaws >= 5: He runs a finger along a gouge in the wing. "Your hands are getting worse, child. Or you've stopped caring which." #speaker:tender
+- carve_flaws >= 2:
+- else: "Fine work," he says, almost to himself. "It makes no sense." #speaker:tender
+}
 "There's something else." #speaker:tender
 He takes a brass token from his robe and drops it into your palm. It's stamped with a stack of little plaques: the archive's mark. Everyone knows it, even down here.
 "The archivist wants you. This afternoon. He'll send someone." #speaker:tender
@@ -213,29 +219,34 @@ The escort doesn't take you home. He takes you straight down to the ceremony. #t
 === day5_crowd_mother ===
 She sees the guard behind you, and pulls her children closer.
 "They've sent a guard for it now. Thank the Tree. Someone's finally doing something." #speaker:mother
+"I hope they take it up there and never bring it back." #speaker:mother
 -> END
 
 === day5_crowd_old_man ===
 "A guard from up the trunk." He shakes his head. "That's not the Tender's doing. That's the elders." #speaker:old_man
 "When the elders start, child, they don't stop." #speaker:old_man
+He glances round, at who's watching. "Don't stand by me. Please. I've grandchildren." #speaker:old_man
 -> END
 
 === day5_crowd_zealot ===
 The young man from the market is in the front row tonight, his stole freshly washed.
 "Four times, and they still let it walk around. Not for much longer." #speaker:zealot
+"Enjoy your guard, rot-hand. He goes home at night. We don't." #speaker:zealot
 -> END
 
 === day5_ceremony ===
 You step into the chalk ring. The guard steps in behind you, one hand on his staff, close enough that you can hear him breathing.
 Mum is across the floor among the others. She doesn't come over. She's not allowed.
-The crowd is quieter than ever. Some of them are watching the guard more than you.
+The crowd presses right up to the edge of the chalk. The guard has to hold his staff out across them to keep them off you.
 "Why's he got a guard? What's it done now?" #speaker:crowd_someone #name:Someone in the crowd
 "I heard it went up to the archive. Up the trunk. Like it had business there." #speaker:crowd_someone_else
 "A blessing, for the weavers. A blessing, for the potters." #speaker:tender
 The tube goes dark. #flash:dark
 Your bird drops into the basin. #show:rejected-bird
-Nobody gasps this time. Nobody turns away. They just look at you, and then at the guard, as if they're waiting for him to do something.
+Nobody gasps this time. Nobody turns away. A low sound goes round the floor, like something growling.
 "Four." #speaker:zealot
+Someone starts counting, out loud, and the floor takes it up: "One. Two. Three. Four." #speaker:crowd
+A stone cracks against the guard's staff. It was meant for you. He doesn't even look round to see who threw it. #throw #shake
 "The carver's case will go before the elders." #speaker:tender
 A murmur goes round the floor. Nobody ever goes before the elders. Not from the roots.
 + [Hide it: lower your eyes]

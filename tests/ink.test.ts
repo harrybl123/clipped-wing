@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { Story } from 'inkjs';
 import { describe, expect, it } from 'vitest';
 import { compileInk } from '../scripts/ink.mjs';
@@ -494,5 +494,37 @@ describe('ink pipeline', () => {
     }
     expect(tags).toContain('ending:loyal');
     expect(story.variablesState['times_ignored']).toBe(1);
+  });
+
+  it('has no placeholder text left in the story', () => {
+    for (const file of readdirSync('story').filter((f) => f.endsWith('.ink'))) {
+      const lines = readFileSync(`story/${file}`, 'utf8').split('\n').filter((l) => !l.trim().startsWith('//'));
+      expect(lines.filter((l) => l.includes('PLACEHOLDER') || l.includes('TEST:')), file).toEqual([]);
+    }
+  });
+
+  it('has the market turn on you as the week goes on', () => {
+    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const say = (day: number) => {
+      for (let d = 2; d <= 7; d++) story.variablesState[`day${d}`] = d <= day ? 'wake' : '';
+      story.ChoosePathString('market_food_seller');
+      return story.ContinueMaximally();
+    };
+    const lines = [1, 3, 4, 5, 6].map(say);
+    expect(new Set(lines).size).toBe(lines.length);
+    expect(lines[0]).toContain('Root stew');
+    expect(lines[4]).toContain('nerve');
+  });
+
+  it('says how the bird turned out from the slips while carving', () => {
+    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const verdict = (flaws: number) => {
+      story.variablesState['carve_flaws'] = flaws;
+      story.ChoosePathString('day3_rite');
+      return story.ContinueMaximally();
+    };
+    expect(verdict(0)).toContain('surprise');
+    expect(verdict(3)).toContain('Careless');
+    expect(verdict(7)).toContain('state of it');
   });
 });

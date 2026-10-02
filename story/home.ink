@@ -1,6 +1,6 @@
 // ============================================================================
-// TEMPORARY PLACEHOLDER — interactions in the protagonist's home.
-// One knot per interactable in src/data/areas/home.ts. All text is placeholder.
+// Interactions in the protagonist's home: one knot per interactable or person in src/data/areas/home.ts.
+// Day-specific scenes divert to the day files; the rest is draft text for the designer to rewrite.
 // ============================================================================
 
 === home_mum ===
@@ -31,7 +31,7 @@
 - day7 == "open" && house_guarded: -> day7_mum_night
 - day5 != "" && day5 != "upper" && day5 != "evening" && day5 != "done": -> day2_mum_asleep
 }
-[PLACEHOLDER] "Get some rest, love." #speaker:mum
+"Get some rest, love." #speaker:mum
 -> END
 
 === home_hearth ===
@@ -41,19 +41,17 @@
 { day5 == "open" && mum_in_bed: -> day5_open_bird }
 { day6 == "open" && mum_in_bed: -> day6_open_bird }
 { day7 == "open" && house_guarded: -> day7_open_bird }
-[PLACEHOLDER] The hearth. The fire is low.
+The hearth. The fire is low.
 -> END
 
 === home_food_store ===
-[PLACEHOLDER] The food store. {food_store} jars left.
-+ {food_store > 0} [TEST: take a jar (food -1)]
-    ~ food_store -= 1
-    [PLACEHOLDER] You take a jar. {food_store} left.
-+ {food_store < 16} [TEST: put a jar back (food +1)]
-    ~ food_store += 1
-    [PLACEHOLDER] You put a jar back. {food_store} now.
-+ [Leave it]
-- -> END
+{
+- food_store <= 0: The food store. Empty. Not a crumb.
+- food_store == 1: The food store. One jar left.
+- food_store <= 3: The food store. {food_store} jars left. Mum's been counting them.
+- else: The food store. {food_store} jars.
+}
+-> END
 
 === home_bed ===
 { day1 == "bed": -> day1_sleep }
@@ -62,7 +60,7 @@
 { day4 == "bed": -> day4_sleep }
 { day5 == "bed": -> day5_sleep }
 { day6 == "bed": -> day6_sleep }
-[PLACEHOLDER] Your bed. Not yet.
+Your bed. Not yet.
 -> END
 
 === home_bench ===
@@ -73,20 +71,20 @@
 { day5 == "wake" || day5 == "carve": -> day5_bench }
 { day6 == "wake" || day6 == "carve": -> day6_bench }
 { house_guarded && (day7 == "wake" || day7 == "carve"): -> day7_bench }
-[PLACEHOLDER] Your carving bench. A bird is half finished.
+Your carving bench. Shavings, and the knife, and Mum's old tools hung in a row.
 -> END
 
 === home_hiding_spot ===
 { day2 == "hide": -> day2_hide_plate }
-[PLACEHOLDER] A loose board. Something could be hidden under here.
+A loose board. Something could be hidden under here.
 -> END
 
 === home_seat ===
-[PLACEHOLDER] The old root seat by the candle. The cosiest spot in the house.
+The old root seat by the candle. Mum's spot. It's held the shape of her for years.
 -> END
 
 === home_kitchen ===
-[PLACEHOLDER] The kitchen corner. Chopped roots on the board.
+The kitchen corner. Chopped roots on the board{today() >= 5:, fewer every day}.
 -> END
 
 // Day 4: the Tender's summons, pushed under the door (src/data/areas/home.ts).
