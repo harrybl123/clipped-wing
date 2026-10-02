@@ -176,7 +176,7 @@ export class DialogueBox {
     if (voice) return { voices: [VOICES[voice]], muffled: false };
     const name = tags.find((t) => t.startsWith('name:'))?.slice('name:'.length).trim();
     const faceless = name ? FACELESS_VOICES[name] : undefined;
-    return faceless ? { voices: [VOICES[faceless]], muffled: name !== 'Mum' } : { voices: [], muffled: false };
+    return faceless ? { voices: [VOICES[faceless]], muffled: name === 'A voice' || name === 'Your friend' } : { voices: [], muffled: false };
   }
 
   get isTyping(): boolean {

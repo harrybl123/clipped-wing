@@ -133,7 +133,7 @@ Later, the crowds drift home. Your friend will be waiting on the climb. #time:ni
 
 === day1_friend_on_climb ===
 "You came! I've been here ages." #speaker:friend
-"The lights start soon. Come on, race you to the top!" #speaker:friend
+"The lights start soon. Come on, race you to the top!" #speaker:friend #hop:friend-on-climb:170:484:250:444:330:400:275:362:170:322:80:282:165:240:260:200:175:160:250:118:300:118
 ~ met_friend_climb = true
 -> END
 

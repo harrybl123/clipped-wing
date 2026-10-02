@@ -128,4 +128,4 @@ export function typeLine(text: string, voice?: Pick<Voice, 'every' | 'speed'>, s
 }
 
 /** Which voice a line is spoken in: the speaker's, or for a faceless `#name:` voice, the voice it belongs to. */
-export const FACELESS_VOICES: Record<string, VoiceId> = { Mum: 'mum', 'A voice': 'preacher', 'Your friend': 'friend' };
+export const FACELESS_VOICES: Record<string, VoiceId> = { Mum: 'mum', You: 'you', 'A voice': 'preacher', 'Your friend': 'friend' };

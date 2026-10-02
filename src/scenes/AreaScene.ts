@@ -44,6 +44,8 @@ interface PersonEntry {
   gone: boolean;
   /** A follower mid-hop to catch up with you. */
   hopping?: boolean;
+  /** Jumping along a route set by `#hop:` (shown until they land, whatever the story says). */
+  racing?: boolean;
 }
 
 /** A small carving shown up close for a moment during a scripted scene (#inset:<id>). */
@@ -1142,6 +1144,7 @@ export class AreaScene extends Phaser.Scene {
   private isPresent(entry: PersonEntry): boolean {
     const { person } = entry;
     const { calendar, story } = getSession(this);
+    if (entry.racing) return true;
     if (entry.scriptHidden || entry.gone) return false;
     if (person.when && !person.when.includes(calendar.slot)) return false;
     if (person.showIf && !story.getVariable(person.showIf)) return false;
@@ -1289,6 +1292,11 @@ export class AreaScene extends Phaser.Scene {
             this.tweens.add({ targets: entry.image, x, y, duration });
           }
           break;
+        case 'hop':
+          // #hop:<id>:<x>:<y>[:<x>:<y>...]: they jump from point to point (ledge to ledge), then the scene
+          // settles (so if the story has hidden them meanwhile, they go once they land).
+          if (entry) this.hopAlong(entry, args.slice(1).map(Number));
+          break;
         case 'flash': {
           // dark: the light goes out for a moment and slowly comes back.
           const [r, g, b] = args[0] === 'cyan' ? [174, 246, 247] : args[0] === 'dark' ? [0, 0, 0] : [244, 241, 232];
@@ -1380,6 +1388,32 @@ export class AreaScene extends Phaser.Scene {
         }
       }
     }
+  }
+
+  /** Jumps someone through a list of points (x, y pairs), one arc each, then refreshes who's present. */
+  private hopAlong(entry: PersonEntry, coords: number[]): void {
+    const points: { x: number; y: number }[] = [];
+    for (let i = 0; i + 1 < coords.length; i += 2) points.push({ x: coords[i]!, y: coords[i + 1]! });
+    entry.racing = true;
+    entry.image.setVisible(true);
+    const next = (i: number) => {
+      const to = points[i];
+      if (!to) {
+        entry.racing = false;
+        this.refreshPeople();
+        return;
+      }
+      const from = { x: entry.image.x, y: entry.image.y };
+      const height = 14 + Math.max(0, from.y - to.y) * 0.5;
+      entry.image.setFlipX(to.x < from.x);
+      const arc = { t: 0 };
+      this.tweens.add({
+        targets: arc, t: 1, duration: 380 + Math.abs(to.x - from.x) * 1.5,
+        onUpdate: () => entry.image.setPosition(Phaser.Math.Linear(from.x, to.x, arc.t), Phaser.Math.Linear(from.y, to.y, arc.t) - Math.sin(Math.PI * arc.t) * height),
+        onComplete: () => this.time.delayedCall(120, () => next(i + 1)),
+      });
+    };
+    next(0);
   }
 
   private showInset(id: string): void {
