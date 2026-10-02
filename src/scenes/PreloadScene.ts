@@ -84,7 +84,12 @@ export class PreloadScene extends Phaser.Scene {
       set({ day6: 'wake', objective: 'Answer Grounded', objective_target: 'home:bench', glossary_seed: 'seed' });
       session.dayStarts[6] = { ink: story.saveState(), calendar: calendar.toJSON() };
     }
-    if (day === 3 && at === 'night') {
+    if (day === 2 && at === 'night') {
+      // Night 2 at home after the rejection: the bird by the hearth, Mum gone to bed (message 1, the first choice).
+      calendar.advanceTo('night');
+      set({ day2: 'burn', reply1: '', mum_in_bed: true, objective: 'Burn the bird', objective_target: 'home:hearth' });
+      this.scene.start('Area', { areaId: 'home', start: { x: 120, y: 236 } });
+    } else if (day === 3 && at === 'night') {
       // Night 3 at home, the bird by the hearth (with &reply=usual: the second, stern choice; the loyal ending).
       calendar.advanceTo('night');
       set({ day3: 'open', mum_in_bed: true, objective: 'Open the bird', objective_target: 'home:hearth' });
@@ -114,7 +119,7 @@ export class PreloadScene extends Phaser.Scene {
       calendar.advanceTo('night');
       set({ day5: 'grove', reply3: 'who', told_archivist: true, archivist_trust: 3, mum_in_bed: true, in_grove: true, grove_sneak: true, objective: 'Get to the seed vault without being seen', objective_target: 'seed-grove:seed-vault' });
       this.scene.start('Area', { areaId: 'seed-grove', start: { x: 156, y: 236 }, script: 'day5_grove_arrive' });
-    } else if (day < 7 && !(day === 3 && at === 'night')) this.scene.start('Area', { areaId: 'home', start: { x: 50, y: 150 }, card: `Day ${day}` });
+    } else if (day < 7 && !((day === 2 || day === 3) && at === 'night')) this.scene.start('Area', { areaId: 'home', start: { x: 50, y: 150 }, card: `Day ${day}` });
   }
 
   /** Dev only: Day 7, in custody (you saved the girl) or at home under guard (you blamed her), optionally jumping ahead. */
