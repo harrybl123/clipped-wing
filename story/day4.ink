@@ -223,14 +223,14 @@ You hold out the bird. He takes it with the cloth, like yesterday, and weighs it
 }
 Then he stops.
 "Lighter than your usual." #speaker:tender
-A long moment. The lamp hums. You don't breathe. #dim:on
+A long moment. The lamp hums. You don't breathe. #sound:heartbeat
 + [Hide it: "I carved it smaller. Humbler."]
     "I carved it smaller. To be humble." #speaker:you
 + [Joke about it: "Someone told me I was heavy-handed."]
     "Someone told me I was heavy-handed." #speaker:you
 + [Say nothing]
     You say nothing.
-- He lays it in a basket on the desk, alone, and covers it with the cloth. #dim:off
+- He lays it in a basket on the desk, alone, and covers it with the cloth.
 The exchange is holy. Nobody opens an offering. Not even him.
 "Go on. And be on that floor this evening." #speaker:tender
 ~ tender_waiting = false
