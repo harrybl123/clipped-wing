@@ -196,7 +196,7 @@ describe('ink pipeline', () => {
     expect(v['objective_target']).toBe('tenders-shrine:tender-summons');
     expect(v['mum_away']).toBe(true);
     // Two wrong answers and he asks to see your hands.
-    expect(play('shrine_tender_summons', 2, 2, 2, 2, 1, 2, 2)).toEqual(expect.arrayContaining(['dim:on', 'time:afternoon']));
+    expect(play('shrine_tender_summons', 2, 2, 2, 2, 1, 2, 2)).toEqual(expect.arrayContaining(['sound:heartbeat', 'time:afternoon']));
     expect(v['showed_hands']).toBe(true);
     expect(v['objective_target']).toBe('roots-market:mum-market');
     expect(play('market_mum', 0)).toEqual(expect.arrayContaining(['show:zealot-market', 'fight:day4_fight:day4_after_fight']));
