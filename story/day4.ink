@@ -579,18 +579,20 @@ The roots down here are soft and black, slick with something that sticks to your
 ~ rot_creatures_done = true
 The tunnel widens. The green is brighter here, pooled in the hollows.
 Something in it moves.
-A shape lifts out of the slime: a beetle, big as a dog, its shell black and veined with glowing green.
+A shape lifts out of the slime: a beetle, big as a dog, its shell black and veined with glowing green. #shake
 Then another beside it. Then a third.
-Neither of you says anything. You can't.
-The girl's hand finds your sleeve and grips it.
+Neither of you says anything. You can't. Your heart is going so hard you can feel it in your teeth. #sound:heartbeat
+The girl's hand finds your sleeve and grips it, hard enough to hurt.
 "Those aren't..." #speaker:girl
 She doesn't finish. Her mouth stays open.
 "What are they?" #speaker:you
 "They're beetles. They were beetles." #speaker:girl
+"Oh, Tree. Oh, Tree, they're looking at us." #speaker:girl
 Their legs click on the wet wood, all together. They turn, slowly, towards the two of you.
-"Right. No way round, and I'm not turning my back on those." #speaker:girl
-She pulls a sliver of pale bone from her belt. Her hand's shaking. So is yours.
-"Stay close." #speaker:girl #combat:rot_beetles:day4_rot_after_beetles
+You take a step back. Your heel finds nothing but slime. The ladder is a long way behind you.
+"Right. Right. No way round, and I am not turning my back on those." #speaker:girl
+She fumbles a sliver of pale bone from her belt and nearly drops it. Her hand's shaking. So is yours.
+"Stay close. Please." #speaker:girl #combat:rot_beetles:day4_rot_after_beetles
 -> END
 
 === day4_rot_after_beetles ===
