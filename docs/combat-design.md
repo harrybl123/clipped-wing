@@ -118,7 +118,7 @@ The card waits 450 ms before it can be dismissed, so a press meant for something
 
 **(Designer.)** Past the pits in the rot under the girl's house, you and the girl meet **three rot beetles**: the first fight with a friend beside you, and the first against several enemies. `ENCOUNTERS.rot_beetles`; the story is `day4_rot_creatures` (before) and `day4_rot_after_beetles` (after; draft text). A `trigger` in `theRot.ts` plays it once. It writes `rot_beetles_won`: winning gives `girl_trust` +1; losing is no worse than being dragged along by her collar, and the story carries on.
 
-**It teaches itself** (the encounter's `teaches` lists what's new): *allies* (you fight alongside friends, each with their own abilities), *lure* (on her first turn), *targets*, *shell*, *weakened*, plus off balance and the wind-up. The market scrap keeps its own list.
+**It teaches only one thing** (designer: not too hand-holdy): you fight alongside friends, each with their own abilities (`teaches: ['allies']`). Everything else was taught at the market, and her skills explain themselves in the Skill list.
 
 **The girl** has her own skillset on the same mechanics (30 HP, 10 SP, fast, slighter, dodges):
 
@@ -133,7 +133,13 @@ The engine gained `taunts` (Lure) and `exposes` (Rot-ink; `weakened` events), bo
 
 **The beetles** (26 HP each, speed 8): the shell *resists* strikes, but they're *weak* to pierce (Flick) and shove (yours); poise 2. Moves: Pincer (Bar/Key), Scuttle (two blows: Weave/Key), Rear up then Slam (Draw/Bar; Guard or Shove it before it lands). Their tells never lie. A 200-fight test checks a good player nearly always wins, an average one usually does, and a careless one fares worse.
 
-**Staging:** two party members stand side by side (the girl is drawn from behind like you, in `battleSprites.ts`, with the green strand); the enemies shift right to make room; the command menu names whose turn it is. Dev: `?scene=combat&encounter=rot_beetles`; the gallery shows the girl's and the beetle's poses.
+**Staging** (designer: each character needs their own space; a different background; separate health bars):
+- **Its own stage** (`stage: 'rot'`): a grim cave of rotten wood, lumpy brown muck underfoot with dark cracks and fallen roots, roots hanging from the arch, and the green only in the glowing pools and far off down the hollow.
+- **Space for each:** you and the girl stand apart on the left (the girl is drawn from behind like you, with the green strand), the enemies further right.
+- **Turn framing:** on each one's turn the camera leans over their shoulder towards the enemies, and the other falls into shadow.
+- **A panel under each** party member (name, HP and SP bars), following the camera; whose turn it is is raised with a white edge. This replaces the stacked panel in the corner, for the market too.
+
+Dev: `?scene=combat&encounter=rot_beetles`; the gallery shows the girl's and the beetle's poses.
 
 ## Staging
 

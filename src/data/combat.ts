@@ -184,7 +184,7 @@ COMBATANTS.lackey = {
   ai: { maxRepeat: 2, when: { hurt: { jeer: 0 } } },
 };
 
-export type Lesson = 'turns' | 'tells' | 'react' | 'offBalance' | 'windUp' | 'allies' | 'lure' | 'targets' | 'shell' | 'weakened';
+export type Lesson = 'turns' | 'tells' | 'react' | 'offBalance' | 'windUp' | 'allies';
 
 /**
  * The first fights teach themselves (designer: the scene is the tutorial). Each shows once, the first time
@@ -197,11 +197,7 @@ export const LESSONS: Record<Lesson, string> = {
   react: 'When an enemy attacks, follow the prompt on screen in time to dodge. Miss it and you take the full hit.',
   offBalance: 'That enemy is off balance. Hit it again before it recovers to knock it down and get an extra turn.',
   windUp: 'An enemy is charging a heavy attack. Guard to take less of it, or Shove it before it lands to stop it.',
-  allies: 'You\u2019ll fight alongside friends. Each of them takes their own turn, and each has abilities of their own: open Skill to see them.',
-  lure: 'Her ability is Lure. It draws every enemy that hasn\u2019t acted yet onto her this round, and she braces for the hits. Use it to protect someone who is hurt.',
-  targets: 'With more than one enemy, Left and Right choose which one you go for, and E confirms.',
-  shell: 'Its shell resists ordinary hits. Shove and Flick are its weak points: they knock it off balance.',
-  weakened: 'That enemy is weakened. It takes more harm from every hit for a few rounds.',
+  allies: 'You\u2019ll fight alongside friends, each with their own abilities.',
 };
 
 export const ENCOUNTERS: Record<string, EncounterDef> = {
@@ -227,7 +223,7 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
   },
   /**
    * Day 4 night, the deep rot: strange beetles, and the girl at your side (designer: three beetles against
-   * the two of you). Teaches fighting alongside friends: each has their own abilities (hers is Lure).
+   * the two of you). Teaches only that you fight alongside friends, each with their own abilities.
    * Writes `rot_beetles_won`; the story takes it from there.
    */
   rot_beetles: {
@@ -235,8 +231,10 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
     name: 'The deep rot',
     party: ['carver', 'girl'],
     enemies: ['beetle', 'beetle', 'beetle'],
+    stage: 'rot',
     timing: { lunge: 1000, ease: 1.3 },
-    teaches: ['allies', 'lure', 'targets', 'shell', 'weakened', 'offBalance', 'windUp'],
+    // (Designer: not too hand-holdy; the rest was taught at the market.)
+    teaches: ['allies'],
     outcomes: {
       won: { rot_beetles_won: true },
       lost: { rot_beetles_won: false },

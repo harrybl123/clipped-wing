@@ -154,8 +154,8 @@ export class CombatScene extends Phaser.Scene {
     uiCam.ignore(this.world);
     this.cameras.main.ignore(this.ui);
     this.cameras.main.setBounds(0, 0, W, H);
-    makePaintedTexture(this, 'combat-stage', W, H, paintStage());
-    this.w(this.add.image(0, 0, 'combat-stage').setOrigin(0));
+    const stage = this.add.image(0, 0, PIXEL).setOrigin(0);
+    this.w(stage);
     this.input.keyboard!.on('keydown', (e: KeyboardEvent) => this.onKey(e, true));
     this.input.keyboard!.on('keyup', (e: KeyboardEvent) => this.onKey(e, false));
     // Left click chooses; right click goes back.
@@ -173,12 +173,16 @@ export class CombatScene extends Phaser.Scene {
       ? Object.fromEntries(Object.entries(COMBATANTS).map(([id, c]) => [id, encounter.enemies.includes(id) ? { ...c, moves: [only], weights: [1], ai: {} } : c]))
       : COMBATANTS;
     this.battle = new Battle(encounter, MOVES, fighters, ITEMS);
+    // The stage: where it's fought.
+    const where = encounter.stage ?? 'market';
+    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : paintStage());
+    stage.setTexture(`combat-stage-${where}`);
     const party = this.battle.combatants.filter((c) => c.side === 'party');
     const enemies = this.battle.combatants.filter((c) => c.side === 'enemy');
-    party.forEach((c, i) => this.addView(c, 108 + i * 100, H + 8));
-    // Spread across the stage, with room for each one's panel.
-    this.enemyX = party.length > 1 ? 296 : 270;
-    const span = Math.min(220, 100 * (enemies.length - 1));
+    // Each has their own space: with friends, you stand side by side on the left, the enemies further right.
+    party.forEach((c, i) => this.addView(c, party.length > 1 ? 72 + i * 124 : 118, H + 8));
+    this.enemyX = party.length > 1 ? 330 : 270;
+    const span = this.spanFor(enemies.length);
     this.slot = enemies.length > 1 ? span / (enemies.length - 1) : 170;
     enemies.forEach((c, i) => this.addView(c, enemies.length > 1 ? this.enemyX - span / 2 + (i * span) / (enemies.length - 1) : this.enemyX, FLOOR));
 
@@ -246,11 +250,10 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private async partyTurn(actor: Combatant): Promise<void> {
-    // Pull out for the menu; your guard drops as your turn comes round.
+    // Pull out for the menu (on whoever's turn it is, with friends); your guard drops as your turn comes round.
     this.setPose(this.views.get(actor.id)!, 'idle');
-    await this.frame(WIDE, 350);
+    await this.frame(this.turnFrame(actor), 350);
     await this.teach('allies');
-    if (actor.id === 'girl') await this.teach('lure');
     await this.teach('turns');
     await this.teach('tells');
     if (this.battle.living('enemy').some((e) => this.windingUp(e))) await this.teach('windUp');
@@ -352,7 +355,6 @@ export class CombatScene extends Phaser.Scene {
   private async chooseTarget(): Promise<string | undefined | null> {
     const foes = this.battle.living('enemy');
     if (foes.length === 1) return undefined;
-    await this.teach('targets');
     return new Promise((resolve) => (this.targeting = { foes: foes.map((f) => f.id), index: 0, resolve }));
   }
 
@@ -366,6 +368,7 @@ export class CombatScene extends Phaser.Scene {
       await this.play(this.battle.enemyTurn());
       return;
     }
+    for (const v of this.views.values()) if (v.c.side === 'party') v.sprite.setTint(0xffffff);
     const move = MOVES[intent.move]!;
     const target = this.battle.get(intent.target).hp > 0 ? intent.target : this.battle.living('party')[0]!.id;
     // Push in on him as he moves.
@@ -617,7 +620,6 @@ export class CombatScene extends Phaser.Scene {
           const t = this.views.get(e.target)!;
           playSound(this, 'shimmer', 0.6);
           this.popLabel('WEAKENED', t, SHADES.green, 18);
-          await this.teach('weakened');
           break;
         }
         case 'interrupt': {
@@ -635,7 +637,6 @@ export class CombatScene extends Phaser.Scene {
         }
         case 'damage':
           await this.hurt(e, this.quiet);
-          if ((e.resisted || e.weak) && this.views.get(e.target)?.c.side === 'enemy') await this.teach('shell');
           break;
         case 'knockdown': {
           const t = this.views.get(e.target)!;
@@ -774,10 +775,16 @@ export class CombatScene extends Phaser.Scene {
     t.sprite.setVisible(false);
   }
 
+  /** How wide the enemies spread: less room beside a party of two. */
+  private spanFor(n: number): number {
+    const room = this.battle.combatants.filter((c) => c.side === 'party').length > 1 ? 170 : 220;
+    return Math.min(room, 100 * (n - 1));
+  }
+
   /** Those still standing spread out again across the stage (and their panels with them). */
   private respace(): void {
     const foes = this.battle.living('enemy').map((c) => this.views.get(c.id)!);
-    const span = Math.min(220, 100 * (foes.length - 1));
+    const span = this.spanFor(foes.length);
     this.slot = foes.length > 1 ? span / (foes.length - 1) : 170;
     foes.forEach((v, i) => {
       const x = foes.length > 1 ? this.enemyX - span / 2 + (i * span) / (foes.length - 1) : this.enemyX;
@@ -842,6 +849,18 @@ export class CombatScene extends Phaser.Scene {
     await this.wait(900);
     for (const cam of this.cameras.cameras) cam.fadeOut(600, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Area', this.params.back));
+  }
+
+  /**
+   * Whose turn it is, framed: alone, the whole stage; with friends, the camera leans over the shoulder of
+   * the one choosing, towards the enemies, and the others fall back into shadow.
+   */
+  private turnFrame(actor: Combatant): { x: number; y: number; zoom: number } {
+    const party = [...this.views.values()].filter((v) => v.c.side === 'party');
+    for (const v of party) v.sprite.setTint(v.c.id === actor.id || party.length === 1 ? 0xffffff : 0x6a6a6a);
+    if (party.length === 1) return WIDE;
+    const me = this.views.get(actor.id)!;
+    return { x: Math.round((me.home.x + this.enemyX) / 2 + 12), y: 146, zoom: 1.14 };
   }
 
   /** His next blow is the big one he wound up for. */
@@ -1170,31 +1189,38 @@ export class CombatScene extends Phaser.Scene {
     this.drawHud();
   }
 
-  /** The party's panel, bottom right: name, health and SP, as slanted bars. */
+  /**
+   * Each party member's own panel, under them (it follows the camera sideways): name, health and SP, and
+   * whose turn it is (raised, with a bright edge).
+   */
   private drawHud(): void {
     const g = this.hud.clear();
     const party = [...this.views.values()].filter((v) => v.c.side === 'party');
     while (this.hudTexts.length < party.length * 2) this.hudTexts.push(this.u(new PixelText(this, 0, 0, '', { color: SHADES.white })));
+    const width = 100;
+    const current = this.battle.current?.id;
     party.forEach((v, i) => {
-      const x = 330 - i * 8;
-      const y = H - 42 - i * 34;
-      const pts = [[x + 8, y], [W, y], [W, y + 34], [x, y + 34]].map(([a, b]) => new Phaser.Math.Vector2(a!, b!));
+      const on = party.length > 1 && v.c.id === current;
+      const sx = this.toScreen(v.home.x, 0).x;
+      const x = Math.round(Phaser.Math.Clamp(sx - width / 2, 4, W - width - 4));
+      const y = H - 32 - (on ? 3 : 0);
+      const pts = [[x + 6, y], [x + width, y], [x + width - 6, y + 29], [x, y + 29]].map(([a, b]) => new Phaser.Math.Vector2(a!, b!));
       g.fillStyle(SHADES.shadow, 0.94).fillPoints(pts, true);
-      g.lineStyle(1, SHADES.woodPale).strokePoints(pts, true);
-      g.fillStyle(SHADES.red).fillRect(x + 6, y + 1, 3, 33);
+      g.lineStyle(1, on ? SHADES.white : SHADES.woodPale).strokePoints(pts, true);
+      g.fillStyle(SHADES.red).fillRect(x + 5, y + 1, 2, 28);
       const [name, nums] = [this.hudTexts[i * 2]!, this.hudTexts[i * 2 + 1]!];
-      name.setText(v.c.def.name).setPosition(x + 16, y + 4);
+      name.setText(v.c.def.name).setPosition(x + 12, y + 3).setColor(on || party.length === 1 ? SHADES.white : SHADES.light);
       const hp = Math.round(v.shown.hp);
-      nums.setText(`HP ${hp}   SP ${Math.round(v.shown.sp)}`).setPosition(x + 16, y + 13).setColor(hp <= v.c.def.hp / 4 ? SHADES.amber : SHADES.light);
-      const bw = W - x - 26;
+      nums.setText(`HP ${hp}  SP ${Math.round(v.shown.sp)}`).setPosition(x + 12, y + 12).setColor(hp <= v.c.def.hp / 4 ? SHADES.amber : SHADES.light);
+      const bw = width - 24;
       const bar = (by: number, value: number, lag: number, max: number, colour: number) => {
-        g.fillStyle(SHADES.deep).fillRect(x + 15, by - 1, bw + 2, 5);
-        g.fillStyle(SHADES.woodLight).fillRect(x + 16, by, bw, 3);
-        g.fillStyle(SHADES.amber).fillRect(x + 16, by, Math.round((bw * lag) / Math.max(1, max)), 3);
-        g.fillStyle(colour).fillRect(x + 16, by, Math.round((bw * value) / Math.max(1, max)), 3);
+        g.fillStyle(SHADES.deep).fillRect(x + 11, by - 1, bw + 2, 4);
+        g.fillStyle(SHADES.woodLight).fillRect(x + 12, by, bw, 2);
+        g.fillStyle(SHADES.amber).fillRect(x + 12, by, Math.round((bw * lag) / Math.max(1, max)), 2);
+        g.fillStyle(colour).fillRect(x + 12, by, Math.round((bw * value) / Math.max(1, max)), 2);
       };
-      bar(y + 23, v.shown.hp, v.shown.lag, v.c.def.hp, SHADES.green);
-      bar(y + 28, v.shown.sp, v.shown.sp, v.c.def.sp ?? 0, SHADES.cyan);
+      bar(y + 21, v.shown.hp, v.shown.lag, v.c.def.hp, SHADES.green);
+      bar(y + 25, v.shown.sp, v.shown.sp, v.c.def.sp ?? 0, SHADES.cyan);
     });
   }
 
@@ -1418,4 +1444,87 @@ function tellPose(intent: Intent): string {
   const pose = intent.tell?.pose ?? 'idle';
   if (pose === 'cock') return intent.side === 'right' ? 'cockR' : 'cockL';
   return pose;
+}
+
+/**
+ * The deep rot (Day 4 night): a low hollow of dying roots seen down its length. Black, slick wood arching
+ * overhead with roots hanging down, the hollow running on into a green glow far off, pools of glowing rot
+ * in the floor, slime gleaming on the wet wood, and a pale green light where the beetles stand. No red.
+ */
+function paintRotStage() {
+  const wood = rgb(SHADES.deep);
+  const mud = rgb(SHADES.wood);
+  const green = rgb(SHADES.green);
+  const greenMid = rgb(SHADES.greenMid);
+  const vx = 300;
+  const POOLS: [number, number, number][] = [[210, 226, 26], [420, 208, 20], [60, 250, 34], [330, 250, 18]];
+  return (x: number, y: number) => {
+    // The arch of the hollow: everything outside it is packed, black wood with a faint grain.
+    const archTop = 30 + ((x - vx) / 260) ** 2 * 90;
+    const glowFar = falloff(x, y, vx, 92, 30, 18) * 0.6;
+    if (y < archTop) {
+      const grain = noise(x / 3 + y / 24) > 0.7;
+      // Roots hanging down from the roof, catching the green.
+      const root = Math.floor(x / 13);
+      const len = 14 + noise(root * 4.1) * 40;
+      const rx = root * 13 + 6 + Math.round(Math.sin(y / 9 + root) * 2);
+      if (noise(root * 1.7) > 0.45 && Math.abs(x - rx) < 1.6 && y > archTop - 6 && y < archTop + len) return x > rx ? SHADES.woodLight : SHADES.shadow;
+      return grain ? SHADES.deep : SHADES.shadow;
+    }
+    // Roots hanging into the hollow.
+    const root = Math.floor(x / 13);
+    const len = 14 + noise(root * 4.1) * 40;
+    const rx = root * 13 + 6 + Math.round(Math.sin(y / 9 + root) * 2);
+    if (noise(root * 1.7) > 0.45 && Math.abs(x - rx) < 1.6 && y < archTop + len) return x > rx ? SHADES.woodLight : SHADES.shadow;
+    if (y >= HORIZON) {
+      // Pools of glowing rot sunk in the floor, bright at the middle.
+      for (const [px, py, r] of POOLS) {
+        const dx = (x - px) / r;
+        const dy = (y - py) / (r * 0.32);
+        const d = dx * dx + dy * dy;
+        if (d <= 1) return d < 0.25 ? SHADES.white : d < 0.55 ? SHADES.green : SHADES.greenMid;
+        if (d <= 1.35) return SHADES.greenDeep;
+      }
+      // The cave floor: lumps of rotten wood and muck, bigger nearer, with dark cracks between them, slime
+      // gleaming on the tops, and fallen roots lying across it at odd angles. Nothing straight.
+      const depth = (y - HORIZON) / (H - HORIZON);
+      const scale = 5 + depth * 14;
+      const lump = (ax: number, ay: number) => noise2(ax / scale, ay / (scale * 0.45));
+      const here = lump(x, y);
+      const above = lump(x, y - 2);
+      let glow = falloff(x, y, vx + 30, FLOOR, 90, 24) * 0.15;
+      for (const [px, py, r] of POOLS) glow += falloff(x, y, px, py, r * 1.6, r * 0.6) * 0.4;
+      // Roots lying across the floor.
+      for (const [x0, y0, x1, y1] of [[20, 196, 170, 182], [250, 262, 470, 236], [360, 150, 470, 168], [120, 140, 200, 150]] as const) {
+        const t = Phaser.Math.Clamp(((x - x0) * (x1 - x0) + (y - y0) * (y1 - y0)) / ((x1 - x0) ** 2 + (y1 - y0) ** 2), 0, 1);
+        const d = Math.hypot(x - (x0 + (x1 - x0) * t), y - (y0 + (y1 - y0) * t) - Math.sin(t * 9) * 2);
+        const r = 1.5 + depth * 3;
+        if (d < r) return d < r * 0.45 && y < y0 + (y1 - y0) * t ? SHADES.woodLight : SHADES.shadow;
+      }
+      if (here < 0.3) return SHADES.shadow; // a crack, or a hollow full of dark water
+      // Brown muck and rotten wood, lit green only near the pools.
+      const base = addLight(addLight(wood, mud, (here - 0.3) * 0.7), green, Math.min(0.6, glow));
+      // The top of a lump is wet: a dull sheen, green only by a pool.
+      if (here - above > 0.1) return glow > 0.3 ? SHADES.greenDeep : addLight(base, rgb(SHADES.woodLight), 0.25);
+      return base;
+    }
+    // The walls and the far end: dark wood, with the hollow running on into a green glow.
+    let c = addLight(addLight(wood, mud, 0.35), greenMid, glowFar * 0.9 + falloff(x, y, vx, HORIZON, 110, 30) * 0.12);
+    c = addLight(c, green, glowFar * 0.4);
+    // Rot glowing in a few patches on the walls.
+    if (noise(Math.floor(x / 6) * 2.9 + Math.floor(y / 6) * 7.3) > 0.95 && y > archTop + 12) return SHADES.greenDeep;
+    // Slime running down the walls, in short streaks.
+    const streak = Math.floor(x / 4) + 0.5;
+    const from = archTop + noise(streak * 7.7) * 60;
+    if (noise(streak * 3.3) > 0.85 && y > from && y < from + 6 + noise(streak * 1.9) * 16) return SHADES.greenDeep;
+    return noise(x / 9 + y / 30) > 0.8 ? addLight(c, greenMid, 0.15) : c;
+  };
+}
+
+/** Smooth 2D value noise (0–1), from the 1D noise: lumpy shapes for the cave floor. */
+function noise2(x: number, y: number): number {
+  const yi = Math.floor(y);
+  const f = y - yi;
+  const k = f * f * (3 - 2 * f);
+  return noise(x + yi * 57.13) * (1 - k) + noise(x + (yi + 1) * 57.13) * k;
 }
