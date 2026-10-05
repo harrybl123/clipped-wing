@@ -33,6 +33,55 @@ export const MOVES: Record<string, MoveDef> = {
     description: 'Jab, slap, palm: press each arrow as it lands. All three throw him off balance.',
   },
 
+  // --- The girl (the deep rot). She isn't hampered like you: she can hit properly, but she's slighter. Her
+  // own skillset, with the same mechanics: a QTE on each, and one move that changes who gets hit (Lure). ---
+  clout: {
+    id: 'clout', name: 'Clout', target: 'enemy', power: 7, kind: 'strike', crit: 0.15,
+    qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    description: 'A proper punch.',
+  },
+  flick: {
+    id: 'flick', name: 'Flick', target: 'enemy', power: 8, kind: 'pierce', sp: 2, crit: 0.15, poses: ['slap'],
+    qte: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72], alt: { kind: 'key', time: 800, quick: 300 } },
+    description: 'Throws a shard of rot-bone. Cracks shells.',
+  },
+  lure: {
+    id: 'lure', name: 'Lure', target: 'self', sp: 1, taunts: true,
+    description: 'Draws every enemy that hasn’t acted onto her this round. She braces, taking half harm.',
+  },
+  rot_ink: {
+    id: 'rot_ink', name: 'Rot-ink', target: 'enemy', power: 3, kind: 'none', sp: 3, poses: ['grab'],
+    exposes: { turns: 3, mult: 1.5 },
+    qte: { kind: 'hold', time: 1000, zone: [0.65, 0.85], sweet: [0.72, 0.78], alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    description: 'Smears glowing fungus ink on one enemy. It takes 1.5× harm for 3 rounds.',
+  },
+
+  // --- The rot beetles (the deep rot): shelled, so ordinary hits do little. ---
+  pincer: {
+    id: 'pincer', name: 'Pincer', target: 'enemy', power: 8, kind: 'strike',
+    qte: { kind: 'bar', time: 1100, zone: [0.62, 0.82], sweet: [0.7, 0.74], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'squared', lines: ['It clicks its pincers.', 'It lowers its head.'] },
+    description: 'A snap of the pincers.',
+  },
+  scuttle: {
+    id: 'scuttle', name: 'Scuttle', target: 'enemy', power: 4, kind: 'strike', hits: 2,
+    qte: { kind: 'weave', time: 700, quick: 300, gap: 560, alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'cock', lines: ['It skitters sideways.', 'It shifts on its legs.'] },
+    description: 'Two quick rushes.',
+  },
+  rear: {
+    id: 'rear', name: 'Rear up', target: 'self', windsUp: 'slam',
+    tell: { pose: 'shift', lines: ['It rears up a little.', 'Its front legs lift.'] },
+    description: 'Rears up for a heavy slam.',
+  },
+  slam: {
+    id: 'slam', name: 'Slam', target: 'enemy', power: 15, kind: 'strike',
+    softened: { guard: 0.25, dodge: 0.1 },
+    qte: { kind: 'draw', time: 420, quick: 160, wait: [700, 1400], alt: { kind: 'bar', time: 1300, zone: [0.72, 0.86], sweet: [0.77, 0.81] } },
+    tell: { pose: 'windup', lines: ['It’s reared right back.'] },
+    description: 'It comes down with all its weight. Guard, or Shove it before it lands.',
+  },
+
   // --- The young zealot (the market scrap). ---
   // Each has a tell: the pose he takes as the round starts, and a vague line (PLACEHOLDER text). Swing and
   // flurry share a pose, so watch the line too. Each attack has its own kind of QTE to react with (a good
@@ -114,6 +163,20 @@ export const COMBATANTS: Record<string, CombatantDef> = {
   },
 };
 
+/** The girl from the lower roots, fighting beside you in the deep rot (draft numbers, to playtest). */
+COMBATANTS.girl = {
+  id: 'girl', name: 'The girl', sprite: 'girl', hp: 30, sp: 10, attack: 9, defence: 8, speed: 14,
+  basic: 'clout', moves: ['flick', 'lure', 'rot_ink'], reactions: ['dodge'],
+};
+
+/** A big beetle from the deep rot: its shell turns ordinary blows, but it's top-heavy and cracks. */
+COMBATANTS.beetle = {
+  id: 'beetle', name: 'Rot beetle', sprite: 'beetle', hp: 26, attack: 9, defence: 9, speed: 8,
+  moves: ['pincer', 'scuttle', 'rear'], weights: [3, 2, 1.2],
+  weak: ['pierce', 'shove'], resists: ['strike'], poise: 2, feint: 0,
+  ai: { maxRepeat: 2, recent: 0.5 },
+};
+
 /** A second, weaker young man, for trying fights with more than one enemy (a test, not in the story). */
 COMBATANTS.lackey = {
   id: 'lackey', name: 'His friend', sprite: 'lackey', hp: 26, attack: 8, defence: 8, speed: 9,
@@ -121,18 +184,24 @@ COMBATANTS.lackey = {
   ai: { maxRepeat: 2, when: { hurt: { jeer: 0 } } },
 };
 
-export type Lesson = 'turns' | 'tells' | 'react' | 'offBalance' | 'windUp';
+export type Lesson = 'turns' | 'tells' | 'react' | 'offBalance' | 'windUp' | 'allies' | 'lure' | 'targets' | 'shell' | 'weakened';
 
 /**
- * The market scrap teaches itself (designer: the scene is the tutorial). Each shows once, the first time
- * it comes up: plain explanations (designer), no flavour.
+ * The first fights teach themselves (designer: the scene is the tutorial). Each shows once, the first time
+ * it comes up: plain explanations (designer), no flavour. An encounter lists the ones it teaches
+ * (`teaches`), so a later fight only teaches what's new.
  */
 export const LESSONS: Record<Lesson, string> = {
   turns: 'Your turn. Up and Down to choose, E to confirm. Attack is your basic melee attack. Skills are stronger moves that cost SP. Guard halves the damage you take until your next turn.',
-  tells: 'His pose, and the line above his head, show what he\u2019s about to do.',
-  react: 'When he attacks, follow the prompt on screen in time to dodge. Miss it and you take the full hit.',
-  offBalance: 'He\u2019s off balance. Hit him again before he recovers to knock him down and get an extra turn.',
-  windUp: 'He\u2019s charging a heavy attack. Guard to take less of it, or Shove him before it lands to stop it.',
+  tells: 'An enemy\u2019s pose, and the line above its head, show what it\u2019s about to do.',
+  react: 'When an enemy attacks, follow the prompt on screen in time to dodge. Miss it and you take the full hit.',
+  offBalance: 'That enemy is off balance. Hit it again before it recovers to knock it down and get an extra turn.',
+  windUp: 'An enemy is charging a heavy attack. Guard to take less of it, or Shove it before it lands to stop it.',
+  allies: 'You\u2019ll fight alongside friends. Each of them takes their own turn, and each has abilities of their own: open Skill to see them.',
+  lure: 'Her ability is Lure. It draws every enemy that hasn\u2019t acted yet onto her this round, and she braces for the hits. Use it to protect someone who is hurt.',
+  targets: 'With more than one enemy, Left and Right choose which one you go for, and E confirms.',
+  shell: 'Its shell resists ordinary hits. Shove and Flick are its weak points: they knock it off balance.',
+  weakened: 'That enemy is weakened. It takes more harm from every hit for a few rounds.',
 };
 
 export const ENCOUNTERS: Record<string, EncounterDef> = {
@@ -150,10 +219,27 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
     // say. Later fights can close faster and narrower.
     timing: { lunge: 1000, ease: 1.3 },
     // The scene itself is the tutorial (designer): a line the first time each thing comes up.
-    teaches: true,
+    teaches: ['turns', 'tells', 'react', 'offBalance', 'windUp'],
     outcomes: {
       won: { fight_won: true },
       lost: { fight_won: false },
+    },
+  },
+  /**
+   * Day 4 night, the deep rot: strange beetles, and the girl at your side (designer: three beetles against
+   * the two of you). Teaches fighting alongside friends: each has their own abilities (hers is Lure).
+   * Writes `rot_beetles_won`; the story takes it from there.
+   */
+  rot_beetles: {
+    id: 'rot_beetles',
+    name: 'The deep rot',
+    party: ['carver', 'girl'],
+    enemies: ['beetle', 'beetle', 'beetle'],
+    timing: { lunge: 1000, ease: 1.3 },
+    teaches: ['allies', 'lure', 'targets', 'shell', 'weakened', 'offBalance', 'windUp'],
+    outcomes: {
+      won: { rot_beetles_won: true },
+      lost: { rot_beetles_won: false },
     },
   },
   /** A test fight (dev): the zealot and his friend, for targeting more than one enemy. Writes nothing. */

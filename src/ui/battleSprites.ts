@@ -84,7 +84,7 @@ export const CARVER_POSES: CarverPose[] = ['idle', 'breathe', 'ready', 'dodge', 
 const CARVER_W = 56;
 const CARVER_H = 62;
 
-function carverBack(pose: CarverPose): RowSprite {
+function carverBack(pose: CarverPose, who: 'carver' | 'girl' = 'carver'): RowSprite {
   const g = grid(CARVER_W, CARVER_H);
   const cx = 28;
   // How the upper body shifts and where the head sits, by pose.
@@ -94,8 +94,10 @@ function carverBack(pose: CarverPose): RowSprite {
   const headDy = { idle: 0, breathe: 0, ready: 1, dodge: 0, attack: -1, slap: 0, palm: 0, shove: 0, grab: 4, guard: 3, hit: -1 }[pose];
   const x = cx + shift;
   const top = 2 + bob;
-  const ls: Pt = [x - 18, top + 28];
-  const rs: Pt = [x + 18, top + 28];
+  // (The girl is slighter: narrower shoulders.)
+  const sw = who === 'girl' ? 14 : 18;
+  const ls: Pt = [x - sw, top + 28];
+  const rs: Pt = [x + sw, top + 28];
   // Arms: [left, right]; a hand last. Hands in front of you are hidden by your back.
   const arms: Record<CarverPose, [Pt[], Pt[]]> = {
     idle: [[ls, [x - 21, top + 42], [x - 21, top + 56]], [rs, [x + 21, top + 42], [x + 21, top + 56]]],
@@ -123,9 +125,9 @@ function carverBack(pose: CarverPose): RowSprite {
   };
   if (forward) drawArms();
   // The torso: broad shoulders close to the camera, cropped at the bottom; then the neck and head.
-  poly(g, [[x - 19, top + 25], [x + 19, top + 25], [x + 17, CARVER_H + 2], [x - 17, CARVER_H + 2]], 'b');
-  disc(g, x - 16, top + 29, 5, 5, 'b');
-  disc(g, x + 16, top + 29, 5, 5, 'b');
+  poly(g, [[x - sw - 1, top + 25], [x + sw + 1, top + 25], [x + sw - 1, CARVER_H + 2], [x - sw + 1, CARVER_H + 2]], 'b');
+  disc(g, x - sw + 2, top + 29, 5, 5, 'b');
+  disc(g, x + sw - 2, top + 29, 5, 5, 'b');
   poly(g, [[x - 4 + headDx / 2, top + 17 + headDy], [x + 4 + headDx / 2, top + 17 + headDy], [x + 5, top + 27], [x - 5, top + 27]], 'b');
   if (!forward) drawArms();
   const hx = x + headDx;
@@ -133,25 +135,40 @@ function carverBack(pose: CarverPose): RowSprite {
   disc(g, hx, hy, 8, 9.5, 'h');
   disc(g, hx - 8.5, hy + 2, 1.2, 2, 'h');
   disc(g, hx + 8.5, hy + 2, 1.2, 2, 'h');
+  // The girl's hair: a choppy dark mass over the back of her head, with tufts.
+  if (who === 'girl') {
+    disc(g, hx, hy - 1, 10, 10.5, 'H');
+    for (const [dx, dy, r] of [[-9, 6, 2.2], [9, 5, 2.4], [-5, 11, 2], [6, 11, 2.2], [0, 12, 1.8]] as [number, number, number][]) disc(g, hx + dx, hy + dy, r, r + 1, 'H');
+    light(g, 'H');
+  }
   light(g, 'b');
   light(g, 'a');
   light(g, 'h');
   // Hair: strands catching the light, and a few darker locks.
   for (let i = 0; i < 4; i++) put(g, hx + 2 + i, hy - 8 + i, '#');
   for (let i = 0; i < 3; i++) put(g, hx - 3 + i * 2, hy + 6, 'm');
+  if (who === 'girl') {
+    // The glowing green strand, and the fungus-ink tattoos on her forearms.
+    for (let i = 0; i < 16; i++) put(g, hx - 4 + Math.round(Math.sin(i / 3)), hy - 8 + i, 'G');
+    for (const arm of [left, right]) {
+      const [a, b] = [arm[1]!, arm[2]!];
+      for (let t = 0.2; t < 1; t += 0.28) put(g, a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, 'G');
+    }
+  }
   // The collar, and the line of your shoulder blades under the shirt.
   for (let i = -6; i <= 6; i++) put(g, x + i, top + 27 + (Math.abs(i) > 4 ? 1 : 0), 'e');
   for (const side of [-1, 1]) for (let i = 0; i < 6; i++) put(g, x + side * (8 + (i > 3 ? 1 : 0)), top + 33 + i, 'm');
   // Shirt folds across the back.
   for (const fy of [42, 50]) for (let i = -10; i <= 10; i += 3) put(g, x + i + (fy === 50 ? 1 : 0), top + fy + (Math.abs(i) > 7 ? 1 : 0), 'm');
   // The bandaged left hand (screen left, seen from behind), where it shows.
-  if (!forward) {
+  if (!forward && who === 'carver') {
     const hand = left[left.length - 1]!;
     disc(g, hand[0], hand[1], 2.4, 2.4, 'w');
     put(g, hand[0] - 1, hand[1] - 1, 'W');
     put(g, hand[0] + 1, hand[1] + 1, 'l');
   }
   // The red thread, knotted at the back of the neck, hanging down your back.
+  if (who === 'girl') return { rows: rows(g), colours: { ...FIGURE, H: SHADES.shadow, G: SHADES.green } };
   const knot: Pt = [x + headDx / 3, top + 22 + headDy / 2];
   disc(g, knot[0], knot[1], 1.4, 1.1, 'r');
   const sway = pose === 'dodge' || pose === 'palm' ? 3 : pose === 'hit' || pose === 'slap' ? -3 : pose === 'attack' ? -2 : 0;
@@ -160,6 +177,9 @@ function carverBack(pose: CarverPose): RowSprite {
 }
 
 export const CARVER_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, carverBack(p)])) as Record<CarverPose, RowSprite>;
+
+/** The girl, from behind like you: slighter, with a glowing green strand in her dark hair and fungus-ink tattoos. */
+export const GIRL_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, carverBack(p, 'girl')])) as Record<CarverPose, RowSprite>;
 
 // --- The young zealot, facing you ---
 // A young man like the one in the market (designer: a person, not a creature): bare-headed with short
@@ -345,3 +365,89 @@ export function recolour(s: RowSprite, swaps: Record<string, number>): RowSprite
 export const LACKEY_BATTLE: Record<FoePose, RowSprite> = Object.fromEntries(
   Object.entries(ZEALOT_BATTLE).map(([pose, s]) => [pose, recolour(s, { c: SHADES.amberDeep, C: SHADES.amber, S: SHADES.woodLight, s: SHADES.deep, K: SHADES.dim })]),
 ) as Record<FoePose, RowSprite>;
+
+// --- The rot beetle, facing you ---
+// A big beetle from the deep rot (draft look): a domed, dark shell with a seam down it and a few green
+// glowing patches of the fungus that has got into it, six jointed legs, a small head with two pale eyes and
+// a pair of mandibles. Its poses are the same names as the zealot's, so its tells and reactions use the
+// same machinery: rearing up for a wind-up, head down and mandibles wide when it squares up, leaning to a
+// side to scuttle, and on its back with its legs in the air when it's knocked down.
+
+const BEETLE_W = 80;
+const BEETLE_H = 56;
+
+interface BeetleShape {
+  /** Sideways lean of the whole body. */
+  dx: number;
+  /** How far the body is raised off the floor. */
+  lift: number;
+  /** How wide the mandibles are open. */
+  mand: number;
+  /** How far the front legs are raised. */
+  front: number;
+  /** Eyes: green normally, white when hit. */
+  eyes?: string;
+}
+
+const BEETLE: Record<Exclude<FoePose, 'down' | 'reach' | 'glance' | 'jeer'>, BeetleShape> = {
+  idle: { dx: 0, lift: 0, mand: 3, front: 0 },
+  breathe: { dx: 0, lift: -1, mand: 4, front: 0 },
+  // Head down, mandibles wide: a bite coming.
+  squared: { dx: 0, lift: -2, mand: 10, front: 0 },
+  // Rearing a little, front legs lifting.
+  shift: { dx: 0, lift: 4, mand: 5, front: 5 },
+  // Reared right back, front legs high.
+  windup: { dx: 0, lift: 9, mand: 7, front: 15 },
+  attack: { dx: 0, lift: -4, mand: 1, front: 0 },
+  cockL: { dx: -6, lift: 0, mand: 4, front: 2 },
+  cockR: { dx: 6, lift: 0, mand: 4, front: 2 },
+  hit: { dx: 4, lift: 2, mand: 11, front: 7, eyes: 'W' },
+  wobble: { dx: -3, lift: 1, mand: 8, front: 4 },
+};
+
+function beetle(pose: keyof typeof BEETLE): RowSprite {
+  const b = BEETLE[pose];
+  const g = grid(BEETLE_W, BEETLE_H);
+  const cx = 40 + b.dx;
+  const floor = BEETLE_H - 2;
+  const by = 28 - b.lift;
+  // Legs: three a side, jointed, behind the body.
+  for (const s of [-1, 1]) {
+    for (let i = 0; i < 3; i++) {
+      const up = i === 0 ? b.front : 0;
+      limb(g, [[cx + s * (20 - i), by + 3 + i * 5], [cx + s * (31 + i), by - 3 + i * 5 - up / 2], [40 + b.dx / 2 + s * (34 + i * 2), floor - up]], 1.6, 'l');
+    }
+  }
+  disc(g, cx, by, 26, 17, 'b');
+  disc(g, cx, by + 16, 10, 7, 'h');
+  // Mandibles: from the sides of the head, curving in (closed) or out (open) to a point.
+  for (const s of [-1, 1]) limb(g, [[cx + s * 7, by + 18], [cx + s * (4 + b.mand * 0.8), by + 25], [cx + s * (2 + b.mand * 0.9), by + 31]], 1.5, 'a');
+  for (const part of ['l', 'b', 'h', 'a']) light(g, part);
+  // The seam down the shell, and the ridges across it.
+  for (let y = by - 16; y <= by + 8; y++) put(g, cx, y, 'm');
+  for (const dy of [-9, -1, 7]) for (let i = 4; i <= 20; i += 2) for (const s of [-1, 1]) put(g, cx + s * i, by + dy + Math.round(i / 6), 'm');
+  // Glowing patches of rot on the shell.
+  for (const [dx, dy] of [[11, -7], [12, -6], [11, -5], [-14, 2], [-13, 3], [-15, 3], [6, 8]] as [number, number][]) put(g, cx + dx, by + dy, 'G');
+  // Eyes.
+  for (const s of [-1, 1]) put(g, cx + s * 4, by + 14, b.eyes ?? 'G');
+  return { rows: rows(g), colours: { ...FIGURE, G: SHADES.green, W: SHADES.white, l: SHADES.shadow } };
+}
+
+/** Flat on its back, legs in the air. */
+function beetleDown(): RowSprite {
+  const g = grid(BEETLE_W, 34);
+  const cx = 40;
+  const floor = 32;
+  for (const s of [-1, 1]) for (let i = 0; i < 3; i++) limb(g, [[cx + s * (10 + i * 5), floor - 10], [cx + s * (16 + i * 6), floor - 22 - (i === 1 ? 3 : 0)], [cx + s * (13 + i * 7), floor - 29 + i * 2]], 1.6, 'l');
+  disc(g, cx, floor - 6, 26, 8, 'b');
+  disc(g, cx, floor - 9, 9, 4, 'h');
+  for (const part of ['l', 'b', 'h']) light(g, part);
+  for (let i = -18; i <= 18; i += 4) put(g, cx + i, floor - 3, 'm');
+  for (const dx of [-8, 0, 8]) put(g, cx + dx, floor - 8, 'G');
+  return { rows: rows(g), colours: { ...FIGURE, G: SHADES.green, l: SHADES.shadow } };
+}
+
+export const BEETLE_BATTLE: Record<string, RowSprite> = {
+  ...(Object.fromEntries((Object.keys(BEETLE) as (keyof typeof BEETLE)[]).map((p) => [p, beetle(p)])) as Record<keyof typeof BEETLE, RowSprite>),
+  down: beetleDown(),
+};

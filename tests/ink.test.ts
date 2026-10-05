@@ -501,6 +501,32 @@ describe('ink pipeline', () => {
     expect(v['suspicion']).toBe(before + 2);
   });
 
+  it('on Day 4 night, the beetles in the deep rot start the fight once, and the story carries on either way', () => {
+    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const v = story.variablesState;
+    const run = (knot: string) => {
+      story.ChoosePathString(knot);
+      const tags: string[] = [];
+      while (story.canContinue) {
+        story.Continue();
+        tags.push(...(story.currentTags ?? []));
+      }
+      return tags;
+    };
+    v['day4'] = 'rot';
+    expect(run('day4_go_down')).toContain('goto:the-rot:40:232:day4_rot_arrive');
+    expect(v['rot_creatures']).toBe(true);
+    expect(run('day4_rot_creatures')).toContain('combat:rot_beetles:day4_rot_after_beetles');
+    expect(v['rot_creatures_done']).toBe(true);
+    const trust = v['girl_trust'] as number;
+    v['rot_beetles_won'] = true;
+    run('day4_rot_after_beetles');
+    expect(v['girl_trust']).toBe(trust + 1);
+    v['rot_beetles_won'] = false;
+    run('day4_rot_after_beetles');
+    expect(v['girl_trust']).toBe(trust + 1);
+  });
+
   it('ends the game loyally if you ignore the message a second time', () => {
     const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
     story.variablesState['reply1'] = 'usual';

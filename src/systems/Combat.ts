@@ -58,6 +58,10 @@ export interface MoveDef {
   windsUp?: string;
   /** Ends the fight at once with this outcome (holding back). */
   ends?: string;
+  /** Draws every enemy that hasn't acted yet onto the user this round, and the user guards (the girl's Lure). */
+  taunts?: boolean;
+  /** Leaves what it hits weakened: it takes `mult` times the harm for `turns` rounds (the girl's Rot-ink). */
+  exposes?: { turns: number; mult: number };
 }
 
 export interface ItemDef {
@@ -136,8 +140,8 @@ export interface EncounterDef {
    * comes at you, `ease` widens every move's windows (2 = twice as wide). Early fights are generous.
    */
   timing?: { lunge?: number; ease?: number };
-  /** The first fight teaches itself: a short line the first time each thing comes up (`LESSONS`). */
-  teaches?: boolean;
+  /** The fight teaches itself: a short explanation the first time each of these comes up (`LESSONS`). */
+  teaches?: string[];
   /**
    * What each outcome writes to ink (the only store of story state): `won`, `lost`, the run outcome,
    * and any move's `ends` id. The scene writes them through the StoryBridge when the fight ends.
@@ -165,6 +169,9 @@ export interface Combatant {
   steady: boolean;
   /** Guarding until their next turn: half harm, and weaknesses don't knock them down. */
   guarding: boolean;
+  /** Rounds left of being weakened (`exposes`), and by how much it multiplies the harm they take. */
+  exposed: number;
+  exposedMult: number;
 }
 
 export interface Intent {
@@ -202,6 +209,8 @@ export type BattleEvent =
   | { type: 'oneMore'; actor: string }
   | { type: 'counter'; actor: string; target: string }
   | { type: 'interrupt'; target: string }
+  | { type: 'taunt'; actor: string }
+  | { type: 'weakened'; target: string }
   | { type: 'qte'; actor: string; grade: Grade }
   | { type: 'stumble'; actor: string }
   | { type: 'allOut'; actor: string }
@@ -269,7 +278,7 @@ export class Battle {
       if (!def) throw new Error(`Combat: no combatant called "${defId}"`);
       for (const m of [...def.moves, ...(def.basic ? [def.basic] : [])]) if (!moves[m]) throw new Error(`Combat: ${defId} has unknown move "${m}"`);
       const n = all.slice(0, i).filter((d) => d === defId).length;
-      return { id: n ? `${defId}-${n + 1}` : defId, def, side, hp: def.hp, sp: def.sp ?? 0, down: false, guarding: false, offBalance: 0, recoverIn: 0, steady: false };
+      return { id: n ? `${defId}-${n + 1}` : defId, def, side, hp: def.hp, sp: def.sp ?? 0, down: false, guarding: false, offBalance: 0, recoverIn: 0, steady: false, exposed: 0, exposedMult: 1 };
     };
     this.combatants = [...encounter.party.map(make('party')), ...encounter.enemies.map(make('enemy'))];
     if (!this.combatants.some((c) => c.side === 'party') || !this.combatants.some((c) => c.side === 'enemy')) {
@@ -410,6 +419,7 @@ export class Battle {
         }
         const target = move.target === 'self' ? actor : this.get(action.target ?? firstFoe());
         events.push(...this.strike(actor, move, target, { grades: action.grades ?? [] }));
+        if (move.taunts) events.push(...this.taunt(actor));
         break;
       }
       case 'guard':
@@ -539,6 +549,17 @@ export class Battle {
     return events;
   }
 
+  /** Everything about to attack this round turns on the one who drew it, who braces. */
+  private taunt(actor: Combatant): BattleEvent[] {
+    actor.guarding = true;
+    this.guarded.add(actor.id);
+    for (const foe of this.living('enemy')) {
+      const intent = this.intents.get(foe.id);
+      if (intent && !this.hasActed(foe.id) && this.move(intent.move).target === 'enemy') intent.target = actor.id;
+    }
+    return [{ type: 'taunt', actor: actor.id }];
+  }
+
   private hasActed(id: string): boolean {
     return this.order.indexOf(id) < this.turnIndex;
   }
@@ -555,6 +576,7 @@ export class Battle {
     if (resisted) amount *= RESIST;
     if (crit) amount *= CRIT;
     if (target.guarding) amount *= move.softened?.guard ?? GUARD;
+    if (target.exposed > 0) amount *= target.exposedMult;
     const n = Math.max(1, Math.round(amount));
     target.hp = Math.max(0, target.hp - n);
     events.push({
@@ -569,6 +591,11 @@ export class Battle {
     // the turn they got up); enough of those before they recover and they're knocked down, and the party
     // member who did it goes again.
     if (canKnockDown && (weak || crit) && !target.guarding && scale >= 1) this.unbalance(actor, target, events);
+    if (move.exposes && actor.side !== target.side) {
+      target.exposed = move.exposes.turns;
+      target.exposedMult = move.exposes.mult;
+      events.push({ type: 'weakened', target: target.id });
+    }
     return events;
   }
 
@@ -656,6 +683,7 @@ export class Battle {
 
   private startRound(): BattleEvent[] {
     this._round++;
+    for (const c of this.combatants) if (c.exposed > 0) c.exposed--;
     const events: BattleEvent[] = [{ type: 'round', round: this._round }];
     this.intents.clear();
     for (const enemy of this.living('enemy')) {

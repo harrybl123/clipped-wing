@@ -15,7 +15,7 @@ import * as seedGroveProps from '../data/areas/seedGroveProps';
 import * as tendersShrineProps from '../data/areas/tendersShrineProps';
 import * as rootsMarketProps from '../data/areas/rootsMarketProps';
 import { ARCHIVIST, DODGER, ELDERS, FRIEND, FRIEND_FATHER, GIRL, GUARD, MUM, PREACHER, RESIDENTS, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
-import { CARVER_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
+import { BEETLE_BATTLE, CARVER_BATTLE, GIRL_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
 import { hexString } from '../ui/pixelArt';
 import { SPEAKERS } from '../ui/portraits';
 import { BIRD, FIRE_FRAMES, FUNGI, LAMP, MORE_ARROW, type RowSprite } from '../ui/sprites';
@@ -84,11 +84,15 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
     scale: 4,
     entries: [
       ...Object.entries(CARVER_BATTLE).map(([pose, s]): Entry => [`carver ${pose}`, s]),
+      ...Object.entries(GIRL_BATTLE).map(([pose, s]): Entry => [`girl ${pose}`, s]),
       ...Object.entries(ZEALOT_BATTLE).map(([pose, s]): Entry => [`zealot ${pose}`, s]),
+      ...Object.entries(BEETLE_BATTLE).map(([pose, s]): Entry => [`beetle ${pose}`, s]),
     ],
     animations: [
       { label: 'carver idle', frames: [CARVER_BATTLE.idle, CARVER_BATTLE.breathe], fps: 1.5 },
+      { label: 'girl idle', frames: [GIRL_BATTLE.idle, GIRL_BATTLE.breathe], fps: 1.5 },
       { label: 'zealot idle', frames: [ZEALOT_BATTLE.idle, ZEALOT_BATTLE.breathe], fps: 1.5 },
+      { label: 'beetle idle', frames: [BEETLE_BATTLE.idle!, BEETLE_BATTLE.breathe!], fps: 1.5 },
     ],
   },
   // Each portrait beside the figure you see in the world, to check they match.

@@ -558,6 +558,7 @@ She lifts the board. Warm, wet air breathes up out of the dark, with a faint gre
 "I'll go first. It's not far. Don't touch anything you don't have to." #speaker:girl
 ~ day4 = "rot"
 ~ girl_with_you = true
+~ rot_creatures = true
 ~ objective = "Look at the wood under her house"
 ~ objective_target = "the-rot:dying-root"
 You climb down after her. #goto:the-rot:40:232:day4_rot_arrive
@@ -568,6 +569,39 @@ It's worse than you imagined.
 The roots down here are soft and black, slick with something that sticks to your hands and your boots. Rot glows in the hollows, bright as the tube.
 "Mind where you put your feet. It's sticky. And the green eats boots." #speaker:girl
 "The wood you want's at the far end. Right under my bed." #speaker:girl
+-> END
+
+// Further in, past the pits: the beetles, and the first fight with a friend beside you. The fight (src/data/combat.ts,
+// rot_beetles) teaches itself; its outcome sets rot_beetles_won, and day4_rot_after_beetles plays when you're back.
+=== day4_rot_creatures ===
+~ rot_creatures_done = true
+The tunnel widens. The green is brighter here, pooled in the hollows, and something in it is moving.
+"Stop." #speaker:girl
+She puts an arm across you. A low shape lifts out of the slime: a beetle, big as a dog, its shell blackened and veined with green. Then another beside it. Then a third.
+"Those aren't meant to be that big." #speaker:girl
+"What are they?" #speaker:you
+"Beetles. They live on the rot. Or they did." #speaker:girl
+"I think it's been feeding them." #speaker:girl
+Their legs click on the wet wood. They've seen you.
+"There's no way round, and I'm not going back with those behind us." #speaker:girl
+She pulls a sliver of pale bone from her belt.
+"Stay close. We do this together." #speaker:girl
+You step up beside her. #combat:rot_beetles:day4_rot_after_beetles
+-> END
+
+=== day4_rot_after_beetles ===
+{ rot_beetles_won:
+    ~ girl_trust += 1
+    The last one folds up on its back, legs kicking, and the others shy away into the dark, clicking.
+    The girl wipes green slime off her hands and onto her trousers.
+    "That's not in any of the Tender's sermons." #speaker:girl
+    "Not bad. For a carver." #speaker:girl
+- else:
+    The world goes green and sticky and a long way off.
+    When it comes back, she's dragging you along the tunnel by your collar, swearing steadily. Behind you, the clicking fades into the dark.
+    "Don't you dare die on me. I haven't even shown you the wood." #speaker:girl
+}
+"It's just ahead. Come on." #speaker:girl
 -> END
 
 === day4_rot_wood ===

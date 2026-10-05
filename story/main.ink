@@ -83,6 +83,10 @@ VAR fight_landed = 0
 VAR fight_taken = 0
 VAR fight_won = false
 VAR hurt = false
+// The deep rot (Day 4 night): the beetles you and the girl fight (src/data/combat.ts, rot_beetles).
+VAR rot_creatures = false
+VAR rot_creatures_done = false
+VAR rot_beetles_won = false
 // The girl (design doc: tracked through the act).
 VAR girl_trust = 0
 VAR chalk_ring = false

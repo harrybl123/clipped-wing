@@ -556,12 +556,90 @@ describe('combat data', () => {
 
 describe('the market scrap teaches itself', () => {
   it('is the only fight that teaches, and every lesson says what to press', () => {
-    expect(Object.values(ENCOUNTERS).filter((e) => e.teaches).map((e) => e.id)).toEqual(['market_scrap']);
+    expect(Object.values(ENCOUNTERS).filter((e) => e.teaches).map((e) => e.id)).toEqual(['market_scrap', 'rot_beetles']);
+    for (const e of Object.values(ENCOUNTERS)) for (const l of e.teaches ?? []) expect(LESSONS).toHaveProperty(l);
     for (const lesson of Object.values(LESSONS)) expect(lesson.length).toBeGreaterThan(0);
   });
 
   it('Day 4 starts it, and it writes the fight_won the story reads', () => {
     expect(readFileSync('story/day4.ink', 'utf8')).toContain('#combat:market_scrap:day4_after_fight');
     expect(ENCOUNTERS.market_scrap!.outcomes).toEqual({ won: { fight_won: true }, lost: { fight_won: false } });
+  });
+});
+
+describe('the deep rot: the girl and the beetles', () => {
+  const mulberry = (seed: number) => () => {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+
+  it('is the two of you against three beetles, and writes rot_beetles_won', () => {
+    const e = ENCOUNTERS.rot_beetles!;
+    expect(e.party).toEqual(['carver', 'girl']);
+    expect(e.enemies).toEqual(['beetle', 'beetle', 'beetle']);
+    expect(e.outcomes).toEqual({ won: { rot_beetles_won: true }, lost: { rot_beetles_won: false } });
+    expect(readFileSync('story/day4.ink', 'utf8')).toContain('#combat:rot_beetles:');
+  });
+
+  it('Lure turns every enemy that is about to attack onto her, and she braces', () => {
+    const b = new Battle(ENCOUNTERS.rot_beetles!, MOVES, COMBATANTS, ITEMS, mulberry(3));
+    expect(b.current!.id).toBe('girl'); // (the fastest)
+    b.act({ type: 'skill', move: 'lure' });
+    const girl = b.get('girl');
+    expect(girl.guarding).toBe(true);
+    expect(girl.sp).toBe(9);
+    for (const foe of b.living('enemy')) {
+      const intent = b.intentOf(foe.id)!;
+      if (MOVES[intent.move]!.target === 'enemy') expect(intent.target).toBe('girl');
+    }
+  });
+
+  it('Rot-ink weakens one beetle for three rounds, and it takes more harm meanwhile', () => {
+    const plain = new Battle(ENCOUNTERS.rot_beetles!, MOVES, COMBATANTS, ITEMS, () => 0.5);
+    const inked = new Battle(ENCOUNTERS.rot_beetles!, MOVES, COMBATANTS, ITEMS, () => 0.5);
+    const events = inked.act({ type: 'skill', move: 'rot_ink', target: 'beetle', grades: ['good'] });
+    expect(events).toContainEqual({ type: 'weakened', target: 'beetle' });
+    expect(inked.get('beetle').exposed).toBe(3);
+    // The same shove on a weakened beetle hurts more.
+    const hit = (b: Battle) => {
+      while (b.current!.id !== 'carver') b.current!.side === 'enemy' ? b.enemyTurn('none') : b.act({ type: 'guard' });
+      const ev = b.act({ type: 'skill', move: 'shove', target: 'beetle', grades: ['good'] });
+      return (ev.find((x) => x.type === 'damage') as { amount: number }).amount;
+    };
+    expect(hit(inked)).toBeGreaterThan(hit(plain));
+  });
+
+  it('a good player wins, an average one usually does, and a careless one often loses (200 seeded fights)', () => {
+    // `dodge`: how often they get out of the way; `good`: how often their own QTEs land.
+    const play = (seed: number, dodge: number, good: number): string => {
+      const rng = mulberry(seed);
+      const b = new Battle(ENCOUNTERS.rot_beetles!, MOVES, COMBATANTS, ITEMS, rng);
+      let guard = 0;
+      while (!b.outcome && guard++ < 400) {
+        const c = b.current!;
+        if (c.side === 'enemy') {
+          b.enemyTurn(rng() < dodge ? 'dodge' : 'none');
+          continue;
+        }
+        const foe = b.living('enemy').find((f) => !f.down) ?? b.living('enemy')[0]!;
+        const move = c.id === 'girl' ? 'flick' : 'shove';
+        const grades: ('good' | 'miss')[] = [rng() < good ? 'good' : 'miss'];
+        if (c.sp >= (MOVES[move]!.sp ?? 0)) b.act({ type: 'skill', move, target: foe.id, grades });
+        else b.act({ type: 'attack', target: foe.id, grades });
+      }
+      return b.outcome ?? 'none';
+    };
+    const wins = (dodge: number, good: number) => Array.from({ length: 200 }, (_, i) => play(i + 1, dodge, good)).filter((o) => o === 'won').length / 200;
+    const good = wins(0.8, 0.9);
+    const average = wins(0.5, 0.6);
+    const careless = wins(0.15, 0.3);
+    expect(good).toBeGreaterThan(0.85);
+    expect(average).toBeGreaterThan(0.5);
+    expect(average).toBeLessThan(0.97);
+    expect(careless).toBeLessThan(average);
+    expect(careless).toBeLessThan(0.85);
   });
 });

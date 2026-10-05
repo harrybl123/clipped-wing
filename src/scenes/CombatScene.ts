@@ -4,8 +4,8 @@ import { COMBATANTS, ENCOUNTERS, ITEMS, LESSONS, type Lesson, MOVES } from '../d
 import { getSession } from '../session';
 import { Battle, type Action, type BattleEvent, type Combatant, type Intent, type MoveDef, type Reaction } from '../systems/Combat';
 import type { Grade, Key, Qte, QteKind } from '../systems/qte';
-import { CARVER_BATTLE, LACKEY_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
-import { PROTAGONIST } from '../ui/characters';
+import { BEETLE_BATTLE, CARVER_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
+import { GIRL, PROTAGONIST } from '../ui/characters';
 import { QteRunner } from '../ui/QteRunner';
 import { addLight, falloff, noise, rgb, SHADES } from '../ui/pixelArt';
 import { PIXEL, makePaintedTexture, makeSpriteTexture } from '../ui/pixelTextures';
@@ -62,6 +62,8 @@ interface Look {
 /** Battle sprites for the `sprite` keys in combat data. */
 const LOOKS: Record<string, Look> = {
   protagonist: { poses: CARVER_BATTLE, scale: 2, cutIn: PROTAGONIST.idle[0]! },
+  girl: { poses: GIRL_BATTLE, scale: 2, cutIn: GIRL.idle[0]! },
+  beetle: { poses: BEETLE_BATTLE, scale: 1 },
   zealot: { poses: ZEALOT_BATTLE, scale: 1 },
   lackey: { poses: LACKEY_BATTLE, scale: 1 },
 };
@@ -114,6 +116,8 @@ export class CombatScene extends Phaser.Scene {
   private lastQte: QteKind | null = null;
   /** Each enemy's slot across the stage (how wide its panel may be). */
   private slot = 160;
+  /** The middle of the enemies' side of the stage (further right with a friend beside you). */
+  private enemyX = 270;
   private music: FightMusic | null = null;
   private waitingPress: (() => void) | null = null;
   /** The zoom the camera was last asked to frame at (a punch returns to it). */
@@ -171,11 +175,12 @@ export class CombatScene extends Phaser.Scene {
     this.battle = new Battle(encounter, MOVES, fighters, ITEMS);
     const party = this.battle.combatants.filter((c) => c.side === 'party');
     const enemies = this.battle.combatants.filter((c) => c.side === 'enemy');
-    party.forEach((c, i) => this.addView(c, 118 + i * 96, H + 8));
+    party.forEach((c, i) => this.addView(c, 108 + i * 100, H + 8));
     // Spread across the stage, with room for each one's panel.
+    this.enemyX = party.length > 1 ? 296 : 270;
     const span = Math.min(220, 100 * (enemies.length - 1));
     this.slot = enemies.length > 1 ? span / (enemies.length - 1) : 170;
-    enemies.forEach((c, i) => this.addView(c, enemies.length > 1 ? 270 - span / 2 + (i * span) / (enemies.length - 1) : 270, FLOOR));
+    enemies.forEach((c, i) => this.addView(c, enemies.length > 1 ? this.enemyX - span / 2 + (i * span) / (enemies.length - 1) : this.enemyX, FLOOR));
 
     // The UI: a slanted banner for what's happening, a hint under it, and the party's bars.
     const band = this.add.graphics();
@@ -244,6 +249,8 @@ export class CombatScene extends Phaser.Scene {
     // Pull out for the menu; your guard drops as your turn comes round.
     this.setPose(this.views.get(actor.id)!, 'idle');
     await this.frame(WIDE, 350);
+    await this.teach('allies');
+    if (actor.id === 'girl') await this.teach('lure');
     await this.teach('turns');
     await this.teach('tells');
     if (this.battle.living('enemy').some((e) => this.windingUp(e))) await this.teach('windUp');
@@ -255,6 +262,16 @@ export class CombatScene extends Phaser.Scene {
       case 'skill': {
         const move = MOVES[action.type === 'attack' ? actor.def.basic! : action.move]!;
         this.say(move.name);
+        if (move.taunts) {
+          // She steps out and draws every enemy that hasn't attacked yet onto herself.
+          this.setPose(view, 'ready');
+          playSound(this, 'shuffle');
+          this.popLabel('LURE', view, SHADES.amber);
+          await this.tween(view.sprite, { y: view.home.y - 8, duration: 160, yoyo: true, repeat: 1 });
+          await this.play(this.battle.act(action));
+          this.setPose(view, this.restPose(view));
+          return;
+        }
         if (move.target === 'self') {
           // Holding back: you stop, and let your hands drop.
           this.setPose(view, 'idle');
@@ -301,7 +318,7 @@ export class CombatScene extends Phaser.Scene {
         item: ['Item', 'Use something you carry.'],
         run: ['Run', 'Get out of here.'],
       };
-      const i = await this.openMenu('', commands.map((c) => ({ label: names[c.type][0], usable: c.usable, description: c.usable ? names[c.type][1] : (c.reason ?? '') })), false);
+      const i = await this.openMenu(this.battle.combatants.some((c) => c.side === 'party' && c.id !== actor.id) ? actor.def.name : '', commands.map((c) => ({ label: names[c.type][0], usable: c.usable, description: c.usable ? names[c.type][1] : (c.reason ?? '') })), false);
       const type = commands[i!]!.type;
       if (type === 'skill') {
         // The skill list; backing out of choosing who comes back here, and backing out of this, to the commands.
@@ -335,6 +352,7 @@ export class CombatScene extends Phaser.Scene {
   private async chooseTarget(): Promise<string | undefined | null> {
     const foes = this.battle.living('enemy');
     if (foes.length === 1) return undefined;
+    await this.teach('targets');
     return new Promise((resolve) => (this.targeting = { foes: foes.map((f) => f.id), index: 0, resolve }));
   }
 
@@ -590,6 +608,18 @@ export class CombatScene extends Phaser.Scene {
           }
           break;
         }
+        case 'taunt': {
+          // (Shown as she steps out; the enemies' panels turn to her.)
+          this.refresh();
+          break;
+        }
+        case 'weakened': {
+          const t = this.views.get(e.target)!;
+          playSound(this, 'shimmer', 0.6);
+          this.popLabel('WEAKENED', t, SHADES.green, 18);
+          await this.teach('weakened');
+          break;
+        }
         case 'interrupt': {
           const t = this.views.get(e.target)!;
           playSound(this, 'crack');
@@ -605,6 +635,7 @@ export class CombatScene extends Phaser.Scene {
         }
         case 'damage':
           await this.hurt(e, this.quiet);
+          if ((e.resisted || e.weak) && this.views.get(e.target)?.c.side === 'enemy') await this.teach('shell');
           break;
         case 'knockdown': {
           const t = this.views.get(e.target)!;
@@ -749,7 +780,7 @@ export class CombatScene extends Phaser.Scene {
     const span = Math.min(220, 100 * (foes.length - 1));
     this.slot = foes.length > 1 ? span / (foes.length - 1) : 170;
     foes.forEach((v, i) => {
-      const x = foes.length > 1 ? 270 - span / 2 + (i * span) / (foes.length - 1) : 270;
+      const x = foes.length > 1 ? this.enemyX - span / 2 + (i * span) / (foes.length - 1) : this.enemyX;
       v.home.x = x;
       this.tweens.add({ targets: v.sprite, x, duration: 500, ease: 'Sine.easeInOut' });
     });
@@ -824,7 +855,7 @@ export class CombatScene extends Phaser.Scene {
    * up, the fight holds on a plain explanation until you press E.
    */
   private async teach(lesson: Lesson): Promise<void> {
-    if (!this.battle.encounter.teaches || this.taught.has(lesson)) return;
+    if (!this.battle.encounter.teaches?.includes(lesson) || this.taught.has(lesson)) return;
     this.taught.add(lesson);
     // To the left of the stage, clear of his panel and tell (which a lesson may point at).
     const width = 200;

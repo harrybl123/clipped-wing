@@ -114,6 +114,27 @@ Mum is snubbed at the market and a young zealot knocks her basket away; step in 
 
 The card waits 450 ms before it can be dismissed, so a press meant for something else doesn't skip it.
 
+## The deep rot (Day 4 night): fighting with a friend
+
+**(Designer.)** Past the pits in the rot under the girl's house, you and the girl meet **three rot beetles**: the first fight with a friend beside you, and the first against several enemies. `ENCOUNTERS.rot_beetles`; the story is `day4_rot_creatures` (before) and `day4_rot_after_beetles` (after; draft text). A `trigger` in `theRot.ts` plays it once. It writes `rot_beetles_won`: winning gives `girl_trust` +1; losing is no worse than being dragged along by her collar, and the story carries on.
+
+**It teaches itself** (the encounter's `teaches` lists what's new): *allies* (you fight alongside friends, each with their own abilities), *lure* (on her first turn), *targets*, *shell*, *weakened*, plus off balance and the wind-up. The market scrap keeps its own list.
+
+**The girl** has her own skillset on the same mechanics (30 HP, 10 SP, fast, slighter, dodges):
+
+| Move | What it does | QTE | Alt |
+| --- | --- | --- | --- |
+| Clout (Attack) | a proper punch | Key | Bar |
+| Flick (2 SP) | a shard of rot-bone: *pierce*, cracks shells | Bar | Key |
+| **Lure** (1 SP) | every enemy that hasn't acted yet turns on her this round, and she braces (half harm) | none | |
+| Rot-ink (3 SP) | the target is **weakened**: 1.5× harm for 3 rounds | Hold | Bar |
+
+The engine gained `taunts` (Lure) and `exposes` (Rot-ink; `weakened` events), both pure and tested.
+
+**The beetles** (26 HP each, speed 8): the shell *resists* strikes, but they're *weak* to pierce (Flick) and shove (yours); poise 2. Moves: Pincer (Bar/Key), Scuttle (two blows: Weave/Key), Rear up then Slam (Draw/Bar; Guard or Shove it before it lands). Their tells never lie. A 200-fight test checks a good player nearly always wins, an average one usually does, and a careless one fares worse.
+
+**Staging:** two party members stand side by side (the girl is drawn from behind like you, in `battleSprites.ts`, with the green strand); the enemies shift right to make room; the command menu names whose turn it is. Dev: `?scene=combat&encounter=rot_beetles`; the gallery shows the girl's and the beetle's poses.
+
 ## Staging
 
 - **Framing:** Persona-style 3/4 on a painted market stage. You're seen from behind, big in the near foreground. Enemies stand further back, facing you, each with a shadow.
