@@ -122,6 +122,11 @@ export class PreloadScene extends Phaser.Scene {
       calendar.advanceTo('night');
       set({ day6: 'interrogation', has_disguise: true, interrogating: true, plate_found: plate, objective: '', objective_target: '' });
       this.scene.start('Area', { areaId: 'tenders-shrine', start: { x: 218, y: 236 }, script: 'day6_interrogation' });
+    } else if (day === 4 && at === 'market') {
+      // Day 4 afternoon: at the market beside Mum at the stew stall, just before the zealot (and the fight).
+      calendar.advanceTo('afternoon');
+      set({ day4: 'market', reply2: 'yes', mum_at_market: true, mum_away: true, objective: 'Find Mum at the market', objective_target: 'roots-market:mum-market' });
+      this.scene.start('Area', { areaId: 'roots-market', start: { x: 60, y: 236 } });
     } else if (day === 4 && at === 'rot') {
       // Night 4: just dropped into the rot with the girl (the beetles are ahead). &market=won|lost|held: what
       // you did at the market (she watched; it changes what she says after the fight).
