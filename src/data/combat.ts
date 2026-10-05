@@ -58,7 +58,7 @@ export const MOVES: Record<string, MoveDef> = {
   },
   collar: {
     id: 'collar', name: 'Collar', target: 'enemy', power: 8, kind: 'grab',
-    qte: { kind: 'grip', time: 3000, zone: [0.36, 0.64], narrow: 0.16, tug: 0.5, keep: 0.42, quick: 1800, alt: { kind: 'mash', presses: 8, time: 1800 } },
+    qte: { kind: 'grip', time: 5000, zone: [0.36, 0.64], narrow: 0.16, tug: 0.8, keep: 0.72, quick: 3300, alt: { kind: 'mash', presses: 8, time: 1800 } },
     tell: { pose: 'reach', lines: ['He’s eyeing your collar.', 'He opens his hands.'] },
     description: 'He gets you by the collar and yanks you about: keep your footing, and break free.',
   },

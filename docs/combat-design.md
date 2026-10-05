@@ -52,7 +52,7 @@ Every QTE stops where you press and holds a moment. A miss says why (TOO EARLY, 
 | Weave | A quick run of directions by your head as the punches come: Up to duck, Left or Right to lean |
 | Balance | Keep a wobbling needle in the middle with Left and Right (in the library, unused just now) |
 | Carve | Trace a short pattern of arrows, shown as a carved line (the carver's craft) |
-| Grip | He's got your collar: his tugs yank a marker about; hold Left/Right to keep it in a light that wanders and narrows; your grip fills inside and drains outside; fill it to break free (about 3 seconds) |
+| Grip | A struggle: he's got your collar and tugs in bursts (with short lulls), yanking a marker about; hold Left/Right to keep it in a light that wanders and narrows, and mash E to claw back a little; your grip fills slowly inside and slips faster outside, and the edges darken as you slip; fill it to break free (you have 5 seconds, about 2½–3 in the light) or he throws you. The camera's in tight on the two of you, swaying with his tugs |
 
 **Parrying comes later.** In Act 1 the carver can only dodge. A **perfect** reaction is a **parry** (no harm, and you hit back) only for someone the story has taught to parry (a combatant's `reactions`).
 

@@ -446,9 +446,20 @@ export class CombatScene extends Phaser.Scene {
         this.setPose(t, 'hit');
         this.cameras.main.shake(150, 0.006);
         const shaking = this.tweens.add({ targets: [t.sprite, view.sprite], x: '+=3', duration: 70, yoyo: true, repeat: -1 });
-        const [g] = await this.qte.start(q, { ...at, onBeat: (_i, grade) => {
+        // Locked together: the camera in tight on the two of you, swaying with every tug.
+        const lock = { x: (t.home.x + view.sprite.x) / 2 + 20, y: H - 70 };
+        if (q.kind === 'grip') void this.frame({ ...lock, zoom: 1.7 }, 300);
+        const tug = (dir: number, strength: number) => {
+          const cam = this.cameras.main;
+          cam.pan(lock.x + dir * 14 * strength, lock.y, 140, 'Quad.easeOut', true);
+          cam.shake(90, 0.004 + strength * 0.006);
+          this.tweens.add({ targets: [t.sprite, view.sprite], angle: dir * 4 * strength, duration: 90, yoyo: true });
+        };
+        const [g] = await this.qte.start(q, { ...at, onTug: tug, onBeat: (_i, grade) => {
           shaking.stop();
           t.sprite.x = t.home.x;
+          t.sprite.angle = 0;
+          view.sprite.angle = 0;
           if (grade === 'miss') {
             // Thrown about, and down hard.
             playSound(this, 'punch', 1.3);

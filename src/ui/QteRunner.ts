@@ -35,6 +35,8 @@ export interface QteOptions {
   beats?: number;
   /** Called on each blow's beat, with how you did on it. */
   onBeat?: (i: number, grade: Grade) => void;
+  /** grip: each time he tugs, which way (-1 left, 1 right) and how hard (0–1): the scene sways with it. */
+  onTug?: (dir: number, strength: number) => void;
 }
 
 type Prompt = { key: Key; at: number; grade: Grade | null };
@@ -70,6 +72,11 @@ interface Run {
   zoneAt: number;
   grip: number;
   nextTug: number;
+  /** grip: when his current burst of tugs ends (then a lull), and when the lull ends. */
+  burstEnd: number;
+  lullEnd: number;
+  /** grip: how long the marker's been out of the light (for the darkening edges). */
+  slipping: number;
   /** carve: strokes done, and how many right. */
   done: number;
   right: number;
@@ -100,7 +107,7 @@ const TEACH: Record<QteKind, string> = {
   weave: 'Up to duck, Left or Right to lean, as each comes.',
   balance: 'Keep the needle in the middle with Left and Right.',
   carve: 'Carve the line: press its arrows in order.',
-  grip: 'He\u2019s got your collar! Left and Right: keep it in the light to break free.',
+  grip: 'He\u2019s got your collar! Left and Right: keep it in the light. Mash E to claw back.',
 };
 
 export class QteRunner {
@@ -158,7 +165,7 @@ export class QteRunner {
       this.run = {
         q, o, beats, start: now, end, pressedAt: null, pressed: null, grade: null, why: null, key: Phaser.Math.RND.pick(LANES),
         heldAt: null, presses: 0, prompts, flashAt, needle: 0.5, drift: Phaser.Math.FloatBetween(-0.5, 0.5), kept: 0, held: new Set(), last: now,
-        zoneAt: 0.5, grip: 0, nextTug: now + 400,
+        zoneAt: 0.5, grip: 0, nextTug: now + 400, burstEnd: now + 1400, lullEnd: 0, slipping: 0,
         done: 0, right: 0, teach, resolve,
       };
     });
@@ -212,6 +219,12 @@ export class QteRunner {
       }
       case 'balance':
       case 'grip':
+        // (In a grip, mashing E claws back a little.)
+        if (q.kind === 'grip' && k === 'e' && down) {
+          r.grip += 70;
+          playSound(this.scene, 'tap', 0.4);
+          return true;
+        }
         if (k !== 'left' && k !== 'right') return false;
         if (down) r.held.add(k);
         else r.held.delete(k);
@@ -274,20 +287,33 @@ export class QteRunner {
       if (q.kind === 'grip') {
         // His tugs jerk the marker one way or the other; your arrows pull it back. The lit zone wanders
         // and narrows; your grip builds while the marker's in it and slips while it's out.
+        // He tugs in bursts (harder and closer together as it goes on), with short lulls between where
+        // you can claw back.
         const t = (now - r.start) / q.time;
-        if (now >= r.nextTug) {
-          r.drift = Phaser.Math.RND.pick([-1, 1]) * q.tug * Phaser.Math.FloatBetween(0.7, 1.3) * 2.2;
-          r.nextTug = now + Phaser.Math.Between(380, 650);
-          playSound(this.scene, 'skid', 0.35);
-          this.scene.cameras.main.shake(70, 0.004);
+        if (now >= r.burstEnd && r.lullEnd < r.burstEnd) {
+          r.lullEnd = now + Phaser.Math.Between(600, 900);
+          playSound(this.scene, 'heartbeat', 0.5);
+        }
+        if (now >= r.lullEnd && r.lullEnd > r.burstEnd) r.burstEnd = now + Phaser.Math.Between(1200, 1700);
+        const inBurst = now < r.burstEnd;
+        if (inBurst && now >= r.nextTug) {
+          const strength = q.tug * Phaser.Math.FloatBetween(0.8, 1.3) * (1 + t * 0.6);
+          const dir = Phaser.Math.RND.pick([-1, 1]);
+          r.drift = dir * strength * 1.1;
+          r.nextTug = now + Phaser.Math.Between(260, 460) * (1 - t * 0.3);
+          playSound(this.scene, 'skid', 0.4);
+          playSound(this.scene, 'thump', 0.25);
+          r.o.onTug?.(dir, strength);
         }
         r.drift *= Math.pow(0.04, dt); // each tug dies away
         const push = (r.held.has('right') ? 1 : 0) - (r.held.has('left') ? 1 : 0);
-        r.needle = Phaser.Math.Clamp(r.needle + (r.drift + push * 0.9) * dt, 0, 1);
-        r.zoneAt = 0.5 + Math.sin(now / 700) * 0.18 * Math.min(1, t * 2);
+        r.needle = Phaser.Math.Clamp(r.needle + (r.drift + push * 1.1) * dt, 0, 1);
+        r.zoneAt = 0.5 + Math.sin(now / 900) * 0.2 * Math.min(1, t * 2);
         const half = this.gripHalf(r, t);
         const inside = Math.abs(r.needle - r.zoneAt) <= half;
-        r.grip = Math.max(0, r.grip + (inside ? 1 : -0.6) * dt * 1000);
+        // A struggle: your grip builds slowly in the light and slips faster out of it.
+        r.grip = Math.max(0, r.grip + (inside ? 1 : -1.2) * dt * 1000);
+        r.slipping = inside ? Math.max(0, r.slipping - dt * 1500) : Math.min(1500, r.slipping + dt * 1000);
         if (r.grip >= q.keep * q.time) this.decide(r, gradeGrip(now - r.start, q), now, null, null);
         else if (now >= r.end) this.decide(r, 'miss', now, null, 'grip');
       } else if (q.kind === 'balance') {
@@ -468,6 +494,13 @@ export class QteRunner {
         g.fillStyle(SHADES.green).fillRect(x, y + 14, Math.round(w * Math.min(1, r.grip / (q.keep * q.time))), 4);
         g.fillStyle(SHADES.amber).fillRect(x, y + 20, Math.round(w * Math.max(0, 1 - t)), 1);
         for (const [dir, k] of [[-1, 'left'], [1, 'right']] as const) arrow(k, x + w / 2 + dir * (w / 2 + 12), y + 5, 1, r.held.has(k) ? SHADES.green : SHADES.dim);
+        // As your grip slips, the edges of the world close in.
+        const dark = Math.min(0.75, r.slipping / 1500);
+        if (dark > 0) for (let i = 0; i < 4; i++) {
+          const d = 10 + i * 10;
+          g.fillStyle(SHADES.shadow, dark * (1 - i / 4) * 0.6);
+          g.fillRect(0, 0, W, d).fillRect(0, 270 - d, W, d).fillRect(0, 0, d, 270).fillRect(W - d, 0, d, 270);
+        }
         break;
       }
       case 'notes': {
