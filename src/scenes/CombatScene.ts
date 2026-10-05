@@ -803,15 +803,12 @@ export class CombatScene extends Phaser.Scene {
     const { story } = getSession(this);
     const vars = this.battle.encounter.outcomes[outcome] ?? {};
     for (const [name, value] of Object.entries(vars)) story.setVariable(name, value);
-    const set = Object.entries(vars).map(([k, v]) => `${k} = ${String(v)}`).join(', ');
     if (outcome === 'won') this.music?.sting('win');
     else if (outcome === 'lost') this.music?.sting('lose');
     else this.music?.stop();
+    // No captions, no key to press: a moment on the stage for the sting, then straight into the story.
     await this.frame(WIDE, 500);
-    this.say(outcome === 'won' ? 'He\u2019s down.' : outcome === 'lost' ? 'You\u2019re down.' : '', true);
-    this.hintText(import.meta.env.DEV && set ? `${set}. Press E.` : 'Press E.');
-    await this.wait(400);
-    await new Promise<void>((resolve) => (this.waitingPress = resolve));
+    await this.wait(900);
     for (const cam of this.cameras.cameras) cam.fadeOut(600, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Area', this.params.back));
   }
