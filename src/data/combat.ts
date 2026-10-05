@@ -37,7 +37,7 @@ export const MOVES: Record<string, MoveDef> = {
   // --- The girl (the deep rot). She isn't hampered like you: she can hit properly, but she's slighter. Her
   // own skillset, with the same mechanics: a QTE on each, and one move that changes who gets hit (Lure). ---
   clout: {
-    id: 'clout', name: 'Clout', target: 'enemy', power: 7, kind: 'strike', crit: 0.15,
+    id: 'clout', name: 'Stab', target: 'enemy', power: 7, kind: 'strike', crit: 0.15,
     qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
     description: 'Basic melee attack.',
   },

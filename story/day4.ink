@@ -581,7 +581,7 @@ The tunnel widens. The green is brighter here, pooled in the hollows.
 Something in it moves.
 A shape lifts out of the slime: a beetle, big as a dog, its shell black and veined with glowing green.
 Then another beside it. Then a third.
-Neither of you says anything. You can't. You've seen beetles all your life, small enough to crush under a thumb you no longer have. Not these.
+Neither of you says anything. You can't.
 The girl's hand finds your sleeve and grips it.
 "Those aren't..." #speaker:girl
 She doesn't finish. Her mouth stays open.

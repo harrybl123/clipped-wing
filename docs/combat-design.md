@@ -125,7 +125,7 @@ The card waits 450 ms before it can be dismissed, so a press meant for something
 
 | Move | What it does | QTE | Alt |
 | --- | --- | --- | --- |
-| Clout (Attack) | a proper punch | Key | Bar |
+| Stab (Attack) | with the sliver of bone she draws before the fight (she holds it in every pose) | Key | Bar |
 | Flick (2 SP) | a shard of rot-bone: *pierce*, cracks shells | Draw (wait, then throw the instant it flashes) | Bar |
 | **Lure** (1 SP) | every enemy that hasn't acted yet turns on her this round, and she braces (half harm) | none | |
 | Rot-ink (3 SP) | the target is **weakened**: 1.5× harm for 3 rounds | Balance (a steady hand: keep the needle in the middle) | Hold |

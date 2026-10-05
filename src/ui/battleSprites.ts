@@ -147,6 +147,18 @@ function carverBack(pose: CarverPose, who: 'carver' | 'girl' = 'carver'): RowSpr
   // Hair: strands catching the light, and a few darker locks.
   for (let i = 0; i < 4; i++) put(g, hx + 2 + i, hy - 8 + i, '#');
   for (let i = 0; i < 3; i++) put(g, hx - 3 + i * 2, hy + 6, 'm');
+  if (who === 'girl' && !forward) {
+    // The sliver of bone in her right hand (screen right), held point up and in across her (inside the frame),
+    // or, with her arm raised to strike, pointing in over her head.
+    const [hx2, hy2] = right[right.length - 1]!;
+    const [dx, dy] = hy2 < 20 ? [-0.95, -0.15] : [-0.5, -0.87];
+    for (let i = 0; i <= 16; i++) {
+      put(g, hx2 + dx * i, hy2 + dy * i, i < 3 ? 'B' : 'W');
+      // Thicker along its middle, a pale edge beside the white.
+      if (i > 1 && i < 13) put(g, hx2 + dx * i + 1, hy2 + dy * i, i < 4 ? 'B' : 'W');
+      if (i > 3 && i < 11) put(g, hx2 + dx * i + 2, hy2 + dy * i, 'B');
+    }
+  }
   if (who === 'girl') {
     // The glowing green strand, and the fungus-ink tattoos on her forearms.
     for (let i = 0; i < 16; i++) put(g, hx - 4 + Math.round(Math.sin(i / 3)), hy - 8 + i, 'G');
@@ -168,7 +180,7 @@ function carverBack(pose: CarverPose, who: 'carver' | 'girl' = 'carver'): RowSpr
     put(g, hand[0] + 1, hand[1] + 1, 'l');
   }
   // The red thread, knotted at the back of the neck, hanging down your back.
-  if (who === 'girl') return { rows: rows(g), colours: { ...FIGURE, H: SHADES.shadow, G: SHADES.green } };
+  if (who === 'girl') return { rows: rows(g), colours: { ...FIGURE, H: SHADES.shadow, G: SHADES.green, W: SHADES.white, B: SHADES.woodPale } };
   const knot: Pt = [x + headDx / 3, top + 22 + headDy / 2];
   disc(g, knot[0], knot[1], 1.4, 1.1, 'r');
   const sway = pose === 'dodge' || pose === 'palm' ? 3 : pose === 'hit' || pose === 'slap' ? -3 : pose === 'attack' ? -2 : 0;
