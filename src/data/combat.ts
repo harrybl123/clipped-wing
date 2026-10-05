@@ -49,13 +49,14 @@ export const ITEMS: Record<string, ItemDef> = {};
 export const COMBATANTS: Record<string, CombatantDef> = {
   carver: {
     id: 'carver', name: 'You', sprite: 'protagonist', hp: 40, sp: 10, attack: 8, defence: 9, speed: 12,
-    basic: 'slap', moves: ['shove', 'grab', 'hold_back'], reactions: ['dodge', 'parry'],
+    // Dodge only in Act 1: parrying is a move the story hands out later.
+    basic: 'slap', moves: ['shove', 'grab', 'hold_back'], reactions: ['dodge'],
   },
   zealot: {
-    id: 'zealot', name: 'The young man', sprite: 'zealot', hp: 60, attack: 10, defence: 9, speed: 10,
+    id: 'zealot', name: 'The young man', sprite: 'zealot', hp: 45, attack: 10, defence: 9, speed: 10,
     moves: ['swing', 'wind_up', 'jeer'], weights: [4, 2, 1],
-    // (suggestion) He's never been held: grabs floor him. Slaps hardly bother him.
-    weak: ['grab'], resists: ['strike'],
+    // (suggestion) He's never been held: grabs throw him; two before he recovers floor him.
+    weak: ['grab'], poise: 2,
   },
 };
 
@@ -68,6 +69,9 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
     id: 'market_scrap',
     party: ['carver'],
     enemies: ['zealot'],
+    // The first fight: the ring closes slowly (1.6s) and the dodge band is twice as wide. Later fights
+    // can close faster and narrower.
+    timing: { lunge: 1600, ease: 2 },
     outcomes: {
       won: { fight_won: true },
       lost: { fight_won: false },

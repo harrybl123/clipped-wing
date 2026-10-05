@@ -10,6 +10,8 @@ import { PixelText } from '../ui/PixelText';
 import { SPEAKERS } from '../ui/portraits';
 import { playConfirm, playMove } from '../ui/sfx';
 import { playSound } from '../ui/soundscape';
+import { type FightMusic, startFightMusic } from '../ui/fightMusic';
+import { stopScore } from '../ui/score';
 import type { RowSprite } from '../ui/sprites';
 import type { AreaSceneData } from './AreaScene';
 
@@ -21,11 +23,12 @@ import type { AreaSceneData } from './AreaScene';
 // pushes in on whoever acts, punches in on a hit and pulls back out for the menu; the menus, bars and
 // cut-ins are on a second camera that never moves.
 //
-// On your turn a command menu slides in: Attack, Skill (SP), Guard, Item, Run where allowed, and All-out
-// when every enemy is down. Hit a weakness or land a critical and you get One More (a cut-in). When an
-// attack comes at you, a ring closes on your head as he lunges: press E as it crosses the green to dodge
-// (half harm), or late, inside the bright ring, to parry (no harm, and you hit back). It's a bonus; the
-// fight can be played without it.
+// On your turn a command menu slides in: Attack, Skill (SP), Guard, Item, Run where allowed (and All-out
+// in fights that allow it). Hit a weakness or land a critical and he's thrown off balance; again before
+// he recovers and he's down, and you get One More (a cut-in). When an attack comes at you, a ring closes
+// on your head as he lunges, as slowly as the fight says (`timing`): press E as it reaches the green to
+// dodge (half harm), or, once you can parry, late, inside the bright ring (no harm, and you hit back).
+// Too early and you can try again a moment later; a miss is only the normal harm.
 // When it's over, the outcome is written to ink and you're back in the area. Captions are PLACEHOLDER.
 
 export interface CombatSceneData {
@@ -37,9 +40,10 @@ export interface CombatSceneData {
 /** The line where the enemy stands, deep in the frame. */
 const FLOOR = 190;
 const HORIZON = 118;
-/** How long an attack takes to land once he lunges: the reaction ring closes over this. */
-const LUNGE = 650;
+/** The reaction ring's radius as the lunge starts; it closes to nothing as the blow lands. */
 const RING = 40;
+/** After a press that's too early, how long before you can try again (ms). */
+const RETRY = 260;
 /** The camera's framing for the menu: the whole stage. */
 const WIDE = { x: W / 2, y: H / 2, zoom: 1 };
 
@@ -63,6 +67,8 @@ interface View {
   pose: string;
   /** Where the head is, relative to the sprite's feet, at home. */
   head: { x: number; y: number };
+  /** A shadow on the floor that follows them. */
+  shadow?: Phaser.GameObjects.Ellipse;
   /** Enemies: name, health and intent over their heads. */
   tag?: { name: PixelText; intent: PixelText; bar: Phaser.GameObjects.Graphics };
   /** Health and SP as drawn: they drain towards the real values. */
@@ -90,7 +96,8 @@ export class CombatScene extends Phaser.Scene {
   private hudTexts: PixelText[] = [];
   private menuBox: Phaser.GameObjects.Container | null = null;
   private menu: { items: MenuItem[]; index: number; pick: (i: number | null) => void; title: string; back: boolean } | null = null;
-  private reacting: { target: string; impactAt: number; pressedAt: number | null; window: { dodge: number; parry: number } } | null = null;
+  private reacting: { target: string; impactAt: number; pressedAt: number | null; window: { dodge: number; parry: number }; lockedUntil: number; cued: boolean } | null = null;
+  private music: FightMusic | null = null;
   private waitingPress: (() => void) | null = null;
   /** The zoom the camera was last asked to frame at (a punch returns to it). */
   private framedZoom = 1;
@@ -107,6 +114,7 @@ export class CombatScene extends Phaser.Scene {
     this.reacting = null;
     this.waitingPress = null;
     this.hudTexts = [];
+    this.music = null;
   }
 
   create(): void {
@@ -146,6 +154,10 @@ export class CombatScene extends Phaser.Scene {
     this.time.addEvent({ delay: 650, loop: true, callback: () => this.breathe() });
     this.cameras.main.fadeIn(500);
     uiCam.fadeIn(500);
+    // The fight's music (any day's score gives way to it; the area brings that back afterwards).
+    stopScore(this);
+    this.startMusic();
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.music?.stop());
     this.refresh(true);
     // An opening sweep: from the enemy back to the whole stage.
     const foe = this.views.get(enemies[0]!.id)!;
@@ -156,6 +168,16 @@ export class CombatScene extends Phaser.Scene {
   override update(_time: number, delta: number): void {
     this.drawRing();
     this.drainBars(delta);
+    for (const v of this.views.values()) v.shadow?.setPosition(v.sprite.x, v.home.y).setScale(v.sprite.scale / v.home.scale);
+    // Sound may still be locked when the fight starts (no key pressed yet); start the music once it isn't.
+    if (!this.music && !this.battle.outcome) this.startMusic();
+  }
+
+  private startMusic(): void {
+    const m = startFightMusic(this);
+    // (A silent stand-in comes back while sound is locked; try again next frame.)
+    if (this.sound.locked) return;
+    this.music = m;
   }
 
   // --- The fight, turn by turn ---
@@ -195,7 +217,7 @@ export class CombatScene extends Phaser.Scene {
           return;
         }
         const target = this.views.get(action.target ?? this.battle.living('enemy')[0]!.id)!;
-        await this.lungeAt(view, target);
+        await this.lungeAt(view, target, move.id);
         await this.play(this.battle.act(action));
         await this.returnHome(view);
         return;
@@ -304,15 +326,16 @@ export class CombatScene extends Phaser.Scene {
     // Then he comes at you: the camera swings to you, and the ring closes on your head.
     const t = this.views.get(target)!;
     const window = this.battle.reactionWindow(move.id, target);
+    const { lunge } = this.battle.timing;
     void this.frame({ x: (t.home.x + view.home.x) / 2, y: 170, zoom: 1.25 }, 220);
     if (window) {
-      this.reacting = { target, impactAt: this.time.now + LUNGE, pressedAt: null, window };
+      this.reacting = { target, impactAt: this.time.now + lunge, pressedAt: null, window, lockedUntil: 0, cued: false };
       this.setPose(t, 'ready');
-      this.hintText('E as the ring hits green: dodge. Late, in the bright ring: parry.');
+      this.hintText(window.parry ? 'E when the ring reaches the green: dodge. Late, in the bright ring: parry.' : 'Press E when the ring reaches the green to dodge.');
     }
     this.setPose(view, 'attack');
     playSound(this, 'whoosh', 0.6);
-    await this.tween(view.sprite, { x: t.home.x + 70, y: H - 14, scale: 2, duration: LUNGE, ease: 'Quad.easeIn' });
+    await this.tween(view.sprite, { x: t.home.x + 70, y: H - 14, scale: 2, duration: lunge, ease: 'Quad.easeIn' });
     let reaction: Reaction = 'none';
     if (this.reacting) {
       const { pressedAt, impactAt } = this.reacting;
@@ -375,8 +398,24 @@ export class CombatScene extends Phaser.Scene {
           const t = this.views.get(e.target)!;
           this.say(`${t.c.def.name} gets up.`);
           await this.frame({ x: t.home.x, y: t.home.y - 34, zoom: 2 }, 250);
-          await this.tween(t.sprite, { angle: 0, x: t.home.x, y: t.home.y, duration: 350, ease: 'Back.easeOut' });
-          this.setPose(t, 'idle');
+          this.setPose(t, 'hit');
+          t.sprite.setPosition(t.home.x, t.home.y).setAngle(0);
+          playSound(this, 'shuffle');
+          await this.tween(t.sprite, { y: t.home.y - 8, duration: 160, yoyo: true, ease: 'Quad.easeOut' });
+          this.setPose(t, this.restPose(t));
+          break;
+        }
+        case 'offBalance': {
+          const t = this.views.get(e.target)!;
+          playSound(this, 'skid');
+          this.popLabel('OFF BALANCE', t, SHADES.amber, 18);
+          this.setPose(t, 'wobble');
+          await this.tween(t.sprite, { angle: 6, duration: 110, yoyo: true, repeat: 1 });
+          break;
+        }
+        case 'recover': {
+          const t = this.views.get(e.target)!;
+          if (t.c.side === 'enemy' && t.pose === 'wobble') this.setPose(t, 'idle');
           break;
         }
         case 'guard': {
@@ -397,7 +436,7 @@ export class CombatScene extends Phaser.Scene {
           this.cameras.main.shake(300, 0.012);
           if (t.c.side === 'enemy') await this.knockDown(t);
           else await this.tween(t.sprite, { y: t.home.y + 30, duration: 500 });
-          t.sprite.setAlpha(0.7);
+          t.sprite.setAlpha(0.75);
           break;
         }
         default:
@@ -429,15 +468,41 @@ export class CombatScene extends Phaser.Scene {
     this.refresh();
     const back = t.c.side === 'enemy' ? 8 : -8;
     await this.tween(t.sprite, { x: t.sprite.x + back, duration: 80, yoyo: true });
-    if (!t.c.down && e.hp > 0) this.setPose(t, t.pose === 'guard' ? 'guard' : 'idle');
+    if (e.hp > 0) this.setPose(t, this.restPose(t));
   }
 
+  /** Down he goes: thrown back, then flat on the boards with a puff of dust. */
   private async knockDown(t: View): Promise<void> {
+    if (t.c.side !== 'enemy') {
+      this.setPose(t, 'hit');
+      await this.tween(t.sprite, { angle: -12, y: t.home.y + 10, duration: 300 });
+      return;
+    }
     this.setPose(t, 'hit');
-    // Flat on the floor, lying across his shadow (the sprite turns about its feet).
-    const lying = t.c.side === 'enemy';
-    const half = (t.sprite.height * t.home.scale) / 2;
-    await this.tween(t.sprite, { angle: lying ? 90 : -20, x: lying ? t.home.x - half : t.home.x, y: t.home.y - 2, duration: 380, ease: 'Bounce.easeOut' });
+    await this.tween(t.sprite, { y: t.home.y - 10, x: t.home.x + 6, duration: 120, ease: 'Quad.easeOut' });
+    this.setPose(t, 'down');
+    t.sprite.setPosition(t.home.x + 6, t.home.y - 6);
+    await this.tween(t.sprite, { y: t.home.y, duration: 160, ease: 'Bounce.easeOut' });
+    playSound(this, 'thump', 0.8);
+    this.dust(t.home.x, t.home.y);
+    this.cameras.main.shake(120, 0.006);
+  }
+
+  /** How someone stands when nothing's happening to them: down, off balance, guarding, winding up, or at ease. */
+  private restPose(v: View): string {
+    if (v.c.down) return 'down';
+    if (v.c.offBalance > 0 && v.c.side === 'enemy') return 'wobble';
+    if (v.c.guarding) return 'guard';
+    const intent = this.battle.intentOf(v.c.id);
+    if (intent && MOVES[intent.move]!.windsUp === undefined && v.pose === 'windup' && this.battle.current?.id !== v.c.id) return 'windup';
+    return 'idle';
+  }
+
+  private dust(x: number, y: number): void {
+    for (let i = 0; i < 14; i++) {
+      const p = this.w(this.add.image(x + Phaser.Math.Between(-30, 30), y - Phaser.Math.Between(0, 4), PIXEL).setTint(Phaser.Math.RND.pick([SHADES.woodPale, SHADES.dim])).setScale(Phaser.Math.Between(2, 4)).setDepth(7));
+      this.tweens.add({ targets: p, y: p.y - Phaser.Math.Between(6, 16), x: p.x + Phaser.Math.Between(-10, 10), alpha: 0, duration: 500 + i * 20, ease: 'Quad.easeOut', onComplete: () => p.destroy() });
+    }
   }
 
   /** Every enemy down: a cut-in, then everyone piles in under a cloud of dust. */
@@ -472,6 +537,9 @@ export class CombatScene extends Phaser.Scene {
     const vars = this.battle.encounter.outcomes[outcome] ?? {};
     for (const [name, value] of Object.entries(vars)) story.setVariable(name, value);
     const set = Object.entries(vars).map(([k, v]) => `${k} = ${String(v)}`).join(', ');
+    if (outcome === 'won') this.music?.sting('win');
+    else if (outcome === 'lost') this.music?.sting('lose');
+    else this.music?.stop();
     await this.frame(WIDE, 500);
     this.say(`PLACEHOLDER: the fight is over (${outcome}).`);
     this.hintText(set ? `${set}. Press E.` : 'Press E.');
@@ -482,8 +550,10 @@ export class CombatScene extends Phaser.Scene {
 
   // --- Moving people about ---
 
-  private async lungeAt(view: View, target: View): Promise<void> {
-    this.setPose(view, 'attack');
+  private async lungeAt(view: View, target: View, move: string): Promise<void> {
+    // Each move has its own pose where there is one (slap, shove, grab); else a plain attack.
+    const look = LOOKS[view.c.def.sprite] ?? LOOKS.zealot!;
+    this.setPose(view, look.poses[move] ? move : 'attack');
     playSound(this, 'whoosh', 0.7);
     void this.frame({ x: target.home.x - 20, y: target.home.y - 40, zoom: 1.6 }, 200);
     // Into the frame, towards him: up, across and smaller as you go deeper.
@@ -492,8 +562,7 @@ export class CombatScene extends Phaser.Scene {
 
   private async returnHome(view: View): Promise<void> {
     await this.tween(view.sprite, { x: view.home.x, y: view.home.y, scale: view.home.scale, duration: 260, ease: 'Quad.easeOut' });
-    if (!view.c.down && view.c.hp > 0) this.setPose(view, view.c.guarding ? 'guard' : view.pose === 'windup' ? 'windup' : 'idle');
-    if (view.c.down) this.setPose(view, 'hit');
+    if (view.c.hp > 0) this.setPose(view, this.restPose(view));
   }
 
   // --- Input ---
@@ -516,8 +585,15 @@ export class CombatScene extends Phaser.Scene {
 
   private onPress(): void {
     if (this.reacting) {
-      // One press per attack: too early and you've spent it.
-      if (this.reacting.pressedAt === null) this.reacting.pressedAt = this.time.now;
+      const r = this.reacting;
+      if (r.pressedAt !== null || this.time.now < r.lockedUntil) return;
+      // Too early: nothing lost, just a moment before you can try again.
+      if (Battle.grade(r.impactAt - this.time.now, r.window) === 'none') {
+        r.lockedUntil = this.time.now + RETRY;
+        playSound(this, 'tap', 0.5);
+        return;
+      }
+      r.pressedAt = this.time.now;
     } else if (this.menu) {
       const { items, index, pick } = this.menu;
       if (!items[index]!.usable) return;
@@ -607,7 +683,7 @@ export class CombatScene extends Phaser.Scene {
     };
     if (!party) {
       // A ground shadow, and the name, health and next move over his head.
-      this.w(this.add.ellipse(x, y, 34, 6, SHADES.shadow, 0.6).setDepth(4));
+      view.shadow = this.w(this.add.ellipse(x, y, 40, 7, SHADES.shadow, 0.65).setDepth(4));
       const top = y - height - 22;
       view.tag = {
         name: this.w(new PixelText(this, x, top, c.def.name, { color: SHADES.white, shadow: SHADES.shadow }).setDepth(25)),
@@ -629,6 +705,8 @@ export class CombatScene extends Phaser.Scene {
   private breathe(): void {
     for (const v of this.views.values()) {
       if (v.pose === 'idle' || v.pose === 'breathe') this.setPose(v, v.pose === 'idle' ? 'breathe' : 'idle');
+      // Off balance, he sways.
+      else if (v.pose === 'wobble' && !this.tweens.isTweening(v.sprite)) this.tweens.add({ targets: v.sprite, angle: Phaser.Math.RND.pick([-3, 3]), duration: 300, yoyo: true });
     }
   }
 
@@ -643,8 +721,9 @@ export class CombatScene extends Phaser.Scene {
       let text = '';
       if (v.c.hp <= 0) text = '';
       else if (v.c.down) text = 'Down';
+      else if (v.c.offBalance > 0) text = 'Off balance';
       else if (i) text = MOVES[i.move]!.windsUp ? 'Building up...' : `Next: ${MOVES[i.move]!.name}`;
-      intent.setText(text).setX(Math.round(v.home.x - intent.width / 2)).setColor(v.c.down ? SHADES.amber : SHADES.dim);
+      intent.setText(text).setX(Math.round(v.home.x - intent.width / 2)).setColor(v.c.down || v.c.offBalance > 0 ? SHADES.amber : SHADES.dim);
     }
   }
 
@@ -660,9 +739,13 @@ export class CombatScene extends Phaser.Scene {
         const bw = 40;
         const x = Math.round(v.home.x - bw / 2);
         const y = v.tag.name.y + 9;
+        g.fillStyle(SHADES.woodPale).fillRect(x - 2, y - 2, bw + 4, 6);
         g.fillStyle(SHADES.shadow).fillRect(x - 1, y - 1, bw + 2, 4);
         g.fillStyle(SHADES.amber).fillRect(x, y, Math.round((bw * v.shown.lag) / v.c.def.hp), 2);
         g.fillStyle(SHADES.green).fillRect(x, y, Math.round((bw * v.shown.hp) / v.c.def.hp), 2);
+        // Pips under the bar: how close he is to going down.
+        const poise = v.c.def.poise ?? 1;
+        if (poise > 1 && v.c.hp > 0) for (let i = 0; i < poise; i++) g.fillStyle(i < v.c.offBalance || v.c.down ? SHADES.amber : SHADES.woodLight).fillRect(x + i * 5, y + 5, 3, 2);
       }
     }
     this.drawHud();
@@ -677,14 +760,16 @@ export class CombatScene extends Phaser.Scene {
       const x = 330 - i * 8;
       const y = H - 42 - i * 34;
       const pts = [[x + 8, y], [W, y], [W, y + 34], [x, y + 34]].map(([a, b]) => new Phaser.Math.Vector2(a!, b!));
-      g.fillStyle(SHADES.shadow, 0.92).fillPoints(pts, true);
-      g.fillStyle(SHADES.red).fillRect(x + 6, y, 3, 34);
+      g.fillStyle(SHADES.shadow, 0.94).fillPoints(pts, true);
+      g.lineStyle(1, SHADES.woodPale).strokePoints(pts, true);
+      g.fillStyle(SHADES.red).fillRect(x + 6, y + 1, 3, 33);
       const [name, nums] = [this.hudTexts[i * 2]!, this.hudTexts[i * 2 + 1]!];
       name.setText(v.c.def.name).setPosition(x + 16, y + 4);
       const hp = Math.round(v.shown.hp);
       nums.setText(`HP ${hp}   SP ${Math.round(v.shown.sp)}`).setPosition(x + 16, y + 13).setColor(hp <= v.c.def.hp / 4 ? SHADES.amber : SHADES.light);
       const bw = W - x - 26;
       const bar = (by: number, value: number, lag: number, max: number, colour: number) => {
+        g.fillStyle(SHADES.deep).fillRect(x + 15, by - 1, bw + 2, 5);
         g.fillStyle(SHADES.woodLight).fillRect(x + 16, by, bw, 3);
         g.fillStyle(SHADES.amber).fillRect(x + 16, by, Math.round((bw * lag) / Math.max(1, max)), 3);
         g.fillStyle(colour).fillRect(x + 16, by, Math.round((bw * value) / Math.max(1, max)), 3);
@@ -702,13 +787,21 @@ export class CombatScene extends Phaser.Scene {
     const g = this.ring.clear();
     const cx = t.home.x + t.head.x;
     const cy = t.home.y + t.head.y;
-    const toRadius = (ms: number) => (ms / LUNGE) * RING;
+    const { lunge } = this.battle.timing;
+    const toRadius = (ms: number) => (ms / lunge) * RING;
     const remaining = Math.max(0, r.impactAt - this.time.now);
-    g.fillStyle(SHADES.greenDeep, 0.35).fillCircle(cx, cy, toRadius(r.window.dodge));
-    g.lineStyle(1, SHADES.greenMid).strokeCircle(cx, cy, toRadius(r.window.dodge));
-    if (r.window.parry) g.lineStyle(1, SHADES.white).strokeCircle(cx, cy, toRadius(r.window.parry));
     const grade = Battle.grade(remaining, r.window);
-    g.lineStyle(2, r.pressedAt !== null ? SHADES.dim : grade === 'parry' ? SHADES.white : grade === 'dodge' ? SHADES.green : SHADES.amber).strokeCircle(cx, cy, toRadius(remaining));
+    // The cue: the moment the ring reaches the green, the band lights up and chimes.
+    if (grade !== 'none' && !r.cued) {
+      r.cued = true;
+      if (r.pressedAt === null) playSound(this, 'chime', 0.6);
+    }
+    const lit = r.cued && r.pressedAt === null;
+    g.fillStyle(lit ? SHADES.greenMid : SHADES.greenDeep, lit ? 0.55 : 0.35).fillCircle(cx, cy, toRadius(r.window.dodge));
+    g.lineStyle(1, lit ? SHADES.green : SHADES.greenMid).strokeCircle(cx, cy, toRadius(r.window.dodge));
+    if (r.window.parry) g.lineStyle(1, SHADES.white).strokeCircle(cx, cy, toRadius(r.window.parry));
+    const locked = this.time.now < r.lockedUntil;
+    g.lineStyle(2, r.pressedAt !== null || locked ? SHADES.dim : grade === 'parry' ? SHADES.white : grade === 'dodge' ? SHADES.white : SHADES.amber).strokeCircle(cx, cy, toRadius(remaining));
   }
 
   // --- Effects ---
@@ -837,43 +930,87 @@ export class CombatScene extends Phaser.Scene {
 }
 
 /**
- * The battle stage: the market seen down its length. Stalls with lamps on either side going back to the
- * vanishing point, the crowd standing round in a ring behind him, a far glow of the tube, and floorboards
- * running towards you in perspective. No red.
+ * The battle stage: the market seen down its length. Stalls under awnings on either side going back to
+ * the vanishing point, lamps hanging between them with bunting strung across, a ring of onlookers (a
+ * dim far row and a darker near one), a far glow of the tube, floorboards in perspective with a pool of
+ * lamplight where he stands, Mum's spilled jars, and a crate close to the camera on the right. No red.
  */
 function paintStage() {
   const wood = rgb(SHADES.wood);
   const amber = rgb(SHADES.amber);
   const cyan = rgb(SHADES.cyan);
   const vx = 270;
+  const LAMPS: [number, number][] = [[46, 50], [150, 58], [392, 56], [456, 48]];
+  /** Bunting: a sagging line between two lamps, with little cloth flags in the palette (never red). */
+  const bunting = (x: number, y: number): number | null => {
+    for (let i = 0; i < LAMPS.length - 1; i++) {
+      const [x0, y0] = LAMPS[i]!;
+      const [x1, y1] = LAMPS[i + 1]!;
+      if (x < x0 || x > x1 || x1 - x0 > 200) continue;
+      const t = (x - x0) / (x1 - x0);
+      const line = y0 + (y1 - y0) * t + Math.sin(t * Math.PI) * 10;
+      if (Math.abs(y - line) < 0.6) return SHADES.deep;
+      const flag = Math.floor((x - x0) / 9);
+      const fx = (x - x0) % 9;
+      if (fx < 6 && y > line && y < line + 6 - Math.abs(fx - 2.5) * 1.6) return [SHADES.amberDeep, SHADES.greenMid, SHADES.cyanMid, SHADES.dim][flag % 4]!;
+    }
+    return null;
+  };
   return (x: number, y: number) => {
+    // A crate close to the camera on the right, out of focus: a dark block with a lit top edge.
+    if (x > 438 && y > 150 && y < 270 - (x - 438) * 0.2) return y < 153 ? SHADES.woodPale : (x - 438) % 14 < 1 || (y - 150) % 18 < 1 ? SHADES.deep : SHADES.shadow;
     if (y >= HORIZON) {
-      // Floorboards converging on the vanishing point, darker towards the back.
+      // Mum's jars, rolled across the floor: little clay ellipses, lit on top, with shadows.
+      for (const [jx, jy, r] of [[330, 204, 4], [352, 212, 5], [204, 200, 3.5], [368, 198, 3]] as const) {
+        const dx = (x - jx) / r;
+        const dy = (y - jy) / (r * 0.7);
+        if (dx * dx + dy * dy <= 1) return dy < -0.4 ? SHADES.light : dx > 0.4 ? SHADES.dim : SHADES.woodPale;
+        if (Math.abs(dx - 0.3) < 1.2 && dy > 1 && dy < 1.7) return SHADES.deep;
+      }
+      // Floorboards converging on the vanishing point, darker towards the back, with a pool of lamplight.
       const depth = (y - HORIZON) / (H - HORIZON);
       const u = (x - vx) / Math.max(0.05, depth);
-      const seam = Math.abs(((u / 26) % 1 + 1) % 1 - 0.5) > 0.47;
-      const rows = Math.abs(((1 / Math.max(0.06, depth)) * 1.2) % 1 - 0.5) > 0.48;
-      const base = addLight(wood, amber, falloff(x, y, vx, 200, 160, 50) * 0.35 + depth * 0.05);
-      if (seam || rows) return SHADES.deep;
+      const seam = Math.abs((((u / 26) % 1) + 1) % 1 - 0.5) > 0.47;
+      const rowsLine = Math.abs(((1 / Math.max(0.06, depth)) * 1.2) % 1 - 0.5) > 0.48;
+      const pool = falloff(x, y, vx, FLOOR, 90, 26);
+      const base = addLight(wood, amber, pool * 0.45 + depth * 0.06 + falloff(x, y, 120, 150, 120, 40) * 0.15);
+      if (seam || rowsLine) return pool > 0.4 ? SHADES.woodLight : SHADES.deep;
       return noise(x / 7 + y / 3) > 0.78 ? addLight(base, rgb(SHADES.woodLight), 0.2) : base;
     }
-    // The back wall of the market: stalls and lamps, receding.
+    // The back of the market: lamplight on the stalls, the tube's glow far off.
     const d = Math.abs(x - vx) / 300;
-    let c = addLight(rgb(SHADES.deep), amber, falloff(x, y, 120, 80, 70, 50) * 0.4 + falloff(x, y, 430, 70, 60, 50) * 0.35);
-    c = addLight(c, cyan, falloff(x, y, vx, 30, 20, 120) * 0.25);
-    // Stall roofs and posts.
+    let c = addLight(rgb(SHADES.deep), cyan, falloff(x, y, vx, 20, 26, 130) * 0.28);
+    for (const [lx, ly] of LAMPS) c = addLight(c, amber, falloff(x, y, lx, ly + 8, 46, 40) * 0.42);
+    // The lamps themselves: a bracket and a bright core.
+    for (const [lx, ly] of LAMPS) {
+      if (Math.abs(x - lx) < 1 && y < ly - 3 && y > ly - 12) return SHADES.shadow;
+      const dl = Math.hypot(x - lx, (y - ly) * 1.3);
+      if (dl < 2) return SHADES.white;
+      if (dl < 3.6) return SHADES.amber;
+    }
+    const flag = bunting(x, y);
+    if (flag !== null) return flag;
+    // Stall awnings and posts, smaller and closer together as they recede.
     const stall = Math.floor(x / 48);
-    const roof = 52 + (stall % 2) * 8 + Math.round(d * 10);
-    if (y > roof && y < roof + 4) return SHADES.amberDeep;
-    if (y >= roof + 4 && (x % 48 < 2 || x % 48 > 45)) return SHADES.shadow;
-    // The crowd, standing round in a ring: heads and shoulders.
+    const roof = 54 + (stall % 2) * 7 + Math.round(d * 10);
+    if (y > roof && y < roof + 5) return (x + stall) % 6 < 3 ? SHADES.amberDeep : SHADES.woodPale;
+    if (y >= roof + 5 && (x % 48 < 2 || x % 48 > 45)) return SHADES.shadow;
+    // Goods on the stall counters: a lighter strip with jars and bundles.
+    if (y > roof + 26 && y < roof + 30 && noise(x / 3 + stall) > 0.45) return SHADES.woodLight;
+    // The crowd round the ring: a dim far row, and a darker, taller near row (gapped behind him).
+    const far = Math.floor(x / 8);
+    const farH = 10 + noise(far * 3.7) * 8;
+    if (y > HORIZON - 14 - farH && y < HORIZON - 12) {
+      const head = y < HORIZON - 14 - farH + 5 && Math.abs((x % 8) - 4) < 2.5;
+      if (head || y >= HORIZON - 14 - farH + 5) return SHADES.woodLight;
+    }
     const col = Math.floor(x / 11);
     const h = 18 + noise(col * 2.3) * 16;
     const ring = Math.abs(x - vx) > 60 || noise(col * 5.1) > 0.6;
     if (ring && y > HORIZON - h && y < HORIZON) {
       const head = y < HORIZON - h + 6 && Math.abs((x % 11) - 5) < 3;
       const body = y >= HORIZON - h + 6;
-      if (head || body) return SHADES.shadow;
+      if (head || body) return head && (x % 11) === 7 ? SHADES.deep : SHADES.shadow;
     }
     return noise(x / 9 + y / 30) > 0.8 ? addLight(c, rgb(SHADES.woodLight), 0.25) : addLight(c, wood, 0.6);
   };

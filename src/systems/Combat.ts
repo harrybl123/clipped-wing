@@ -2,13 +2,18 @@
 //
 // The base is a traditional Persona-style system: HP and SP; on your turn a command menu (Attack, Skill
 // for SP, Guard, Item, Run where allowed); turns in order of speed; enemies take their own turns.
-// Persona's hook: hit a weakness (or land a critical) and the enemy is knocked down and you get One
-// More, another action. Knocked down, they lose their next turn getting up. If every enemy is down, an
-// all-out attack is offered.
+// Persona's hook: hit a weakness (or land a critical) and the enemy is thrown off balance; enough of
+// those before they recover (their `poise`, 2 for most) and they're knocked down, and you get One More,
+// another action. Knocked down, they lose their next turn getting up, and can't be knocked down again
+// until they've acted. (An all-out attack when
+// every enemy is down is built but switched off: the designer felt it was too much Persona. An
+// encounter can turn it on with `allOut: true`.)
 //
 // On top: each enemy's intent is shown as a small hint, and when an enemy's attack comes at you, the
 // scene runs a short timing window and passes in how you reacted: a dodge halves the harm, a parry takes
-// none and opens a counter (a free hit back). Neither is needed to play.
+// none and opens a counter (a free hit back). Neither is needed to play, and a miss is only the normal
+// harm. How forgiving the timing is belongs to each fight (`timing`); parrying is a move the story hands
+// out later (a combatant's `reactions`).
 
 export type MoveKind = 'strike' | 'shove' | 'grab' | 'pierce' | 'none';
 
@@ -63,6 +68,8 @@ export interface CombatantDef {
   weights?: number[];
   weak?: MoveKind[];
   resists?: MoveKind[];
+  /** Weakness or critical hits it takes to knock them down, before they recover (default 1). */
+  poise?: number;
   /** Reactions this combatant can make when attacked (party members). */
   reactions?: ('dodge' | 'parry')[];
 }
@@ -75,6 +82,13 @@ export interface EncounterDef {
   run?: string;
   /** What's in the bag for this fight: item id → how many. */
   items?: Record<string, number>;
+  /** Offer an all-out attack when every enemy is down (off unless set). */
+  allOut?: boolean;
+  /**
+   * How forgiving the reaction timing is: `lunge` is how long (ms) an attack takes to land once it
+   * comes at you, `ease` widens every move's windows (2 = twice as wide). Early fights are generous.
+   */
+  timing?: { lunge?: number; ease?: number };
   /**
    * What each outcome writes to ink (the only store of story state): `won`, `lost`, the run outcome,
    * and any move's `ends` id. The scene writes them through the StoryBridge when the fight ends.
@@ -94,6 +108,12 @@ export interface Combatant {
   sp: number;
   /** Knocked down: loses their next turn getting up. */
   down: boolean;
+  /** Weakness or critical hits taken towards a knockdown (0: steady on their feet). */
+  offBalance: number;
+  /** Their own turns left before they find their balance again. */
+  recoverIn: number;
+  /** Just got up: can't be thrown off balance or knocked down until they've acted. */
+  steady: boolean;
   /** Guarding until their next turn: half harm, and weaknesses don't knock them down. */
   guarding: boolean;
 }
@@ -121,6 +141,8 @@ export type BattleEvent =
   | { type: 'reaction'; actor: string; target: string; reaction: Reaction }
   | { type: 'damage'; target: string; amount: number; hp: number; weak?: boolean; resisted?: boolean; crit?: boolean; guarded?: boolean }
   | { type: 'heal'; target: string; hp: number; sp: number }
+  | { type: 'offBalance'; target: string; hits: number; poise: number }
+  | { type: 'recover'; target: string }
   | { type: 'knockdown'; target: string }
   | { type: 'oneMore'; actor: string }
   | { type: 'counter'; actor: string; target: string }
@@ -151,6 +173,10 @@ export const GUARD = 0.5;
 export const DODGE = 0.5;
 /** An all-out attack's power, per party member standing. */
 export const ALL_OUT_POWER = 14;
+/** Reaction timing when a fight doesn't say. */
+export const DEFAULT_TIMING = { lunge: 650, ease: 1 };
+/** Off balance lasts this many of their own turns, then they find their feet. */
+export const RECOVER_TURNS = 2;
 
 export class Battle {
   readonly combatants: Combatant[];
@@ -181,7 +207,7 @@ export class Battle {
       if (!def) throw new Error(`Combat: no combatant called "${defId}"`);
       for (const m of [...def.moves, ...(def.basic ? [def.basic] : [])]) if (!moves[m]) throw new Error(`Combat: ${defId} has unknown move "${m}"`);
       const n = all.slice(0, i).filter((d) => d === defId).length;
-      return { id: n ? `${defId}-${n + 1}` : defId, def, side, hp: def.hp, sp: def.sp ?? 0, down: false, guarding: false };
+      return { id: n ? `${defId}-${n + 1}` : defId, def, side, hp: def.hp, sp: def.sp ?? 0, down: false, guarding: false, offBalance: 0, recoverIn: 0, steady: false };
     };
     this.combatants = [...encounter.party.map(make('party')), ...encounter.enemies.map(make('enemy'))];
     if (!this.combatants.some((c) => c.side === 'party') || !this.combatants.some((c) => c.side === 'enemy')) {
@@ -234,8 +260,14 @@ export class Battle {
     return this.intents.get(id);
   }
 
-  /** Every enemy standing is knocked down: the party can go all out. */
+  /** How forgiving the reaction timing is in this fight. */
+  get timing(): { lunge: number; ease: number } {
+    return { ...DEFAULT_TIMING, ...this.encounter.timing };
+  }
+
+  /** Every enemy standing is knocked down, and this fight allows an all-out attack. */
   get allOutReady(): boolean {
+    if (!this.encounter.allOut) return false;
     const foes = this.living('enemy');
     return foes.length > 0 && foes.every((f) => f.down);
   }
@@ -272,9 +304,11 @@ export class Battle {
     const m = this.move(move);
     const t = this.get(target);
     if (!m.reaction || !t.def.reactions?.length) return null;
+    const { ease, lunge } = this.timing;
+    const scale = (ms: number) => Math.min(lunge, Math.round(ms * ease));
     return {
-      dodge: t.def.reactions.includes('dodge') ? m.reaction.dodge : 0,
-      parry: t.def.reactions.includes('parry') ? m.reaction.parry : 0,
+      dodge: t.def.reactions.includes('dodge') ? scale(m.reaction.dodge) : 0,
+      parry: t.def.reactions.includes('parry') ? scale(m.reaction.parry) : 0,
     };
   }
 
@@ -337,9 +371,13 @@ export class Battle {
         for (const foe of this.living('enemy')) {
           const amount = Math.max(1, Math.round(power * this.variance()));
           foe.hp = Math.max(0, foe.hp - amount);
-          foe.down = false;
           events.push({ type: 'damage', target: foe.id, amount, hp: foe.hp });
           if (foe.hp === 0) events.push({ type: 'defeated', target: foe.id });
+          else {
+            // Those still standing pick themselves up.
+            foe.down = false;
+            events.push({ type: 'getUp', target: foe.id });
+          }
         }
         // Going all out spends the One More that set it up.
         this.oneMore = false;
@@ -348,6 +386,7 @@ export class Battle {
     }
     events.push(...this.checkEnd());
     if (this._outcome) return events;
+    this.endOwnTurn(actor, events);
     if (this.oneMore) {
       // One More: the same one goes again (once; the next knockdown can earn another).
       this.oneMore = false;
@@ -374,6 +413,7 @@ export class Battle {
     if (move.windsUp) this.nextIntent.set(actor.id, move.windsUp);
     events.push(...this.checkEnd());
     if (this._outcome) return events;
+    this.endOwnTurn(actor, events);
     // Enemies don't get One More in this first version.
     this.oneMore = false;
     return [...events, ...this.nextTurn()];
@@ -419,14 +459,34 @@ export class Battle {
       events.push({ type: 'defeated', target: target.id });
       return events;
     }
-    // A weakness or a critical knocks them down (not while guarding, not if already down), and the
-    // party member who did it goes again.
-    if (canKnockDown && (weak || crit) && !target.guarding && !target.down && scale === 1) {
-      target.down = true;
-      events.push({ type: 'knockdown', target: target.id });
-      if (actor.side === 'party') this.oneMore = true;
+    // A weakness or a critical throws them off balance (not while guarding, not if already down, not
+    // the turn they got up); enough of those before they recover and they're knocked down, and the party
+    // member who did it goes again.
+    if (canKnockDown && (weak || crit) && !target.guarding && !target.down && !target.steady && scale === 1) {
+      target.offBalance++;
+      const poise = target.def.poise ?? 1;
+      if (target.offBalance >= poise) {
+        target.down = true;
+        target.offBalance = 0;
+        target.recoverIn = 0;
+        events.push({ type: 'knockdown', target: target.id });
+        if (actor.side === 'party') this.oneMore = true;
+      } else {
+        target.recoverIn = RECOVER_TURNS;
+        events.push({ type: 'offBalance', target: target.id, hits: target.offBalance, poise });
+      }
     }
     return events;
+  }
+
+  /** The end of someone's own action: the turn after getting up is over, and off balance wears off. */
+  private endOwnTurn(c: Combatant, events: BattleEvent[]): void {
+    c.steady = false;
+    if (c.offBalance > 0 && --c.recoverIn <= 0) {
+      c.offBalance = 0;
+      c.recoverIn = 0;
+      events.push({ type: 'recover', target: c.id });
+    }
   }
 
   /** ±10% on every hit. */
@@ -465,6 +525,7 @@ export class Battle {
     if (!c.down) return false;
     c.down = false;
     c.guarding = false;
+    c.steady = true;
     this.intents.delete(c.id);
     events.push({ type: 'getUp', target: c.id });
     return true;

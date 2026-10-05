@@ -19,6 +19,8 @@ const DEFS: Record<string, CombatantDef> = {
   hero: { id: 'hero', name: 'Hero', sprite: 'x', hp: 50, sp: 6, attack: 10, defence: 10, speed: 5, basic: 'punch', moves: ['pull', 'lucky', 'leave'], reactions: ['dodge', 'parry'] },
   friend: { id: 'friend', name: 'Friend', sprite: 'x', hp: 50, attack: 10, defence: 10, speed: 1, basic: 'punch', moves: [] },
   brute: { id: 'brute', name: 'Brute', sprite: 'x', hp: 60, attack: 10, defence: 10, speed: 3, moves: ['bash'], weak: ['grab'], resists: ['strike'] },
+  brawler: { id: 'brawler', name: 'Brawler', sprite: 'x', hp: 50, sp: 40, attack: 10, defence: 10, speed: 5, basic: 'punch', moves: ['pull'] },
+  tough: { id: 'tough', name: 'Tough', sprite: 'x', hp: 200, attack: 10, defence: 10, speed: 3, moves: ['bash'], weak: ['grab'], poise: 2 },
   charger: { id: 'charger', name: 'Charger', sprite: 'x', hp: 60, attack: 10, defence: 10, speed: 3, moves: ['charge'] },
 };
 const IT: Record<string, ItemDef> = { bun: { id: 'bun', name: 'Bun', description: '', heal: 15 } };
@@ -129,8 +131,15 @@ describe('Battle: weaknesses, One More, all out', () => {
     expect(events.find((e) => e.type === 'oneMore')).toBeUndefined();
   });
 
-  it('when every enemy is down, an all-out attack is offered; they get up afterwards', () => {
+  it('no all-out attack unless the fight allows it', () => {
     const b = fight();
+    b.act({ type: 'skill', move: 'pull' });
+    expect(b.allOutReady).toBe(false);
+    expect(b.commands().map((c) => c.type)).not.toContain('allOut');
+  });
+
+  it('when every enemy is down (and the fight allows it), an all-out attack is offered', () => {
+    const b = fight({ allOut: true });
     b.act({ type: 'skill', move: 'pull' });
     expect(b.allOutReady).toBe(true);
     expect(b.commands()[0]).toEqual({ type: 'allOut', usable: true });
@@ -140,12 +149,74 @@ describe('Battle: weaknesses, One More, all out', () => {
     expect(b.current?.id).toBe('brute');
   });
 
+  it('someone knocked down gets up on their next turn, and acts normally the turn after', () => {
+    const b = fight();
+    b.act({ type: 'skill', move: 'pull' }); // down, One More
+    expect(b.act({ type: 'attack' })).toContainEqual({ type: 'getUp', target: 'brute' });
+    expect(b.get('brute').down).toBe(false);
+    expect(b.round).toBe(2);
+    expect(b.intentOf('brute')).toEqual({ move: 'bash', target: 'hero' });
+    b.act({ type: 'guard' });
+    expect(b.enemyTurn()).toContainEqual({ type: 'move', actor: 'brute', move: 'bash', target: 'hero' });
+  });
+
+  it('after an all-out attack, those still standing get up (an event, so the scene stands them up)', () => {
+    const b = fight({ allOut: true });
+    b.act({ type: 'skill', move: 'pull' });
+    expect(b.act({ type: 'allOut' })).toContainEqual({ type: 'getUp', target: 'brute' });
+  });
+
   it('someone knocked down spends their next turn getting up (and loses their intent)', () => {
     const b = fight({ party: ['hero', 'friend'], enemies: ['brute', 'brute'] });
     b.act({ type: 'skill', move: 'pull', target: 'brute' }); // brute down, One More
     const events = b.act({ type: 'attack', target: 'brute-2' }); // on to brute (down) → gets up → brute-2
     expect(events).toContainEqual({ type: 'getUp', target: 'brute' });
     expect(b.current?.id).toBe('brute-2');
+  });
+});
+
+describe('Battle: off balance, then down (poise)', () => {
+  it('with poise 2, the first weakness hit only throws him off balance: no knockdown, no One More', () => {
+    const b = fight({ party: ['brawler'], enemies: ['tough'] });
+    const events = b.act({ type: 'skill', move: 'pull' });
+    expect(events).toContainEqual({ type: 'offBalance', target: 'tough', hits: 1, poise: 2 });
+    expect(events.find((e) => e.type === 'knockdown' || e.type === 'oneMore')).toBeUndefined();
+    expect(b.current?.id).toBe('tough');
+  });
+
+  it('a second one before he recovers knocks him down, with One More', () => {
+    const b = fight({ party: ['brawler'], enemies: ['tough'] });
+    b.act({ type: 'skill', move: 'pull' });
+    b.enemyTurn(); // still off balance (one of his two turns gone)
+    expect(b.get('tough').offBalance).toBe(1);
+    const events = b.act({ type: 'skill', move: 'pull' });
+    expect(events).toContainEqual({ type: 'knockdown', target: 'tough' });
+    expect(events).toContainEqual({ type: 'oneMore', actor: 'brawler' });
+  });
+
+  it('given time, he finds his balance again', () => {
+    const b = fight({ party: ['brawler'], enemies: ['tough'] });
+    b.act({ type: 'skill', move: 'pull' });
+    b.enemyTurn();
+    b.act({ type: 'attack' });
+    expect(b.enemyTurn()).toContainEqual({ type: 'recover', target: 'tough' });
+    expect(b.get('tough').offBalance).toBe(0);
+    expect(b.act({ type: 'skill', move: 'pull' })).toContainEqual({ type: 'offBalance', target: 'tough', hits: 1, poise: 2 });
+  });
+
+  it('just after getting up, he can’t be thrown off balance until he’s acted', () => {
+    const b = fight({ party: ['brawler'], enemies: ['tough'] });
+    b.act({ type: 'skill', move: 'pull' });
+    b.enemyTurn();
+    b.act({ type: 'skill', move: 'pull' }); // down, One More
+    b.act({ type: 'attack' }); // he gets up (his turn); round 3
+    expect(b.get('tough').steady).toBe(true);
+    const events = b.act({ type: 'skill', move: 'pull' });
+    expect(events).toContainEqual({ type: 'damage', target: 'tough', amount: 15, hp: expect.any(Number), weak: true });
+    expect(events.find((e) => e.type === 'offBalance' || e.type === 'knockdown')).toBeUndefined();
+    b.enemyTurn();
+    expect(b.get('tough').steady).toBe(false);
+    expect(b.act({ type: 'skill', move: 'pull' })).toContainEqual({ type: 'offBalance', target: 'tough', hits: 1, poise: 2 });
   });
 });
 
@@ -175,6 +246,14 @@ describe('Battle: reactions on top', () => {
     expect(Battle.grade(400, w)).toBe('none');
     expect(Battle.grade(50, { dodge: 260, parry: 0 })).toBe('dodge');
     expect(Battle.grade(50, null)).toBe('none');
+  });
+
+  it('each fight sets how forgiving the timing is: windows widen with ease, never past the lunge', () => {
+    expect(fight().timing).toEqual({ lunge: 650, ease: 1 });
+    const easy = fight({ timing: { lunge: 1000, ease: 2 } });
+    expect(easy.timing).toEqual({ lunge: 1000, ease: 2 });
+    expect(easy.reactionWindow('bash', 'hero')).toEqual({ dodge: 500, parry: 200 });
+    expect(fight({ timing: { lunge: 300, ease: 3 } }).reactionWindow('bash', 'hero')).toEqual({ dodge: 300, parry: 300 });
   });
 
   it('names duplicates apart', () => {
@@ -208,15 +287,27 @@ describe('combat data', () => {
     }
   });
 
-  it('the market scrap can be won by playing well (grabs, all out, dodging)', () => {
+  it('in the market scrap you can only dodge (parrying comes later in the story)', () => {
+    const b = new Battle(ENCOUNTERS.market_scrap!, MOVES, COMBATANTS, ITEMS, half);
+    expect(b.reactionWindow('swing', 'carver')?.parry).toBe(0);
+    expect(b.reactionWindow('swing', 'carver')?.dodge).toBeGreaterThan(400);
+  });
+
+  it('the market scrap can be won by playing well (grabs, slaps, dodging)', () => {
     const b = new Battle(ENCOUNTERS.market_scrap!, MOVES, COMBATANTS, ITEMS, half);
     let guard = 0;
-    while (!b.outcome && guard++ < 40) {
+    while (!b.outcome && guard++ < 60) {
       if (b.current!.side === 'enemy') b.enemyTurn('dodge');
-      else if (b.allOutReady) b.act({ type: 'allOut' });
       else if (b.skills().find((s) => s.move.id === 'grab')!.usable) b.act({ type: 'skill', move: 'grab' });
       else b.act({ type: 'attack' });
     }
     expect(b.outcome).toBe('won');
+  });
+
+  it('the market scrap can be lost if you never dodge and never guard', () => {
+    const b = new Battle(ENCOUNTERS.market_scrap!, MOVES, COMBATANTS, ITEMS, half);
+    let guard = 0;
+    while (!b.outcome && guard++ < 60) b.current!.side === 'enemy' ? b.enemyTurn('none') : b.act({ type: 'attack' });
+    expect(b.outcome).toBe('lost');
   });
 });
