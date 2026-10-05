@@ -459,9 +459,9 @@ export class AreaScene extends Phaser.Scene {
       this.time.delayedCall(700, () => this.dialogue.open(knot, closed));
     }
     new DebugOverlay(this, session, () => (this.dialogue.isOpen ? 'Close the conversation first.' : null));
-    // Dev: C in the debug overlay starts a turn-based fight, and comes back here afterwards.
+    // Dev: C in the debug overlay opens the fight picker, and comes back here afterwards.
     const debugCombat = (encounter: string) => {
-      if (!this.dialogue.isOpen && !this.leaving) this.leaveFor('Combat', { encounter, back: { areaId: this.area.id, start: { ...this.player.feet } } } satisfies CombatSceneData);
+      if (!this.dialogue.isOpen && !this.leaving) this.leaveFor('Combat', { encounter, pick: true, back: { areaId: this.area.id, start: { ...this.player.feet } } } satisfies CombatSceneData);
     };
     this.events.on('debug-combat', debugCombat);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off('debug-combat', debugCombat));

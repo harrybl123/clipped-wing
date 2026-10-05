@@ -10,47 +10,16 @@
 // encounter can turn it on with `allOut: true`.)
 //
 // On top: you read what an enemy is about to do from a tell (a pose and a vague line, `tell` on each move;
-// sometimes a feint, another move's tell, `feint` on each enemy), and when its attack comes at you the
-// scene runs a short reaction game and passes in how you did: a dodge halves the harm, a parry takes none
-// and opens a counter (a free hit back). The games (`ReactionKind`): a ring closing into a band, the same
-// with a side to dodge away from, one ring per hit for a flurry, or mashing to break a hold. None is
-// needed to play, and a miss is only the normal harm. How forgiving the timing is belongs to each fight
-// (`timing`); parrying is a move the story hands out later (a combatant's `reactions`).
+// sometimes a feint, another move's tell, `feint` on each enemy). And any move can have a quick-time
+// event (`qte`, src/systems/qte.ts), one per blow: on an enemy's attack the scene runs it as your reaction
+// and passes in how you did (a dodge halves the harm; a parry, for those who can, takes none and hits
+// back); on your own skill it's a boost (more harm for each good or perfect press, building through a
+// combo). None is needed to play, and a miss is never worse than no QTE. How forgiving they are belongs
+// to each fight (`timing`); parrying is a move the story hands out later (a combatant's `reactions`).
+
+import { BOOST, easeQte, pickQte, type Grade, type Qte, type QteDef, type QteKind } from './qte';
 
 export type MoveKind = 'strike' | 'shove' | 'grab' | 'pierce' | 'none';
-
-/**
- * How you react to an attack:
- *   ring    a ring closes on your head; press while it's in the band (the donut), not before, not after
- *   side    the same, but press the arrow away from the side the blow comes from (read it from his pose)
- *   rhythm  one ring per hit, in quick succession (a flurry): a press for each
- *   mash    he's got hold of you: press again and again to break free before the time's up
- */
-export type ReactionKind = 'ring' | 'side' | 'rhythm' | 'mash';
-
-/** An attack you can react to. Times are ms before the blow lands. */
-export interface ReactionDef {
-  kind?: ReactionKind;
-  /** The band opens (the ring reaches its outer edge). */
-  dodge?: number;
-  /** The band closes (the ring passes its inner edge): any later is too late. */
-  late?: number;
-  /** For those who can parry: the innermost part of the band. */
-  parry?: number;
-  /** mash: how many presses break the hold, and how long you have (ms). */
-  presses?: number;
-  time?: number;
-}
-
-/** A reaction as this fight sets it, for this target (windows eased by the fight's timing). */
-export interface ReactionWindow {
-  kind: ReactionKind;
-  dodge: number;
-  late: number;
-  parry: number;
-  presses: number;
-  time: number;
-}
 
 /** Which way a blow comes from (the screen's left or right). */
 export type SideOf = 'left' | 'right';
@@ -71,14 +40,20 @@ export interface MoveDef {
   sp?: number;
   /** Chance (0–1) of a critical: more harm, knocks down, One More. */
   crit?: number;
-  /** An attack the target can react to: which game, and its windows. */
-  reaction?: ReactionDef;
-  /** Blows in one attack (a flurry), each reacted to in turn. */
+  /** Its quick-time event, or one per blow (an enemy's: your reaction; yours: a boost). */
+  qte?: QteDef | QteDef[];
+  /** Blows in one attack (a flurry, a combo), each with its own QTE. */
   hits?: number;
+  /** Your combos: each good press before makes the next blow `build` times harder still; `finisher`: land them all and the last throws him off balance. */
+  combo?: { build: number; finisher?: boolean };
+  /** Which pose each blow uses (the scene's), if not the move's id. */
+  poses?: string[];
   /** What it looks like coming: the enemy's pose, and lines for it (one is picked). PLACEHOLDER lines. */
   tell?: { pose: string; lines: string[] };
   /** Landing it on someone about to unleash a wound-up blow breaks it: they lose it and their balance. */
   interrupts?: boolean;
+  /** How much of it gets through a guard, and through a dodge (instead of the usual half each): a big blow can be cut right down. */
+  softened?: { guard?: number; dodge?: number };
   /** Builds up: the user's next intent is this move, whatever the AI would pick (an enemy's wind-up). */
   windsUp?: string;
   /** Ends the fight at once with this outcome (holding back). */
@@ -118,10 +93,36 @@ export interface CombatantDef {
   reactions?: ('dodge' | 'parry')[];
   /** Enemies: the chance (0–1) a tell is a feint, another move's tell. */
   feint?: number;
+  /** Enemies: how they choose, beyond `weights` (a temperament). */
+  ai?: EnemyAi;
+}
+
+/**
+ * How an enemy chooses its next move, on top of its weights, so it behaves like a person: it shows you
+ * its moves early on, doesn't do the same thing over and over, and reacts to how the fight's going.
+ * Each `when` multiplies weights while that's true.
+ */
+export interface EnemyAi {
+  /** Its first moves, in order, one a round (to introduce each); then it chooses. */
+  opening?: string[];
+  /** The same move at most this many times in a row. */
+  maxRepeat?: number;
+  /** Weights of the moves among its last two times this much (below 1: it likes to vary what it does). */
+  recent?: number;
+  when?: {
+    /** It's below half its health. */
+    hurt?: Record<string, number>;
+    /** Its target is below 40% of theirs. */
+    foeHurt?: Record<string, number>;
+    /** Its target guarded with their last action. */
+    foeGuarding?: Record<string, number>;
+  };
 }
 
 export interface EncounterDef {
   id: string;
+  /** What it's called in the dev fight picker. */
+  name?: string;
   party: string[];
   enemies: string[];
   /** Run is offered (and this outcome follows), or not at all. */
@@ -176,8 +177,8 @@ export interface Intent {
 }
 
 export type Action =
-  | { type: 'attack'; target?: string }
-  | { type: 'skill'; move: string; target?: string }
+  | { type: 'attack'; target?: string; grades?: Grade[] }
+  | { type: 'skill'; move: string; target?: string; grades?: Grade[] }
   | { type: 'guard' }
   | { type: 'item'; item: string; target?: string }
   | { type: 'run' }
@@ -199,6 +200,7 @@ export type BattleEvent =
   | { type: 'oneMore'; actor: string }
   | { type: 'counter'; actor: string; target: string }
   | { type: 'interrupt'; target: string }
+  | { type: 'qte'; actor: string; grade: Grade }
   | { type: 'stumble'; actor: string }
   | { type: 'allOut'; actor: string }
   | { type: 'getUp'; target: string }
@@ -239,6 +241,10 @@ export class Battle {
   private readonly intents = new Map<string, Intent>();
   /** Forced next intents (after a wind-up). */
   private readonly nextIntent = new Map<string, string>();
+  /** What each enemy has chosen so far (forced follow-ups not counted), to vary it and follow its opening. */
+  private readonly chosen = new Map<string, string[]>();
+  /** Party members whose last action was to guard. */
+  private readonly guarded = new Set<string>();
   private order: string[] = [];
   private turnIndex = 0;
   private _round = 0;
@@ -351,53 +357,27 @@ export class Battle {
   }
 
   /**
-   * How `target` can react to `move` in this fight: the game and its windows, eased by the fight's
-   * timing (the band widens inwards from its inner edge, never past the lunge). Null if the move can't
-   * be reacted to, or the target can't react.
+   * The QTE for blow `hit` of a move, as this fight eases it (`canPerfect`: whether a perfect counts).
+   * `last`: the kind of the last QTE shown; a move with an `alt` uses that instead of repeating it.
    */
-  reactionWindow(move: string, target: string): ReactionWindow | null {
-    const m = this.move(move);
-    const t = this.get(target);
-    if (!m.reaction || !t.def.reactions?.includes('dodge')) return null;
+  qteFor(move: string, hit = 0, canPerfect = true, last: QteKind | null = null): Qte | null {
+    const q = this.move(move).qte;
+    const def = Array.isArray(q) ? q[Math.min(hit, q.length - 1)] : q;
+    if (!def) return null;
     const { ease, lunge } = this.timing;
-    const r = m.reaction;
-    const late = r.late ?? 0;
-    const band = Math.max(0, (r.dodge ?? 0) - late) * ease;
-    return {
-      kind: r.kind ?? 'ring',
-      dodge: Math.min(lunge, Math.round(late + band)),
-      late,
-      parry: t.def.reactions.includes('parry') ? Math.min(Math.round(band), Math.round((r.parry ?? 0) * ease)) : 0,
-      presses: Math.max(1, Math.round((r.presses ?? 0) / ease)),
-      time: r.time ?? 0,
-    };
+    return easeQte(pickQte(def, last), ease, lunge, canPerfect);
   }
 
-  /**
-   * Grades a press `pressedAt` ms before the blow lands (null: no press): a dodge while the ring is in
-   * the band, a parry in its innermost part (if you can parry); too early or too late is nothing.
-   */
-  static grade(pressedAt: number | null, window: ReactionWindow | null): Reaction {
-    if (pressedAt === null || !window || window.kind === 'mash') return 'none';
-    if (pressedAt > window.dodge || pressedAt < window.late) return 'none';
-    if (window.parry > 0 && pressedAt <= window.late + window.parry) return 'parry';
-    return 'dodge';
+  /** How `target` reacts to blow `hit` of an enemy's `move`: null if it can't (it can't dodge, or there's no QTE). */
+  reactionWindow(move: string, target: string, hit = 0, last: QteKind | null = null): Qte | null {
+    const t = this.get(target);
+    if (!t.def.reactions?.includes('dodge')) return null;
+    return this.qteFor(move, hit, t.def.reactions.includes('parry'), last);
   }
 
-  /** Whether a press is too early (the ring hasn't reached the band yet), so you can try again. */
-  static tooEarly(pressedAt: number, window: ReactionWindow): boolean {
-    return pressedAt > window.dodge;
-  }
-
-  /** A side attack: the press must be the arrow away from where the blow comes from, in the band. */
-  static gradeSide(pressedAt: number | null, pressed: SideOf | null, from: SideOf, window: ReactionWindow | null): Reaction {
-    if (!pressed || pressed === from) return 'none';
-    return Battle.grade(pressedAt, window);
-  }
-
-  /** Breaking a hold: enough presses in time is a dodge (half harm). */
-  static gradeMash(presses: number, window: ReactionWindow | null): Reaction {
-    return window && presses >= window.presses ? 'dodge' : 'none';
+  /** What a QTE grade on an enemy's blow means for you: a good one dodges, a perfect one parries (if you can). */
+  static reactionFor(grade: Grade): Reaction {
+    return grade === 'perfect' ? 'parry' : grade === 'good' ? 'dodge' : 'none';
   }
 
   /** The current party member acts. */
@@ -407,11 +387,15 @@ export class Battle {
     const command = this.commands().find((c) => c.type === action.type);
     if (!command?.usable) throw new Error(`Combat: "${action.type}" can't be used now`);
     actor.guarding = false;
+    this.guarded.delete(actor.id);
     const events: BattleEvent[] = [];
     const firstFoe = () => this.living('enemy')[0]!.id;
+    // Only someone still standing in the fight can be gone for.
+    const target = 'target' in action ? action.target : undefined;
+    if (target !== undefined && !this.living('enemy').some((e) => e.id === target)) throw new Error(`Combat: "${target}" isn't in the fight`);
     switch (action.type) {
       case 'attack':
-        events.push(...this.strike(actor, this.move(actor.def.basic!), this.get(action.target ?? firstFoe()), []));
+        events.push(...this.strike(actor, this.move(actor.def.basic!), this.get(action.target ?? firstFoe()), { grades: action.grades ?? [] }));
         break;
       case 'skill': {
         if (!actor.def.moves.includes(action.move)) throw new Error(`Combat: ${actor.id} doesn't know "${action.move}"`);
@@ -423,11 +407,12 @@ export class Battle {
           return [...events, ...this.finish(move.ends)];
         }
         const target = move.target === 'self' ? actor : this.get(action.target ?? firstFoe());
-        events.push(...this.strike(actor, move, target, []));
+        events.push(...this.strike(actor, move, target, { grades: action.grades ?? [] }));
         break;
       }
       case 'guard':
         actor.guarding = true;
+        this.guarded.add(actor.id);
         events.push({ type: 'guard', actor: actor.id });
         break;
       case 'item': {
@@ -495,7 +480,7 @@ export class Battle {
       let target = this.get(intent.target);
       // If the one it meant to hit is down for good, it turns on someone else.
       if (target.hp <= 0) target = this.living('party')[0]!;
-      events = this.strike(actor, move, target, Array.isArray(reaction) ? reaction : [reaction]);
+      events = this.strike(actor, move, target, { reactions: Array.isArray(reaction) ? reaction : [reaction] });
     }
     if (move?.windsUp) this.nextIntent.set(actor.id, move.windsUp);
     events.push(...this.checkEnd());
@@ -507,10 +492,16 @@ export class Battle {
   }
 
   /** A move from one to another: harm, weaknesses, criticals, knockdowns; a parry's counter. */
-  private strike(actor: Combatant, move: MoveDef, target: Combatant, reactions: Reaction[]): BattleEvent[] {
+  /**
+   * A move from one to another, blow by blow: harm, weaknesses, criticals, knockdowns. An enemy's blows
+   * take your `reactions` (a parry hits back); your own take your QTE `grades` (each a boost, building
+   * through a combo).
+   */
+  private strike(actor: Combatant, move: MoveDef, target: Combatant, { reactions = [], grades = [] }: { reactions?: Reaction[]; grades?: Grade[] }): BattleEvent[] {
     const events: BattleEvent[] = [{ type: 'move', actor: actor.id, move: move.id, target: target.id }];
     if (move.target === 'self' || !move.power) return events;
     const window = this.reactionWindow(move.id, target.id);
+    let landed = 0;
     // Was the target about to unleash a wound-up blow? (Before this lands, in case it floors them.)
     const intent = this.intents.get(target.id);
     const breaks = !!move.interrupts && target.side === 'enemy' && !!intent?.charged && !this.hasActed(target.id);
@@ -526,8 +517,17 @@ export class Battle {
         }
         continue;
       }
-      events.push(...this.harm(actor, move, target, r === 'dodge' ? DODGE : 1, true));
+      // Your own blow: boosted by how you did on its QTE, and by the good presses before it in a combo.
+      const grade = grades[i] ?? 'miss';
+      // (Only when the move had a QTE: a move without one hits as written.)
+      const boost = actor.side === 'party' && grades.length ? BOOST[grade] * (1 + (move.combo?.build ?? 0) * landed) : 1;
+      if (grade !== 'miss') landed++;
+      if (grades.length) events.push({ type: 'qte', actor: actor.id, grade });
+      events.push(...this.harm(actor, move, target, (r === 'dodge' ? (move.softened?.dodge ?? DODGE) : 1) * boost, true));
     }
+    // A combo's finisher: land every blow and the last throws him off balance.
+    const hits = move.hits ?? 1;
+    if (move.combo?.finisher && landed === hits && target.hp > 0) this.unbalance(actor, target, events);
     if (breaks && target.hp > 0 && !target.down) {
       // Broken: the big blow is lost, and so is his balance.
       this.intents.delete(target.id);
@@ -552,7 +552,7 @@ export class Battle {
     if (weak) amount *= WEAK;
     if (resisted) amount *= RESIST;
     if (crit) amount *= CRIT;
-    if (target.guarding) amount *= GUARD;
+    if (target.guarding) amount *= move.softened?.guard ?? GUARD;
     const n = Math.max(1, Math.round(amount));
     target.hp = Math.max(0, target.hp - n);
     events.push({
@@ -566,7 +566,7 @@ export class Battle {
     // A weakness or a critical throws them off balance (not while guarding, not if already down, not
     // the turn they got up); enough of those before they recover and they're knocked down, and the party
     // member who did it goes again.
-    if (canKnockDown && (weak || crit) && !target.guarding && scale === 1) this.unbalance(actor, target, events);
+    if (canKnockDown && (weak || crit) && !target.guarding && scale >= 1) this.unbalance(actor, target, events);
     return events;
   }
 
@@ -639,6 +639,19 @@ export class Battle {
     return true;
   }
 
+  /** An enemy's next move, by its weights and temperament (`ai`). */
+  private choose(enemy: Combatant, foe: Combatant): string {
+    const history = this.chosen.get(enemy.id) ?? [];
+    const weights = aiWeights(enemy.def, history, {
+      hurt: enemy.hp < enemy.def.hp / 2,
+      foeHurt: foe.hp < foe.def.hp * 0.4,
+      foeGuarding: this.guarded.has(foe.id),
+    });
+    const move = pickWeighted(enemy.def.moves, weights, this.rng);
+    this.chosen.set(enemy.id, [...history, move]);
+    return move;
+  }
+
   private startRound(): BattleEvent[] {
     this._round++;
     const events: BattleEvent[] = [{ type: 'round', round: this._round }];
@@ -646,12 +659,14 @@ export class Battle {
     for (const enemy of this.living('enemy')) {
       const forced = this.nextIntent.get(enemy.id);
       this.nextIntent.delete(enemy.id);
-      const move = forced ?? pickWeighted(enemy.def.moves, enemy.def.weights, this.rng);
       const party = this.living('party');
+      // Whom it's after decides how it feels about the fight, so pick that first.
+      const foe = party[Math.floor(this.rng() * party.length)]!;
+      const move = forced ?? this.choose(enemy, foe);
       const m = this.move(move);
-      const target = m.target === 'self' ? enemy.id : party[Math.floor(this.rng() * party.length)]!.id;
+      const target = m.target === 'self' ? enemy.id : foe.id;
       const intent: Intent = { move, target, ...(forced ? { charged: true } : {}) };
-      if (m.reaction?.kind === 'side') intent.side = this.rng() < 0.5 ? 'left' : 'right';
+      if (this.qteFor(move)?.kind === 'side') intent.side = this.rng() < 0.5 ? 'left' : 'right';
       // What you see: this move's tell, or now and then (a feint) another's.
       const others = enemy.def.moves.filter((o) => o !== move && this.move(o).tell);
       const feint = (enemy.def.feint ?? 0) > 0 && others.length > 0 && this.rng() < enemy.def.feint!;
@@ -665,6 +680,27 @@ export class Battle {
     this.turnIndex = 0;
     return events;
   }
+}
+
+/** Weights after an enemy's temperament: its opening, no long repeats, and how the fight's going. */
+export function aiWeights(def: CombatantDef, history: readonly string[], state: { hurt: boolean; foeHurt: boolean; foeGuarding: boolean }): number[] {
+  const ai = def.ai ?? {};
+  const opening = ai.opening?.[history.length];
+  if (opening && def.moves.includes(opening)) return def.moves.map((m) => (m === opening ? 1 : 0));
+  const last = history[history.length - 1];
+  let streak = 0;
+  for (let i = history.length - 1; i >= 0 && history[i] === last; i--) streak++;
+  const weights = def.moves.map((m, i) => {
+    let w = def.weights?.[i] ?? 1;
+    if (state.hurt) w *= ai.when?.hurt?.[m] ?? 1;
+    if (state.foeHurt) w *= ai.when?.foeHurt?.[m] ?? 1;
+    if (state.foeGuarding) w *= ai.when?.foeGuarding?.[m] ?? 1;
+    if (ai.recent !== undefined && history.slice(-2).includes(m)) w *= ai.recent;
+    if (ai.maxRepeat && m === last && streak >= ai.maxRepeat) w = 0;
+    return w;
+  });
+  // (If its temperament rules everything out, fall back on its plain weights.)
+  return weights.some((w) => w > 0) ? weights : def.moves.map((_, i) => def.weights?.[i] ?? 1);
 }
 
 function pickWeighted(moves: string[], weights: number[] | undefined, rng: Rng): string {

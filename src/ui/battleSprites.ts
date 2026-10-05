@@ -79,8 +79,8 @@ const FIGURE = { o: SHADES.shadow, m: SHADES.deep, e: SHADES.woodLight, '#': SHA
 
 // --- The carver, from behind ---
 
-export type CarverPose = 'idle' | 'breathe' | 'ready' | 'dodge' | 'attack' | 'slap' | 'shove' | 'grab' | 'guard' | 'hit';
-export const CARVER_POSES: CarverPose[] = ['idle', 'breathe', 'ready', 'dodge', 'attack', 'slap', 'shove', 'grab', 'guard', 'hit'];
+export type CarverPose = 'idle' | 'breathe' | 'ready' | 'dodge' | 'attack' | 'slap' | 'palm' | 'shove' | 'grab' | 'guard' | 'hit';
+export const CARVER_POSES: CarverPose[] = ['idle', 'breathe', 'ready', 'dodge', 'attack', 'slap', 'palm', 'shove', 'grab', 'guard', 'hit'];
 const CARVER_W = 56;
 const CARVER_H = 62;
 
@@ -88,10 +88,10 @@ function carverBack(pose: CarverPose): RowSprite {
   const g = grid(CARVER_W, CARVER_H);
   const cx = 28;
   // How the upper body shifts and where the head sits, by pose.
-  const shift = { idle: 0, breathe: 0, ready: 0, dodge: -7, attack: 3, slap: 4, shove: 0, grab: 0, guard: 0, hit: 4 }[pose];
-  const bob = { idle: 0, breathe: 1, ready: 2, dodge: 2, attack: -1, slap: 0, shove: -2, grab: 4, guard: 3, hit: 1 }[pose];
-  const headDx = { idle: 1, breathe: 1, ready: 1, dodge: -3, attack: 3, slap: 4, shove: 0, grab: 0, guard: 0, hit: 6 }[pose];
-  const headDy = { idle: 0, breathe: 0, ready: 1, dodge: 0, attack: -1, slap: 0, shove: 0, grab: 4, guard: 3, hit: -1 }[pose];
+  const shift = { idle: 0, breathe: 0, ready: 0, dodge: -7, attack: 3, slap: 4, palm: -4, shove: 0, grab: 0, guard: 0, hit: 4 }[pose];
+  const bob = { idle: 0, breathe: 1, ready: 2, dodge: 2, attack: -1, slap: 0, palm: 0, shove: -2, grab: 4, guard: 3, hit: 1 }[pose];
+  const headDx = { idle: 1, breathe: 1, ready: 1, dodge: -3, attack: 3, slap: 4, palm: -3, shove: 0, grab: 0, guard: 0, hit: 6 }[pose];
+  const headDy = { idle: 0, breathe: 0, ready: 1, dodge: 0, attack: -1, slap: 0, palm: 0, shove: 0, grab: 4, guard: 3, hit: -1 }[pose];
   const x = cx + shift;
   const top = 2 + bob;
   const ls: Pt = [x - 18, top + 28];
@@ -105,6 +105,8 @@ function carverBack(pose: CarverPose): RowSprite {
     attack: [[ls, [x - 22, top + 40], [x - 20, top + 52]], [rs, [x + 22, top + 18], [x + 18, top + 4]]],
     // An open hand swung across: the right arm out wide and up.
     slap: [[ls, [x - 22, top + 40], [x - 21, top + 53]], [rs, [x + 27, top + 22], [x + 30, top + 10]]],
+    // The heel of the (bandaged) left hand swung across from the other side.
+    palm: [[ls, [x - 27, top + 22], [x - 30, top + 10]], [rs, [x + 21, top + 42], [x + 21, top + 55]]],
     // Both arms straight out in front, at shoulder height: palms into his chest.
     shove: [[ls, [x - 15, top + 17], [x - 10, top + 8]], [rs, [x + 15, top + 17], [x + 10, top + 8]]],
     // Hunched, both arms reaching low and together for his stole.
@@ -152,7 +154,7 @@ function carverBack(pose: CarverPose): RowSprite {
   // The red thread, knotted at the back of the neck, hanging down your back.
   const knot: Pt = [x + headDx / 3, top + 22 + headDy / 2];
   disc(g, knot[0], knot[1], 1.4, 1.1, 'r');
-  const sway = pose === 'dodge' ? 3 : pose === 'hit' || pose === 'slap' ? -3 : pose === 'attack' ? -2 : 0;
+  const sway = pose === 'dodge' || pose === 'palm' ? 3 : pose === 'hit' || pose === 'slap' ? -3 : pose === 'attack' ? -2 : 0;
   for (let i = 1; i <= 22; i++) put(g, knot[0] + Math.round(Math.sin(i / 4) * 1.2 + (sway * i) / 22), knot[1] + i, i % 7 === 0 ? 'R' : 'r');
   return { rows: rows(g), colours: { ...FIGURE, w: SHADES.light, W: SHADES.white, l: SHADES.dim, r: SHADES.red, R: SHADES.redDark } };
 }
@@ -185,25 +187,25 @@ interface FoeShape {
 }
 
 const FOE: Record<Exclude<FoePose, 'down'>, FoeShape> = {
-  idle: { lean: 0, bob: 0, feet: [-5, 5], right: [[-13, 31], [-12, 41]], left: [[13, 31], [12, 41]], hands: [2.2, 2.2], head: [0, 0], look: 0, mouth: 'sneer' },
-  breathe: { lean: 0, bob: 1, feet: [-5, 5], right: [[-13, 31], [-12, 41]], left: [[13, 31], [12, 41]], hands: [2.2, 2.2], head: [0, 0], look: 0, mouth: 'sneer' },
+  idle: { lean: 0, bob: 0, feet: [-5, 5], right: [[-14, 31], [-13, 43]], left: [[14, 31], [13, 43]], hands: [2.4, 2.4], head: [0, 0], look: 0, mouth: 'sneer' },
+  breathe: { lean: 0, bob: 1, feet: [-5, 5], right: [[-14, 31], [-13, 43]], left: [[14, 31], [13, 43]], hands: [2.4, 2.4], head: [0, 0], look: 0, mouth: 'sneer' },
   // Fists up in front of his chest, feet apart: a swing (or two) coming.
-  squared: { lean: 0, bob: 1, feet: [-8, 8], right: [[-15, 30], [-6, 23]], left: [[15, 30], [6, 24]], hands: [2.6, 2.6], head: [0, 1], look: 0, mouth: 'grit' },
+  squared: { lean: 0, bob: 1, feet: [-7, 7], right: [[-15, 30], [-6, 24]], left: [[15, 30], [6, 24]], hands: [2.8, 2.8], head: [0, 1], look: 0, mouth: 'grit' },
   // Weight back on his heels, one fist low by his hip.
-  shift: { lean: 3, bob: -1, feet: [-6, 7], right: [[-15, 30], [-13, 38]], left: [[14, 32], [11, 40]], hands: [2.6, 2.2], head: [2, -1], look: 0, mouth: 'grit' },
-  windup: { lean: 3, bob: 1, feet: [-7, 7], right: [[-18, 18], [-15, 7]], left: [[14, 28], [7, 30]], hands: [3, 2.4], head: [1, 0], look: 0, mouth: 'grit' },
-  attack: { lean: -4, bob: 2, feet: [-9, 9], right: [[-14, 27], [-17, 36]], left: [[13, 30], [13, 39]], hands: [4.6, 2.4], head: [-2, 1], look: 0, mouth: 'open' },
+  shift: { lean: 2, bob: 0, feet: [-6, 6], right: [[-15, 31], [-13, 40]], left: [[15, 31], [12, 42]], hands: [2.8, 2.4], head: [1, 0], look: 0, mouth: 'grit' },
+  windup: { lean: 2, bob: 1, feet: [-7, 7], right: [[-18, 19], [-15, 9]], left: [[15, 29], [8, 30]], hands: [3, 2.6], head: [0, 0], look: 0, mouth: 'grit' },
+  attack: { lean: -2, bob: 2, feet: [-8, 8], right: [[-14, 28], [-15, 36]], left: [[14, 30], [13, 40]], hands: [4.4, 2.6], head: [-1, 1], look: 0, mouth: 'open' },
   // An arm drawn back out wide on one side: the blow will come from there.
-  cockL: { lean: -2, bob: 1, feet: [-8, 7], right: [[-19, 23], [-19, 13]], left: [[13, 30], [7, 28]], hands: [3, 2.4], head: [-1, 0], look: -1, mouth: 'grit' },
-  cockR: { lean: 2, bob: 1, feet: [-7, 8], right: [[-13, 30], [-7, 28]], left: [[19, 23], [19, 13]], hands: [2.4, 3], head: [1, 0], look: 1, mouth: 'grit' },
+  cockL: { lean: -1, bob: 1, feet: [-7, 6], right: [[-20, 24], [-19, 14]], left: [[14, 30], [8, 28]], hands: [3, 2.6], head: [0, 0], look: -1, mouth: 'grit' },
+  cockR: { lean: 1, bob: 1, feet: [-6, 7], right: [[-14, 30], [-8, 28]], left: [[20, 24], [19, 14]], hands: [2.6, 3], head: [0, 0], look: 1, mouth: 'grit' },
   // Leaning in, hands open and reaching for you.
-  reach: { lean: 0, bob: 2, feet: [-6, 6], right: [[-14, 30], [-8, 36]], left: [[14, 30], [8, 36]], hands: [3.4, 3.4], head: [0, 2], look: 0, mouth: 'sneer' },
+  reach: { lean: 0, bob: 2, feet: [-6, 6], right: [[-14, 30], [-8, 37]], left: [[14, 30], [8, 37]], hands: [3.4, 3.4], head: [0, 1], look: 0, mouth: 'sneer' },
   // Looking round at the crowd, a hand on his hip.
-  glance: { lean: 1, bob: 0, feet: [-5, 6], right: [[-13, 31], [-12, 41]], left: [[16, 30], [11, 36]], hands: [2.2, 2.2], head: [3, 0], look: 1, mouth: 'open' },
-  jeer: { lean: 0, bob: -1, feet: [-6, 6], right: [[-16, 13], [-15, 3]], left: [[16, 13], [15, 3]], hands: [2.4, 2.4], head: [0, -1], look: 0, mouth: 'open' },
-  hit: { lean: 4, bob: -1, feet: [-7, 7], right: [[-17, 24], [-21, 17]], left: [[17, 25], [20, 19]], hands: [2.2, 2.2], head: [2, -2], look: 0, mouth: 'open' },
-  // Arms out wide, windmilling for balance, his feet crossing.
-  wobble: { lean: 5, bob: 2, feet: [2, 9], right: [[-18, 20], [-22, 12]], left: [[18, 26], [22, 32]], hands: [2.2, 2.2], head: [2, 0], look: -1, mouth: 'open' },
+  glance: { lean: 0, bob: 0, feet: [-5, 6], right: [[-14, 31], [-13, 43]], left: [[17, 30], [11, 38]], hands: [2.4, 2.4], head: [1, 0], look: 1, mouth: 'open' },
+  jeer: { lean: 0, bob: -1, feet: [-6, 6], right: [[-17, 14], [-16, 4]], left: [[17, 14], [16, 4]], hands: [2.6, 2.6], head: [0, -1], look: 0, mouth: 'open' },
+  hit: { lean: 2, bob: -1, feet: [-7, 7], right: [[-18, 25], [-21, 18]], left: [[18, 25], [21, 18]], hands: [2.4, 2.4], head: [1, -1], look: 0, mouth: 'open' },
+  // Arms out wide for balance, his feet close.
+  wobble: { lean: 2, bob: 1, feet: [-2, 6], right: [[-19, 22], [-22, 15]], left: [[19, 27], [22, 33]], hands: [2.4, 2.4], head: [1, 0], look: -1, mouth: 'open' },
 };
 
 function zealot(pose: Exclude<FoePose, 'down'>): RowSprite {
@@ -212,27 +214,28 @@ function zealot(pose: Exclude<FoePose, 'down'>): RowSprite {
   const cx = 24;
   const x = cx + f.lean;
   const top = 2 + f.bob;
-  const hip = 42;
-  // Legs and feet.
+  // Hips below the leaning chest (half the lean), legs straight down from them to the feet.
+  const hip = 41;
+  const hx0 = cx + f.lean / 2;
   const [lf, rf] = f.feet;
-  limb(g, [[cx - 4, hip], [cx + lf * 0.8, 55], [cx + lf, FOE_H - 3]], 2.6, 'l');
-  limb(g, [[cx + 4, hip], [cx + rf * 0.8, 55], [cx + rf, FOE_H - 3]], 2.6, 'l');
-  disc(g, cx + lf - 1, FOE_H - 2, 3, 1.4, 'l');
-  disc(g, cx + rf + 1, FOE_H - 2, 3, 1.4, 'l');
-  // The tunic: shoulders to hips, flaring a little at the hem.
-  poly(g, [[x - 10, top + 16], [x + 10, top + 16], [cx + 8, hip + 3], [cx - 8, hip + 3]], 't');
-  disc(g, x - 9, top + 19, 3, 3, 't');
-  disc(g, x + 9, top + 19, 3, 3, 't');
+  limb(g, [[hx0 - 4, hip], [cx + lf * 0.85, 54], [cx + lf, FOE_H - 3]], 3, 'l');
+  limb(g, [[hx0 + 4, hip], [cx + rf * 0.85, 54], [cx + rf, FOE_H - 3]], 3, 'l');
+  disc(g, cx + lf - 1, FOE_H - 2, 3.2, 1.5, 'l');
+  disc(g, cx + rf + 1, FOE_H - 2, 3.2, 1.5, 'l');
+  // The tunic: level shoulders to the hips, flaring a little at the hem.
+  poly(g, [[x - 11, top + 16], [x + 11, top + 16], [hx0 + 9, hip + 3], [hx0 - 9, hip + 3]], 't');
+  disc(g, x - 10, top + 19, 3.2, 3.2, 't');
+  disc(g, x + 10, top + 19, 3.2, 3.2, 't');
   // Arms (sleeves) and hands.
-  const rs: Pt = [x - 10, top + 19];
-  const ls: Pt = [x + 10, top + 19];
+  const rs: Pt = [x - 11, top + 19];
+  const ls: Pt = [x + 11, top + 19];
   const at = (p: Pt): Pt => [x + p[0], top + p[1]];
-  limb(g, [rs, at(f.right[0]), at(f.right[1])], 2.2, 'a');
-  limb(g, [ls, at(f.left[0]), at(f.left[1])], 2.2, 'a');
-  // The neck and head: short dark hair over a face you can see.
+  limb(g, [rs, at(f.right[0]), at(f.right[1])], 2.6, 'a');
+  limb(g, [ls, at(f.left[0]), at(f.left[1])], 2.6, 'a');
+  // The neck and head, upright over the shoulders: short dark hair over a face you can see.
   const hx = x + f.head[0];
   const hy = top + 8 + f.head[1];
-  poly(g, [[hx - 2, hy + 5], [hx + 2, hy + 5], [x + 3, top + 17], [x - 3, top + 17]], 'n');
+  poly(g, [[hx - 2.5, hy + 5], [hx + 2.5, hy + 5], [x + 3, top + 17], [x - 3, top + 17]], 'n');
   disc(g, hx, hy, 6, 7, 'h');
   light(g, 'l');
   light(g, 't', 'm');
@@ -277,37 +280,47 @@ function zealot(pose: Exclude<FoePose, 'down'>): RowSprite {
   return { rows: rows(g), colours: { ...FIGURE, K: SHADES.woodPale, k: SHADES.dim, y: SHADES.deep, f: SHADES.woodLight, S: SHADES.woodPale, s: SHADES.dim, c: SHADES.greenDeep, C: SHADES.greenMid, u: SHADES.amberDeep, B: SHADES.amber } };
 }
 
-/** Flat on his back on the boards, head to the left, one knee up, an arm flung out. */
+/**
+ * Flat on his back on the boards: head to the left, lying with the body (the top of his head towards
+ * you on the left, his face turned up, eyes shut), one knee up, an arm flung out. Same build as standing.
+ */
 function zealotDown(): RowSprite {
   const W = 76;
   const H = 24;
   const g = grid(W, H);
   const floor = H - 2;
   // Legs, one knee bent up.
-  limb(g, [[46, floor - 4], [58, floor - 11], [68, floor - 2]], 2.6, 'l');
-  limb(g, [[46, floor - 2], [62, floor - 1], [72, floor - 1]], 2.6, 'l');
-  // Body, lying along the floor.
-  poly(g, [[14, floor - 10], [46, floor - 7], [48, floor + 1], [14, floor + 1]], 't');
+  limb(g, [[46, floor - 4], [58, floor - 11], [68, floor - 2]], 3, 'l');
+  limb(g, [[46, floor - 2], [62, floor - 1], [72, floor - 1]], 3, 'l');
+  disc(g, 70, floor - 1, 1.6, 3, 'l');
+  // Body, lying along the floor (chest up).
+  poly(g, [[15, floor - 11], [46, floor - 8], [48, floor + 1], [15, floor + 1]], 't');
   // An arm flung out over his head, the other on the boards.
-  limb(g, [[18, floor - 9], [11, floor - 15], [5, floor - 18]], 2.2, 'a');
-  limb(g, [[30, floor - 6], [35, floor - 1], [40, floor]], 2.2, 'a');
-  // Head.
-  disc(g, 9, floor - 5, 6, 5.5, 'h');
+  limb(g, [[18, floor - 10], [12, floor - 16], [5, floor - 19]], 2.6, 'a');
+  limb(g, [[30, floor - 7], [35, floor - 1], [41, floor]], 2.6, 'a');
+  // The head, on its back: an oval lying along the floor, hair at the back (the left and underneath).
+  disc(g, 8, floor - 5, 6.5, 5.2, 'h');
   light(g, 'l');
   light(g, 't', 'm');
   light(g, 'a');
   light(g, 'h');
-  // His face, turned up and to you; hands.
-  disc(g, 9, floor - 6, 3.4, 3.2, 'K');
-  put(g, 8, floor - 7, 'y');
-  put(g, 11, floor - 7, 'y');
-  for (let i = 0; i < 3; i++) put(g, 8 + i, floor - 4, 'y');
-  disc(g, 5, floor - 18, 2, 2, 'K');
-  disc(g, 40, floor, 2, 1.5, 'K');
+  // His face, turned up: brow to the left, chin to the right towards his neck.
+  for (let x = 6; x <= 13; x++) for (let y = floor - 10; y <= floor - 6; y++) if (((x - 9.5) / 4) ** 2 + ((y - (floor - 8)) / 2.6) ** 2 <= 1) put(g, x, y, 'K');
+  put(g, 6, floor - 7, 'k');
+  put(g, 7, floor - 7, 'k');
+  // Eyes shut (a short dark line each), the nose a bump, the mouth slack.
+  put(g, 8, floor - 9, 'y');
+  put(g, 8, floor - 8, 'y');
+  put(g, 10, floor - 11, 'K');
+  put(g, 12, floor - 9, 'y');
+  put(g, 12, floor - 8, 'y');
+  // Hands.
+  disc(g, 5, floor - 19, 2.2, 2.2, 'K');
+  disc(g, 41, floor, 2.2, 1.5, 'K');
   // The stole across his chest, the band.
-  for (let x = 16; x <= 44; x++) put(g, x, floor - 5 + (x > 30 ? 1 : 0), 'S');
-  for (let y = floor - 9; y <= floor; y++) put(g, 26, y, 'c');
-  return { rows: rows(g), colours: { ...FIGURE, K: SHADES.woodPale, y: SHADES.deep, S: SHADES.woodPale, c: SHADES.greenDeep } };
+  for (let x = 17; x <= 44; x++) put(g, x, floor - 6 + (x > 30 ? 1 : 0), 'S');
+  for (let y = floor - 10; y <= floor; y++) put(g, 27, y, 'c');
+  return { rows: rows(g), colours: { ...FIGURE, K: SHADES.woodPale, k: SHADES.dim, y: SHADES.deep, S: SHADES.woodPale, c: SHADES.greenDeep } };
 }
 
 export const ZEALOT_BATTLE: Record<FoePose, RowSprite> = {
@@ -322,3 +335,13 @@ export function silhouette(s: RowSprite): RowSprite {
   const out = g.map((row, y) => row.map((c, x) => (c === 'o' && (empty(x - 1, y) || empty(x + 1, y) || empty(x, y - 1) || empty(x, y + 1)) ? '#' : c)));
   return { rows: out.map((r) => r.join('')), colours: { o: SHADES.shadow, '#': SHADES.white } };
 }
+
+/** A sprite with some of its colours swapped (another person from the same drawing). */
+export function recolour(s: RowSprite, swaps: Record<string, number>): RowSprite {
+  return { rows: s.rows, colours: { ...s.colours, ...swaps } };
+}
+
+/** The zealot's friend (a test enemy): the same build, an amber band and a plain sash instead of the stole. */
+export const LACKEY_BATTLE: Record<FoePose, RowSprite> = Object.fromEntries(
+  Object.entries(ZEALOT_BATTLE).map(([pose, s]) => [pose, recolour(s, { c: SHADES.amberDeep, C: SHADES.amber, S: SHADES.woodLight, s: SHADES.deep, K: SHADES.dim })]),
+) as Record<FoePose, RowSprite>;

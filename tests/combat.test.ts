@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { COMBATANTS, ENCOUNTERS, ITEMS, MOVES } from '../src/data/combat';
-import { ALL_OUT_POWER, Battle, type CombatantDef, type EncounterDef, type ItemDef, type MoveDef } from '../src/systems/Combat';
+import { aiWeights, ALL_OUT_POWER, Battle, type CombatantDef, type EncounterDef, type ItemDef, type MoveDef } from '../src/systems/Combat';
 
 // Small test data, so the numbers are easy: attack = defence, so harm = power × multipliers. An rng
 // fixed at 0.5 means no variance (×1.0), no criticals (unless crit is 1) and the middle weighted pick.
@@ -11,19 +11,21 @@ const MV: Record<string, MoveDef> = {
   lucky: { id: 'lucky', name: 'Lucky', description: '', target: 'enemy', power: 10, kind: 'strike', crit: 1 },
   pull: { id: 'pull', name: 'Pull', description: '', target: 'enemy', power: 10, kind: 'grab', sp: 4 },
   leave: { id: 'leave', name: 'Leave', description: '', target: 'self', ends: 'left' },
-  bash: { id: 'bash', name: 'Bash', description: '', target: 'enemy', power: 10, kind: 'strike', reaction: { dodge: 250, late: 50, parry: 100 } },
+  bash: { id: 'bash', name: 'Bash', description: '', target: 'enemy', power: 10, kind: 'strike', qte: { kind: 'ring', outer: 250, inner: 50, perfect: 100 } },
   charge: { id: 'charge', name: 'Charge', description: '', target: 'self', windsUp: 'smash' },
-  smash: { id: 'smash', name: 'Smash', description: '', target: 'enemy', power: 30, kind: 'strike', reaction: { dodge: 200, late: 50, parry: 80 } },
-  hook: { id: 'hook', name: 'Hook', description: '', target: 'enemy', power: 10, kind: 'strike', reaction: { kind: 'side', dodge: 250, late: 50 }, tell: { pose: 'cock', lines: ['He drops a shoulder.'] } },
-  flurry: { id: 'flurry', name: 'Flurry', description: '', target: 'enemy', power: 4, kind: 'strike', hits: 2, reaction: { kind: 'rhythm', dodge: 250, late: 50 }, tell: { pose: 'squared', lines: ['He bounces.'] } },
-  hold: { id: 'hold', name: 'Hold', description: '', target: 'enemy', power: 10, kind: 'grab', reaction: { kind: 'mash', presses: 8, time: 1500 } },
+  smash: { id: 'smash', name: 'Smash', description: '', target: 'enemy', power: 30, kind: 'strike', qte: { kind: 'ring', outer: 200, inner: 50, perfect: 80 } },
+  hook: { id: 'hook', name: 'Hook', description: '', target: 'enemy', power: 10, kind: 'strike', qte: { kind: 'side', outer: 250, inner: 50 }, tell: { pose: 'cock', lines: ['He drops a shoulder.'] } },
+  flurry: { id: 'flurry', name: 'Flurry', description: '', target: 'enemy', power: 4, kind: 'strike', hits: 2, qte: { kind: 'notes', outer: 180, perfect: 70, gap: 400 }, tell: { pose: 'squared', lines: ['He bounces.'] } },
+  hold: { id: 'hold', name: 'Hold', description: '', target: 'enemy', power: 10, kind: 'grab', qte: { kind: 'mash', presses: 8, time: 1500 } },
+  jab: { id: 'jab', name: 'Jab', description: '', target: 'enemy', power: 10, kind: 'strike', qte: { kind: 'key', time: 900 } },
+  combo: { id: 'combo', name: 'Combo', description: '', target: 'enemy', power: 10, kind: 'strike', hits: 3, qte: { kind: 'notes', outer: 180 }, combo: { build: 0.5, finisher: true } },
   shove: { id: 'shove', name: 'Shove', description: '', target: 'enemy', power: 2, kind: 'shove', interrupts: true },
 };
 const DEFS: Record<string, CombatantDef> = {
-  hero: { id: 'hero', name: 'Hero', sprite: 'x', hp: 50, sp: 6, attack: 10, defence: 10, speed: 5, basic: 'punch', moves: ['pull', 'lucky', 'leave', 'shove'], reactions: ['dodge', 'parry'] },
+  hero: { id: 'hero', name: 'Hero', sprite: 'x', hp: 50, sp: 6, attack: 10, defence: 10, speed: 5, basic: 'punch', moves: ['pull', 'lucky', 'leave', 'shove', 'jab'], reactions: ['dodge', 'parry'] },
   friend: { id: 'friend', name: 'Friend', sprite: 'x', hp: 50, attack: 10, defence: 10, speed: 1, basic: 'punch', moves: [] },
   brute: { id: 'brute', name: 'Brute', sprite: 'x', hp: 60, attack: 10, defence: 10, speed: 3, moves: ['bash'], weak: ['grab'], resists: ['strike'] },
-  brawler: { id: 'brawler', name: 'Brawler', sprite: 'x', hp: 50, sp: 40, attack: 10, defence: 10, speed: 5, basic: 'punch', moves: ['pull'] },
+  brawler: { id: 'brawler', name: 'Brawler', sprite: 'x', hp: 50, sp: 40, attack: 10, defence: 10, speed: 5, basic: 'punch', moves: ['pull', 'combo'] },
   tough: { id: 'tough', name: 'Tough', sprite: 'x', hp: 200, attack: 10, defence: 10, speed: 3, moves: ['bash'], weak: ['grab'], poise: 2 },
   flurrier: { id: 'flurrier', name: 'Flurrier', sprite: 'x', hp: 60, attack: 10, defence: 10, speed: 3, moves: ['flurry'] },
   hooker: { id: 'hooker', name: 'Hooker', sprite: 'x', hp: 60, attack: 10, defence: 10, speed: 3, moves: ['hook'] },
@@ -246,43 +248,71 @@ describe('Battle: reactions on top', () => {
     expect(b.enemyTurn('parry')).toContainEqual({ type: 'damage', target: 'friend', amount: 10, hp: 40 });
   });
 
-  it('only a press while the ring is in the band (the donut) counts: not before, not after', () => {
-    const w = { kind: 'ring' as const, dodge: 400, late: 130, parry: 0, presses: 1, time: 0 };
-    expect(Battle.grade(null, w)).toBe('none');
-    expect(Battle.grade(500, w)).toBe('none'); // too early: the ring hasn't reached the band
-    expect(Battle.tooEarly(500, w)).toBe(true);
-    expect(Battle.grade(400, w)).toBe('dodge'); // the outer edge
-    expect(Battle.grade(250, w)).toBe('dodge');
-    expect(Battle.grade(130, w)).toBe('dodge'); // the inner edge
-    expect(Battle.grade(100, w)).toBe('none'); // too late: it's inside the hole
-    expect(Battle.tooEarly(100, w)).toBe(false);
-    expect(Battle.grade(0, w)).toBe('none');
-    expect(Battle.grade(250, null)).toBe('none');
+  it('a good QTE on an enemy’s blow is a dodge; a perfect one a parry (the grades are in tests/qte.test.ts)', () => {
+    expect(Battle.reactionFor('miss')).toBe('none');
+    expect(Battle.reactionFor('good')).toBe('dodge');
+    expect(Battle.reactionFor('perfect')).toBe('parry');
   });
 
-  it('a parry is the innermost part of the band, for those who can parry', () => {
-    const w = { kind: 'ring' as const, dodge: 400, late: 130, parry: 60, presses: 1, time: 0 };
-    expect(Battle.grade(150, w)).toBe('parry');
-    expect(Battle.grade(190, w)).toBe('parry');
-    expect(Battle.grade(200, w)).toBe('dodge');
-    expect(Battle.grade(120, w)).toBe('none');
+  it('a perfect only counts for those who can parry: otherwise the QTE has no perfect', () => {
+    expect(fight().reactionWindow('bash', 'hero')?.perfect).toBe(100);
+    const b = new Battle(ENCOUNTERS.market_scrap!, MOVES, COMBATANTS, ITEMS, half);
+    expect(b.reactionWindow('swing', 'carver')?.perfect).toBe(0);
   });
 
-  it('each fight sets how forgiving the timing is: the band widens inwards from its inner edge, never past the lunge', () => {
+  it('each fight eases its QTEs: the band widens inwards from its inner edge, never past the lunge', () => {
     expect(fight().timing).toEqual({ lunge: 650, ease: 1 });
-    expect(fight().reactionWindow('bash', 'hero')).toEqual({ kind: 'ring', dodge: 250, late: 50, parry: 100, presses: 1, time: 0 });
+    expect(fight().reactionWindow('bash', 'hero')).toMatchObject({ kind: 'ring', outer: 250, inner: 50, perfect: 100, time: 650 });
     const easy = fight({ timing: { lunge: 1000, ease: 2 } });
-    expect(easy.timing).toEqual({ lunge: 1000, ease: 2 });
-    expect(easy.reactionWindow('bash', 'hero')).toMatchObject({ dodge: 450, late: 50, parry: 200 });
-    expect(fight({ timing: { lunge: 300, ease: 3 } }).reactionWindow('bash', 'hero')).toMatchObject({ dodge: 300, late: 50, parry: 300 });
+    expect(easy.reactionWindow('bash', 'hero')).toMatchObject({ outer: 450, inner: 50, perfect: 200 });
+    expect(fight({ timing: { lunge: 300, ease: 3 } }).reactionWindow('bash', 'hero')).toMatchObject({ outer: 300, inner: 50 });
   });
 
-  it('a side attack: dodge away from where it comes from, in the band', () => {
-    const w = { kind: 'side' as const, dodge: 400, late: 130, parry: 0, presses: 1, time: 0 };
-    expect(Battle.gradeSide(250, 'right', 'left', w)).toBe('dodge');
-    expect(Battle.gradeSide(250, 'left', 'left', w)).toBe('none'); // into it
-    expect(Battle.gradeSide(600, 'right', 'left', w)).toBe('none'); // too early
-    expect(Battle.gradeSide(null, null, 'left', w)).toBe('none');
+  it('your own skill’s QTE decides how it lands: a miss glances (60%), good ×1.3, perfect ×1.6', () => {
+    for (const [grade, amount] of [['miss', 6], ['good', 13], ['perfect', 16]] as const) {
+      const b = fight({ enemies: ['charger'] });
+      expect(b.act({ type: 'skill', move: 'jab', grades: [grade] })).toContainEqual({ type: 'damage', target: 'charger', amount, hp: 60 - amount });
+    }
+    const plain = fight({ enemies: ['charger'] });
+    expect(plain.act({ type: 'skill', move: 'jab' })).toContainEqual({ type: 'damage', target: 'charger', amount: 10, hp: 50 });
+  });
+
+  it('a combo builds: each blow you land makes the next harder; land them all and the last throws him off balance', () => {
+    const b = fight({ party: ['brawler'], enemies: ['tough'] });
+    const events = b.act({ type: 'skill', move: 'combo', grades: ['good', 'good', 'good'] });
+    // 10 × 1.3, then × (1 + 0.5), then × (1 + 1).
+    expect(events.filter((e) => e.type === 'damage').map((e) => (e as { amount: number }).amount)).toEqual([13, 20, 26]);
+    expect(events).toContainEqual({ type: 'offBalance', target: 'tough', hits: 1, poise: 2 });
+    const missed = fight({ party: ['brawler'], enemies: ['tough'] });
+    const e2 = missed.act({ type: 'skill', move: 'combo', grades: ['good', 'miss', 'good'] });
+    // 13, then the miss glances (10 × 0.6 × 1.5 = 9), then 10 × 1.3 × (1 + 0.5) = 20 (the miss didn't build).
+    expect(e2.filter((e) => e.type === 'damage').map((e) => (e as { amount: number }).amount)).toEqual([13, 9, 20]);
+    expect(e2.find((e) => e.type === 'offBalance')).toBeUndefined();
+  });
+
+  it('a defeated enemy leaves the fight: he can\u2019t be gone for, and doesn\u2019t act', () => {
+    const b = fight({ enemies: ['charger', 'charger'] });
+    b.get('charger').hp = 1;
+    b.act({ type: 'attack', target: 'charger' });
+    expect(b.get('charger').hp).toBe(0);
+    expect(b.living('enemy').map((e) => e.id)).toEqual(['charger-2']);
+    // His turn is skipped: the next to act is the other one.
+    expect(b.current?.id).toBe('charger-2');
+    b.enemyTurn();
+    expect(b.current?.id).toBe('hero');
+    expect(() => b.act({ type: 'attack', target: 'charger' })).toThrow(/isn't in the fight/);
+    expect(b.intentOf('charger')).toBeUndefined();
+  });
+
+  it('with more than one enemy, your blow goes to the one you chose', () => {
+    const b = fight({ enemies: ['charger', 'charger'] });
+    const events = b.act({ type: 'attack', target: 'charger-2' });
+    expect(events).toContainEqual({ type: 'damage', target: 'charger-2', amount: 10, hp: 50 });
+    expect(b.get('charger').hp).toBe(60);
+    expect(() => b.act({ type: 'attack', target: 'nobody' })).toThrow();
+  });
+
+  it('a side attack: the intent says which side it comes from', () => {
     const b = fight({ enemies: ['hooker'] });
     expect(['left', 'right']).toContain(b.intentOf('hooker')?.side);
     expect(b.reactionWindow('hook', 'hero')?.kind).toBe('side');
@@ -290,12 +320,42 @@ describe('Battle: reactions on top', () => {
 
   it('breaking a hold: enough presses in time, eased by the fight', () => {
     const b = fight({ enemies: ['holder'], timing: { ease: 2 } });
-    const w = b.reactionWindow('hold', 'hero')!;
-    expect(w).toMatchObject({ kind: 'mash', presses: 4, time: 1500 });
-    expect(Battle.gradeMash(4, w)).toBe('dodge');
-    expect(Battle.gradeMash(3, w)).toBe('none');
+    expect(b.reactionWindow('hold', 'hero')).toMatchObject({ kind: 'mash', presses: 4, time: 1500 });
     b.act({ type: 'guard' });
     expect(b.enemyTurn('dodge')).toContainEqual({ type: 'damage', target: 'hero', amount: 3, hp: 47, guarded: true });
+  });
+
+  it('missing your reaction to his blow takes the full blow; a dodge takes half', () => {
+    const missed = fight();
+    missed.act({ type: 'guard' });
+    const full = missed.enemyTurn(Battle.reactionFor('miss'));
+    const dodged = fight();
+    dodged.act({ type: 'guard' });
+    const half = dodged.enemyTurn(Battle.reactionFor('good'));
+    expect(full).toContainEqual({ type: 'damage', target: 'hero', amount: 5, hp: 45, guarded: true });
+    expect(half).toContainEqual({ type: 'damage', target: 'hero', amount: 3, hp: 47, guarded: true });
+  });
+
+  it('the haymaker is big clean, but a guard takes most of it and a dodge nearly all', () => {
+    const hit = (guard: boolean, reaction: 'none' | 'dodge') => {
+      const b = new Battle(ENCOUNTERS.market_scrap!, MOVES, { ...COMBATANTS, zealot: { ...COMBATANTS.zealot!, moves: ['wind_up'], weights: [1], ai: {} } }, ITEMS, half);
+      b.act({ type: 'guard' });
+      b.enemyTurn(); // he winds up
+      b.act(guard ? { type: 'guard' } : { type: 'skill', move: 'shove', target: 'zealot' });
+      if (!guard) return null; // (a shove breaks it: no haymaker)
+      const events = b.enemyTurn(reaction);
+      return (events.find((e) => e.type === 'damage') as { amount: number } | undefined)?.amount ?? 0;
+    };
+    const clean = (() => {
+      const b = new Battle(ENCOUNTERS.market_scrap!, MOVES, { ...COMBATANTS, zealot: { ...COMBATANTS.zealot!, moves: ['wind_up'], weights: [1], ai: {} } }, ITEMS, half);
+      b.act({ type: 'guard' });
+      b.enemyTurn();
+      b.act({ type: 'attack' });
+      return (b.enemyTurn('none').find((e) => e.type === 'damage') as { amount: number }).amount;
+    })();
+    expect(clean).toBe(20);
+    expect(hit(true, 'none')).toBe(5);
+    expect(hit(true, 'dodge')).toBe(1);
   });
 
   it('a flurry is one blow per reaction', () => {
@@ -334,6 +394,95 @@ describe('Battle: reactions on top', () => {
   });
 });
 
+describe('Enemy temperament (ai)', () => {
+  const def: CombatantDef = {
+    id: 'z', name: 'Z', sprite: 'x', hp: 40, attack: 10, defence: 10, speed: 1,
+    moves: ['a', 'b', 'c'], weights: [2, 1, 1],
+    ai: { opening: ['c', 'b'], maxRepeat: 2, when: { hurt: { a: 0, b: 3 }, foeHurt: { c: 5 }, foeGuarding: { b: 0 } } },
+  };
+  const calm = { hurt: false, foeHurt: false, foeGuarding: false };
+
+  it('plays its opening moves first, in order', () => {
+    expect(aiWeights(def, [], calm)).toEqual([0, 0, 1]);
+    expect(aiWeights(def, ['c'], calm)).toEqual([0, 1, 0]);
+    expect(aiWeights(def, ['c', 'b'], calm)).toEqual([2, 1, 1]);
+  });
+
+  it('never the same move more than maxRepeat times running', () => {
+    expect(aiWeights(def, ['c', 'b', 'a'], calm)).toEqual([2, 1, 1]);
+    expect(aiWeights(def, ['c', 'b', 'a', 'a'], calm)).toEqual([0, 1, 1]);
+    expect(aiWeights(def, ['c', 'b', 'a', 'b', 'a'], calm)).toEqual([2, 1, 1]);
+  });
+
+  it('reacts to the fight: hurt, the foe hurt, the foe guarding', () => {
+    const h = ['c', 'b'];
+    expect(aiWeights(def, h, { ...calm, hurt: true })).toEqual([0, 3, 1]);
+    expect(aiWeights(def, h, { ...calm, foeHurt: true })).toEqual([2, 1, 5]);
+    expect(aiWeights(def, h, { ...calm, foeGuarding: true })).toEqual([2, 0, 1]);
+  });
+
+  it('if its temperament rules everything out, it falls back on its plain weights', () => {
+    const stubborn: CombatantDef = { ...def, moves: ['a'], weights: [1], ai: { maxRepeat: 1 } };
+    expect(aiWeights(stubborn, ['a'], calm)).toEqual([1]);
+  });
+
+  it('the zealot shows you every way of reacting in the first rounds', () => {
+    const rolls = [0.1, 0.5, 0.9, 0.3, 0.7];
+    let i = 0;
+    const b = new Battle(ENCOUNTERS.market_scrap!, MOVES, COMBATANTS, ITEMS, () => rolls[i++ % rolls.length]!);
+    const kinds = new Set<string>();
+    const moves: string[] = [];
+    while (!b.outcome && b.round <= 6) {
+      if (b.current!.side === 'party') b.act({ type: 'guard' });
+      else {
+        const move = b.intentOf(b.current!.id)!.move;
+        moves.push(move);
+        const kind = b.reactionWindow(move, 'carver', 0, null)?.kind;
+        if (kind) kinds.add(kind);
+        b.enemyTurn('dodge');
+      }
+    }
+    expect(moves.slice(0, 6)).toEqual(['swing', 'hook', 'flurry', 'wind_up', 'haymaker', 'collar']);
+    expect([...kinds].sort()).toEqual(['draw', 'grip', 'notes', 'ring', 'weave']);
+  });
+
+  it('over many fights he uses all his moves regularly, and none more than twice running', () => {
+    // A seeded generator, so this is the same every run.
+    let seed = 12345;
+    const rng = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+    const counts: Record<string, number> = {};
+    let picks = 0;
+    for (let fight = 0; fight < 200; fight++) {
+      const b = new Battle(ENCOUNTERS.market_scrap!, MOVES, COMBATANTS, ITEMS, rng);
+      const seen: string[] = [];
+      while (!b.outcome && b.round <= 12) {
+        if (b.current!.side === 'party') b.act({ type: 'guard' });
+        else {
+          const move = b.intentOf(b.current!.id)?.move;
+          if (move && move !== 'haymaker') {
+            seen.push(move);
+            counts[move] = (counts[move] ?? 0) + 1;
+            picks++;
+          }
+          b.enemyTurn('dodge');
+        }
+      }
+      for (let i = 2; i < seen.length; i++) expect(seen[i] === seen[i - 1] && seen[i] === seen[i - 2], seen.join(',')).toBe(false);
+    }
+    for (const m of ['swing', 'hook', 'flurry', 'collar', 'wind_up']) expect(counts[m]! / picks, m).toBeGreaterThan(0.12);
+    expect(Math.max(...Object.values(counts)) / picks).toBeLessThan(0.3);
+  });
+
+  it('the zealot grabs you more if you keep guarding', () => {
+    const z = COMBATANTS.zealot!;
+    const after = ['swing', 'hook', 'flurry', 'wind_up', 'collar'];
+    const plain = aiWeights(z, after, { hurt: false, foeHurt: false, foeGuarding: false });
+    const guarded = aiWeights(z, after, { hurt: false, foeHurt: false, foeGuarding: true });
+    const collar = z.moves.indexOf('collar');
+    expect(guarded[collar]! / guarded.reduce((a, b) => a + b, 0)).toBeGreaterThan(plain[collar]! / plain.reduce((a, b) => a + b, 0));
+  });
+});
+
 describe('combat data', () => {
   it('every combatant, encounter and item refers to things that exist', () => {
     for (const c of Object.values(COMBATANTS)) for (const m of [...c.moves, ...(c.basic ? [c.basic] : [])]) expect(MOVES[m], `${c.id}: ${m}`).toBeDefined();
@@ -349,6 +498,26 @@ describe('combat data', () => {
     for (const m of Object.values(MOVES)) if (m.windsUp) expect(MOVES[m.windsUp]).toBeDefined();
   });
 
+  it('the ring is only for the zealot\u2019s swing; every other move has another kind (and an alt)', () => {
+    const kinds = Object.values(MOVES).filter((m) => m.qte).map((m) => [m.id, Array.isArray(m.qte) ? m.qte[0]!.kind : m.qte!.kind] as const);
+    expect(kinds.filter(([, k]) => k === 'ring').map(([id]) => id)).toEqual(['swing']);
+    for (const m of Object.values(MOVES)) if (m.qte && !Array.isArray(m.qte)) expect(m.qte.alt, m.id).toBeDefined();
+    expect(new Set(kinds.map(([, k]) => k)).size).toBeGreaterThanOrEqual(6);
+  });
+
+  it('a move uses its alt when the last QTE shown was the same kind', () => {
+    const b = new Battle(ENCOUNTERS.market_scrap!, MOVES, COMBATANTS, ITEMS, half);
+    expect(b.reactionWindow('swing', 'carver', 0, null)?.kind).toBe('ring');
+    expect(b.reactionWindow('swing', 'carver', 0, 'ring')?.kind).toBe('bar');
+    expect(b.qteFor('shove', 0, true, 'bar')?.kind).toBe('key');
+  });
+
+  it('no move ends the fight early (Hold back is gone; holding back is the story\u2019s choice)', () => {
+    expect(MOVES.hold_back).toBeUndefined();
+    for (const m of Object.values(MOVES)) expect(m.ends, m.id).toBeUndefined();
+    for (const e of Object.values(ENCOUNTERS)) expect(Object.keys(e.outcomes).sort()).toEqual(['lost', 'won']);
+  });
+
   it('every party member has a basic attack', () => {
     for (const e of Object.values(ENCOUNTERS)) for (const id of e.party) expect(COMBATANTS[id]!.basic).toBeDefined();
   });
@@ -362,8 +531,8 @@ describe('combat data', () => {
 
   it('in the market scrap you can only dodge (parrying comes later in the story)', () => {
     const b = new Battle(ENCOUNTERS.market_scrap!, MOVES, COMBATANTS, ITEMS, half);
-    expect(b.reactionWindow('swing', 'carver')?.parry).toBe(0);
-    expect(b.reactionWindow('swing', 'carver')?.dodge).toBeGreaterThan(400);
+    expect(b.reactionWindow('swing', 'carver')?.perfect).toBe(0);
+    expect(b.reactionWindow('swing', 'carver')?.outer).toBeGreaterThan(400);
   });
 
   it('the market scrap can be won by playing well (grabs, slaps, dodging)', () => {

@@ -5,7 +5,7 @@ import { PixelText } from './PixelText';
 
 const HELP = [
   '` hide  T advance time  U use afternoon action',
-  'K save  L load  X delete save  C combat (market scrap)',
+  'K save  L load  X delete save  C combat (pick a fight)',
 ].join('\n');
 
 /**

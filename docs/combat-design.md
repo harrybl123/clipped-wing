@@ -1,89 +1,137 @@
 # Combat design
 
-Settled by the designer on 2026-10-05. Reworked the same day after a first playtest ("pretty mid": the guard/shove/grab mechanics were too far forward). Now a traditional Persona-style turn-based system is the base, and the timing and intents sit on top. Second pass the same day (designer: "much more like it"): no all-out attack, much easier timing early on, fewer knockdowns, a graphics step up, and fight music. Third pass: readable text, reads instead of announcements, a variety of reactions, the ring fixed to the donut, and the zealot drawn as a person.
+Settled by the designer on 2026-10-05 and reworked over the day through playtests: a traditional Persona-style turn-based system is the base, with reads and quick-time events (QTEs) on top. This describes it as it stands.
 
-The rules are `src/systems/Combat.ts` (no Phaser), the fights are data in `src/data/combat.ts`, and `src/scenes/CombatScene.ts` stages them.
+- **Rules:** `src/systems/Combat.ts` (`Battle`) and `src/systems/qte.ts` (the QTEs), pure and unit-tested (`tests/combat.test.ts`, `tests/qte.test.ts`).
+- **Data:** `src/data/combat.ts` (moves, fighters, fights).
+- **Scene:** `src/scenes/CombatScene.ts`, with the QTE runner `src/ui/QteRunner.ts`, the battle sprites `src/ui/battleSprites.ts` and the music `src/ui/fightMusic.ts`.
 
 ## The base: Persona-style turns
 
 - **HP and SP.** Skills cost SP. No levelling and no XP: the story decides how strong you are.
-- **Command menu** on your turn: **Attack**, **Skill**, **Guard** (half harm until your next turn, and no knockdowns), **Item** (when you carry something), **Run** (only where the fight allows it).
-- **Turn order** by speed. Enemies take their own turns with their own attacks.
-- **Weaknesses are the hook.** Hit a weakness, or land a critical, and the enemy is thrown **off balance**. Do it again before they recover (within about a round) and they're **knocked down**, and you get **One More**: another action. Knocked down, they lose their next turn getting up, and can't be knocked down again until they've acted. How many hits it takes is each enemy's **poise** (2 for the zealot; 1 would be Persona's every-hit knockdown).
-- **No all-out attack** (designer: too much Persona). It's still in the engine, switched off; a fight can turn it on with `allOut: true` if it's wanted back.
-- Harm is the move's power × attack ÷ defence, ±10%; ×1.5 on a weakness or a critical, ×½ if resisted or guarded.
+- **Command menu** on your turn: **Attack**, **Skill**, **Guard** (half harm until your next turn, and no knockdowns), **Item** (only when you carry something), **Run** (only where the fight allows it). No move ends the fight early.
+- **Turn order** by speed. Enemies take their own turns.
+- **Weaknesses.** Hit a weakness or land a critical and the enemy is thrown **off balance**. Do it again before they recover (within about a round) and they're **knocked down**, and you get **One More** (another action, with a cut-in of your own sprite and a red slash). How many hits it takes is each enemy's `poise` (the zealot: 2). Knocked down, they lose their next turn getting up, and can't be floored again until they've acted.
+- **Shove breaks a wind-up.** Land it before his wound-up blow comes and he loses the blow and his balance.
+- **Harm** is the move's power × attack ÷ defence, ±10%. It's ×1.5 on a weakness or critical, and ×½ if resisted or guarded. A move can be `softened` instead: the Haymaker lets only a quarter through a guard, and almost nothing through a dodge.
+- **All-out attack:** built, but off (designer: too much Persona). A fight can turn it back on with `allOut: true`.
+- **Several enemies.** With more than one, pick who you go for with Left and Right (their panel lights up, with a marker), and E to go. Beaten enemies stumble off into the crowd, and the rest spread out again.
+- **Back.** Esc, Backspace, X or a right-click goes back a step: from choosing who, to the skill list; from the skill list, to the commands. An `[Esc] Back` hint shows wherever you can.
 
-## On top
+## Reads, not announcements
 
-### Reads, not announcements
+What he's about to do isn't stated. As each round starts he takes a pose for it, and a vague line shows on his panel (his **tell**, `tell` on each move; the lines are placeholders):
 
-What he's about to do isn't stated. You **read** it: as each round starts he takes a pose for it, and a vague line shows over his head (his **tell**, `tell` on each move; the lines are placeholders). Squared up with fists raised could be one swing or two; an arm drawn back out wide means a hook from that side; weight back means he's building up to something big; hands open and reaching means he's going for your collar; a glance at the crowd means a free turn. Some tells are shared, so the line matters too.
+| Pose | It could be |
+| --- | --- |
+| Squared up, fists raised | Swing, or Flurry |
+| Shoulder dropped, an arm drawn back | Hook |
+| Hands open, reaching | Collar |
+| Weight back | Wind up (the Haymaker next) |
+| Drawn right back | Haymaker |
+| A glance at the crowd | Jeer (a free turn) |
 
-An enemy can **feint** (`feint`: the chance a tell is another move's). The zealot never does: he's the first fight.
+An enemy can **feint** (`feint`: the chance a tell is another move's). The zealot never does.
 
-Reading him should pay: **Guard** halves the big swing; **Shove** before a wound-up blow lands **breaks it** (he loses it and his balance).
+## Quick-time events
 
-### Reaction games
+Any move can have a QTE (`qte`, one per blow). On an enemy's attack it's your reaction: a good one dodges (half harm, or less for a softened move), a miss takes the full blow with a heavier impact. On your own skill, it decides how well the blow lands: good ×1.3, perfect ×1.6, a miss glances off (×0.6).
 
-When his attack comes, you react. Which game is set per move (`reaction.kind`); a miss is only the normal harm, and a press that's too early can be tried again a moment later.
+Every QTE stops where you press and holds a moment. A miss says why (TOO EARLY, TOO LATE, WRONG WAY, TOO SLOW, HE HELD ON...). The blow lands on that beat: the QTE drives the animation, so they can't drift apart. Each kind's instruction shows only the first time you meet it. A move can name an `alt`, used instead when the last QTE shown was the same kind, so the same kind never comes twice running. Each fight eases them (`timing: { lunge, ease }`; the market scrap is gentle).
 
-| Kind | What you do | The zealot's move |
+| Kind | What you do |
+| --- | --- |
+| Ring | A ring closes on your head. Press E while it's inside the green donut, not before, not after |
+| Side | The same ring, but Left or Right, away from his swing (in the library, unused just now) |
+| Key | Press the arrow shown, quickly |
+| Bar | A marker sweeps along a bar: press E in the green |
+| Hold | Hold E to fill a meter; let go in the green |
+| Mash | Press E fast enough to break free |
+| Notes | Arrows fall down lanes (Guitar Hero style): press each as it reaches the line, one per blow |
+| Draw | A quick draw: wait, then press E the instant it flashes (any sooner is a miss) |
+| Weave | A quick run of directions by your head as the punches come: Up to duck, Left or Right to lean |
+| Balance | Keep a wobbling needle in the middle with Left and Right (in the library, unused just now) |
+| Carve | Trace a short pattern of arrows, shown as a carved line (the carver's craft) |
+| Grip | He's got your collar: his tugs yank a marker about; hold Left/Right to keep it in a light that wanders and narrows; your grip fills inside and drains outside; fill it to break free (about 3 seconds) |
+
+**Parrying comes later.** In Act 1 the carver can only dodge. A **perfect** reaction is a **parry** (no harm, and you hit back) only for someone the story has taught to parry (a combatant's `reactions`).
+
+### Who uses what (the market scrap)
+
+| Move | QTE | Alt |
 | --- | --- | --- |
-| Ring | A ring closes on your head as he lunges. Press E while it's **inside the green donut**: not before (try again), not after (too late, a miss) | Swing, Haymaker (a narrower band) |
-| Side | The same ring, but press **Left or Right, away from the arm he drew back** (A/D too). E does nothing | Hook |
-| Rhythm | Two rings in quick succession, one per blow: a press for each | Flurry |
-| Mash | He's got hold of you: **mash E** to break free before the bar runs out | Collar |
+| **His** Swing | Ring (the only ring) | Bar |
+| Hook (two blows) | Weave | Key |
+| Flurry (two blows) | Notes (Left, Up, Right: lean and duck) | Weave |
+| Collar | Grip | Mash |
+| Haymaker (after Wind up) | Draw | Bar |
+| **Your** Slap (Attack) | Key | Bar |
+| Shove | Bar | Key |
+| Grab | Carve (three strokes) | Hold |
+| 1, 2, 3! | Notes (one per blow) | Carve (one stroke per blow) |
 
-A dodge (or breaking free) halves the harm. The band's place and width are per move (`dodge` to `late`, ms before the blow lands) and each fight eases them (`timing`: how long the ring takes to close, how much wider the band is, fewer presses to break free). The market scrap: the ring takes a second to close, the band a third wider.
+## His temperament (AI)
 
-**Parrying comes later.** In Act 1 the carver can only dodge. The **parry** (the innermost edge of the band: no harm, and you hit back, a **counter**) is a move the story hands out later (a combatant's `reactions`).
+Each enemy picks its intent by weights plus a temperament (`ai`), so it behaves like a person. The zealot (hot-headed, a suggestion):
 
-## Growth
+- **Opening:** his first moves are swing, hook, flurry, wind-up (the Haymaker follows), collar, so you meet each way of reacting.
+- **Variety:** after that he mixes his moves. Ones he used in his last two turns are less likely (`recent`), and he never uses the same move three times running (`maxRepeat`).
+- **Reacting to the fight:**
+  - When he's hurt, he escalates (more wind-ups and flurries, no jeering).
+  - When you're nearly done, he goes for the big one.
+  - If you keep guarding, he grabs you.
 
-- New skills handed out at story beats; gear that changes *how* you fight, not just how hard; the player's own timing.
-- Each lead fights differently: their own weapon type and skills. The prince uses a futuristic lance; Chapter 3 opens with him training at sword and lance with his advisor.
-- Fights grow more frequent and deeper through the game. Companions join, and the four leads eventually form the party: the engine takes a party of one or more against one or more enemies.
-- **Chapter 1 is mostly fight-free.** The only fight is the market scrap. A lower-roots creature may be a second Act 1 fight (not designed yet).
+A test runs 200 seeded fights: each of his five attacking moves comes up more than 12% of the time, and none more than twice running.
+
+## The carver
+
+Thumbless, he can't make a fist, so every blow is open-handed:
+
+- **Attack** is a slap.
+- **Shove** (2 SP) can throw him off balance, and breaks a wind-up.
+- **Grab** (4 SP) is his weakness *(suggestion)*.
+- **1, 2, 3!** (3 SP) is a jab with the fingers, a slap and the heel of the bandaged hand. Each blow you land makes the next harder, and land all three and he's thrown off balance.
 
 ## The market scrap (Day 4 afternoon)
 
-Mum is snubbed at the market and a young zealot knocks her basket away. Step in and it's a fight. The carver is thumbless and can't make a proper fist, so his **Attack is a weak slap**. His scrappy moves are **skills**:
+Mum is snubbed at the market and a young zealot knocks her basket away; step in and it's a fight. The numbers are a first pass, to playtest: you have 40 HP and 10 SP, he has 70 HP.
 
-| Skill | SP | What it does |
-| --- | --- | --- |
-| Shove | 2 | A push, with good odds of a critical (throws him off balance) |
-| Grab | 4 | Get hold and drag him down. His weakness *(suggestion)*: two before he recovers floor him |
-| Hold back | 0 | Stop, and let him have it. Ends the fight |
+**Outcomes** are written to ink (the only store of story state), and the story takes it from there: **win** sets `fight_won = true` (suspicion jumps), **lose** sets `fight_won = false` (hurt, less food).
 
-He's weak to grabs *(suggestion)*. He picks from **Swing**, **Hook** (from one side), **Flurry** (two quick ones), **Collar** (grabs and shakes you), **Wind up** (his next move is a **Haymaker**, twice as hard, with a narrower band: guard, or shove him first) and **Jeer** (a free turn for you). No running in this one. *(The moves beyond swing, wind-up and jeer are suggestions, added for the variety of reactions.)*
+**Holding back** is no longer a move (designer). The `held_back` variable stays in ink, but nothing in combat sets it now. Holding back is the story's choice, made before the fight (Day 4 already has "Hold back" as a choice at the market).
 
-**Outcomes** go to ink (the only store of story state), and the story takes it from there:
-
-- **Win:** `fight_won = true`. Suspicion jumps.
-- **Lose:** `fight_won = false`. You're hurt and lose food.
-- **Hold back:** `held_back = true`. Mum sees it.
-
-The numbers are a first pass, to playtest (you: 40 HP, 10 SP; him: 45 HP).
+**Not wired in yet:** Day 4 still plays the old timing close-up (`FightScene`). To switch, in `story/day4.ink` replace `#fight:day4_fight:day4_after_fight` with `#combat:market_scrap:day4_after_fight`. `day4_after_fight` already reads `fight_won`.
 
 ## Staging
 
-Persona-style 3/4 framing on a dedicated stage, not the side-on view of the areas:
+- **Framing:** Persona-style 3/4 on a painted market stage. You're seen from behind, big in the near foreground. Enemies stand further back, facing you, each with a shadow.
+- **Battle sprites:** about 2½ times the area figures, lit by the market's lamps, with a pose per move and per tell. The zealot is a young man like his market figure (face, hair, tunic, the zealot's stole), with a lying-down sprite. His friend (a test enemy) is a recolour.
+- **Two cameras:** the world one pushes in on whoever acts, swings to you when you're attacked, punches in on hits and pulls back for the menu. Hits freeze for a moment and shake the screen in proportion to the harm.
+- **The UI camera** never moves. It holds:
+  - the slanted command menu, sized to its longest item
+  - a brief Persona-style banner with the move's name (no descriptions; designer: no helpers at the top)
+  - HP and SP bars that drain smoothly
+  - each enemy's panel (name, health, balance pips, tell), on a dark plate that never overlaps another
+  - popping numbers and labels
+  - the cut-ins
+- **Music:** a placeholder fight track, synthesised (drums, a wood block, a bass riff, a drone), with stings for winning and losing. A real track can replace it in one place.
 
-- **The stage:** the market seen down its length, painted and dithered like the areas (stalls and lamps receding, the crowd in a ring, floorboards in perspective). No red.
-- **Bigger battle sprites** (`src/ui/battleSprites.ts`, about 2½ times the height of the area figures): you from behind, large in the near foreground and cropped at the waist; the enemy further back, facing you, with a shadow under him. The zealot is a young man like his figure in the market (designer: he read as a creature): bare-headed, his face showing, a dark tunic with folds, the zealot's stole, hands, a pale outline round a dark body; a pose for each tell. Lit a step richer than the area figures: amber where the market's lamps catch the top edges, a pale rim, a mid-tone, a faint seam where a limb crosses the body. Idle breathing, and a pose for each thing they do: your slap, shove (both arms out) and grab (hunched, reaching low) look different; he winds up, swings, reels, jeers, sways off balance, and lies flat on the boards when knocked down (with a puff of dust), then gets back up.
-- **The stage** in more depth: lamps on brackets with glows, bunting strung between them, stalls receding with goods on their counters, a dim far row of onlookers and a darker near one, a pool of lamplight where he stands, Mum's spilled jars, and a crate out of focus near the camera.
-- **Camera:** the world is on its own camera. It pushes in on the attacker as he gets ready, swings to you for the dodge/parry prompt, punches in on a hit, and pulls back out for the menu. Hits freeze for a moment (hit-stop) and shake the screen in proportion to the harm; a perfect parry goes to slow motion for a beat.
-- **UI** on a second camera that never moves (frames tidied: bordered panels, framed bars; his name, health, balance pips and tell on a dark plate that follows him, so it's always readable; hidden while you react): a slanted command menu that slides in from the right (the chosen item pulled out and lit), HP and SP bars that drain smoothly (a pale chunk shows what you just lost), damage numbers that pop, labels (WEAK!, CRITICAL!, RESIST, DODGE, PARRY!, DOWN), a banner with the move's name, and a full-screen **cut-in** (your silhouette and a red slash, red being yours) on One More and the all-out attack.
+## Trying it (dev)
 
-## Music
-
-A **placeholder** fight track, synthesised (`src/ui/fightMusic.ts`, Web Audio, no files): a low drum and a wood block, a muted hat, a plucked bass riff in D minor that climbs a fourth every other phrase, and a low drone that swells under it. It fades in as the fight starts (any day's score gives way to it), and ends with a short sting for winning (rising) or losing (sinking). It's on the music bus, so the mute button applies. A real track would replace it in one place (loaded in `PreloadScene`, played by `CombatScene`).
+- `npm run dev`, then `http://localhost:5173/?scene=combat` opens a **fight picker**:
+  - the market scrap
+  - two test fights with two and three enemies
+  - practice of each of his moves on its own (its QTE)
+- `&encounter=<id>` starts a fight directly. `&foe=<move>` makes him use only that move. `&mute=1` silences it.
+- In any area, open the debug overlay with backtick and press **C** for the picker; you come back where you were afterwards.
+- **Controls:**
+  - Up/Down to choose, E/Space/Enter to confirm, Esc/Backspace/X or right-click to go back
+  - Left/Right to pick an enemy
+  - in QTEs: E, or the arrows (WASD too)
 
 ## Not decided yet
 
-- Whether Day 4 switches from the old timing close-up (`FightScene`) to this one in the real game (one ink tag: `#combat:market_scrap:day4_after_fight`), and what holding back in the middle of a fight says in the story.
-- The fight's own text (the captions are placeholders), and the weaknesses marked *(suggestion)*.
-- Gear, items in Chapter 1 (none yet), and how skills are handed out (a lead's `moves` list is what the story has given them).
-- Whether enemies get One More too (not in this first version).
-- Whether the all-out attack comes back for later, bigger fights (it's built, switched off).
-- When, and to whom, the story gives the parry.
+- Wiring Day 4 to this fight, and the fight's own text (captions and tells are placeholders).
+- The weaknesses and temperament marked *(suggestion)*.
+- Gear, items in Chapter 1 (none yet), how skills and the parry are handed out.
+- Whether enemies get One More too, and whether the all-out attack comes back for bigger fights.

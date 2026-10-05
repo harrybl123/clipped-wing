@@ -2,12 +2,15 @@ import Phaser from 'phaser';
 import { GAME_HEIGHT as H, GAME_WIDTH as W } from '../config';
 import { COMBATANTS, ENCOUNTERS, ITEMS, MOVES } from '../data/combat';
 import { getSession } from '../session';
-import { Battle, type Action, type BattleEvent, type Combatant, type Intent, type Reaction, type ReactionWindow, type SideOf } from '../systems/Combat';
-import { CARVER_BATTLE, silhouette, ZEALOT_BATTLE } from '../ui/battleSprites';
+import { Battle, type Action, type BattleEvent, type Combatant, type Intent, type MoveDef, type Reaction } from '../systems/Combat';
+import type { Grade, Key, Qte, QteKind } from '../systems/qte';
+import { CARVER_BATTLE, LACKEY_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
+import { PROTAGONIST } from '../ui/characters';
+import { QteRunner } from '../ui/QteRunner';
 import { addLight, falloff, noise, rgb, SHADES } from '../ui/pixelArt';
 import { PIXEL, makePaintedTexture, makeSpriteTexture } from '../ui/pixelTextures';
+import { measure } from '../ui/pixelFont';
 import { PixelText } from '../ui/PixelText';
-import { SPEAKERS } from '../ui/portraits';
 import { playConfirm, playMove } from '../ui/sfx';
 import { playSound } from '../ui/soundscape';
 import { type FightMusic, startFightMusic } from '../ui/fightMusic';
@@ -26,12 +29,11 @@ import type { AreaSceneData } from './AreaScene';
 // On your turn a command menu slides in: Attack, Skill (SP), Guard, Item, Run where allowed (and All-out
 // in fights that allow it). Hit a weakness or land a critical and he's thrown off balance; again before
 // he recovers and he's down, and you get One More (a cut-in). What he's about to do isn't announced: you
-// read it from his pose and a line over his head (his tell). When his attack comes, you react, by kind:
-//   ring    a ring closes on your head as he lunges; press E while it's in the green donut
-//   side    the same, but press Left or Right, away from the arm he drew back (A/D work too)
-//   rhythm  two rings, one per blow, in quick succession
-//   mash    he's got hold of you: mash E to break free before the bar runs out
-// Too early and you can try again a moment later; too late is a miss; a miss is only the normal harm.
+// read it from his pose and a line over his head (his tell). Quick-time events (src/ui/QteRunner.ts) sit
+// on top: his attacks have one for you to react with (a ring, a sideways dodge, notes, a bar, a mash),
+// and your skills have one to hit harder (a key, a bar, a hold, notes). The QTE keeps the time: the blow
+// lands on its beat, the moment you press (or the moment passes), so the animation can't drift from it.
+// With more than one enemy, Left and Right pick who you go for. In dev builds, a fight picker comes first.
 // When it's over, the outcome is written to ink and you're back in the area. Captions are PLACEHOLDER.
 
 export interface CombatSceneData {
@@ -40,15 +42,13 @@ export interface CombatSceneData {
   back: AreaSceneData;
   /** Dev only: every enemy uses just this move (to try one reaction game at a time). */
   only?: string;
+  /** Dev only: choose the fight first (a picker), instead of starting one. */
+  pick?: boolean;
 }
 
 /** The line where the enemy stands, deep in the frame. */
 const FLOOR = 190;
 const HORIZON = 118;
-/** The reaction ring's radius as the lunge starts; it closes to nothing as the blow lands. */
-const RING = 56;
-/** After a press that's too early, how long before you can try again (ms). */
-const RETRY = 260;
 /** The camera's framing for the menu: the whole stage. */
 const WIDE = { x: W / 2, y: H / 2, zoom: 1 };
 
@@ -56,11 +56,14 @@ interface Look {
   poses: Record<string, RowSprite>;
   /** Party members are seen from behind, scaled up in the foreground. */
   scale: number;
+  /** Party members: the figure shown in their cut-in (their sprite from the areas). */
+  cutIn?: RowSprite;
 }
 /** Battle sprites for the `sprite` keys in combat data. */
 const LOOKS: Record<string, Look> = {
-  protagonist: { poses: CARVER_BATTLE, scale: 2 },
+  protagonist: { poses: CARVER_BATTLE, scale: 2, cutIn: PROTAGONIST.idle[0]! },
   zealot: { poses: ZEALOT_BATTLE, scale: 1 },
+  lackey: { poses: LACKEY_BATTLE, scale: 1 },
 };
 
 interface View {
@@ -96,18 +99,21 @@ export class CombatScene extends Phaser.Scene {
   private banner!: Phaser.GameObjects.Container;
   private bannerText!: PixelText;
   private hint!: PixelText;
-  private ring!: Phaser.GameObjects.Graphics;
   private hud!: Phaser.GameObjects.Graphics;
+  /** A small key hint for going back, shown wherever you can. */
+  private backHint!: PixelText;
   private hudTexts: PixelText[] = [];
   private menuBox: Phaser.GameObjects.Container | null = null;
   private menu: { items: MenuItem[]; index: number; pick: (i: number | null) => void; title: string; back: boolean } | null = null;
-  private reacting: { target: string; impactAt: number; lunge: number; pressedAt: number | null; key: SideOf | null; side?: SideOf; window: ReactionWindow; lockedUntil: number; cued: boolean } | null = null;
-  private mashing: { target: string; presses: number; needed: number; startedAt: number; endsAt: number } | null = null;
-  private meter!: Phaser.GameObjects.Graphics;
-  /** A flurry shows each blow as it comes, so the events after it skip the reaction animations. */
-  private beatsShown = false;
-  /** The attack being played out was a hold (broken free of, not dodged). */
-  private held = false;
+  private qte!: QteRunner;
+  /** Choosing who to go for: Left and Right, E to go, Esc to back out. */
+  private targeting: { foes: string[]; index: number; resolve: (id: string | null) => void } | null = null;
+  /** The blows were already shown on their beats, so the events after them skip the impacts (numbers only). */
+  private quiet = false;
+  /** The kind of the last QTE shown: the next uses its alternative rather than repeat it. */
+  private lastQte: QteKind | null = null;
+  /** Each enemy's slot across the stage (how wide its panel may be). */
+  private slot = 160;
   private music: FightMusic | null = null;
   private waitingPress: (() => void) | null = null;
   /** The zoom the camera was last asked to frame at (a punch returns to it). */
@@ -118,27 +124,22 @@ export class CombatScene extends Phaser.Scene {
   }
 
   init(data?: Partial<CombatSceneData>): void {
-    this.params = { encounter: data?.encounter ?? 'market_scrap', back: data?.back ?? { areaId: 'roots-market' }, ...(data?.only ? { only: data.only } : {}) };
+    this.params = {
+      encounter: data?.encounter ?? 'market_scrap', back: data?.back ?? { areaId: 'roots-market' },
+      ...(data?.only ? { only: data.only } : {}), ...(data?.pick ? { pick: true } : {}),
+    };
     this.views = new Map();
     this.menu = null;
     this.menuBox = null;
-    this.reacting = null;
-    this.mashing = null;
-    this.beatsShown = false;
+    this.targeting = null;
+    this.quiet = false;
+    this.lastQte = null;
     this.waitingPress = null;
     this.hudTexts = [];
     this.music = null;
   }
 
   create(): void {
-    const encounter = ENCOUNTERS[this.params.encounter];
-    if (!encounter) throw new Error(`CombatScene: no encounter called "${this.params.encounter}"`);
-    const only = import.meta.env.DEV ? this.params.only : undefined;
-    const fighters = only && MOVES[only]
-      ? Object.fromEntries(Object.entries(COMBATANTS).map(([id, c]) => [id, encounter.enemies.includes(id) ? { ...c, moves: [only], weights: [1] } : c]))
-      : COMBATANTS;
-    this.battle = new Battle(encounter, MOVES, fighters, ITEMS);
-
     // Two cameras: the world one moves; the UI one never does.
     this.world = this.add.layer().setDepth(0);
     this.ui = this.add.layer().setDepth(10);
@@ -146,28 +147,45 @@ export class CombatScene extends Phaser.Scene {
     uiCam.ignore(this.world);
     this.cameras.main.ignore(this.ui);
     this.cameras.main.setBounds(0, 0, W, H);
-
     makePaintedTexture(this, 'combat-stage', W, H, paintStage());
     this.w(this.add.image(0, 0, 'combat-stage').setOrigin(0));
+    this.input.keyboard!.on('keydown', (e: KeyboardEvent) => this.onKey(e, true));
+    this.input.keyboard!.on('keyup', (e: KeyboardEvent) => this.onKey(e, false));
+    // Left click chooses; right click goes back.
+    this.input.mouse?.disableContextMenu();
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => (pointer.rightButtonDown() ? this.goBack() : this.onPress()));
+    if (import.meta.env.DEV && this.params.pick) {
+      void this.pickFight();
+      return;
+    }
+
+    const encounter = ENCOUNTERS[this.params.encounter];
+    if (!encounter) throw new Error(`CombatScene: no encounter called "${this.params.encounter}"`);
+    const only = import.meta.env.DEV ? this.params.only : undefined;
+    const fighters = only && MOVES[only]
+      ? Object.fromEntries(Object.entries(COMBATANTS).map(([id, c]) => [id, encounter.enemies.includes(id) ? { ...c, moves: [only], weights: [1], ai: {} } : c]))
+      : COMBATANTS;
+    this.battle = new Battle(encounter, MOVES, fighters, ITEMS);
     const party = this.battle.combatants.filter((c) => c.side === 'party');
     const enemies = this.battle.combatants.filter((c) => c.side === 'enemy');
     party.forEach((c, i) => this.addView(c, 118 + i * 96, H + 8));
-    enemies.forEach((c, i) => this.addView(c, 270 + (i - (enemies.length - 1) / 2) * 70, FLOOR));
-    this.ring = this.w(this.add.graphics().setDepth(30));
+    // Spread across the stage, with room for each one's panel.
+    const span = Math.min(220, 100 * (enemies.length - 1));
+    this.slot = enemies.length > 1 ? span / (enemies.length - 1) : 170;
+    enemies.forEach((c, i) => this.addView(c, enemies.length > 1 ? 270 - span / 2 + (i * span) / (enemies.length - 1) : 270, FLOOR));
 
     // The UI: a slanted banner for what's happening, a hint under it, and the party's bars.
     const band = this.add.graphics();
-    band.fillStyle(SHADES.shadow, 0.92).fillPoints([{ x: 0, y: 6 }, { x: W, y: 6 }, { x: W, y: 20 }, { x: 0, y: 24 }].map((p) => new Phaser.Math.Vector2(p.x, p.y)), true);
-    band.fillStyle(SHADES.white).fillRect(0, 24, W, 1);
+    band.fillStyle(SHADES.shadow, 0.94).fillPoints([{ x: 0, y: 6 }, { x: 190, y: 6 }, { x: 178, y: 22 }, { x: 0, y: 22 }].map((p) => new Phaser.Math.Vector2(p.x, p.y)), true);
+    band.fillStyle(SHADES.redDark).fillPoints([{ x: 190, y: 6 }, { x: 196, y: 6 }, { x: 184, y: 22 }, { x: 178, y: 22 }].map((p) => new Phaser.Math.Vector2(p.x, p.y)), true);
+    band.fillStyle(SHADES.white).fillRect(0, 22, 178, 1);
     this.bannerText = new PixelText(this, 12, 10, '', { color: SHADES.white });
     this.banner = this.add.container(0, -30, [band, this.bannerText]);
     this.u(this.banner);
     this.hint = this.u(new PixelText(this, 0, 30, '', { color: SHADES.light, shadow: SHADES.shadow }));
     this.hud = this.u(this.add.graphics());
-    this.meter = this.u(this.add.graphics());
-
-    this.input.keyboard!.on('keydown', (e: KeyboardEvent) => this.onKey(e));
-    this.input.on('pointerdown', () => this.onPress());
+    this.qte = new QteRunner(this, (o) => this.w(o), (o) => this.u(o));
+    this.backHint = this.u(new PixelText(this, 0, 0, '[Esc] Back', { color: SHADES.light, shadow: SHADES.shadow }).setVisible(false));
     // Breathing: idle poses swap back and forth.
     this.time.addEvent({ delay: 650, loop: true, callback: () => this.breathe() });
     this.cameras.main.fadeIn(500);
@@ -184,11 +202,14 @@ export class CombatScene extends Phaser.Scene {
   }
 
   override update(_time: number, delta: number): void {
-    this.drawRing();
+    if (!this.battle) return; // (choosing a fight)
+    this.qte.update();
+    // [Esc] Back, wherever you can go back: under a list, or while choosing who.
+    const canBack = !!this.targeting || !!this.menu?.back;
+    this.backHint.setVisible(canBack).setPosition(W - this.backHint.width - 8, H - 54);
     this.drainBars(delta);
     for (const v of this.views.values()) v.shadow?.setPosition(v.sprite.x, v.home.y).setScale(v.sprite.scale / v.home.scale);
     this.placeTags();
-    this.drawMeter();
     // Sound may still be locked when the fight starts (no key pressed yet); start the music once it isn't.
     if (!this.music && !this.battle.outcome) this.startMusic();
   }
@@ -203,7 +224,6 @@ export class CombatScene extends Phaser.Scene {
   // --- The fight, turn by turn ---
 
   private async run(): Promise<void> {
-    this.say('PLACEHOLDER: the fight starts.');
     await this.frame(WIDE, 900);
     await this.wait(300);
     while (!this.battle.outcome) {
@@ -237,8 +257,10 @@ export class CombatScene extends Phaser.Scene {
           return;
         }
         const target = this.views.get(action.target ?? this.battle.living('enemy')[0]!.id)!;
-        await this.lungeAt(view, target, move.id);
-        await this.play(this.battle.act(action));
+        const grades = await this.yourBlows(view, target, move);
+        this.quiet = true;
+        await this.play(this.battle.act({ ...action, grades }));
+        this.quiet = false;
         await this.returnHome(view);
         return;
       }
@@ -264,7 +286,6 @@ export class CombatScene extends Phaser.Scene {
   /** The command menu, and the skill and item lists behind it. */
   private async chooseAction(actor: Combatant): Promise<Action> {
     for (;;) {
-      this.say(actor.def.name);
       const commands = this.battle.commands();
       const names: Record<Action['type'], [string, string]> = {
         allOut: ['All-out attack!', 'Everyone piles in while they’re down.'],
@@ -277,13 +298,17 @@ export class CombatScene extends Phaser.Scene {
       const i = await this.openMenu('', commands.map((c) => ({ label: names[c.type][0], usable: c.usable, description: c.usable ? names[c.type][1] : (c.reason ?? '') })), false);
       const type = commands[i!]!.type;
       if (type === 'skill') {
-        const skills = this.battle.skills();
-        const s = await this.openMenu('Skill', skills.map((k) => ({ label: k.move.name, note: k.move.sp ? `${k.move.sp} SP` : '', usable: k.usable, description: k.usable ? k.move.description : (k.reason ?? '') })), true);
-        if (s === null) continue;
-        const move = skills[s]!.move;
-        const target = move.target === 'enemy' ? await this.chooseTarget() : undefined;
-        if (move.target === 'enemy' && target === null) continue;
-        return { type: 'skill', move: move.id, ...(target ? { target } : {}) };
+        // The skill list; backing out of choosing who comes back here, and backing out of this, to the commands.
+        for (;;) {
+          const skills = this.battle.skills();
+          const s = await this.openMenu('Skill', skills.map((k) => ({ label: k.move.name, note: k.move.sp ? `${k.move.sp} SP` : '', usable: k.usable, description: k.usable ? k.move.description : (k.reason ?? '') })), true);
+          if (s === null) break;
+          const move = skills[s]!.move;
+          const target = move.target === 'enemy' ? await this.chooseTarget() : undefined;
+          if (move.target === 'enemy' && target === null) continue;
+          return { type: 'skill', move: move.id, ...(target ? { target } : {}) };
+        }
+        continue;
       }
       if (type === 'item') {
         const items = [...this.battle.items.entries()];
@@ -300,12 +325,11 @@ export class CombatScene extends Phaser.Scene {
     }
   }
 
-  /** With one enemy, no question; with more, a list. Null if you backed out. */
+  /** With one enemy, no question; with more, Left and Right to pick (his plate lights up). Null if you backed out. */
   private async chooseTarget(): Promise<string | undefined | null> {
     const foes = this.battle.living('enemy');
     if (foes.length === 1) return undefined;
-    const t = await this.openMenu('Who?', foes.map((f) => ({ label: f.def.name, usable: true, description: f.down ? 'Down.' : '' })), true);
-    return t === null ? null : foes[t]!.id;
+    return new Promise((resolve) => (this.targeting = { foes: foes.map((f) => f.id), index: 0, resolve }));
   }
 
   private async enemyTurn(actor: Combatant): Promise<void> {
@@ -321,7 +345,7 @@ export class CombatScene extends Phaser.Scene {
     const move = MOVES[intent.move]!;
     const target = this.battle.get(intent.target).hp > 0 ? intent.target : this.battle.living('party')[0]!.id;
     // Push in on him as he moves.
-    this.say(`${actor.def.name}: ${move.name}`);
+    this.say(move.name);
     await this.frame({ x: view.home.x, y: view.home.y - 34, zoom: 2 }, 300);
     if (move.target !== 'enemy') {
       if (move.windsUp) {
@@ -343,96 +367,182 @@ export class CombatScene extends Phaser.Scene {
     this.flashWhite(view, 80);
     this.time.delayedCall(170, () => this.flashWhite(view, 80));
     await this.tween(view.sprite, { x: view.home.x + 2, duration: 40, yoyo: true, repeat: 4 });
-    // Then he comes at you, and you react, by the kind of attack.
+    // Then he comes at you. Your QTE keeps the time: each blow lands on its beat.
     const t = this.views.get(target)!;
-    const window = this.battle.reactionWindow(move.id, target);
     void this.frame({ x: (t.home.x + view.home.x) / 2, y: 170, zoom: 1.25 }, 220);
-    const reactions: Reaction[] = [];
-    const hits = move.hits ?? 1;
-    this.beatsShown = hits > 1;
-    this.held = window?.kind === 'mash';
-    if (window?.kind === 'mash') reactions.push(await this.breakFree(view, t, window));
-    else {
-      for (let i = 0; i < hits; i++) {
-        const lunge = Math.round(this.battle.timing.lunge * (i === 0 ? 1 : 0.6));
-        reactions.push(await this.blow(view, t, window, intent, lunge, i, hits));
-      }
-    }
+    const reactions = await this.theirBlows(view, t, move, intent);
+    this.quiet = true;
     await this.play(this.battle.enemyTurn(reactions));
-    this.beatsShown = false;
+    this.quiet = false;
     await this.returnHome(view);
   }
 
-  /** One blow coming at you: he lunges, the ring closes, you press (or don't). */
-  private async blow(view: View, t: View, window: ReactionWindow | null, intent: Intent, lunge: number, i: number, hits: number): Promise<Reaction> {
-    if (window) {
-      this.reacting = { target: t.c.id, impactAt: this.time.now + lunge, lunge, pressedAt: null, key: null, window, lockedUntil: 0, cued: false, ...(intent.side ? { side: intent.side } : {}) };
-      if (i === 0) this.setPose(t, 'ready');
-      this.hintText(
-        window.kind === 'side' ? 'Dodge away from his swing: Left or Right as the ring crosses the green.'
-          : hits > 1 ? `Blow ${i + 1} of ${hits}: press E as the ring crosses the green.`
-            : 'Press E as the ring crosses the green.',
-      );
-    }
-    this.setPose(view, 'attack');
-    playSound(this, 'whoosh', 0.6);
-    if (i === 0) await this.tween(view.sprite, { x: t.home.x + 70, y: H - 14, scale: 2, duration: lunge, ease: 'Quad.easeIn' });
-    else {
-      // Pulls back, and comes again.
-      this.setPose(view, 'windup');
-      await this.tween(view.sprite, { x: t.home.x + 84, y: H - 22, duration: lunge * 0.35, ease: 'Quad.easeOut' });
+  /** Where a QTE sits: over someone's head, on the world camera, and the same point on the UI camera. */
+  private anchorOf(v: View): { anchor: { x: number; y: number }; screen: () => { x: number; y: number } } {
+    const anchor = { x: v.home.x + v.head.x, y: v.home.y + v.head.y };
+    return { anchor, screen: () => this.toScreen(anchor.x, anchor.y) };
+  }
+
+  private toScreen(x: number, y: number): { x: number; y: number } {
+    const cam = this.cameras.main;
+    return { x: (x - cam.worldView.x) * cam.zoom, y: (y - cam.worldView.y) * cam.zoom };
+  }
+
+  /**
+   * His blows, each with your QTE: he closes in over the QTE's time (a ring closes as he arrives), and on
+   * each beat the blow lands: slipped if you got it, full on if not. A hold is broken free of, or not.
+   */
+  private async theirBlows(view: View, t: View, move: MoveDef, intent: Intent): Promise<Reaction[]> {
+    const hits = move.hits ?? 1;
+    const strikeAt = { x: t.home.x + 70, y: H - 14 };
+    const near = { x: t.home.x + 92, y: H - 34 };
+    const at = this.anchorOf(t);
+    // A blow lands on its beat: slipped if you got it, the full blow (and you stagger) if not.
+    const land = (grade: Grade, last: boolean) => {
       this.setPose(view, 'attack');
-      await this.tween(view.sprite, { x: t.home.x + 70, y: H - 14, duration: lunge * 0.65, ease: 'Quad.easeIn' });
-    }
-    let reaction: Reaction = 'none';
-    const r = this.reacting;
-    if (r) {
-      const before = r.pressedAt === null ? null : r.impactAt - r.pressedAt;
-      reaction = r.window.kind === 'side' ? Battle.gradeSide(before, r.key, r.side ?? 'left', r.window) : Battle.grade(before, r.window);
-      this.reacting = null;
-      this.ring.clear();
-      this.hintText('');
-    }
-    if (hits > 1) {
-      // A flurry: each blow lands (or misses) as it comes.
-      if (reaction === 'none') {
-        playSound(this, 'hit');
-        this.flashWhite(t, 90);
-        this.cameras.main.shake(120, 0.006);
+      this.tweens.add({ targets: view.sprite, ...strikeAt, scale: 2, duration: 80, ease: 'Quad.easeIn', ...(last ? {} : { yoyo: true, hold: 60 }) });
+      if (grade === 'miss') {
+        playSound(this, 'punch', 1.3);
+        this.flashWhite(t, 120);
+        this.cameras.main.shake(240, 0.016);
+        this.cameras.main.flash(80, 244, 241, 232);
+        this.zoomPunch(0.1);
         this.setPose(t, 'hit');
+        this.tweens.add({ targets: t.sprite, x: t.home.x - 10, y: t.home.y + 6, angle: -4, duration: 90, yoyo: true, hold: 180 });
       } else {
         playSound(this, 'whoosh');
         this.setPose(t, 'dodge');
-        this.popLabel('DODGE', t, SHADES.green);
+        this.popLabel(grade === 'perfect' && t.c.def.reactions?.includes('parry') ? 'PARRY!' : 'DODGE', t, SHADES.green);
+        this.tweens.add({ targets: t.sprite, x: t.home.x - 16, duration: 90, yoyo: true, hold: 160 });
       }
+    };
+    const shown = (q: Qte) => (this.lastQte = q.kind);
+    const first = this.battle.reactionWindow(move.id, t.c.id, 0, this.lastQte);
+    if (!first) {
+      // You can't react to it: he just comes and hits.
+      this.setPose(view, 'attack');
+      await this.tween(view.sprite, { ...strikeAt, scale: 2, duration: this.battle.timing.lunge * 0.6, ease: 'Quad.easeIn' });
+      return Array.from({ length: hits }, () => 'none');
     }
-    return reaction;
+    this.setPose(t, 'ready');
+    if (first.kind === 'notes' || first.kind === 'weave') {
+      // He closes in, then a punch on each note or prompt.
+      shown(first);
+      this.setPose(view, 'squared');
+      this.tweens.add({ targets: view.sprite, ...near, scale: 1.8, duration: 600, ease: 'Quad.easeOut' });
+      const grades = await this.qte.start(first, { ...at, beats: hits, onBeat: (i, g) => land(g, i === hits - 1) });
+      return grades.map((g) => Battle.reactionFor(g));
+    }
+    const out: Reaction[] = [];
+    for (let i = 0; i < hits; i++) {
+      const q: Qte = i === 0 ? first : this.battle.reactionWindow(move.id, t.c.id, i, this.lastQte)!;
+      shown(q);
+      if (q.kind === 'mash' || q.kind === 'balance' || q.kind === 'grip') {
+        // He grabs you, and holds on: break free (mash, grip), or keep your feet while he shakes you (balance).
+        this.setPose(view, 'reach');
+        playSound(this, 'whoosh', 0.6);
+        await this.tween(view.sprite, { x: t.home.x + 52, y: H - 18, scale: 2, duration: 450, ease: 'Quad.easeIn' });
+        playSound(this, 'skid');
+        this.setPose(t, 'hit');
+        this.cameras.main.shake(150, 0.006);
+        const shaking = this.tweens.add({ targets: [t.sprite, view.sprite], x: '+=3', duration: 70, yoyo: true, repeat: -1 });
+        const [g] = await this.qte.start(q, { ...at, onBeat: (_i, grade) => {
+          shaking.stop();
+          t.sprite.x = t.home.x;
+          if (grade === 'miss') {
+            // Thrown about, and down hard.
+            playSound(this, 'punch', 1.3);
+            this.cameras.main.shake(260, 0.016);
+            this.setPose(t, 'hit');
+            this.tweens.add({ targets: t.sprite, y: t.home.y + 10, angle: 6, duration: 120, yoyo: true, hold: 200 });
+          } else {
+            // You keep your feet, and shove him off.
+            playSound(this, 'whoosh');
+            this.setPose(t, 'shove');
+            this.popLabel(q.kind === 'balance' ? 'STEADY!' : 'FREE!', t, SHADES.green);
+            this.tweens.add({ targets: view.sprite, x: view.sprite.x + 24, duration: 140, ease: 'Quad.easeOut' });
+          }
+        } });
+        out.push(Battle.reactionFor(g!));
+        continue;
+      }
+      if (q.kind === 'draw') {
+        // Coiled, still, at his place... and on the flash he comes, fast.
+        this.setPose(view, 'windup');
+        const [g] = await this.qte.start(q, { ...at, onBeat: (_i, grade) => {
+          playSound(this, 'whoosh', 0.8);
+          land(grade, i === hits - 1);
+        } });
+        out.push(Battle.reactionFor(g!));
+        await this.wait(200);
+        continue;
+      }
+      // He closes in while the QTE runs; the blow lands on its beat (when you press, or when it's up).
+      this.setPose(view, i === 0 ? 'attack' : 'windup');
+      playSound(this, 'whoosh', 0.5);
+      const approach = this.tweens.add({ targets: view.sprite, ...near, scale: 1.8, duration: q.time, ease: 'Quad.easeIn' });
+      const [g] = await this.qte.start(q, { ...at, ...(intent.side ? { from: intent.side } : {}), onBeat: (_i, grade) => {
+        approach.stop();
+        land(grade, i === hits - 1);
+      } });
+      out.push(Battle.reactionFor(g!));
+      await this.wait(160);
+    }
+    return out;
   }
 
-  /** He's got hold of you: mash E to break free before the time runs out (a dodge: half harm). */
-  private async breakFree(view: View, t: View, window: ReactionWindow): Promise<Reaction> {
-    this.setPose(view, 'reach');
-    playSound(this, 'whoosh', 0.6);
-    await this.tween(view.sprite, { x: t.home.x + 52, y: H - 18, scale: 2, duration: 450, ease: 'Quad.easeIn' });
-    playSound(this, 'skid');
-    this.setPose(t, 'hit');
-    this.cameras.main.shake(150, 0.006);
-    this.hintText('He’s got hold of you! Mash E to break free.');
-    this.mashing = { target: t.c.id, presses: 0, needed: window.presses, startedAt: this.time.now, endsAt: this.time.now + window.time };
-    // Shaken while he holds on.
-    const shake = this.tweens.add({ targets: t.sprite, x: t.home.x + 3, duration: 70, yoyo: true, repeat: -1 });
-    while (this.mashing && this.mashing.presses < this.mashing.needed && this.time.now < this.mashing.endsAt) await this.wait(30);
-    shake.stop();
-    t.sprite.x = t.home.x;
-    const reaction = Battle.gradeMash(this.mashing?.presses ?? 0, window);
-    this.mashing = null;
-    this.hintText('');
-    if (reaction !== 'none') {
-      playSound(this, 'whoosh');
-      this.setPose(t, 'shove');
-      await this.tween(view.sprite, { x: view.sprite.x + 24, duration: 140, ease: 'Quad.easeOut' });
+  /**
+   * Your blows, each with your QTE: you step in, and on each beat the blow lands, harder for a good or
+   * perfect press (the pose for each blow from the move's `poses`, else its own, else a plain attack).
+   */
+  private async yourBlows(view: View, target: View, move: MoveDef): Promise<Grade[]> {
+    const hits = move.hits ?? 1;
+    const look = LOOKS[view.c.def.sprite] ?? LOOKS.protagonist!;
+    const poseFor = (i: number) => move.poses?.[i] ?? (look.poses[move.id] ? move.id : 'attack');
+    const at = this.anchorOf(target);
+    // Step in, ready.
+    this.setPose(view, 'ready');
+    playSound(this, 'whoosh', 0.5);
+    void this.frame({ x: target.home.x - 20, y: target.home.y - 40, zoom: 1.6 }, 220);
+    const close = { x: target.home.x - 46, y: target.home.y + 74, scale: view.home.scale * 0.75 };
+    await this.tween(view.sprite, { ...close, duration: 220, ease: 'Quad.easeIn' });
+    const strike = (i: number, grade: Grade) => {
+      this.setPose(view, poseFor(i));
+      this.tweens.add({ targets: view.sprite, x: close.x + 10, y: close.y - 6, duration: 70, yoyo: true, hold: 70 });
+      if (grade === 'miss') {
+        // A glancing blow: he barely feels it, and shrugs.
+        playSound(this, 'tap', 0.8);
+        this.popLabel('GLANCING', target, SHADES.dim, 18);
+        this.tweens.add({ targets: target.sprite, x: target.home.x + 3, duration: 60, yoyo: true });
+      } else {
+        playSound(this, grade === 'perfect' ? 'punch' : 'hit', grade === 'perfect' ? 1.2 : 1);
+        this.flashWhite(target, 100);
+        this.cameras.main.shake(grade === 'perfect' ? 220 : 140, grade === 'perfect' ? 0.012 : 0.007);
+        this.zoomPunch(grade === 'perfect' ? 0.12 : 0.06);
+        if (grade === 'perfect') this.sparks(target.sprite.x, target.home.y - 44);
+        this.setPose(target, 'hit');
+        this.tweens.add({ targets: target.sprite, x: target.home.x + 8, duration: 80, yoyo: true });
+      }
+    };
+    const first = this.battle.qteFor(move.id, 0, true, this.lastQte);
+    if (!first) {
+      strike(0, 'good');
+      await this.wait(200);
+      return [];
     }
-    return reaction;
+    this.lastQte = first.kind;
+    // Several blows on one QTE: a note, a prompt or a carved stroke for each.
+    if (hits > 1 && (first.kind === 'notes' || first.kind === 'weave' || first.kind === 'carve')) return this.qte.start(first, { ...at, beats: hits, onBeat: strike });
+    const grades: Grade[] = [];
+    for (let i = 0; i < hits; i++) {
+      const q: Qte = i === 0 ? first : this.battle.qteFor(move.id, i, true, this.lastQte)!;
+      this.lastQte = q.kind;
+      if (q.kind === 'hold' || q.kind === 'carve') this.setPose(view, poseFor(i)); // getting a grip as you go
+      const [g] = await this.qte.start(q, { ...at, onBeat: (_i, grade) => strike(i, grade) });
+      grades.push(g!);
+      await this.wait(120);
+    }
+    return grades;
   }
 
   /** What happened: a sound, a pose and a tween for each event, in order. */
@@ -441,9 +551,8 @@ export class CombatScene extends Phaser.Scene {
       switch (e.type) {
         case 'reaction': {
           const t = this.views.get(e.target)!;
-          if (this.beatsShown) break;
-          if (e.reaction === 'dodge' && this.held) this.popLabel('FREE!', t, SHADES.green);
-          else if (e.reaction === 'dodge') {
+          if (this.quiet) break; // (shown on its beat)
+          if (e.reaction === 'dodge') {
             playSound(this, 'whoosh');
             this.setPose(t, 'dodge');
             this.popLabel('DODGE', t, SHADES.green);
@@ -477,7 +586,7 @@ export class CombatScene extends Phaser.Scene {
           break;
         }
         case 'damage':
-          await this.hurt(e);
+          await this.hurt(e, this.quiet);
           break;
         case 'knockdown': {
           const t = this.views.get(e.target)!;
@@ -529,9 +638,18 @@ export class CombatScene extends Phaser.Scene {
           const t = this.views.get(e.target)!;
           playSound(this, 'thump');
           this.cameras.main.shake(300, 0.012);
-          if (t.c.side === 'enemy') await this.knockDown(t);
-          else await this.tween(t.sprite, { y: t.home.y + 30, duration: 500 });
-          t.sprite.setAlpha(0.75);
+          if (t.c.side === 'enemy') {
+            await this.knockDown(t);
+            // While others fight on, he picks himself up and stumbles off into the crowd; the rest close up.
+            if (this.battle.living('enemy').length > 0) {
+              await this.wait(350);
+              await this.leave(t);
+              this.respace();
+            }
+          } else {
+            await this.tween(t.sprite, { y: t.home.y + 30, duration: 500 });
+            t.sprite.setAlpha(0.75);
+          }
           break;
         }
         default:
@@ -542,9 +660,21 @@ export class CombatScene extends Phaser.Scene {
     }
   }
 
-  private async hurt(e: Extract<BattleEvent, { type: 'damage' }>): Promise<void> {
+  /** Harm: the impact (unless it was already shown on its beat: `quiet`), then the number. */
+  private async hurt(e: Extract<BattleEvent, { type: 'damage' }>, quiet = false): Promise<void> {
     const t = this.views.get(e.target)!;
     const big = e.amount >= 15 || e.weak || e.crit;
+    if (quiet) {
+      this.popNumber(e.amount, t, big ? SHADES.amber : SHADES.white);
+      if (e.weak) this.popLabel('WEAK!', t, SHADES.amber, 18);
+      else if (e.crit) this.popLabel('CRITICAL!', t, SHADES.amber, 18);
+      else if (e.resisted) this.popLabel('RESIST', t, SHADES.dim, 18);
+      else if (e.guarded) this.popLabel('GUARDED', t, SHADES.cyan, 18);
+      this.refresh();
+      await this.wait(260);
+      if (e.hp > 0) this.setPose(t, this.restPose(t));
+      return;
+    }
     playSound(this, big ? 'punch' : 'hit', big ? 1.2 : 1);
     if (t.c.hp > 0 || e.hp > 0) this.setPose(t, 'hit');
     this.flashWhite(t, 110);
@@ -581,6 +711,29 @@ export class CombatScene extends Phaser.Scene {
     playSound(this, 'thump', 0.8);
     this.dust(t.home.x, t.home.y);
     this.cameras.main.shake(120, 0.006);
+  }
+
+  /** Beaten, he gets up and stumbles off the nearer side into the crowd, fading as he goes. */
+  private async leave(t: View): Promise<void> {
+    this.setPose(t, 'wobble');
+    t.sprite.setPosition(t.home.x, t.home.y).setAngle(0);
+    playSound(this, 'shuffle');
+    const away = t.home.x < W / 2 ? -1 : 1;
+    t.shadow?.setVisible(false);
+    await this.tween(t.sprite, { x: t.home.x + away * 70, y: t.home.y - 16, scale: t.home.scale * 0.85, alpha: 0, duration: 900, ease: 'Quad.easeIn' });
+    t.sprite.setVisible(false);
+  }
+
+  /** Those still standing spread out again across the stage (and their panels with them). */
+  private respace(): void {
+    const foes = this.battle.living('enemy').map((c) => this.views.get(c.id)!);
+    const span = Math.min(220, 100 * (foes.length - 1));
+    this.slot = foes.length > 1 ? span / (foes.length - 1) : 170;
+    foes.forEach((v, i) => {
+      const x = foes.length > 1 ? 270 - span / 2 + (i * span) / (foes.length - 1) : 270;
+      v.home.x = x;
+      this.tweens.add({ targets: v.sprite, x, duration: 500, ease: 'Sine.easeInOut' });
+    });
   }
 
   /** How someone stands when nothing's happening to them: down, off balance, guarding, winding up, or at ease. */
@@ -636,7 +789,7 @@ export class CombatScene extends Phaser.Scene {
     else if (outcome === 'lost') this.music?.sting('lose');
     else this.music?.stop();
     await this.frame(WIDE, 500);
-    this.say(`PLACEHOLDER: the fight is over (${outcome}).`);
+    this.say(`PLACEHOLDER: the fight is over (${outcome}).`, true);
     this.hintText(set ? `${set}. Press E.` : 'Press E.');
     await new Promise<void>((resolve) => (this.waitingPress = resolve));
     for (const cam of this.cameras.cameras) cam.fadeOut(600, 0, 0, 0);
@@ -645,16 +798,6 @@ export class CombatScene extends Phaser.Scene {
 
   // --- Moving people about ---
 
-  private async lungeAt(view: View, target: View, move: string): Promise<void> {
-    // Each move has its own pose where there is one (slap, shove, grab); else a plain attack.
-    const look = LOOKS[view.c.def.sprite] ?? LOOKS.zealot!;
-    this.setPose(view, look.poses[move] ? move : 'attack');
-    playSound(this, 'whoosh', 0.7);
-    void this.frame({ x: target.home.x - 20, y: target.home.y - 40, zoom: 1.6 }, 200);
-    // Into the frame, towards him: up, across and smaller as you go deeper.
-    await this.tween(view.sprite, { x: target.home.x - 46, y: target.home.y + 74, scale: view.home.scale * 0.75, duration: 200, ease: 'Quad.easeIn' });
-  }
-
   private async returnHome(view: View): Promise<void> {
     await this.tween(view.sprite, { x: view.home.x, y: view.home.y, scale: view.home.scale, duration: 260, ease: 'Quad.easeOut' });
     if (view.c.hp > 0) this.setPose(view, this.restPose(view));
@@ -662,47 +805,69 @@ export class CombatScene extends Phaser.Scene {
 
   // --- Input ---
 
-  private onKey(e: KeyboardEvent): void {
+  private onKey(e: KeyboardEvent, down: boolean): void {
     if (e.repeat) return;
     const k = e.key.toLowerCase();
-    if (this.reacting?.window.kind === 'side' && (k === 'arrowleft' || k === 'a' || k === 'arrowright' || k === 'd')) {
-      this.onPress(k === 'arrowleft' || k === 'a' ? 'left' : 'right');
-    } else if (this.menu && (k === 'arrowup' || k === 'w' || k === 'arrowdown' || k === 's')) {
+    const arrow: Key | null = k === 'arrowleft' || k === 'a' ? 'left' : k === 'arrowright' || k === 'd' ? 'right' : k === 'arrowup' || k === 'w' ? 'up' : k === 'arrowdown' || k === 's' ? 'down' : null;
+    const confirm = k === 'e' || k === ' ' || k === 'enter';
+    const back = k === 'escape' || k === 'q' || k === 'x' || k === 'backspace';
+    // A QTE takes the arrows and E (pressed and let go).
+    if (this.qte?.active) {
+      if (arrow || confirm) this.qte.input(arrow ?? 'e', down);
+      return;
+    }
+    if (!down) return;
+    if (back) {
+      this.goBack();
+      return;
+    }
+    if (this.targeting) {
+      const tg = this.targeting;
+      if (arrow) {
+        const forward = arrow === 'right' || arrow === 'down';
+        tg.index = (tg.index + (forward ? 1 : tg.foes.length - 1)) % tg.foes.length;
+        playMove(this);
+      } else if (confirm) {
+        this.targeting = null;
+        playConfirm(this);
+        tg.resolve(tg.foes[tg.index]!);
+      }
+      return;
+    }
+    if (this.menu && (arrow === 'up' || arrow === 'down')) {
       const n = this.menu.items.length;
-      this.menu.index = (this.menu.index + (k === 'arrowup' || k === 'w' ? n - 1 : 1)) % n;
+      this.menu.index = (this.menu.index + (arrow === 'up' ? n - 1 : 1)) % n;
       playMove(this);
       this.drawMenu();
-    } else if (this.menu?.back && (k === 'escape' || k === 'q' || k === 'x' || k === 'backspace')) {
+    } else if (confirm) this.onPress();
+  }
+
+  /** Back a step: from choosing who, to the move; from a list, to the commands. */
+  private goBack(): void {
+    if (this.qte?.active) return;
+    if (this.targeting) {
+      const tg = this.targeting;
+      this.targeting = null;
+      playMove(this);
+      tg.resolve(null);
+    } else if (this.menu?.back) {
       const pick = this.menu.pick;
       playMove(this);
       this.menu = null;
       pick(null);
-    } else if (k === 'e' || k === ' ' || k === 'enter') this.onPress();
+    }
   }
 
-  private onPress(key?: SideOf): void {
-    if (this.mashing) {
-      // Every press counts towards breaking his hold.
-      if (key) return;
-      this.mashing.presses++;
-      playSound(this, 'tap', 0.6);
-      const t = this.views.get(this.mashing.target)!;
-      this.tweens.add({ targets: t.sprite, y: t.home.y - 3, duration: 50, yoyo: true });
+  private onPress(): void {
+    if (this.qte?.active) {
+      this.qte.input('e', true);
       return;
     }
-    if (this.reacting) {
-      const r = this.reacting;
-      if (r.pressedAt !== null || this.time.now < r.lockedUntil) return;
-      // A side attack wants an arrow, not E.
-      if (r.window.kind === 'side' && !key) return;
-      // Too early: nothing lost, just a moment before you can try again. (Too late counts: it's a miss.)
-      if (Battle.tooEarly(r.impactAt - this.time.now, r.window)) {
-        r.lockedUntil = this.time.now + RETRY;
-        playSound(this, 'tap', 0.5);
-        return;
-      }
-      r.pressedAt = this.time.now;
-      r.key = key ?? null;
+    if (this.targeting) {
+      const tg = this.targeting;
+      this.targeting = null;
+      playConfirm(this);
+      tg.resolve(tg.foes[tg.index]!);
       return;
     }
     if (this.menu) {
@@ -716,6 +881,27 @@ export class CombatScene extends Phaser.Scene {
       this.waitingPress = null;
       resolve();
     }
+  }
+
+  /** Dev only: choose a fight, or practise one of his moves on its own. */
+  private async pickFight(): Promise<void> {
+    this.bannerText = new PixelText(this, 12, 10, '', { color: SHADES.white });
+    this.banner = this.add.container(0, 0, [this.bannerText]);
+    this.u(this.banner);
+    this.hint = this.u(new PixelText(this, 0, 30, '', { color: SHADES.light, shadow: SHADES.shadow }));
+    this.cameras.main.fadeIn(300);
+    this.say('Choose a fight (dev)', true);
+    const options: { label: string; note?: string; data: Partial<CombatSceneData> }[] = Object.values(ENCOUNTERS).map((e) => ({ label: e.name ?? e.id, data: { encounter: e.id } }));
+    // Each of the market scrap's enemy moves with a QTE, on its own.
+    const kinds: Record<string, string> = { ring: 'ring', side: 'left/right', key: 'key', bar: 'bar', hold: 'hold', mash: 'mash', notes: 'notes' };
+    for (const id of ENCOUNTERS.market_scrap!.enemies) for (const m of COMBATANTS[id]!.moves) {
+      const move = MOVES[m]!;
+      const real = move.windsUp ? MOVES[move.windsUp]! : move;
+      const q = Array.isArray(real.qte) ? real.qte[0] : real.qte;
+      if (q) options.push({ label: `Practise: ${real.name}`, note: kinds[q.kind], data: { encounter: 'market_scrap', only: m } });
+    }
+    const i = await this.openMenu('', options.map((o) => ({ label: o.label, ...(o.note ? { note: o.note } : {}), usable: true, description: 'Your own skills have QTEs too: try Attack and Skill.' })), false);
+    this.scene.restart({ ...options[i!]!.data, back: this.params.back });
   }
 
   // --- The menu ---
@@ -744,10 +930,13 @@ export class CombatScene extends Phaser.Scene {
     items.push(g);
     const top = 146 - Math.max(0, m.items.length - 5) * 15;
     const rowH = 15;
-    if (m.title) items.push(new PixelText(this, 362, top - 12, m.title, { color: SHADES.amber, shadow: SHADES.shadow }));
+    // Wide enough for the longest item and its note, however many there are (it steps right as it goes down).
+    const widest = Math.max(...m.items.map((o) => measure(o.label) + (o.note ? measure(o.note) + 14 : 0)));
+    const left = Math.min(350, W - 30 - widest - (m.items.length - 1) * 5);
+    if (m.title) items.push(new PixelText(this, left + 12, top - 12, m.title, { color: SHADES.amber, shadow: SHADES.shadow }));
     m.items.forEach((item, i) => {
       const on = i === m.index;
-      const x = 350 + i * 5 - (on ? 12 : 0);
+      const x = left + i * 5 - (on ? 12 : 0);
       const y = top + i * rowH;
       const pts = [[x + 6, y], [W + 4, y], [W + 4, y + rowH - 3], [x, y + rowH - 3]].map(([a, b]) => new Phaser.Math.Vector2(a!, b!));
       if (on) g.fillStyle(SHADES.redDark).fillPoints(pts.map((p) => new Phaser.Math.Vector2(p.x - 4, p.y + 2)), true);
@@ -766,7 +955,7 @@ export class CombatScene extends Phaser.Scene {
     old?.destroy();
     this.menuBox = box;
     if (slide) this.tweens.add({ targets: box, x: 0, duration: 180, ease: 'Back.easeOut' });
-    this.hintText(m.items[m.index]!.description + (m.back ? '   (Esc: back)' : ''));
+
   }
 
   // --- Drawing ---
@@ -798,7 +987,7 @@ export class CombatScene extends Phaser.Scene {
       view.tag = {
         plate: this.u(this.add.graphics()),
         name: this.u(new PixelText(this, 0, 0, c.def.name, { color: SHADES.white })),
-        tell: this.u(new PixelText(this, 0, 0, '', { color: SHADES.light })),
+        tell: this.u(new PixelText(this, 0, 0, '', { color: SHADES.light, wrapWidth: this.slot - 14 })),
       };
     }
     this.views.set(c.id, view);
@@ -848,21 +1037,29 @@ export class CombatScene extends Phaser.Scene {
     for (const v of this.views.values()) {
       if (!v.tag) continue;
       const { plate, name, tell } = v.tag;
-      // (Hidden while you react: the ring and the meter need the room.)
-      const show = v.c.hp > 0 && !this.reacting && !this.mashing;
+      // (Hidden during a QTE: it needs the room.)
+      const show = v.c.hp > 0 && !this.qte.active;
       for (const o of [plate, name, tell]) o.setVisible(show);
       if (!show) continue;
       const top = v.c.down ? v.sprite.y - 30 : v.sprite.y - v.sprite.displayHeight - 4;
       const sx = (v.sprite.x - cam.worldView.x) * cam.zoom;
       const sy = (top - cam.worldView.y) * cam.zoom;
       const bw = 44;
-      const width = Math.max(bw, name.width, tell.width) + 8;
-      const height = tell.text ? 30 : 20;
-      const x = Math.round(Phaser.Math.Clamp(sx - width / 2, 4, W - width - 4));
+      // Never wider than its slot, so neighbours' panels don't overlap (the tell wraps instead).
+      const width = Math.min(this.slot - 6, Math.max(bw, name.width, tell.width) + 8);
+      const height = tell.text ? 21 + tell.height : 20;
+      const half = (this.slot * cam.zoom) / 2;
+      const x = Math.round(Phaser.Math.Clamp(sx - width / 2, Math.max(4, sx - half + 3), Math.min(W - width - 4, sx + half - width - 3)));
       const y = Math.round(Phaser.Math.Clamp(sy - height, 38, H - height - 4));
       const g = plate.clear();
       g.fillStyle(SHADES.shadow, 0.88).fillRect(x, y, width, height);
-      g.lineStyle(1, SHADES.woodLight).strokeRect(x + 0.5, y + 0.5, width - 1, height - 1);
+      // The one you're choosing: a bright frame and a marker over it.
+      const chosen = this.targeting?.foes[this.targeting.index] === v.c.id;
+      g.lineStyle(1, chosen ? SHADES.amber : SHADES.woodLight).strokeRect(x + 0.5, y + 0.5, width - 1, height - 1);
+      if (chosen) {
+        const bob = Math.round(Math.sin(this.time.now / 140) * 1.5);
+        g.fillStyle(SHADES.amber).fillTriangle(x + width / 2 - 5, y - 8 + bob, x + width / 2 + 5, y - 8 + bob, x + width / 2, y - 2 + bob);
+      }
       name.setPosition(Math.round(x + (width - name.width) / 2), y + 3);
       const by = y + 12;
       const bx = Math.round(x + (width - bw) / 2);
@@ -875,22 +1072,6 @@ export class CombatScene extends Phaser.Scene {
       if (poise > 1) for (let n = 0; n < poise; n++) g.fillStyle(n < v.c.offBalance || v.c.down ? SHADES.amber : SHADES.woodLight).fillRect(bx + bw + 3, by - 1 + n * 3, 2, 2);
       tell.setPosition(Math.round(x + (width - tell.width) / 2), y + 19);
     }
-  }
-
-  /** Breaking free: how many presses you've made, and how long you've got. */
-  private drawMeter(): void {
-    const g = this.meter.clear();
-    const m = this.mashing;
-    if (!m) return;
-    const w = 120;
-    const x = Math.round((W - w) / 2);
-    const y = 46;
-    g.fillStyle(SHADES.shadow, 0.9).fillRect(x - 4, y - 4, w + 8, 16);
-    g.lineStyle(1, SHADES.woodLight).strokeRect(x - 3.5, y - 3.5, w + 7, 15);
-    g.fillStyle(SHADES.woodLight).fillRect(x, y, w, 4);
-    g.fillStyle(SHADES.green).fillRect(x, y, Math.round((w * Math.min(m.presses, m.needed)) / m.needed), 4);
-    const left = Math.max(0, (m.endsAt - this.time.now) / (m.endsAt - m.startedAt));
-    g.fillStyle(SHADES.amber).fillRect(x, y + 6, Math.round(w * left), 2);
   }
 
   /** Bars drain smoothly towards the real values; a pale chunk shows what was just lost, then catches up. */
@@ -932,47 +1113,6 @@ export class CombatScene extends Phaser.Scene {
     });
   }
 
-  /**
-   * The ring closing on the target's head as the blow comes, and the donut it must be inside when you
-   * press: a green band from `dodge` in to `late` (and, for those who can parry, a bright inner edge).
-   * Outside the band, a press is too early (try again) or too late (a miss). For a side attack, arrows
-   * either side.
-   */
-  private drawRing(): void {
-    const r = this.reacting;
-    if (!r) return;
-    const t = this.views.get(r.target)!;
-    const g = this.ring.clear();
-    const cx = t.home.x + t.head.x;
-    const cy = t.home.y + t.head.y;
-    const toRadius = (ms: number) => (ms / r.lunge) * RING;
-    const remaining = Math.max(0, r.impactAt - this.time.now);
-    const grade = Battle.grade(remaining, r.window);
-    // The cue: the moment the ring reaches the band, the band lights up and chimes.
-    if (grade !== 'none' && !r.cued) {
-      r.cued = true;
-      if (r.pressedAt === null) playSound(this, 'chime', 0.6);
-    }
-    const outer = toRadius(r.window.dodge);
-    const inner = toRadius(r.window.late);
-    const lit = grade !== 'none' && r.pressedAt === null;
-    g.lineStyle(outer - inner, lit ? SHADES.greenMid : SHADES.greenDeep, lit ? 0.8 : 0.55).strokeCircle(cx, cy, (outer + inner) / 2);
-    g.lineStyle(1, lit ? SHADES.green : SHADES.greenMid).strokeCircle(cx, cy, outer);
-    g.lineStyle(1, SHADES.green).strokeCircle(cx, cy, inner);
-    if (r.window.parry) g.lineStyle(1, SHADES.white).strokeCircle(cx, cy, toRadius(r.window.late + r.window.parry));
-    const locked = this.time.now < r.lockedUntil;
-    const late = remaining < r.window.late;
-    const colour = r.pressedAt !== null || locked || late ? SHADES.dim : grade !== 'none' ? SHADES.white : SHADES.amber;
-    g.lineStyle(2, colour).strokeCircle(cx, cy, Math.max(1, toRadius(remaining)));
-    if (r.window.kind === 'side') {
-      // Arrows either side: which one is yours to work out.
-      for (const dir of [-1, 1]) {
-        const ax = cx + dir * (RING + 8);
-        g.fillStyle(SHADES.white).fillTriangle(ax + dir * 6, cy, ax, cy - 5, ax, cy + 5);
-      }
-    }
-  }
-
   // --- Effects ---
 
   /** Moves the world camera to frame a point (resolves when it gets there). */
@@ -1010,9 +1150,9 @@ export class CombatScene extends Phaser.Scene {
     // The red slash.
     g.fillStyle(SHADES.redDark).fillPoints([[150, 220], [214, 220], [330, 44], [266, 44]].map(([a, b]) => new Phaser.Math.Vector2(a!, b!)), true);
     g.fillStyle(SHADES.red).fillPoints([[160, 220], [200, 220], [316, 44], [276, 44]].map(([a, b]) => new Phaser.Math.Vector2(a!, b!)), true);
-    const portrait = SPEAKERS.you?.portrait;
-    const sil = portrait ? silhouette(portrait) : null;
-    const face = sil ? this.add.image(30, 214, makeSpriteTexture(this, 'cutin-you', sil.rows, sil.colours)).setOrigin(0, 1).setScale(3) : null;
+    // Their own figure (their sprite from the areas), big, over the slash.
+    const figure = LOOKS[v.c.def.sprite]?.cutIn;
+    const face = figure ? this.add.image(60, 206, makeSpriteTexture(this, `cutin-${v.c.def.sprite}`, figure.rows, figure.colours)).setOrigin(0, 1).setScale(5) : null;
     const words = new PixelText(this, 0, 118, text, { color: SHADES.white, scale: 3, chisel: { light: SHADES.white, dark: SHADES.dim }, shadow: SHADES.shadow });
     words.setX(W - words.width - 24);
     const box = this.add.container(W, 0, [g, ...(face ? [face] : []), words]);
@@ -1021,7 +1161,7 @@ export class CombatScene extends Phaser.Scene {
       this.tweens.add({
         targets: box, x: 0, duration: 140, ease: 'Quad.easeOut',
         onComplete: () => {
-          if (face) this.tweens.add({ targets: face, x: 40, duration: 700 });
+          if (face) this.tweens.add({ targets: face, x: 76, duration: 700 });
           this.time.delayedCall(700, () =>
             this.tweens.add({ targets: box, x: -W, duration: 140, ease: 'Quad.easeIn', onComplete: () => (box.destroy(), resolve()) }),
           );
@@ -1066,11 +1206,14 @@ export class CombatScene extends Phaser.Scene {
     this.tweens.add({ targets: label, y: y - 10, alpha: 0, delay: 650, duration: 350, onComplete: () => label.destroy() });
   }
 
-  private say(caption: string): void {
+  /** A move's name (or what happened) in the banner, briefly, Persona style; `stay` keeps it up. */
+  private say(caption: string, stay = false): void {
     this.bannerText.setText(caption);
     this.tweens.killTweensOf(this.banner);
     this.banner.y = -30;
-    if (caption) this.tweens.add({ targets: this.banner, y: 0, duration: 160, ease: 'Quad.easeOut' });
+    if (!caption) return;
+    this.tweens.add({ targets: this.banner, y: 0, duration: 160, ease: 'Quad.easeOut' });
+    if (!stay) this.tweens.add({ targets: this.banner, y: -30, delay: 1100, duration: 200, ease: 'Quad.easeIn' });
   }
 
   private hintText(text: string): void {
