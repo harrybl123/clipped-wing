@@ -179,9 +179,9 @@ export class CombatScene extends Phaser.Scene {
     stage.setTexture(`combat-stage-${where}`);
     const party = this.battle.combatants.filter((c) => c.side === 'party');
     const enemies = this.battle.combatants.filter((c) => c.side === 'enemy');
-    // Each has their own space: with friends, you stand side by side on the left, the enemies further right.
-    party.forEach((c, i) => this.addView(c, party.length > 1 ? 72 + i * 124 : 118, H + 8));
-    this.enemyX = party.length > 1 ? 330 : 270;
+    // With friends, one is in full focus in front and the rest wait at the edge (`focus`).
+    party.forEach((c) => this.addView(c, 118, H + 8));
+    this.enemyX = party.length > 1 ? 300 : 270;
     const span = this.spanFor(enemies.length);
     this.slot = enemies.length > 1 ? span / (enemies.length - 1) : 170;
     enemies.forEach((c, i) => this.addView(c, enemies.length > 1 ? this.enemyX - span / 2 + (i * span) / (enemies.length - 1) : this.enemyX, FLOOR));
@@ -206,6 +206,7 @@ export class CombatScene extends Phaser.Scene {
     stopScore(this);
     this.startMusic();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.music?.stop());
+    this.focus(party[0]!.id, true);
     this.refresh(true);
     // An opening sweep: from the enemy back to the whole stage.
     const foe = this.views.get(enemies[0]!.id)!;
@@ -368,9 +369,10 @@ export class CombatScene extends Phaser.Scene {
       await this.play(this.battle.enemyTurn());
       return;
     }
-    for (const v of this.views.values()) if (v.c.side === 'party') v.sprite.setTint(0xffffff);
     const move = MOVES[intent.move]!;
     const target = this.battle.get(intent.target).hp > 0 ? intent.target : this.battle.living('party')[0]!.id;
+    // Whoever it's going for comes into focus.
+    if (move.target === 'enemy') this.focus(target);
     // Push in on him as he moves.
     this.say(move.name);
     await this.frame({ x: view.home.x, y: view.home.y - 34, zoom: 2 }, 300);
@@ -851,16 +853,28 @@ export class CombatScene extends Phaser.Scene {
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Area', this.params.back));
   }
 
-  /**
-   * Whose turn it is, framed: alone, the whole stage; with friends, the camera leans over the shoulder of
-   * the one choosing, towards the enemies, and the others fall back into shadow.
-   */
+  /** Whose turn it is: they come into focus (with friends), and the camera takes in the whole stage. */
   private turnFrame(actor: Combatant): { x: number; y: number; zoom: number } {
+    this.focus(actor.id);
+    return WIDE;
+  }
+
+  /**
+   * With friends, one is in full focus: big in the foreground, lit. The others step back to the edge of
+   * the frame, smaller and in shadow, until it's their turn (or they're the one being attacked).
+   */
+  private focus(id: string, snap = false): void {
     const party = [...this.views.values()].filter((v) => v.c.side === 'party');
-    for (const v of party) v.sprite.setTint(v.c.id === actor.id || party.length === 1 ? 0xffffff : 0x6a6a6a);
-    if (party.length === 1) return WIDE;
-    const me = this.views.get(actor.id)!;
-    return { x: Math.round((me.home.x + this.enemyX) / 2 + 12), y: 146, zoom: 1.14 };
+    if (party.length < 2) return;
+    let edge = 0;
+    for (const v of party) {
+      const on = v.c.id === id;
+      v.home = on ? { x: 160, y: H + 8, scale: 2 } : { x: 42 - edge++ * 30, y: H + 16, scale: 1.5 };
+      v.sprite.setDepth(on ? 12 : 10).setTint(on ? 0xffffff : 0x8a8a8a);
+      v.flash.setDepth(on ? 13 : 11);
+      if (snap) v.sprite.setPosition(v.home.x, v.home.y).setScale(v.home.scale);
+      else this.tweens.add({ targets: v.sprite, x: v.home.x, y: v.home.y, scale: v.home.scale, duration: 280, ease: 'Quad.easeOut' });
+    }
   }
 
   /** His next blow is the big one he wound up for. */
@@ -1200,9 +1214,9 @@ export class CombatScene extends Phaser.Scene {
     const width = 100;
     const current = this.battle.current?.id;
     party.forEach((v, i) => {
-      const on = party.length > 1 && v.c.id === current;
-      const sx = this.toScreen(v.home.x, 0).x;
-      const x = Math.round(Phaser.Math.Clamp(sx - width / 2, 4, W - width - 4));
+      const on = party.length > 1 && (v.c.id === current || (current && this.battle.get(current).side === 'enemy' && v.home.scale === 2));
+      // Under them: the one in focus under their figure, the others at the left edge, under theirs.
+      const x = party.length === 1 ? Math.round(v.home.x - width / 2) : v.home.scale === 2 ? 112 : 4;
       const y = H - 32 - (on ? 3 : 0);
       const pts = [[x + 6, y], [x + width, y], [x + width - 6, y + 29], [x, y + 29]].map(([a, b]) => new Phaser.Math.Vector2(a!, b!));
       g.fillStyle(SHADES.shadow, 0.94).fillPoints(pts, true);

@@ -135,8 +135,7 @@ The engine gained `taunts` (Lure) and `exposes` (Rot-ink; `weakened` events), bo
 
 **Staging** (designer: each character needs their own space; a different background; separate health bars):
 - **Its own stage** (`stage: 'rot'`): a grim cave of rotten wood, lumpy brown muck underfoot with dark cracks and fallen roots, roots hanging from the arch, and the green only in the glowing pools and far off down the hollow.
-- **Space for each:** you and the girl stand apart on the left (the girl is drawn from behind like you, with the green strand), the enemies further right.
-- **Turn framing:** on each one's turn the camera leans over their shoulder towards the enemies, and the other falls into shadow.
+- **One in focus** (designer: cleaner, like before): whoever's turn it is stands big in the foreground, lit; the other steps back to the left edge, smaller and in shadow. When an enemy attacks, the one it's going for comes into focus. The camera takes in the whole stage, as at the market. (The girl is drawn from behind like you, with the green strand.)
 - **A panel under each** party member (name, HP and SP bars), following the camera; whose turn it is is raised with a white edge. This replaces the stacked panel in the corner, for the market too.
 
 Dev: `?scene=combat&encounter=rot_beetles`; the gallery shows the girl's and the beetle's poses.
