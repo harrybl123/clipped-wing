@@ -9,6 +9,7 @@ import type { CarveSceneData } from './CarveScene';
 import type { DecodeResult, DecodeSceneData } from './DecodeScene';
 import type { EndingSceneData } from './EndingScene';
 import type { StepSceneData } from './StepScene';
+import type { CombatSceneData } from './CombatScene';
 import type { MapSceneData } from './MapScene';
 import { getSession, type WakePlace } from '../session';
 import { DebugOverlay } from '../ui/DebugOverlay';
@@ -458,6 +459,12 @@ export class AreaScene extends Phaser.Scene {
       this.time.delayedCall(700, () => this.dialogue.open(knot, closed));
     }
     new DebugOverlay(this, session, () => (this.dialogue.isOpen ? 'Close the conversation first.' : null));
+    // Dev: C in the debug overlay starts a turn-based fight, and comes back here afterwards.
+    const debugCombat = (encounter: string) => {
+      if (!this.dialogue.isOpen && !this.leaving) this.leaveFor('Combat', { encounter, back: { areaId: this.area.id, start: { ...this.player.feet } } } satisfies CombatSceneData);
+    };
+    this.events.on('debug-combat', debugCombat);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off('debug-combat', debugCombat));
 
     if (this.card) this.showCard(this.card);
 
@@ -1303,6 +1310,7 @@ export class AreaScene extends Phaser.Scene {
    *   #when:<variable>:<knot>[:<seconds>]  once the variable reaches 0 (e.g. everything hidden), or the time runs out, the knot plays
    *   #ending:<id>            after the conversation, an ending (e.g. loyal)
    *   #fight:<knot>[:<then>]  after the conversation, the fight close-up plays the knot; back here, <then> plays
+   *   #combat:<encounter>[:<then>]  after the conversation, a turn-based fight (src/data/combat.ts); its outcome is written to ink, and back here, <then> plays
    *   #turn                   the crowd turns its back on you
    *   #rise                   you're taken up into the tube: you lift off the floor and rise out of sight
    *   #daylight:<x>:<top>:<floor>  daylight breaks in through the wall at (x, top), a shaft down to the floor
@@ -1398,6 +1406,12 @@ export class AreaScene extends Phaser.Scene {
           const [knot, then] = args;
           const start = { ...this.player.feet };
           if (knot) this.afterClose.push(() => this.leaveFor('Fight', { knot, back: { areaId: this.area.id, start, script: then || undefined } } satisfies StepSceneData));
+          break;
+        }
+        case 'combat': {
+          const [encounter, then] = args;
+          const start = { ...this.player.feet };
+          if (encounter) this.afterClose.push(() => this.leaveFor('Combat', { encounter, back: { areaId: this.area.id, start, script: then || undefined } } satisfies CombatSceneData));
           break;
         }
         case 'turn':

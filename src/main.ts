@@ -4,6 +4,7 @@ import { screenZoom, toggleFullscreen } from './ui/displaySetting';
 import { BootScene } from './scenes/BootScene';
 import { CarveScene } from './scenes/CarveScene';
 import { FightScene } from './scenes/FightScene';
+import { CombatScene } from './scenes/CombatScene';
 import { DecodeScene } from './scenes/DecodeScene';
 import { ChapterScene } from './scenes/ChapterScene';
 import { EndingScene } from './scenes/EndingScene';
@@ -14,7 +15,7 @@ import { AreaScene } from './scenes/AreaScene';
 import { SoundButtonScene } from './scenes/SoundButtonScene';
 import { TitleScene } from './scenes/TitleScene';
 
-const game = new Phaser.Game(createGameConfig([BootScene, PreloadScene, TitleScene, PrologueScene, AreaScene, MapScene, DecodeScene, CarveScene, FightScene, EndingScene, ChapterScene, SoundButtonScene]));
+const game = new Phaser.Game(createGameConfig([BootScene, PreloadScene, TitleScene, PrologueScene, AreaScene, MapScene, DecodeScene, CarveScene, FightScene, CombatScene, EndingScene, ChapterScene, SoundButtonScene]));
 
 // Rescale to the window whenever it changes size (or goes fullscreen), by the Screen setting.
 const onResize = () => game.scale.setZoom(screenZoom());

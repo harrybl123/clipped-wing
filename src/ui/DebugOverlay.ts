@@ -5,7 +5,7 @@ import { PixelText } from './PixelText';
 
 const HELP = [
   '` hide  T advance time  U use afternoon action',
-  'K save  L load  X delete save',
+  'K save  L load  X delete save  C combat (market scrap)',
 ].join('\n');
 
 /**
@@ -71,6 +71,10 @@ export class DebugOverlay {
       case 'l':
         this.flash(this.isBusy() ?? loadSession(this.session));
         this.scene.events.emit('calendar-changed');
+        break;
+      case 'c':
+        // The turn-based fight, from here and back again (the scene decides whether it can leave now).
+        this.scene.events.emit('debug-combat', 'market_scrap');
         break;
       case 'x':
         this.session.saves.clear();

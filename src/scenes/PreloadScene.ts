@@ -35,7 +35,7 @@ export class PreloadScene extends Phaser.Scene {
     // ?day=6 (&seed=healthy for the archivist's seed) with &at=tail (the market, cloaked) or &at=interrogation (&plate=1 if they found it);
     // ?day=7 wakes in the cell (you saved the girl; &girl=blamed wakes at home under guard), with &at=trial (the cage goes up), &at=visits (the cell's visitors), &at=evening (the cage comes back),
     // &at=night (message 6 by the bench or hearth), &at=chase (up through the shrine, the mob behind) or &at=fall (thrown into the rot);
-    // &told=1 if you told the archivist, &lied=1 if you lied to your friend.
+    // &told=1 if you told the archivist, &lied=1 if you lied to your friend; ?scene=combat opens the turn-based market scrap.
     const params = import.meta.env.DEV ? new URLSearchParams(window.location.search) : null;
     // Sound as the player left it (the speaker in the corner), always there from here on.
     this.sound.setMute(savedMuted());
@@ -50,6 +50,8 @@ export class PreloadScene extends Phaser.Scene {
       getSession(this).calendar.jumpTo(1);
       this.scene.start('Chapter', { number: 'Chapter 1', title: 'Seen', next: { areaId: 'home', start: { x: 50, y: 150 }, card: 'Day 1: Ascension Day' } });
     }
+    // ?scene=combat: the turn-based market scrap (&encounter=<id> for another), then back to the roots market.
+    else if (params?.get('scene') === 'combat') this.scene.start('Combat', { encounter: params.get('encounter') ?? 'market_scrap', back: { areaId: 'roots-market' } });
     else if (params?.get('scene') === 'decode') this.scene.start('Decode', { message: 'message1' });
     else if (params?.get('ending')) this.scene.start('Ending', { ending: params.get('ending')! });
     else if (params && ['2', '3', '4', '5', '6', '7'].includes(params.get('day') ?? '')) {

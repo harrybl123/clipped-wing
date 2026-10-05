@@ -17,7 +17,7 @@ import { StepScene } from './StepScene';
 // You can't make a proper fist, so the ink offers a punch that does nothing.
 
 /** The floor line, and where the two of you stand. */
-const FLOOR = 196;
+export const FLOOR = 196;
 const YOU_X = 186;
 const HIM_X = 292;
 const SCALE = 3;
@@ -181,7 +181,7 @@ export class FightScene extends StepScene {
 }
 
 /** The market, close up and out of focus behind the two of you: stalls' warm light, the crowd's shapes, the floor. */
-function paintMarketCloseUp() {
+export function paintMarketCloseUp() {
   const wood = rgb(SHADES.wood);
   const amber = rgb(SHADES.amber);
   return (x: number, y: number) => {
