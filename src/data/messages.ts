@@ -164,15 +164,23 @@ const YOU: DecodeSymbol = {
   hint: 'Who is holding the plate right now?',
 };
 
+// Scissors, open mid-snip (designer: was a paperclip, but "paperclip" isn't the word; clipping is cutting).
+const loop = (cx: number, cy: number, r: number): Point[] => Array.from({ length: 13 }, (_, i) => [Math.round(cx + r * Math.cos((i / 12) * Math.PI * 2)), Math.round(cy + r * Math.sin((i / 12) * Math.PI * 2))] as Point);
 const CLIPPED: DecodeSymbol = {
   id: 'clipped',
-  picture: scratches(24, 10, [[[19, 6], [5, 6], [4, 5], [5, 4], [21, 4], [22, 5], [22, 7], [21, 8], [3, 8], [1, 7], [1, 3], [3, 1], [18, 1]]]),
-  accepted: ['clipped', 'clip', 'paperclip', 'paper clip', 'clips', 'snipped', 'cut', 'cut off', 'severed', 'chopped', 'trimmed', 'sliced', 'lopped', 'broken', 'shortened', 'docked'],
+  picture: scratches(
+    24,
+    13,
+    // The two finger loops, the blades crossing at the pivot and opening out to their points, and a tiny snipped feather falling away.
+    [loop(3, 3, 2.6), loop(3, 9, 2.6), [[5, 4], [10, 6], [21, 1]], [[5, 8], [10, 6], [21, 11]], [[10, 6], [22, 2]], [[10, 6], [22, 10]]],
+    [{ disc: [10, 6, 1] }],
+  ),
+  accepted: ['clipped', 'clip', 'clips', 'snip', 'snipped', 'cut', 'cut off', 'severed', 'chopped', 'trimmed', 'sliced', 'lopped', 'shortened', 'docked'],
   near: [
-    { words: ['wire', 'pin', 'hook', 'loop', 'staple', 'metal'], reply: 'Warm. A bent bit of wire for holding things together. What is it called?' },
-    { words: ['knife', 'blade', 'scissors', 'shears'], reply: 'Close in meaning. But the picture is the wire itself. What is it called?' },
+    { words: ['scissors', 'shears', 'blades', 'knife', 'blade'], reply: 'Warm. Scissors. But it means what they do. What do you do to a bird\u2019s wing so it can\u2019t fly?' },
+    { words: ['broken', 'hurt', 'injured', 'damaged'], reply: 'Close. Not broken, though. Cut short, on purpose.' },
   ],
-  nudge: 'A loop of wire, the kind that clips things together. It sounds like what was done to your wing.',
+  nudge: 'Scissors, open. It means what they do: what\u2019s done to a wing so the bird can\u2019t fly away.',
   hint: 'You remember the knife slipping, and what it did to your hand.',
 };
 
