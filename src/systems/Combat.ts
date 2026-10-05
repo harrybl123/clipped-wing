@@ -185,6 +185,8 @@ export interface Intent {
   side?: SideOf;
   /** The blow a wind-up was for: a shove (`interrupts`) breaks it. */
   charged?: boolean;
+  /** Drawn onto someone this round by a Lure. */
+  lured?: boolean;
 }
 
 export type Action =
@@ -212,7 +214,7 @@ export type BattleEvent =
   | { type: 'oneMore'; actor: string }
   | { type: 'counter'; actor: string; target: string }
   | { type: 'interrupt'; target: string }
-  | { type: 'taunt'; actor: string }
+  | { type: 'taunt'; actor: string; lured: string[] }
   | { type: 'switch'; from: string; to: string }
   | { type: 'weakened'; target: string }
   | { type: 'qte'; actor: string; grade: Grade }
@@ -583,11 +585,16 @@ export class Battle {
   private taunt(actor: Combatant): BattleEvent[] {
     actor.guarding = true;
     this.guarded.add(actor.id);
+    const lured: string[] = [];
     for (const foe of this.living('enemy')) {
       const intent = this.intents.get(foe.id);
-      if (intent && !this.hasActed(foe.id) && this.move(intent.move).target === 'enemy') intent.target = actor.id;
+      if (intent && !this.hasActed(foe.id) && this.move(intent.move).target === 'enemy') {
+        intent.target = actor.id;
+        intent.lured = true;
+        lured.push(foe.id);
+      }
     }
-    return [{ type: 'taunt', actor: actor.id }];
+    return [{ type: 'taunt', actor: actor.id, lured }];
   }
 
   private hasActed(id: string): boolean {

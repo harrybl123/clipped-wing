@@ -121,18 +121,20 @@ The card waits 450 ms before it can be dismissed, so a press meant for something
 
 **It teaches only one thing** (designer: not too hand-holdy): you fight alongside friends, each with their own abilities (`teaches: ['allies']`). Everything else was taught at the market, and her skills explain themselves in the Skill list.
 
-**The girl** has her own skillset on the same mechanics (30 HP, 10 SP, fast, slighter, dodges):
+**The girl** has her own skillset on the same mechanics, each with a different kind of QTE (designer: they were too alike) (30 HP, 10 SP, fast, slighter, dodges):
 
 | Move | What it does | QTE | Alt |
 | --- | --- | --- | --- |
 | Clout (Attack) | a proper punch | Key | Bar |
-| Flick (2 SP) | a shard of rot-bone: *pierce*, cracks shells | Bar | Key |
+| Flick (2 SP) | a shard of rot-bone: *pierce*, cracks shells | Draw (wait, then throw the instant it flashes) | Bar |
 | **Lure** (1 SP) | every enemy that hasn't acted yet turns on her this round, and she braces (half harm) | none | |
-| Rot-ink (3 SP) | the target is **weakened**: 1.5× harm for 3 rounds | Hold | Bar |
+| Rot-ink (3 SP) | the target is **weakened**: 1.5× harm for 3 rounds | Balance (a steady hand: keep the needle in the middle) | Hold |
 
 The engine gained `taunts` (Lure) and `exposes` (Rot-ink; `weakened` events), both pure and tested.
 
 **The beetles** (26 HP each, speed 8): the shell *resists* strikes, but they're *weak* to pierce (Flick) and shove (yours); poise 2. Moves: Pincer (Bar/Key), Scuttle (two blows: Weave/Key), Rear up then Slam (Draw/Bar; Guard or Shove it before it lands). Their tells never lie. A 200-fight test checks a good player nearly always wins, an average one usually does, and a careless one fares worse.
+
+**Making it clear** (designer): in the Skill and Item lists, the one you're on is described in a box under the list. When she Lures, each enemy she draws flashes and shows LURED (and she shows GUARD); when Rot-ink lands, WEAKENED. Both stay on the enemy's panel while they last (WEAKENED with the rounds left).
 
 **Staging** (designer: each character needs their own space; a different background; separate health bars):
 - **Its own stage** (`stage: 'rot'`): a grim cave of rotten wood, lumpy brown muck underfoot with dark cracks and fallen roots, roots hanging from the arch, and the green only in the glowing pools and far off down the hollow.

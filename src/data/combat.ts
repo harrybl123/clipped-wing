@@ -16,12 +16,12 @@ export const MOVES: Record<string, MoveDef> = {
   shove: {
     id: 'shove', name: 'Shove', target: 'enemy', power: 8, kind: 'shove', sp: 2, crit: 0.25, interrupts: true,
     qte: { kind: 'bar', time: 1100, zone: [0.6, 0.8], sweet: [0.68, 0.72], alt: { kind: 'key', time: 900, quick: 350 } },
-    description: 'Both hands. Can throw him off balance, and breaks a big swing before it comes.',
+    description: 'Both hands. Can knock an enemy off balance, and stops a charged attack before it lands.',
   },
   grab: {
     id: 'grab', name: 'Grab', target: 'enemy', power: 10, kind: 'grab', sp: 4,
     qte: { kind: 'carve', strokes: 3, time: 2400, quick: 1200, alt: { kind: 'hold', time: 1000, zone: [0.65, 0.85], sweet: [0.72, 0.78] } },
-    description: 'Get hold and drag him down.',
+    description: 'Get hold and drag them down.',
   },
   // Three open-handed blows (no fist: a jab with the fingers, a slap, the heel of the bandaged hand), a
   // note for each; each one you land makes the next harder, and all three throw him off balance.
@@ -42,7 +42,8 @@ export const MOVES: Record<string, MoveDef> = {
   },
   flick: {
     id: 'flick', name: 'Flick', target: 'enemy', power: 8, kind: 'pierce', sp: 2, crit: 0.15, poses: ['slap'],
-    qte: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72], alt: { kind: 'key', time: 800, quick: 300 } },
+    // A quick draw: wait for the opening, and throw the instant it comes.
+    qte: { kind: 'draw', time: 420, quick: 160, wait: [600, 1200], alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
     description: 'Throws a shard of rot-bone. Cracks shells.',
   },
   lure: {
@@ -52,8 +53,9 @@ export const MOVES: Record<string, MoveDef> = {
   rot_ink: {
     id: 'rot_ink', name: 'Rot-ink', target: 'enemy', power: 3, kind: 'none', sp: 3, poses: ['grab'],
     exposes: { turns: 3, mult: 1.5 },
-    qte: { kind: 'hold', time: 1000, zone: [0.65, 0.85], sweet: [0.72, 0.78], alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
-    description: 'Smears glowing fungus ink on one enemy. It takes 1.5× harm for 3 rounds.',
+    // A steady hand while she smears it on: keep the needle in the middle.
+    qte: { kind: 'balance', time: 1800, zone: [0.36, 0.64], keep: 0.6, keepPerfect: 0.9, alt: { kind: 'hold', time: 1000, zone: [0.65, 0.85], sweet: [0.72, 0.78] } },
+    description: 'Smears glowing fungus ink on one enemy. It takes extra harm for 3 rounds.',
   },
 
   // --- The rot beetles (the deep rot): shelled, so ordinary hits do little. ---

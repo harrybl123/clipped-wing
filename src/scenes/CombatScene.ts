@@ -80,7 +80,7 @@ interface View {
   /** A shadow on the floor that follows them. */
   shadow?: Phaser.GameObjects.Ellipse;
   /** Enemies: name, health and his tell over his head, on a dark plate (drawn on the UI camera, so it's always crisp). */
-  tag?: { plate: Phaser.GameObjects.Graphics; name: PixelText; tell: PixelText };
+  tag?: { plate: Phaser.GameObjects.Graphics; name: PixelText; tell: PixelText; status: PixelText };
   /** Health and SP as drawn: they drain towards the real values. */
   shown: { hp: number; lag: number; sp: number };
 }
@@ -219,7 +219,7 @@ export class CombatScene extends Phaser.Scene {
     this.qte.update();
     // [Esc] Back, wherever you can go back: under a list, or while choosing who.
     const canBack = !!this.targeting || !!this.menu?.back;
-    this.backHint.setVisible(canBack).setPosition(W - this.backHint.width - 8, H - 54);
+    this.backHint.setVisible(canBack).setPosition(W - this.backHint.width - 8, H - 12);
     this.drainBars(delta);
     for (const v of this.views.values()) v.shadow?.setPosition(v.sprite.x, v.home.y).setScale(v.sprite.scale / v.home.scale);
     this.placeTags();
@@ -624,7 +624,17 @@ export class CombatScene extends Phaser.Scene {
           break;
         }
         case 'taunt': {
-          // (Shown as she steps out; the enemies' panels turn to her.)
+          // Every enemy she drew turns to her: a flash, LURED over each, and it stays on their panels.
+          const her = this.views.get(e.actor)!;
+          this.popLabel('GUARD', her, SHADES.cyan, 18);
+          for (const id of e.lured) {
+            const t = this.views.get(id)!;
+            playSound(this, 'tick');
+            this.flashWhite(t, 120);
+            this.popLabel('LURED', t, SHADES.amber, 18);
+            await this.tween(t.sprite, { x: t.home.x - 5, duration: 90, yoyo: true });
+          }
+          if (!e.lured.length) this.popLabel('NO ONE LEFT TO LURE', her, SHADES.dim, 30);
           this.refresh();
           break;
         }
@@ -1062,6 +1072,18 @@ export class CombatScene extends Phaser.Scene {
     const widest = Math.max(...m.items.map((o) => measure(o.label) + (o.note ? measure(o.note) + 14 : 0)));
     const left = Math.min(350, W - 30 - widest - (m.items.length - 1) * 5);
     if (m.title) items.push(new PixelText(this, left + 12, top - 12, m.title, { color: SHADES.amber, shadow: SHADES.shadow }));
+    // In the skill and item lists (designer): what the one you're on does, in a box under the list (clear of
+    // the enemies' panels and their tells).
+    const said = m.back ? m.items[m.index]?.description : '';
+    if (said) {
+      const bx = Math.min(left, W - 196);
+      const text = new PixelText(this, bx + 8, 0, said, { color: SHADES.light, wrapWidth: W - bx - 22 });
+      const by = top + m.items.length * rowH + 2;
+      text.setY(by + 5);
+      g.fillStyle(SHADES.shadow, 0.94).fillRect(bx, by, W - bx - 6, text.height + 10);
+      g.fillStyle(SHADES.redDark).fillRect(bx, by, 2, text.height + 10);
+      items.push(text);
+    }
     m.items.forEach((item, i) => {
       const on = i === m.index;
       const x = left + i * 5 - (on ? 12 : 0);
@@ -1116,6 +1138,7 @@ export class CombatScene extends Phaser.Scene {
         plate: this.u(this.add.graphics()),
         name: this.u(new PixelText(this, 0, 0, c.def.name, { color: SHADES.white })),
         tell: this.u(new PixelText(this, 0, 0, '', { color: SHADES.light, wrapWidth: this.slot - 14 })),
+        status: this.u(new PixelText(this, 0, 0, '', { color: SHADES.amber })),
       };
     }
     this.views.set(c.id, view);
@@ -1164,18 +1187,26 @@ export class CombatScene extends Phaser.Scene {
     const cam = this.cameras.main;
     for (const v of this.views.values()) {
       if (!v.tag) continue;
-      const { plate, name, tell } = v.tag;
+      const { plate, name, tell, status } = v.tag;
+      // What's been done to it, while it lasts: weakened (rounds left), and lured onto someone.
+      const intent = this.battle.intentOf(v.c.id);
+      const marks = [
+        ...(v.c.exposed > 0 ? [`WEAKENED ${v.c.exposed}`] : []),
+        ...(intent?.lured ? ['LURED'] : []),
+      ];
+      status.setText(marks.join('\n')).setColor(v.c.exposed > 0 ? SHADES.green : SHADES.amber);
       // (Hidden during a QTE: it needs the room.)
       const show = v.c.hp > 0 && !this.qte.active;
-      for (const o of [plate, name, tell]) o.setVisible(show);
+      for (const o of [plate, name, tell, status]) o.setVisible(show);
       if (!show) continue;
       const top = v.c.down ? v.sprite.y - 30 : v.sprite.y - v.sprite.displayHeight - 4;
       const sx = (v.sprite.x - cam.worldView.x) * cam.zoom;
       const sy = (top - cam.worldView.y) * cam.zoom;
       const bw = 44;
       // Never wider than its slot, so neighbours' panels don't overlap (the tell wraps instead).
-      const width = Math.min(this.slot - 6, Math.max(bw, name.width, tell.width) + 8);
-      const height = tell.text ? 21 + tell.height : 20;
+      const width = Math.min(this.slot - 6, Math.max(bw, name.width, tell.width, status.width) + 8);
+      const extra = status.text ? status.height + 3 : 0;
+      const height = (tell.text ? 21 + tell.height : 20) + extra;
       const half = (this.slot * cam.zoom) / 2;
       const x = Math.round(Phaser.Math.Clamp(sx - width / 2, Math.max(4, sx - half + 3), Math.min(W - width - 4, sx + half - width - 3)));
       const y = Math.round(Phaser.Math.Clamp(sy - height, 38, H - height - 4));
@@ -1199,6 +1230,7 @@ export class CombatScene extends Phaser.Scene {
       const poise = v.c.def.poise ?? 1;
       if (poise > 1) for (let n = 0; n < poise; n++) g.fillStyle(n < v.c.offBalance || v.c.down ? SHADES.amber : SHADES.woodLight).fillRect(bx + bw + 3, by - 1 + n * 3, 2, 2);
       tell.setPosition(Math.round(x + (width - tell.width) / 2), y + 19);
+      status.setPosition(Math.round(x + (width - status.width) / 2), y + height - status.height - 3);
     }
   }
 
