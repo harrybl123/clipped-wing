@@ -3,7 +3,8 @@ import type { CombatantDef, EncounterDef, ItemDef, MoveDef } from '../systems/Co
 // Combat data (docs/combat-design.md): moves, items, fighters and fights, run by src/systems/Combat.ts
 // and shown by CombatScene. No levelling: a lead's skills are what the story has given them so far, and
 // their numbers are set here. Names and descriptions are placeholders until the designer's text;
-// numbers are a first pass to playtest.
+// numbers are a first pass to playtest. The descriptions of your skills are shown in the Skill list: plain,
+// on-the-nose explanations of what each does (designer), no story flavour.
 
 export const MOVES: Record<string, MoveDef> = {
   // --- The carver. His basic attack is weak: he can't make a proper fist. The scrappy moves are skills.
@@ -11,17 +12,17 @@ export const MOVES: Record<string, MoveDef> = {
   slap: {
     id: 'slap', name: 'Slap', target: 'enemy', power: 6, kind: 'strike', crit: 0.1,
     qte: { kind: 'key', time: 900, quick: 350, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
-    description: 'An open hand. You can’t make a fist.',
+    description: 'Basic melee attack. Light damage.',
   },
   shove: {
     id: 'shove', name: 'Shove', target: 'enemy', power: 8, kind: 'shove', sp: 2, crit: 0.25, interrupts: true,
     qte: { kind: 'bar', time: 1100, zone: [0.6, 0.8], sweet: [0.68, 0.72], alt: { kind: 'key', time: 900, quick: 350 } },
-    description: 'Both hands. Can knock an enemy off balance, and stops a charged attack before it lands.',
+    description: 'Medium damage. Can knock an enemy off balance. Interrupts a charged attack.',
   },
   grab: {
     id: 'grab', name: 'Grab', target: 'enemy', power: 10, kind: 'grab', sp: 4,
     qte: { kind: 'carve', strokes: 3, time: 2400, quick: 1200, alt: { kind: 'hold', time: 1000, zone: [0.65, 0.85], sweet: [0.72, 0.78] } },
-    description: 'Get hold and drag them down.',
+    description: 'Grapple attack. Heavy damage.',
   },
   // Three open-handed blows (no fist: a jab with the fingers, a slap, the heel of the bandaged hand), a
   // note for each; each one you land makes the next harder, and all three throw him off balance.
@@ -30,7 +31,7 @@ export const MOVES: Record<string, MoveDef> = {
     qte: { kind: 'notes', outer: 180, perfect: 70, gap: 380, alt: { kind: 'carve', time: 2400, quick: 1200 } },
     combo: { build: 0.25, finisher: true },
     poses: ['attack', 'slap', 'palm'],
-    description: 'Jab, slap, palm: press each arrow as it lands. All three throw him off balance.',
+    description: 'Blitz attack: 3 quick hits, each stronger than the last. Land all 3 to knock the enemy off balance.',
   },
 
   // --- The girl (the deep rot). She isn't hampered like you: she can hit properly, but she's slighter. Her
@@ -38,24 +39,24 @@ export const MOVES: Record<string, MoveDef> = {
   clout: {
     id: 'clout', name: 'Clout', target: 'enemy', power: 7, kind: 'strike', crit: 0.15,
     qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
-    description: 'A proper punch.',
+    description: 'Basic melee attack.',
   },
   flick: {
     id: 'flick', name: 'Flick', target: 'enemy', power: 8, kind: 'pierce', sp: 2, crit: 0.15, poses: ['slap'],
     // A quick draw: wait for the opening, and throw the instant it comes.
     qte: { kind: 'draw', time: 420, quick: 160, wait: [600, 1200], alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
-    description: 'Throws a shard of rot-bone. Cracks shells.',
+    description: 'Ranged attack. Effective against shelled enemies.',
   },
   lure: {
     id: 'lure', name: 'Lure', target: 'self', sp: 1, taunts: true,
-    description: 'Draws every enemy that hasn’t acted onto her this round. She braces, taking half harm.',
+    description: 'Draws all enemy attacks to her this round. She guards, taking half damage.',
   },
   rot_ink: {
     id: 'rot_ink', name: 'Rot-ink', target: 'enemy', power: 3, kind: 'none', sp: 3, poses: ['grab'],
     exposes: { turns: 3, mult: 1.5 },
     // A steady hand while she smears it on: keep the needle in the middle.
     qte: { kind: 'balance', time: 1800, zone: [0.36, 0.64], keep: 0.6, keepPerfect: 0.9, alt: { kind: 'hold', time: 1000, zone: [0.65, 0.85], sweet: [0.72, 0.78] } },
-    description: 'Smears glowing fungus ink on one enemy. It takes extra harm for 3 rounds.',
+    description: 'Weakens one enemy: it takes more damage for 3 rounds.',
   },
 
   // --- The rot beetles (the deep rot): shelled, so ordinary hits do little. ---
