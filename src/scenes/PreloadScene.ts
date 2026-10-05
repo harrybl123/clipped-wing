@@ -50,8 +50,9 @@ export class PreloadScene extends Phaser.Scene {
       getSession(this).calendar.jumpTo(1);
       this.scene.start('Chapter', { number: 'Chapter 1', title: 'Seen', next: { areaId: 'home', start: { x: 50, y: 150 }, card: 'Day 1: Ascension Day' } });
     }
-    // ?scene=combat: the turn-based market scrap (&encounter=<id> for another), then back to the roots market.
-    else if (params?.get('scene') === 'combat') this.scene.start('Combat', { encounter: params.get('encounter') ?? 'market_scrap', back: { areaId: 'roots-market' } });
+    // ?scene=combat: the turn-based market scrap (&encounter=<id> for another), then back to the roots market;
+    // &foe=<move> makes him use only that move (swing, hook, flurry, collar, wind_up, jeer), to try each reaction.
+    else if (params?.get('scene') === 'combat') this.scene.start('Combat', { encounter: params.get('encounter') ?? 'market_scrap', back: { areaId: 'roots-market' }, ...(params.get('foe') ? { only: params.get('foe')! } : {}) });
     else if (params?.get('scene') === 'decode') this.scene.start('Decode', { message: 'message1' });
     else if (params?.get('ending')) this.scene.start('Ending', { ending: params.get('ending')! });
     else if (params && ['2', '3', '4', '5', '6', '7'].includes(params.get('day') ?? '')) {

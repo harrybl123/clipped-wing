@@ -11,16 +11,24 @@ const MV: Record<string, MoveDef> = {
   lucky: { id: 'lucky', name: 'Lucky', description: '', target: 'enemy', power: 10, kind: 'strike', crit: 1 },
   pull: { id: 'pull', name: 'Pull', description: '', target: 'enemy', power: 10, kind: 'grab', sp: 4 },
   leave: { id: 'leave', name: 'Leave', description: '', target: 'self', ends: 'left' },
-  bash: { id: 'bash', name: 'Bash', description: '', target: 'enemy', power: 10, kind: 'strike', reaction: { dodge: 250, parry: 100 } },
+  bash: { id: 'bash', name: 'Bash', description: '', target: 'enemy', power: 10, kind: 'strike', reaction: { dodge: 250, late: 50, parry: 100 } },
   charge: { id: 'charge', name: 'Charge', description: '', target: 'self', windsUp: 'smash' },
-  smash: { id: 'smash', name: 'Smash', description: '', target: 'enemy', power: 30, kind: 'strike', reaction: { dodge: 200, parry: 80 } },
+  smash: { id: 'smash', name: 'Smash', description: '', target: 'enemy', power: 30, kind: 'strike', reaction: { dodge: 200, late: 50, parry: 80 } },
+  hook: { id: 'hook', name: 'Hook', description: '', target: 'enemy', power: 10, kind: 'strike', reaction: { kind: 'side', dodge: 250, late: 50 }, tell: { pose: 'cock', lines: ['He drops a shoulder.'] } },
+  flurry: { id: 'flurry', name: 'Flurry', description: '', target: 'enemy', power: 4, kind: 'strike', hits: 2, reaction: { kind: 'rhythm', dodge: 250, late: 50 }, tell: { pose: 'squared', lines: ['He bounces.'] } },
+  hold: { id: 'hold', name: 'Hold', description: '', target: 'enemy', power: 10, kind: 'grab', reaction: { kind: 'mash', presses: 8, time: 1500 } },
+  shove: { id: 'shove', name: 'Shove', description: '', target: 'enemy', power: 2, kind: 'shove', interrupts: true },
 };
 const DEFS: Record<string, CombatantDef> = {
-  hero: { id: 'hero', name: 'Hero', sprite: 'x', hp: 50, sp: 6, attack: 10, defence: 10, speed: 5, basic: 'punch', moves: ['pull', 'lucky', 'leave'], reactions: ['dodge', 'parry'] },
+  hero: { id: 'hero', name: 'Hero', sprite: 'x', hp: 50, sp: 6, attack: 10, defence: 10, speed: 5, basic: 'punch', moves: ['pull', 'lucky', 'leave', 'shove'], reactions: ['dodge', 'parry'] },
   friend: { id: 'friend', name: 'Friend', sprite: 'x', hp: 50, attack: 10, defence: 10, speed: 1, basic: 'punch', moves: [] },
   brute: { id: 'brute', name: 'Brute', sprite: 'x', hp: 60, attack: 10, defence: 10, speed: 3, moves: ['bash'], weak: ['grab'], resists: ['strike'] },
   brawler: { id: 'brawler', name: 'Brawler', sprite: 'x', hp: 50, sp: 40, attack: 10, defence: 10, speed: 5, basic: 'punch', moves: ['pull'] },
   tough: { id: 'tough', name: 'Tough', sprite: 'x', hp: 200, attack: 10, defence: 10, speed: 3, moves: ['bash'], weak: ['grab'], poise: 2 },
+  flurrier: { id: 'flurrier', name: 'Flurrier', sprite: 'x', hp: 60, attack: 10, defence: 10, speed: 3, moves: ['flurry'] },
+  hooker: { id: 'hooker', name: 'Hooker', sprite: 'x', hp: 60, attack: 10, defence: 10, speed: 3, moves: ['hook'] },
+  holder: { id: 'holder', name: 'Holder', sprite: 'x', hp: 60, attack: 10, defence: 10, speed: 3, moves: ['hold'] },
+  liar: { id: 'liar', name: 'Liar', sprite: 'x', hp: 60, attack: 10, defence: 10, speed: 3, moves: ['flurry', 'hook'], weights: [1, 0], feint: 1 },
   charger: { id: 'charger', name: 'Charger', sprite: 'x', hp: 60, attack: 10, defence: 10, speed: 3, moves: ['charge'] },
 };
 const IT: Record<string, ItemDef> = { bun: { id: 'bun', name: 'Bun', description: '', heal: 15 } };
@@ -238,22 +246,87 @@ describe('Battle: reactions on top', () => {
     expect(b.enemyTurn('parry')).toContainEqual({ type: 'damage', target: 'friend', amount: 10, hp: 40 });
   });
 
-  it('grades a press by how long before the hit it came', () => {
-    const w = { dodge: 260, parry: 110 };
+  it('only a press while the ring is in the band (the donut) counts: not before, not after', () => {
+    const w = { kind: 'ring' as const, dodge: 400, late: 130, parry: 0, presses: 1, time: 0 };
     expect(Battle.grade(null, w)).toBe('none');
-    expect(Battle.grade(50, w)).toBe('parry');
-    expect(Battle.grade(200, w)).toBe('dodge');
-    expect(Battle.grade(400, w)).toBe('none');
-    expect(Battle.grade(50, { dodge: 260, parry: 0 })).toBe('dodge');
-    expect(Battle.grade(50, null)).toBe('none');
+    expect(Battle.grade(500, w)).toBe('none'); // too early: the ring hasn't reached the band
+    expect(Battle.tooEarly(500, w)).toBe(true);
+    expect(Battle.grade(400, w)).toBe('dodge'); // the outer edge
+    expect(Battle.grade(250, w)).toBe('dodge');
+    expect(Battle.grade(130, w)).toBe('dodge'); // the inner edge
+    expect(Battle.grade(100, w)).toBe('none'); // too late: it's inside the hole
+    expect(Battle.tooEarly(100, w)).toBe(false);
+    expect(Battle.grade(0, w)).toBe('none');
+    expect(Battle.grade(250, null)).toBe('none');
   });
 
-  it('each fight sets how forgiving the timing is: windows widen with ease, never past the lunge', () => {
+  it('a parry is the innermost part of the band, for those who can parry', () => {
+    const w = { kind: 'ring' as const, dodge: 400, late: 130, parry: 60, presses: 1, time: 0 };
+    expect(Battle.grade(150, w)).toBe('parry');
+    expect(Battle.grade(190, w)).toBe('parry');
+    expect(Battle.grade(200, w)).toBe('dodge');
+    expect(Battle.grade(120, w)).toBe('none');
+  });
+
+  it('each fight sets how forgiving the timing is: the band widens inwards from its inner edge, never past the lunge', () => {
     expect(fight().timing).toEqual({ lunge: 650, ease: 1 });
+    expect(fight().reactionWindow('bash', 'hero')).toEqual({ kind: 'ring', dodge: 250, late: 50, parry: 100, presses: 1, time: 0 });
     const easy = fight({ timing: { lunge: 1000, ease: 2 } });
     expect(easy.timing).toEqual({ lunge: 1000, ease: 2 });
-    expect(easy.reactionWindow('bash', 'hero')).toEqual({ dodge: 500, parry: 200 });
-    expect(fight({ timing: { lunge: 300, ease: 3 } }).reactionWindow('bash', 'hero')).toEqual({ dodge: 300, parry: 300 });
+    expect(easy.reactionWindow('bash', 'hero')).toMatchObject({ dodge: 450, late: 50, parry: 200 });
+    expect(fight({ timing: { lunge: 300, ease: 3 } }).reactionWindow('bash', 'hero')).toMatchObject({ dodge: 300, late: 50, parry: 300 });
+  });
+
+  it('a side attack: dodge away from where it comes from, in the band', () => {
+    const w = { kind: 'side' as const, dodge: 400, late: 130, parry: 0, presses: 1, time: 0 };
+    expect(Battle.gradeSide(250, 'right', 'left', w)).toBe('dodge');
+    expect(Battle.gradeSide(250, 'left', 'left', w)).toBe('none'); // into it
+    expect(Battle.gradeSide(600, 'right', 'left', w)).toBe('none'); // too early
+    expect(Battle.gradeSide(null, null, 'left', w)).toBe('none');
+    const b = fight({ enemies: ['hooker'] });
+    expect(['left', 'right']).toContain(b.intentOf('hooker')?.side);
+    expect(b.reactionWindow('hook', 'hero')?.kind).toBe('side');
+  });
+
+  it('breaking a hold: enough presses in time, eased by the fight', () => {
+    const b = fight({ enemies: ['holder'], timing: { ease: 2 } });
+    const w = b.reactionWindow('hold', 'hero')!;
+    expect(w).toMatchObject({ kind: 'mash', presses: 4, time: 1500 });
+    expect(Battle.gradeMash(4, w)).toBe('dodge');
+    expect(Battle.gradeMash(3, w)).toBe('none');
+    b.act({ type: 'guard' });
+    expect(b.enemyTurn('dodge')).toContainEqual({ type: 'damage', target: 'hero', amount: 3, hp: 47, guarded: true });
+  });
+
+  it('a flurry is one blow per reaction', () => {
+    const b = fight({ enemies: ['flurrier'] });
+    b.act({ type: 'attack' });
+    const events = b.enemyTurn(['dodge', 'none']);
+    expect(events.filter((e) => e.type === 'reaction').map((e) => (e as { reaction: string }).reaction)).toEqual(['dodge', 'none']);
+    expect(events.filter((e) => e.type === 'damage').map((e) => (e as { amount: number }).amount)).toEqual([2, 4]);
+  });
+
+  it('the intent carries a tell to read (the move’s own, unless the enemy feints)', () => {
+    expect(fight({ enemies: ['flurrier'] }).intentOf('flurrier')?.tell).toEqual({ pose: 'squared', line: 'He bounces.' });
+    const lied = fight({ enemies: ['liar'] });
+    expect(lied.intentOf('liar')?.move).toBe('flurry');
+    expect(lied.intentOf('liar')?.tell).toEqual({ pose: 'cock', line: 'He drops a shoulder.' });
+  });
+
+  it('a shove breaks a wound-up blow before it comes: no blow, and he’s thrown off balance', () => {
+    const b = fight({ enemies: ['charger'] });
+    b.act({ type: 'guard' });
+    b.enemyTurn(); // he winds up
+    expect(b.intentOf('charger')).toMatchObject({ move: 'smash', charged: true });
+    const events = b.act({ type: 'skill', move: 'shove' });
+    expect(events).toContainEqual({ type: 'interrupt', target: 'charger' });
+    expect(events).toContainEqual({ type: 'knockdown', target: 'charger' }); // poise 1
+    expect(b.intentOf('charger')).toBeUndefined();
+  });
+
+  it('a shove does nothing special to an ordinary blow', () => {
+    const b = fight({ enemies: ['charger'] });
+    expect(b.act({ type: 'skill', move: 'shove' }).find((e) => e.type === 'interrupt')).toBeUndefined();
   });
 
   it('names duplicates apart', () => {

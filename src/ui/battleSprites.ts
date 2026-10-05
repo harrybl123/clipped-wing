@@ -50,24 +50,24 @@ function poly(g: Grid, pts: Pt[], c: string): void {
 }
 
 /**
- * Lights one part (every pixel marked `part`): amber where the lamps catch its top-right corners, a pale
+ * Lights one part (every pixel marked `part`): amber on its top-right corners where the lamps catch it, a pale
  * rim down its right, a mid-tone just inside the rim, a faint edge on its left and top, and a faint seam
  * where it crosses another part, so a limb in front of the body still reads.
  */
-function light(g: Grid, part: string): void {
+function light(g: Grid, part: string, fill = 'o'): void {
   const at = (x: number, y: number) => g[y]?.[x] ?? '.';
   const empty = (x: number, y: number) => at(x, y) === '.';
   const other = (x: number, y: number) => !empty(x, y) && at(x, y) !== part;
   const marks: [number, number, string][] = [];
   g.forEach((row, y) => row.forEach((c, x) => {
     if (c !== part) return;
-    let mark = 'o';
+    let mark = fill;
     if (empty(x + 1, y) && empty(x, y - 1)) mark = 'A'; // a top-right corner, where the lamps catch
     else if (empty(x + 1, y)) mark = '#';
-    else if (empty(x, y - 1)) mark = empty(x + 2, y - 1) && empty(x + 1, y - 1) ? 'A' : 'e';
+    else if (empty(x, y - 1)) mark = 'e';
     else if (empty(x - 1, y)) mark = 'e';
     else if (other(x + 1, y)) mark = 'e'; // where a part crosses another: a faint seam
-    else if (empty(x + 2, y)) mark = 'm';
+    else if (empty(x + 2, y) && fill === 'o') mark = 'm';
     marks.push([x, y, mark]);
   }));
   for (const [x, y, c] of marks) g[y]![x] = c;
@@ -160,102 +160,154 @@ function carverBack(pose: CarverPose): RowSprite {
 export const CARVER_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, carverBack(p)])) as Record<CarverPose, RowSprite>;
 
 // --- The young zealot, facing you ---
+// A young man like the one in the market (designer: a person, not a creature): bare-headed with short
+// dark hair, his face showing, a dark tunic with its folds, the zealot's pale stole and the green band of
+// the rite, hands, legs and feet. Lit like the area figures, a pale outline round a dark body.
 
-export type FoePose = 'idle' | 'breathe' | 'windup' | 'attack' | 'hit' | 'jeer' | 'wobble' | 'down';
-export const FOE_POSES: FoePose[] = ['idle', 'breathe', 'windup', 'attack', 'hit', 'jeer', 'wobble', 'down'];
-const FOE_W = 46;
+export type FoePose = 'idle' | 'breathe' | 'squared' | 'shift' | 'windup' | 'attack' | 'cockL' | 'cockR' | 'reach' | 'glance' | 'jeer' | 'hit' | 'wobble' | 'down';
+export const FOE_POSES: FoePose[] = ['idle', 'breathe', 'squared', 'shift', 'windup', 'attack', 'cockL', 'cockR', 'reach', 'glance', 'jeer', 'hit', 'wobble', 'down'];
+const FOE_W = 48;
 const FOE_H = 68;
 
+interface FoeShape {
+  lean: number;
+  bob: number;
+  /** Feet: [screen-left, screen-right] x, relative to the centre. */
+  feet: [number, number];
+  /** His right arm (screen left) and left arm (screen right): shoulder → elbow → hand; hand sizes. */
+  right: [Pt, Pt];
+  left: [Pt, Pt];
+  hands: [number, number];
+  /** The head: offset, and where he's looking (-1 left, 0 at you, 1 right). */
+  head: [number, number];
+  look: number;
+  mouth: 'sneer' | 'open' | 'grit';
+}
+
+const FOE: Record<Exclude<FoePose, 'down'>, FoeShape> = {
+  idle: { lean: 0, bob: 0, feet: [-5, 5], right: [[-13, 31], [-12, 41]], left: [[13, 31], [12, 41]], hands: [2.2, 2.2], head: [0, 0], look: 0, mouth: 'sneer' },
+  breathe: { lean: 0, bob: 1, feet: [-5, 5], right: [[-13, 31], [-12, 41]], left: [[13, 31], [12, 41]], hands: [2.2, 2.2], head: [0, 0], look: 0, mouth: 'sneer' },
+  // Fists up in front of his chest, feet apart: a swing (or two) coming.
+  squared: { lean: 0, bob: 1, feet: [-8, 8], right: [[-15, 30], [-6, 23]], left: [[15, 30], [6, 24]], hands: [2.6, 2.6], head: [0, 1], look: 0, mouth: 'grit' },
+  // Weight back on his heels, one fist low by his hip.
+  shift: { lean: 3, bob: -1, feet: [-6, 7], right: [[-15, 30], [-13, 38]], left: [[14, 32], [11, 40]], hands: [2.6, 2.2], head: [2, -1], look: 0, mouth: 'grit' },
+  windup: { lean: 3, bob: 1, feet: [-7, 7], right: [[-18, 18], [-15, 7]], left: [[14, 28], [7, 30]], hands: [3, 2.4], head: [1, 0], look: 0, mouth: 'grit' },
+  attack: { lean: -4, bob: 2, feet: [-9, 9], right: [[-14, 27], [-17, 36]], left: [[13, 30], [13, 39]], hands: [4.6, 2.4], head: [-2, 1], look: 0, mouth: 'open' },
+  // An arm drawn back out wide on one side: the blow will come from there.
+  cockL: { lean: -2, bob: 1, feet: [-8, 7], right: [[-19, 23], [-19, 13]], left: [[13, 30], [7, 28]], hands: [3, 2.4], head: [-1, 0], look: -1, mouth: 'grit' },
+  cockR: { lean: 2, bob: 1, feet: [-7, 8], right: [[-13, 30], [-7, 28]], left: [[19, 23], [19, 13]], hands: [2.4, 3], head: [1, 0], look: 1, mouth: 'grit' },
+  // Leaning in, hands open and reaching for you.
+  reach: { lean: 0, bob: 2, feet: [-6, 6], right: [[-14, 30], [-8, 36]], left: [[14, 30], [8, 36]], hands: [3.4, 3.4], head: [0, 2], look: 0, mouth: 'sneer' },
+  // Looking round at the crowd, a hand on his hip.
+  glance: { lean: 1, bob: 0, feet: [-5, 6], right: [[-13, 31], [-12, 41]], left: [[16, 30], [11, 36]], hands: [2.2, 2.2], head: [3, 0], look: 1, mouth: 'open' },
+  jeer: { lean: 0, bob: -1, feet: [-6, 6], right: [[-16, 13], [-15, 3]], left: [[16, 13], [15, 3]], hands: [2.4, 2.4], head: [0, -1], look: 0, mouth: 'open' },
+  hit: { lean: 4, bob: -1, feet: [-7, 7], right: [[-17, 24], [-21, 17]], left: [[17, 25], [20, 19]], hands: [2.2, 2.2], head: [2, -2], look: 0, mouth: 'open' },
+  // Arms out wide, windmilling for balance, his feet crossing.
+  wobble: { lean: 5, bob: 2, feet: [2, 9], right: [[-18, 20], [-22, 12]], left: [[18, 26], [22, 32]], hands: [2.2, 2.2], head: [2, 0], look: -1, mouth: 'open' },
+};
+
 function zealot(pose: Exclude<FoePose, 'down'>): RowSprite {
+  const f = FOE[pose];
   const g = grid(FOE_W, FOE_H);
-  const cx = 23;
-  const lean = { idle: 0, breathe: 0, windup: 3, attack: -4, hit: 4, jeer: 0, wobble: 5 }[pose];
-  const bob = { idle: 0, breathe: 1, windup: 1, attack: 2, hit: -1, jeer: -1, wobble: 2 }[pose];
-  const x = cx + lean;
-  const top = 2 + bob;
+  const cx = 24;
+  const x = cx + f.lean;
+  const top = 2 + f.bob;
   const hip = 42;
-  // Legs, apart; bent when he lunges or reels; crossed and staggering off balance.
-  const stance = pose === 'attack' ? 7 : pose === 'hit' ? 5 : 4;
-  const [lFoot, rFoot]: [number, number] = pose === 'wobble' ? [cx + 2, cx + 9] : [cx - stance - 1, cx + stance + 1];
-  limb(g, [[cx - 4, hip], [lFoot + 1, 55], [lFoot, FOE_H - 3]], 2.6, 'l');
-  limb(g, [[cx + 4, hip], [rFoot - 1, 55], [rFoot, FOE_H - 3]], 2.6, 'l');
-  disc(g, lFoot - 1, FOE_H - 2, 3, 1.4, 'l');
-  disc(g, rFoot + 1, FOE_H - 2, 3, 1.4, 'l');
-  // Torso and hips.
-  poly(g, [[x - 10, top + 17], [x + 10, top + 17], [cx + 6, hip + 1], [cx - 6, hip + 1]], 'b');
-  disc(g, x - 9, top + 20, 3, 3, 'b');
-  disc(g, x + 9, top + 20, 3, 3, 'b');
-  // Arms: his right is on the screen's left. Fists are big discs (bigger when coming at you).
-  const rs: Pt = [x - 10, top + 20];
-  const ls: Pt = [x + 10, top + 20];
-  const arms: Record<typeof pose, [Pt[], Pt[], number, number]> = {
-    idle: [[rs, [x - 13, top + 31], [x - 12, top + 41]], [ls, [x + 13, top + 31], [x + 12, top + 41]], 2.6, 2.6],
-    breathe: [[rs, [x - 13, top + 31], [x - 12, top + 41]], [ls, [x + 13, top + 31], [x + 12, top + 41]], 2.6, 2.6],
-    windup: [[rs, [x - 18, top + 18], [x - 15, top + 7]], [ls, [x + 14, top + 28], [x + 7, top + 30]], 3.4, 2.6],
-    attack: [[rs, [x - 14, top + 27], [x - 17, top + 36]], [ls, [x + 13, top + 30], [x + 13, top + 39]], 5.2, 2.6],
-    hit: [[rs, [x - 17, top + 24], [x - 21, top + 17]], [ls, [x + 17, top + 25], [x + 20, top + 19]], 2.6, 2.6],
-    jeer: [[rs, [x - 16, top + 13], [x - 15, top + 3]], [ls, [x + 16, top + 13], [x + 15, top + 3]], 2.6, 2.6],
-    // Arms out wide, windmilling for balance.
-    wobble: [[rs, [x - 18, top + 20], [x - 22, top + 12]], [ls, [x + 18, top + 26], [x + 22, top + 32]], 2.6, 2.6],
-  };
-  const [right, left, rFist, lFist] = arms[pose];
-  limb(g, right, 2.2, 'a');
-  limb(g, left, 2.2, 'a');
-  disc(g, right[2]![0], right[2]![1], rFist, rFist, 'a');
-  disc(g, left[2]![0], left[2]![1], lFist, lFist, 'a');
-  // The hood, and his head inside it (tilted back when hit).
-  const hx = x + (pose === 'hit' ? 2 : pose === 'attack' ? -2 : pose === 'wobble' ? 2 : 0);
-  const hy = top + (pose === 'hit' ? 7 : 9);
-  disc(g, hx, hy, 7.5, 8.5, 'h');
-  poly(g, [[hx - 8, hy + 2], [hx + 8, hy + 2], [x + 11, top + 19], [x - 11, top + 19]], 'h');
-  for (const part of ['l', 'b', 'a', 'h']) light(g, part);
-  // The face in the hood's shadow: pale eyes and a sneer.
-  disc(g, hx, hy + 2, 4, 4.8, 'F');
-  put(g, hx - 1, hy - 1, 'm');
-  const eyes = pose === 'hit' || pose === 'wobble' ? 'k' : 'L';
-  put(g, hx - 2, hy + 1, eyes);
-  put(g, hx + 2, hy + 1, eyes);
-  if (pose === 'jeer' || pose === 'wobble') limb(g, [[hx - 2, hy + 5], [hx + 2, hy + 5]], 0.6, 'k');
+  // Legs and feet.
+  const [lf, rf] = f.feet;
+  limb(g, [[cx - 4, hip], [cx + lf * 0.8, 55], [cx + lf, FOE_H - 3]], 2.6, 'l');
+  limb(g, [[cx + 4, hip], [cx + rf * 0.8, 55], [cx + rf, FOE_H - 3]], 2.6, 'l');
+  disc(g, cx + lf - 1, FOE_H - 2, 3, 1.4, 'l');
+  disc(g, cx + rf + 1, FOE_H - 2, 3, 1.4, 'l');
+  // The tunic: shoulders to hips, flaring a little at the hem.
+  poly(g, [[x - 10, top + 16], [x + 10, top + 16], [cx + 8, hip + 3], [cx - 8, hip + 3]], 't');
+  disc(g, x - 9, top + 19, 3, 3, 't');
+  disc(g, x + 9, top + 19, 3, 3, 't');
+  // Arms (sleeves) and hands.
+  const rs: Pt = [x - 10, top + 19];
+  const ls: Pt = [x + 10, top + 19];
+  const at = (p: Pt): Pt => [x + p[0], top + p[1]];
+  limb(g, [rs, at(f.right[0]), at(f.right[1])], 2.2, 'a');
+  limb(g, [ls, at(f.left[0]), at(f.left[1])], 2.2, 'a');
+  // The neck and head: short dark hair over a face you can see.
+  const hx = x + f.head[0];
+  const hy = top + 8 + f.head[1];
+  poly(g, [[hx - 2, hy + 5], [hx + 2, hy + 5], [x + 3, top + 17], [x - 3, top + 17]], 'n');
+  disc(g, hx, hy, 6, 7, 'h');
+  light(g, 'l');
+  light(g, 't', 'm');
+  light(g, 'a');
+  light(g, 'n', 'k');
+  light(g, 'h');
+  // The face (the hair stays round the top and sides).
+  disc(g, hx + f.look * 0.6, hy + 1.6, 4.4, 5, 'K');
+  for (let i = -3; i <= 3; i++) put(g, hx + f.look * 0.6 + i, hy + 6.4, 'K');
+  // Shading down the face's unlit (left) side, an ear on the lit side.
+  for (let y = -2; y <= 5; y++) put(g, hx + f.look * 0.6 - 4, hy + 1.6 + y, 'k');
+  put(g, hx + 6, hy + 2, 'K');
+  // Brows, eyes (looking where he looks), nose, mouth: simple, dark, not glowing.
+  const ex = hx + f.look * 1.2;
+  put(g, ex - 2, hy, 'y');
+  put(g, ex + 2, hy, 'y');
+  put(g, ex - 3, hy - 1, 'y');
+  put(g, ex + 3, hy - 1, 'y');
+  put(g, ex + 0.5, hy + 2, 'k');
+  if (f.mouth === 'open') limb(g, [[ex - 1, hy + 4.5], [ex + 1, hy + 4.5]], 0.6, 'y');
+  else if (f.mouth === 'grit') for (let i = -2; i <= 2; i++) put(g, ex + i, hy + 4.5, 'y');
   else {
-    put(g, hx - 1, hy + 5, 'k');
-    put(g, hx, hy + 5, 'k');
-    put(g, hx + 1, hy + 4, 'k');
+    put(g, ex - 1, hy + 4.5, 'y');
+    put(g, ex, hy + 4.5, 'y');
+    put(g, ex + 1, hy + 3.8, 'y');
   }
-  // The zealot's stole hanging down both sides of his chest, the green band of the rite, a belt.
-  for (let y = top + 18; y <= hip + 6; y++) {
-    const dx = Math.round(((y - top) * -lean) / 60);
+  // Hands, bare (bigger when coming at you).
+  for (const [arm, r] of [[f.right, f.hands[0]], [f.left, f.hands[1]]] as const) {
+    const h = at(arm[1]);
+    disc(g, h[0], h[1], r, r, 'K');
+    put(g, h[0] - r + 0.4, h[1], 'k');
+  }
+  // Tunic folds, the zealot's stole down his chest, the green band of the rite, a belt.
+  for (const [fx, fy, len] of [[-5, 26, 6], [4, 30, 7], [-2, 35, 5]] as const) for (let i = 0; i < len; i++) put(g, x + fx + Math.round(i * 0.2), top + fy + i, 'f');
+  for (let y = top + 17; y <= hip + 6; y++) {
+    const dx = Math.round(((y - top) * -f.lean) / 60);
     put(g, x - 4 + dx, y, 'S');
     put(g, x + 4 + dx, y, y % 3 ? 'S' : 's');
   }
-  for (let i = -8; i <= 8; i++) put(g, x + i, top + 24, i > 5 ? 'C' : 'c');
-  for (let i = -6; i <= 6; i++) put(g, cx + i, hip - 1, i > 3 ? 'B' : 'u');
-  return { rows: rows(g), colours: { ...FIGURE, F: SHADES.deep, L: SHADES.light, k: SHADES.woodPale, S: SHADES.woodPale, s: SHADES.dim, c: SHADES.greenDeep, C: SHADES.greenMid, u: SHADES.amberDeep, B: SHADES.amber } };
+  for (let i = -8; i <= 8; i++) put(g, x + i, top + 23, i > 5 ? 'C' : 'c');
+  for (let i = -7; i <= 7; i++) put(g, cx + i, hip, i > 4 ? 'B' : 'u');
+  return { rows: rows(g), colours: { ...FIGURE, K: SHADES.woodPale, k: SHADES.dim, y: SHADES.deep, f: SHADES.woodLight, S: SHADES.woodPale, s: SHADES.dim, c: SHADES.greenDeep, C: SHADES.greenMid, u: SHADES.amberDeep, B: SHADES.amber } };
 }
 
-/** Flat on his back on the boards, head (in its hood) to the left, one knee up, an arm flung out. */
+/** Flat on his back on the boards, head to the left, one knee up, an arm flung out. */
 function zealotDown(): RowSprite {
   const W = 76;
   const H = 24;
   const g = grid(W, H);
   const floor = H - 2;
   // Legs, one knee bent up.
-  limb(g, [[44, floor - 4], [58, floor - 11], [68, floor - 2]], 2.6, 'l');
-  limb(g, [[44, floor - 2], [62, floor - 1], [72, floor - 1]], 2.6, 'l');
+  limb(g, [[46, floor - 4], [58, floor - 11], [68, floor - 2]], 2.6, 'l');
+  limb(g, [[46, floor - 2], [62, floor - 1], [72, floor - 1]], 2.6, 'l');
   // Body, lying along the floor.
-  poly(g, [[14, floor - 9], [44, floor - 7], [46, floor + 1], [14, floor + 1]], 'b');
+  poly(g, [[14, floor - 10], [46, floor - 7], [48, floor + 1], [14, floor + 1]], 't');
   // An arm flung out over his head, the other on the boards.
-  limb(g, [[18, floor - 8], [10, floor - 15], [4, floor - 18]], 2.2, 'a');
-  limb(g, [[30, floor - 6], [34, floor - 1], [40, floor]], 2.2, 'a');
-  // Head and hood.
-  disc(g, 10, floor - 4, 7, 5.5, 'h');
-  for (const part of ['l', 'b', 'a', 'h']) light(g, part);
-  disc(g, 10, floor - 5, 3.5, 2.6, 'F');
-  put(g, 9, floor - 6, 'k');
-  put(g, 11, floor - 6, 'k');
+  limb(g, [[18, floor - 9], [11, floor - 15], [5, floor - 18]], 2.2, 'a');
+  limb(g, [[30, floor - 6], [35, floor - 1], [40, floor]], 2.2, 'a');
+  // Head.
+  disc(g, 9, floor - 5, 6, 5.5, 'h');
+  light(g, 'l');
+  light(g, 't', 'm');
+  light(g, 'a');
+  light(g, 'h');
+  // His face, turned up and to you; hands.
+  disc(g, 9, floor - 6, 3.4, 3.2, 'K');
+  put(g, 8, floor - 7, 'y');
+  put(g, 11, floor - 7, 'y');
+  for (let i = 0; i < 3; i++) put(g, 8 + i, floor - 4, 'y');
+  disc(g, 5, floor - 18, 2, 2, 'K');
+  disc(g, 40, floor, 2, 1.5, 'K');
   // The stole across his chest, the band.
-  for (let x = 16; x <= 42; x++) put(g, x, floor - 5 + (x > 30 ? 1 : 0), 'S');
-  for (let y = floor - 8; y <= floor; y++) put(g, 26, y, 'c');
-  return { rows: rows(g), colours: { ...FIGURE, F: SHADES.deep, k: SHADES.woodPale, S: SHADES.woodPale, c: SHADES.greenDeep } };
+  for (let x = 16; x <= 44; x++) put(g, x, floor - 5 + (x > 30 ? 1 : 0), 'S');
+  for (let y = floor - 9; y <= floor; y++) put(g, 26, y, 'c');
+  return { rows: rows(g), colours: { ...FIGURE, K: SHADES.woodPale, y: SHADES.deep, S: SHADES.woodPale, c: SHADES.greenDeep } };
 }
 
 export const ZEALOT_BATTLE: Record<FoePose, RowSprite> = {
