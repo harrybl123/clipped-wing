@@ -121,6 +121,20 @@ COMBATANTS.lackey = {
   ai: { maxRepeat: 2, when: { hurt: { jeer: 0 } } },
 };
 
+export type Lesson = 'turns' | 'tells' | 'react' | 'offBalance' | 'windUp';
+
+/**
+ * The market scrap teaches itself (designer: the scene is the tutorial). Each shows once, the first time
+ * it comes up: plain explanations (designer), no flavour.
+ */
+export const LESSONS: Record<Lesson, string> = {
+  turns: 'Your turn. Up and Down to choose, E to confirm. Attack is your basic melee attack. Skills are stronger moves that cost SP. Guard halves the damage you take until your next turn.',
+  tells: 'His pose, and the line above his head, show what he\u2019s about to do.',
+  react: 'When he attacks, follow the prompt on screen in time to dodge. Miss it and you take the full hit.',
+  offBalance: 'He\u2019s off balance. Hit him again before he recovers to knock him down and get an extra turn.',
+  windUp: 'He\u2019s charging a heavy attack. Guard to take less of it, or Shove him before it lands to stop it.',
+};
+
 export const ENCOUNTERS: Record<string, EncounterDef> = {
   /**
    * Day 4 afternoon at the market (design doc). No running, and no way out mid-fight (designer: Hold
@@ -135,6 +149,8 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
     // The first fight: the ring takes a second to close and the band is a third wider than the moves
     // say. Later fights can close faster and narrower.
     timing: { lunge: 1000, ease: 1.3 },
+    // The scene itself is the tutorial (designer): a line the first time each thing comes up.
+    teaches: true,
     outcomes: {
       won: { fight_won: true },
       lost: { fight_won: false },

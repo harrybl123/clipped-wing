@@ -136,6 +136,8 @@ export interface EncounterDef {
    * comes at you, `ease` widens every move's windows (2 = twice as wide). Early fights are generous.
    */
   timing?: { lunge?: number; ease?: number };
+  /** The first fight teaches itself: a short line the first time each thing comes up (`LESSONS`). */
+  teaches?: boolean;
   /**
    * What each outcome writes to ink (the only store of story state): `won`, `lost`, the run outcome,
    * and any move's `ends` id. The scene writes them through the StoryBridge when the fight ends.

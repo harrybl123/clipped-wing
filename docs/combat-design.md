@@ -100,7 +100,19 @@ Mum is snubbed at the market and a young zealot knocks her basket away; step in 
 
 **Holding back** is no longer a move (designer). The `held_back` variable stays in ink, but nothing in combat sets it now. Holding back is the story's choice, made before the fight (Day 4 already has "Hold back" as a choice at the market).
 
-**Not wired in yet:** Day 4 still plays the old timing close-up (`FightScene`). To switch, in `story/day4.ink` replace `#fight:day4_fight:day4_after_fight` with `#combat:market_scrap:day4_after_fight`. `day4_after_fight` already reads `fight_won`.
+**Wired in.** Day 4's "Step in" plays `#combat:market_scrap:day4_after_fight`, and `day4_after_fight` reads `fight_won`. The old timing close-up (`FightScene`, the `day4_fight` knot) is no longer used by the story.
+
+**The fight is its own tutorial** (designer). The market scrap has `teaches: true`, and the first time each thing comes up, the fight holds on a short, plain explanation (`LESSONS` in `src/data/combat.ts`) in a card at the left of the stage until you press E. There is no internal dialogue and no flavour text in it. Each shows once:
+
+| Lesson | When | Says |
+| --- | --- | --- |
+| `turns` | your first turn | the menu keys; Attack is the basic melee attack; skills cost SP; Guard |
+| `tells` | your first turn, after that | his pose and the line over his head show his next move |
+| `react` | his first attack | follow the prompt in time to dodge; a miss takes the full hit |
+| `offBalance` | the first time he's thrown off balance | hit him again before he recovers to knock him down |
+| `windUp` | when he's charging the Haymaker | Guard, or Shove before it lands |
+
+The card waits 450 ms before it can be dismissed, so a press meant for something else doesn't skip it.
 
 ## Staging
 
@@ -131,7 +143,7 @@ Mum is snubbed at the market and a young zealot knocks her basket away; step in 
 
 ## Not decided yet
 
-- Wiring Day 4 to this fight, and the fight's own text (captions and tells are placeholders).
+- The fight's own text (tells and the lessons are drafts).
 - The weaknesses and temperament marked *(suggestion)*.
 - Gear, items in Chapter 1 (none yet), how skills and the parry are handed out.
 - Whether enemies get One More too, and whether the all-out attack comes back for bigger fights.

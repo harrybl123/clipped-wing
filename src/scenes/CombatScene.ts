@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT as H, GAME_WIDTH as W } from '../config';
-import { COMBATANTS, ENCOUNTERS, ITEMS, MOVES } from '../data/combat';
+import { COMBATANTS, ENCOUNTERS, ITEMS, LESSONS, type Lesson, MOVES } from '../data/combat';
 import { getSession } from '../session';
 import { Battle, type Action, type BattleEvent, type Combatant, type Intent, type MoveDef, type Reaction } from '../systems/Combat';
 import type { Grade, Key, Qte, QteKind } from '../systems/qte';
@@ -118,6 +118,8 @@ export class CombatScene extends Phaser.Scene {
   private waitingPress: (() => void) | null = null;
   /** The zoom the camera was last asked to frame at (a punch returns to it). */
   private framedZoom = 1;
+  /** Lessons already shown this fight (a fight that `teaches`). */
+  private taught = new Set<Lesson>();
 
   constructor() {
     super('Combat');
@@ -137,6 +139,7 @@ export class CombatScene extends Phaser.Scene {
     this.waitingPress = null;
     this.hudTexts = [];
     this.music = null;
+    this.taught = new Set();
   }
 
   create(): void {
@@ -241,6 +244,9 @@ export class CombatScene extends Phaser.Scene {
     // Pull out for the menu; your guard drops as your turn comes round.
     this.setPose(this.views.get(actor.id)!, 'idle');
     await this.frame(WIDE, 350);
+    await this.teach('turns');
+    await this.teach('tells');
+    if (this.battle.living('enemy').some((e) => this.windingUp(e))) await this.teach('windUp');
     const action = await this.chooseAction(actor);
     this.closeMenu();
     const view = this.views.get(actor.id)!;
@@ -362,6 +368,7 @@ export class CombatScene extends Phaser.Scene {
       await this.wait(300);
       return;
     }
+    await this.teach('react');
     // The tell's last moment: he flashes and shudders.
     playSound(this, 'tick');
     this.flashWhite(view, 80);
@@ -626,6 +633,7 @@ export class CombatScene extends Phaser.Scene {
           this.popLabel('OFF BALANCE', t, SHADES.amber, 18);
           this.setPose(t, 'wobble');
           await this.tween(t.sprite, { angle: 6, duration: 110, yoyo: true, repeat: 1 });
+          if (t.c.side === 'enemy') await this.teach('offBalance');
           break;
         }
         case 'recover': {
@@ -800,11 +808,49 @@ export class CombatScene extends Phaser.Scene {
     else if (outcome === 'lost') this.music?.sting('lose');
     else this.music?.stop();
     await this.frame(WIDE, 500);
-    this.say(`PLACEHOLDER: the fight is over (${outcome}).`, true);
-    this.hintText(set ? `${set}. Press E.` : 'Press E.');
+    this.say(outcome === 'won' ? 'He\u2019s down.' : outcome === 'lost' ? 'You\u2019re down.' : '', true);
+    this.hintText(import.meta.env.DEV && set ? `${set}. Press E.` : 'Press E.');
+    await this.wait(400);
     await new Promise<void>((resolve) => (this.waitingPress = resolve));
     for (const cam of this.cameras.cameras) cam.fadeOut(600, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Area', this.params.back));
+  }
+
+  /** His next blow is the big one he wound up for. */
+  private windingUp(enemy: Combatant): boolean {
+    const intent = this.battle.intentOf(enemy.id);
+    return !!intent && Object.values(MOVES).some((m) => m.windsUp === intent.move);
+  }
+
+  /**
+   * The first fight teaches itself (designer: the scene is the tutorial): the first time something comes
+   * up, the fight holds on a plain explanation until you press E.
+   */
+  private async teach(lesson: Lesson): Promise<void> {
+    if (!this.battle.encounter.teaches || this.taught.has(lesson)) return;
+    this.taught.add(lesson);
+    // To the left of the stage, clear of his panel and tell (which a lesson may point at).
+    const width = 200;
+    const text = new PixelText(this, 0, 0, LESSONS[lesson], { color: SHADES.white, wrapWidth: width - 20, shadow: SHADES.shadow });
+    const press = new PixelText(this, 0, 0, '[E]', { color: SHADES.light });
+    const height = 8 + text.height + 14;
+    const x = 10;
+    const y = 36;
+    const g = this.add.graphics();
+    g.fillStyle(SHADES.shadow, 0.94).fillRect(x, y, width, height);
+    g.fillStyle(SHADES.redDark).fillRect(x, y, 3, height);
+    g.fillStyle(SHADES.white).fillRect(x, y + height, width, 1);
+    text.setPosition(x + 12, y + 8);
+    press.setPosition(x + width - press.width - 6, y + height - press.height - 4);
+    const box = this.u(this.add.container(0, -8, [g, text, press]).setAlpha(0).setDepth(40));
+    this.tweens.add({ targets: box, y: 0, alpha: 1, duration: 180, ease: 'Quad.easeOut' });
+    playMove(this);
+    // A moment before it can be dismissed, so a press meant for a QTE doesn't skip it.
+    await this.wait(450);
+    await new Promise<void>((resolve) => (this.waitingPress = resolve));
+    playConfirm(this);
+    await new Promise<void>((resolve) => this.tweens.add({ targets: box, alpha: 0, duration: 140, onComplete: () => resolve() }));
+    box.destroy();
   }
 
   // --- Moving people about ---

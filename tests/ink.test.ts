@@ -199,10 +199,9 @@ describe('ink pipeline', () => {
     expect(play('shrine_tender_summons', 2, 2, 2, 2, 1, 2, 2)).toEqual(expect.arrayContaining(['sound:heartbeat', 'time:afternoon']));
     expect(v['showed_hands']).toBe(true);
     expect(v['objective_target']).toBe('roots-market:mum-market');
-    expect(play('market_mum', 0)).toEqual(expect.arrayContaining(['show:zealot-market', 'fight:day4_fight:day4_after_fight']));
+    expect(play('market_mum', 0)).toEqual(expect.arrayContaining(['show:zealot-market', 'combat:market_scrap:day4_after_fight']));
     expect(v['food_store']).toBe(5);
-    expect(play('day4_fight', 1)).toEqual(expect.arrayContaining(['step:dodge', 'step:shove', 'step:grab', 'end']));
-    expect(v['fight_won']).toBe(false); // nothing landed (the fight scene counts the hits)
+    v['fight_won'] = false; // lost (the combat scene writes the outcome)
     expect(play('day4_after_fight')).toContain('show:girl-market');
     expect(v['hurt']).toBe(true);
     expect(v['food_store']).toBe(3);
@@ -493,7 +492,7 @@ describe('ink pipeline', () => {
       tags.push(...(story.currentTags ?? []));
     }
     expect(tags).toContain('show:girl-market');
-    expect(tags.some((t) => t.startsWith('fight'))).toBe(false);
+    expect(tags.some((t) => t.startsWith('combat') || t.startsWith('fight'))).toBe(false);
     expect(v['held_back']).toBe(true);
     v['fight_won'] = true;
     const before = v['suspicion'] as number;

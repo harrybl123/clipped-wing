@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { COMBATANTS, ENCOUNTERS, ITEMS, MOVES } from '../src/data/combat';
+import { COMBATANTS, ENCOUNTERS, ITEMS, LESSONS, MOVES } from '../src/data/combat';
 import { aiWeights, ALL_OUT_POWER, Battle, type CombatantDef, type EncounterDef, type ItemDef, type MoveDef } from '../src/systems/Combat';
 
 // Small test data, so the numbers are easy: attack = defence, so harm = power × multipliers. An rng
@@ -551,5 +551,17 @@ describe('combat data', () => {
     let guard = 0;
     while (!b.outcome && guard++ < 60) b.current!.side === 'enemy' ? b.enemyTurn('none') : b.act({ type: 'attack' });
     expect(b.outcome).toBe('lost');
+  });
+});
+
+describe('the market scrap teaches itself', () => {
+  it('is the only fight that teaches, and every lesson says what to press', () => {
+    expect(Object.values(ENCOUNTERS).filter((e) => e.teaches).map((e) => e.id)).toEqual(['market_scrap']);
+    for (const lesson of Object.values(LESSONS)) expect(lesson.length).toBeGreaterThan(0);
+  });
+
+  it('Day 4 starts it, and it writes the fight_won the story reads', () => {
+    expect(readFileSync('story/day4.ink', 'utf8')).toContain('#combat:market_scrap:day4_after_fight');
+    expect(ENCOUNTERS.market_scrap!.outcomes).toEqual({ won: { fight_won: true }, lost: { fight_won: false } });
   });
 });

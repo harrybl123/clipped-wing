@@ -2,9 +2,9 @@
 // Day 4: the girl in the roots. Draft text from docs/sequences/day-4.md, for the designer to rewrite.
 // Stages in `day4` (main.ink): wake, carve, shrine, market, girl, evening, open, sneak, visit, rot, back, bed, done.
 // Extra tags: #plate (carving only: the three reply pictures are shown with the choices)
-// · #step:scratch|rough|hollow|seal (carving) · #fight:<knot>:<then> (the fight close-up plays the knot,
-// then you're back where you were and <then> plays) · #step:dodge|shove|grab (the fight) · #turn (the
-// crowd turns its back on you)
+// · #step:scratch|rough|hollow|seal (carving) · #combat:<encounter>:<then> (the turn-based fight,
+// src/data/combat.ts; its outcome sets fight_won, then you're back where you were and <then> plays)
+// · #turn (the crowd turns its back on you)
 // ============================================================================
 
 // --- Morning, at home: the summons ---
@@ -262,7 +262,7 @@ He knocks Mum's basket out of her hands. Jars roll across the floor. One breaks.
 "Rot-hand's mother. Buying rot-hand's supper." #speaker:zealot
 + [Step in]
     ~ fought = true
-    You step between them. #fight:day4_fight:day4_after_fight
+    You step between them. #combat:market_scrap:day4_after_fight
     -> END
 + [Hold back]
     -> hold_back
@@ -286,31 +286,6 @@ Someone is watching you from under the balcony. The girl from the lower roots. #
 ~ day4 = "girl"
 ~ objective = "Talk to the girl"
 ~ objective_target = "roots-market:girl-market"
--> END
-
-// The fight close-up (src/scenes/FightScene.ts) steps through this, counting fight_landed and fight_taken.
-=== day4_fight ===
-~ fight_landed = 0
-~ fight_taken = 0
-He's bigger than you, and he's done this before. You've never hit anyone in your life.
-He swings at you. #step:dodge
-An opening. Shove him off balance. #step:shove
-You try to make a fist. Your hand won't close: there's no thumb to lock it.
-+ [Hit him anyway]
-    You hit him. It's like slapping a door. He laughs, and swings back. #step:dodge
-+ [Grab his stole]
-    You grab his stole with your good hand and hang on. #step:grab
-- He wrenches free and comes at you one more time. #step:dodge
-{ fight_landed >= 3: -> win }
--> lose
-
-= win
-~ fight_won = true
-He goes sprawling among Mum's jars. #end
--> END
-
-= lose
-His fist catches you under the ribs, and the floor comes up to meet you. #end
 -> END
 
 === day4_after_fight ===
