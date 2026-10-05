@@ -571,37 +571,65 @@ The roots down here are soft and black, slick with something that sticks to your
 "The wood you want's at the far end. Right under my bed." #speaker:girl
 -> END
 
-// Further in, past the pits: the beetles, and the first fight with a friend beside you. The fight (src/data/combat.ts,
-// rot_beetles) teaches itself; its outcome sets rot_beetles_won, and day4_rot_after_beetles plays when you're back.
+// Further in, past the pits: the beetles, and the first fight with a friend beside you (compulsory: the trigger
+// spans the whole floor between the second pit and the far end). The fight (src/data/combat.ts, rot_beetles)
+// sets rot_beetles_won, and day4_rot_after_beetles plays when you're back. She saw the market from under the
+// balcony, so what she says afterwards depends on what you did there (fought and won / fought and lost / held back).
 === day4_rot_creatures ===
 ~ rot_creatures_done = true
-The tunnel widens. The green is brighter here, pooled in the hollows, and something in it is moving.
-"Stop." #speaker:girl
-She puts an arm across you. A low shape lifts out of the slime: a beetle, big as a dog, its shell blackened and veined with green. Then another beside it. Then a third.
-"Those aren't meant to be that big." #speaker:girl
+The tunnel widens. The green is brighter here, pooled in the hollows.
+Something in it moves.
+A shape lifts out of the slime: a beetle, big as a dog, its shell black and veined with glowing green.
+Then another beside it. Then a third.
+Neither of you says anything. You can't. You've seen beetles all your life, small enough to crush under a thumb you no longer have. Not these.
+The girl's hand finds your sleeve and grips it.
+"Those aren't..." #speaker:girl
+She doesn't finish. Her mouth stays open.
 "What are they?" #speaker:you
-"Beetles. They live on the rot. Or they did." #speaker:girl
-"I think it's been feeding them." #speaker:girl
-Their legs click on the wet wood. They've seen you.
-"There's no way round, and I'm not going back with those behind us." #speaker:girl
-She pulls a sliver of pale bone from her belt.
-"Stay close. We do this together." #speaker:girl
-You step up beside her. #combat:rot_beetles:day4_rot_after_beetles
+"They're beetles. They were beetles." #speaker:girl
+Their legs click on the wet wood, all together. They turn, slowly, towards the two of you.
+"Right. No way round, and I'm not turning my back on those." #speaker:girl
+She pulls a sliver of pale bone from her belt. Her hand's shaking. So is yours.
+"Stay close." #speaker:girl #combat:rot_beetles:day4_rot_after_beetles
 -> END
 
 === day4_rot_after_beetles ===
 { rot_beetles_won:
     ~ girl_trust += 1
-    The last one folds up on its back, legs kicking, and the others shy away into the dark, clicking.
-    The girl wipes green slime off her hands and onto her trousers.
-    "That's not in any of the Tender's sermons." #speaker:girl
-    "Not bad. For a carver." #speaker:girl
+    The last one folds up on its back, legs kicking. The others shy away into the dark, clicking.
+    For a long moment neither of you moves. You're both breathing hard. There's green slime up to your elbows.
+    Then she laughs: one short, shaky breath of a laugh.
+    {
+    - fight_won:
+        "So the market wasn't a fluke. Rot-hand, the terror of the lower roots." #speaker:girl
+        "Don't let it go to your head. You still fight like you're slapping flies." #speaker:girl
+        "...You held your own, though." #speaker:girl
+    - fought:
+        "Well. Better than the market, anyway. I watched that boy sit on you." #speaker:girl
+        "Don't look at me like that. You held your own here. Mostly." #speaker:girl
+    - else:
+        "Look at you. In the market you just stood there while he kicked your mum's jars about." #speaker:girl
+        "Turns out you do have hands. Who knew." #speaker:girl
+        She looks at you a moment longer than she needs to.
+        "Not bad. Honestly." #speaker:girl
+    }
 - else:
     The world goes green and sticky and a long way off.
     When it comes back, she's dragging you along the tunnel by your collar, swearing steadily. Behind you, the clicking fades into the dark.
-    "Don't you dare die on me. I haven't even shown you the wood." #speaker:girl
+    She drops you against the wall and sits down hard beside you.
+    {
+    - fight_won:
+        "So much for the hero of the market. One zealot, fine. Three beetles, flat on your back." #speaker:girl
+        "...You did get two of them off me, though. I saw." #speaker:girl
+    - fought:
+        "That's twice today you've ended up on the floor. Is it a habit?" #speaker:girl
+        "You stood your ground, though. Longer than I would've bet." #speaker:girl
+    - else:
+        "At least this time you didn't just stand there." #speaker:girl
+        "You stood your ground. That's something." #speaker:girl
+    }
 }
-"It's just ahead. Come on." #speaker:girl
+"Come on. It's just ahead." #speaker:girl
 -> END
 
 === day4_rot_wood ===

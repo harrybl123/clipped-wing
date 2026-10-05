@@ -525,6 +525,21 @@ describe('ink pipeline', () => {
     v['rot_beetles_won'] = false;
     run('day4_rot_after_beetles');
     expect(v['girl_trust']).toBe(trust + 1);
+    // What she says afterwards depends on the market: she watched it.
+    const text = (knot: string) => {
+      story.ChoosePathString(knot);
+      let out = '';
+      while (story.canContinue) out += story.Continue();
+      return out;
+    };
+    v['rot_beetles_won'] = true;
+    v['fought'] = true;
+    v['fight_won'] = true;
+    expect(text('day4_rot_after_beetles')).toContain('the market wasn');
+    v['fight_won'] = false;
+    expect(text('day4_rot_after_beetles')).toContain('Better than the market');
+    v['fought'] = false;
+    expect(text('day4_rot_after_beetles')).toContain('you just stood there');
   });
 
   it('ends the game loyally if you ignore the message a second time', () => {

@@ -122,6 +122,17 @@ export class PreloadScene extends Phaser.Scene {
       calendar.advanceTo('night');
       set({ day6: 'interrogation', has_disguise: true, interrogating: true, plate_found: plate, objective: '', objective_target: '' });
       this.scene.start('Area', { areaId: 'tenders-shrine', start: { x: 218, y: 236 }, script: 'day6_interrogation' });
+    } else if (day === 4 && at === 'rot') {
+      // Night 4: just dropped into the rot with the girl (the beetles are ahead). &market=won|lost|held: what
+      // you did at the market (she watched; it changes what she says after the fight).
+      const market = new URLSearchParams(window.location.search).get('market') ?? 'won';
+      calendar.advanceTo('night');
+      set({
+        day4: 'rot', reply2: 'yes', girl_with_you: true, rot_creatures: true, girl_trust: 1, mum_in_bed: true,
+        fought: market !== 'held', held_back: market === 'held', fight_won: market === 'won',
+        objective: 'Look at the wood under her house', objective_target: 'the-rot:dying-root',
+      });
+      this.scene.start('Area', { areaId: 'the-rot', start: { x: 40, y: 232 }, script: 'day4_rot_arrive' });
     } else if (day === 5 && at === 'archivist') {
       // Up in the upper halls with the escort, just before the archivist.
       calendar.advanceTo('afternoon');

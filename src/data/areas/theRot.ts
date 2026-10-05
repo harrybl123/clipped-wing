@@ -74,7 +74,8 @@ export const theRot: AreaDefinition = {
     ...PITS.map(([x, width]) => ({ type: 'rot' as const, x, y: FLOOR + 14, width, height: 10, reset: { x: x - 20, y: FLOOR } })),
     { type: 'beetle', from: 230, to: 380, y: FLOOR, speed: 30, reset: { x: 150, y: FLOOR } },
     // Day 4 night: past the pits, the beetles (a fight, with the girl beside you).
-    { type: 'trigger', x: 452, y: FLOOR, reach: 14, knot: 'day4_rot_creatures', showIf: 'rot_creatures', hideIf: 'rot_creatures_done' },
+    // (Compulsory: it spans the whole floor from the second pit to the drips, so you can't jump past it.)
+    { type: 'trigger', x: 480, y: FLOOR, reach: 54, knot: 'day4_rot_creatures', showIf: 'rot_creatures', hideIf: 'rot_creatures_done' },
     { type: 'drips', xs: [538, 548], top: TOP + 4, bottom: FLOOR, count: 2, every: 4400, reset: { x: 500, y: FLOOR } },
     { type: 'drip', x: 90, y: TOP + 2, floorY: FLOOR - 3 },
     { type: 'drip', x: 470, y: TOP + 2, floorY: FLOOR - 3 },
