@@ -16,6 +16,7 @@ Settled by the designer on 2026-10-05 and reworked over the day through playtest
 - **Harm** is the move's power × attack ÷ defence, ±10%. It's ×1.5 on a weakness or critical, and ×½ if resisted or guarded. A move can be `softened` instead: the Haymaker lets only a quarter through a guard, and almost nothing through a dodge.
 - **All-out attack:** built, but off (designer: too much Persona). A fight can turn it back on with `allOut: true`.
 - **Several enemies.** With more than one, pick who you go for with Left and Right (their panel lights up, with a marker), and E to go. Beaten enemies stumble off into the crowd, and the rest spread out again.
+- **Switch** (designer: tactical, without choosing the order every round). With friends, the one whose turn it is can hand it to a friend who hasn't acted yet this round: the friend goes now, and you take their place later in the order. Once a round, not on One More, free otherwise. Turn order stays by speed.
 - **Back.** Esc, Backspace, X or a right-click goes back a step: from choosing who, to the skill list; from the skill list, to the commands. An `[Esc] Back` hint shows wherever you can.
 
 ## Reads, not announcements

@@ -597,6 +597,28 @@ describe('the deep rot: the girl and the beetles', () => {
     }
   });
 
+  it('Switch hands the turn to a friend who has yet to act, once a round', () => {
+    const b = new Battle(ENCOUNTERS.rot_beetles!, MOVES, COMBATANTS, ITEMS, mulberry(5));
+    expect(b.current!.id).toBe('girl');
+    expect(b.commands().find((c) => c.type === 'switch')).toEqual({ type: 'switch', usable: true });
+    expect(b.act({ type: 'switch' })).toEqual([{ type: 'switch', from: 'girl', to: 'carver' }]);
+    // The carver goes now; the girl takes his place later in the round.
+    expect(b.current!.id).toBe('carver');
+    expect(b.commands().find((c) => c.type === 'switch')).toMatchObject({ usable: false, reason: 'Once a round' });
+    b.act({ type: 'guard' });
+    let guard = 0;
+    while (b.current!.side === 'enemy' && guard++ < 10) b.enemyTurn('none');
+    if (b.round === 1) expect(b.current!.id).toBe('girl');
+  });
+
+  it('there is no Switch alone, or when your friend has already acted', () => {
+    const solo = new Battle(ENCOUNTERS.market_scrap!, MOVES, COMBATANTS, ITEMS, mulberry(1));
+    expect(solo.commands().some((c) => c.type === 'switch')).toBe(false);
+    const b = new Battle(ENCOUNTERS.rot_beetles!, MOVES, COMBATANTS, ITEMS, mulberry(5));
+    b.act({ type: 'guard' }); // the girl
+    if (b.current!.id === 'carver') expect(b.commands().find((c) => c.type === 'switch')).toMatchObject({ usable: false, reason: 'Everyone has acted' });
+  });
+
   it('Rot-ink weakens one beetle for three rounds, and it takes more harm meanwhile', () => {
     const plain = new Battle(ENCOUNTERS.rot_beetles!, MOVES, COMBATANTS, ITEMS, () => 0.5);
     const inked = new Battle(ENCOUNTERS.rot_beetles!, MOVES, COMBATANTS, ITEMS, () => 0.5);

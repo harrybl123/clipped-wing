@@ -307,6 +307,15 @@ export class CombatScene extends Phaser.Scene {
       case 'allOut':
         await this.allOut(view, action);
         return;
+      case 'switch': {
+        // Hand over: the friend steps into focus, and their turn starts.
+        playMove(this);
+        const events = this.battle.act(action);
+        const to = events.find((e) => e.type === 'switch')?.to;
+        if (to) this.say(`${this.battle.get(to).def.name}`);
+        await this.wait(200);
+        return;
+      }
     }
   }
 
@@ -321,6 +330,7 @@ export class CombatScene extends Phaser.Scene {
         guard: ['Guard', 'Half harm until your next turn, and no knockdowns.'],
         item: ['Item', 'Use something you carry.'],
         run: ['Run', 'Get out of here.'],
+        switch: ['Switch', 'Let a friend go now; you take their place.'],
       };
       const i = await this.openMenu(this.battle.combatants.some((c) => c.side === 'party' && c.id !== actor.id) ? actor.def.name : '', commands.map((c) => ({ label: names[c.type][0], usable: c.usable, description: c.usable ? names[c.type][1] : (c.reason ?? '') })), false);
       const type = commands[i!]!.type;

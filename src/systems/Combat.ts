@@ -193,7 +193,8 @@ export type Action =
   | { type: 'guard' }
   | { type: 'item'; item: string; target?: string }
   | { type: 'run' }
-  | { type: 'allOut' };
+  | { type: 'allOut' }
+  | { type: 'switch' };
 
 /** What happened, in order, for the scene to animate and describe. */
 export type BattleEvent =
@@ -212,6 +213,7 @@ export type BattleEvent =
   | { type: 'counter'; actor: string; target: string }
   | { type: 'interrupt'; target: string }
   | { type: 'taunt'; actor: string }
+  | { type: 'switch'; from: string; to: string }
   | { type: 'weakened'; target: string }
   | { type: 'qte'; actor: string; grade: Grade }
   | { type: 'stumble'; actor: string }
@@ -264,6 +266,8 @@ export class Battle {
   private _outcome: string | null = null;
   /** The current actor has earned another action (One More), and hasn't used it yet. */
   private oneMore = false;
+  /** Someone has already switched this round (once a round, so it can't go back and forth). */
+  private switched = false;
 
   /** Events from starting the fight (the first round and intents). */
   readonly opening: BattleEvent[];
@@ -356,6 +360,11 @@ export class Battle {
     list.push({ type: 'guard', usable: true });
     if (this.items.size) list.push({ type: 'item', usable: true });
     if (this.encounter.run) list.push({ type: 'run', usable: true });
+    // Switch: hand the turn to a friend who hasn't acted yet this round (they go now; you take their place).
+    if (this.living('party').length > 1) {
+      const reason = this.oneMore ? 'Not on One More' : this.switched ? 'Once a round' : !this.switchPartner() ? 'Everyone has acted' : undefined;
+      list.push({ type: 'switch', usable: !reason, ...(reason ? { reason } : {}) });
+    }
     return list;
   }
 
@@ -394,11 +403,30 @@ export class Battle {
   }
 
   /** The current party member acts. */
+  /** The friend a Switch hands the turn to: the next party member still to act this round, on their feet. */
+  switchPartner(): Combatant | null {
+    for (let i = this.turnIndex + 1; i < this.order.length; i++) {
+      const c = this.get(this.order[i]!);
+      if (c.side === 'party' && c.hp > 0 && !c.down) return c;
+    }
+    return null;
+  }
+
   act(action: Action): BattleEvent[] {
     const actor = this.current;
     if (!actor || actor.side !== 'party') throw new Error("Combat: not a party member's turn");
     const command = this.commands().find((c) => c.type === action.type);
     if (!command?.usable) throw new Error(`Combat: "${action.type}" can't be used now`);
+    if (action.type === 'switch') {
+      // Not an action of their own: they swap places in the order with the friend, who goes now. (Their guard,
+      // balance and so on carry on as they were.)
+      const partner = this.switchPartner()!;
+      const j = this.order.indexOf(partner.id);
+      this.order[j] = actor.id;
+      this.order[this.turnIndex] = partner.id;
+      this.switched = true;
+      return [{ type: 'switch', from: actor.id, to: partner.id }];
+    }
     actor.guarding = false;
     this.guarded.delete(actor.id);
     const events: BattleEvent[] = [];
@@ -685,6 +713,7 @@ export class Battle {
 
   private startRound(): BattleEvent[] {
     this._round++;
+    this.switched = false;
     for (const c of this.combatants) if (c.exposed > 0) c.exposed--;
     const events: BattleEvent[] = [{ type: 'round', round: this._round }];
     this.intents.clear();
