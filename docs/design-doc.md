@@ -182,7 +182,7 @@ Act 1 is a prologue and seven days, about 45 minutes. By day you survive; by nig
 **Day 4: The girl in the roots**
 
 - **Morning:** you send your reply to message 2.
-- **Afternoon:** Mum is snubbed at the market. Step in and it becomes a short turn-based fight with a young zealot (see `docs/combat-design.md`): dodge, shove, grab, or hold back; you can't make a proper fist. Win and suspicion jumps; lose and you're hurt and lose food; hold back and Mum sees it. Then the girl, the one person who talks to you normally, says the rot is deeper than they say and asks you to come tonight.
+- **Afternoon:** Mum is snubbed at the market. Step in and it becomes a short turn-based fight with a young zealot (see `docs/combat-design.md`): you can't make a proper fist, so you slap, shove, grab, or hold back. Win and suspicion jumps; lose and you're hurt and lose food; hold back and Mum sees it. Then the girl, the one person who talks to you normally, says the rot is deeper than they say and asks you to come tonight.
 - **Evening:** message 3 and the feather.
 - **Night:** the rot, sneaking down to her home deep in the roots.
 

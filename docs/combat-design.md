@@ -1,51 +1,61 @@
 # Combat design
 
-Settled by the designer on 2026-10-05. The engine is `src/systems/Combat.ts` (rules, no Phaser), the fights are data in `src/data/combat.ts`, and `src/scenes/CombatScene.ts` shows them.
+Settled by the designer on 2026-10-05. Reworked the same day after a first playtest ("pretty mid": the guard/shove/grab mechanics were too far forward). Now a traditional Persona-style turn-based system is the base, and the timing and intents sit on top.
 
-## The shape of it
+The rules are `src/systems/Combat.ts` (no Phaser), the fights are data in `src/data/combat.ts`, and `src/scenes/CombatScene.ts` stages them.
 
-- **Turn-based.** Every enemy shows its **intent**, what it is about to do next, over its head. The player picks moves around it: break a wind-up, wait out a big swing, take the opening when it comes.
-- **Timed reactions.** When an enemy attack lands, there's a short window to **dodge** or **parry** with one key press (Clair Obscur style). A dodge takes no harm. A parry is tighter, takes no harm and throws the attacker off: a **counter** (he loses his next turn and is open).
-- **No levelling, no XP.** The story decides how strong you are. You grow through:
-  - **new moves** handed out at story beats,
-  - **gear** that changes *how* you fight, not just how hard,
-  - your own **timing**.
-- **Each lead fights differently:** their own weapon type and move set. (The prince uses a futuristic lance; Chapter 3 opens with him training at sword and lance with his advisor.)
-- **It grows through the game.** Fights get more frequent and deeper; companions join, and the four leads eventually form the party. The engine takes a party of one or more against one or more enemies, though the first fight is one against one.
+## The base: Persona-style turns
+
+- **HP and SP.** Skills cost SP. No levelling and no XP: the story decides how strong you are.
+- **Command menu** on your turn: **Attack**, **Skill**, **Guard** (half harm until your next turn, and no knockdowns), **Item** (when you carry something), **Run** (only where the fight allows it).
+- **Turn order** by speed. Enemies take their own turns with their own attacks.
+- **Weaknesses are the hook.** Hit a weakness, or land a critical, and the enemy is **knocked down**, and you get **One More**: another action. Knocked down, they lose their next turn getting up. When every enemy is down, an **all-out attack** is offered. This holds even one on one.
+- Harm is the move's power × attack ÷ defence, ±10%; ×1.5 on a weakness or a critical, ×½ if resisted or guarded.
+
+## On top
+
+- **Timed reactions.** When an enemy's attack comes at you, a ring closes on your head as he lunges. Press as it crosses the green to **dodge** (half harm), or late, in the bright inner ring, to **parry** (no harm, and you hit back: a **counter**). It's a bonus; the fight can be played without it.
+- **Intents** are a small hint over the enemy's head ("Next: Swing", "Building up..."), not the centre of the decision.
+
+## Growth
+
+- New skills handed out at story beats; gear that changes *how* you fight, not just how hard; the player's own timing.
+- Each lead fights differently: their own weapon type and skills. The prince uses a futuristic lance; Chapter 3 opens with him training at sword and lance with his advisor.
+- Fights grow more frequent and deeper through the game. Companions join, and the four leads eventually form the party: the engine takes a party of one or more against one or more enemies.
 - **Chapter 1 is mostly fight-free.** The only fight is the market scrap. A lower-roots creature may be a second Act 1 fight (not designed yet).
 
 ## The market scrap (Day 4 afternoon)
 
-Mum is snubbed at the market and a young zealot knocks her basket away. Step in and it's a fight. The carver is thumbless and can't make a proper fist, so the moves are scrappy:
+Mum is snubbed at the market and a young zealot knocks her basket away. Step in and it's a fight. The carver is thumbless and can't make a proper fist, so his **Attack is a weak slap**. His scrappy moves are **skills**:
 
-| Move | What it does |
-| --- | --- |
-| Dodge | Watch him: wider dodge and parry windows until your next turn |
-| Shove | A little harm; breaks a wind-up (he's staggered and open) |
-| Grab | Real harm, but only when he's open (after a jeer, a broken wind-up or a parry) |
-| Hold back | Stop, and let him have it. Ends the fight |
+| Skill | SP | What it does |
+| --- | --- | --- |
+| Shove | 2 | A push, with good odds of a critical (knocks him down) |
+| Grab | 4 | Get hold and drag him down. His weakness *(suggestion)* |
+| Hold back | 0 | Stop, and let him have it. Ends the fight |
 
-He picks from **Swing** (2), **Wind up** (his next move is a **Haymaker**, 4, with tighter windows) and **Jeer** (playing to the crowd leaves him open).
+He's weak to grabs and shrugs off slaps *(suggestion)*. He picks from **Swing**, **Wind up** (his next move is a **Haymaker**, twice as hard, with tighter windows: guard, or time a parry) and **Jeer** (a free turn for you). No running in this one.
 
 **Outcomes** go to ink (the only store of story state), and the story takes it from there:
 
-- **Win** (he goes down): `fight_won = true`. Suspicion jumps.
-- **Lose** (you go down): `fight_won = false`. You're hurt and lose food.
+- **Win:** `fight_won = true`. Suspicion jumps.
+- **Lose:** `fight_won = false`. You're hurt and lose food.
 - **Hold back:** `held_back = true`. Mum sees it.
 
-Numbers are a first pass, to playtest (you 7, him 6; speed decides who goes first, and you're quicker).
+The numbers are a first pass, to playtest (you: 40 HP, 10 SP; him: 60 HP).
 
-## Showing it
+## Staging
 
-The sprites are tiny code-drawn row sprites, so there's no frame-by-frame animation. Tweens sell the timing:
+Persona-style 3/4 framing on a dedicated stage, not the side-on view of the areas:
 
-- a **flash and shudder** before an attack (the tell),
-- the **lunge**, and a ring closing on your head as it comes: press as it crosses the outer green band to dodge, or late, in the bright inner ring, to parry,
-- **screen shake** and a white flash on a hit, harder for a big one,
-- **sparks** and a brief **freeze** on a good parry.
+- **The stage:** the market seen down its length, painted and dithered like the areas (stalls and lamps receding, the crowd in a ring, floorboards in perspective). No red.
+- **Bigger battle sprites** (`src/ui/battleSprites.ts`, about 2½ times the height of the area figures): you from behind, large in the near foreground and cropped at the waist; the enemy further back, facing you. Idle breathing, and poses swapped in for winding up, attacking, being hit, guarding, dodging; knocked down, he falls flat.
+- **Camera:** the world is on its own camera. It pushes in on the attacker as he gets ready, swings to you for the dodge/parry prompt, punches in on a hit, and pulls back out for the menu. Hits freeze for a moment (hit-stop) and shake the screen in proportion to the harm; a perfect parry goes to slow motion for a beat.
+- **UI** on a second camera that never moves: a slanted command menu that slides in from the right (the chosen item pulled out and lit), HP and SP bars that drain smoothly (a pale chunk shows what you just lost), damage numbers that pop, labels (WEAK!, CRITICAL!, RESIST, DODGE, PARRY!, DOWN), a banner with the move's name, and a full-screen **cut-in** (your silhouette and a red slash, red being yours) on One More and the all-out attack.
 
 ## Not decided yet
 
-- Whether the Day 4 fight switches from the old timing close-up (`FightScene`) to this one in the real game (one ink tag: `#combat:market_scrap:day4_after_fight`), and what holding back in the middle of a fight says in the story.
-- The fight's own text (the captions are placeholders).
-- Gear, and how moves are handed out (data is ready for it: a lead's `moves` list is what the story has given them).
+- Whether Day 4 switches from the old timing close-up (`FightScene`) to this one in the real game (one ink tag: `#combat:market_scrap:day4_after_fight`), and what holding back in the middle of a fight says in the story.
+- The fight's own text (the captions are placeholders), and the weaknesses marked *(suggestion)*.
+- Gear, items in Chapter 1 (none yet), and how skills are handed out (a lead's `moves` list is what the story has given them).
+- Whether enemies get One More too (not in this first version).

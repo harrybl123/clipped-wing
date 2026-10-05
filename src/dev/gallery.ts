@@ -15,6 +15,7 @@ import * as seedGroveProps from '../data/areas/seedGroveProps';
 import * as tendersShrineProps from '../data/areas/tendersShrineProps';
 import * as rootsMarketProps from '../data/areas/rootsMarketProps';
 import { ARCHIVIST, DODGER, ELDERS, FRIEND, FRIEND_FATHER, GIRL, GUARD, MUM, PREACHER, RESIDENTS, PROTAGONIST, TENDER, VILLAGERS } from '../ui/characters';
+import { CARVER_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
 import { hexString } from '../ui/pixelArt';
 import { SPEAKERS } from '../ui/portraits';
 import { BIRD, FIRE_FRAMES, FUNGI, LAMP, MORE_ARROW, type RowSprite } from '../ui/sprites';
@@ -75,6 +76,19 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       { label: 'friend idle', frames: FRIEND.idle, fps: 1.4 },
       { label: 'girl idle', frames: GIRL.idle, fps: 1.3 },
       ...VILLAGERS.slice(0, 3).map((v, i) => ({ label: `villager ${i} walk`, frames: v.walk, fps: 5.5 })),
+    ],
+  },
+  // The combat stage's bigger figures (src/ui/battleSprites.ts): you from behind, the zealot facing you.
+  {
+    title: 'Battle sprites',
+    scale: 4,
+    entries: [
+      ...Object.entries(CARVER_BATTLE).map(([pose, s]): Entry => [`carver ${pose}`, s]),
+      ...Object.entries(ZEALOT_BATTLE).map(([pose, s]): Entry => [`zealot ${pose}`, s]),
+    ],
+    animations: [
+      { label: 'carver idle', frames: [CARVER_BATTLE.idle, CARVER_BATTLE.breathe], fps: 1.5 },
+      { label: 'zealot idle', frames: [ZEALOT_BATTLE.idle, ZEALOT_BATTLE.breathe], fps: 1.5 },
     ],
   },
   // Each portrait beside the figure you see in the world, to check they match.

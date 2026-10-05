@@ -1,113 +1,170 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { COMBATANTS, ENCOUNTERS, MOVES } from '../src/data/combat';
-import { Battle, type CombatantDef, type EncounterDef, type MoveDef } from '../src/systems/Combat';
+import { COMBATANTS, ENCOUNTERS, ITEMS, MOVES } from '../src/data/combat';
+import { ALL_OUT_POWER, Battle, type CombatantDef, type EncounterDef, type ItemDef, type MoveDef } from '../src/systems/Combat';
 
-/** An rng that returns these values in turn (then repeats the last). */
-const seq = (...values: number[]) => {
-  let i = 0;
-  return () => values[Math.min(i++, values.length - 1)]!;
+// Small test data, so the numbers are easy: attack = defence, so harm = power × multipliers. An rng
+// fixed at 0.5 means no variance (×1.0), no criticals (unless crit is 1) and the middle weighted pick.
+const half = () => 0.5;
+const MV: Record<string, MoveDef> = {
+  punch: { id: 'punch', name: 'Punch', description: '', target: 'enemy', power: 10, kind: 'strike' },
+  lucky: { id: 'lucky', name: 'Lucky', description: '', target: 'enemy', power: 10, kind: 'strike', crit: 1 },
+  pull: { id: 'pull', name: 'Pull', description: '', target: 'enemy', power: 10, kind: 'grab', sp: 4 },
+  leave: { id: 'leave', name: 'Leave', description: '', target: 'self', ends: 'left' },
+  bash: { id: 'bash', name: 'Bash', description: '', target: 'enemy', power: 10, kind: 'strike', reaction: { dodge: 250, parry: 100 } },
+  charge: { id: 'charge', name: 'Charge', description: '', target: 'self', windsUp: 'smash' },
+  smash: { id: 'smash', name: 'Smash', description: '', target: 'enemy', power: 30, kind: 'strike', reaction: { dodge: 200, parry: 80 } },
 };
-// The zealot's weights are swing 3, wind up 2, jeer 1 (of 6): these rolls pick each.
-const SWING = 0.1;
-const WIND_UP = 0.6;
-const JEER = 0.95;
+const DEFS: Record<string, CombatantDef> = {
+  hero: { id: 'hero', name: 'Hero', sprite: 'x', hp: 50, sp: 6, attack: 10, defence: 10, speed: 5, basic: 'punch', moves: ['pull', 'lucky', 'leave'], reactions: ['dodge', 'parry'] },
+  friend: { id: 'friend', name: 'Friend', sprite: 'x', hp: 50, attack: 10, defence: 10, speed: 1, basic: 'punch', moves: [] },
+  brute: { id: 'brute', name: 'Brute', sprite: 'x', hp: 60, attack: 10, defence: 10, speed: 3, moves: ['bash'], weak: ['grab'], resists: ['strike'] },
+  charger: { id: 'charger', name: 'Charger', sprite: 'x', hp: 60, attack: 10, defence: 10, speed: 3, moves: ['charge'] },
+};
+const IT: Record<string, ItemDef> = { bun: { id: 'bun', name: 'Bun', description: '', heal: 15 } };
+const fight = (enc: Partial<EncounterDef> = {}, rng = half) =>
+  new Battle({ id: 't', party: ['hero'], enemies: ['brute'], outcomes: { won: {}, lost: {} }, ...enc }, MV, DEFS, IT, rng);
 
-const scrap = (...rolls: number[]) => new Battle(ENCOUNTERS.market_scrap!, MOVES, COMBATANTS, seq(...rolls));
-
-describe('Battle', () => {
-  it('opens with round 1 and the enemy intent', () => {
-    const b = scrap(SWING);
+describe('Battle: the base', () => {
+  it('opens with round 1 and each enemy intent', () => {
+    const b = fight();
     expect(b.round).toBe(1);
-    expect(b.opening).toContainEqual({ type: 'intent', actor: 'zealot', move: 'swing', target: 'carver' });
-    expect(b.intentOf('zealot')).toEqual({ move: 'swing', target: 'carver' });
+    expect(b.opening).toContainEqual({ type: 'intent', actor: 'brute', move: 'bash', target: 'hero' });
+    expect(b.intentOf('brute')).toEqual({ move: 'bash', target: 'hero' });
   });
 
-  it('acts in order of speed: the carver (2) before the zealot (1)', () => {
-    const b = scrap(SWING);
-    expect(b.current?.id).toBe('carver');
-    b.choose('shove');
-    expect(b.current?.id).toBe('zealot');
-  });
-
-  it('a shove does a little harm', () => {
-    const b = scrap(SWING);
-    const events = b.choose('shove');
-    expect(events).toContainEqual({ type: 'damage', target: 'zealot', amount: 1, hp: 5 });
-  });
-
-  it('an attack that lands hurts; a dodge or parry takes nothing', () => {
-    for (const [reaction, hp] of [['none', 5], ['dodge', 7], ['parry', 7]] as const) {
-      const b = scrap(SWING);
-      b.choose('dodge');
-      const events = b.enemyTurn(reaction);
-      expect(b.get('carver').hp).toBe(hp);
-      expect(events).toContainEqual({ type: 'reaction', actor: 'zealot', target: 'carver', reaction });
-    }
-  });
-
-  it('a parry staggers the attacker: he loses his next turn and can be grabbed', () => {
-    const b = scrap(SWING, SWING, SWING);
-    b.choose('dodge');
-    expect(b.enemyTurn('parry')).toContainEqual({ type: 'stagger', target: 'zealot' });
-    // Round 2: no intent while he finds his feet, and grab is open.
-    expect(b.round).toBe(2);
-    expect(b.intentOf('zealot')).toBeUndefined();
-    expect(b.choices().find((c) => c.move.id === 'grab')?.usable).toBe(true);
-    b.choose('grab');
-    expect(b.get('zealot').hp).toBe(3);
-    expect(b.enemyTurn()).toContainEqual({ type: 'recover', target: 'zealot' });
-    expect(b.round).toBe(3);
-  });
-
-  it('grab needs an opening', () => {
-    const b = scrap(SWING);
-    const grab = b.choices().find((c) => c.move.id === 'grab')!;
-    expect(grab.usable).toBe(false);
-    expect(grab.reason).toBe('No opening');
-    expect(() => b.choose('grab')).toThrow(/can't be used now/);
-  });
-
-  it('a jeer leaves him open until he next acts', () => {
-    const b = scrap(JEER, SWING);
-    b.choose('dodge');
+  it('acts in order of speed', () => {
+    const b = fight({ party: ['hero', 'friend'] });
+    expect(b.current?.id).toBe('hero');
+    b.act({ type: 'guard' });
+    expect(b.current?.id).toBe('brute');
     b.enemyTurn();
-    expect(b.get('zealot').exposed).toBe(true);
-    b.choose('grab');
-    expect(b.get('zealot').hp).toBe(3);
-    b.enemyTurn();
-    expect(b.get('zealot').exposed).toBe(false);
+    expect(b.current?.id).toBe('friend');
   });
 
-  it('a wind-up is followed by the haymaker, whatever the roll', () => {
-    const b = scrap(WIND_UP, SWING, SWING);
-    b.choose('dodge');
-    b.enemyTurn();
-    expect(b.intentOf('zealot')?.move).toBe('haymaker');
-    b.choose('dodge');
-    b.enemyTurn('none');
-    expect(b.get('carver').hp).toBe(3);
+  it('offers Attack, Skill and Guard; Item only with items, Run only where allowed', () => {
+    expect(fight().commands().map((c) => c.type)).toEqual(['attack', 'skill', 'guard']);
+    expect(fight({ items: { bun: 1 }, run: 'ran' }).commands().map((c) => c.type)).toEqual(['attack', 'skill', 'guard', 'item', 'run']);
   });
 
-  it('a shove breaks a wind-up: no haymaker, and he is staggered', () => {
-    const b = scrap(WIND_UP, SWING, SWING);
-    const events = b.choose('shove');
-    expect(events).toContainEqual({ type: 'interrupt', target: 'zealot' });
-    expect(b.get('zealot').staggered).toBe(true);
-    // He loses his turn, but is still open going into round 2.
-    expect(b.enemyTurn()).toContainEqual({ type: 'recover', target: 'zealot' });
-    expect(b.round).toBe(2);
-    expect(b.choices().find((c) => c.move.id === 'grab')?.usable).toBe(true);
+  it('harm is power × attack ÷ defence; resisted halves it', () => {
+    const b = fight();
+    expect(b.act({ type: 'attack' })).toContainEqual({ type: 'damage', target: 'brute', amount: 5, hp: 55, resisted: true });
   });
 
-  it('dodging widens the reaction windows until your next turn', () => {
-    const b = scrap(SWING, SWING);
-    expect(b.reactionWindow('swing', 'carver')).toEqual({ dodge: 260, parry: 110 });
-    b.choose('dodge');
-    expect(b.reactionWindow('swing', 'carver')).toEqual({ dodge: 416, parry: 176 });
+  it('skills cost SP, and can’t be used without it', () => {
+    const b = fight();
+    b.act({ type: 'skill', move: 'pull' }); // (his weakness: One More, so still your turn)
+    expect(b.get('hero').sp).toBe(2);
+    expect(b.skills().find((s) => s.move.id === 'pull')).toMatchObject({ usable: false, reason: 'Not enough SP' });
+    expect(() => b.act({ type: 'skill', move: 'pull' })).toThrow(/not enough SP/);
+  });
+
+  it('guarding halves harm until your next turn', () => {
+    const b = fight();
+    b.act({ type: 'guard' });
+    expect(b.enemyTurn()).toContainEqual({ type: 'damage', target: 'hero', amount: 5, hp: 45, guarded: true });
+    b.act({ type: 'attack' });
+    expect(b.enemyTurn()).toContainEqual({ type: 'damage', target: 'hero', amount: 10, hp: 35 });
+  });
+
+  it('items heal, and run out', () => {
+    const b = fight({ items: { bun: 1 } });
+    b.act({ type: 'guard' });
     b.enemyTurn();
-    b.choose('shove');
-    expect(b.reactionWindow('swing', 'carver')).toEqual({ dodge: 260, parry: 110 });
+    expect(b.act({ type: 'item', item: 'bun' })).toContainEqual({ type: 'heal', target: 'hero', hp: 50, sp: 6 });
+    expect(b.items.size).toBe(0);
+    b.enemyTurn();
+    expect(b.commands().map((c) => c.type)).not.toContain('item');
+  });
+
+  it('wins when they all go down, loses when you do', () => {
+    const won = fight();
+    while (!won.outcome) won.current!.side === 'party' ? won.act({ type: 'attack' }) : won.enemyTurn('parry');
+    expect(won.outcome).toBe('won');
+    const lost = fight();
+    while (!lost.outcome) lost.current!.side === 'party' ? lost.act({ type: 'guard' }) : lost.enemyTurn();
+    expect(lost.outcome).toBe('lost');
+    expect(lost.current).toBeNull();
+  });
+
+  it('a skill can end the fight (holding back), and so can Run', () => {
+    const b = fight();
+    expect(b.act({ type: 'skill', move: 'leave' })).toContainEqual({ type: 'end', outcome: 'left' });
+    const r = fight({ run: 'ran' });
+    r.act({ type: 'run' });
+    expect(r.outcome).toBe('ran');
+  });
+
+  it('a wind-up is followed by the big one, whatever the AI would pick', () => {
+    const b = fight({ enemies: ['charger'] });
+    expect(b.intentOf('charger')?.move).toBe('charge');
+    b.act({ type: 'guard' });
+    b.enemyTurn();
+    expect(b.intentOf('charger')?.move).toBe('smash');
+  });
+});
+
+describe('Battle: weaknesses, One More, all out', () => {
+  it('hitting a weakness knocks them down and gives One More', () => {
+    const b = fight();
+    const events = b.act({ type: 'skill', move: 'pull' });
+    expect(events).toContainEqual({ type: 'damage', target: 'brute', amount: 15, hp: 45, weak: true });
+    expect(events).toContainEqual({ type: 'knockdown', target: 'brute' });
+    expect(events).toContainEqual({ type: 'oneMore', actor: 'hero' });
+    expect(b.current?.id).toBe('hero');
+  });
+
+  it('a critical knocks down too', () => {
+    const b = fight({ enemies: ['charger'] });
+    const events = b.act({ type: 'skill', move: 'lucky' });
+    expect(events).toContainEqual({ type: 'damage', target: 'charger', amount: 15, hp: 45, crit: true });
+    expect(events).toContainEqual({ type: 'oneMore', actor: 'hero' });
+  });
+
+  it('no second One More off someone already down', () => {
+    const b = fight({ enemies: ['brute', 'brute'] });
+    b.act({ type: 'skill', move: 'pull', target: 'brute' });
+    const events = b.act({ type: 'attack', target: 'brute' });
+    expect(events.find((e) => e.type === 'oneMore')).toBeUndefined();
+  });
+
+  it('when every enemy is down, an all-out attack is offered; they get up afterwards', () => {
+    const b = fight();
+    b.act({ type: 'skill', move: 'pull' });
+    expect(b.allOutReady).toBe(true);
+    expect(b.commands()[0]).toEqual({ type: 'allOut', usable: true });
+    const events = b.act({ type: 'allOut' });
+    expect(events).toContainEqual({ type: 'damage', target: 'brute', amount: ALL_OUT_POWER, hp: 45 - ALL_OUT_POWER });
+    expect(b.get('brute').down).toBe(false);
+    expect(b.current?.id).toBe('brute');
+  });
+
+  it('someone knocked down spends their next turn getting up (and loses their intent)', () => {
+    const b = fight({ party: ['hero', 'friend'], enemies: ['brute', 'brute'] });
+    b.act({ type: 'skill', move: 'pull', target: 'brute' }); // brute down, One More
+    const events = b.act({ type: 'attack', target: 'brute-2' }); // on to brute (down) → gets up → brute-2
+    expect(events).toContainEqual({ type: 'getUp', target: 'brute' });
+    expect(b.current?.id).toBe('brute-2');
+  });
+});
+
+describe('Battle: reactions on top', () => {
+  it('a dodge halves the harm; a parry takes none and hits back', () => {
+    const b = fight();
+    b.act({ type: 'attack' });
+    expect(b.enemyTurn('dodge')).toContainEqual({ type: 'damage', target: 'hero', amount: 5, hp: 45 });
+    b.act({ type: 'attack' });
+    const parried = b.enemyTurn('parry');
+    expect(b.get('hero').hp).toBe(45);
+    expect(parried).toContainEqual({ type: 'counter', actor: 'hero', target: 'brute' });
+    expect(parried).toContainEqual({ type: 'damage', target: 'brute', amount: 5, hp: 45, resisted: true });
+  });
+
+  it('only combatants who can react do', () => {
+    const b = fight({ party: ['friend'] });
+    expect(b.reactionWindow('bash', 'friend')).toBeNull();
+    expect(b.enemyTurn('parry')).toContainEqual({ type: 'damage', target: 'friend', amount: 10, hp: 40 });
   });
 
   it('grades a press by how long before the hit it came', () => {
@@ -120,75 +177,28 @@ describe('Battle', () => {
     expect(Battle.grade(50, null)).toBe('none');
   });
 
-  it('wins when he goes down, loses when you do', () => {
-    const won = scrap(SWING, SWING, SWING, SWING, SWING, SWING);
-    while (!won.outcome) {
-      if (won.current!.side === 'party') won.choose(won.choices().find((c) => c.move.id === 'grab')!.usable ? 'grab' : 'shove');
-      else won.enemyTurn('parry');
-    }
-    expect(won.outcome).toBe('won');
-
-    const lost = scrap(SWING);
-    while (!lost.outcome) {
-      if (lost.current!.side === 'party') lost.choose('dodge');
-      else lost.enemyTurn('none');
-    }
-    expect(lost.outcome).toBe('lost');
-    expect(lost.get('carver').hp).toBe(0);
-    expect(lost.current).toBeNull();
-  });
-
-  it('holding back ends the fight at once', () => {
-    const b = scrap(SWING);
-    expect(b.choose('hold_back')).toContainEqual({ type: 'end', outcome: 'held_back' });
-    expect(b.outcome).toBe('held_back');
-  });
-
-  it('runs a party of two against two enemies', () => {
-    const moves: Record<string, MoveDef> = {
-      hit: { id: 'hit', name: 'Hit', description: '', target: 'enemy', damage: 5, reaction: { dodge: 200, parry: 80 } },
-    };
-    const defs: Record<string, CombatantDef> = {
-      a: { id: 'a', name: 'A', sprite: 'x', hp: 10, speed: 3, moves: ['hit'], reactions: ['dodge'] },
-      b: { id: 'b', name: 'B', sprite: 'x', hp: 10, speed: 1, moves: ['hit'] },
-      foe: { id: 'foe', name: 'Foe', sprite: 'x', hp: 5, speed: 2, moves: ['hit'] },
-    };
-    const enc: EncounterDef = { id: 'test', party: ['a', 'b'], enemies: ['foe', 'foe'], outcomes: {} };
-    const battle = new Battle(enc, moves, defs, seq(0, 0, 0, 0.99));
-    expect(battle.combatants.map((c) => c.id)).toEqual(['a', 'b', 'foe', 'foe-2']);
-    expect(battle.intentOf('foe')?.target).toBe('a');
-    expect(battle.intentOf('foe-2')?.target).toBe('b');
-    // a (3), then foe and foe-2 (2), then b (1).
-    expect(battle.current?.id).toBe('a');
-    battle.choose('hit', 'foe');
-    expect(battle.get('foe').hp).toBe(0);
-    // foe is down, so it's foe-2's turn; b can't parry, so a parry counts as no reaction.
-    expect(battle.current?.id).toBe('foe-2');
-    battle.enemyTurn('parry');
-    expect(battle.get('b').hp).toBe(5);
-    expect(battle.current?.id).toBe('b');
-    battle.choose('hit', 'foe-2');
-    expect(battle.outcome).toBe('won');
+  it('names duplicates apart', () => {
+    expect(fight({ enemies: ['brute', 'brute'] }).combatants.map((c) => c.id)).toEqual(['hero', 'brute', 'brute-2']);
   });
 });
 
 describe('combat data', () => {
-  it('every combatant and encounter refers to things that exist', () => {
-    for (const c of Object.values(COMBATANTS)) for (const m of c.moves) expect(MOVES[m], `${c.id}: ${m}`).toBeDefined();
+  it('every combatant, encounter and item refers to things that exist', () => {
+    for (const c of Object.values(COMBATANTS)) for (const m of [...c.moves, ...(c.basic ? [c.basic] : [])]) expect(MOVES[m], `${c.id}: ${m}`).toBeDefined();
     for (const e of Object.values(ENCOUNTERS)) {
       for (const id of [...e.party, ...e.enemies]) expect(COMBATANTS[id], `${e.id}: ${id}`).toBeDefined();
-      expect(Object.keys(e.outcomes)).toEqual(expect.arrayContaining(['won', 'lost']));
-    }
-    for (const m of Object.values(MOVES)) if (m.windsUp) expect(MOVES[m.windsUp]).toBeDefined();
-  });
-
-  it('every move that ends a fight has an outcome in each encounter that can use it', () => {
-    for (const e of Object.values(ENCOUNTERS)) {
+      for (const id of Object.keys(e.items ?? {})) expect(ITEMS[id], `${e.id}: ${id}`).toBeDefined();
+      expect(Object.keys(e.outcomes)).toEqual(expect.arrayContaining(['won', 'lost', ...(e.run ? [e.run] : [])]));
       for (const id of e.party) for (const m of COMBATANTS[id]!.moves) {
         const ends = MOVES[m]!.ends;
         if (ends) expect(e.outcomes[ends], `${e.id}: ${ends}`).toBeDefined();
       }
     }
+    for (const m of Object.values(MOVES)) if (m.windsUp) expect(MOVES[m.windsUp]).toBeDefined();
+  });
+
+  it('every party member has a basic attack', () => {
+    for (const e of Object.values(ENCOUNTERS)) for (const id of e.party) expect(COMBATANTS[id]!.basic).toBeDefined();
   });
 
   it('outcomes only write variables the story declares', () => {
@@ -196,5 +206,17 @@ describe('combat data', () => {
     for (const e of Object.values(ENCOUNTERS)) {
       for (const vars of Object.values(e.outcomes)) for (const name of Object.keys(vars)) expect(declared.has(name), name).toBe(true);
     }
+  });
+
+  it('the market scrap can be won by playing well (grabs, all out, dodging)', () => {
+    const b = new Battle(ENCOUNTERS.market_scrap!, MOVES, COMBATANTS, ITEMS, half);
+    let guard = 0;
+    while (!b.outcome && guard++ < 40) {
+      if (b.current!.side === 'enemy') b.enemyTurn('dodge');
+      else if (b.allOutReady) b.act({ type: 'allOut' });
+      else if (b.skills().find((s) => s.move.id === 'grab')!.usable) b.act({ type: 'skill', move: 'grab' });
+      else b.act({ type: 'attack' });
+    }
+    expect(b.outcome).toBe('won');
   });
 });

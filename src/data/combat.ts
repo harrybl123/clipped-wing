@@ -1,23 +1,23 @@
-import type { CombatantDef, EncounterDef, MoveDef } from '../systems/Combat';
+import type { CombatantDef, EncounterDef, ItemDef, MoveDef } from '../systems/Combat';
 
-// Combat data (docs/combat-design.md): moves, combatants and encounters, run by src/systems/Combat.ts
-// and shown by CombatScene. No levelling: new moves and gear come from the story, so a lead's move list
-// is what the story has given them so far. Names and descriptions are placeholders until the designer's
-// text; numbers are a first pass to playtest.
+// Combat data (docs/combat-design.md): moves, items, fighters and fights, run by src/systems/Combat.ts
+// and shown by CombatScene. No levelling: a lead's skills are what the story has given them so far, and
+// their numbers are set here. Names and descriptions are placeholders until the designer's text;
+// numbers are a first pass to playtest.
 
 export const MOVES: Record<string, MoveDef> = {
-  // --- The carver: scrappy, thumbless. No punches: you can't make a proper fist. ---
-  dodge: {
-    id: 'dodge', name: 'Dodge', target: 'self', guard: 1.6,
-    description: 'Watch him. Easier to dodge or parry until your next turn.',
+  // --- The carver. His basic attack is weak: he can't make a proper fist. The scrappy moves are skills. ---
+  slap: {
+    id: 'slap', name: 'Slap', target: 'enemy', power: 6, kind: 'strike', crit: 0.1,
+    description: 'An open hand. You can’t make a fist.',
   },
   shove: {
-    id: 'shove', name: 'Shove', target: 'enemy', damage: 1, interrupts: true,
-    description: 'Push him back. Breaks a wind-up and leaves him open.',
+    id: 'shove', name: 'Shove', target: 'enemy', power: 8, kind: 'shove', sp: 2, crit: 0.25,
+    description: 'Both hands. Good odds of knocking him off his feet.',
   },
   grab: {
-    id: 'grab', name: 'Grab', target: 'enemy', damage: 3, needsOpening: true,
-    description: 'Hang on and drag him down. Needs an opening.',
+    id: 'grab', name: 'Grab', target: 'enemy', power: 10, kind: 'grab', sp: 4,
+    description: 'Get hold and drag him down.',
   },
   hold_back: {
     id: 'hold_back', name: 'Hold back', target: 'self', ends: 'held_back',
@@ -26,32 +26,43 @@ export const MOVES: Record<string, MoveDef> = {
 
   // --- The young zealot (the market scrap). ---
   swing: {
-    id: 'swing', name: 'Swing', target: 'enemy', damage: 2, reaction: { dodge: 260, parry: 110 },
+    id: 'swing', name: 'Swing', target: 'enemy', power: 9, kind: 'strike', reaction: { dodge: 260, parry: 110 },
     description: 'A wild swing.',
   },
   wind_up: {
     id: 'wind_up', name: 'Wind up', target: 'self', windsUp: 'haymaker',
-    description: 'Draws back for a big one. A shove breaks it.',
+    description: 'Draws back for a big one.',
   },
   haymaker: {
-    id: 'haymaker', name: 'Haymaker', target: 'enemy', damage: 4, reaction: { dodge: 200, parry: 80 },
+    id: 'haymaker', name: 'Haymaker', target: 'enemy', power: 18, kind: 'strike', reaction: { dodge: 200, parry: 80 },
     description: 'Everything he has.',
   },
   jeer: {
-    id: 'jeer', name: 'Jeer', target: 'self', exposesSelf: true,
-    description: 'Plays to the crowd, wide open.',
+    id: 'jeer', name: 'Jeer', target: 'self',
+    description: 'Plays to the crowd.',
   },
 };
 
+/** Nothing to carry in Chapter 1 yet; the engine takes items when the story hands them out. */
+export const ITEMS: Record<string, ItemDef> = {};
+
 export const COMBATANTS: Record<string, CombatantDef> = {
-  carver: { id: 'carver', name: 'You', sprite: 'protagonist', hp: 7, speed: 2, moves: ['dodge', 'shove', 'grab', 'hold_back'], reactions: ['dodge', 'parry'] },
-  zealot: { id: 'zealot', name: 'The young man', sprite: 'zealot', hp: 6, speed: 1, moves: ['swing', 'wind_up', 'jeer'], weights: [3, 2, 1] },
+  carver: {
+    id: 'carver', name: 'You', sprite: 'protagonist', hp: 40, sp: 10, attack: 8, defence: 9, speed: 12,
+    basic: 'slap', moves: ['shove', 'grab', 'hold_back'], reactions: ['dodge', 'parry'],
+  },
+  zealot: {
+    id: 'zealot', name: 'The young man', sprite: 'zealot', hp: 60, attack: 10, defence: 9, speed: 10,
+    moves: ['swing', 'wind_up', 'jeer'], weights: [4, 2, 1],
+    // (suggestion) He's never been held: grabs floor him. Slaps hardly bother him.
+    weak: ['grab'], resists: ['strike'],
+  },
 };
 
 export const ENCOUNTERS: Record<string, EncounterDef> = {
   /**
-   * Day 4 afternoon at the market (design doc). What follows is the story's: ink reads these
-   * (win: suspicion jumps; lose: hurt, less food; hold back: Mum sees it).
+   * Day 4 afternoon at the market (design doc). No running (Hold back is the way out). What follows is
+   * the story's: ink reads these (win: suspicion jumps; lose: hurt, less food; hold back: Mum sees it).
    */
   market_scrap: {
     id: 'market_scrap',
