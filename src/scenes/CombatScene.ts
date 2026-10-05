@@ -124,6 +124,8 @@ export class CombatScene extends Phaser.Scene {
   private framedZoom = 1;
   /** Lessons already shown this fight (a fight that `teaches`). */
   private taught = new Set<Lesson>();
+  /** What this fight teaches (its own, plus the basics if this is your first fight). */
+  private lessons: string[] = [];
 
   constructor() {
     super('Combat');
@@ -173,6 +175,8 @@ export class CombatScene extends Phaser.Scene {
       ? Object.fromEntries(Object.entries(COMBATANTS).map(([id, c]) => [id, encounter.enemies.includes(id) ? { ...c, moves: [only], weights: [1], ai: {} } : c]))
       : COMBATANTS;
     this.battle = new Battle(encounter, MOVES, fighters, ITEMS);
+    const also = encounter.alsoTeaches;
+    this.lessons = [...(encounter.teaches ?? []), ...(also && !getSession(this).story.getVariable(also.unless) ? also.lessons : [])];
     // The stage: where it's fought.
     const where = encounter.stage ?? 'market';
     makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : paintStage());
@@ -908,7 +912,7 @@ export class CombatScene extends Phaser.Scene {
    * up, the fight holds on a plain explanation until you press E.
    */
   private async teach(lesson: Lesson): Promise<void> {
-    if (!this.battle.encounter.teaches?.includes(lesson) || this.taught.has(lesson)) return;
+    if (!this.lessons.includes(lesson) || this.taught.has(lesson)) return;
     this.taught.add(lesson);
     // To the left of the stage, clear of his panel and tell (which a lesson may point at).
     const width = 200;

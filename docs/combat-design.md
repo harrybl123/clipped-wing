@@ -119,7 +119,7 @@ The card waits 450 ms before it can be dismissed, so a press meant for something
 
 **(Designer.)** Past the pits in the rot under the girl's house, you and the girl meet **three rot beetles**: the first fight with a friend beside you, and the first against several enemies. `ENCOUNTERS.rot_beetles`; the story is `day4_rot_creatures` (before) and `day4_rot_after_beetles` (after; draft text). A `trigger` in `theRot.ts` plays it once. It writes `rot_beetles_won`: winning gives `girl_trust` +1; losing is no worse than being dragged along by her collar, and the story carries on.
 
-**It teaches only one thing** (designer: not too hand-holdy): you fight alongside friends, each with their own abilities (`teaches: ['allies']`). Everything else was taught at the market, and her skills explain themselves in the Skill list.
+**It teaches only one thing** (designer: not too hand-holdy): you fight alongside friends, each with their own abilities (`teaches: ['allies']`). Everything else was taught at the market, and her skills explain themselves in the Skill list. **If you held back at the market** (`fought` is false), this is your first fight, so it teaches the basics too (`alsoTeaches`: turns, tells, react, off balance, the wind-up).
 
 **The girl** has her own skillset on the same mechanics, each with a different kind of QTE (designer: they were too alike) (30 HP, 10 SP, fast, slighter, dodges):
 

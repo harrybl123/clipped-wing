@@ -65,7 +65,7 @@ The game is pixel art, so darker and lighter **shades** of these colours are all
 
 (Record decisions here as they're made, newest first.)
 
-- **2026-10-05 — The rot fight is compulsory, and she remembers the market.** (Designer: it didn't happen in play.) The trigger spanned a few pixels just past a pit you jump, so it was usually skipped; it now covers the whole floor from the second pit to the drips. The scene before is stunned (neither of you can speak; her hand grips your sleeve); after, she teases you but is impressed you held your own, in lines that depend on the market, which she watched (`fight_won` / `fought` / held back), win or lose. Dev: `?day=4&at=rot&market=won|lost|held`.
+- **2026-10-05 — The rot fight is compulsory, and she remembers the market.** (Designer: it didn't happen in play.) The trigger spanned a few pixels just past a pit you jump, so it was usually skipped; it now covers the whole floor from the second pit to the drips. The scene before is stunned (neither of you can speak; her hand grips your sleeve); after, she teases you but is impressed you held your own, in lines that depend on the market, which she watched (`fight_won` / `fought` / held back), win or lose. If you held back at the market and never fought, the rot fight teaches the basics too (`alsoTeaches` on the encounter, unless `fought`). Dev: `?day=4&at=rot&market=won|lost|held`.
 
 - **2026-10-05 — Her skills read clearly.** (Designer.) The girl's QTEs are all different kinds (Stab a key, Flick a quick draw, Rot-ink a balance). The Skill and Item lists describe the one you're on, in a box under the list. Lure flashes each enemy it draws (LURED) and Rot-ink pops WEAKENED; both stay on the enemy's panel while they last.
 

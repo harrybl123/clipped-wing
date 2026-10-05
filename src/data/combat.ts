@@ -236,8 +236,10 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
     enemies: ['beetle', 'beetle', 'beetle'],
     stage: 'rot',
     timing: { lunge: 1000, ease: 1.3 },
-    // (Designer: not too hand-holdy; the rest was taught at the market.)
+    // (Designer: not too hand-holdy; the rest was taught at the market. If you held back there and never
+    // fought, it's your first fight, so it teaches the basics too.)
     teaches: ['allies'],
+    alsoTeaches: { unless: 'fought', lessons: ['turns', 'tells', 'react', 'offBalance', 'windUp'] },
     outcomes: {
       won: { rot_beetles_won: true },
       lost: { rot_beetles_won: false },

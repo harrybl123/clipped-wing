@@ -557,7 +557,9 @@ describe('combat data', () => {
 describe('the market scrap teaches itself', () => {
   it('is the only fight that teaches, and every lesson says what to press', () => {
     expect(Object.values(ENCOUNTERS).filter((e) => e.teaches).map((e) => e.id)).toEqual(['market_scrap', 'rot_beetles']);
-    for (const e of Object.values(ENCOUNTERS)) for (const l of e.teaches ?? []) expect(LESSONS).toHaveProperty(l);
+    for (const e of Object.values(ENCOUNTERS)) for (const l of [...(e.teaches ?? []), ...(e.alsoTeaches?.lessons ?? [])]) expect(LESSONS).toHaveProperty(l);
+    // Held back at the market (never fought): the rot fight teaches everything the market would have.
+    expect(ENCOUNTERS.rot_beetles!.alsoTeaches).toEqual({ unless: 'fought', lessons: ENCOUNTERS.market_scrap!.teaches });
     for (const lesson of Object.values(LESSONS)) expect(lesson.length).toBeGreaterThan(0);
   });
 

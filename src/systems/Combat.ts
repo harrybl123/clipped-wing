@@ -145,6 +145,11 @@ export interface EncounterDef {
   /** The fight teaches itself: a short explanation the first time each of these comes up (`LESSONS`). */
   teaches?: string[];
   /**
+   * Also teaches these, unless this ink variable is true (you've had them already): the rot fight teaches
+   * the basics too if you held back at the market and never fought there.
+   */
+  alsoTeaches?: { unless: string; lessons: string[] };
+  /**
    * What each outcome writes to ink (the only store of story state): `won`, `lost`, the run outcome,
    * and any move's `ends` id. The scene writes them through the StoryBridge when the fight ends.
    */
