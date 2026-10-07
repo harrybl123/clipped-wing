@@ -5,6 +5,7 @@ import { makeSpriteTexture } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
 import { BIRD } from '../ui/sprites';
 import type { AreaSceneData } from './AreaScene';
+import { getSession } from '../session';
 
 export interface ChapterSceneData {
   /** "Chapter 1". */
@@ -13,6 +14,22 @@ export interface ChapterSceneData {
   title: string;
   /** Where the game goes next. */
   next: AreaSceneData;
+}
+
+/**
+ * Chapter 2 begins (designer: an option once you've finished Chapter 1): the scavenger, on the picked
+ * fields, digging. The story carries on from where Chapter 1 left it; the calendar starts again at Day 1.
+ */
+export function beginChapter2(scene: Phaser.Scene): void {
+  const session = getSession(scene);
+  session.story.setVariable('chapter', 2);
+  // Nothing of Chapter 1's left to do (the day's first knot sets her objective).
+  session.story.setVariable('objective', '');
+  session.story.setVariable('objective_target', '');
+  session.calendar.jumpTo(1);
+  const next: AreaSceneData = { areaId: 'picked-fields', start: { x: 60, y: 232 }, card: 'Day 1', script: 'c2day1_start' };
+  session.dayStarts = { 1: { ink: session.story.saveState(), calendar: session.calendar.toJSON(), wake: { areaId: next.areaId, start: next.start!, script: next.script } } };
+  scene.scene.start('Chapter', { number: 'Chapter 2', title: 'On the Scent', next } satisfies ChapterSceneData);
 }
 
 /** How long the card holds before fading out (ms). */

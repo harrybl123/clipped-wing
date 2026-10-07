@@ -199,6 +199,29 @@ VAR glossary_climb = ""
 // ---- Chapter 2: the borderland (docs/chapter-2-design.md) ----
 // You've found the dog: the dog's hollow, your secret spot, is on the map from then on.
 VAR found_dog = false
+// Which chapter you're playing: 1 (the carver, in the tree) or 2 (the scavenger, in the borderland).
+VAR chapter = 1
+// Chapter 2, Day 1 (story/borderland/chapter2-day1.ink; docs/sequences/chapter-2/part-1.md).
+// Stages: dig, brother, trade, tribute, home, done.
+VAR c2day1 = ""
+// What's in your satchel: finds, to trade for food or pay the tally house with.
+VAR finds = 0
+// The spots you're digging today, and which you've dug.
+VAR digging = false
+VAR dug_1 = false
+VAR dug_2 = false
+VAR dug_3 = false
+// The stragglers from elsewhere: there on the fields, and whether you beat them off (the fight writes it).
+VAR stragglers_here = false
+VAR stragglers_won = false
+// Your brother gave you his light (the one thing in his collection that glows) to trade for food.
+VAR traded_light = false
+// Food in the shack, in bowls.
+VAR food = 0
+// Tribute night at the tally house: the crowd, the boss and his circle are there.
+VAR tribute_night = false
+// You came up short at the tally house, and the boss let you off. Next week you owe double.
+VAR owe_double = false
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
@@ -224,6 +247,7 @@ INCLUDE upper-halls.ink
 INCLUDE archive.ink
 INCLUDE seed-grove.ink
 INCLUDE ascension-gate.ink
+INCLUDE borderland/chapter2-day1.ink
 INCLUDE borderland/picked-fields.ink
 INCLUDE borderland/shack.ink
 INCLUDE borderland/swap-yard.ink

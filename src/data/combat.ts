@@ -187,7 +187,7 @@ COMBATANTS.lackey = {
   ai: { maxRepeat: 2, when: { hurt: { jeer: 0 } } },
 };
 
-export type Lesson = 'turns' | 'tells' | 'react' | 'offBalance' | 'windUp' | 'allies';
+export type Lesson = 'turns' | 'tells' | 'react' | 'offBalance' | 'windUp' | 'allies' | 'parry';
 
 /**
  * The first fights teach themselves (designer: the scene is the tutorial). Each shows once, the first time
@@ -201,6 +201,7 @@ export const LESSONS: Record<Lesson, string> = {
   offBalance: 'That enemy is off balance. Hit it again before it recovers to knock it down and get an extra turn.',
   windUp: 'An enemy is charging a heavy attack. Guard to take less of it, or Shove it before it lands to stop it.',
   allies: 'You\u2019ll fight alongside friends, each with their own abilities.',
+  parry: 'React perfectly to parry: you take no damage and hit back.',
 };
 
 export const ENCOUNTERS: Record<string, EncounterDef> = {
@@ -262,5 +263,140 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
     enemies: ['lackey', 'zealot', 'lackey'],
     timing: { lunge: 1000, ease: 1.3 },
     outcomes: { won: {}, lost: {} },
+  },
+};
+
+// --- Chapter 2: the scavenger, the dog, and the borderland's people (draft numbers, to playtest) ---
+// Each has their own abilities (designer: unique to them, nothing borrowed from Act 1). Hers come from her
+// staff (designer: like the one in Tenet, a staff of different-shaped cuboid pieces): reach, sweeps, a
+// rattle of blows, and bracing it to turn blows aside. She can parry from the start: she's been fighting
+// for scraps all her life.
+
+Object.assign(MOVES, {
+  jab: {
+    id: 'jab', name: 'Jab', target: 'enemy', power: 7, kind: 'strike', crit: 0.15, poses: ['attack'],
+    qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    description: 'Basic attack with the staff.',
+  },
+  sweep: {
+    id: 'sweep', name: 'Sweep', target: 'enemy', power: 7, kind: 'shove', sp: 2, crit: 0.2, interrupts: true, poses: ['shove'],
+    // Low and flat across the ground: time it as it swings through.
+    qte: { kind: 'bar', time: 1100, zone: [0.6, 0.8], sweet: [0.68, 0.72], alt: { kind: 'key', time: 800, quick: 300 } },
+    description: 'Takes their legs. Knocks an enemy off balance. Interrupts a charged attack.',
+  },
+  rattle: {
+    id: 'rattle', name: 'Rattle', target: 'enemy', power: 4, kind: 'strike', sp: 3, hits: 3, poses: ['slap', 'palm', 'attack'],
+    // The blocks clatter on the core with every blow: one note each.
+    qte: { kind: 'notes', outer: 180, perfect: 70, gap: 360, alt: { kind: 'carve', time: 2400, quick: 1200 } },
+    combo: { build: 0.25, finisher: true },
+    description: '3 quick blows, each stronger than the last. Land all 3 to knock the enemy off balance.',
+  },
+  brace: {
+    id: 'brace', name: 'Brace', target: 'self', sp: 2, braces: true, poses: ['guard'],
+    description: 'Until her next turn, a good reaction parries too: no damage, and she hits back.',
+  },
+
+  // The dog (Day 2 on). It sniffs out what nobody else can (design doc), in a fight as well.
+  bite: {
+    id: 'bite', name: 'Bite', target: 'enemy', power: 6, kind: 'pierce', crit: 0.2,
+    qte: { kind: 'key', time: 700, quick: 260, alt: { kind: 'bar', time: 900, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    description: 'Basic attack.',
+  },
+  sniff: {
+    id: 'sniff', name: 'Sniff', target: 'self', sp: 1, reveals: true,
+    description: 'Shows what every enemy will really do this round. No feints.',
+  },
+  worry: {
+    id: 'worry', name: 'Worry', target: 'enemy', power: 5, kind: 'pierce', sp: 3, hits: 2,
+    // Hangs on and shakes: keep hold.
+    qte: { kind: 'mash', presses: 7, time: 1600, alt: { kind: 'hold', time: 1000, zone: [0.65, 0.85], sweet: [0.72, 0.78] } },
+    combo: { build: 0.3, finisher: true },
+    description: 'Bites and hangs on: 2 hits. Land both to knock the enemy off balance.',
+  },
+
+  // The stragglers (Day 1, the picked fields): people from elsewhere, desperate, fighting dirty.
+  shank: {
+    id: 'shank', name: 'Shank', target: 'enemy', power: 8, kind: 'pierce',
+    // (The ring is only for the zealot's swing: designer.)
+    qte: { kind: 'weave', time: 650, quick: 260, gap: 520, alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'squared', lines: ['He turns the shard in his fingers.', 'He edges closer.'] },
+    description: 'A quick stab with a shard.',
+  },
+  grit: {
+    id: 'grit', name: 'Grit', target: 'enemy', power: 2, kind: 'none', blinds: 2,
+    qte: { kind: 'side', time: 700, quick: 260, alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'glance', lines: ['He scoops up a handful of dirt.', 'He crouches, one hand in the dirt.'] },
+    description: 'Dirt in your eyes: for 2 rounds, dodging is harder.',
+  },
+  snatch: {
+    id: 'snatch', name: 'Snatch', target: 'enemy', power: 6, kind: 'grab',
+    qte: { kind: 'grip', time: 4200, zone: [0.36, 0.64], narrow: 0.16, tug: 0.8, keep: 0.7, quick: 2800, alt: { kind: 'mash', presses: 8, time: 1800 } },
+    tell: { pose: 'reach', lines: ['He’s eyeing your satchel.', 'His hands open.'] },
+    description: 'He grabs for your satchel: keep hold of it.',
+  },
+  club: {
+    id: 'club', name: 'Club', target: 'enemy', power: 9, kind: 'strike',
+    qte: { kind: 'bar', time: 1100, zone: [0.62, 0.82], sweet: [0.7, 0.74], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'squared', lines: ['He hefts the scrap.', 'He rolls his shoulders.'] },
+    description: 'A swing with a lump of scrap.',
+  },
+  heave: {
+    id: 'heave', name: 'Heave', target: 'self', windsUp: 'crush',
+    tell: { pose: 'shift', lines: ['He lifts the scrap over his head.', 'He plants his feet.'] },
+    description: 'Lifts the scrap high.',
+  },
+  crush: {
+    id: 'crush', name: 'Crush', target: 'enemy', power: 17, kind: 'strike',
+    softened: { guard: 0.25, dodge: 0.08 },
+    qte: { kind: 'draw', time: 420, quick: 160, wait: [700, 1400], alt: { kind: 'bar', time: 1300, zone: [0.72, 0.86], sweet: [0.77, 0.81] } },
+    tell: { pose: 'windup', lines: ['The scrap is high over his head.'] },
+    description: 'Brings the scrap down with all his weight. Guard, or Sweep him before it lands.',
+  },
+} satisfies Record<string, MoveDef>);
+
+/** The scavenger, Chapter 2's lead. */
+COMBATANTS.scavenger = {
+  id: 'scavenger', name: 'You', sprite: 'scavenger', hp: 42, sp: 12, attack: 9, defence: 8, speed: 14,
+  basic: 'jab', moves: ['sweep', 'rattle', 'brace'], reactions: ['dodge', 'parry'],
+};
+
+/** The dog (Day 2 on): quick and low. */
+COMBATANTS.dog = {
+  id: 'dog', name: 'The dog', sprite: 'dog', hp: 26, sp: 8, attack: 8, defence: 7, speed: 16,
+  basic: 'bite', moves: ['sniff', 'worry'], reactions: ['dodge'],
+};
+
+/** The thin straggler: fast and dirty. Shows you a feint now and then. */
+COMBATANTS.straggler_thin = {
+  id: 'straggler_thin', name: 'The thin one', sprite: 'straggler_thin', hp: 26, attack: 8, defence: 7, speed: 13,
+  moves: ['shank', 'grit', 'snatch'], weights: [3, 1.5, 2],
+  weak: ['shove'], poise: 1, feint: 0,
+  ai: { opening: ['shank', 'grit'], maxRepeat: 2, recent: 0.5, when: { hurt: { snatch: 2 }, foeGuarding: { grit: 2.5 } } },
+};
+
+/** The big straggler: slow, heavy, winds up. */
+COMBATANTS.straggler_big = {
+  id: 'straggler_big', name: 'The big one', sprite: 'straggler_big', hp: 42, attack: 10, defence: 9, speed: 8,
+  moves: ['club', 'heave'], weights: [3, 1.2],
+  weak: ['shove'], poise: 2, feint: 0,
+  ai: { opening: ['club', 'heave'], maxRepeat: 2, recent: 0.6, when: { hurt: { heave: 2 }, foeHurt: { heave: 1.8 } } },
+};
+
+/**
+ * Chapter 2, Day 1, the picked fields: stragglers from elsewhere come for your haul (designer). Your first
+ * fight as the scavenger, so it teaches the basics, and the parry. Writes `stragglers_won`; either way the
+ * third one is gone with your finds (the story's).
+ */
+ENCOUNTERS.stragglers = {
+  id: 'stragglers',
+  name: 'Stragglers',
+  party: ['scavenger'],
+  enemies: ['straggler_thin', 'straggler_big'],
+  stage: 'fields',
+  timing: { lunge: 1000, ease: 1.3 },
+  teaches: ['turns', 'tells', 'react', 'parry', 'offBalance', 'windUp'],
+  outcomes: {
+    won: { stragglers_won: true },
+    lost: { stragglers_won: false },
   },
 };

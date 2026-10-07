@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './scrapProps';
 import type { AreaDefinition, Solid } from '../types';
-import { DAY, cast, local, stroller } from './people';
+import { DAY, cast, local, straggler, stroller } from './people';
 
 // The picked fields (Chapter 2): scavenged clean, where everyone works. The first open sky in the game:
 // a wide waste of dug-over dirt under a pale haze, the tree vast on the horizon with its top lost in
@@ -81,6 +81,10 @@ export const pickedFields: AreaDefinition = {
     { sprite: P.trackMarker(26), x: 818, y: FLOOR - 26 },
     { sprite: P.dugHole(16), x: 860, y: FLOOR - 4 },
     { sprite: P.trackMarker(30), x: 930, y: FLOOR - 30 },
+    // Ground nobody's turned over lately: where you dig on Chapter 2's first morning.
+    { sprite: P.dugHole(8), x: 166, y: FLOOR - 4 },
+    { sprite: P.dugHole(8), x: 296, y: FLOOR - 4 },
+    { sprite: P.dugHole(8), x: 766, y: FLOOR - 4 },
     // Tech scraps: what's too broken to sell, but still bright.
     { sprite: P.casingPod(20), x: 122, y: FLOOR - 11 },
     { sprite: P.screenSlab(16), x: 228, y: FLOOR - 5 },
@@ -100,6 +104,10 @@ export const pickedFields: AreaDefinition = {
     stroller('picker-1', 1, 720, 800, FLOOR, DAY),
     stroller('picker-2', 10, 90, 180, FLOOR, ['morning']),
     cast('scav_friend', 152, FLOOR, { knot: 'picked_fields_friend', when: ['afternoon'] }),
+    // Chapter 2, Day 1: stragglers in off the plain, standing over you at the third spot.
+    straggler('straggler-1', 0, 796, FLOOR, 'stragglers_here', { flipX: true }),
+    straggler('straggler-2', 1, 814, FLOOR, 'stragglers_here', { flipX: true }),
+    straggler('straggler-3', 2, 834, FLOOR, 'stragglers_here', { flipX: true }),
   ],
 
   interactables: [
@@ -109,6 +117,10 @@ export const pickedFields: AreaDefinition = {
     { id: 'glow', x: HULL.x + 201, y: FLOOR, reach: 10, label: 'Look', knot: 'picked_fields_glow' },
     { id: 'tree', x: CROWN.x + 4, y: CROWN.y, reach: 12, label: 'Look', knot: 'picked_fields_tree' },
     { id: 'glass', x: 680, y: FLOOR, reach: 12, label: 'Look', knot: 'picked_fields_glass' },
+    // Chapter 2, Day 1: spots to dig, while you're digging, until you've dug each.
+    { id: 'dig-1', x: 170, y: FLOOR, reach: 10, label: 'Dig', knot: 'c2day1_dig_1', showIf: 'digging', hideIf: 'dug_1' },
+    { id: 'dig-2', x: 300, y: FLOOR, reach: 10, label: 'Dig', knot: 'c2day1_dig_2', showIf: 'digging', hideIf: 'dug_2' },
+    { id: 'dig-3', x: 770, y: FLOOR, reach: 10, label: 'Dig', knot: 'c2day1_dig_3', showIf: 'digging', hideIf: 'dug_3' },
   ],
 
   exits: [

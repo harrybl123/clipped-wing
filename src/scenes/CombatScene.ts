@@ -4,8 +4,9 @@ import { COMBATANTS, ENCOUNTERS, ITEMS, LESSONS, type Lesson, MOVES } from '../d
 import { getSession } from '../session';
 import { Battle, type Action, type BattleEvent, type Combatant, type Intent, type MoveDef, type Reaction } from '../systems/Combat';
 import type { Grade, Key, Qte, QteKind } from '../systems/qte';
-import { BEETLE_BATTLE, CARVER_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
-import { GIRL, PROTAGONIST } from '../ui/characters';
+import { BEETLE_BATTLE, CARVER_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, SCAVENGER_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_THIN_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
+import { GIRL, PROTAGONIST, SCAVENGER } from '../ui/characters';
+import { paintFar } from '../ui/paintOutdoor';
 import { QteRunner } from '../ui/QteRunner';
 import { addLight, falloff, noise, rgb, SHADES } from '../ui/pixelArt';
 import { PIXEL, makePaintedTexture, makeSpriteTexture } from '../ui/pixelTextures';
@@ -66,6 +67,9 @@ const LOOKS: Record<string, Look> = {
   beetle: { poses: BEETLE_BATTLE, scale: 1 },
   zealot: { poses: ZEALOT_BATTLE, scale: 1 },
   lackey: { poses: LACKEY_BATTLE, scale: 1 },
+  scavenger: { poses: SCAVENGER_BATTLE, scale: 2, cutIn: SCAVENGER.idle[0]! },
+  straggler_thin: { poses: STRAGGLER_THIN_BATTLE, scale: 1 },
+  straggler_big: { poses: STRAGGLER_BIG_BATTLE, scale: 1 },
 };
 
 interface View {
@@ -179,7 +183,7 @@ export class CombatScene extends Phaser.Scene {
     this.lessons = [...(encounter.teaches ?? []), ...(also && !getSession(this).story.getVariable(also.unless) ? also.lessons : [])];
     // The stage: where it's fought.
     const where = encounter.stage ?? 'market';
-    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : paintStage());
+    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : where === 'fields' ? paintFieldsStage() : paintStage());
     stage.setTexture(`combat-stage-${where}`);
     const party = this.battle.combatants.filter((c) => c.side === 'party');
     const enemies = this.battle.combatants.filter((c) => c.side === 'enemy');
@@ -406,6 +410,7 @@ export class CombatScene extends Phaser.Scene {
       return;
     }
     await this.teach('react');
+    await this.teach('parry');
     // The tell's last moment: he flashes and shudders.
     playSound(this, 'tick');
     this.flashWhite(view, 80);
@@ -646,6 +651,30 @@ export class CombatScene extends Phaser.Scene {
           const t = this.views.get(e.target)!;
           playSound(this, 'shimmer', 0.6);
           this.popLabel('WEAKENED', t, SHADES.green, 18);
+          break;
+        }
+        case 'blinded': {
+          // Grit in the eyes: reacting is harder for a couple of rounds.
+          const t = this.views.get(e.target)!;
+          playSound(this, 'scratch', 0.7);
+          this.flashWhite(t, 160);
+          this.popLabel('BLINDED', t, SHADES.woodPale, 18);
+          break;
+        }
+        case 'braced': {
+          const t = this.views.get(e.actor)!;
+          playSound(this, 'tick');
+          this.setPose(t, 'guard');
+          this.popLabel('BRACED', t, SHADES.cyan, 18);
+          break;
+        }
+        case 'revealed': {
+          // Sniffed out: the tells over their heads now show what's really coming.
+          const t = this.views.get(e.actor)!;
+          playSound(this, 'shimmer', 0.6);
+          this.popLabel('SNIFFED OUT', t, SHADES.amber, 18);
+          for (const v of this.views.values()) if (v.c.side === 'enemy' && v.c.hp > 0) this.flashWhite(v, 100);
+          this.refresh();
           break;
         }
         case 'interrupt': {
@@ -1587,4 +1616,36 @@ function noise2(x: number, y: number): number {
   const f = y - yi;
   const k = f * f * (3 - 2 * f);
   return noise(x + yi * 57.13) * (1 - k) + noise(x + (yi + 1) * 57.13) * k;
+}
+
+/**
+ * The picked fields in daylight (Chapter 2): the borderland's sky and the tree on the horizon (the areas'
+ * own far layer), then the dug-over ground coming towards you: lumpy dirt, old holes, scraps glinting.
+ */
+function paintFieldsStage() {
+  const far = paintFar({ horizon: HORIZON, treeX: 330, treeScale: 0.9 }, 'morning', H);
+  const dirt = rgb(SHADES.woodPale);
+  const dust = rgb(SHADES.dim);
+  const HOLES: [number, number, number][] = [[90, 150, 22], [400, 140, 16], [250, 236, 30], [30, 228, 26]];
+  return (x: number, y: number) => {
+    if (y < HORIZON) return far(x, y);
+    const depth = (y - HORIZON) / (H - HORIZON);
+    // Holes somebody dug and gave up on: dark inside, a lip of turned earth.
+    for (const [hx, hy, r] of HOLES) {
+      const d = ((x - hx) / r) ** 2 + ((y - hy) / (r * 0.3)) ** 2;
+      if (d <= 1) return y < hy - r * 0.1 ? SHADES.deep : SHADES.wood;
+      if (d <= 1.5) return y < hy ? SHADES.light : SHADES.dim;
+    }
+    // Scraps in the dirt, catching the sun: small at the back, bigger near.
+    const size = 2 + depth * 6;
+    const cell = Math.floor(x / (size * 4)) * 31 + Math.floor(y / (size * 1.5)) * 17;
+    if (noise(cell) > 0.93 && (x % (size * 4)) < size && (y % (size * 1.5)) < size * 0.5) return noise(cell * 3) > 0.7 ? SHADES.cyanMid : SHADES.light;
+    // Lumpy, dug-over dirt, lighter on the tops of the lumps, paler into the distance.
+    const lump = noise2(x / (6 + depth * 14), y / (3 + depth * 6));
+    const above = noise2(x / (6 + depth * 14), (y - 2) / (3 + depth * 6));
+    const base = addLight(addLight(dirt, dust, 0.45 - depth * 0.35 + lump * 0.3), rgb(SHADES.light), Math.max(0, 0.18 - depth * 0.2));
+    if (lump - above > 0.08) return addLight(base, rgb(SHADES.light), 0.3);
+    if (lump < 0.25) return addLight(base, rgb(SHADES.woodLight), 0.5);
+    return base;
+  };
 }

@@ -37,6 +37,7 @@ The one on the end still glows a little at night. He calls it his light.
 -> END
 
 === shack_bed ===
+{ c2day1 == "home": -> c2day1_bed }
 Not yet.
 -> END
 

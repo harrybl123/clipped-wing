@@ -1,6 +1,6 @@
 # Sequence plan: Chapter 2, Part 1: Scraping by (Days 1–2)
 
-Planning, not built yet. **(doc)** = [the design doc](../../chapter-2-design.md); **(designer)** = decided in conversation; **(suggestion)** = Claude's proposal. Part of [the chapter's structure](../../chapter-2-story.md).
+Day 1 built 2026-10-07 (`story/borderland/chapter2-day1.ink`; dev `?chapter=2`); Day 2 still to build. **(doc)** = [the design doc](../../chapter-2-design.md); **(designer)** = decided in conversation; **(suggestion)** = Claude's proposal. Part of [the chapter's structure](../../chapter-2-story.md).
 
 ## What we have so far
 - A nobody on the picked fields, feeding your brother. Tribute night shows how the town runs. You find the dog. **(doc)**
@@ -11,16 +11,17 @@ Planning, not built yet. **(doc)** = [the design doc](../../chapter-2-design.md)
 
 ## The shape of the part (suggestion)
 
-### Day 1: scraping by
+### Day 1: scraping by (built)
+Opens with her scavenging, not waking at home (designer: Act 1 did that). Stragglers first, then the food crisis: they take your finds (designer).
 
 | Time | Where | What happens | Objective shown |
 | --- | --- | --- | --- |
-| Morning | Your shack | Wake; your brother's hungry, and there's nothing left; he shows you something from his collection | "Find something worth trading" |
-| Morning | The picked fields | Digging over ground everyone's already dug; a few poor finds; the pickers' talk (your friend among them) | "Dig in the picked fields" |
-| Afternoon | The picked fields | **Stragglers** from elsewhere (ragged, desperate, strangers) try to take your haul. The combat tutorial, solo. Win: you keep it; lose: they take the best of it (survivable, a smaller haul) | "Fight" |
-| Afternoon | The swap yard | Trade a find for food: finds are currency | "Trade for food" |
-| Evening | The tally house | **Tribute night**: everyone weighs in, the clan takes its cut. Someone's short, and the enforcer makes an example of them; then the boss steps in, charming, and lets them off, kind and frightening at once. You pay what you can | "Pay your tribute" |
-| Night | Your shack | Share the food with your brother. Not enough. You decide to try the sunk town | "Go to bed" |
+| Morning | The picked fields | Dig three spots (a coil of wire, a ring of pale casing, a cube of glass with a light inside) | "Dig for finds" |
+| Morning | The picked fields | **Stragglers** stand over you at the third spot. The fight (the tutorial). Win or lose, the third one runs off with your finds (the strap cut) | — |
+| Afternoon | The picked fields, the swap yard | Your friend saw them go. Your brother, at the yard: he gives you his light (the one thing in his collection that glows) to trade | "Find your brother" |
+| Afternoon | The swap yard | The food trader gives you two bowls for it | "Trade for food" |
+| Evening | The tally house | **Tribute night.** You're short; the enforcer grabs you; the boss lets you off, kind and frightening at once: "Next week, you bring double" (`owe_double`). The watcher never takes his eyes off you **(suggestion: it's her who's short, not someone else, since she's lost everything)** | "Pay your tribute" |
+| Night | Your shack | His bowl by his pillow. Nobody brings double off the picked fields; the sunk town | "Go home" |
 
 ### Day 2: the dog
 
@@ -42,8 +43,16 @@ Training the dog in the hollow: bury a find, the dog finds it. A short montage y
 - **Combat:** her own moves (a pry bar? she's quick and fit), stragglers as enemies, the dog as a party member, a tutorial on the stragglers fight (`teaches`).
 - **The dog in areas:** following you (the `follow` feature), hidden under the floor at home.
 
-## Questions for the designer
-1. **Where you find the dog:** at the bottom of the sunk town, cornered by stragglers who want to eat it? Or somewhere else?
-2. **How she fights:** a pry bar, a knife, her fists? Quick, or heavy-hitting?
-3. **Names:** does your brother name the dog, or do you (the player)? Or does it wait for your names for the cast?
-4. **How Chapter 2 starts:** straight after Act 1's ending, or chosen from the title?
+## Decided
+- **The chapter is called "On the Scent".** (designer)
+- **It starts from Chapter 1's ending:** "Begin Chapter 2" on the endings that finish the chapter (designer). Dev: `?chapter=2`.
+- **The dog:** stragglers have it cornered in the sunk town and mean to eat it; you fight to save it (designer).
+- **Naming the dog:** Peggy, Luna or Bear (designer); the player picks **(suggestion: how we read it)**. Day 2.
+- **Her weapon:** a staff of different-shaped cuboid pieces, like the one in Tenet (designer): mismatched blocks of scrap on a core, one with a cyan glint.
+- **Unique abilities** for her, the dog and the opposition; nothing borrowed from Act 1 (designer: Rot-ink doesn't fit; unique to the scavenger).
+
+## Fighters (draft numbers, to playtest)
+- **The scavenger:** Jab (basic); Sweep (takes their legs: off balance, interrupts a wind-up); Rattle (3 blows, building); **Brace** (until her next turn, a good dodge parries and hits back). She can parry from the start.
+- **The dog** (Day 2): Bite (basic); **Sniff** (shows every enemy's real move this round: no feints); Worry (bites and hangs on: 2 hits).
+- **The thin straggler:** Shank; **Grit** (dirt in your eyes: for 2 rounds, dodging is harder); Snatch (grabs for your satchel).
+- **The big straggler:** Club; Heave, then Crush (a wind-up: guard, or Sweep him).

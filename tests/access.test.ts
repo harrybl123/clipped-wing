@@ -65,4 +65,9 @@ describe('routes between areas', () => {
   it('returns null when already there', () => {
     expect(nextHop('home', 'home', AREAS)).toBeNull();
   });
+
+  it('on Chapter 2\u2019s first day, keeps the sunk town, the compound, the line and the deep ground shut', () => {
+    for (const id of ['picked-fields', 'swap-yard', 'tally-house', 'shack', 'bar', 'scrap-stacks']) expect(isAreaOpen(id, 1, 'afternoon'), id).toBe(true);
+    for (const id of ['sunk-town', 'compound', 'compound-house', 'rival-line', 'deep-ground']) expect(isAreaOpen(id, 1, 'afternoon'), id).toBe(false);
+  });
 });

@@ -36,6 +36,7 @@ Nobody goes near it.
 // --- People (draft) ---
 
 === picked_fields_friend ===
+{ c2day1 == "brother": -> c2day1_friend }
 "Nothing out here but bolts and dirt. Same as yesterday." #speaker:scav_friend
 "Still. Better than the queue." #speaker:scav_friend
 -> END

@@ -1,6 +1,6 @@
 import { ELDER_LOOKS, FRIEND_FATHER_LOOK, GUARD_LOOK, PREACHER_LOOK, RESIDENT_LOOKS, VILLAGER_LOOKS, type VillagerLook } from './characters';
 import type { VoiceId } from '../systems/voices';
-import { CAST_LOOKS, HOSTESS_LOOKS, type FolkLook } from './borderlandFolk';
+import { CAST_LOOKS, HOSTESS_LOOKS, STRAGGLER_LOOKS, TOWNSFOLK_LOOKS, type FolkLook } from './borderlandFolk';
 import { SHADES } from './pixelArt';
 import type { RowSprite } from './sprites';
 
@@ -797,6 +797,10 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
   madam: { name: 'The madam', portrait: folkPortrait(CAST_LOOKS.madam, { eyes: 'narrow', brow: 'raised', mouth: 'smile', items: ['earring'] }), voice: 'mum' },
   hostess: { name: 'A hostess', portrait: folkPortrait(HOSTESS_LOOKS[0]!, { build: 'narrow', eyes: 'narrow', mouth: 'smile', items: ['earring', 'beads'] }), voice: 'girl' },
   fence: { name: 'The fence', portrait: folkPortrait(CAST_LOOKS.fence, { build: 'narrow', eyes: 'narrow', mouth: 'smile', items: ['earring'] }), voice: 'preacher' },
+  food_trader: { name: 'The food trader', portrait: folkPortrait(TOWNSFOLK_LOOKS[5]!, { mouth: 'frown', eyes: 'narrow' }), voice: 'roots_woman' }, // at the swap yard's food stall
+  // Stragglers from elsewhere (Chapter 2, Day 1).
+  straggler_thin: { name: 'The thin one', portrait: folkPortrait(STRAGGLER_LOOKS[0]!, { build: 'narrow', eyes: 'hollow', mouth: 'grin' }), voice: 'roots_man' },
+  straggler_big: { name: 'The big one', portrait: folkPortrait(STRAGGLER_LOOKS[1]!, { build: 'heavy', brow: 'heavy', beard: 'stubble', mouth: 'frown' }), voice: 'guard' },
 
   // The recurring cast.
   preacher: { name: 'The preacher', portrait: npcPortrait(PREACHER_LOOK, { build: 'narrow', age: 1, eyes: 'wide', brow: 'raised', mouth: 'grin' }), voice: 'preacher' },

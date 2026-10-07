@@ -8,6 +8,7 @@ import { stopScore } from '../ui/score';
 import { savedScreenFit, setScreenFit, toggleFullscreen } from '../ui/displaySetting';
 import { setMuted } from '../ui/soundSetting';
 import { BIRD, FUNGI, LAMP } from '../ui/sprites';
+import { beginChapter2 } from './ChapterScene';
 
 // Title screen, visual only: looking up the inside of the trunk at the tube rising into the
 // white Canopy, with the menu beside it. Only New Game does anything yet (parked menu ideas
@@ -90,6 +91,8 @@ export class TitleScene extends Phaser.Scene {
   private mainMenu(): MenuItem[] {
     return [
       { label: 'New Game', action: () => this.startGame() },
+      // (For now, always here, to play it from the title (designer); later, perhaps once Chapter 1 is finished.)
+      { label: 'Chapter 2', action: () => this.startGame(() => beginChapter2(this)) },
       { label: 'Continue', action: () => this.showNotice('Not built yet.') },
       { label: 'Settings', action: () => this.setMenu(this.settingsMenu()) },
       { label: 'Credits', action: () => this.showNotice('Not built yet.') },
@@ -220,11 +223,11 @@ export class TitleScene extends Phaser.Scene {
     this.time.delayedCall(1800, () => notice.destroy());
   }
 
-  private startGame(): void {
+  private startGame(begin: () => void = () => this.scene.start('Prologue')): void {
     this.phase = 'leaving';
     if (this.music) this.tweens.add({ targets: this.music, volume: 0, duration: 600 });
     this.cameras.main.fadeOut(600, 0, 0, 0);
-    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Prologue'));
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, begin);
   }
 
   private handleKey(event: KeyboardEvent): void {

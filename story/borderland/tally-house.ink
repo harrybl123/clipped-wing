@@ -33,6 +33,7 @@ From up here, you'd see every hand at the counter. That's the point of it.
 // --- People (draft) ---
 
 === tally_house_tallyman ===
+{ c2day1 == "tribute": -> c2day1_tribute }
 "Next. Everything on the scale, nothing in the pockets." #speaker:tallyman
 "The scale doesn't lie. I make sure of it." #speaker:tallyman
 -> END

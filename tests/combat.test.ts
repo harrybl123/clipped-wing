@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { COMBATANTS, ENCOUNTERS, ITEMS, LESSONS, MOVES } from '../src/data/combat';
-import { aiWeights, ALL_OUT_POWER, Battle, type CombatantDef, type EncounterDef, type ItemDef, type MoveDef } from '../src/systems/Combat';
+import { aiWeights, ALL_OUT_POWER, Battle, type BattleEvent, type CombatantDef, type EncounterDef, type ItemDef, type MoveDef, type Reaction } from '../src/systems/Combat';
 
 // Small test data, so the numbers are easy: attack = defence, so harm = power × multipliers. An rng
 // fixed at 0.5 means no variance (×1.0), no criticals (unless crit is 1) and the middle weighted pick.
@@ -555,8 +555,8 @@ describe('combat data', () => {
 });
 
 describe('the market scrap teaches itself', () => {
-  it('is the only fight that teaches, and every lesson says what to press', () => {
-    expect(Object.values(ENCOUNTERS).filter((e) => e.teaches).map((e) => e.id)).toEqual(['market_scrap', 'rot_beetles']);
+  it('is the only fight that teaches (with the rot, and Chapter 2\u2019s first), and every lesson says what to press', () => {
+    expect(Object.values(ENCOUNTERS).filter((e) => e.teaches).map((e) => e.id)).toEqual(['market_scrap', 'rot_beetles', 'stragglers']);
     for (const e of Object.values(ENCOUNTERS)) for (const l of [...(e.teaches ?? []), ...(e.alsoTeaches?.lessons ?? [])]) expect(LESSONS).toHaveProperty(l);
     // Held back at the market (never fought): the rot fight teaches everything the market would have.
     expect(ENCOUNTERS.rot_beetles!.alsoTeaches).toEqual({ unless: 'fought', lessons: ENCOUNTERS.market_scrap!.teaches });
@@ -665,5 +665,75 @@ describe('the deep rot: the girl and the beetles', () => {
     expect(average).toBeLessThan(0.97);
     expect(careless).toBeLessThan(average);
     expect(careless).toBeLessThan(0.85);
+  });
+});
+
+describe('Chapter 2: the scavenger, the dog and the stragglers', () => {
+  const rng = (seed: number) => () => {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  /** Plays enemies' turns until it's the party's (or the fight ends). */
+  const toParty = (b: Battle, reaction: Reaction = 'none') => {
+    while (!b.outcome && b.current!.side === 'enemy') b.enemyTurn(reaction);
+  };
+
+  it('each has their own skills, none borrowed from Act 1', () => {
+    const act1 = new Set([...COMBATANTS.carver!.moves, COMBATANTS.carver!.basic, ...COMBATANTS.girl!.moves, COMBATANTS.girl!.basic]);
+    for (const id of ['scavenger', 'dog', 'straggler_thin', 'straggler_big']) {
+      const def = COMBATANTS[id]!;
+      for (const m of [def.basic, ...def.moves].filter(Boolean)) expect(act1.has(m!), `${id}: ${m}`).toBe(false);
+    }
+    expect(COMBATANTS.scavenger!.reactions).toEqual(['dodge', 'parry']);
+  });
+
+  it('the stragglers fight is hers alone, on the fields, and writes stragglers_won', () => {
+    const e = ENCOUNTERS.stragglers!;
+    expect(e.party).toEqual(['scavenger']);
+    expect(e.stage).toBe('fields');
+    expect(e.outcomes).toEqual({ won: { stragglers_won: true }, lost: { stragglers_won: false } });
+  });
+
+  it('Brace: until her next turn, a dodge parries and she hits back', () => {
+    const b = new Battle(ENCOUNTERS.stragglers!, MOVES, COMBATANTS, ITEMS, rng(3));
+    toParty(b);
+    expect(b.current!.id).toBe('scavenger');
+    const events = b.act({ type: 'skill', move: 'brace' });
+    expect(events.some((e) => e.type === 'braced')).toBe(true);
+    // The stragglers' attacks this round: a dodge becomes a parry (no harm, a counter), unless it can't be reacted to.
+    const hp = b.get('scavenger').hp;
+    const after: BattleEvent[] = [];
+    while (!b.outcome && b.current!.side === 'enemy') after.push(...b.enemyTurn('dodge'));
+    const reactions = after.filter((e) => e.type === 'reaction');
+    for (const r of reactions) expect(r).toMatchObject({ reaction: 'parry' });
+    if (reactions.length) {
+      expect(after.some((e) => e.type === 'counter')).toBe(true);
+      expect(b.get('scavenger').hp).toBe(hp);
+    }
+  });
+
+  it('Grit half-blinds: reacting is harder for two rounds', () => {
+    const b = new Battle(ENCOUNTERS.stragglers!, MOVES, COMBATANTS, ITEMS, rng(5));
+    const before = b.reactionWindow('shank', 'scavenger')!;
+    b.get('scavenger').blinded = 2;
+    const blind = b.reactionWindow('shank', 'scavenger')!;
+    expect(blind.time).toBeLessThan(before.time);
+    expect(MOVES.grit!.blinds).toBe(2);
+  });
+
+  it('Sniff shows every enemy\u2019s real move: no feints', () => {
+    const tricky = { ...COMBATANTS, straggler_thin: { ...COMBATANTS.straggler_thin!, feint: 1 } };
+    const fight = { ...ENCOUNTERS.stragglers!, party: ['dog'] };
+    const b = new Battle(fight, MOVES, tricky, ITEMS, rng(9));
+    toParty(b);
+    b.act({ type: 'skill', move: 'sniff' });
+    for (const foe of b.living('enemy')) {
+      const intent = b.intentOf(foe.id);
+      const tell = MOVES[intent!.move]!.tell;
+      if (tell && intent!.tell) expect(tell.lines).toContain(intent!.tell.line);
+    }
   });
 });

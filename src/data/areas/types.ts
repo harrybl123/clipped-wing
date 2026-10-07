@@ -110,6 +110,9 @@ export interface Interactable {
   /** Verb shown in the prompt: "[E] Talk". */
   label: string;
   knot: string;
+  /** Only usable while this ink variable is true / none of these are (e.g. a spot to dig, until you've dug it). */
+  showIf?: string;
+  hideIf?: string | string[];
 }
 
 /**

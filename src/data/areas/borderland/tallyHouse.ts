@@ -86,6 +86,16 @@ export const tallyHouse: AreaDefinition = {
     local('queuer-4', 11, 240, FLOOR, ['afternoon']),
     // One of the boss's people, watching the weighing.
     cast('enforcer', 452, FLOOR, { knot: 'tally_house_enforcer', when: ['afternoon'], flipX: true }),
+    // Tribute night (Chapter 2, Day 1): the queue down the rail, the enforcer on the wall, the boss and the
+    // watcher by the grille, watching.
+    cast('enforcer', 300, FLOOR, { id: 'enforcer-tribute', when: ['evening'], showIf: 'tribute_night', flipX: true }),
+    cast('boss', 500, FLOOR, { id: 'boss-tribute', when: ['evening'], showIf: 'tribute_night', flipX: true }),
+    cast('watcher', 520, FLOOR, { id: 'watcher-tribute', when: ['evening'], showIf: 'tribute_night', flipX: true }),
+    local('tribute-1', 1, 196, FLOOR, ['evening'], { showIf: 'tribute_night' }),
+    local('tribute-2', 4, 214, FLOOR, ['evening'], { showIf: 'tribute_night' }),
+    local('tribute-3', 10, 232, FLOOR, ['evening'], { showIf: 'tribute_night' }),
+    local('tribute-4', 6, 250, FLOOR, ['evening'], { showIf: 'tribute_night' }),
+    local('tribute-5', 8, 268, FLOOR, ['evening'], { showIf: 'tribute_night' }),
   ],
 
   interactables: [

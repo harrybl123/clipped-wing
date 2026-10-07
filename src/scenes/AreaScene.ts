@@ -412,7 +412,12 @@ export class AreaScene extends Phaser.Scene {
 
     const closed = () => this.conversationClosed();
     const talk = (knot: string) => () => this.dialogue.open(knot, closed);
-    this.usables = area.interactables.map((it) => ({ ...it, use: talk(it.knot) }));
+    const story = getSession(this).story;
+    this.usables = area.interactables.map((it) => ({
+      ...it,
+      use: talk(it.knot),
+      enabled: it.showIf || it.hideIf ? () => (!it.showIf || !!story.getVariable(it.showIf)) && ![it.hideIf ?? []].flat().some((v) => story.getVariable(v)) : undefined,
+    }));
     for (const exit of area.exits) {
       const known = exit.showIf ? () => !!getSession(this).story.getVariable(exit.showIf!) : undefined;
       this.usables.push({ ...exit, label: 'Leave', use: () => this.openDoorMenu(exit), enabled: known });

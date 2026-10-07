@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT as H, GAME_WIDTH as W } from '../config';
 import { getSession } from '../session';
+import { beginChapter2 } from './ChapterScene';
 import { Calendar } from '../systems/Calendar';
 import { SHADES } from '../ui/pixelArt';
 import { PixelText } from '../ui/PixelText';
@@ -35,7 +36,7 @@ const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number
       'Below you the torches got smaller, and smaller, and then there were none.',
       'Up, and up, into the white.',
     ],
-    coda: 'End of Act 1',
+    coda: 'End of Chapter 1',
     retryDay: 7,
   },
   // Day 7, down: you gave yourself up, and they threw you into the rot; light breaks in at the far end.
@@ -46,7 +47,7 @@ const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number
       'And at the bottom of it all, a light that never came from the tube.',
       'I will find you.',
     ],
-    coda: 'End of Act 1',
+    coda: 'End of Chapter 1',
     retryDay: 7,
   },
   // The same, with the girl you blamed beside you.
@@ -57,7 +58,7 @@ const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number
       "She didn't forgive you. You didn't ask her to.",
       'But when the light came in, you went towards it together.',
     ],
-    coda: 'End of Act 1',
+    coda: 'End of Chapter 1',
     retryDay: 7,
   },
 };
@@ -99,6 +100,8 @@ export class EndingScene extends Phaser.Scene {
 
     const start = getSession(this).dayStarts[ending.retryDay];
     const choices = [
+      // Finishing Chapter 1 opens the next (designer).
+      ...(ending.coda ? [{ label: 'Begin Chapter 2', run: () => beginChapter2(this) }] : []),
       ...(start ? [{ label: `Try again from Day ${ending.retryDay}`, run: () => this.retry(ending.retryDay) }] : []),
       { label: 'Back to the title', run: () => this.scene.start('Title') },
     ];

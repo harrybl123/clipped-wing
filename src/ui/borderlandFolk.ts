@@ -328,3 +328,15 @@ export const RIVAL_LOOKS: FolkLook[] = [
   { height: 24, width: 2, skin: 'dark', hair: S.shadow, hairStyle: 'long', head: 'wrap', scarf: S.light, top: S.dim, topStyle: 'vest', legs: S.woodLight },
 ];
 export const RIVALS = RIVAL_LOOKS.map(folkFrames);
+
+/**
+ * Stragglers (Chapter 2, Day 1): people from elsewhere, wandering in off the plain. Ragged and muted, no
+ * tech on them, nothing matched: a dull rag wrap (not the other clan's pale ones), patched coats. The thin
+ * one, the big one, and the one who runs off with your finds. Their battle sprites match the first two.
+ */
+export const STRAGGLER_LOOKS: FolkLook[] = [
+  { height: 24, width: 2, skin: 'tan', hair: S.shadow, hairStyle: 'short', head: 'wrap', top: S.dim, topStyle: 'coat', legs: S.woodLight },
+  { height: 27, width: 4, skin: 'fair', hair: S.woodLight, hairStyle: 'bald', top: S.dim, topStyle: 'vest', legs: S.woodLight, plate: true },
+  { height: 22, width: 2, skin: 'dark', hair: S.shadow, hairStyle: 'messy', top: S.woodPale, topStyle: 'shirt', legs: S.wood, pack: 'bag' },
+];
+export const STRAGGLERS = STRAGGLER_LOOKS.map(folkFrames);

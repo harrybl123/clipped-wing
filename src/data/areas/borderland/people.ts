@@ -1,4 +1,4 @@
-import { CAST, DOG, HOSTESSES, RIVALS, TOWNSFOLK, type CastId } from '../../../ui/borderlandFolk';
+import { CAST, DOG, HOSTESSES, RIVALS, STRAGGLERS, TOWNSFOLK, type CastId } from '../../../ui/borderlandFolk';
 import type { TimeSlot } from '../../../systems/Calendar';
 import type { Person } from '../types';
 
@@ -74,5 +74,16 @@ export const hostess = (id: string, look: number, x: number, y: number, when?: T
   x,
   y,
   when,
+  ...extra,
+});
+
+/** A straggler from elsewhere (Chapter 2, Day 1), there only while the story has them (`showIf`). */
+export const straggler = (id: string, look: number, x: number, y: number, showIf: string, extra: Partial<Person> = {}): Person => ({
+  id,
+  sprite: STRAGGLERS[look]!.idle[0]!,
+  idleFrames: STRAGGLERS[look]!.idle,
+  x,
+  y,
+  showIf,
   ...extra,
 });

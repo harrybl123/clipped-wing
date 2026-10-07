@@ -62,6 +62,12 @@ export interface MoveDef {
   taunts?: boolean;
   /** Leaves what it hits weakened: it takes `mult` times the harm for `turns` rounds (the girl's Rot-ink). */
   exposes?: { turns: number; mult: number };
+  /** Leaves what it hits half-blind for `turns` rounds: their reactions come faster and narrower (a straggler's fistful of grit). */
+  blinds?: number;
+  /** Until the user's next turn, a good reaction parries as well as a perfect one (the scavenger's Brace, her staff held across her). */
+  braces?: boolean;
+  /** Every enemy's tell this round shows what it will really do: no feints (the dog's Sniff). */
+  reveals?: boolean;
 }
 
 export interface ItemDef {
@@ -141,7 +147,7 @@ export interface EncounterDef {
    */
   timing?: { lunge?: number; ease?: number };
   /** Where it's fought (the scene paints a stage for each): the market by default. */
-  stage?: 'market' | 'rot';
+  stage?: 'market' | 'rot' | 'fields';
   /** The fight teaches itself: a short explanation the first time each of these comes up (`LESSONS`). */
   teaches?: string[];
   /**
@@ -179,6 +185,10 @@ export interface Combatant {
   /** Rounds left of being weakened (`exposes`), and by how much it multiplies the harm they take. */
   exposed: number;
   exposedMult: number;
+  /** Rounds left half-blind (`blinds`): reacting is harder. */
+  blinded: number;
+  /** Braced (`braces`) until their next turn. */
+  braced: boolean;
 }
 
 export interface Intent {
@@ -222,6 +232,9 @@ export type BattleEvent =
   | { type: 'taunt'; actor: string; lured: string[] }
   | { type: 'switch'; from: string; to: string }
   | { type: 'weakened'; target: string }
+  | { type: 'blinded'; target: string }
+  | { type: 'braced'; actor: string }
+  | { type: 'revealed'; actor: string }
   | { type: 'qte'; actor: string; grade: Grade }
   | { type: 'stumble'; actor: string }
   | { type: 'allOut'; actor: string }
@@ -253,6 +266,8 @@ export const DODGE = 0.5;
 export const ALL_OUT_POWER = 14;
 /** Reaction timing when a fight doesn't say. */
 export const DEFAULT_TIMING = { lunge: 650, ease: 1 };
+/** How much easier (below 1: harder) reacting is while half-blind. */
+export const BLIND_EASE = 0.6;
 /** Off balance lasts this many of their own turns, then they find their feet. */
 export const RECOVER_TURNS = 2;
 
@@ -291,7 +306,7 @@ export class Battle {
       if (!def) throw new Error(`Combat: no combatant called "${defId}"`);
       for (const m of [...def.moves, ...(def.basic ? [def.basic] : [])]) if (!moves[m]) throw new Error(`Combat: ${defId} has unknown move "${m}"`);
       const n = all.slice(0, i).filter((d) => d === defId).length;
-      return { id: n ? `${defId}-${n + 1}` : defId, def, side, hp: def.hp, sp: def.sp ?? 0, down: false, guarding: false, offBalance: 0, recoverIn: 0, steady: false, exposed: 0, exposedMult: 1 };
+      return { id: n ? `${defId}-${n + 1}` : defId, def, side, hp: def.hp, sp: def.sp ?? 0, down: false, guarding: false, offBalance: 0, recoverIn: 0, steady: false, exposed: 0, exposedMult: 1, blinded: 0, braced: false };
     };
     this.combatants = [...encounter.party.map(make('party')), ...encounter.enemies.map(make('enemy'))];
     if (!this.combatants.some((c) => c.side === 'party') || !this.combatants.some((c) => c.side === 'enemy')) {
@@ -389,19 +404,19 @@ export class Battle {
    * The QTE for blow `hit` of a move, as this fight eases it (`canPerfect`: whether a perfect counts).
    * `last`: the kind of the last QTE shown; a move with an `alt` uses that instead of repeating it.
    */
-  qteFor(move: string, hit = 0, canPerfect = true, last: QteKind | null = null): Qte | null {
+  qteFor(move: string, hit = 0, canPerfect = true, last: QteKind | null = null, harder = 1): Qte | null {
     const q = this.move(move).qte;
     const def = Array.isArray(q) ? q[Math.min(hit, q.length - 1)] : q;
     if (!def) return null;
     const { ease, lunge } = this.timing;
-    return easeQte(pickQte(def, last), ease, lunge, canPerfect);
+    return easeQte(pickQte(def, last), ease * harder, lunge, canPerfect);
   }
 
   /** How `target` reacts to blow `hit` of an enemy's `move`: null if it can't (it can't dodge, or there's no QTE). */
   reactionWindow(move: string, target: string, hit = 0, last: QteKind | null = null): Qte | null {
     const t = this.get(target);
     if (!t.def.reactions?.includes('dodge')) return null;
-    return this.qteFor(move, hit, t.def.reactions.includes('parry'), last);
+    return this.qteFor(move, hit, t.def.reactions.includes('parry'), last, t.blinded > 0 ? BLIND_EASE : 1);
   }
 
   /** What a QTE grade on an enemy's blow means for you: a good one dodges, a perfect one parries (if you can). */
@@ -435,6 +450,7 @@ export class Battle {
       return [{ type: 'switch', from: actor.id, to: partner.id }];
     }
     actor.guarding = false;
+    actor.braced = false;
     this.guarded.delete(actor.id);
     const events: BattleEvent[] = [];
     const firstFoe = () => this.living('enemy')[0]!.id;
@@ -457,6 +473,11 @@ export class Battle {
         const target = move.target === 'self' ? actor : this.get(action.target ?? firstFoe());
         events.push(...this.strike(actor, move, target, { grades: action.grades ?? [] }));
         if (move.taunts) events.push(...this.taunt(actor));
+        if (move.braces) {
+          actor.braced = true;
+          events.push({ type: 'braced', actor: actor.id });
+        }
+        if (move.reveals) events.push(...this.reveal(actor));
         break;
       }
       case 'guard':
@@ -556,7 +577,9 @@ export class Battle {
     const breaks = !!move.interrupts && target.side === 'enemy' && !!intent?.charged && !this.hasActed(target.id);
     for (let i = 0; i < (move.hits ?? 1) && target.hp > 0 && actor.hp > 0; i++) {
       const reaction = reactions[i] ?? 'none';
-      const r: Reaction = window && (reaction === 'none' || target.def.reactions?.includes(reaction)) ? reaction : 'none';
+      let r: Reaction = window && (reaction === 'none' || target.def.reactions?.includes(reaction)) ? reaction : 'none';
+      // Braced: a good reaction turns the blow aside and hits back, like a perfect one.
+      if (r === 'dodge' && target.braced) r = 'parry';
       if (window) events.push({ type: 'reaction', actor: actor.id, target: target.id, reaction: r });
       if (r === 'parry') {
         // A clean parry: no harm, and a free hit back (the target's basic attack), which can't chain.
@@ -602,6 +625,16 @@ export class Battle {
     return [{ type: 'taunt', actor: actor.id, lured }];
   }
 
+  /** Sniffed out: every enemy still to act this round shows its real move's tell. */
+  private reveal(actor: Combatant): BattleEvent[] {
+    for (const foe of this.living('enemy')) {
+      const intent = this.intents.get(foe.id);
+      const tell = intent && this.move(intent.move).tell;
+      if (intent && tell?.lines.length && !this.hasActed(foe.id)) intent.tell = { pose: tell.pose, line: tell.lines[0]! };
+    }
+    return [{ type: 'revealed', actor: actor.id }];
+  }
+
   private hasActed(id: string): boolean {
     return this.order.indexOf(id) < this.turnIndex;
   }
@@ -637,6 +670,10 @@ export class Battle {
       target.exposed = move.exposes.turns;
       target.exposedMult = move.exposes.mult;
       events.push({ type: 'weakened', target: target.id });
+    }
+    if (move.blinds && actor.side !== target.side) {
+      target.blinded = move.blinds;
+      events.push({ type: 'blinded', target: target.id });
     }
     return events;
   }
@@ -726,7 +763,10 @@ export class Battle {
   private startRound(): BattleEvent[] {
     this._round++;
     this.switched = false;
-    for (const c of this.combatants) if (c.exposed > 0) c.exposed--;
+    for (const c of this.combatants) {
+      if (c.exposed > 0) c.exposed--;
+      if (c.blinded > 0) c.blinded--;
+    }
     const events: BattleEvent[] = [{ type: 'round', round: this._round }];
     this.intents.clear();
     for (const enemy of this.living('enemy')) {

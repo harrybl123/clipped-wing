@@ -93,9 +93,23 @@ const OPENS_AT: Partial<Record<Day, Record<string, TimeSlot[]>>> = {
   5: { 'middle-tiers': ['afternoon'], 'upper-halls': ['afternoon'], 'trunk-climb': ['night'], archive: ['night'], 'offering-floor': ['morning', 'afternoon', 'evening'] },
 };
 
+/**
+ * Chapter 2's borderland, by its own days (the calendar's day numbers again; the two worlds' areas never
+ * overlap). The deep ground and the rival line wait for the story, and the compound for an invitation.
+ */
+const BORDERLAND_CLOSED: Partial<Record<Day, Record<string, string>>> = {
+  1: {
+    'sunk-town': "Not today. People go down the sunk town and don't come up.",
+    compound: "The boss's compound. Nobody goes in unless they're asked.",
+    'compound-house': "The boss's house. Nobody goes in unless they're asked.",
+    'rival-line': "That's the other clan's line. Nobody goes up there without the boss's say.",
+    'deep-ground': 'Too far out. Nobody goes out there.',
+  },
+};
+
 /** Why you can't go to `areaId` right now, or null if you can. */
 export function closedReason(areaId: string, day: Day, slot: TimeSlot): string | null {
-  const reason = CLOSED[day]?.[areaId];
+  const reason = CLOSED[day]?.[areaId] ?? BORDERLAND_CLOSED[day]?.[areaId];
   if (!reason) return null;
   if (OPENS_AT[day]?.[areaId]?.includes(slot)) return null;
   return reason;

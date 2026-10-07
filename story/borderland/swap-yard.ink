@@ -9,6 +9,7 @@ None of it is food.
 -> END
 
 === swap_yard_food ===
+{ c2day1 == "trade": -> c2day1_trade }
 Roots. Something dried. A pot of something hot, if you can pay.
 You've nothing to trade yet.
 -> END
@@ -45,6 +46,7 @@ The fence buys what nobody else will, and asks nothing.
 -> END
 
 === swap_yard_brother ===
+{ c2day1 == "brother": -> c2day1_brother }
 "We're spying! The kid says that man's sold the same pot three times." #speaker:brother
 "Don't tell anyone we were spying. Not even the kid. Wait, the kid knows." #speaker:brother
 -> END

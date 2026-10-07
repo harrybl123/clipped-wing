@@ -463,3 +463,267 @@ export const BEETLE_BATTLE: Record<string, RowSprite> = {
   ...(Object.fromEntries((Object.keys(BEETLE) as (keyof typeof BEETLE)[]).map((p) => [p, beetle(p)])) as Record<keyof typeof BEETLE, RowSprite>),
   down: beetleDown(),
 };
+
+// --- Chapter 2: the borderland, in daylight ---
+// Out here figures are drawn in colour (the scavenger and the borderland's people are, in the areas):
+// each part its own colour, lighter where the sun catches its top and right, darker down its left, and a
+// dark outline round the whole figure so it reads against the bright ground.
+
+/** Lights one part in its own colours: `lit` on its top and right edges, `dark` down its left, `base` inside. */
+function lightDay(g: Grid, part: string, [base, lit, dark]: [string, string, string]): void {
+  const at = (x: number, y: number) => g[y]?.[x] ?? '.';
+  const marks: [number, number, string][] = [];
+  g.forEach((row, y) => row.forEach((c, x) => {
+    if (c !== part) return;
+    const edge = (dx: number, dy: number) => at(x + dx, y + dy) !== part;
+    marks.push([x, y, edge(1, 0) || edge(0, -1) ? lit : edge(-1, 0) || edge(-2, 0) ? dark : base]);
+  }));
+  for (const [x, y, c] of marks) g[y]![x] = c;
+}
+
+/** A dark outline round everything drawn. */
+function outline(g: Grid, c = 'X'): void {
+  const filled = (x: number, y: number) => (g[y]?.[x] ?? '.') !== '.' && g[y]![x] !== c;
+  const marks: Pt[] = [];
+  g.forEach((row, y) => row.forEach((v, x) => {
+    if (v === '.' && (filled(x - 1, y) || filled(x + 1, y) || filled(x, y - 1) || filled(x, y + 1))) marks.push([x, y]);
+  }));
+  for (const [x, y] of marks) g[y]![x] = c;
+}
+
+/**
+ * Her staff (designer: like the one in Tenet, a staff of different-shaped cuboid pieces): mismatched blocks of
+ * scrap threaded on a core, each a different length and thickness, one of them old tech with a cyan glint.
+ * Drawn from a to b.
+ */
+function staff(g: Grid, [ax, ay]: Pt, [bx, by]: Pt): void {
+  const len = Math.hypot(bx - ax, by - ay);
+  const [ux, uy] = [(bx - ax) / len, (by - ay) / len];
+  const [nx, ny] = [-uy, ux];
+  // [length, thickness, colour] for each block, repeating along the staff.
+  const BLOCKS: [number, number, string][] = [[6, 3, '7'], [3, 2, '8'], [5, 4, '7'], [2, 2, '9'], [7, 3, '8'], [4, 4, 'Q'], [3, 2, '7'], [6, 3, '9'], [4, 4, '8']];
+  let along = 0;
+  for (let i = 0; along < len; i++) {
+    const [l, w, c] = BLOCKS[i % BLOCKS.length]!;
+    for (let s = along; s < Math.min(len, along + l); s += 0.5) {
+      for (let k = -w / 2; k <= w / 2; k += 0.5) {
+        // The end of each block and its far side darker, so the pieces read as separate cuboids.
+        const shade = s > along + l - 1 || k > w / 2 - 1 ? (c === 'Q' ? 'q' : '0') : c;
+        put(g, ax + ux * s + nx * k, ay + uy * s + ny * k, shade);
+      }
+    }
+    along += l;
+  }
+}
+
+const SCAV_W = 64;
+const SCAV_H = 62;
+
+function scavengerBack(pose: CarverPose): RowSprite {
+  const g = grid(SCAV_W, SCAV_H);
+  const x = 32 + { idle: 0, breathe: 0, ready: 0, dodge: -7, attack: 3, slap: 4, palm: -4, shove: 0, grab: 0, guard: 0, hit: 4 }[pose];
+  const top = 2 + { idle: 0, breathe: 1, ready: 2, dodge: 2, attack: -1, slap: 0, palm: 0, shove: 3, grab: 4, guard: 3, hit: 1 }[pose];
+  const headDx = { idle: 1, breathe: 1, ready: 1, dodge: -3, attack: 2, slap: 4, palm: -3, shove: 0, grab: 0, guard: 0, hit: 6 }[pose];
+  const headDy = { idle: 0, breathe: 0, ready: 1, dodge: 0, attack: -1, slap: 0, palm: 0, shove: 2, grab: 4, guard: 3, hit: -1 }[pose];
+  // Slim: narrower shoulders than the carver's.
+  const sw = 14;
+  const ls: Pt = [x - sw, top + 28];
+  const rs: Pt = [x + sw, top + 28];
+  // Arms [left, right], each ending in the hand; and the staff, from one end to the other.
+  const poses: Record<CarverPose, { arms: [Pt[], Pt[]]; staff: [Pt, Pt]; behind: boolean }> = {
+    // The staff upright in her right hand, its foot on the ground.
+    idle: { arms: [[ls, [x - 17, top + 42], [x - 17, top + 55]], [rs, [x + 19, top + 40], [x + 22, top + 50]]], staff: [[x + 24, top + 62], [x + 21, top - 2]], behind: false },
+    breathe: { arms: [[ls, [x - 17, top + 42], [x - 17, top + 55]], [rs, [x + 19, top + 40], [x + 22, top + 50]]], staff: [[x + 24, top + 62], [x + 21, top - 2]], behind: false },
+    // Held across her in both hands, ready.
+    ready: { arms: [[ls, [x - 20, top + 38], [x - 16, top + 32]], [rs, [x + 20, top + 36], [x + 16, top + 28]]], staff: [[x - 30, top + 44], [x + 31, top + 12]], behind: true },
+    dodge: { arms: [[ls, [x - 20, top + 40], [x - 21, top + 50]], [rs, [x + 18, top + 36], [x + 12, top + 30]]], staff: [[x - 24, top + 62], [x - 19, top + 6]], behind: false },
+    // A jab: the staff driven straight out ahead of her, past her head.
+    attack: { arms: [[ls, [x - 14, top + 22], [x - 4, top + 14]], [rs, [x + 15, top + 22], [x + 6, top + 18]]], staff: [[x + 4, top + 40], [x - 2, top - 4]], behind: true },
+    // Swung wide to the right, then to the left (Rattle's blows).
+    slap: { arms: [[ls, [x - 14, top + 26], [x + 2, top + 22]], [rs, [x + 24, top + 22], [x + 26, top + 14]]], staff: [[x - 6, top + 34], [x + 32, top]], behind: false },
+    palm: { arms: [[ls, [x - 24, top + 22], [x - 26, top + 14]], [rs, [x + 14, top + 26], [x - 2, top + 22]]], staff: [[x + 6, top + 34], [x - 32, top]], behind: false },
+    // A sweep: low and flat, at the legs.
+    shove: { arms: [[ls, [x - 18, top + 38], [x - 12, top + 46]], [rs, [x + 18, top + 38], [x + 12, top + 46]]], staff: [[x - 32, top + 52], [x + 32, top + 46]], behind: true },
+    grab: { arms: [[ls, [x - 20, top + 38], [x - 16, top + 32]], [rs, [x + 20, top + 36], [x + 16, top + 28]]], staff: [[x - 30, top + 44], [x + 31, top + 12]], behind: true },
+    // Braced: the staff held level over her head in both hands.
+    guard: { arms: [[ls, [x - 22, top + 24], [x - 18, top + 10]], [rs, [x + 22, top + 24], [x + 18, top + 10]]], staff: [[x - 31, top + 10], [x + 31, top + 8]], behind: false },
+    hit: { arms: [[ls, [x - 22, top + 34], [x - 26, top + 26]], [rs, [x + 20, top + 40], [x + 22, top + 52]]], staff: [[x - 18, top + 60], [x + 30, top + 30]], behind: false },
+  };
+  const p = poses[pose];
+  const [left, right] = p.arms;
+  const forward = p.behind;
+  const drawArms = () => {
+    limb(g, left, 2.6, '1');
+    limb(g, right, 2.6, '1');
+  };
+  // What she holds out in front of her is behind her body from here.
+  if (forward) {
+    staff(g, ...p.staff);
+    drawArms();
+  }
+  // Her back: bare shoulders, the crop top, bare skin at the waist, then her trousers.
+  // (Drawn as 'Z' first, so only her back, not her arms, takes the top and the trousers.)
+  poly(g, [[x - sw - 1, top + 25], [x + sw + 1, top + 25], [x + sw - 3, SCAV_H + 2], [x - sw + 3, SCAV_H + 2]], 'Z');
+  disc(g, x - sw + 2, top + 29, 4, 4, 'Z');
+  disc(g, x + sw - 2, top + 29, 4, 4, 'Z');
+  g.forEach((row, y) => row.forEach((c, cx) => {
+    if (c !== 'Z') return;
+    row[cx] = y >= top + 31 && y <= top + 41 ? '2' : y >= top + 49 ? '3' : '1';
+  }));
+  // The top's straps over her shoulders.
+  for (const side of [-1, 1]) for (let y = top + 25; y < top + 31; y++) put(g, x + side * 7, y, '2');
+  // Neck and head.
+  poly(g, [[x - 3 + headDx / 2, top + 17 + headDy], [x + 3 + headDx / 2, top + 17 + headDy], [x + 4, top + 27], [x - 4, top + 27]], '1');
+  if (!forward) {
+    drawArms();
+    staff(g, ...p.staff);
+  }
+  const hx = x + headDx;
+  const hy = top + 11 + headDy;
+  disc(g, hx, hy, 7.5, 9, '4');
+  // The ponytail, tied high, hanging down her back (swinging with her).
+  const swing = { dodge: 4, palm: 4, slap: -4, hit: -5, attack: -2 }[pose as string] ?? 0;
+  for (let i = 0; i <= 26; i++) {
+    const t = i / 26;
+    disc(g, hx + Math.sin(t * 2.4) * 1.5 + swing * t, hy - 2 + i, 2.6 - t * 1.6, 1, '4');
+  }
+  // The satchel's strap across her back, the satchel at her right hip.
+  limb(g, [[x - sw + 3, top + 26], [x + sw - 2, top + 48]], 1, '5');
+  poly(g, [[x + sw - 8, top + 46], [x + sw + 4, top + 46], [x + sw + 4, top + 58], [x + sw - 8, top + 58]], '5');
+  lightDay(g, '1', ['K', 'K', 'k']);
+  lightDay(g, '2', ['C', 'C', 'c']);
+  lightDay(g, '3', ['P', 'D', 'p']);
+  lightDay(g, '4', ['R', 'A', 'r']);
+  lightDay(g, '5', ['S', 'D', 's']);
+  // Strands through her hair, and the tie at the top of the ponytail.
+  for (let i = -4; i <= 4; i += 2) for (let j = 0; j < 7; j++) put(g, hx + i + Math.round(j * 0.15 * Math.sign(i)), hy - 6 + j, 'r');
+  for (let i = -2; i <= 2; i++) put(g, hx + i, hy + 1, 'c');
+  // Her spine and shoulder blades, faintly.
+  for (let y = top + 42; y < top + 49; y++) put(g, x, y, 'k');
+  for (const side of [-1, 1]) for (let i = 0; i < 4; i++) put(g, x + side * 6, top + 27 + i, 'k');
+  outline(g);
+  return {
+    rows: rows(g),
+    colours: {
+      K: SHADES.skinFair, k: SHADES.skinFairShade, C: SHADES.cyanMid, c: SHADES.cyanDeep, P: SHADES.woodPale, D: SHADES.dim, p: SHADES.woodLight,
+      R: SHADES.copper, A: SHADES.amber, r: SHADES.copperDeep, S: SHADES.amberDeep, s: SHADES.wood,
+      '7': SHADES.dim, '8': SHADES.light, '9': SHADES.woodPale, '0': SHADES.woodLight, Q: SHADES.cyan, q: SHADES.cyanMid, X: SHADES.shadow,
+    },
+  };
+}
+
+/** The scavenger, from behind, her staff of blocks in hand (Chapter 2). */
+export const SCAVENGER_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, scavengerBack(p)])) as Record<CarverPose, RowSprite>;
+
+/** A straggler's build: how broad, their skin, and what they wear on their head. */
+interface StragglerLook {
+  /** Extra width at the shoulders. */
+  broad: number;
+  skin: 'tan' | 'fair';
+  /** A rag wound round the head (the face showing), or shaved, with a beard. */
+  head: 'wrap' | 'shaved';
+  /** What's in their hand: a shard of something sharp, or a lump of scrap. */
+  holds: 'shard' | 'lump';
+}
+
+/**
+ * A straggler, facing you (Chapter 2): someone from elsewhere, ragged and desperate. A coat patched from
+ * whatever was going, rags trailing, bare hands. The same poses as the zealot's, so the tells work alike.
+ */
+function straggler(pose: Exclude<FoePose, 'down'>, look: StragglerLook): RowSprite {
+  const f = FOE[pose];
+  const g = grid(FOE_W + 8, FOE_H);
+  const cx = 28;
+  const x = cx + f.lean;
+  const top = 2 + f.bob;
+  const b = look.broad;
+  const hip = 41;
+  const hx0 = cx + f.lean / 2;
+  const [lf, rf] = f.feet;
+  limb(g, [[hx0 - 4, hip], [cx + lf * 0.85, 54], [cx + lf, FOE_H - 3]], 3, '3');
+  limb(g, [[hx0 + 4, hip], [cx + rf * 0.85, 54], [cx + rf, FOE_H - 3]], 3, '3');
+  disc(g, cx + lf - 1, FOE_H - 2, 3.2, 1.5, '6');
+  disc(g, cx + rf + 1, FOE_H - 2, 3.2, 1.5, '6');
+  // The coat: to below the hips, hanging open, its hem ragged.
+  poly(g, [[x - 11 - b, top + 16], [x + 11 + b, top + 16], [hx0 + 11 + b / 2, hip + 7], [hx0 - 11 - b / 2, hip + 7]], '2');
+  for (let i = -10 - b / 2; i <= 10 + b / 2; i += 3) limb(g, [[hx0 + i, hip + 6], [hx0 + i + 1, hip + 9 + (Math.abs(i * 7) % 4)]], 0.6, '2');
+  disc(g, x - 10 - b, top + 19, 3.2, 3.2, '2');
+  disc(g, x + 10 + b, top + 19, 3.2, 3.2, '2');
+  const rs: Pt = [x - 11 - b, top + 19];
+  const ls: Pt = [x + 11 + b, top + 19];
+  const at = (p: Pt): Pt => [x + p[0] * (1 + b / 30), top + p[1]];
+  limb(g, [rs, at(f.right[0]), at(f.right[1])], 2.6 + b / 6, '2');
+  limb(g, [ls, at(f.left[0]), at(f.left[1])], 2.6 + b / 6, '2');
+  const hx = x + f.head[0];
+  const hy = top + 8 + f.head[1];
+  poly(g, [[hx - 2.5, hy + 5], [hx + 2.5, hy + 5], [x + 3, top + 17], [x - 3, top + 17]], '1');
+  disc(g, hx, hy, 6 + b / 6, 7, look.head === 'wrap' ? '5' : '1');
+  // The wrap's tail hanging over a shoulder.
+  if (look.head === 'wrap') limb(g, [[hx + 5, hy + 2], [hx + 8, hy + 10], [hx + 9, hy + 16]], 1.4, '5');
+  lightDay(g, '3', ['P', 'D', 'p']);
+  lightDay(g, '2', ['M', 'L', 'm']);
+  lightDay(g, '1', ['K', 'K', 'k']);
+  lightDay(g, '5', ['W', 'W', 'w']);
+  lightDay(g, '6', ['b', 'b', 'b']);
+  // Patches on the coat, in whatever was going.
+  for (const [px, py, c] of [[-6, 24, 'T'], [4, 32, 'U'], [-3, 37, 'T']] as const) for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) if (g[top + py + j]?.[x + px + i]?.match(/[MLm]/)) put(g, x + px + i, top + py + j, c);
+  // The face.
+  const fx = hx + f.look * 0.6;
+  disc(g, fx, hy + 1.6, 4.4, look.head === 'wrap' ? 4 : 5, 'K');
+  for (let y = -2; y <= 4; y++) put(g, fx - 4, hy + 1.6 + y, 'k');
+  if (look.head === 'shaved') {
+    // A beard round the jaw, stubble on the scalp.
+    for (let i = -4; i <= 4; i++) for (let j = 4; j <= 7 - Math.abs(i) / 3; j++) put(g, fx + i, hy + j, 'h');
+    for (let i = -4; i <= 4; i += 2) put(g, hx + i, hy - 5, 'k');
+  }
+  const ex = hx + f.look * 1.2;
+  for (const s of [-1, 1]) {
+    put(g, ex + s * 2, hy, 'y');
+    put(g, ex + s * 3, hy - 1, 'h');
+  }
+  put(g, ex + 0.5, hy + 2, 'k');
+  if (f.mouth === 'open') limb(g, [[ex - 1, hy + 4.5], [ex + 1, hy + 4.5]], 0.6, 'y');
+  else for (let i = -2; i <= 2; i++) put(g, ex + i, hy + 4.5, i === 2 && f.mouth === 'sneer' ? 'k' : 'y');
+  // Hands, and what's in them.
+  for (const [arm, r] of [[f.right, f.hands[0]], [f.left, f.hands[1]]] as const) {
+    const h = at(arm[1]);
+    disc(g, h[0], h[1], r + b / 8, r + b / 8, 'K');
+    put(g, h[0] - r + 0.4, h[1], 'k');
+  }
+  const hand = at(f.right[1]);
+  if (look.holds === 'shard') limb(g, [[hand[0], hand[1] - 2], [hand[0] - 2, hand[1] - 9]], 0.7, 'G');
+  else {
+    disc(g, hand[0] - 2, hand[1] - 4, 4, 3.4, '7');
+    put(g, hand[0] - 4, hand[1] - 6, '8');
+    put(g, hand[0] - 3, hand[1] - 6, '8');
+  }
+  outline(g);
+  const skin = look.skin === 'tan' ? { K: SHADES.skinTan, k: SHADES.skinTanShade } : { K: SHADES.skinFair, k: SHADES.skinFairShade };
+  return {
+    rows: rows(g),
+    colours: {
+      ...skin, P: SHADES.woodLight, D: SHADES.woodPale, p: SHADES.deep, M: SHADES.dim, L: SHADES.light, m: SHADES.woodPale,
+      W: SHADES.dim, w: SHADES.woodPale, b: SHADES.deep, T: SHADES.greenDeep, U: SHADES.amberDeep, y: SHADES.deep, h: SHADES.woodLight,
+      G: SHADES.white, '7': SHADES.woodPale, '8': SHADES.cyanMid, X: SHADES.shadow,
+    },
+  };
+}
+
+/** Flat on their back in the dirt: the zealot's fall, in a straggler's colours. */
+function stragglerDown(skin: StragglerLook['skin']): RowSprite {
+  const down = zealotDown();
+  const g = down.rows.map((r) => [...r]);
+  outline(g);
+  const s = skin === 'tan' ? { K: SHADES.skinTan, k: SHADES.skinTanShade } : { K: SHADES.skinFair, k: SHADES.skinFairShade };
+  return { rows: rows(g), colours: { ...down.colours, ...s, o: SHADES.dim, m: SHADES.woodPale, e: SHADES.light, '#': SHADES.light, A: SHADES.light, S: SHADES.woodLight, c: SHADES.deep, X: SHADES.shadow } };
+}
+
+const stragglerPoses = (look: StragglerLook): Record<FoePose, RowSprite> => ({
+  ...(Object.fromEntries(FOE_POSES.filter((p) => p !== 'down').map((p) => [p, straggler(p as Exclude<FoePose, 'down'>, look)])) as Record<Exclude<FoePose, 'down'>, RowSprite>),
+  down: stragglerDown(look.skin),
+});
+
+/** The thin straggler: quick, a rag round the head, a shard for a knife. */
+export const STRAGGLER_THIN_BATTLE = stragglerPoses({ broad: 0, skin: 'tan', head: 'wrap', holds: 'shard' });
+/** The big straggler: broad, shaved, bearded, a lump of scrap in his fist. */
+export const STRAGGLER_BIG_BATTLE = stragglerPoses({ broad: 4, skin: 'fair', head: 'shaved', holds: 'lump' });
