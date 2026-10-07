@@ -1,6 +1,8 @@
 # Area brief: the scrap stacks
 
-Chapter 2. **(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
+Chapter 2. Built 2026-10-07 (`src/data/areas/borderland/scrapStacks.ts`, `story/borderland/scrap-stacks.ink`; dev `?area=scrap-stacks`). Two screens high: ten ledges zigzag up, a cable bridge, the perch. No hazards yet (open question). The kid lookout comes with the cast.
+
+**(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
 
 ## Purpose
 Junk towers between the shacks, for climbing and hiding. **(doc)** This chapter's back routes: a way across the settlement over the top, out of sight, and where the kid lookout watches from. **(suggestion)**
