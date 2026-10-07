@@ -48,7 +48,8 @@ export const GATE: RowSprite = {
  */
 export const houseInside = (width: number, height: number, floorY: number, partition: number): RowSprite => ({
   rows: fill(width, height, (x, y) => {
-    if (x < 4) return x < 2 ? 'h' : 'd'; // the outer wall, cut away
+    // The outer wall, cut away, with the front doorway in it at the bottom.
+    if (x < 4) return y > height - 38 ? '.' : x < 2 ? 'h' : 'd';
     if (y < 4) return y === 0 ? 'W' : 'h';
     if (y >= floorY - 1 && y < floorY + 6) return '.'; // the upper floor (a solid)
     // The partition downstairs, with the locked door.
@@ -90,6 +91,28 @@ export const hanging = (width: number, height: number, tone: 'a' | 'G' | 'e'): R
   }),
   colours: C,
 });
+
+/** The front entrance: a heavy frame of matched panels round the doorway, a porch roof, lamps either side, two steps up. */
+export const ENTRANCE: RowSprite = {
+  rows: fill(34, 50, (x, y) => {
+    // The porch roof.
+    if (y < 5) return y === 0 ? 'W' : y === 4 ? 'd' : 'h';
+    if (y < 8) return x === 2 || x === 31 ? 'n' : '.'; // its posts' tops
+    // Lamps on the posts.
+    if (y >= 8 && y < 12 && (x < 4 || x > 29)) return y === 8 ? 'm' : x === 1 || x === 32 ? 'W' : 'a';
+    // The posts.
+    if (x === 2 || x === 31) return y > 46 ? 'd' : 'n';
+    // The frame round the doorway: thick, pale, with a lintel.
+    if (y >= 10 && y < 14 && x > 6 && x < 27) return y === 10 ? 'W' : 'h';
+    if (y >= 14 && y < 46 && (x === 7 || x === 8 || x === 25 || x === 26)) return x === 7 || x === 26 ? 'h' : 'm';
+    // The doorway itself: open, lamplight inside.
+    if (y >= 14 && y < 46 && x > 8 && x < 25) return y > 40 ? 'A' : 's';
+    // Two steps up.
+    if (y >= 46) return y === 46 || y === 48 ? 'h' : x < 4 || x > 29 ? '.' : 'm';
+    return '.';
+  }),
+  colours: C,
+};
 
 /** A lamp on a bracket, burning. */
 export const WALL_LAMP: RowSprite = { rows: ['.aa.', 'aWWa', '.aa.', '.mm.', 'mmmm'], colours: C };

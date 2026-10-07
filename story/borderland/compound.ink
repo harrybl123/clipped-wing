@@ -7,6 +7,10 @@
 The gate's panels are whole and matched, and somebody cleans them.
 -> END
 
+=== compound_entrance ===
+The way in to the house: a doorway framed in whole panels, lamps either side, always lit.
+-> END
+
 === compound_tank ===
 A water tank. Whole, sealed, full. You could drink from it for a year.
 -> END

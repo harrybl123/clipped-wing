@@ -70,6 +70,7 @@ export const compound: AreaDefinition = {
     // The house.
     { sprite: roof(HOUSE.end - HOUSE.x + 16, 8), x: HOUSE.x - 8, y: HOUSE.top - 12 },
     { sprite: P.houseInside(HOUSE.end - HOUSE.x, FLOOR - HOUSE.top, HOUSE.floor - HOUSE.top, PARTITION), x: HOUSE.x, y: HOUSE.top },
+    { sprite: P.ENTRANCE, x: HOUSE.x - 17, y: FLOOR - 50 }, // in front of the house's cut-away wall
     { sprite: P.WORKING_LIGHT, x: 520, y: HOUSE.floor + 6 },
     { sprite: P.hanging(40, 30, 'G'), x: 620, y: HOUSE.floor + 14 },
     { sprite: P.hanging(30, 26, 'a'), x: 470, y: HOUSE.top + 20 },
@@ -95,6 +96,7 @@ export const compound: AreaDefinition = {
 
   interactables: [
     { id: 'gate', x: 144, y: FLOOR, reach: 14, label: 'Look', knot: 'compound_gate' },
+    { id: 'entrance', x: HOUSE.x, y: FLOOR, reach: 10, label: 'Look', knot: 'compound_entrance' },
     { id: 'tank', x: 295, y: FLOOR, reach: 14, label: 'Look', knot: 'compound_tank' },
     { id: 'tribute', x: 348, y: FLOOR, reach: 14, label: 'Look', knot: 'compound_tribute' },
     { id: 'light', x: 540, y: FLOOR, reach: 24, label: 'Look', knot: 'compound_light' },
