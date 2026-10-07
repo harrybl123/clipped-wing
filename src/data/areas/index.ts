@@ -5,6 +5,7 @@ import { pickedFields } from './borderland/pickedFields';
 import { shack } from './borderland/shack';
 import { swapYard } from './borderland/swapYard';
 import { tallyHouse } from './borderland/tallyHouse';
+import { bar } from './borderland/bar';
 import { friendsHome } from './friendsHome';
 import { girlsHome } from './girlsHome';
 import { home } from './home';
@@ -91,4 +92,5 @@ export const AREAS: Record<string, AreaDefinition> = {
   [shack.id]: shack,
   [swapYard.id]: swapYard,
   [tallyHouse.id]: tallyHouse,
+  [bar.id]: bar,
 };

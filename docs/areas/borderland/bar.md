@@ -1,6 +1,8 @@
 # Area brief: the bar
 
-Chapter 2. **(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
+Chapter 2. Built 2026-10-07 (`src/data/areas/borderland/bar.ts`, `story/borderland/bar.ink`; dev `?area=bar`). Doors: the lane to the compound, down to the gambling den, and through to the brothel from the gallery. The barkeep and the crews come with the cast; overheard talk (barks) needs them.
+
+**(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
 
 ## Purpose
 The bar or club where crews gather. Gossip and suspicion spread here. **(doc)** It's where you hear what the town thinks of you, which gets worse as the raids land, like Act 1's crowds turning day by day. **(suggestion)**
