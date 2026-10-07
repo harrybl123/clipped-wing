@@ -1,6 +1,8 @@
 # Area brief: the dog's hollow
 
-Chapter 2. **(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
+Chapter 2. Built 2026-10-07 (`src/data/areas/borderland/dogsHollow.ts`, `story/borderland/dogs-hollow.ink`; dev `?area=dogs-hollow`). Hidden on the map, and its path out of the picked fields hidden, until `found_dog` (designer). The dog comes with the cast.
+
+**(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
 
 ## Purpose
 Your secret training spot on the outskirts. **(doc)** Where you teach the dog to find things, and where you can be yourself. It's at risk once someone follows you. **(suggestion)**
