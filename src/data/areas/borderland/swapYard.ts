@@ -1,0 +1,110 @@
+import { SHADES as S } from '../../../ui/pixelArt';
+import * as P from './swapYardProps';
+import { casingPod, wireBundle } from './scrapProps';
+import type { AreaDefinition } from '../types';
+
+// The swap yard (Chapter 2): the market, finds for food. Out in the open inside the settlement's walls,
+// the rooftops crowding the horizon and the tree rising behind them. A row of stalls (upturned casings
+// under striped awnings and cable-mesh): bright scrap that nobody cares about, poor food, a pot of
+// something. The food stall's scales, where a meal is weighed against scrap; the board of prices in
+// scavenger signs; a stack of crates to climb for a view over the crowd; the fence's alcove, half
+// hidden at the far end. Ways to your shack, the tally house (through a gate), the scrap stacks (down
+// an alley) and out through the wall to the picked fields. See docs/areas/borderland/swap-yard.md.
+// The crowd, the traders and the fence come with the cast.
+
+const W = 1120;
+const FLOOR = 232;
+
+export const swapYard: AreaDefinition = {
+  id: 'swap-yard',
+  name: 'the swap yard',
+  width: W,
+  height: 270,
+  cavity: { x: 0, y: 0, width: W, height: 270, radius: 0 },
+  outdoor: { horizon: 160, treeX: 360, backdrop: 'settlement' },
+  ambient: 1,
+  playerStart: { x: 40, y: FLOOR },
+  surface: 'dirt',
+  acoustics: 'street',
+
+  solids: [
+    { x: 0, y: FLOOR, width: W, height: 270 - FLOOR },
+    { x: -8, y: 0, width: 8, height: 270, invisible: true },
+    { x: W, y: 0, width: 8, height: 270, invisible: true },
+    // The crates: climb up for a view over the crowd.
+    { x: 446, y: FLOOR - 20, width: 30, height: 20, oneWay: true, invisible: true },
+    { x: 452, y: FLOOR - 38, width: 24, height: 18, oneWay: true, invisible: true },
+  ],
+
+  lights: [
+    { x: 355, y: FLOOR, colour: S.amber, radius: 30, radiusY: 8, strength: 0.3 }, // the fire under the pot
+  ],
+
+  lines: [
+    // Bunting of rags strung across between the stalls.
+    { from: { x: 60, y: 168 }, to: { x: 300, y: 176 }, colour: S.dim },
+    { from: { x: 590, y: 170 }, to: { x: 880, y: 166 }, colour: S.dim },
+  ],
+
+  props: [
+    // Shack fronts along the back.
+    { sprite: P.shackFront(58, 52, 1), x: 4, y: FLOOR - 52 },
+    { sprite: P.shackFront(70, 44, 2), x: 180, y: FLOOR - 44 },
+    { sprite: P.shackFront(64, 56, 3), x: 380, y: FLOOR - 56 },
+    { sprite: P.shackFront(54, 48, 4), x: 600, y: FLOOR - 48 },
+    { sprite: P.shackFront(44, 60, 5), x: 720, y: FLOOR - 60 },
+    { sprite: P.shackFront(60, 52, 6), x: 790, y: FLOOR - 52 },
+    { sprite: P.shackFront(48, 46, 7), x: 852, y: FLOOR - 46 },
+    // Stalls.
+    { sprite: P.stall(54, 0, 'scrap'), x: 70, y: FLOOR - 46 },
+    { sprite: P.stall(48, 3, 'scrap'), x: 132, y: FLOOR - 46 },
+    { sprite: P.stall(62, 2, 'food'), x: 230, y: FLOOR - 46 },
+    { sprite: P.crate(16, 10), x: 302, y: FLOOR - 10 },
+    { sprite: P.SCALES, x: 300, y: FLOOR - 23 },
+    { sprite: P.POT, x: 349, y: FLOOR - 16 },
+    { sprite: P.PRICE_BOARD, x: 384, y: FLOOR - 22 },
+    { sprite: P.crate(30, 20), x: 446, y: FLOOR - 20 },
+    { sprite: P.crate(24, 18), x: 452, y: FLOOR - 38 },
+    { sprite: casingPod(18), x: 482, y: FLOOR - 10 },
+    // The gate through to the tally house.
+    { sprite: P.gate(44, 50), x: 530, y: FLOOR - 50 },
+    { sprite: P.stall(50, 1, 'pots'), x: 594, y: FLOOR - 46 },
+    { sprite: P.stall(56, 4, 'scrap'), x: 656, y: FLOOR - 46 },
+    { sprite: wireBundle(20), x: 714, y: FLOOR - 9 },
+    // The alley to the scrap stacks, between two fronts.
+    { sprite: P.stall(50, 2, 'food'), x: 824, y: FLOOR - 46 },
+    // The fence's alcove, half hidden.
+    { sprite: P.ALCOVE, x: 902, y: FLOOR - 50 },
+    // The wall, and the gate out to the picked fields.
+    { sprite: P.wall(90, 60), x: 952, y: FLOOR - 60 },
+    { sprite: P.gate(46, 54), x: 1042, y: FLOOR - 54 },
+    { sprite: P.wall(32, 60), x: 1088, y: FLOOR - 60 },
+  ],
+
+  features: [{ type: 'fire', x: 355, y: FLOOR - 1 }],
+  people: [],
+
+  interactables: [
+    { id: 'scrap-stall', x: 96, y: FLOOR, reach: 14, label: 'Look', knot: 'swap_yard_scrap' },
+    { id: 'food-stall', x: 260, y: FLOOR, reach: 16, label: 'Trade', knot: 'swap_yard_food' },
+    { id: 'scales', x: 310, y: FLOOR, reach: 8, label: 'Look', knot: 'swap_yard_scales' },
+    { id: 'pot', x: 355, y: FLOOR, reach: 8, label: 'Look', knot: 'swap_yard_pot' },
+    { id: 'prices', x: 399, y: FLOOR, reach: 10, label: 'Read', knot: 'swap_yard_prices' },
+    { id: 'crates', x: 464, y: FLOOR - 38, reach: 12, label: 'Look', knot: 'swap_yard_view' },
+    { id: 'fence', x: 922, y: FLOOR, reach: 14, label: 'Look', knot: 'swap_yard_fence' },
+  ],
+
+  exits: [
+    { id: 'to-shack', x: 30, y: FLOOR, reach: 12, to: 'shack' },
+    { id: 'to-tally-house', x: 552, y: FLOOR, reach: 14, to: 'tally-house' },
+    { id: 'to-scrap-stacks', x: 776, y: FLOOR, reach: 10, to: 'scrap-stacks' },
+    { id: 'to-picked-fields', x: 1065, y: FLOOR, reach: 16, to: 'picked-fields' },
+  ],
+
+  ambience: [
+    { sound: 'crowd', volume: 0.35, when: ['morning', 'afternoon'] },
+    { sound: 'chatter', volume: 0.4, when: ['morning', 'afternoon', 'evening'] },
+    { sound: 'footfall', volume: 0.35, when: ['morning', 'afternoon'] },
+    { sound: 'wind', volume: 0.2 },
+  ],
+};

@@ -169,6 +169,8 @@ export interface Outdoor {
   treeX: number;
   /** How far away the tree is: 1 is as seen from the settlement, bigger is nearer (the tree's edge). */
   treeScale?: number;
+  /** What's between you and the tree: the open plain (default), or the settlement's rooftops (inside its walls). */
+  backdrop?: 'plain' | 'settlement';
 }
 
 export interface AreaDefinition {

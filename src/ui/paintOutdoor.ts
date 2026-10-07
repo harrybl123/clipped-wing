@@ -62,8 +62,13 @@ export function paintFar(outdoor: Outdoor, slot: TimeSlot, height: number): (x: 
   const tree = treePainter(TX, HY, s, sky, night);
   // Distant junk heaps along the horizon.
   const heapTop = (x: number) => HY - Math.max(0, noise(x / 23) * 7 + noise(x / 7) * 2 - 2);
+  const town = outdoor.backdrop === 'settlement' ? skyline(HY, sky, slot) : null;
 
   return (x, y) => {
+    if (town) {
+      const t = town(x, y);
+      if (t !== null) return t;
+    }
     if (y < HY) {
       const t = tree(x, y);
       if (t !== null) return t;
@@ -101,6 +106,50 @@ export function paintFar(outdoor: Outdoor, slot: TimeSlot, height: number): (x: 
       return scale(rgb(dy > 0.75 ? lit : body), sky.ground * (night ? 0.6 : 1));
     }
     return c;
+  };
+}
+
+/**
+ * The settlement's rooftops seen from inside its walls: shacks of every height crowding the horizon,
+ * hazed by distance, sloped and flat roofs, a pole or a mast here and there, windows lit from dusk.
+ */
+function skyline(HY: number, sky: Sky, slot: TimeSlot): (x: number, y: number) => PixelColour {
+  const lit = slot === 'evening' || slot === 'night';
+  // Blocks of varying width along the horizon, two rows (the far one paler).
+  const blocks = (row: number) => {
+    const out: { x: number; w: number; h: number; slope: number; seed: number }[] = [];
+    for (let x = -20, i = 0; x < 1400; i++) {
+      const w = 14 + Math.floor(cellRandom(i, row, 101) * 22);
+      out.push({ x, w, h: (row ? 14 : 8) + Math.floor(cellRandom(i, row + 2, 101) * (row ? 26 : 16)), slope: cellRandom(i, row + 4, 101) - 0.5, seed: i * 7 + row });
+      x += w - 1;
+    }
+    return out;
+  };
+  const rows = [blocks(1), blocks(0)]; // near row last, so it's drawn over the far one
+  const base = HY + 10;
+  return (x, y) => {
+    for (let r = rows.length - 1; r >= 0; r--) {
+      const near = r === 1;
+      const b = rows[r]!.find((k) => x >= k.x && x < k.x + k.w);
+      if (!b) continue;
+      const lx = x - b.x;
+      const top = base - (near ? 0 : 6) - b.h - Math.round(b.slope * lx * 0.5);
+      if (y < top || y > base) {
+        // A pole or mast above some roofs.
+        if (near && b.seed % 5 === 0 && lx === Math.floor(b.w / 2) && y >= top - 10 && y < top) return mix(scale(rgb(SHADES.deep), sky.ground), sky.horizon, 0.3);
+        continue;
+      }
+      const haze = near ? 0.32 : 0.5;
+      const c = rgb(y === top ? SHADES.dim : lx === 0 ? SHADES.shadow : cellRandom(b.seed, 0, 103) > 0.7 ? SHADES.wood : SHADES.woodLight);
+      // Windows: dark by day, lit from dusk.
+      const wy = (y - top - 4) % 7;
+      const wx = (lx - 3) % 6;
+      if (y > top + 3 && wy === 0 && wx >= 0 && wx < 2 && cellRandom(b.seed, Math.floor((lx - 3) / 6) + Math.floor((y - top) / 7) * 9, 104) > 0.6) {
+        return lit ? (cellRandom(b.seed, lx, 105) > 0.25 ? SHADES.amber : SHADES.cyanMid) : mix(rgb(SHADES.shadow), sky.horizon, haze * 0.5);
+      }
+      return mix(scale(c, sky.ground), sky.horizon, haze);
+    }
+    return null;
   };
 }
 

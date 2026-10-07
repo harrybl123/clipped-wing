@@ -1,6 +1,8 @@
 # Area brief: the swap yard
 
-Chapter 2. **(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
+Chapter 2. Built 2026-10-07 (`src/data/areas/borderland/swapYard.ts`, `story/borderland/swap-yard.ink`; dev `?area=swap-yard`). Outdoors inside the walls (`outdoor.backdrop: 'settlement'`: rooftops crowd the horizon, the tree behind). The crowd, traders and the fence come with the cast.
+
+**(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
 
 ## Purpose
 The market: finds for food. **(doc)** This chapter's roots market. It shows that finds are the currency. **(doc, suggestion)**
