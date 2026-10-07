@@ -643,7 +643,7 @@ interface ScavengerPose {
 
 const SCAVENGER_COLOURS = {
   R: SHADES.copper, r: SHADES.copperDeep, A: SHADES.amber, // hair: copper (reserved for the protagonist, like red), its shadow, amber where the light catches it
-  K: SHADES.white, W: SHADES.white, k: SHADES.light, d: SHADES.deep, // porcelain skin and its shadow; eye
+  K: SHADES.skinFair, W: SHADES.white, k: SHADES.skinFairShade, d: SHADES.deep, // fair skin, warm (designer: not too pale), and its shadow; eye
   C: SHADES.cyanMid, c: SHADES.cyanDeep, // the crop top
   P: SHADES.woodPale, p: SHADES.woodLight, b: SHADES.deep, // trousers, their shadow; boots
   S: SHADES.amberDeep, s: SHADES.wood, // the satchel and its strap

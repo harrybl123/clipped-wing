@@ -30,6 +30,9 @@ export const SHADES = {
   copper: 0xd2703a,
   /** Copper in shadow. Reserved like red. */
   copperDeep: 0x8a4026,
+  /** Warm fair skin, out in the borderland's daylight (the tree's figures are silhouettes), and its shadow. */
+  skinFair: 0xe6c9ac,
+  skinFairShade: 0xbf9a7c,
 } as const;
 
 /** Colours a dithered backdrop may use. Red is deliberately absent. */

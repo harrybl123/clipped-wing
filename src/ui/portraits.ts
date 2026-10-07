@@ -44,6 +44,8 @@ const COLOURS = {
   W: SHADES.white, // the archivist's pale ribbon
   j: SHADES.copperDeep, // the scavenger's copper hair in shadow (copper is reserved for the protagonist, like red)
   z: SHADES.copper, // her copper hair
+  i: SHADES.skinFair, // warm fair skin (the borderland's daylight)
+  l: SHADES.skinFairShade, // its shadow
   v: SHADES.cyanMid, // the scavenger's crop top
   V: SHADES.cyanDeep, // its shadow
 };
@@ -635,7 +637,7 @@ const HATCH_KEEPER_LOOK: VillagerLook = { height: 24, width: 3, head: 'cap', acc
  * almond eyes with lashes and teal-green irises, thin arched brows, a small nose, fuller lips with the
  * hint of a smile, light freckles. Ginger hair with a side-swept fringe framing her face, the ponytail
  * falling forward over her left shoulder; a teal crop top on thin straps, the satchel's strap across her.
- * (Designer: a Karen Gillan type: porcelain skin, a longer face with high cheekbones, big eyes, long
+ * (Designer: a Karen Gillan type: fair skin (not too pale), a longer face with high cheekbones, big eyes, long
  * straight copper hair. A type, not a likeness.)
  */
 export const SCAVENGER_PORTRAIT: RowSprite = (() => {
@@ -650,12 +652,12 @@ export const SCAVENGER_PORTRAIT: RowSprite = (() => {
     return t > 0 ? oval * (1 - t * 0.22) : oval; // a longer face, narrowing to a fine chin
   };
   const inFace = (x: number, y: number) => Math.abs(x - cx + 0.5) <= halfWidth(y);
-  /** Porcelain skin: near white, shaded softly towards its left edge. */
+  /** Fair skin, warm (designer: not too pale), shaded softly towards its left edge. */
   const softSkin = (x: number, centre: number, half: number) => {
     const u = (x - centre + 0.5) / Math.max(1, half);
     if (u < -0.9) return 'M';
-    if (u < -0.68) return 'L';
-    return 'W';
+    if (u < -0.68) return 'l';
+    return 'i';
   };
   /** Copper: amber with straight strands of the protagonist's red running down it, deep amber in shadow. */
   const hair = (x: number, y: number, shadow: boolean) => {
@@ -696,18 +698,18 @@ export const SCAVENGER_PORTRAIT: RowSprite = (() => {
         if (y === eyeY + 1 && (lx === 1 || lx === 2)) return 'v';
       }
       // A small nose: a soft shadow down one side, the nostril.
-      if (y === eyeY + 4 && x === cx - 1) return 'L'; // just the shadow under the tip
+      if (y === eyeY + 4 && x === cx - 1) return 'l'; // just the shadow under the tip
       // Lips: fuller, a soft bow on top, the hint of a smile at the corners.
       const mouthY = eyeY + 7;
       if (y === mouthY && x >= cx - 2 && x <= cx + 1) return 'A';
       if (y === mouthY + 1 && (x === cx - 1 || x === cx)) return 'A'; // the lower lip
       // Freckles: a few, across the bridge of her nose.
       const freckles: [number, number][] = [[-3, 2], [-2, 3], [1, 3], [2, 2]];
-      if (freckles.some(([fx, fy]) => x === cx + fx && y === eyeY + fy)) return 'L';
+      if (freckles.some(([fx, fy]) => x === cx + fx && y === eyeY + fy)) return 'l';
       return softSkin(x, cx, halfWidth(y));
     }
     // Her neck: slender, a soft shadow under the jaw.
-    if (y >= 31 && y <= 37 && x >= 22 && x <= 26) return y === 31 && x < 25 ? 'L' : softSkin(x, 24, 3);
+    if (y >= 31 && y <= 37 && x >= 22 && x <= 26) return y === 31 && x < 25 ? 'l' : softSkin(x, 24, 3);
     // Shoulders and chest: bare shoulders, the crop top on thin straps, the satchel's strap across.
     if (y >= 36) {
       const spread = 6 + (y - 36) * 1.9;
