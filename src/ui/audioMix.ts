@@ -14,13 +14,14 @@ export const VOLUMES: Record<Bus, number> = { music: 0.6, sounds: 0.8, voices: 0
  * The space you're in: how much echo, how long it lasts, how dark it is, and the colour of the room's
  * own hush. Each area has one (`AreaDefinition.acoustics`), so places sound different (designer).
  */
-export type Acoustics = 'small' | 'hall' | 'tunnel' | 'street' | 'high';
+export type Acoustics = 'small' | 'hall' | 'tunnel' | 'street' | 'high' | 'open';
 export const ACOUSTICS: Record<Acoustics, { echo: number; length: number; dark: number; hush: number }> = {
   small: { echo: 0.1, length: 0.45, dark: 0.15, hush: 200 }, // a home: close, dead, a little boxy
   hall: { echo: 0.32, length: 2, dark: 0.3, hush: 140 }, // the offering floor, the shrine: big and solemn
   tunnel: { echo: 0.38, length: 1.2, dark: 0.12, hush: 110 }, // the back routes, the rot: dark and close, ringing
   street: { echo: 0.13, length: 0.8, dark: 0.35, hush: 260 }, // the market, the roots: busy, open, short echo
   high: { echo: 0.1, length: 2.8, dark: 0.6, hush: 400 }, // up the trunk, the gate, the grove: airy, faint and far
+  open: { echo: 0.04, length: 0.5, dark: 0.5, hush: 500 }, // the borderland's waste: nothing to bounce off
 };
 
 interface Mix {

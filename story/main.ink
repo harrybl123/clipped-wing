@@ -220,6 +220,7 @@ INCLUDE upper-halls.ink
 INCLUDE archive.ink
 INCLUDE seed-grove.ink
 INCLUDE ascension-gate.ink
+INCLUDE borderland/picked-fields.ink
 
 // The game starts conversations by knot name via StoryBridge, so the root
 // flow does nothing.

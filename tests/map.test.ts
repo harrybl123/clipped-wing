@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { PLANNED_AREAS } from '../src/data/areas';
-import { MAP_LINKS, MAP_PLACES, MAP_TUBE_X, neighbourInDirection, treeHalfWidth, type MapPlace } from '../src/data/map';
+import { BORDERLAND_AREAS, PLANNED_AREAS, TREE_AREAS } from '../src/data/areas';
+import { BORDERLAND_LINKS, BORDERLAND_PLACES, SETTLEMENT } from '../src/data/borderlandMap';
+import { MAP_LINKS, MAP_PLACES, MAP_TUBE_X, neighbourInDirection, treeHalfWidth, WORLDS, worldOf, type MapPlace } from '../src/data/map';
 
 const place = (id: string) => MAP_PLACES.find((p) => p.id === id)!;
 
 describe('map layout', () => {
   it('has every planned area exactly once', () => {
-    expect(MAP_PLACES.map((p) => p.id).sort()).toEqual(Object.keys(PLANNED_AREAS).sort());
+    expect(MAP_PLACES.map((p) => p.id).sort()).toEqual(Object.keys(TREE_AREAS).sort());
   });
 
   it('keeps places on screen and apart from each other', () => {
@@ -73,5 +74,57 @@ describe('neighbourInDirection', () => {
       }
     }
     expect([...seen].sort()).toEqual(MAP_PLACES.map((p) => p.id).sort());
+  });
+});
+
+describe('the borderland map', () => {
+  const at = (id: string) => BORDERLAND_PLACES.find((p) => p.id === id)!;
+  const ring = (p: MapPlace) => Math.hypot((p.x - SETTLEMENT.x) / SETTLEMENT.rx, (p.y - SETTLEMENT.y) / SETTLEMENT.ry);
+
+  it('has every borderland area exactly once', () => {
+    expect(BORDERLAND_PLACES.map((p) => p.id).sort()).toEqual(Object.keys(BORDERLAND_AREAS).sort());
+  });
+
+  it('puts every planned area on exactly one map', () => {
+    const all = WORLDS.flatMap((w) => w.places.map((p) => p.id));
+    expect(all.sort()).toEqual(Object.keys(PLANNED_AREAS).sort());
+    expect(worldOf('shack').id).toBe('borderland');
+    expect(worldOf('home').id).toBe('tree');
+    expect(worldOf('the-rot').id).toBe('tree');
+  });
+
+  it('keeps places on screen and apart from each other', () => {
+    for (const p of BORDERLAND_PLACES) {
+      expect(p.x > 8 && p.x < 472 && p.y > 8 && p.y < 256, p.id).toBe(true);
+      for (const q of BORDERLAND_PLACES) if (q !== p) expect(Math.hypot(p.x - q.x, p.y - q.y), `${p.id}–${q.id}`).toBeGreaterThan(18);
+    }
+  });
+
+  it('keeps the settlement inside its walls and the grounds outside', () => {
+    for (const p of BORDERLAND_PLACES) {
+      if (p.level === 'the settlement') expect(ring(p), p.id).toBeLessThan(1.05);
+      else expect(ring(p), p.id).toBeGreaterThan(1.05);
+    }
+  });
+
+  it('links only places that exist', () => {
+    const ids = new Set(BORDERLAND_PLACES.map((p) => p.id));
+    for (const l of BORDERLAND_LINKS) expect(ids.has(l.from) && ids.has(l.to), `${l.from}–${l.to}`).toBe(true);
+  });
+
+  it('can reach every place from the swap yard by pressing directions', () => {
+    const seen = new Set<string>(['swap-yard']);
+    const queue = [at('swap-yard')];
+    while (queue.length) {
+      const p = queue.shift()!;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+        const n = neighbourInDirection(p, dx, dy, BORDERLAND_PLACES);
+        if (n && !seen.has(n.id)) {
+          seen.add(n.id);
+          queue.push(n);
+        }
+      }
+    }
+    expect([...seen].sort()).toEqual(BORDERLAND_PLACES.map((p) => p.id).sort());
   });
 });

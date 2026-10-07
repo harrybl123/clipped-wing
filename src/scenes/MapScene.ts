@@ -2,8 +2,9 @@ import Phaser from 'phaser';
 import { GAME_HEIGHT as H, GAME_WIDTH as W } from '../config';
 import { closedReason } from '../data/access';
 import { AREAS, PLANNED_AREAS } from '../data/areas';
-import { MAP_CANOPY_Y, MAP_LINKS, MAP_PLACES, MAP_TUBE_X, neighbourInDirection, treeHalfWidth, type MapPlace } from '../data/map';
+import { MAP_CANOPY_Y, MAP_PLACES, MAP_TUBE_X, neighbourInDirection, treeHalfWidth, WORLDS, worldOf, type MapPlace, type MapWorld } from '../data/map';
 import { addLight, falloff, noise, rgb, SHADES, smoothstep, type PixelColour, type RGB } from '../ui/pixelArt';
+import { paintBorderlandMap } from '../ui/paintBorderlandMap';
 import { makePaintedTexture, makeSpriteTexture } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
 import { playConfirm, playMove } from '../ui/sfx';
@@ -30,11 +31,13 @@ const WINDOW_LIGHT: Record<MapPlace['light'], number> = { amber: SHADES.amber, c
 const OFFERING_Y = MAP_PLACES.find((p) => p.id === 'offering-floor')!.y;
 
 /**
- * The map: the whole tree as a cutaway, opened over the paused area. Arrow keys/WASD move between
+ * The map of the world you're in (the tree as a cutaway in Act 1, the borderland in Chapter 2), opened over the paused area. Arrow keys/WASD move between
  * places, Enter travels, Esc (or M) goes back. Unbuilt places are dim and can't be travelled to.
  */
 export class MapScene extends Phaser.Scene {
   private current!: string;
+  /** The world whose map this is: the one the area you opened it from is in. */
+  private world!: MapWorld;
   private selected!: MapPlace;
   /** Each place's window frame, which lights up when selected. */
   private frames = new Map<string, Phaser.GameObjects.Rectangle>();
@@ -50,22 +53,34 @@ export class MapScene extends Phaser.Scene {
 
   init(data: MapSceneData): void {
     this.current = data.current;
+    this.world = worldOf(data.current);
     this.leaving = false;
     this.frames.clear();
   }
 
   create(): void {
     this.cameras.main.fadeIn(250);
-    makePaintedTexture(this, 'map-tree', W, H, paintTree());
-    this.add.image(0, 0, 'map-tree').setOrigin(0);
+    const { world } = this;
+    // Painted once per world (built places glow, so a new build shows after a reload).
+    makePaintedTexture(this, `map-${world.id}`, W, H, world.id === 'tree' ? paintTree() : paintBorderland());
+    this.add.image(0, 0, `map-${world.id}`).setOrigin(0);
 
-    new PixelText(this, 6, 6, 'The Tree', { color: SHADES.light, shadow: SHADES.shadow });
-    for (const level of LEVELS) new PixelText(this, 6, level.top + 3, level.name, { color: SHADES.dim });
+    new PixelText(this, 6, 6, world.title, { color: SHADES.light, shadow: SHADES.shadow });
+    if (world.id === 'tree') for (const level of LEVELS) new PixelText(this, 6, level.top + 3, level.name, { color: SHADES.dim });
 
-    for (const place of MAP_PLACES) {
+    for (const place of world.places) {
       const built = this.canVisit(place);
       // A small window: glowing in the place's own light if you can go there, dark if it isn't built yet
       // or is closed today (some places open up as the story goes).
+      if (world.id === 'borderland') {
+        // Out here, a small lamp at the place's door (the landmark round it is painted on the map).
+        const frame = this.add.rectangle(place.x - 2, place.y - 2, 5, 5, SHADES.deep).setOrigin(0);
+        this.add.rectangle(place.x - 1, place.y - 1, 3, 3, built ? WINDOW_LIGHT[place.light] : SHADES.shadow).setOrigin(0);
+        if (built) this.add.rectangle(place.x, place.y, 1, 1, SHADES.white).setOrigin(0);
+        this.frames.set(place.id, frame);
+        if (place.id === this.current) this.add.rectangle(place.x - 1, place.y - 6, 3, 3, SHADES.red).setOrigin(0);
+        continue;
+      }
       const frame = this.add.rectangle(place.x - 3, place.y - 3, 7, 7, SHADES.deep).setOrigin(0);
       this.add.rectangle(place.x - 2, place.y - 2, 5, 5, built ? WINDOW_LIGHT[place.light] : SHADES.shadow).setOrigin(0);
       if (built) this.add.rectangle(place.x - 1, place.y - 1, 2, 2, SHADES.white).setOrigin(0);
@@ -81,7 +96,7 @@ export class MapScene extends Phaser.Scene {
     // A choice (",") gets a bird over each place.
     const targets = String(getSession(this).story.getVariable('objective_target') ?? '').split(',').map((t) => t.split(':')[0]);
     for (const target of new Set(targets)) {
-      const goal = MAP_PLACES.find((p) => p.id === target);
+      const goal = world.places.find((p) => p.id === target);
       if (!goal) continue;
       const marker = this.add.image(goal.x, goal.y - 6, makeSpriteTexture(this, 'bird', BIRD.rows, BIRD.colours)).setOrigin(0.5, 1);
       this.tweens.add({ targets: marker, y: goal.y - 9, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
@@ -96,15 +111,16 @@ export class MapScene extends Phaser.Scene {
     bar.setDepth(5);
     this.info = new PixelText(this, 8, H - 12, '', { color: SHADES.light }).setDepth(6);
 
-    this.select(MAP_PLACES.find((p) => p.id === this.current) ?? MAP_PLACES.find((p) => p.id === 'offering-floor')!);
+    const place = (id: string) => world.places.find((p) => p.id === id);
+    this.select(place(this.current) ?? place(world.start)!);
 
     this.input.keyboard?.on('keydown', this.handleKey, this);
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
-      const near = MAP_PLACES.find((place) => Math.hypot(place.x - p.x, place.y - p.y) < 9);
+      const near = world.places.find((place) => Math.hypot(place.x - p.x, place.y - p.y) < 9);
       if (near && near !== this.selected) this.select(near);
     });
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
-      const near = MAP_PLACES.find((place) => Math.hypot(place.x - p.x, place.y - p.y) < 9);
+      const near = world.places.find((place) => Math.hypot(place.x - p.x, place.y - p.y) < 9);
       if (near) {
         this.select(near);
         this.confirm();
@@ -168,7 +184,7 @@ export class MapScene extends Phaser.Scene {
     };
     const dir = directions[key];
     if (dir) {
-      const next = neighbourInDirection(this.selected, dir[0], dir[1]);
+      const next = neighbourInDirection(this.selected, dir[0], dir[1], this.world.places);
       if (next) {
         playMove(this);
         this.select(next);
@@ -183,14 +199,14 @@ export class MapScene extends Phaser.Scene {
 
 const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-/** Faint paths between places: ladders (rails and rungs), walkways (planks), a sagging rope bridge. */
-function pathPixels(): Map<number, number> {
+/** Faint paths between places: ladders (rails and rungs), walkways (planks), a sagging rope bridge, tracks in the dirt. */
+function pathPixels(world: MapWorld): Map<number, number> {
   const out = new Map<number, number>();
   const put = (x: number, y: number, c: number) => {
     if (x >= 0 && y >= 0 && x < W && y < H) out.set(Math.round(y) * W + Math.round(x), c);
   };
-  const place = (id: string) => MAP_PLACES.find((p) => p.id === id)!;
-  for (const link of MAP_LINKS) {
+  const place = (id: string) => world.places.find((p) => p.id === id)!;
+  for (const link of world.links) {
     const a = place(link.from);
     const b = place(link.to);
     const len = Math.hypot(b.x - a.x, b.y - a.y);
@@ -205,6 +221,10 @@ function pathPixels(): Map<number, number> {
         put(x - uy * 1.5, y + ux * 1.5, SHADES.woodLight);
         put(x + uy * 1.5, y - ux * 1.5, SHADES.woodLight);
         if (Math.round(t) % 3 === 0) put(x, y, SHADES.woodLight);
+      } else if (link.kind === 'track') {
+        // Trodden dirt: a broken pale line with a rut beside it.
+        if (Math.round(t) % 4 !== 3) put(x, y, SHADES.dim);
+        put(x, y + 1, SHADES.woodLight);
       } else if (link.kind === 'walkway') {
         put(x, y, SHADES.woodLight);
         put(x, y + 1, SHADES.deep);
@@ -227,7 +247,7 @@ export function paintTree(): (x: number, y: number) => PixelColour {
   const [white, cyan, green, amber] = [SHADES.white, SHADES.cyan, SHADES.green, SHADES.amber].map(rgb) as [RGB, RGB, RGB, RGB];
   const backRoutesY = (x: number) => 226 + Math.round(Math.sin(x / 22) * 4);
   const windowGlows = MAP_PLACES.filter((p) => p.id in AREAS).map((p) => ({ x: p.x, y: p.y, rgb: rgb(WINDOW_LIGHT[p.light]) }));
-  const paths = pathPixels();
+  const paths = pathPixels(WORLDS[0]!);
 
   return (x, y) => {
     const path = paths.get(y * W + x);
@@ -266,4 +286,11 @@ export function paintTree(): (x: number, y: number) => PixelColour {
     for (const w of windowGlows) c = addLight(c, w.rgb, 0.35 * falloff(x, y, w.x, w.y, 13, 10));
     return c;
   };
+}
+
+/** The borderland map (src/ui/paintBorderlandMap.ts), with this map's tracks and the glow of built places. */
+export function paintBorderland(): (x: number, y: number) => PixelColour {
+  const borderland = WORLDS.find((w) => w.id === 'borderland')!;
+  const glows = borderland.places.filter((p) => p.id in AREAS).map((p) => ({ x: p.x, y: p.y, rgb: rgb(WINDOW_LIGHT[p.light]) }));
+  return paintBorderlandMap(pathPixels(borderland), glows);
 }

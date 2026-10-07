@@ -59,6 +59,11 @@ function hash(n: number): number {
   return (s - Math.floor(s)) * 2 - 1;
 }
 
+/** A deterministic random number in [0, 1) for a grid cell (scattering junk, glints, windows). */
+export function cellRandom(x: number, y: number, seed = 0): number {
+  return (hash(x * 57.31 + y * 113.97 + seed * 7.13) + 1) / 2;
+}
+
 /** Smooth, deterministic 1D value noise in [-1, 1]. */
 export function noise(x: number): number {
   const i = Math.floor(x);

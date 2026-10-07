@@ -1,6 +1,7 @@
 import { archive } from './archive';
 import { ascensionGate } from './ascensionGate';
 import { backRoutes } from './backRoutes';
+import { pickedFields } from './borderland/pickedFields';
 import { friendsHome } from './friendsHome';
 import { girlsHome } from './girlsHome';
 import { home } from './home';
@@ -16,8 +17,8 @@ import { trunkClimb } from './trunkClimb';
 import { upperHalls } from './upperHalls';
 import type { AreaDefinition } from './types';
 
-/** Every area in the design (docs/design-summary.md), by id, with the name used in menus. Built or not. */
-export const PLANNED_AREAS: Record<string, string> = {
+/** Every area in the tree (Act 1; docs/design-summary.md), by id, with the name used in menus. Built or not. */
+export const TREE_AREAS: Record<string, string> = {
   home: 'your home',
   'offering-floor': 'the offering floor',
   'roots-market': 'the roots market',
@@ -32,6 +33,27 @@ export const PLANNED_AREAS: Record<string, string> = {
   'seed-grove': 'the seed grove',
   'ascension-gate': 'the Ascension gate',
 };
+
+/** Every area in the borderland (Chapter 2; docs/chapter-2-world.md), by id, with the name used in menus. Built or not. */
+export const BORDERLAND_AREAS: Record<string, string> = {
+  shack: 'your shack',
+  'tally-house': 'the tally house',
+  'swap-yard': 'the swap yard',
+  bar: 'the bar',
+  'gambling-den': 'the gambling den',
+  brothel: 'the brothel',
+  compound: "the boss's compound",
+  'scrap-stacks': 'the scrap stacks',
+  'picked-fields': 'the picked fields',
+  'sunk-town': 'the sunk town',
+  'dogs-hollow': "the dog's hollow",
+  'rival-line': 'the rival line',
+  'deep-ground': 'the deep ground',
+  'trees-edge': "the tree's edge",
+};
+
+/** Every area on a map, in any chapter, by id, with the name used in menus. Built or not. */
+export const PLANNED_AREAS: Record<string, string> = { ...TREE_AREAS, ...BORDERLAND_AREAS };
 
 /** Places that aren't on the map: you only reach them through the story (her door, the board in her floor). */
 export const HIDDEN_AREAS: Record<string, string> = {
@@ -61,4 +83,6 @@ export const AREAS: Record<string, AreaDefinition> = {
   [girlsHome.id]: girlsHome,
   [theRot.id]: theRot,
   [shrineCell.id]: shrineCell,
+  // Chapter 2: the borderland.
+  [pickedFields.id]: pickedFields,
 };

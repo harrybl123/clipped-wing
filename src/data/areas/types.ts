@@ -96,7 +96,7 @@ export interface AmbienceLayer {
 }
 
 /** What the floor's made of, for footsteps. */
-export type Surface = 'wood' | 'plank' | 'metal' | 'fungus' | 'wet';
+export type Surface = 'wood' | 'plank' | 'metal' | 'fungus' | 'wet' | 'dirt';
 
 /** Something the player can walk up to and press E on, which runs an ink knot. */
 export interface Interactable {
@@ -155,6 +155,20 @@ export interface Person {
   label?: string;
 }
 
+/**
+ * An area out in the open (the borderland, Chapter 2): instead of a hollow carved in heartwood, a sky
+ * and the tree on the horizon behind (a far layer that moves slower than you walk, so the tree stays
+ * put), the far plain receding beneath it, and the solids as packed dirt. Painted for the time of day.
+ */
+export interface Outdoor {
+  /** Where the far plain meets the sky, in screen pixels. */
+  horizon: number;
+  /** Where the tree stands on the horizon, in the far layer's pixels (0 is the left of the first screen). */
+  treeX: number;
+  /** How far away the tree is: 1 is as seen from the settlement, bigger is nearer (the tree's edge). */
+  treeScale?: number;
+}
+
 export interface AreaDefinition {
   id: string;
   /** Shown in door menus and on the map, e.g. "your home". */
@@ -181,7 +195,9 @@ export interface AreaDefinition {
   /** The area's sound bed, layered (docs/audio-plan.md). */
   ambience?: AmbienceLayer[];
   /** The space, for echo and the room's hush (default small). */
-  acoustics?: 'small' | 'hall' | 'tunnel' | 'street' | 'high';
+  acoustics?: 'small' | 'hall' | 'tunnel' | 'street' | 'high' | 'open';
+  /** Out in the open (Chapter 2): a sky and the tree behind; the cavity is then just the area's bounds. */
+  outdoor?: Outdoor;
   /** What the floor's made of (footsteps; default wood). One-way boards always sound like planks. */
   surface?: Surface;
 }

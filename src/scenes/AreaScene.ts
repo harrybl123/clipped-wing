@@ -15,6 +15,7 @@ import { getSession, type WakePlace } from '../session';
 import { DebugOverlay } from '../ui/DebugOverlay';
 import { DialogueBox } from '../ui/DialogueBox';
 import { paintArea } from '../ui/paintArea';
+import { FAR_SCROLL, farSize, paintFar, paintOutdoorNear } from '../ui/paintOutdoor';
 import { VILLAGERS, WATCHMAN } from '../ui/characters';
 import { SHADES } from '../ui/pixelArt';
 import { duckScore, updateScore, type ScoreId } from '../ui/score';
@@ -339,6 +340,7 @@ export class AreaScene extends Phaser.Scene {
     this.card = data.card;
     this.script = data.script;
     this.wanderers = [];
+    this.outdoorLayers = undefined;
     this.movers = [];
     this.people = new Map();
     this.hints = [];
@@ -361,6 +363,30 @@ export class AreaScene extends Phaser.Scene {
     this.speech = new Map();
   }
 
+  /** Out in the open: the far layer (sky, the tree) and the near layer (dirt, props), painted for the time of day. */
+  private outdoorLayers?: { far: Phaser.GameObjects.Image; near: Phaser.GameObjects.Image };
+
+  /** Paints (or repaints, when the time changes) an outdoor area's two layers for the time of day. */
+  private paintOutdoor(): void {
+    const { area } = this;
+    const outdoor = area.outdoor!;
+    const { slot } = getSession(this).calendar;
+    const far = farSize(area, GAME_WIDTH, GAME_HEIGHT);
+    const farKey = `far-${area.id}-${slot}`;
+    const nearKey = `area-${area.id}-${slot}`;
+    makePaintedTexture(this, farKey, far.width, far.height, paintFar(outdoor, slot, far.height));
+    makePaintedTexture(this, nearKey, area.width, area.height, paintOutdoorNear(area, slot));
+    if (this.outdoorLayers) {
+      this.outdoorLayers.far.setTexture(farKey);
+      this.outdoorLayers.near.setTexture(nearKey);
+      return;
+    }
+    this.outdoorLayers = {
+      far: this.add.image(0, 0, farKey).setOrigin(0).setScrollFactor(FAR_SCROLL),
+      near: this.add.image(0, 0, nearKey).setOrigin(0),
+    };
+  }
+
   /** The area's sounds (docs/audio-plan.md). */
   private soundscape!: Soundscape;
   /** For footsteps, jumps and landings: distance walked since the last step, and last frame's state. */
@@ -374,8 +400,11 @@ export class AreaScene extends Phaser.Scene {
     this.physics.world.setBounds(0, 0, area.width, area.height);
     this.cameras.main.setBounds(0, 0, area.width, area.height);
 
-    makePaintedTexture(this, `area-${area.id}`, area.width, area.height, paintArea(area));
-    this.add.image(0, 0, `area-${area.id}`).setOrigin(0);
+    if (area.outdoor) this.paintOutdoor();
+    else {
+      makePaintedTexture(this, `area-${area.id}`, area.width, area.height, paintArea(area));
+      this.add.image(0, 0, `area-${area.id}`).setOrigin(0);
+    }
     this.crumbleGroup = this.physics.add.staticGroup();
 
     for (const feature of area.features) this.addFeature(feature);
@@ -413,6 +442,7 @@ export class AreaScene extends Phaser.Scene {
     // Who's here depends on the time of day and the story; refresh when either changes.
     this.refreshPeople();
     this.events.on('calendar-changed', () => {
+      if (area.outdoor) this.paintOutdoor();
       this.refreshPeople();
       this.refreshObjective();
     });

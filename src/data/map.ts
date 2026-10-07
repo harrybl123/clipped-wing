@@ -1,4 +1,5 @@
 import { noise } from '../ui/pixelArt';
+import { BORDERLAND_LINKS, BORDERLAND_PLACES } from './borderlandMap';
 
 // Where each area sits on the map: a cross-section of the tree (docs/design-doc.md, "The map").
 // Top to bottom: the Canopy; the upper branches with the Ascension gate on the tube; the trunk;
@@ -14,8 +15,8 @@ export interface MapPlace {
   id: string;
   x: number;
   y: number;
-  /** Which band of the tree it's in (for the key and future access rules). */
-  level: 'upper branches' | 'trunk' | 'roots' | 'beneath';
+  /** Which part of the world it's in, shown in the map's info bar (the tree's bands; the borderland's settlement or grounds). */
+  level: 'upper branches' | 'trunk' | 'roots' | 'beneath' | 'the settlement' | 'the grounds';
   /** The colour its window glows when it's reachable. */
   light: 'amber' | 'cyan' | 'green' | 'white';
 }
@@ -52,7 +53,7 @@ export function treeHalfWidth(y: number): number {
 export interface MapLink {
   from: string;
   to: string;
-  kind: 'ladder' | 'walkway' | 'rope';
+  kind: 'ladder' | 'walkway' | 'rope' | 'track';
 }
 
 /** Faint paths between places: ladders, walkways and a rope bridge (placeholder, drawn on the map only). */
@@ -98,4 +99,25 @@ export function neighbourInDirection(from: MapPlace, dx: number, dy: number, pla
     }
   }
   return best;
+}
+
+/** A map: the places in one world and the paths between them. The map opens on the world of the area you're in. */
+export interface MapWorld {
+  id: 'tree' | 'borderland';
+  /** The title in the map's corner. */
+  title: string;
+  places: readonly MapPlace[];
+  links: readonly MapLink[];
+  /** Where the cursor starts if you're somewhere that isn't on this map. */
+  start: string;
+}
+
+export const WORLDS: readonly MapWorld[] = [
+  { id: 'tree', title: 'The Tree', places: MAP_PLACES, links: MAP_LINKS, start: 'offering-floor' },
+  { id: 'borderland', title: 'The borderland', places: BORDERLAND_PLACES, links: BORDERLAND_LINKS, start: 'swap-yard' },
+];
+
+/** The world an area is in (the tree for anything not on a map, e.g. hidden areas in Act 1). */
+export function worldOf(areaId: string): MapWorld {
+  return WORLDS.find((w) => w.places.some((p) => p.id === areaId)) ?? WORLDS[0]!;
 }

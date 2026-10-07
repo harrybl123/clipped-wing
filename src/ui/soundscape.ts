@@ -133,6 +133,12 @@ function step(a: Out, dest: AudioNode, t: number, surface: Surface, v: number): 
       noise(a, dest, t, 'lowpass', 380 * p, 0.7, 0.09, 0.3 * v, 0.012);
       noise(a, dest, toe, 'lowpass', 600 * p, 0.7, 0.05, 0.08 * v, 0.01);
       break;
+    case 'dirt':
+      // Grit underfoot: a soft thud with a dry crunch on top.
+      noise(a, dest, t, 'lowpass', 420 * p, 0.8, 0.06, 0.28 * v, 0.004);
+      noise(a, dest, t, 'bandpass', 2600 * p, 1.5, 0.05, 0.07 * v, 0.006);
+      noise(a, dest, toe, 'bandpass', 3200 * p, 1.5, 0.04, 0.05 * v, 0.005);
+      break;
     case 'wet':
       noise(a, dest, t, 'lowpass', 500 * p, 1, 0.08, 0.3 * v, 0.01);
       noise(a, dest, toe, 'bandpass', 900 * p, 2, 0.07, 0.12 * v, 0.015, 600); // the squelch
