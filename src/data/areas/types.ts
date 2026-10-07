@@ -188,9 +188,10 @@ export interface AreaDefinition {
   /**
    * What the room is built of: carved heartwood (the tree, default), or scrap (the borderland's
    * settlement: walls of mismatched panels, bare metal, painted, pale casing and dead glass, riveted
-   * together, with riveted plate floors).
+   * together, with riveted plate floors), or hull (inside something enormous: smooth curved plates
+   * with ribs running up and over, the tally house).
    */
-  walls?: 'heartwood' | 'scrap';
+  walls?: 'heartwood' | 'scrap' | 'hull';
   /** How bright the bare wood is before lights (1 = normal). */
   ambient: number;
   playerStart: { x: number; y: number };

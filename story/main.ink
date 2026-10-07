@@ -227,6 +227,7 @@ INCLUDE ascension-gate.ink
 INCLUDE borderland/picked-fields.ink
 INCLUDE borderland/shack.ink
 INCLUDE borderland/swap-yard.ink
+INCLUDE borderland/tally-house.ink
 
 // The game starts conversations by knot name via StoryBridge, so the root
 // flow does nothing.

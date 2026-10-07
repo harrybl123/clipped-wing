@@ -80,8 +80,28 @@ function scrapWall(x: number, y: number): RGB | number {
   return base.map((v, i) => (v * 0.6 + wood[i]! * 0.4) * (1 + wear + lift + ridge)) as RGB; // muted, so the room's things stand out
 }
 
+/** Inside a hull: smooth plates in long courses, ribs every so often (lit on one side), rivets along them. */
+function hullWall(x: number, y: number): RGB | number {
+  const rib = x % 72;
+  if (rib < 6) {
+    if (rib === 0) return SHADES.shadow;
+    if (rib === 1) return SHADES.dim;
+    if (rib === 5) return SHADES.deep;
+    if (rib === 3 && y % 9 === 4) return SHADES.dim; // rivets down the rib
+    return rgb(SHADES.woodLight);
+  }
+  const course = Math.floor((y + Math.floor(x / 72) * 7) / 22);
+  if ((y + Math.floor(x / 72) * 7) % 22 === 0) return SHADES.deep; // seam between courses
+  const tone = cellRandom(Math.floor(x / 72), course, 96);
+  const base = rgb(tone > 0.85 ? SHADES.cyanDeep : tone > 0.7 ? SHADES.amberDeep : SHADES.woodLight);
+  const wood = rgb(SHADES.wood);
+  const sheen = 0.1 * Math.sin((rib / 72) * Math.PI); // each plate bowed, catching a little light in the middle
+  return base.map((v, i) => (v * 0.55 + wood[i]! * 0.45) * (1 + sheen + noise(x / 9 + y / 30) * 0.04)) as RGB;
+}
+
 export function paintArea(area: AreaDefinition): (x: number, y: number) => PixelColour {
-  const scrap = area.walls === 'scrap';
+  const scrap = area.walls === 'scrap' || area.walls === 'hull';
+  const hull = area.walls === 'hull';
   const { width } = area;
   const overlay = new Map<number, number>();
   const put = (x: number, y: number, c: number) => {
@@ -140,7 +160,7 @@ export function paintArea(area: AreaDefinition): (x: number, y: number) => Pixel
     }
 
     if (scrap) {
-      const wall = scrapWall(x, y);
+      const wall = hull ? hullWall(x, y) : scrapWall(x, y);
       if (typeof wall === 'number') return wall;
       const vignette = smoothstep(0.45, 1.1, Math.hypot((x - centreX) / halfW, (y - centreY) / halfH));
       const edgeShadow = smoothstep(-10, 0, d) * 0.4;

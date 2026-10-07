@@ -1,6 +1,8 @@
 # Area brief: the tally house
 
-Chapter 2. **(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
+Chapter 2. Built 2026-10-07 (`src/data/areas/borderland/tallyHouse.ts`, `story/borderland/tally-house.ink`; dev `?area=tally-house`). Inside a hull (`walls: 'hull'`). The walkway's door leads to the compound. The tallyman, the queue and the watchers come with the cast.
+
+**(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
 
 ## Purpose
 Where finds are weighed and taxed each evening: this chapter's version of Act 1's evening ceremony. **(doc)** Tribute night shows how the town runs. **(doc)**
