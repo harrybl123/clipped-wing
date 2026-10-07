@@ -38,6 +38,8 @@ export interface FolkLook {
   /** Carried in the front hand: a hook on a pole (for scavenging), or a staff. */
   tool?: 'hook' | 'staff';
   apron?: number;
+  /** A big belly pushing the clothes out at the front, arms held out round it (the boss). */
+  belly?: boolean;
 }
 
 type Grid = string[][];
@@ -60,7 +62,7 @@ export const darker = (c: number) => DARKER[c] ?? SHADES.deep;
 
 /** One frame: `breathe` bobs the upper body, `stride` spreads the legs (walking). */
 export function folk(look: FolkLook, breathe = false, stride = 0): RowSprite {
-  const W = 14;
+  const W = 16;
   const H = look.height;
   const child = H < 21;
   const g = grid(W, H);
@@ -115,8 +117,12 @@ export function folk(look: FolkLook, breathe = false, stride = 0): RowSprite {
     for (let y = 1; y <= (look.head === 'hood' ? 6 : 3); y++) put(g, cx - 3, y + b, 'C');
     put(g, cx - 2, headTop + 1 + b, 'c');
   }
-  // Neck, body.
-  span(g, headTop + 5 + b, cx, cx + 1, 'S');
+  // Neck, body. A heavy man has jowls and a thick neck.
+  if (look.belly) {
+    span(g, headTop + 4 + b, cx - 2, cx + 3, 's');
+    put(g, cx - 2, headTop + 4 + b, 'S');
+    span(g, headTop + 5 + b, cx - 1, cx + 3, 'S');
+  } else span(g, headTop + 5 + b, cx, cx + 1, 'S');
   const bodyTop = headTop + 6;
   const legTop = H - (child ? 6 : 8);
   const coatTo = look.topStyle === 'coat' ? Math.min(H - 3, legTop + 4) : look.topStyle === 'long' ? H - 1 : legTop - 1;
@@ -124,9 +130,10 @@ export function folk(look: FolkLook, breathe = false, stride = 0): RowSprite {
     const yy = y + (y < legTop ? b : 0);
     const flare = y >= legTop ? Math.floor((y - legTop) / 3) + (look.topStyle === 'long' ? 1 : 0) : 0;
     const sway = y >= legTop + 2 ? stride : 0;
-    span(g, yy, cx - w - flare + sway, cx + w + flare + sway, 't');
+    const gut = look.belly && y >= bodyTop + 3 && y <= legTop + 1 ? (y >= bodyTop + 5 && y <= legTop - 1 ? 2 : 1) : 0;
+    span(g, yy, cx - w - flare + sway, cx + w + flare + sway + gut, 't');
     put(g, cx - w - flare + sway, yy, 'T');
-    put(g, cx + w + flare + sway, yy, 'U');
+    put(g, cx + w + flare + sway + gut, yy, 'U');
   }
   if (look.apron !== undefined) for (let y = bodyTop + 3; y <= Math.min(H - 3, legTop + 3); y++) span(g, y + (y < legTop ? b : 0), cx - 1, cx + w, 'a');
   if (look.scarf !== undefined) {
@@ -148,11 +155,12 @@ export function folk(look: FolkLook, breathe = false, stride = 0): RowSprite {
     const swing = y >= bodyTop + 4 ? -Math.sign(stride) : 0;
     if (g[y + b]?.[cx - w - 1 + swing] === '.') put(g, cx - w - 1 + swing, y + b, backSleeve);
   }
+  const armX = cx + w + 1 + (look.belly ? 2 : 0); // held out round the belly
   for (let y = bodyTop + 1; y <= bodyTop + 6; y++) {
     const swing = y >= bodyTop + 4 ? Math.sign(stride) : 0;
-    put(g, cx + w + 1 + swing, y + b, sleeve);
+    put(g, armX + (look.belly && y < bodyTop + 3 ? -1 : 0) + swing, y + b, sleeve);
   }
-  put(g, cx + w + 1 + Math.sign(stride), bodyTop + 7 + b, 's'); // the hand
+  put(g, armX + Math.sign(stride), bodyTop + 7 + b, 's'); // the hand
   // Legs (unless a long coat or dress hides them), boots.
   if (look.topStyle !== 'long') {
     for (let y = Math.max(legTop, coatTo + 1); y < H; y++) {
@@ -235,8 +243,8 @@ const S = SHADES;
 export const CAST_LOOKS = {
   /** Your brother: small, in a coat handed down and far too big, sandy hair sticking up, a tin trinket he found. */
   brother: { height: 19, width: 2, skin: 'fair', hair: S.amber, hairStyle: 'messy', top: S.woodPale, topStyle: 'coat', legs: S.woodLight, trinket: true },
-  /** The boss: charming and protective; a good long coat, greying hair, a warm scarf, a found gem at his throat. */
-  boss: { height: 26, width: 3, skin: 'tan', hair: S.dim, hairStyle: 'short', top: S.amberDeep, topStyle: 'coat', legs: S.wood, scarf: S.amber, trinket: true },
+  /** The boss: charming and protective, fat and imposing (designer); a big good coat over a big belly, greying hair, a warm scarf, a found gem at his throat. */
+  boss: { height: 27, width: 4, belly: true, skin: 'tan', hair: S.dim, hairStyle: 'short', top: S.amberDeep, topStyle: 'coat', legs: S.wood, scarf: S.amber, trinket: true },
   /** The watcher: tall, quiet, always at the boss's shoulder; a long dark coat, a hood. */
   watcher: { height: 27, width: 2, skin: 'dark', hair: S.shadow, hairStyle: 'bald', head: 'hood', top: S.woodLight, topStyle: 'long', legs: S.wood, scarf: S.wood },
   /** The enforcer: loyal muscle; broad, bare arms, a scrap plate strapped on as armour, head shaved but for a crest. */

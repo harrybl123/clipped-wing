@@ -27,7 +27,9 @@ function stairs(): Solid[] {
   return Array.from({ length: count - 1 }, (_, i) => {
     const top = FLOOR - 8 * (i + 1);
     const x = STAIRS_TOP + 8 * (count - 2 - i);
-    return { x, y: top, width: W - 16 - x, height: FLOOR - top, oneWay: true };
+    // Each step's block runs from the top of the stairs out to its own front edge, so the lower steps are
+    // longer and the blocks paint as a staircase (they ran to the wall, and painted as one block).
+    return { x: STAIRS_TOP, y: top, width: x - STAIRS_TOP + 8, height: FLOOR - top, oneWay: true };
   });
 }
 

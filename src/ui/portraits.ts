@@ -337,7 +337,7 @@ export const BOY_PORTRAIT: RowSprite = (() => {
  */
 export interface NpcFace {
   /** Face shape: narrow (thin, long), plain, round or broad. */
-  build?: 'narrow' | 'plain' | 'round' | 'broad';
+  build?: 'narrow' | 'plain' | 'round' | 'broad' | 'heavy';
   /** Hair on a bare head (under a cap only the sides show; a hood hides it; a bun look always has a bun). */
   hair?: 'cropped' | 'long' | 'bun' | 'balding' | 'messy' | 'shaven';
   /** Hair colour, if not the look's. */
@@ -368,7 +368,7 @@ const DARKER: Record<number, number> = {
 };
 const darker = (c: number) => DARKER[c] ?? SHADES.deep;
 
-const BUILDS: Record<NonNullable<NpcFace['build']>, [rx: number, ry: number]> = { narrow: [7, 12], plain: [9, 12], round: [10, 11], broad: [10, 12] };
+const BUILDS: Record<NonNullable<NpcFace['build']>, [rx: number, ry: number]> = { narrow: [7, 12], plain: [9, 12], round: [10, 11], broad: [10, 12], heavy: [12, 12] };
 
 /**
  * The pixel picker for one NPC bust centred at (cx, cy), or '.' where it's empty. Shared by
@@ -550,9 +550,15 @@ function npcPick(look: VillagerLook, o: NpcFace, cx: number, cy: number, scale =
       if (hairStyle === 'bun' && inEllipse(x, y, f.cx - 1, f.cy - f.ry - 1, 4.5, 3.5)) hair = true;
       if (hair) return u > 1 && (x + y) % 5 === 0 ? 'k' : 'h';
     }
+    // A heavy face: jowls and a second chin under the first.
+    if (o.build === 'heavy' && !inFace(x, y) && inEllipse(x, y, f.cx, f.cy + f.ry, f.rx - 1, 4) && y > f.cy + 4) {
+      if (y === f.cy + f.ry + 1 && Math.abs(u) <= 6) return 'E'; // the fold under the second chin
+      return u < -5 ? 'E' : u > 3 ? 'M' : 'S';
+    }
     if (inFace(x, y)) {
       const b = beard(x, y);
       if (b) return b;
+      if (o.build === 'heavy' && y === f.cy + f.ry - 3 && Math.abs(u) <= 5 && !featureAt(x, y)) return 'S'; // the fold of the chin
       const feature = featureAt(x, y);
       if (feature) return feature;
       if (hood && y < f.cy - f.ry + 4) return u > f.rx - 3 ? 'S' : 'E'; // in the hood's shadow
@@ -573,7 +579,7 @@ function npcPick(look: VillagerLook, o: NpcFace, cx: number, cy: number, scale =
     }
     // Shoulders and chest: the look's clothes, its accent band, a stole, a bundle's strap, an apron.
     if (y >= top) {
-      const spread = Math.round((8 + (y - top) * 1.6) * scale);
+      const spread = Math.round(((o.build === 'heavy' ? 13 : 8) + (y - top) * (o.build === 'heavy' ? 2.2 : 1.6)) * scale);
       if (Math.abs(u) > spread) return '.';
       if (Math.abs(u) > spread - 1) return u > 0 ? 'F' : 'o';
       if (look.stole && u >= 3 && u <= 5) return u === 5 ? 'B' : 'b';
@@ -772,7 +778,7 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
   // Chapter 2.
   scavenger: { name: 'You', portrait: SCAVENGER_PORTRAIT, voice: 'scavenger' },
   brother: { name: 'Your brother', portrait: folkPortrait(CAST_LOOKS.brother, { build: 'round', eyes: 'wide', mouth: 'grin' }), voice: 'young' },
-  boss: { name: 'The boss', portrait: folkPortrait(CAST_LOOKS.boss, { build: 'broad', age: 1, beard: 'full', mouth: 'smile', items: ['earring'] }), voice: 'upper' },
+  boss: { name: 'The boss', portrait: folkPortrait(CAST_LOOKS.boss, { build: 'heavy', age: 1, beard: 'moustache', brow: 'heavy', eyes: 'narrow', mouth: 'smile', items: ['earring'] }), voice: 'upper' },
   watcher: { name: 'The watcher', portrait: folkPortrait(CAST_LOOKS.watcher, { build: 'narrow', eyes: 'narrow', brow: 'heavy', items: ['scar'] }), voice: 'elder' },
   enforcer: { name: 'The enforcer', portrait: folkPortrait(CAST_LOOKS.enforcer, { build: 'broad', brow: 'knit', beard: 'stubble', mouth: 'sneer' }), voice: 'guard' },
   boss_son: { name: "The boss's son", portrait: folkPortrait(CAST_LOOKS.boss_son, { build: 'narrow', brow: 'raised', mouth: 'sneer', items: ['earring'] }), voice: 'boy' },
