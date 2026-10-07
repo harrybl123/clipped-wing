@@ -74,6 +74,8 @@ The game is pixel art, so darker and lighter **shades** of these colours are all
   - **Sound:** footstep surface `dirt`; acoustics `open`.
   - **Props:** shared scrap props are in `src/data/areas/borderland/scrapProps.ts`.
   - **First area: the picked fields.** The stuck hull, which you can climb (its back is one-way blocks like stairs) to look at the tree. A glow in the crack under it. Exits to the swap yard, the dog's hollow, the sunk town and the tree's edge. Dev: `?area=picked-fields`.
+  - **Outdoor areas are bigger than the tree's** (designer: the borderland should be more open). The settlement's rooms are scrap: `walls: 'scrap'` paints walls of mismatched riveted panels (bare, corrugated, old paint, pale casing, dead glass), muted so the room's things stand out, and riveted plate floors. Your shack is the first.
+  - **Secret places:** `MapPlace.showIf` and `Exit.showIf` (ink variables). The dog's hollow and the path to it stay hidden until `found_dog` (designer: don't reveal it before you find the dog), and its landmark isn't painted on the map.
   - **Not yet:** the scavenger as the player sprite (you walk the borderland as the carver for now); the cast; Chapter 2's calendar.
 
 - **2026-10-07 — "Stay alive" is a cupped flame; Chapter 1 is "Fly or Fall".** (Designer: the stay-alive picture needed to change; Claude's earlier recommendation from the options on `pictures.html`.) Two hands cupped round a small flame, keeping it lit; flame, fire or hands are near misses.

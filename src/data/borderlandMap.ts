@@ -29,7 +29,8 @@ export const BORDERLAND_PLACES: readonly MapPlace[] = [
   { id: 'trees-edge', x: BORDER_TREE_X, y: BORDER_HORIZON_Y + 12, level: 'the grounds', light: 'green' },
   { id: 'sunk-town', x: 112, y: 152, level: 'the grounds', light: 'cyan' },
   { id: 'deep-ground', x: 46, y: BORDER_HORIZON_Y + 10, level: 'the grounds', light: 'cyan' },
-  { id: 'dogs-hollow', x: 92, y: 226, level: 'the grounds', light: 'white' },
+  // Your secret spot: not on the map until you've found the dog (designer).
+  { id: 'dogs-hollow', x: 92, y: 226, level: 'the grounds', light: 'white', showIf: 'found_dog' },
   { id: 'rival-line', x: 428, y: 160, level: 'the grounds', light: 'amber' },
 ];
 

@@ -237,15 +237,7 @@ function decor(): Map<number, number> {
     rect(put, p.x + 1, p.y - 14, 3, 9, S.dim); // a tower top, at an angle
     put(p.x + 2, p.y - 11, S.cyan);
   }
-  // The dog's hollow: a dip with a slab leaning over it.
-  {
-    const p = at('dogs-hollow');
-    for (let dx = -14; dx <= 14; dx++) for (let dy = -3; dy <= 3; dy++) if ((dx / 14) ** 2 + (dy / 3.5) ** 2 < 1) put(p.x + dx, p.y + 3 + dy, dy < -1 ? S.deep : S.shadow);
-    for (let i = 0; i < 14; i++) {
-      put(p.x - 10 + i, p.y - 6 + Math.round(i * 0.6), S.light);
-      put(p.x - 10 + i, p.y - 5 + Math.round(i * 0.6), S.dim);
-    }
-  }
+  // The dog's hollow is a secret: nothing marks it on the map (its lamp appears once you've found the dog).
   // The rival line: a watch post on stilts beside the fence.
   {
     const p = at('rival-line');

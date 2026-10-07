@@ -2,6 +2,7 @@ import { archive } from './archive';
 import { ascensionGate } from './ascensionGate';
 import { backRoutes } from './backRoutes';
 import { pickedFields } from './borderland/pickedFields';
+import { shack } from './borderland/shack';
 import { friendsHome } from './friendsHome';
 import { girlsHome } from './girlsHome';
 import { home } from './home';
@@ -85,4 +86,5 @@ export const AREAS: Record<string, AreaDefinition> = {
   [shrineCell.id]: shrineCell,
   // Chapter 2: the borderland.
   [pickedFields.id]: pickedFields,
+  [shack.id]: shack,
 };

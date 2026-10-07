@@ -112,6 +112,29 @@ describe('the borderland map', () => {
     for (const l of BORDERLAND_LINKS) expect(ids.has(l.from) && ids.has(l.to), `${l.from}–${l.to}`).toBe(true);
   });
 
+  it("keeps the dog's hollow off the map until you've found the dog", () => {
+    expect(at('dogs-hollow').showIf).toBe('found_dog');
+    expect(BORDERLAND_PLACES.filter((p) => p.showIf).map((p) => p.id)).toEqual(['dogs-hollow']);
+  });
+
+  it('can reach every place you know about from the swap yard, with or without the secret ones', () => {
+    for (const places of [BORDERLAND_PLACES, BORDERLAND_PLACES.filter((p) => !p.showIf)]) {
+      const seen = new Set<string>(['swap-yard']);
+      const queue = [at('swap-yard')];
+      while (queue.length) {
+        const p = queue.shift()!;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+          const n = neighbourInDirection(p, dx, dy, places);
+          if (n && !seen.has(n.id)) {
+            seen.add(n.id);
+            queue.push(n);
+          }
+        }
+      }
+      expect([...seen].sort()).toEqual(places.map((p) => p.id).sort());
+    }
+  });
+
   it('can reach every place from the swap yard by pressing directions', () => {
     const seen = new Set<string>(['swap-yard']);
     const queue = [at('swap-yard')];

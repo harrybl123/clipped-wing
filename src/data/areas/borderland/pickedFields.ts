@@ -68,8 +68,6 @@ export const pickedFields: AreaDefinition = {
     { sprite: P.dugHole(10), x: 196, y: FLOOR - 4 },
     { sprite: P.toolsLeft, x: 214, y: FLOOR - 7 },
     { sprite: P.dugHole(18), x: 248, y: FLOOR - 4 },
-    // The way off to the dog's hollow: a marker and a fainter path.
-    { sprite: P.trackMarker(22), x: 296, y: FLOOR - 22 },
     { sprite: P.bentMast(74), x: 336, y: FLOOR - 74 },
     { sprite: P.cableCoil(22), x: 372, y: FLOOR - 8 },
     // The stuck hull.
@@ -107,7 +105,7 @@ export const pickedFields: AreaDefinition = {
 
   exits: [
     { id: 'to-swap-yard', x: 20, y: FLOOR, reach: 16, to: 'swap-yard' },
-    { id: 'to-dogs-hollow', x: 300, y: FLOOR, reach: 10, to: 'dogs-hollow' },
+    { id: 'to-dogs-hollow', x: 300, y: FLOOR, reach: 10, to: 'dogs-hollow', showIf: 'found_dog' }, // a secret until you've found the dog
     { id: 'to-sunk-town', x: 822, y: FLOOR, reach: 12, to: 'sunk-town' },
     { id: 'to-trees-edge', x: 940, y: FLOOR, reach: 16, to: 'trees-edge' },
   ],

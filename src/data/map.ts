@@ -19,6 +19,8 @@ export interface MapPlace {
   level: 'upper branches' | 'trunk' | 'roots' | 'beneath' | 'the settlement' | 'the grounds';
   /** The colour its window glows when it's reachable. */
   light: 'amber' | 'cyan' | 'green' | 'white';
+  /** Only on the map while this ink variable is true (a place you don't know about yet). */
+  showIf?: string;
 }
 
 export const MAP_PLACES: readonly MapPlace[] = [

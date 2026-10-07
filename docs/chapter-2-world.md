@@ -84,7 +84,7 @@ The order is a **(suggestion)**:
 
 1. The map, with every place dark. **Done.**
 2. The picked fields. **Built** (`src/data/areas/borderland/pickedFields.ts`). This first area sets the look: an open sky, the tree on the horizon, and scrap in the dirt.
-3. Your shack.
+3. Your shack. **Built**: the first scrap interior (`walls: 'scrap'`), cramped under a sloped corrugated roof.
 4. The rest of the settlement: the tally house, the swap yard, the scrap stacks, the bar, the gambling den, the brothel, the compound.
 5. The rest of the grounds.
 6. The cast: the scavenger becomes the player sprite, and the dog, the boss's circle and the townsfolk get sprites and portraits.
@@ -96,5 +96,6 @@ The order is a **(suggestion)**:
 - **Ties to Act 1:**
   - Does anything from inside the tree ever turn up out here?
   - Act 1's fall ending walks out of the roots into daylight. Does that ending come out somewhere in this borderland?
+- **The dog's hollow** stays off the map, and its path out of the picked fields stays hidden, until you've found the dog (`found_dog`). **(designer)**
 - **Old words:** do the scavengers have words for the old society, like "before" or "the old ones"? Or no word at all?
 - **The deep ground:** why is it forbidden? Is it the danger, a rule of the clans, or something nobody will say?

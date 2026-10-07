@@ -1,6 +1,8 @@
 # Area brief: your shack
 
-Chapter 2. **(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
+Chapter 2. Built 2026-10-07 (`src/data/areas/borderland/shack.ts`, `story/borderland/shack.ink`; dev `?area=shack`). Your brother and the dog come with the cast.
+
+**(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
 
 ## Purpose
 Home with your brother. The dog is hidden under the floor. **(doc)** This chapter's version of Act 1's home: where days start and end, and where the dog has to be kept secret. **(suggestion)**

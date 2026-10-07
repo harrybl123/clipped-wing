@@ -196,6 +196,10 @@ VAR glossary_find = ""
 VAR glossary_hide = ""
 VAR glossary_climb = ""
 
+// ---- Chapter 2: the borderland (docs/chapter-2-design.md) ----
+// You've found the dog: the dog's hollow, your secret spot, is on the map from then on.
+VAR found_dog = false
+
 INCLUDE prologue.ink
 INCLUDE day1.ink
 INCLUDE day2.ink
@@ -221,6 +225,7 @@ INCLUDE archive.ink
 INCLUDE seed-grove.ink
 INCLUDE ascension-gate.ink
 INCLUDE borderland/picked-fields.ink
+INCLUDE borderland/shack.ink
 
 // The game starts conversations by knot name via StoryBridge, so the root
 // flow does nothing.

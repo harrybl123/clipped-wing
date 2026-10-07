@@ -125,6 +125,8 @@ export interface Exit {
   to: string;
   /** A hidden way (a back window): it works even when the area it leads to is closed today. */
   secret?: boolean;
+  /** Only there while this ink variable is true (a place you don't know about yet, like the dog's hollow). */
+  showIf?: string;
 }
 
 /** A person standing in the area, drawn at (x, y) = bottom-centre. Talking runs `knot` (no knot: background only). */
@@ -181,6 +183,12 @@ export interface AreaDefinition {
   nooks?: (Rect & { radius: number })[];
   /** How the solid heartwood outside the hollows looks: growth rings round a room (default), or dense packed wood for tunnels. */
   heartwood?: 'rings' | 'packed';
+  /**
+   * What the room is built of: carved heartwood (the tree, default), or scrap (the borderland's
+   * settlement: walls of mismatched panels, bare metal, painted, pale casing and dead glass, riveted
+   * together, with riveted plate floors).
+   */
+  walls?: 'heartwood' | 'scrap';
   /** How bright the bare wood is before lights (1 = normal). */
   ambient: number;
   playerStart: { x: number; y: number };
