@@ -9,6 +9,7 @@ import { bar } from './borderland/bar';
 import { gamblingDen } from './borderland/gamblingDen';
 import { brothel } from './borderland/brothel';
 import { compound } from './borderland/compound';
+import { compoundHouse } from './borderland/compoundHouse';
 import { scrapStacks } from './borderland/scrapStacks';
 import { sunkTown } from './borderland/sunkTown';
 import { dogsHollow } from './borderland/dogsHollow';
@@ -75,8 +76,23 @@ export const HIDDEN_AREAS: Record<string, string> = {
   'shrine-cell': 'the cell behind the shrine',
 };
 
+/**
+ * Areas within an area (designer: the boss's house inside the compound): not on the map themselves; you
+ * go in and out through a door in their parent, and the map shows you at the parent.
+ */
+export const INSIDE_AREAS: Record<string, { name: string; of: string }> = {
+  'compound-house': { name: "the boss's house", of: 'compound' },
+};
+
+/** The place on the map an area counts as: its parent if it's an area within an area, else itself. */
+export const placeOf = (areaId: string): string => INSIDE_AREAS[areaId]?.of ?? areaId;
+
 /** Every area's name for menus, on the map or not. */
-export const AREA_NAMES: Record<string, string> = { ...PLANNED_AREAS, ...HIDDEN_AREAS };
+export const AREA_NAMES: Record<string, string> = {
+  ...PLANNED_AREAS,
+  ...HIDDEN_AREAS,
+  ...Object.fromEntries(Object.entries(INSIDE_AREAS).map(([id, { name }]) => [id, name])),
+};
 
 /** Areas that have been built, by id. */
 export const AREAS: Record<string, AreaDefinition> = {
@@ -105,6 +121,7 @@ export const AREAS: Record<string, AreaDefinition> = {
   [gamblingDen.id]: gamblingDen,
   [brothel.id]: brothel,
   [compound.id]: compound,
+  [compoundHouse.id]: compoundHouse,
   [scrapStacks.id]: scrapStacks,
   [sunkTown.id]: sunkTown,
   [dogsHollow.id]: dogsHollow,

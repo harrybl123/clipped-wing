@@ -99,8 +99,21 @@ function hullWall(x: number, y: number): RGB | number {
   return base.map((v, i) => (v * 0.55 + wood[i]! * 0.45) * (1 + sheen + noise(x / 9 + y / 30) * 0.04)) as RGB;
 }
 
+/** Whole matched panels, all the same, clean and close-fitted (the boss's house): the best scrap in town, warm. */
+function matchedWall(x: number, y: number): RGB | number {
+  const lx = x % 24;
+  const ly = y % 44;
+  if (lx === 0) return SHADES.deep; // the fine seam between panels
+  if ((lx === 3 || lx === 21) && (ly === 4 || ly === 40)) return SHADES.dim; // bolts, all present
+  const base = mix3(rgb(SHADES.woodLight), rgb(SHADES.amberDeep), 0.3);
+  const sheen = lx === 1 ? 0.14 : 0.06 * Math.sin((lx / 24) * Math.PI);
+  return base.map((v) => v * (1.05 + sheen + noise(x / 11 + y / 37) * 0.03)) as RGB;
+}
+
+const mix3 = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+
 export function paintArea(area: AreaDefinition): (x: number, y: number) => PixelColour {
-  const scrap = area.walls === 'scrap' || area.walls === 'hull';
+  const scrap = area.walls === 'scrap' || area.walls === 'hull' || area.walls === 'matched';
   const hull = area.walls === 'hull';
   const { width } = area;
   const overlay = new Map<number, number>();
@@ -169,7 +182,7 @@ export function paintArea(area: AreaDefinition): (x: number, y: number) => Pixel
     }
 
     if (scrap) {
-      const wall = hull ? hullWall(x, y) : scrapWall(x, y);
+      const wall = hull ? hullWall(x, y) : area.walls === 'matched' ? matchedWall(x, y) : scrapWall(x, y);
       if (typeof wall === 'number') return wall;
       const vignette = smoothstep(0.45, 1.1, Math.hypot((x - centreX) / halfW, (y - centreY) / halfH));
       const edgeShadow = smoothstep(-10, 0, d) * 0.4;

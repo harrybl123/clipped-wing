@@ -88,7 +88,7 @@ export const tallyHouse: AreaDefinition = {
 
   exits: [
     { id: 'to-swap-yard', x: 29, y: FLOOR, reach: 12, to: 'swap-yard' },
-    { id: 'to-compound', x: 444, y: WALK.y, reach: 10, to: 'compound' },
+    { id: 'to-compound', x: 444, y: WALK.y, reach: 10, to: 'compound-house' }, // the walkway, into the boss's house upstairs
   ],
 
   ambience: [

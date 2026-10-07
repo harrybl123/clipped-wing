@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { closedReason, ON_FOOT } from '../data/access';
-import { AREAS, AREA_NAMES } from '../data/areas';
+import { AREAS, AREA_NAMES, placeOf } from '../data/areas';
 import type { AmbienceLayer, AreaDefinition, Exit, Feature, Person, Surface } from '../data/areas/types';
 import { nextHop } from '../data/route';
 import { Player } from '../objects/Player';
@@ -1706,7 +1706,7 @@ export class AreaScene extends Phaser.Scene {
   /** Opens the map over this area (paused), which either travels or comes back here. */
   private openMap(): void {
     this.scene.pause();
-    this.scene.launch('Map', { current: this.area.id } satisfies MapSceneData);
+    this.scene.launch('Map', { current: placeOf(this.area.id) } satisfies MapSceneData);
   }
 
   private goTo(areaId: string, extra: Omit<AreaSceneData, 'areaId' | 'from'> = {}): void {

@@ -196,9 +196,10 @@ export interface AreaDefinition {
    * What the room is built of: carved heartwood (the tree, default), or scrap (the borderland's
    * settlement: walls of mismatched panels, bare metal, painted, pale casing and dead glass, riveted
    * together, with riveted plate floors), or hull (inside something enormous: smooth curved plates
-   * with ribs running up and over, the tally house).
+   * with ribs running up and over, the tally house), or matched (whole matched panels, clean and warm:
+   * the boss's house).
    */
-  walls?: 'heartwood' | 'scrap' | 'hull';
+  walls?: 'heartwood' | 'scrap' | 'hull' | 'matched';
   /** Below ground (the gambling den): around a scrap or hull room is packed earth with junk in it, not the dark. */
   underground?: boolean;
   /** How bright the bare wood is before lights (1 = normal). */

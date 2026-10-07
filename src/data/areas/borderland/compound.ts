@@ -1,34 +1,24 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './compoundProps';
 import { roof } from './shackProps';
-import type { AreaDefinition, Solid } from '../types';
+import type { AreaDefinition } from '../types';
 
 // The boss's compound (Chapter 2): his home and seat, on a rise at the top of the settlement, walled
 // with the best scrap. Off limits at first; it opens once you're brought in (and if you move your brother
-// in, he lives here). Outside: the lane, then the gate with lamps on its posts. The swept yard: a whole
-// water tank, still full; crates of tribute under a cloth. The house in cutaway: the main room with the
-// boss's long table and real food on it, under the working light (the only part in the borderland that
-// still does what it was made to do); the circle's side room; a locked door nobody opens; stairs up to the
-// private rooms. Ways back to the bar (the lane) and the tally house (the walkway door).
+// in, he lives here). Outside: the lane, then the gateway through the wall (you walk through it). The
+// swept yard: washing on the line, a whole water tank, still full, crates of tribute under a cloth. Then
+// the house front: two storeys of whole matched panels, windows with curtains and lamplight, a porch with
+// lamps, the door standing open. The door leads inside: the boss's house is its own area, within this one
+// (`compoundHouse.ts`; designer: the cutaway's door was floating). Ways back to the bar (the lane); the
+// walkway to the tally house is upstairs in the house.
 // See docs/areas/borderland/compound.md. The boss, his circle and the guards come with the cast.
 
 const W = 960;
 const FLOOR = 232;
-const HOUSE = { x: 430, top: 70, floor: 152, end: 940 };
-const PARTITION = 300; // inside the house's sprite: the side room's wall
-
-/** Where the upper floor ends and the stairs begin, climbing leftwards from the house's right end. */
-const STAIRS_TOP = HOUSE.end - 80;
-
-/** Stairs up to the private rooms: the lowest step at the right, the highest against the upper floor. */
-function stairs(): Solid[] {
-  const count = (FLOOR - HOUSE.floor) / 8;
-  return Array.from({ length: count - 1 }, (_, i) => {
-    const top = FLOOR - 8 * (i + 1);
-    const x = STAIRS_TOP + 8 * (count - 2 - i);
-    return { x, y: top, width: HOUSE.end - 8 - x, height: FLOOR - top, oneWay: true };
-  });
-}
+const GATE_X = 150;
+const HOUSE = { x: 430, top: 70, end: 940 };
+/** The front door's left edge, in the house front's own pixels. */
+const DOOR = 70;
 
 export const compound: AreaDefinition = {
   id: 'compound',
@@ -44,75 +34,58 @@ export const compound: AreaDefinition = {
 
   solids: [
     { x: 0, y: FLOOR, width: W, height: 270 - FLOOR },
-    { x: HOUSE.x + 4, y: HOUSE.floor, width: STAIRS_TOP - HOUSE.x - 4, height: 6, oneWay: true }, // the upper floor
-    ...stairs(),
     { x: -8, y: 0, width: 8, height: 270, invisible: true },
     { x: W, y: 0, width: 8, height: 270, invisible: true },
   ],
 
   lights: [
-    { x: 130, y: FLOOR, colour: S.amber, radius: 30, radiusY: 8, strength: 0.25 },
-    { x: 300, y: FLOOR, colour: S.amber, radius: 30, radiusY: 8, strength: 0.2 },
+    { x: GATE_X + 12, y: FLOOR, colour: S.amber, radius: 26, radiusY: 7, strength: 0.25 },
+    { x: GATE_X + 51, y: FLOOR, colour: S.amber, radius: 26, radiusY: 7, strength: 0.25 },
+    { x: 303, y: FLOOR, colour: S.amber, radius: 30, radiusY: 8, strength: 0.2 },
+    { x: HOUSE.x + DOOR + 14, y: FLOOR, colour: S.amber, radius: 44, radiusY: 9, strength: 0.4 }, // light spilling from the door
   ],
 
   lines: [],
 
   props: [
-    // The wall along the lane, and the gate.
-    { sprite: P.matchedWall(80, 44), x: 40, y: FLOOR - 44 },
-    { sprite: P.GATE, x: 120, y: FLOOR - 62 },
-    { sprite: P.matchedWall(70, 44), x: 168, y: FLOOR - 44 },
+    // The lane, outside: a stool where the gate guard sits.
+    { sprite: P.STOOL, x: 128, y: FLOOR - 5 },
+    // The yard's wall behind, from the gateway to the house.
+    { sprite: P.matchedWall(HOUSE.x - GATE_X - 64, 40), x: GATE_X + 64, y: FLOOR - 40 },
     // The yard.
-    { sprite: P.lampPost(40), x: 250, y: FLOOR - 40 },
-    { sprite: P.TANK, x: 280, y: FLOOR - 34 },
-    { sprite: P.TRIBUTE, x: 330, y: FLOOR - 20 },
-    { sprite: P.lampPost(40), x: 400, y: FLOOR - 40 },
-    // The house.
+    { sprite: P.washingLine(80), x: 222, y: FLOOR - 34 },
+    { sprite: P.lampPost(40), x: 300, y: FLOOR - 40 },
+    { sprite: P.TANK, x: 314, y: FLOOR - 34 },
+    { sprite: P.TRIBUTE, x: 356, y: FLOOR - 20 },
+    // The house front, its roof and flue.
     { sprite: roof(HOUSE.end - HOUSE.x + 16, 8), x: HOUSE.x - 8, y: HOUSE.top - 12 },
-    { sprite: P.houseInside(HOUSE.end - HOUSE.x, FLOOR - HOUSE.top, HOUSE.floor - HOUSE.top, PARTITION), x: HOUSE.x, y: HOUSE.top },
-    { sprite: P.ENTRANCE, x: HOUSE.x - 17, y: FLOOR - 50 }, // in front of the house's cut-away wall
-    { sprite: P.WORKING_LIGHT, x: 520, y: HOUSE.floor + 6 },
-    { sprite: P.hanging(40, 30, 'G'), x: 620, y: HOUSE.floor + 14 },
-    { sprite: P.hanging(30, 26, 'a'), x: 470, y: HOUSE.top + 20 },
-    { sprite: P.hanging(30, 26, 'e'), x: 720, y: HOUSE.top + 20 },
-    { sprite: P.WALL_LAMP, x: 700, y: HOUSE.floor + 24 },
-    { sprite: P.WALL_LAMP, x: 530, y: HOUSE.top + 30 },
-    { sprite: P.WALL_LAMP, x: 650, y: HOUSE.top + 30 },
-    { sprite: P.rug(160), x: 460, y: FLOOR - 3 },
-    { sprite: P.CHAIR, x: 470, y: FLOOR - 10 },
-    { sprite: P.feastTable(110), x: 484, y: FLOOR - 22 },
-    { sprite: P.CHAIR, x: 600, y: FLOOR - 10 },
-    // The side room: the circle's table.
-    { sprite: P.feastTable(50), x: 650, y: FLOOR - 22 },
-    { sprite: P.LOCKED_DOOR, x: 750, y: FLOOR - 34 },
-    // Upstairs: the private rooms.
-    { sprite: P.bed(40, 'a'), x: 460, y: HOUSE.floor - 12 },
-    { sprite: P.bed(36, 'G'), x: 560, y: HOUSE.floor - 12 },
-    { sprite: P.bed(30, 'e'), x: 680, y: HOUSE.floor - 12 },
+    { sprite: P.FLUE, x: HOUSE.x + 180, y: HOUSE.top - 34 },
+    { sprite: P.houseFront(HOUSE.end - HOUSE.x, FLOOR - HOUSE.top, DOOR), x: HOUSE.x, y: HOUSE.top },
+    { sprite: P.CLOTH_POT, x: HOUSE.x + DOOR - 22, y: FLOOR - 8 },
+    { sprite: P.CLOTH_POT, x: HOUSE.x + DOOR + 44, y: FLOOR - 8 },
+    { sprite: P.BENCH, x: HOUSE.x + 120, y: FLOOR - 7 },
+    // The gateway last: you walk through it, in front of everything behind it.
+    { sprite: P.GATEWAY, x: GATE_X, y: FLOOR - 72 },
   ],
 
   features: [],
   people: [],
 
   interactables: [
-    { id: 'gate', x: 144, y: FLOOR, reach: 14, label: 'Look', knot: 'compound_gate' },
-    { id: 'entrance', x: HOUSE.x, y: FLOOR, reach: 10, label: 'Look', knot: 'compound_entrance' },
-    { id: 'tank', x: 295, y: FLOOR, reach: 14, label: 'Look', knot: 'compound_tank' },
-    { id: 'tribute', x: 348, y: FLOOR, reach: 14, label: 'Look', knot: 'compound_tribute' },
-    { id: 'light', x: 540, y: FLOOR, reach: 24, label: 'Look', knot: 'compound_light' },
-    { id: 'table', x: 670, y: FLOOR, reach: 18, label: 'Look', knot: 'compound_table' },
-    { id: 'locked-door', x: 759, y: FLOOR, reach: 10, label: 'Try', knot: 'compound_locked' },
-    { id: 'rooms', x: 580, y: HOUSE.floor, reach: 60, label: 'Look', knot: 'compound_rooms' },
+    { id: 'gate', x: GATE_X + 32, y: FLOOR, reach: 14, label: 'Look', knot: 'compound_gate' },
+    { id: 'washing', x: 262, y: FLOOR, reach: 18, label: 'Look', knot: 'compound_washing' },
+    { id: 'tank', x: 329, y: FLOOR, reach: 12, label: 'Look', knot: 'compound_tank' },
+    { id: 'tribute', x: 374, y: FLOOR, reach: 14, label: 'Look', knot: 'compound_tribute' },
+    { id: 'windows', x: HOUSE.x + 300, y: FLOOR, reach: 60, label: 'Look', knot: 'compound_windows' },
   ],
 
   exits: [
     { id: 'to-bar', x: 16, y: FLOOR, reach: 12, to: 'bar' },
-    { id: 'to-tally-house', x: 800, y: FLOOR, reach: 10, to: 'tally-house' },
+    { id: 'to-house', x: HOUSE.x + DOOR + 14, y: FLOOR, reach: 12, to: 'compound-house' },
   ],
 
   ambience: [
     { sound: 'wind', volume: 0.2 },
     { sound: 'chatter', volume: 0.1, when: ['morning', 'afternoon', 'evening'] }, // the settlement, below
-    { sound: 'hum', volume: 0.15 }, // the working light
   ],
 };

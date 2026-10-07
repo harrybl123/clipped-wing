@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { compileInk } from '../scripts/ink.mjs';
 import { ON_FOOT } from '../src/data/access';
-import { AREA_NAMES, AREAS, PLANNED_AREAS } from '../src/data/areas';
+import { AREA_NAMES, AREAS, INSIDE_AREAS, PLANNED_AREAS } from '../src/data/areas';
 import type { AreaDefinition } from '../src/data/areas/types';
 import { StoryBridge } from '../src/systems/StoryBridge';
 import type { RowSprite } from '../src/ui/sprites';
@@ -49,8 +49,8 @@ describe.each(Object.values(AREAS))('area $id', (area) => {
     expect(AREA_NAMES[area.id]).toBe(area.name);
   });
 
-  it('has exits that lead to planned areas', () => {
-    for (const exit of area.exits) expect(Object.keys(PLANNED_AREAS), exit.id).toContain(exit.to);
+  it('has exits that lead to planned areas (or areas within them)', () => {
+    for (const exit of area.exits) expect([...Object.keys(PLANNED_AREAS), ...Object.keys(INSIDE_AREAS)], exit.id).toContain(exit.to);
   });
 
   it('puts every interactable, person and exit on a solid surface', () => {
@@ -74,4 +74,15 @@ describe('journeys on foot', () => {
     const story = compileStory();
     for (const name of ON_FOOT) expect(story.variableNames(), name).toContain(name);
   });
+});
+
+describe('areas within an area', () => {
+  for (const [id, { of }] of Object.entries(INSIDE_AREAS)) {
+    it(`${id} is built, inside a place on the map, with doors both ways`, () => {
+      expect(AREAS[id]).toBeDefined();
+      expect(Object.keys(PLANNED_AREAS)).toContain(of);
+      expect(AREAS[of]!.exits.some((e) => e.to === id)).toBe(true);
+      expect(AREAS[id]!.exits.some((e) => e.to === of)).toBe(true);
+    });
+  }
 });
