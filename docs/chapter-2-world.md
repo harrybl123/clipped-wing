@@ -87,12 +87,12 @@ The order is a **(suggestion)**:
 3. Your shack. **Built**: the first scrap interior (`walls: 'scrap'`), cramped under a sloped corrugated roof.
 4. The rest of the settlement: the tally house, the swap yard, the scrap stacks, the bar, the gambling den, the brothel, the compound. **Built.**
 5. The rest of the grounds. **Built.** Every place on the map is now built (placeholder art and draft text).
-6. The cast: the scavenger becomes the player sprite, and the dog, the boss's circle and the townsfolk get sprites and portraits.
+6. The cast: the scavenger becomes the player sprite (**done**: sprite, portrait, voice), and the dog, the boss's circle and the townsfolk get sprites and portraits.
 
 ## Open questions
 
 - **Names:** the settlement, the clans, the scavenger, her brother and the dog. **(doc)**
-- **Red:** what does it mark in this chapter? A scrap of red cloth the scavenger wears? The dog's collar? **(suggestion)**
+- **Red:** what does it mark in this chapter? The scavenger's copper hair carries the protagonist's colour (a reserved copper shade between amber and red), like the carver's thread. **(suggestion, from the designer's ginger)**
 - **Ties to Act 1:**
   - Does anything from inside the tree ever turn up out here?
   - Act 1's fall ending walks out of the roots into daylight. Does that ending come out somewhere in this borderland?

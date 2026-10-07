@@ -621,3 +621,147 @@ function archivist(breathe: boolean): RowSprite {
 }
 
 export const ARCHIVIST = { idle: [archivist(false), archivist(true)] };
+
+// --- The scavenger (Chapter 2's protagonist) ---
+
+/**
+ * The scavenger (designer: slim and fit, ginger, long hair in a ponytail, a satchel, fairly pale with
+ * freckles, trousers and a crop top). Out in the borderland's daylight she's drawn in colour, not as a
+ * rim-lit silhouette like the figures inside the tree. Her ginger hair carries the protagonist's red
+ * (red is reserved: birds and the protagonist), with amber where the light catches it; the ponytail
+ * swings out behind her as she moves, like the carver's thread. Her freckles show on her portrait.
+ * 12×26 like the carver, so she uses the same body and animations.
+ */
+interface ScavengerPose {
+  sway: [number, number];
+  lift?: [number, number];
+  bob?: number;
+  arm?: number;
+  /** The ponytail, as offsets from the tie at the back of her head. */
+  tail: [number, number][];
+}
+
+const SCAVENGER_COLOURS = {
+  R: SHADES.copper, r: SHADES.copperDeep, A: SHADES.amber, // hair: copper (reserved for the protagonist, like red), its shadow, amber where the light catches it
+  K: SHADES.white, W: SHADES.white, k: SHADES.light, d: SHADES.deep, // porcelain skin and its shadow; eye
+  C: SHADES.cyanMid, c: SHADES.cyanDeep, // the crop top
+  P: SHADES.woodPale, p: SHADES.woodLight, b: SHADES.deep, // trousers, their shadow; boots
+  S: SHADES.amberDeep, s: SHADES.wood, // the satchel and its strap
+};
+
+function scavenger(pose: ScavengerPose): RowSprite {
+  const g = grid(PROTAGONIST_W, PROTAGONIST_H);
+  const b = pose.bob ?? 0;
+  // Copper, with amber where the light catches it and deep copper in shadow.
+  const ginger = (x: number, y: number) => (y === 0 && x > 5 ? 'A' : 'R');
+  // The ponytail first, so her head and body are drawn over its root.
+  for (const [i, [dx, dy]] of pose.tail.entries()) {
+    const x = 3 + dx;
+    const y = 2 + b + dy;
+    put(g, x, y, i >= pose.tail.length - 2 ? 'r' : i % 2 ? ginger(x, y) : 'r');
+  }
+  // Head: hair pulled back, a fringe, her face to the right.
+  for (let x = 4; x <= 7; x++) put(g, x, 0 + b, ginger(x, 0));
+  for (let x = 3; x <= 8; x++) put(g, x, 1 + b, x < 5 ? 'r' : ginger(x, 1));
+  span(g, 2 + b, 3, 4, 'r');
+  put(g, 5, 2 + b, ginger(5, 2));
+  span(g, 2 + b, 6, 8, 'K');
+  put(g, 7, 2 + b, 'd'); // her eye
+  span(g, 3 + b, 3, 4, 'r');
+  span(g, 3 + b, 5, 8, 'K');
+  put(g, 5, 3 + b, 'k'); // her ear
+  span(g, 4 + b, 5, 7, 'K');
+  put(g, 5, 4 + b, 'k');
+  put(g, 3, 2 + b, 'C'); // the tie
+  // Neck and shoulders.
+  span(g, 5 + b, 5, 6, 'k');
+  // The crop top: short, bare midriff under it.
+  span(g, 6 + b, 4, 8, 'C');
+  for (let y = 7; y <= 10; y++) {
+    span(g, y + b, 4, 8, 'C');
+    put(g, 4, y + b, 'c');
+  }
+  for (let y = 11; y <= 12; y++) {
+    span(g, y + b, 4, 8, 'K');
+    put(g, 4, y + b, 'k');
+  }
+  // The satchel's strap across her chest, the bag at her back hip.
+  for (const [x, y] of [[8, 6], [7, 7], [7, 8], [6, 9], [5, 10], [5, 11], [4, 12]] as const) put(g, x, y + b, 's');
+  for (let y = 11; y <= 15; y++) span(g, y + b, 2, 3, y === 11 ? 'A' : 'S');
+  put(g, 2, 15 + b, 's');
+  put(g, 3, 13 + b, 'A'); // the buckle
+  // Back arm (in shadow), swinging opposite the front one.
+  const arm = pose.arm ?? 0;
+  for (let y = 7; y <= 13; y++) {
+    const swing = y >= 10 ? -Math.sign(arm) * Math.min(Math.abs(arm), y - 9) : 0;
+    if (g[y + b]?.[3 + swing] === '.') put(g, 3 + swing, y + b, 'k');
+  }
+  // Front arm, lit.
+  for (let y = 7; y <= 13; y++) {
+    const swing = y >= 10 ? Math.sign(arm) * Math.min(Math.abs(arm), y - 9) : 0;
+    put(g, 9 + swing, y + b, y === 7 ? 'C' : 'K');
+  }
+  put(g, 9 + arm, 14 + b, 'k'); // her hand
+  // Trousers: the waist, then the legs; boots for the last three rows.
+  span(g, 13 + b, 4, 8, 'p');
+  for (let y = 14; y <= 16; y++) span(g, y + b, 4, 8, 'P');
+  const [liftBack, liftFront] = pose.lift ?? [0, 0];
+  const leg = (hipX: number, sway: number, lift: number, front: boolean) => {
+    const bottom = PROTAGONIST_H - 1 - lift;
+    for (let y = 17; y <= bottom; y++) {
+      const x = hipX + Math.round((sway * (y - 17)) / Math.max(1, bottom - 17));
+      const boot = y > bottom - 3;
+      put(g, x, y, boot ? 'b' : front ? 'P' : 'p');
+      put(g, x + 1, y, boot ? 'b' : front ? 'P' : 'p');
+      if (y === bottom) put(g, x + 2, y, 'b');
+    }
+  };
+  leg(4, pose.sway[0], liftBack, false);
+  leg(6, pose.sway[1], liftFront, true);
+  return { rows: rows(g), colours: SCAVENGER_COLOURS };
+}
+
+const TAIL_HANG: [number, number][] = [[-1, 0], [-1, 1], [-1, 2], [-1, 3], [-1, 4], [-2, 5]];
+const TAIL_SWING_A: [number, number][] = [[-1, 0], [-2, 1], [-2, 2], [-3, 3], [-3, 4], [-4, 4]];
+const TAIL_SWING_B: [number, number][] = [[-1, 0], [-1, 1], [-2, 2], [-2, 3], [-3, 4], [-3, 5]];
+
+export const SCAVENGER = {
+  idle: [scavenger({ sway: [0, 0], tail: TAIL_HANG }), scavenger({ sway: [0, 0], bob: 1, tail: TAIL_HANG })],
+  walk: [
+    scavenger({ sway: [-3, 3], arm: -1, tail: TAIL_SWING_A }),
+    scavenger({ sway: [-1, 1], lift: [0, 2], bob: 1, arm: 0, tail: TAIL_SWING_B }),
+    scavenger({ sway: [3, -3], arm: 1, tail: TAIL_SWING_A }),
+    scavenger({ sway: [1, -1], lift: [2, 0], bob: 1, arm: 0, tail: TAIL_SWING_B }),
+  ],
+  jump: scavenger({ sway: [-1, 2], lift: [3, 2], arm: 1, tail: [[-1, 1], [-1, 2], [-1, 3], [-1, 4], [-1, 5], [-2, 6]] }),
+  fall: scavenger({ sway: [-1, 1], arm: -1, tail: [[-1, 0], [-2, -1], [-3, -1], [-4, -2], [-5, -2], [-5, -3]] }),
+};
+
+/** Crouching: bent forward, head low and out in front, the ponytail falling over her back, the satchel hanging. */
+const scavengerCrouch = (legs: [string, string, string, string]): RowSprite => ({
+  rows: [
+    ...Array<string>(10).fill('............'),
+    '.......RAR..',
+    '......ARARA.',
+    '.rr..rRAKdW.',
+    'r..ArCRKKKW.',
+    '...rCCCCkK..',
+    '...CCCCCCKK.',
+    '...SCCCCCC..',
+    '..SSKKKKK.K.',
+    '..ASppppp.k.',
+    '..SSPPPPP...',
+    '..sPPPPP....',
+    '..PPPPPPP...',
+    ...legs,
+  ],
+  colours: SCAVENGER_COLOURS,
+});
+
+export const SCAVENGER_CROUCH = {
+  idle: scavengerCrouch(['..pp..PPP...', '..pp...PP...', '..bb...bb...', '.bbb...bbb..']),
+  walk: [
+    scavengerCrouch(['..pp..PPP...', '..pp...PP...', '..bb...bb...', '.bbb...bbb..']),
+    scavengerCrouch(['..pp..PPP...', '...pp.PP....', '...bb.bb....', '..bbb.bbb...']),
+  ],
+};

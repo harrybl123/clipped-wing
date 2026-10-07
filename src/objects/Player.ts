@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { PROTAGONIST, PROTAGONIST_CLOAKED, PROTAGONIST_CROUCH } from '../ui/characters';
+import { PROTAGONIST, PROTAGONIST_CLOAKED, PROTAGONIST_CROUCH, SCAVENGER, SCAVENGER_CROUCH } from '../ui/characters';
 import { makeSpriteTexture } from '../ui/pixelTextures';
 import type { RowSprite } from '../ui/sprites';
 
@@ -13,14 +13,15 @@ const STAND_HEIGHT = 24;
 const CROUCH_HEIGHT = 14;
 
 /**
- * Makes the protagonist's frame textures and animations (once per game), plain and with the cloak on
- * (keys ending "-cloak").
+ * Makes the protagonist's frame textures and animations (once per game): the carver, plain and with the
+ * cloak on (keys ending "-cloak"), and the scavenger, Chapter 2's protagonist (keys ending "-scav").
  */
 function createAnimations(scene: Phaser.Scene): void {
   const tex = (key: string, s: RowSprite) => makeSpriteTexture(scene, key, s.rows, s.colours);
   const sets = [
     { suffix: '', idle: PROTAGONIST.idle, walk: PROTAGONIST.walk, jump: PROTAGONIST.jump, fall: PROTAGONIST.fall, crouch: PROTAGONIST_CROUCH.idle, crawl: PROTAGONIST_CROUCH.walk },
     { suffix: '-cloak', ...PROTAGONIST_CLOAKED },
+    { suffix: '-scav', idle: SCAVENGER.idle, walk: SCAVENGER.walk, jump: SCAVENGER.jump, fall: SCAVENGER.fall, crouch: SCAVENGER_CROUCH.idle, crawl: SCAVENGER_CROUCH.walk },
   ];
   for (const set of sets) {
     const anim = (name: string, frames: readonly RowSprite[], frameRate: number) => {
@@ -53,6 +54,8 @@ export class Player {
   crouching = false;
   /** Wearing the cloak (Day 6 on, wherever you're not expected): set by the scene. */
   cloaked = false;
+  /** Who you are: the carver (in the tree) or the scavenger (Chapter 2, in the borderland). Set by the scene. */
+  look: 'carver' | 'scavenger' = 'carver';
 
   constructor(
     scene: Phaser.Scene,
@@ -122,7 +125,7 @@ export class Player {
   }
 
   private animate(direction: number): void {
-    const c = this.cloaked ? '-cloak' : '';
+    const c = this.look === 'scavenger' ? '-scav' : this.cloaked ? '-cloak' : '';
     if (this.crouching) {
       if (direction !== 0) this.sprite.play(`player-crawl${c}`, true);
       else {

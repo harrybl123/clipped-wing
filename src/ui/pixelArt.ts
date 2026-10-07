@@ -26,6 +26,10 @@ export const SHADES = {
   /** Reserved like offeringRed: birds and the protagonist only. */
   red: PALETTE.offeringRed,
   redDark: 0x8f1f25,
+  /** Between amber and red: the scavenger's copper hair (Chapter 2's protagonist). Reserved like red. */
+  copper: 0xd2703a,
+  /** Copper in shadow. Reserved like red. */
+  copperDeep: 0x8a4026,
 } as const;
 
 /** Colours a dithered backdrop may use. Red is deliberately absent. */

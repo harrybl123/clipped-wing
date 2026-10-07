@@ -39,7 +39,7 @@ A thumbless woodcarver lives in the lower roots of a vast tree whose people wors
 
 Red is reserved. Nothing else in the game uses it.
 
-The game is pixel art, so darker and lighter **shades** of these colours are allowed for shading (defined in `src/ui/pixelArt.ts` as `SHADES`). Shades of red follow the same rule as red.
+The game is pixel art, so darker and lighter **shades** of these colours are allowed for shading (defined in `src/ui/pixelArt.ts` as `SHADES`). Shades of red follow the same rule as red, and so does copper (the scavenger's hair, Chapter 2's protagonist).
 
 ## Commands
 
@@ -85,7 +85,8 @@ The game is pixel art, so darker and lighter **shades** of these colours are all
     - The `autodoor` feature: the sunk town's door that still opens by itself, sticks halfway and judders.
     - The sunk town goes deeper (designer: more underground, more rooms, more to find, more detail; no falling debris): three levels round a deep stairwell (details in its brief). `outdoor.groundY` makes earth below ground level dark and layered by depth, unlit by the sky, with no sunlit crust on floors underground; the earth is `heartwoodSolids` over the carved rooms, made visible. A `crumble` in an outdoor area is a cracked slab, not a board.
     - **Areas within an area** (designer: the compound's cutaway door was floating): `INSIDE_AREAS` in `src/data/areas/index.ts` (`{ name, of }`), entered through a door in the parent; not on the map, which shows you at the parent (`placeOf`). Exits may lead to them. The first is the boss's house (`compound-house`), inside the compound; the tally house's walkway door leads into it upstairs. `walls: 'matched'` paints whole matched panels, warm and clean. The compound's yard and house are more detailed and homely, and its gate is a gateway you walk through (designer).
-  - **Not yet:** the scavenger as the player sprite (you walk the borderland as the carver for now); the cast; Chapter 2's calendar.
+  - **The scavenger** (2026-10-07; designer: slim and fit, ginger, long hair in a ponytail, a satchel, fairly pale with freckles, trousers and a crop top; "a Karen Gillan type": a type, not a likeness). You play her in every borderland area (`Player.look`, set from `worldOf(placeOf(area))`; frames `SCAVENGER` / `SCAVENGER_CROUCH` in `src/ui/characters.ts`, keys ending `-scav`). In the borderland's daylight she's drawn in colour, not as a rim-lit silhouette like the tree's figures. Her portrait (`SCAVENGER_PORTRAIT`, speaker `scavenger`, shown as "You") is drawn by hand, not from the shared face shading (designer: she looked ugly, then out of proportion): porcelain skin, a longer face, teal-green eyes, a few freckles, copper hair framing her face, the ponytail over her shoulder, a teal crop top and the satchel's strap. Her own voice (`scavenger` in `VOICES`). **Copper is a new reserved shade** (`SHADES.copper`, `copperDeep`, between amber and red): her hair, the protagonist's colour in this chapter, like the carver's red thread (dithering red with amber read as a checkerboard; designer: too red). Speckled single pixels read as noise at this size: hair needs strands, faces need few marks.
+  - **Not yet:** the rest of the cast; Chapter 2's calendar.
 
 - **2026-10-07 — "Stay alive" is a cupped flame; Chapter 1 is "Fly or Fall".** (Designer: the stay-alive picture needed to change; Claude's earlier recommendation from the options on `pictures.html`.) Two hands cupped round a small flame, keeping it lit; flame, fire or hands are near misses.
 

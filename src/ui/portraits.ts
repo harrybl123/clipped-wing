@@ -42,6 +42,10 @@ const COLOURS = {
   x: SHADES.greenDeep, // tattoo lines
   p: SHADES.light, // piercings
   W: SHADES.white, // the archivist's pale ribbon
+  j: SHADES.copperDeep, // the scavenger's copper hair in shadow (copper is reserved for the protagonist, like red)
+  z: SHADES.copper, // her copper hair
+  v: SHADES.cyanMid, // the scavenger's crop top
+  V: SHADES.cyanDeep, // its shadow
 };
 
 function draw(pick: Pick): RowSprite {
@@ -625,6 +629,101 @@ const ELDER_FACE: NpcFace = { hair: 'balding', age: 2, brow: 'heavy', eyes: 'tir
 const HATCH_KEEPER_LOOK: VillagerLook = { height: 24, width: 3, head: 'cap', accent: SHADES.woodPale };
 
 /**
+ * The scavenger, Chapter 2's protagonist (designer: slim, ginger, long hair in a ponytail, a satchel,
+ * fairly pale with freckles, a crop top; and beautiful). Drawn by hand rather than from the shared face
+ * shading, which bands faces hard: soft pale skin shaded only at its edge, a fine oval face and chin,
+ * almond eyes with lashes and teal-green irises, thin arched brows, a small nose, fuller lips with the
+ * hint of a smile, light freckles. Ginger hair with a side-swept fringe framing her face, the ponytail
+ * falling forward over her left shoulder; a teal crop top on thin straps, the satchel's strap across her.
+ * (Designer: a Karen Gillan type: porcelain skin, a longer face with high cheekbones, big eyes, long
+ * straight copper hair. A type, not a likeness.)
+ */
+export const SCAVENGER_PORTRAIT: RowSprite = (() => {
+  const cx = 24;
+  const cy = 20;
+  const eyeY = cy; // halfway down the head
+  /** Half the face's width at row y: an oval that narrows to a fine chin. */
+  const halfWidth = (y: number) => {
+    const t = (y - cy - 0.5) / 11;
+    if (Math.abs(t) > 1) return -1;
+    const oval = 7.4 * Math.sqrt(1 - t * t);
+    return t > 0 ? oval * (1 - t * 0.22) : oval; // a longer face, narrowing to a fine chin
+  };
+  const inFace = (x: number, y: number) => Math.abs(x - cx + 0.5) <= halfWidth(y);
+  /** Porcelain skin: near white, shaded softly towards its left edge. */
+  const softSkin = (x: number, centre: number, half: number) => {
+    const u = (x - centre + 0.5) / Math.max(1, half);
+    if (u < -0.9) return 'M';
+    if (u < -0.68) return 'L';
+    return 'W';
+  };
+  /** Copper: amber with straight strands of the protagonist's red running down it, deep amber in shadow. */
+  const hair = (x: number, y: number, shadow: boolean) => {
+    if (shadow) return 'j';
+    // Copper, lit amber on the crown and her right, deep copper strands running down in long waves.
+    if ((x + Math.round(Math.sin(y / 6) * 1.5)) % 6 === 0) return 'j';
+    if ((x - cx > 2 && (x + Math.floor(y / 3)) % 3 === 0) || (y < cy - 11 && x > cx - 4)) return 'Y';
+    return 'z';
+  };
+  return draw((x, y) => {
+    const u = x - cx;
+    // The ponytail, over her left shoulder: from behind her ear, down onto her chest, tapering.
+    const tailX = 12 + Math.round(Math.sin((y - 20) / 8) * 1.5);
+    const tailW = y < 34 ? 4 : y < 42 ? 3 : 2;
+    if (y >= 20 && y <= 46 && x >= tailX && x < tailX + tailW && !inFace(x, y)) return hair(x, y, x === tailX || y > 43);
+    // The crown: a smooth rounded mass, lit on the right.
+    const crown = ((x - cx + 0.5) / 10) ** 2 + ((y - (cy - 3)) / 12) ** 2 <= 1 && y < cy - 4;
+    // The fringe, side-swept from her right down to her left temple.
+    const fringeLine = cy - 6 + Math.max(0, Math.round((-u - 1) * 0.45));
+    const fringe = inFace(x, y) && y < fringeLine;
+    // Locks falling beside her face to the jaw, a little wider at the bottom.
+    const lockL = x >= cx - 10 && x <= cx - 6 && y >= cy - 6 && y <= cy + 12 && !inFace(x, y);
+    const lockR = x >= cx + 6 && x <= cx + 9 && y >= cy - 6 && y <= cy + 13 && !inFace(x, y);
+    if (crown || fringe || lockL || lockR) return hair(x, y, lockL || (crown && u < -6));
+    if (inFace(x, y)) {
+      // Brows: thin, ginger, the inner ends a shade darker.
+      for (const bx of [cx - 5, cx + 1]) {
+        const lx = x - bx;
+        if (lx >= 0 && lx <= 3 && y === eyeY - 2) return lx === (bx < cx ? 3 : 0) ? 'j' : 'z';
+        if (y === eyeY - 2 && lx === (bx < cx ? -1 : 4)) return 'z'; // tapering out past the eye
+      }
+      // Eyes: almond, an upper lid with a lash flicked out at the corner, a teal-green iris, a glint.
+      for (const ex of [cx - 5, cx + 1]) {
+        const lx = x - ex;
+        if (y === eyeY - 1 && lx === (ex < cx ? -1 : 4)) return 'e'; // the lash
+        if (y === eyeY - 1 && lx >= 0 && lx <= 3) return 'e'; // the upper lid
+        if (y === eyeY && lx >= 0 && lx <= 3) return lx === 0 || lx === 3 ? (lx === 3 && ex > cx ? 'w' : 'v') : lx === 1 ? 'e' : 'V';
+        if (y === eyeY + 1 && (lx === 1 || lx === 2)) return 'v';
+      }
+      // A small nose: a soft shadow down one side, the nostril.
+      if (y === eyeY + 4 && x === cx - 1) return 'L'; // just the shadow under the tip
+      // Lips: fuller, a soft bow on top, the hint of a smile at the corners.
+      const mouthY = eyeY + 7;
+      if (y === mouthY && x >= cx - 2 && x <= cx + 1) return 'A';
+      if (y === mouthY + 1 && (x === cx - 1 || x === cx)) return 'A'; // the lower lip
+      // Freckles: a few, across the bridge of her nose.
+      const freckles: [number, number][] = [[-3, 2], [-2, 3], [1, 3], [2, 2]];
+      if (freckles.some(([fx, fy]) => x === cx + fx && y === eyeY + fy)) return 'L';
+      return softSkin(x, cx, halfWidth(y));
+    }
+    // Her neck: slender, a soft shadow under the jaw.
+    if (y >= 31 && y <= 37 && x >= 22 && x <= 26) return y === 31 && x < 25 ? 'L' : softSkin(x, 24, 3);
+    // Shoulders and chest: bare shoulders, the crop top on thin straps, the satchel's strap across.
+    if (y >= 36) {
+      const spread = 6 + (y - 36) * 1.9;
+      const dx = x - 24;
+      if (Math.abs(dx) > spread) return '.';
+      const strap = Math.round(32 - (y - 36) * 1.5);
+      if (x === strap || x === strap + 1) return x === strap ? 'y' : 'A';
+      if (y >= 42) return dx < -4 ? 'V' : 'v';
+      if ((x === 20 || x === 28) && y >= 38) return 'v'; // the top's straps
+      return softSkin(x, 24, spread);
+    }
+    return '.';
+  });
+})();
+
+/**
  * Portraits by the speaker id used in ink tags (`#speaker:mum`), with the name shown above the line. A
  * `#name:` tag on the same line overrides the name (the escort is "The guard" until he's "Your escort").
  */
@@ -636,6 +735,8 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
   girl: { name: 'The girl', portrait: GIRL_PORTRAIT , voice: 'girl' },
   archivist: { name: 'The archivist', portrait: ARCHIVIST_PORTRAIT , voice: 'archivist' },
   boy: { name: 'The boy', portrait: BOY_PORTRAIT , voice: 'boy' },
+  // Chapter 2.
+  scavenger: { name: 'You', portrait: SCAVENGER_PORTRAIT, voice: 'scavenger' },
 
   // The recurring cast.
   preacher: { name: 'The preacher', portrait: npcPortrait(PREACHER_LOOK, { build: 'narrow', age: 1, eyes: 'wide', brow: 'raised', mouth: 'grin' }), voice: 'preacher' },

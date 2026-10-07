@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { closedReason, ON_FOOT } from '../data/access';
 import { AREAS, AREA_NAMES, placeOf } from '../data/areas';
+import { worldOf } from '../data/map';
 import type { AmbienceLayer, AreaDefinition, Exit, Feature, Person, Surface } from '../data/areas/types';
 import { nextHop } from '../data/route';
 import { Player } from '../objects/Player';
@@ -468,6 +469,7 @@ export class AreaScene extends Phaser.Scene {
     // Room to stand up: no solid wall or ceiling in the way (one-way platforms don't count).
     const canStand = (r: Phaser.Geom.Rectangle) => !area.solids.some((s) => !s.oneWay && r.right > s.x && r.left < s.x + s.width && r.bottom > s.y && r.top < s.y + s.height);
     this.player = new Player(this, arrival.x, arrival.y, canStand);
+    if (worldOf(placeOf(area.id)).id === 'borderland') this.player.look = 'scavenger';
     // Anyone following you comes in with you.
     for (const entry of this.people.values()) if (entry.person.follow && entry.image.visible) entry.image.setPosition(Math.max(this.area.cavity.x + 8, arrival.x - 16), arrival.y);
     // Pressing down drops through one-way platforms (walkways, bridges, roofs, stairs).
