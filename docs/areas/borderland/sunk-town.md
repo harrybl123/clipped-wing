@@ -26,7 +26,7 @@ Three levels below the surface, darker and stranger the deeper you go, with more
 - **Signature:** a doorway that still opens by itself when you come near, then stops halfway, juddering.
 - Rounded windows, stairs into the dirt, things on walls that might be screens.
 - Signs of the scavengers who came before: the rope, chalk arrows and tallies, a circle crossed through, the dug crawl, the camp.
-- The bright room's column, the deepest and strongest cyan in the borderland.
+- The bright room's column, the deepest and strongest cyan in the borderland. It hums with the tube's sound from Act 1. **(designer: keep it, a good link)**
 
 ## People
 - None by default. Maybe a rival scavenger. **(suggestion)**
@@ -41,4 +41,3 @@ To the picked fields and the deep ground.
 - Should anything here hint at who built it (writing, pictures), or keep it blank?
 - How dangerous is it, and can you die here or only get knocked back?
 - Who camped down here, and what does the crossed circle mean?
-- The column hums like the tube in Act 1 (the same sound). Too much of a link, or a good one for players who know? **(suggestion)**

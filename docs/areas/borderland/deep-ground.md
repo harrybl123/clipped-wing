@@ -19,12 +19,16 @@ Two screens wide, outdoors, mostly empty: a long walk to a point where you stop.
 ## Key props (suggestion)
 - **Signature:** the straight lines in the ground running away to the horizon. Nobody knows what made them.
 - A last marker: the clan's sign that says go no further.
+- A scavenger's sled left loaded in a groove before the marker, its pull rope lying ahead: somebody went out and didn't bring it back. Nobody has taken from it.
+- Past the marker, an older marker lying flat: the line has been pulled back over the years.
+- Beyond that, a row of tall smooth posts beside the grooves, all the same height; one still has a faint cyan light at its tip.
+(Added 2026-10-07; designer: it was nothingness with dirt, add a couple of things.)
 
 ## People
 - None. **(suggestion)**
 
 ## Interactions (suggestion)
-The marker, and looking out.
+The marker, the old marker, the posts, looking out, and searching the sled (draft: you leave it).
 
 ## Exits (suggestion)
 To the sunk town.
