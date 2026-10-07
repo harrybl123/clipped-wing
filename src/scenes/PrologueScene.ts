@@ -496,7 +496,7 @@ export class PrologueScene extends Phaser.Scene {
       getSession(this).calendar.jumpTo(1);
       // The chapter's title card, then waking at home on Day 1.
       const next: AreaSceneData = { areaId: 'home', start: { x: 50, y: 150 }, card: 'Day 1: Ascension Day' };
-      this.scene.start('Chapter', { number: 'Chapter 1', title: 'Seen', next } satisfies ChapterSceneData);
+      this.scene.start('Chapter', { number: 'Chapter 1', title: 'Fly or Fall', next } satisfies ChapterSceneData);
     });
   }
 }

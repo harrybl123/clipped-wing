@@ -862,20 +862,20 @@ const DEEP: DecodeSymbol = {
   hint: 'Further down than the lower roots. Further than anyone goes.',
 };
 
-/** "Stay alive": someone hanging on to a branch by their hands. */
+/** "Stay alive": two hands cupped round a small flame, keeping it lit (designer, 2026-10-07; was someone hanging from a branch). */
 const STAY_ALIVE: DecodeSymbol = {
   id: 'stayalive',
   picture: scratches(
     24,
     18,
-    [[[0, 1], [23, 1]], [[0, 2], [23, 2]], [[9, 3], [11, 7]], [[15, 3], [13, 7]], [[11, 15], [10, 17]], [[13, 15], [14, 17]]],
-    [{ disc: [12, 8, 2.2] }, { poly: [[9, 10], [15, 10], [14, 15], [10, 15]] }],
+    [[[12, 2], [13, 4]], [[9, 6], [8, 3]], [[15, 6], [16, 3]]],
+    [{ poly: [[12, 1], [14, 5], [14, 8], [12, 10], [10, 8], [10, 5]] }, { poly: [[3, 8], [5, 7], [8, 10], [11, 13], [11, 17], [6, 17], [3, 14], [2, 11]] }, { poly: [[21, 8], [19, 7], [16, 10], [13, 13], [13, 17], [18, 17], [21, 14], [22, 11]] }],
   ),
-  accepted: ['stay alive', 'survive', 'live', 'hold on', 'hang on', 'stay', 'endure', 'keep going', 'dont die', 'keep living', 'cling on', 'last', 'be safe', 'stay safe'],
+  accepted: ['stay alive', 'survive', 'live', 'hold on', 'hang on', 'stay', 'endure', 'keep going', 'dont die', 'keep living', 'last', 'be safe', 'stay safe', 'keep alight', 'keep burning', 'keep lit'],
   near: [
-    { words: ['hang', 'hanging', 'branch', 'climb', 'climbing', 'grip', 'cling', 'swing', 'fall'], reply: "Warm. Someone hanging on by their fingertips. What's he telling you to do?" },
+    { words: ['flame', 'fire', 'light', 'candle', 'hands', 'cupped', 'protect', 'shelter', 'guard', 'burn', 'burning'], reply: "Warm. Hands cupped round a flame, keeping it from going out. What's he telling you to do?" },
   ],
-  nudge: 'Someone hanging on to a branch by their hands, not letting go.',
+  nudge: 'Two hands cupped round a small flame, so the wind can\u2019t put it out.',
   hint: 'Mum, last night: "Whatever keeps you alive."',
 };
 

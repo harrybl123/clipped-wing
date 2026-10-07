@@ -9,7 +9,7 @@ import type { AreaSceneData } from './AreaScene';
 export interface ChapterSceneData {
   /** "Chapter 1". */
   number: string;
-  /** The chapter's name, large: "Seen". */
+  /** The chapter's name, large: "Fly or Fall". */
   title: string;
   /** Where the game goes next. */
   next: AreaSceneData;
@@ -19,7 +19,7 @@ export interface ChapterSceneData {
 const HOLD = 2800;
 
 /**
- * A chapter's title card, on black (designer: after the prologue, "Chapter 1: Seen"): the number small,
+ * A chapter's title card, on black (designer: after the prologue, "Chapter 1: Fly or Fall"): the number small,
  * the name large in the title's carved letters, a small red bird beneath. It fades in, holds, fades out,
  * and the game goes on. Any key or click skips it, after the first second.
  */

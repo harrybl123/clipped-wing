@@ -48,7 +48,7 @@ export class PreloadScene extends Phaser.Scene {
     else if (params?.get('scene') === 'chapter') {
       // The chapter card after the prologue, then Day 1.
       getSession(this).calendar.jumpTo(1);
-      this.scene.start('Chapter', { number: 'Chapter 1', title: 'Seen', next: { areaId: 'home', start: { x: 50, y: 150 }, card: 'Day 1: Ascension Day' } });
+      this.scene.start('Chapter', { number: 'Chapter 1', title: 'Fly or Fall', next: { areaId: 'home', start: { x: 50, y: 150 }, card: 'Day 1: Ascension Day' } });
     }
     // ?scene=combat: a fight picker (every fight, and each of the zealot's moves to practise), then back to
     // the roots market; &encounter=<id> starts that fight, &foe=<move> makes him use only that move.
