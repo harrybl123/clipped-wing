@@ -192,6 +192,8 @@ export interface AreaDefinition {
    * with ribs running up and over, the tally house).
    */
   walls?: 'heartwood' | 'scrap' | 'hull';
+  /** Below ground (the gambling den): around a scrap or hull room is packed earth with junk in it, not the dark. */
+  underground?: boolean;
   /** How bright the bare wood is before lights (1 = normal). */
   ambient: number;
   playerStart: { x: number; y: number };

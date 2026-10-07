@@ -1,6 +1,8 @@
 # Area brief: the gambling den
 
-Chapter 2. **(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
+Chapter 2. Built 2026-10-07 (`src/data/areas/borderland/gamblingDen.ts`, `story/borderland/gambling-den.ink`; dev `?area=gambling-den`). A buried hull (`underground: true` paints packed earth round it), a shaft up to the bar. Playing is a placeholder line until the minigame question is answered. The gambler, the house's man and players come with the cast.
+
+**(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
 
 ## Purpose
 Where the gambler is drowning in debt. **(doc)** It shows how the clan bleeds its own people. **(suggestion)**

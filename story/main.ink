@@ -229,6 +229,7 @@ INCLUDE borderland/shack.ink
 INCLUDE borderland/swap-yard.ink
 INCLUDE borderland/tally-house.ink
 INCLUDE borderland/bar.ink
+INCLUDE borderland/gambling-den.ink
 
 // The game starts conversations by knot name via StoryBridge, so the root
 // flow does nothing.

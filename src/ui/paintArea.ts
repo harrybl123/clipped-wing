@@ -140,6 +140,15 @@ export function paintArea(area: AreaDefinition): (x: number, y: number) => Pixel
 
     let d = roundedRectDistance(x, y, cavity);
     for (const nook of area.nooks ?? []) d = Math.min(d, roundedRectDistance(x, y, nook));
+    if (d >= 0 && scrap && area.underground) {
+      // Packed earth round a buried room: strata, and junk caught in it.
+      if (d < 1.5) return SHADES.dim;
+      if (d < 3) return SHADES.deep;
+      const band = Math.floor((y + noise(x / 30) * 6) / 9);
+      const r = cellRandom(Math.floor(x / 4), Math.floor(y / 3), 97);
+      if (r > 0.988) return [SHADES.woodPale, SHADES.cyanDeep, SHADES.amberDeep][Math.floor(r * 300) % 3]!;
+      return band % 3 === 0 ? SHADES.wood : band % 3 === 1 ? SHADES.deep : SHADES.shadow;
+    }
     if (d >= 0 && scrap) {
       // Outside a scrap room: the dark of the shack's own frame and the night beyond, faint ridges.
       if (d < 1.5) return SHADES.dim;
