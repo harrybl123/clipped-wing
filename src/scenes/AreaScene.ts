@@ -1737,6 +1737,29 @@ export class AreaScene extends Phaser.Scene {
         }).setDepth(5);
         break;
       }
+      case 'autodoor': {
+        // It slides up into the lintel (cropped as it goes) when you come near, sticks halfway and judders.
+        const key = makeSpriteTexture(this, `autodoor-${feature.x}-${feature.y}`, feature.sprite.rows, feature.sprite.colours);
+        const door = this.add.image(feature.x, feature.y, key).setOrigin(0).setDepth(4);
+        const h = feature.sprite.rows.length;
+        const lift = { by: 0 };
+        const show = () => door.setY(feature.y - Math.round(lift.by)).setCrop(0, Math.round(lift.by), door.width, h - Math.round(lift.by));
+        let woken = false;
+        this.time.addEvent({
+          delay: 120, loop: true, callback: () => {
+            if (woken || !this.player) return;
+            const p = this.player.sprite;
+            if (Math.abs(p.x - (feature.x + door.width / 2)) > feature.range || Math.abs(p.y - (feature.y + h)) > 30) return;
+            woken = true;
+            this.soundscape.play('grate', { x: feature.x, y: feature.y + h }, 0.7);
+            this.tweens.add({
+              targets: lift, by: h / 2, duration: 900, ease: 'Sine.easeOut', onUpdate: show,
+              onComplete: () => this.tweens.add({ targets: lift, by: h / 2 - 2, duration: 70, yoyo: true, repeat: -1, repeatDelay: 1600, onUpdate: show }),
+            });
+          },
+        });
+        break;
+      }
       case 'swing': {
         const rope = this.add.line(0, 0, feature.x, feature.ropeTop, feature.x, feature.y, SHADES.woodPale).setOrigin(0).setDepth(4);
         const key = makeSpriteTexture(this, `swing-${feature.x}-${feature.y}`, feature.sprite.rows, feature.sprite.colours);

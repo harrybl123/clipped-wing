@@ -1,6 +1,8 @@
 # Area brief: the sunk town
 
-Chapter 2. **(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
+Chapter 2. Built 2026-10-07 (`src/data/areas/borderland/sunkTown.ts`, `story/borderland/sunk-town.ink`; dev `?area=sunk-town`). Surface domes, a broken window down into two buried rooms, the self-opening door (`autodoor` feature), falling debris and a collapsing ceiling (Act 1's `rubble` and `collapse`; their lumps are still wooden), a climb back up.
+
+**(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
 
 ## Purpose
 Half-buried ruins of the old society: rich but unstable. **(doc)** The best finds and the most danger. The clearest sign that people lived out here once, in ways nobody now understands. **(suggestion)**

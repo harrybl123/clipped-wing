@@ -10,6 +10,7 @@ import { gamblingDen } from './borderland/gamblingDen';
 import { brothel } from './borderland/brothel';
 import { compound } from './borderland/compound';
 import { scrapStacks } from './borderland/scrapStacks';
+import { sunkTown } from './borderland/sunkTown';
 import { friendsHome } from './friendsHome';
 import { girlsHome } from './girlsHome';
 import { home } from './home';
@@ -101,4 +102,5 @@ export const AREAS: Record<string, AreaDefinition> = {
   [brothel.id]: brothel,
   [compound.id]: compound,
   [scrapStacks.id]: scrapStacks,
+  [sunkTown.id]: sunkTown,
 };

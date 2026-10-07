@@ -305,14 +305,17 @@ function dirt(s: Solid, x: number, y: number, sky: Sky): RGB | number {
   const row = y - s.y;
   if (row === 0) return scale(rgb(SHADES.dim), sky.ground);
   const r = cellRandom(Math.floor(x / 3), Math.floor(y / 2), 21);
-  if (row > 2 && r > 0.93) {
+  // Deep down (a buried room's earth), fewer bright chips and darker soil, in layers.
+  const deep = smoothstep(14, 60, row);
+  if (row > 2 && r > 0.93 + deep * 0.05) {
     const kind = cellRandom(Math.floor(x / 3), Math.floor(y / 2), 22);
-    const chip = r > 0.985 ? (kind > 0.66 ? SHADES.cyanMid : kind > 0.33 ? SHADES.amber : SHADES.light) : r > 0.965 ? SHADES.dim : SHADES.deep;
-    return scale(rgb(chip), sky.ground);
+    const chip = r > 0.985 && deep < 0.5 ? (kind > 0.66 ? SHADES.cyanMid : kind > 0.33 ? SHADES.amber : SHADES.light) : r > 0.965 ? SHADES.dim : SHADES.deep;
+    return scale(rgb(chip), sky.ground * (1 - deep * 0.3));
   }
   const grit = noise(x / 2.5 + row * 0.9) * 0.5 + noise(x / 11 + 40) * 0.3;
-  const base = mix(mix(rgb(SHADES.woodPale), rgb(SHADES.amberDeep), 0.25), rgb(SHADES.woodLight), smoothstep(1, 14, row));
-  return addLight(scale(base, sky.ground * (1 + 0.25 * grit)), rgb(SHADES.amber), sky.warm);
+  const strata = deep * (Math.floor((row + noise(x / 25) * 4) / 10) % 2 ? 0.12 : 0);
+  const base = mix(mix(mix(rgb(SHADES.woodPale), rgb(SHADES.amberDeep), 0.25), rgb(SHADES.woodLight), smoothstep(1, 14, row)), rgb(SHADES.wood), deep * 0.7);
+  return addLight(scale(base, sky.ground * (1 + 0.2 * grit - strata)), rgb(SHADES.amber), sky.warm * (1 - deep));
 }
 
 /** The near layer: dirt solids, lines and props; transparent elsewhere so the far layer shows. */
