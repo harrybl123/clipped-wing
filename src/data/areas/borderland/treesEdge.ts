@@ -6,17 +6,17 @@ import type { AreaDefinition, Solid } from '../types';
 // mystery, seen from outside: the waste running up to roots that come out of the ground like walls, bigger
 // than anything in the settlement, dark wet bark, the green glow of fungus in the cracks (the only green out
 // here besides the canopy). Above, the trunk goes up into the canopy. Scavengers' warning signs stand a
-// long way back. Between two roots, a crack, glowing at its lips and dark inside, that you can't go into.
+// long way back. In the root, a crack, glowing at its lips and dark inside, that you can't go into.
 // Something in the wood creaks and settles: the sound of the tree from Act 1, heard from outside.
 // See docs/areas/borderland/trees-edge.md.
 
 const W = 720;
 const FLOOR = 232;
-const LOW_ROOT = { x: 300, width: 240, height: 150, thickness: 40 };
-const BIG_ROOT = { x: 440, width: 280, height: 210, thickness: 56 };
+/** One great root, rising smoothly out of the ground and up to the top-right corner (designer: one smooth thing, not two). */
+const ROOT = { x: 300, width: 420, height: 210, thickness: 56 };
 
-/** Walk up the low root: one-way blocks along its top, 8px wide, down to the ground (like stairs). */
-function rootPath(r: typeof LOW_ROOT, upTo: number): Solid[] {
+/** Walk up the root's lower end: one-way blocks along its top, 8px wide, down to the ground (like stairs). */
+function rootPath(r: typeof ROOT, upTo: number): Solid[] {
   const out: Solid[] = [];
   for (let lx = 0; lx < upTo; lx += 8) {
     let top = r.height;
@@ -28,8 +28,8 @@ function rootPath(r: typeof LOW_ROOT, upTo: number): Solid[] {
   return out;
 }
 
-const ROOT_PATH = rootPath(LOW_ROOT, 140);
-/** The highest point you can climb to on the low root. */
+const ROOT_PATH = rootPath(ROOT, 140);
+/** The highest point you can climb to on the root. */
 const ROOT_TOP = ROOT_PATH.reduce((a, b) => (b.y < a.y ? b : a));
 
 export const treesEdge: AreaDefinition = {
@@ -61,9 +61,8 @@ export const treesEdge: AreaDefinition = {
     { sprite: P.WARNING, x: 70, y: FLOOR - 36 },
     { sprite: P.WARNING, x: 170, y: FLOOR - 36 },
     { sprite: dugHole(10), x: 120, y: FLOOR - 4 },
-    { sprite: P.root(BIG_ROOT.width, BIG_ROOT.height, BIG_ROOT.thickness, 2), x: BIG_ROOT.x, y: FLOOR - BIG_ROOT.height },
+    { sprite: P.root(ROOT.width, ROOT.height, ROOT.thickness, 2), x: ROOT.x, y: FLOOR - ROOT.height },
     { sprite: P.CRACK, x: 600, y: FLOOR - 96 },
-    { sprite: P.root(LOW_ROOT.width, LOW_ROOT.height, LOW_ROOT.thickness, 1), x: LOW_ROOT.x, y: FLOOR - LOW_ROOT.height },
     { sprite: P.FUNGUS, x: 360, y: FLOOR - 40 },
     { sprite: P.FUNGUS, x: 520, y: FLOOR - 120 },
   ],

@@ -17,6 +17,6 @@ As if the whole thing is breathing.
 -> END
 
 === trees_edge_crack ===
-A crack between two roots, glowing green at its edges, black inside.
+A crack in the root, glowing green at its edges, black inside.
 Too narrow to get into. Something cold comes out of it.
 -> END

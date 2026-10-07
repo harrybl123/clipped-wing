@@ -1,6 +1,6 @@
 # Area brief: the tree's edge
 
-Chapter 2. Built 2026-10-07 (`src/data/areas/borderland/treesEdge.ts`, `story/borderland/trees-edge.ink`; dev `?area=trees-edge`). At the roots you can't see the canopy (designer): `outdoor.atRoots` draws only the trunk rising out of sight. Roots like walls, the low one climbable; the crack you can't enter.
+Chapter 2. Built 2026-10-07 (`src/data/areas/borderland/treesEdge.ts`, `story/borderland/trees-edge.ink`; dev `?area=trees-edge`). At the roots you can't see the canopy (designer): `outdoor.atRoots` draws only the trunk rising out of sight. One great root like a wall, rising smoothly to the top corner (designer: one smooth thing, it was two), climbable at its lower end; the crack you can't enter.
 
 **(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
 
@@ -17,10 +17,10 @@ The roots come out of the ground like walls, bigger than anything in the settlem
 One and a half screens, outdoors.
 - The waste running up to the roots.
 - The roots rising.
-- A crack between two roots that's dark inside, which you can't go into.
+- A crack in the great root that's dark inside, which you can't go into.
 
 ## Key props (suggestion)
-- **Signature:** the crack between the roots, glowing green, and dark beyond.
+- **Signature:** the crack in the root, glowing green, and dark beyond.
 - The roots themselves.
 - Scavengers' warning signs at a distance.
 
