@@ -1,6 +1,8 @@
 # Area brief: the brothel
 
-Chapter 2. **(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
+Chapter 2. Built 2026-10-07 (`src/data/areas/borderland/brothel.ts`, `story/borderland/brothel.ink`; dev `?area=brothel`). Front room, gallery of curtained doorways, back door to the scrap stacks. The madam comes with the cast.
+
+**(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
 
 ## Purpose
 Part of the town's underside. **(doc)** As a place in the story: where secrets are traded and everyone pretends not to see each other. **(suggestion)** Shown with restraint: the front room and the madam, nothing explicit.
