@@ -348,7 +348,7 @@ export interface NpcFace {
   brow?: 'plain' | 'heavy' | 'knit' | 'raised';
   eyes?: 'plain' | 'narrow' | 'wide' | 'tired' | 'hollow';
   mouth?: 'flat' | 'frown' | 'smile' | 'grin' | 'sneer' | 'open';
-  items?: ('beads' | 'pipe' | 'token' | 'spectacles' | 'scarf' | 'earring' | 'apron' | 'goggles' | 'scar')[];
+  items?: ('beads' | 'pipe' | 'token' | 'spectacles' | 'scarf' | 'earring' | 'apron' | 'goggles' | 'scar' | 'bare')[];
   /** Skin in the borderland's daylight (Chapter 2); default the tree's (Act 1). */
   skin?: 'fair' | 'tan' | 'dark';
 }
@@ -581,6 +581,12 @@ function npcPick(look: VillagerLook, o: NpcFace, cx: number, cy: number, scale =
     if (y >= top) {
       const spread = Math.round(((o.build === 'heavy' ? 13 : 8) + (y - top) * (o.build === 'heavy' ? 2.2 : 1.6)) * scale);
       if (Math.abs(u) > spread) return '.';
+      // Bare shoulders and a low neckline, thin straps (the brothel's hostesses).
+      if (items.has('bare') && y < top + 6) {
+        if (Math.abs(u) === 4 || Math.abs(u) === 5) return 'R';
+        if (y >= top + 4 && Math.abs(u) <= 3) return 'R';
+        return skin(x, f.cx, spread);
+      }
       if (Math.abs(u) > spread - 1) return u > 0 ? 'F' : 'o';
       if (look.stole && u >= 3 && u <= 5) return u === 5 ? 'B' : 'b';
       if (look.bundle && Math.abs(u - (y - top - 6)) <= 0) return 'u';
@@ -759,7 +765,7 @@ function folkPortrait(look: FolkLook, face: NpcFace = {}): RowSprite {
   const head: VillagerLook['head'] = look.head === 'cap' ? 'cap' : look.head === 'hood' || look.head === 'wrap' ? 'hood' : look.hairStyle === 'bun' ? 'bun' : 'bare';
   const hair: NpcFace['hair'] = { short: 'cropped', long: 'long', tail: 'long', bald: 'shaven', bun: 'bun', crest: 'cropped', messy: 'messy' }[look.hairStyle] as NpcFace['hair'];
   const villagerLook: VillagerLook = { height: look.height, width: look.width, head, accent: look.scarf ?? look.top, robe: look.top, hair: look.hair, bundle: !!look.pack, long: look.topStyle === 'long' };
-  const items = [...(face.items ?? []), ...(look.head === 'goggles' ? (['goggles'] as const) : []), ...(look.trinket ? (['token'] as const) : []), ...(look.apron !== undefined ? (['apron'] as const) : [])];
+  const items = [...(face.items ?? []), ...(look.topStyle === 'short' || look.topStyle === 'crop' ? (['bare'] as const) : []), ...(look.head === 'goggles' ? (['goggles'] as const) : []), ...(look.trinket ? (['token'] as const) : []), ...(look.apron !== undefined ? (['apron'] as const) : [])];
   return npcPortrait(villagerLook, { hair, skin: look.skin, ...face, items });
 }
 

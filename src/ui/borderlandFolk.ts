@@ -26,7 +26,8 @@ export interface FolkLook {
   head?: 'goggles' | 'cap' | 'wrap' | 'hood';
   /** The top's colour, and what it is: a vest (bare arms), a shirt, a coat to the knee, or a long coat or dress to the floor. */
   top: number;
-  topStyle: 'vest' | 'shirt' | 'coat' | 'long';
+  /** `short`: a short slip of a dress on thin straps (bare shoulders and legs); `crop`: a crop top and a short skirt (bare midriff, shoulders and legs). */
+  topStyle: 'vest' | 'shirt' | 'coat' | 'long' | 'short' | 'crop';
   legs: number;
   boots?: number;
   pack?: 'frame' | 'bag';
@@ -129,7 +130,8 @@ export function folk(look: FolkLook, breathe = false, stride = 0): RowSprite {
   } else span(g, headTop + 5 + b, cx, cx + 1, 'S');
   const bodyTop = headTop + 6;
   const legTop = H - (child ? 6 : 8);
-  const coatTo = look.topStyle === 'coat' ? Math.min(H - 3, legTop + 4) : look.topStyle === 'long' ? H - 1 : legTop - 1;
+  const skimpy = look.topStyle === 'short' || look.topStyle === 'crop';
+  const coatTo = look.topStyle === 'coat' ? Math.min(H - 3, legTop + 4) : look.topStyle === 'long' ? H - 1 : skimpy ? legTop + 2 : legTop - 1;
   for (let y = bodyTop; y <= coatTo; y++) {
     const yy = y + (y < legTop ? b : 0);
     const flare = y >= legTop ? Math.floor((y - legTop) / 3) + (look.topStyle === 'long' ? 1 : 0) : 0;
@@ -139,6 +141,13 @@ export function folk(look: FolkLook, breathe = false, stride = 0): RowSprite {
     span(g, yy, cx - w - flare + sway + waist, cx + w + flare + sway + gut - waist, 't');
     put(g, cx - w - flare + sway + waist, yy, 'T');
     put(g, cx + w + flare + sway + gut - waist, yy, 'U');
+  }
+  // Skimpy: bare shoulders above thin straps; a crop top leaves the midriff bare above a short skirt.
+  if (skimpy) {
+    span(g, bodyTop + b, cx - w, cx + w, 's');
+    put(g, cx - w + 1, bodyTop + b, 't');
+    put(g, cx + w - 1, bodyTop + b, 't');
+    if (look.topStyle === 'crop') for (let y = bodyTop + 4; y <= legTop - 2; y++) span(g, y + b, cx - w + 1, cx + w - 1, 's');
   }
   if (look.necklace !== undefined) {
     put(g, cx, bodyTop + b, 'n');
@@ -156,10 +165,10 @@ export function folk(look: FolkLook, breathe = false, stride = 0): RowSprite {
     span(g, bodyTop + 1 + b, cx + 2, cx + w + 1, 'M');
   }
   // A belt.
-  if (look.topStyle !== 'long') span(g, legTop - 1 + b, cx - w, cx + w, 'T');
+  if (look.topStyle !== 'long' && !skimpy) span(g, legTop - 1 + b, cx - w, cx + w, 'T');
   // Arms: the back one in shade, the front one swinging a little, bare on a vest.
-  const sleeve = look.topStyle === 'vest' ? 's' : 'U';
-  const backSleeve = look.topStyle === 'vest' ? 'S' : 'T';
+  const sleeve = look.topStyle === 'vest' || skimpy ? 's' : 'U';
+  const backSleeve = look.topStyle === 'vest' || skimpy ? 'S' : 'T';
   for (let y = bodyTop + 1; y <= bodyTop + 6; y++) {
     const swing = y >= bodyTop + 4 ? -Math.sign(stride) : 0;
     if (g[y + b]?.[cx - w - 1 + swing] === '.') put(g, cx - w - 1 + swing, y + b, backSleeve);
@@ -176,9 +185,9 @@ export function folk(look: FolkLook, breathe = false, stride = 0): RowSprite {
       const t = (y - legTop) / Math.max(1, H - 1 - legTop);
       const back = cx - 2 - Math.round(stride * t);
       const front = cx + 1 + Math.round(stride * t);
-      const boot = y >= H - 2;
-      span(g, y, back, back + 1, boot ? 'B' : 'L');
-      span(g, y, front, front + 1, boot ? 'B' : 'l');
+      const boot = y >= H - (skimpy ? 1 : 2);
+      span(g, y, back, back + 1, boot ? 'B' : skimpy ? 'S' : 'L'); // bare legs under a short hem
+      span(g, y, front, front + 1, boot ? 'B' : skimpy ? 's' : 'l');
       if (y === H - 1) put(g, front + 2, y, 'B');
     }
   } else {
@@ -300,15 +309,16 @@ export const TOWNSFOLK_LOOKS: FolkLook[] = [
 export const TOWNSFOLK = TOWNSFOLK_LOOKS.map(folkFrames);
 
 /**
- * The brothel's hostesses (designer: hot girls): slender, long hair in different colours (never red or
- * copper), fitted dresses to the floor, jewellery at the throat. Alluring, not explicit.
+ * The brothel's hostesses (designer: hot girls, skimpy clothes): slender, long hair in different colours
+ * (never red or copper), short slip dresses or crop tops and short skirts, bare shoulders and legs,
+ * jewellery at the throat.
  */
 export const HOSTESS_LOOKS: FolkLook[] = [
-  { height: 24, width: 2, slender: true, skin: 'fair', hair: S.amber, hairStyle: 'long', top: S.cyanMid, topStyle: 'long', legs: S.wood, necklace: S.cyan },
-  { height: 24, width: 2, slender: true, skin: 'tan', hair: S.shadow, hairStyle: 'long', top: S.amber, topStyle: 'long', legs: S.wood, necklace: S.white, trinket: true },
-  { height: 23, width: 2, slender: true, skin: 'dark', hair: S.shadow, hairStyle: 'tail', top: S.white, topStyle: 'long', legs: S.wood, necklace: S.amber },
-  { height: 25, width: 2, slender: true, skin: 'fair', hair: S.light, hairStyle: 'long', top: S.amberDeep, topStyle: 'long', legs: S.wood, necklace: S.cyan, scarf: S.amber },
-  { height: 23, width: 2, slender: true, skin: 'tan', hair: S.woodLight, hairStyle: 'bun', top: S.cyanDeep, topStyle: 'long', legs: S.wood, necklace: S.amber, trinket: true },
+  { height: 24, width: 2, slender: true, skin: 'fair', hair: S.amber, hairStyle: 'long', top: S.cyanMid, topStyle: 'short', legs: S.wood, boots: S.cyanDeep, necklace: S.cyan },
+  { height: 24, width: 2, slender: true, skin: 'tan', hair: S.shadow, hairStyle: 'long', top: S.amber, topStyle: 'crop', legs: S.wood, boots: S.amberDeep, necklace: S.white, trinket: true },
+  { height: 23, width: 2, slender: true, skin: 'dark', hair: S.shadow, hairStyle: 'tail', top: S.white, topStyle: 'short', legs: S.wood, boots: S.light, necklace: S.amber },
+  { height: 25, width: 2, slender: true, skin: 'fair', hair: S.light, hairStyle: 'long', top: S.amberDeep, topStyle: 'crop', legs: S.wood, boots: S.deep, necklace: S.cyan },
+  { height: 23, width: 2, slender: true, skin: 'tan', hair: S.woodLight, hairStyle: 'bun', top: S.cyanDeep, topStyle: 'short', legs: S.wood, boots: S.deep, necklace: S.amber, trinket: true },
 ];
 export const HOSTESSES = HOSTESS_LOOKS.map(folkFrames);
 
