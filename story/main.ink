@@ -235,6 +235,7 @@ INCLUDE borderland/compound.ink
 INCLUDE borderland/scrap-stacks.ink
 INCLUDE borderland/sunk-town.ink
 INCLUDE borderland/dogs-hollow.ink
+INCLUDE borderland/rival-line.ink
 
 // The game starts conversations by knot name via StoryBridge, so the root
 // flow does nothing.
