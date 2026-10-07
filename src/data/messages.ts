@@ -865,11 +865,16 @@ const DEEP: DecodeSymbol = {
 /** "Stay alive": two hands cupped round a small flame, keeping it lit (designer, 2026-10-07; was someone hanging from a branch). */
 const STAY_ALIVE: DecodeSymbol = {
   id: 'stayalive',
+  // The flame: a teardrop in outline with a tongue inside, rising out of the cup of two hands (fingers
+  // together, curled up round its sides, palms cupping under it, wrists going down).
   picture: scratches(
-    24,
+    23,
     18,
-    [[[12, 2], [13, 4]], [[9, 6], [8, 3]], [[15, 6], [16, 3]]],
-    [{ poly: [[12, 1], [14, 5], [14, 8], [12, 10], [10, 8], [10, 5]] }, { poly: [[3, 8], [5, 7], [8, 10], [11, 13], [11, 17], [6, 17], [3, 14], [2, 11]] }, { poly: [[21, 8], [19, 7], [16, 10], [13, 13], [13, 17], [18, 17], [21, 14], [22, 11]] }],
+    [[[11, 0], [13, 3], [14, 6], [13, 9], [11, 10], [9, 9], [8, 6], [9, 3], [11, 0]], [[11, 4], [11, 9]], [[10, 6], [10, 9]], [[12, 6], [12, 9]]],
+    [
+      { poly: [[0, 9], [1, 7], [3, 6], [5, 8], [6, 11], [8, 13], [10, 14], [10, 17], [5, 17], [1, 15], [0, 12]] },
+      { poly: [[22, 9], [21, 7], [19, 6], [17, 8], [16, 11], [14, 13], [12, 14], [12, 17], [17, 17], [21, 15], [22, 12]] },
+    ],
   ),
   accepted: ['stay alive', 'survive', 'live', 'hold on', 'hang on', 'stay', 'endure', 'keep going', 'dont die', 'keep living', 'last', 'be safe', 'stay safe', 'keep alight', 'keep burning', 'keep lit'],
   near: [
