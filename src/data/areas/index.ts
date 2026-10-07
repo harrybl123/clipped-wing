@@ -13,6 +13,7 @@ import { scrapStacks } from './borderland/scrapStacks';
 import { sunkTown } from './borderland/sunkTown';
 import { dogsHollow } from './borderland/dogsHollow';
 import { rivalLine } from './borderland/rivalLine';
+import { deepGround } from './borderland/deepGround';
 import { friendsHome } from './friendsHome';
 import { girlsHome } from './girlsHome';
 import { home } from './home';
@@ -107,4 +108,5 @@ export const AREAS: Record<string, AreaDefinition> = {
   [sunkTown.id]: sunkTown,
   [dogsHollow.id]: dogsHollow,
   [rivalLine.id]: rivalLine,
+  [deepGround.id]: deepGround,
 };

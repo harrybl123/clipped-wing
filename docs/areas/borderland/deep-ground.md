@@ -1,6 +1,8 @@
 # Area brief: the deep ground
 
-Chapter 2. **(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
+Chapter 2. Built 2026-10-07 (`src/data/areas/borderland/deepGround.ts`, `story/borderland/deep-ground.ink`; dev `?area=deep-ground`). `outdoor.ground: 'deep'`: hard dark ground, grooves converging on the horizon, notches where they cross your path. The tree small behind you.
+
+**(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
 
 ## Purpose
 Forbidden and far out. **(doc)** The edge of what the borderland knows. Somewhere you're not meant to go. **(suggestion)**

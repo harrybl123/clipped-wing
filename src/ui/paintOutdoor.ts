@@ -80,6 +80,15 @@ export function paintFar(outdoor: Outdoor, slot: TimeSlot, height: number): (x: 
 
     // The plain: hazy at the horizon, darker and coarser nearer.
     const depth = smoothstep(HY, height, y);
+    if (outdoor.ground === 'deep') {
+      // Hard, dark, bare: straight grooves running away to a point on the horizon, far ahead.
+      const vx = 900;
+      const slope = (x - vx) / (y - HY + 0.001);
+      for (const g of [-14, -9, -6, -4, -2.6, -1.6, -0.8]) if (Math.abs(slope - g) < 0.04 + 0.012 * Math.abs(g)) return scale(rgb(SHADES.shadow), sky.ground);
+      let c = mix(rgb(SHADES.wood), rgb(SHADES.deep), depth * 0.6);
+      c = mix(c, sky.horizon, 0.45 * (1 - smoothstep(HY, HY + 20, y)));
+      return scale(c, sky.ground * (1 + 0.05 * noise(x / 15 + y / 4)));
+    }
     let c = mix(mix(dust!, rgb(SHADES.amberDeep), 0.3), near!, depth);
     c = mix(c, sky.horizon, 0.4 * (1 - smoothstep(HY, HY + 26, y)));
     c = scale(c, sky.ground * (1 + 0.12 * noise(x / 7 + noise(y / 3) * 2)));
@@ -301,8 +310,14 @@ export function treePainter(TX: number, HY: number, s: number, sky: Sky, night: 
 }
 
 /** Packed dirt: a sunlit crust on top, grit and buried bits of junk below. */
-function dirt(s: Solid, x: number, y: number, sky: Sky): RGB | number {
+function dirt(s: Solid, x: number, y: number, sky: Sky, hard = false): RGB | number {
   const row = y - s.y;
+  if (hard) {
+    // The deep ground: hard and dark, no junk in it; the grooves cross your path as notches.
+    if (x % 64 < 3 && row < 3) return SHADES.shadow;
+    if (row === 0) return scale(rgb(SHADES.woodLight), sky.ground);
+    return scale(mix(rgb(SHADES.wood), rgb(SHADES.deep), smoothstep(0, 20, row)), sky.ground * (1 + 0.05 * noise(x / 6 + row)));
+  }
   if (row === 0) return scale(rgb(SHADES.dim), sky.ground);
   const r = cellRandom(Math.floor(x / 3), Math.floor(y / 2), 21);
   // Deep down (a buried room's earth), fewer bright chips and darker soil, in layers.
@@ -339,7 +354,7 @@ export function paintOutdoorNear(area: AreaDefinition, slot: TimeSlot): (x: numb
     if (exact !== undefined) return exact;
     const s = solids.find((o) => x >= o.x && x < o.x + o.width && y >= o.y && y < o.y + o.height);
     if (!s) return null;
-    const c = dirt(s, x, y, sky);
+    const c = dirt(s, x, y, sky, area.outdoor?.ground === 'deep');
     if (typeof c === 'number') return c;
     let lit = c;
     for (const l of lights) lit = addLight(lit, l.rgb, l.strength * falloff(x, y, l.x, l.y, l.radius, l.radiusY ?? l.radius));
