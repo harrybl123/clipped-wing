@@ -2,6 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './swapYardProps';
 import { casingPod, wireBundle } from './scrapProps';
 import type { AreaDefinition } from '../types';
+import { AWAKE, DAY, cast, local, stroller } from './people';
 
 // The swap yard (Chapter 2): the market, finds for food. Out in the open inside the settlement's walls,
 // the rooftops crowding the horizon and the tree rising behind them. A row of stalls (upturned casings
@@ -82,7 +83,24 @@ export const swapYard: AreaDefinition = {
   ],
 
   features: [{ type: 'fire', x: 355, y: FLOOR - 1 }],
-  people: [],
+  people: [
+    // Behind the stalls.
+    local('scrap-trader', 7, 112, FLOOR, AWAKE, { flipX: true }),
+    local('food-trader', 5, 244, FLOOR, AWAKE),
+    // The fence, in the alcove.
+    cast('fence', 950, FLOOR, { knot: 'swap_yard_fencer', when: AWAKE, flipX: true }),
+    // Your brother and the kid, underfoot.
+    cast('brother', 646, FLOOR, { knot: 'swap_yard_brother', when: ['afternoon'] }),
+    cast('lookout', 626, FLOOR, { knot: 'swap_yard_lookout', when: ['afternoon'] }),
+    // Your friend, on the way out to the fields.
+    cast('scav_friend', 1010, FLOOR, { knot: 'swap_yard_friend', when: ['morning'], flipX: true }),
+    // The crowd.
+    stroller('swapper-1', 0, 150, 420, FLOOR, AWAKE),
+    stroller('swapper-2', 3, 600, 900, FLOOR, AWAKE),
+    stroller('swapper-3', 8, 480, 760, FLOOR, ['afternoon', 'evening']),
+    local('haggler', 4, 290, FLOOR, DAY, { flipX: true }),
+    local('picker', 10, 820, FLOOR, ['morning']),
+  ],
 
   interactables: [
     { id: 'scrap-stall', x: 96, y: FLOOR, reach: 14, label: 'Look', knot: 'swap_yard_scrap' },

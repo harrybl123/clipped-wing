@@ -1,5 +1,6 @@
 import { ELDER_LOOKS, FRIEND_FATHER_LOOK, GUARD_LOOK, PREACHER_LOOK, RESIDENT_LOOKS, VILLAGER_LOOKS, type VillagerLook } from './characters';
 import type { VoiceId } from '../systems/voices';
+import { CAST_LOOKS, type FolkLook } from './borderlandFolk';
 import { SHADES } from './pixelArt';
 import type { RowSprite } from './sprites';
 
@@ -347,7 +348,9 @@ export interface NpcFace {
   brow?: 'plain' | 'heavy' | 'knit' | 'raised';
   eyes?: 'plain' | 'narrow' | 'wide' | 'tired' | 'hollow';
   mouth?: 'flat' | 'frown' | 'smile' | 'grin' | 'sneer' | 'open';
-  items?: ('beads' | 'pipe' | 'token' | 'spectacles' | 'scarf' | 'earring' | 'apron')[];
+  items?: ('beads' | 'pipe' | 'token' | 'spectacles' | 'scarf' | 'earring' | 'apron' | 'goggles' | 'scar')[];
+  /** Skin in the borderland's daylight (Chapter 2); default the tree's (Act 1). */
+  skin?: 'fair' | 'tan' | 'dark';
 }
 
 /** A darker shade of each clothing colour, for folds and shadow. */
@@ -479,6 +482,18 @@ function npcPick(look: VillagerLook, o: NpcFace, cx: number, cy: number, scale =
       if (y === mouthY && u >= 3 && u <= 8) return 'u';
       if (u >= 8 && u <= 10 && y >= mouthY - 3 && y <= mouthY) return y === mouthY - 3 ? 'o' : x === f.cx + 10 ? 'U' : 'u';
     }
+    // Goggles pushed up on the forehead: two round lenses on a strap, one catching the light.
+    if (items.has('goggles')) {
+      const gy = f.cy - f.ry + 4;
+      for (const ex of [f.cx - 4, f.cx + 4]) {
+        const r = Math.hypot(x - ex, (y - gy) * 1.2);
+        if (r < 2.2) return ex > f.cx && r < 1.2 ? 'Q' : 'q';
+        if (r < 3.2) return 'o';
+      }
+      if (y === gy && Math.abs(u) <= f.rx + 1) return 'o';
+    }
+    // A scar across the cheek, on the lit side.
+    if (items.has('scar') && inFace(x, y) && u >= 2 && u <= 6 && y === eyeY + 1 + (u - 2)) return 'E';
     // Spectacles.
     if (items.has('spectacles') && inFace(x, y)) {
       for (const ex of [f.cx - 3.5, f.cx + 3.5]) {
@@ -572,6 +587,13 @@ function npcPick(look: VillagerLook, o: NpcFace, cx: number, cy: number, scale =
   };
 }
 
+/** Skin in the borderland's daylight: the four bands of the face (lit, mid, shade, edge). */
+const DAYLIT_SKIN: Record<NonNullable<NpcFace['skin']>, Record<'L' | 'M' | 'S' | 'E', number>> = {
+  fair: { L: SHADES.skinFair, M: SHADES.skinFairShade, S: SHADES.skinTanShade, E: SHADES.woodPale },
+  tan: { L: SHADES.skinTan, M: SHADES.skinTanShade, S: SHADES.skinDark, E: SHADES.woodLight },
+  dark: { L: SHADES.skinTanShade, M: SHADES.skinDark, S: SHADES.skinDarkShade, E: SHADES.deep },
+};
+
 const npcColours = (look: VillagerLook, o: NpcFace) => {
   const hair = o.hairColour ?? look.hair ?? SHADES.shadow;
   const robe = look.robe ?? SHADES.deep;
@@ -591,6 +613,7 @@ const npcColours = (look: VillagerLook, o: NpcFace) => {
     u: SHADES.amberDeep,
     U: SHADES.amber,
     P: SHADES.woodPale,
+    ...(o.skin ? DAYLIT_SKIN[o.skin] : {}),
   };
 };
 
@@ -725,6 +748,15 @@ export const SCAVENGER_PORTRAIT: RowSprite = (() => {
   });
 })();
 
+/** A borderland person's portrait, from their sprite's look plus face settings (Chapter 2: daylit skin, hair, headwear, clothes). */
+function folkPortrait(look: FolkLook, face: NpcFace = {}): RowSprite {
+  const head: VillagerLook['head'] = look.head === 'cap' ? 'cap' : look.head === 'hood' || look.head === 'wrap' ? 'hood' : look.hairStyle === 'bun' ? 'bun' : 'bare';
+  const hair: NpcFace['hair'] = { short: 'cropped', long: 'long', tail: 'long', bald: 'shaven', bun: 'bun', crest: 'cropped', messy: 'messy' }[look.hairStyle] as NpcFace['hair'];
+  const villagerLook: VillagerLook = { height: look.height, width: look.width, head, accent: look.scarf ?? look.top, robe: look.top, hair: look.hair, bundle: !!look.pack, long: look.topStyle === 'long' };
+  const items = [...(face.items ?? []), ...(look.head === 'goggles' ? (['goggles'] as const) : []), ...(look.trinket ? (['token'] as const) : []), ...(look.apron !== undefined ? (['apron'] as const) : [])];
+  return npcPortrait(villagerLook, { hair, skin: look.skin, ...face, items });
+}
+
 /**
  * Portraits by the speaker id used in ink tags (`#speaker:mum`), with the name shown above the line. A
  * `#name:` tag on the same line overrides the name (the escort is "The guard" until he's "Your escort").
@@ -739,6 +771,19 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
   boy: { name: 'The boy', portrait: BOY_PORTRAIT , voice: 'boy' },
   // Chapter 2.
   scavenger: { name: 'You', portrait: SCAVENGER_PORTRAIT, voice: 'scavenger' },
+  brother: { name: 'Your brother', portrait: folkPortrait(CAST_LOOKS.brother, { build: 'round', eyes: 'wide', mouth: 'grin' }), voice: 'young' },
+  boss: { name: 'The boss', portrait: folkPortrait(CAST_LOOKS.boss, { build: 'broad', age: 1, beard: 'full', mouth: 'smile', items: ['earring'] }), voice: 'upper' },
+  watcher: { name: 'The watcher', portrait: folkPortrait(CAST_LOOKS.watcher, { build: 'narrow', eyes: 'narrow', brow: 'heavy', items: ['scar'] }), voice: 'elder' },
+  enforcer: { name: 'The enforcer', portrait: folkPortrait(CAST_LOOKS.enforcer, { build: 'broad', brow: 'knit', beard: 'stubble', mouth: 'sneer' }), voice: 'guard' },
+  boss_son: { name: "The boss's son", portrait: folkPortrait(CAST_LOOKS.boss_son, { build: 'narrow', brow: 'raised', mouth: 'sneer', items: ['earring'] }), voice: 'boy' },
+  scav_friend: { name: 'Your friend', portrait: folkPortrait(CAST_LOOKS.scav_friend, { mouth: 'smile', items: ['beads', 'earring'] }), voice: 'roots_woman' },
+  old_scav: { name: 'The old scavenger', portrait: folkPortrait(CAST_LOOKS.old_scav, { age: 2, brow: 'heavy', beard: 'long', mouth: 'frown', eyes: 'narrow' }), voice: 'old' },
+  gambler: { name: 'The gambler', portrait: folkPortrait(CAST_LOOKS.gambler, { build: 'narrow', eyes: 'hollow', beard: 'stubble', mouth: 'grin' }), voice: 'roots_man' },
+  lookout: { name: 'The kid', portrait: folkPortrait(CAST_LOOKS.lookout, { build: 'round', eyes: 'wide', mouth: 'smile' }), voice: 'young' },
+  tallyman: { name: 'The tallyman', portrait: folkPortrait(CAST_LOOKS.tallyman, { age: 1, items: ['spectacles'] }), voice: 'archivist' },
+  barkeep: { name: 'The barkeep', portrait: folkPortrait(CAST_LOOKS.barkeep, { build: 'round', age: 1, beard: 'moustache', mouth: 'smile' }), voice: 'roots_man' },
+  madam: { name: 'The madam', portrait: folkPortrait(CAST_LOOKS.madam, { eyes: 'narrow', brow: 'raised', mouth: 'smile', items: ['earring'] }), voice: 'mum' },
+  fence: { name: 'The fence', portrait: folkPortrait(CAST_LOOKS.fence, { build: 'narrow', eyes: 'narrow', mouth: 'smile', items: ['earring'] }), voice: 'preacher' },
 
   // The recurring cast.
   preacher: { name: 'The preacher', portrait: npcPortrait(PREACHER_LOOK, { build: 'narrow', age: 1, eyes: 'wide', brow: 'raised', mouth: 'grin' }), voice: 'preacher' },

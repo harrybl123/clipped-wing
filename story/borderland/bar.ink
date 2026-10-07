@@ -19,3 +19,19 @@ Elbows have polished a stripe along the top.
 === bar_booths ===
 The booths, curtains half drawn. Voices, low. Whatever's said up here isn't said downstairs.
 -> END
+
+// --- People (draft) ---
+
+=== bar_barkeep ===
+"Drink, or are you just here for the gossip? Everyone's here for the gossip." #speaker:barkeep
+-> END
+
+=== bar_friend ===
+"There you are! Sit, sit. You look like the fields chewed you up." #speaker:scav_friend
+"Me? Nothing. Early night." #speaker:scav_friend
+-> END
+
+=== bar_old_scav ===
+"Hmph. You. Still digging where everyone's already dug?" #speaker:old_scav
+"Dig where it's dangerous, or dig for nothing. Those are your choices." #speaker:old_scav
+-> END

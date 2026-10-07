@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './tallyHouseProps';
 import type { AreaDefinition, Solid } from '../types';
+import { AWAKE, DAY, cast, local } from './people';
 
 // The tally house (Chapter 2): where finds are weighed and taxed each evening, this chapter's version
 // of Act 1's evening ceremony. A long, low hall inside the hull of something enormous: ribbed walls
@@ -75,7 +76,17 @@ export const tallyHouse: AreaDefinition = {
   ],
 
   features: [],
-  people: [],
+  people: [
+    // The tallyman, behind the counter.
+    cast('tallyman', 336, FLOOR, { knot: 'tally_house_tallyman', when: AWAKE, flipX: true }),
+    // The queue.
+    local('queuer-1', 1, 192, FLOOR, DAY),
+    local('queuer-2', 10, 208, FLOOR, DAY),
+    local('queuer-3', 4, 226, FLOOR, ['morning']),
+    local('queuer-4', 11, 240, FLOOR, ['afternoon']),
+    // One of the boss's people, watching the weighing.
+    cast('enforcer', 452, FLOOR, { knot: 'tally_house_enforcer', when: ['afternoon'], flipX: true }),
+  ],
 
   interactables: [
     { id: 'queue', x: 170, y: FLOOR, reach: 30, label: 'Queue', knot: 'tally_house_queue' },

@@ -29,3 +29,15 @@ The clan's share, behind the grille. More than the whole settlement eats in a mo
 === tally_house_walkway ===
 From up here, you'd see every hand at the counter. That's the point of it.
 -> END
+
+// --- People (draft) ---
+
+=== tally_house_tallyman ===
+"Next. Everything on the scale, nothing in the pockets." #speaker:tallyman
+"The scale doesn't lie. I make sure of it." #speaker:tallyman
+-> END
+
+=== tally_house_enforcer ===
+"Move along. Queue's that way." #speaker:enforcer
+"I'm watching the weighing. Someone has to." #speaker:enforcer
+-> END

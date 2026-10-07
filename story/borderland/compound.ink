@@ -73,3 +73,23 @@ A shelf of finds, set out to be looked at, not traded. A ring of pale casing, a 
 === compound_rooms ===
 Beds with frames, and blankets nobody's patched.
 -> END
+
+// --- People (draft) ---
+
+=== compound_enforcer ===
+"Nobody goes in unless they're asked. You asked?" #speaker:enforcer
+-> END
+
+=== compound_son ===
+"Oh. It's you." #speaker:boss_son
+"My father talks about you, you know. I can't think why." #speaker:boss_son
+-> END
+
+=== house_boss ===
+"Come in, come in. Anyone who digs as hard as you is welcome at my table." #speaker:boss
+"We look after our own here. Remember that." #speaker:boss
+-> END
+
+=== house_watcher ===
+The watcher looks at you for a long moment, and says nothing at all.
+-> END

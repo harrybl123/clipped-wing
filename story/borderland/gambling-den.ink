@@ -20,3 +20,10 @@ The house keeps the stakes behind bars. It always gets its share.
 The debt wall. Every name that owes, and how much, in strokes.
 A few are struck through. Paid, or gone.
 -> END
+
+// --- People (draft) ---
+
+=== gambling_den_gambler ===
+"I'm due. You get a feel for it, you know? I'm due." #speaker:gambler
+"You couldn't spare a little something? Just until the next hand." #speaker:gambler
+-> END

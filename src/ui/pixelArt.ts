@@ -33,6 +33,11 @@ export const SHADES = {
   /** Warm fair skin, out in the borderland's daylight (the tree's figures are silhouettes), and its shadow. */
   skinFair: 0xe6c9ac,
   skinFairShade: 0xbf9a7c,
+  /** Tanned and dark skin, likewise. */
+  skinTan: 0xb98763,
+  skinTanShade: 0x8a5f43,
+  skinDark: 0x6e4a33,
+  skinDarkShade: 0x4a3122,
 } as const;
 
 /** Colours a dithered backdrop may use. Red is deliberately absent. */

@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './shackProps';
 import type { AreaDefinition } from '../types';
+import { cast } from './people';
 
 // Your shack (Chapter 2): home with your brother, on the settlement's outer edge. Small, cramped,
 // kept tidy by someone who's trying, built from whatever could be carried home. Ground floor: the door
@@ -75,7 +76,11 @@ export const shack: AreaDefinition = {
   ],
 
   features: [{ type: 'fire', x: 124, y: FLOOR - 9 }],
-  people: [],
+  people: [
+    // Your brother: up and about by day, asleep in the loft at night.
+    cast('brother', 214, FLOOR, { knot: 'shack_brother', when: ['morning', 'evening'], flipX: true }),
+    cast('brother', 232, LOFT, { id: 'brother-asleep', knot: 'shack_brother_asleep', when: ['night'] }),
+  ],
 
   interactables: [
     { id: 'kit', x: 88, y: FLOOR, reach: 7, label: 'Look', knot: 'shack_kit' },

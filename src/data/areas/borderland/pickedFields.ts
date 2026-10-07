@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './scrapProps';
 import type { AreaDefinition, Solid } from '../types';
+import { DAY, cast, local, stroller } from './people';
 
 // The picked fields (Chapter 2): scavenged clean, where everyone works. The first open sky in the game:
 // a wide waste of dug-over dirt under a pale haze, the tree vast on the horizon with its top lost in
@@ -92,7 +93,14 @@ export const pickedFields: AreaDefinition = {
   ],
 
   features: [],
-  people: [],
+  people: [
+    // Pickers, working the fields.
+    local('digger-1', 0, 200, FLOOR, DAY),
+    local('digger-2', 11, 712, FLOOR, DAY, { flipX: true }),
+    stroller('picker-1', 1, 720, 800, FLOOR, DAY),
+    stroller('picker-2', 10, 90, 180, FLOOR, ['morning']),
+    cast('scav_friend', 152, FLOOR, { knot: 'picked_fields_friend', when: ['afternoon'] }),
+  ],
 
   interactables: [
     { id: 'hole', x: 255, y: FLOOR, reach: 12, label: 'Look', knot: 'picked_fields_hole' },

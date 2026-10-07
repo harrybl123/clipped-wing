@@ -36,3 +36,25 @@ And past the roofs, the tree.
 The fence's corner, half behind a cloth. A lamp burning low inside.
 The fence buys what nobody else will, and asks nothing.
 -> END
+
+// --- People (draft) ---
+
+=== swap_yard_fencer ===
+"Something special? I don't ask where. Nobody asks where. That's the whole trick of it." #speaker:fence
+"The tallyman weighs. I appreciate. Different trade." #speaker:fence
+-> END
+
+=== swap_yard_brother ===
+"We're spying! The kid says that man's sold the same pot three times." #speaker:brother
+"Don't tell anyone we were spying. Not even the kid. Wait, the kid knows." #speaker:brother
+-> END
+
+=== swap_yard_lookout ===
+"I see everything from the crates. Everything." #speaker:lookout
+"Your brother's slow, though. Tell him to keep up." #speaker:lookout
+-> END
+
+=== swap_yard_friend ===
+"Fields again? Same. Walk with me some of the way?" #speaker:scav_friend
+"Not tonight, though. I've got. Things." #speaker:scav_friend
+-> END

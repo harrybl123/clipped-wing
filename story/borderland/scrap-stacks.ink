@@ -16,3 +16,14 @@ Through it, the tree's pipes come close enough to count.
 === scrap_stacks_stacks ===
 Junk, crushed and stacked higher than anyone remembers stacking it. It shifts in the wind.
 -> END
+
+// --- People (draft) ---
+
+=== scrap_stacks_old_scav ===
+"Mind where you climb. The stacks shift." #speaker:old_scav
+"Don't look at me like that. I've been at this since before you could walk." #speaker:old_scav
+-> END
+
+=== scrap_stacks_lookout ===
+"You found my spot. Don't tell anyone. You can see the whole town from here, and they can't see you." #speaker:lookout
+-> END

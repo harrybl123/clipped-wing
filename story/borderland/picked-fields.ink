@@ -32,3 +32,10 @@ The tree. It's always there, at the edge of everything.
 Its top goes up into the white and doesn't come down.
 Nobody goes near it.
 -> END
+
+// --- People (draft) ---
+
+=== picked_fields_friend ===
+"Nothing out here but bolts and dirt. Same as yesterday." #speaker:scav_friend
+"Still. Better than the queue." #speaker:scav_friend
+-> END

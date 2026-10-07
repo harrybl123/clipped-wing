@@ -87,7 +87,25 @@ The order is a **(suggestion)**:
 3. Your shack. **Built**: the first scrap interior (`walls: 'scrap'`), cramped under a sloped corrugated roof.
 4. The rest of the settlement: the tally house, the swap yard, the scrap stacks, the bar, the gambling den, the brothel, the compound. **Built.**
 5. The rest of the grounds. **Built.** Every place on the map is now built (placeholder art and draft text).
-6. The cast: the scavenger becomes the player sprite (**done**: sprite, portrait, voice), and the dog, the boss's circle and the townsfolk get sprites and portraits.
+6. The cast: the scavenger becomes the player sprite (**done**: sprite, portrait, voice), and the dog, the boss's circle and the townsfolk get sprites and portraits. **Done** (looks are Claude's; designer: up to Claude's judgement): every named character has a sprite, portrait, voice and draft lines, and every area has people in it by time of day.
+
+## Who is where (suggestion, until Chapter 2's calendar)
+
+| Area | People |
+| --- | --- |
+| Your shack | your brother (morning, evening; asleep in the loft at night) |
+| The swap yard | the fence in the alcove; your brother and the kid underfoot (afternoon); your friend heading out (morning); traders and a crowd |
+| The tally house | the tallyman; the queue; the enforcer watching the weighing (afternoon) |
+| The bar | the barkeep; crews, a player in the music corner, the booths; your friend (evening); the old scavenger (night) |
+| The gambling den | the gambler; a dealer, players, the cage keeper |
+| The brothel | the madam; hostesses |
+| The compound | the enforcer on the gate; the boss's son in the yard; someone at the washing |
+| The boss's house | the boss and the watcher; the circle in the side room (evening); a cook |
+| The scrap stacks | the old scavenger (day); the kid on the perch (evening); haulers |
+| The picked fields | pickers digging; your friend (afternoon) |
+| The dog's hollow | the dog |
+| The rival line | our watch; theirs, and their fire at night |
+| The sunk town, the deep ground, the tree's edge | nobody |
 
 ## Open questions
 

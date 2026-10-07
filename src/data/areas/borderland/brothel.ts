@@ -2,6 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './brothelProps';
 import { roof } from './shackProps';
 import type { AreaDefinition, Solid } from '../types';
+import { LATE, OPEN_LATE, cast, local } from './people';
 
 // The brothel (Chapter 2), shown with restraint: the front room and the madam, nothing explicit. The
 // most comfortable room in the settlement, which says something: cloth hung over every wall, swags
@@ -82,7 +83,12 @@ export const brothel: AreaDefinition = {
   ],
 
   features: [],
-  people: [],
+  people: [
+    cast('madam', 124, FLOOR, { knot: 'brothel_madam', when: OPEN_LATE, flipX: true }),
+    local('hostess-1', 9, 246, FLOOR, LATE),
+    local('hostess-2', 3, 300, GALLERY.y, LATE, { flipX: true }),
+    local('caller', 8, 196, FLOOR, ['night']),
+  ],
 
   interactables: [
     { id: 'seat', x: 76, y: FLOOR, reach: 12, label: 'Look', knot: 'brothel_seat' },

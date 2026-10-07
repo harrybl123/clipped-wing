@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './compoundProps';
 import type { AreaDefinition, Solid } from '../types';
+import { AWAKE, cast, local } from './people';
 
 // The boss's house (Chapter 2): inside the compound, entered by the front door (an area within an area:
 // it isn't on the map; the map shows you at the compound). Whole matched panels, warm, kept, a home
@@ -121,7 +122,18 @@ export const compoundHouse: AreaDefinition = {
   ],
 
   features: [{ type: 'fire', x: FIRE.x, y: FIRE.y }],
-  people: [],
+  people: [
+    // The boss at his table, the watcher at his shoulder; at night, upstairs.
+    cast('boss', 176, FLOOR, { knot: 'house_boss', when: AWAKE }),
+    cast('watcher', 246, FLOOR, { knot: 'house_watcher', when: AWAKE, flipX: true }),
+    cast('boss', 236, UPPER, { id: 'boss-night', knot: 'house_boss', when: ['night'], flipX: true }),
+    cast('watcher', 62, FLOOR, { id: 'watcher-night', knot: 'house_watcher', when: ['night'] }),
+    // The circle in the side room, in the evening.
+    local('circle-1', 7, 432, FLOOR, ['evening']),
+    local('circle-2', 10, 494, FLOOR, ['evening'], { flipX: true }),
+    // Someone at the stove.
+    local('cook', 4, 330, FLOOR, AWAKE, { flipX: true }),
+  ],
 
   interactables: [
     // Downstairs.

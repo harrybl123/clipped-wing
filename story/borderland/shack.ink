@@ -39,3 +39,17 @@ The one on the end still glows a little at night. He calls it his light.
 === shack_bed ===
 Not yet.
 -> END
+
+// --- People (draft) ---
+
+=== shack_brother ===
+{~"Did you find anything? Show me. Show me!"|"I counted the tally marks again. We've got more than last week. I think."|"Can I come out with you tomorrow? I'll be quiet. I'll be so quiet."} #speaker:brother
+* [Not yet.]
+    "You always say not yet." #speaker:brother
+* [Maybe.]
+    "Maybe means yes!" #speaker:brother
+- -> END
+
+=== shack_brother_asleep ===
+Your brother, asleep with one arm hanging off the cot, holding the tin thing he found.
+-> END

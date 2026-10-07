@@ -18,6 +18,7 @@ import { ARCHIVIST, DODGER, ELDERS, FRIEND, FRIEND_FATHER, GIRL, GUARD, MUM, PRE
 import { BEETLE_BATTLE, CARVER_BATTLE, GIRL_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
 import { hexString } from '../ui/pixelArt';
 import { SPEAKERS } from '../ui/portraits';
+import { CAST, DOG, RIVALS, TOWNSFOLK } from '../ui/borderlandFolk';
 import { BIRD, FIRE_FRAMES, FUNGI, LAMP, MORE_ARROW, type RowSprite } from '../ui/sprites';
 
 type Entry = [label: string, sprite: RowSprite];
@@ -45,6 +46,7 @@ const FIGURES: Record<string, RowSprite> = {
   zealot: v(0), old_man: v(1), mother: v(6), thin_man: v(2), stew_seller: v(3), fungus_seller: v(0), cloth_seller: v(1),
   curio_seller: v(5), local: v(5), friend_father: FRIEND_FATHER.idle[0]!, carver: r(3), lift_keeper: r(1), doorman: r(1),
   scavenger: SCAVENGER.idle[0]!,
+  ...Object.fromEntries(Object.entries(CAST).map(([id, f]) => [id, f.idle[0]!])),
   gardener: r(2), crowd_woman: v(3), crowd_man: v(4), crowd_someone: v(5), crowd_someone_else: v(1),
 };
 
@@ -62,6 +64,10 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       ['scavenger jump', SCAVENGER.jump],
       ['scavenger fall', SCAVENGER.fall],
       ['scavenger crouch', SCAVENGER_CROUCH.idle],
+      ...Object.entries(CAST).map(([id, f]): Entry => [id, f.idle[0]!]),
+      ...TOWNSFOLK.map((f, i): Entry => [`townsfolk ${i}`, f.idle[0]!]),
+      ...RIVALS.map((f, i): Entry => [`rival ${i}`, f.idle[0]!]),
+      ['dog', DOG.idle[0]!],
       ...MUM.idle.map((f, i): Entry => [`mum idle ${i}`, f]),
       ...TENDER.idle.map((f, i): Entry => [`tender idle ${i}`, f]),
       ...FRIEND.idle.map((f, i): Entry => [`friend idle ${i}`, f]),
@@ -80,6 +86,9 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       { label: 'scavenger walk', frames: SCAVENGER.walk, fps: 9 },
       { label: 'scavenger idle', frames: SCAVENGER.idle, fps: 1.6 },
       { label: 'scavenger crawl', frames: SCAVENGER_CROUCH.walk, fps: 5 },
+      { label: 'dog walk', frames: DOG.walk, fps: 6 },
+      { label: 'dog idle', frames: DOG.idle, fps: 3 },
+      { label: 'townsfolk 1 walk', frames: TOWNSFOLK[1]!.walk, fps: 5.5 },
       { label: 'mum idle', frames: MUM.idle, fps: 1.5 },
       { label: 'tender idle', frames: TENDER.idle, fps: 1.2 },
       { label: 'friend idle', frames: FRIEND.idle, fps: 1.4 },

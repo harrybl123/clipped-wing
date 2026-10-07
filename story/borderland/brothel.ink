@@ -19,3 +19,10 @@ The softest thing in the settlement. You don't sit.
 === brothel_doors ===
 Curtains. Low voices behind them. Not your business.
 -> END
+
+// --- People (draft) ---
+
+=== brothel_madam ===
+"Visiting, or working? You don't look like either." #speaker:madam
+"Everything said in this house stays in this house. Mostly." #speaker:madam
+-> END

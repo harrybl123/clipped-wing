@@ -2,6 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './rivalLineProps';
 import { cableCoil, dugHole, trackMarker } from './scrapProps';
 import type { AreaDefinition, Solid } from '../types';
+import { AWAKE, LATE, local, rival } from './people';
 
 // The rival line (Chapter 2): the border with another clan's turf. Where you catch the rival scout (big
 // choice 2), and where crossing over begins if you befriend them. Your side, picked bare, with a watch post
@@ -67,7 +68,14 @@ export const rivalLine: AreaDefinition = {
   ],
 
   features: [],
-  people: [],
+  people: [
+    // Our side's watch, by the post.
+    local('our-watch', 7, 236, FLOOR, AWAKE),
+    // Theirs, by their fire across the line.
+    rival('their-watch', 0, 712, FLOOR, AWAKE),
+    rival('their-fire-1', 1, 776, FLOOR, LATE),
+    rival('their-fire-2', 0, 840, FLOOR, LATE),
+  ],
 
   interactables: [
     { id: 'post', x: POST.x + 24, y: POST.y, reach: 26, label: 'Watch', knot: 'rival_line_post' },

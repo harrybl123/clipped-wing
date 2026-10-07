@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './scrapStacksProps';
 import type { AreaDefinition, Line, Solid } from '../types';
+import { DAY, cast, stroller } from './people';
 
 // The scrap stacks (Chapter 2): towers of compacted junk two screens high between the shacks, for
 // climbing and hiding; this chapter's back routes, a way across the settlement over the top, out of
@@ -73,7 +74,12 @@ export const scrapStacks: AreaDefinition = {
   ],
 
   features: [],
-  people: [],
+  people: [
+    cast('old_scav', 360, FLOOR, { knot: 'scrap_stacks_old_scav', when: DAY, flipX: true }),
+    cast('lookout', 504, PERCH.y, { knot: 'scrap_stacks_lookout', when: ['evening'] }),
+    stroller('hauler-1', 1, 420, 600, FLOOR, DAY),
+    stroller('hauler-2', 10, 60, 200, FLOOR, ['morning']),
+  ],
 
   interactables: [
     { id: 'view', x: PERCH.x + 30, y: PERCH.y, reach: 26, label: 'Look', knot: 'scrap_stacks_view' },

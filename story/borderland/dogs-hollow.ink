@@ -14,3 +14,9 @@ Bury a find. Walk away. See if it can be found again.
 === dogs_hollow_rim ===
 From the rim you can see anyone coming a long way off. Nobody is.
 -> END
+
+// --- People (draft) ---
+
+=== dogs_hollow_dog ===
+The dog leans into your hand, tail going, and pushes its nose into your satchel looking for food.
+-> END

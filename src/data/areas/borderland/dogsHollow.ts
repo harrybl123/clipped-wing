@@ -1,6 +1,7 @@
 import * as P from './dogsHollowProps';
 import { cableCoil, casingPod } from './scrapProps';
 import type { AreaDefinition } from '../types';
+import { dog } from './people';
 
 // The dog's hollow (Chapter 2): your secret training spot on the outskirts, not on the map until you've
 // found the dog (designer). A dip in the ground, out of sight, sheltered by a toppled slab leaning over it
@@ -53,7 +54,7 @@ export const dogsHollow: AreaDefinition = {
   ],
 
   features: [],
-  people: [],
+  people: [dog(262, FLOOR, { knot: 'dogs_hollow_dog', label: 'Pet', flipX: true })],
 
   interactables: [
     { id: 'bed', x: 204, y: FLOOR, reach: 12, label: 'Look', knot: 'dogs_hollow_bed' },
