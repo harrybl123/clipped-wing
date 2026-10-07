@@ -1,6 +1,8 @@
 # Area brief: the tree's edge
 
-Chapter 2. **(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
+Chapter 2. Built 2026-10-07 (`src/data/areas/borderland/treesEdge.ts`, `story/borderland/trees-edge.ink`; dev `?area=trees-edge`). At the roots you can't see the canopy (designer): `outdoor.atRoots` draws only the trunk rising out of sight. Roots like walls, the low one climbable; the crack you can't enter.
+
+**(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
 
 ## Purpose
 Where the borderland meets the tree's roots. Nobody goes close. **(doc)** The tree's mystery, seen from outside. **(suggestion)**

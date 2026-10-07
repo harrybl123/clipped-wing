@@ -76,6 +76,14 @@ The game is pixel art, so darker and lighter **shades** of these colours are all
   - **First area: the picked fields.** The stuck hull, which you can climb (its back is one-way blocks like stairs) to look at the tree. A glow in the crack under it. Exits to the swap yard, the dog's hollow, the sunk town and the tree's edge. Dev: `?area=picked-fields`.
   - **Outdoor areas are bigger than the tree's** (designer: the borderland should be more open). The settlement's rooms are scrap: `walls: 'scrap'` paints walls of mismatched riveted panels (bare, corrugated, old paint, pale casing, dead glass), muted so the room's things stand out, and riveted plate floors. Your shack is the first.
   - **Secret places:** `MapPlace.showIf` and `Exit.showIf` (ink variables). The dog's hollow and the path to it stay hidden until `found_dog` (designer: don't reveal it before you find the dog), and its landmark isn't painted on the map.
+  - **Every borderland area is built (2026-10-07, location by location).** Placeholder art and draft text; people come with the cast. New area options and features for them:
+    - `walls: 'hull'`: inside something enormous (the tally house, the gambling den).
+    - `underground`: packed earth round a buried room.
+    - `outdoor.backdrop: 'settlement'`: rooftops crowd the horizon inside the walls.
+    - `outdoor.ground: 'deep'`: the deep ground's hard ground and straight grooves.
+    - `outdoor.atRoots`: at the tree's edge you can't see the canopy, only the trunk going up (designer).
+    - The `autodoor` feature: the sunk town's door that still opens by itself, sticks halfway and judders.
+    - The compound's house has a front entrance (designer).
   - **Not yet:** the scavenger as the player sprite (you walk the borderland as the carver for now); the cast; Chapter 2's calendar.
 
 - **2026-10-07 — "Stay alive" is a cupped flame; Chapter 1 is "Fly or Fall".** (Designer: the stay-alive picture needed to change; Claude's earlier recommendation from the options on `pictures.html`.) Two hands cupped round a small flame, keeping it lit; flame, fire or hands are near misses.

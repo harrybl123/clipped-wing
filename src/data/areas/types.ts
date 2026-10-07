@@ -170,6 +170,8 @@ export interface Outdoor {
   treeX: number;
   /** How far away the tree is: 1 is as seen from the settlement, bigger is nearer (the tree's edge). */
   treeScale?: number;
+  /** At the roots (the tree's edge): the trunk rises straight up out of sight, too close to see the canopy or the pipes (designer). */
+  atRoots?: boolean;
   /** What's between you and the tree: the open plain (default), or the settlement's rooftops (inside its walls). */
   backdrop?: 'plain' | 'settlement';
   /** The ground: scrapland dirt (default), or the deep ground's (harder, darker, no junk, cut with straight grooves running away to the horizon). */

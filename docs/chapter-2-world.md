@@ -85,8 +85,8 @@ The order is a **(suggestion)**:
 1. The map, with every place dark. **Done.**
 2. The picked fields. **Built** (`src/data/areas/borderland/pickedFields.ts`). This first area sets the look: an open sky, the tree on the horizon, and scrap in the dirt.
 3. Your shack. **Built**: the first scrap interior (`walls: 'scrap'`), cramped under a sloped corrugated roof.
-4. The rest of the settlement: the tally house, the swap yard, the scrap stacks, the bar, the gambling den, the brothel, the compound.
-5. The rest of the grounds.
+4. The rest of the settlement: the tally house, the swap yard, the scrap stacks, the bar, the gambling den, the brothel, the compound. **Built.**
+5. The rest of the grounds. **Built.** Every place on the map is now built (placeholder art and draft text).
 6. The cast: the scavenger becomes the player sprite, and the dog, the boss's circle and the townsfolk get sprites and portraits.
 
 ## Open questions

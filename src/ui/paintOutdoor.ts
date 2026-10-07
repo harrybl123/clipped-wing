@@ -59,7 +59,7 @@ export function paintFar(outdoor: Outdoor, slot: TimeSlot, height: number): (x: 
   const TX = outdoor.treeX;
   const s = outdoor.treeScale ?? 1;
   const night = slot === 'night';
-  const tree = treePainter(TX, HY, s, sky, night);
+  const tree = treePainter(TX, HY, s, sky, night, outdoor.atRoots);
   // Distant junk heaps along the horizon.
   const heapTop = (x: number) => HY - Math.max(0, noise(x / 23) * 7 + noise(x / 7) * 2 - 2);
   const town = outdoor.backdrop === 'settlement' ? skyline(HY, sky, slot) : null;
@@ -186,7 +186,7 @@ function toPolyline(x: number, y: number, pts: readonly (readonly [number, numbe
  * a dense bundle out of the middle, bent and drooping (no glowing tube: that's only seen from inside). Hazed by distance (`s` is how near:
  * 1 from the settlement). Returns null where the tree isn't.
  */
-export function treePainter(TX: number, HY: number, s: number, sky: Sky, night: boolean): (x: number, y: number) => PixelColour {
+export function treePainter(TX: number, HY: number, s: number, sky: Sky, night: boolean, atRoots = false): (x: number, y: number) => PixelColour {
   const [bark, greenDeep, greenMid, green, dim, deep, light, cyanMid, amberDeep, amber] = [
     SHADES.wood, SHADES.greenDeep, SHADES.greenMid, SHADES.green, SHADES.dim, SHADES.deep, SHADES.light, SHADES.cyanMid, SHADES.amberDeep, SHADES.amber,
   ].map(rgb) as RGB[];
@@ -283,12 +283,24 @@ export function treePainter(TX: number, HY: number, s: number, sky: Sky, night: 
   };
 
   return (x, y) => {
+    // At the roots, there's only the trunk going up out of sight: no canopy, no pipes.
+    if (atRoots) {
+      if (Math.abs(x - TX) < trunkHalf(y) * 1.4 || y >= rootTop(x)) {
+        const grain = noise(x / 2.2 + noise(y / 24) * 3) * 0.5 + noise(y / 2 + x / 30) * 0.15;
+        const edge = 1 - Math.min(1, (trunkHalf(y) * 1.4 - Math.abs(x - TX)) / 9);
+        let col = scale(bark!, 1 + 0.35 * grain + 0.3 * Math.max(0, edge) - 0.25 * (1 - smoothstep(0, HY, y)));
+        col = addLight(col, green!, 0.3 * falloff(x, y, TX, HY - 2, rootSpan * 0.4, 8 * s) * (0.6 + 0.4 * noise(x / 4)));
+        return finish(col);
+      }
+      return null;
+    }
     // The pipes come out from behind the leaves.
     const c = canopy(x, y);
     if (c) {
       // Lit from above: bright green crowns, deep green underneath, leafy texture.
       const lit = (c.y - y) / c.r * 0.5 + 0.5 - (x - c.x) / c.r * 0.15;
-      const leaf = noise(x / 2.3 + noise(y / 3) * 2) * 0.5 + noise(y / 1.7 + x / 5) * 0.3;
+      const k = Math.max(1, s * 0.7); // leaves stay leaf-sized however near the tree is
+      const leaf = noise(x / (2.3 * k) + noise(y / (3 * k)) * 2) * 0.5 + noise(y / (1.7 * k) + x / (5 * k)) * 0.3;
       const t = Math.max(0, Math.min(1, lit + leaf * 0.35));
       const col = t > 0.78 ? mix(greenMid!, green!, (t - 0.78) / 0.5) : mix(scale(greenDeep!, 0.8), greenMid!, t / 0.78);
       return finish(mix(col, amberDeep!, 0.08));
