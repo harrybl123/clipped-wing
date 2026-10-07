@@ -1,4 +1,4 @@
-import { CAST, DOG, RIVALS, TOWNSFOLK, type CastId } from '../../../ui/borderlandFolk';
+import { CAST, DOG, HOSTESSES, RIVALS, TOWNSFOLK, type CastId } from '../../../ui/borderlandFolk';
 import type { TimeSlot } from '../../../systems/Calendar';
 import type { Person } from '../types';
 
@@ -10,6 +10,7 @@ export const DAY: TimeSlot[] = ['morning', 'afternoon'];
 export const AWAKE: TimeSlot[] = ['morning', 'afternoon', 'evening'];
 export const LATE: TimeSlot[] = ['evening', 'night'];
 export const OPEN_LATE: TimeSlot[] = ['afternoon', 'evening', 'night'];
+export const ALWAYS: TimeSlot[] = ['morning', 'afternoon', 'evening', 'night'];
 
 /** One of the named cast, standing (`knot` to talk). */
 export const cast = (who: CastId, x: number, y: number, extra: Partial<Person> = {}): Person => ({
@@ -62,5 +63,16 @@ export const dog = (x: number, y: number, extra: Partial<Person> = {}): Person =
   idleFrames: DOG.idle,
   x,
   y,
+  ...extra,
+});
+
+/** One of the brothel's hostesses. */
+export const hostess = (id: string, look: number, x: number, y: number, when?: TimeSlot[], extra: Partial<Person> = {}): Person => ({
+  id,
+  sprite: HOSTESSES[look]!.idle[0]!,
+  idleFrames: HOSTESSES[look]!.idle,
+  x,
+  y,
+  when,
   ...extra,
 });

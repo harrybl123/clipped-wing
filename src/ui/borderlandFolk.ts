@@ -40,6 +40,10 @@ export interface FolkLook {
   apron?: number;
   /** A big belly pushing the clothes out at the front, arms held out round it (the boss). */
   belly?: boolean;
+  /** A slender figure: a narrow waist, the dress or top fitted to it. */
+  slender?: boolean;
+  /** A necklace or choker in this colour. */
+  necklace?: number;
 }
 
 type Grid = string[][];
@@ -131,9 +135,14 @@ export function folk(look: FolkLook, breathe = false, stride = 0): RowSprite {
     const flare = y >= legTop ? Math.floor((y - legTop) / 3) + (look.topStyle === 'long' ? 1 : 0) : 0;
     const sway = y >= legTop + 2 ? stride : 0;
     const gut = look.belly && y >= bodyTop + 3 && y <= legTop + 1 ? (y >= bodyTop + 5 && y <= legTop - 1 ? 2 : 1) : 0;
-    span(g, yy, cx - w - flare + sway, cx + w + flare + sway + gut, 't');
-    put(g, cx - w - flare + sway, yy, 'T');
-    put(g, cx + w + flare + sway + gut, yy, 'U');
+    const waist = look.slender && y >= bodyTop + 4 && y <= legTop - 1 ? 1 : 0; // fitted in at the waist
+    span(g, yy, cx - w - flare + sway + waist, cx + w + flare + sway + gut - waist, 't');
+    put(g, cx - w - flare + sway + waist, yy, 'T');
+    put(g, cx + w + flare + sway + gut - waist, yy, 'U');
+  }
+  if (look.necklace !== undefined) {
+    put(g, cx, bodyTop + b, 'n');
+    put(g, cx + 1, bodyTop + 1 + b, 'n');
   }
   if (look.apron !== undefined) for (let y = bodyTop + 3; y <= Math.min(H - 3, legTop + 3); y++) span(g, y + (y < legTop ? b : 0), cx - 1, cx + w, 'a');
   if (look.scarf !== undefined) {
@@ -201,6 +210,7 @@ export function folk(look: FolkLook, breathe = false, stride = 0): RowSprite {
       m: SHADES.light, M: SHADES.dim,
       w: SHADES.woodPale, k: SHADES.light,
       a: look.apron ?? SHADES.light,
+      n: look.necklace ?? SHADES.light,
     },
   };
 }
@@ -264,7 +274,7 @@ export const CAST_LOOKS = {
   /** The barkeep: big, a pale apron. */
   barkeep: { height: 25, width: 4, skin: 'tan', hair: S.woodLight, hairStyle: 'short', top: S.woodPale, topStyle: 'shirt', legs: S.wood, apron: S.light },
   /** The madam: tall, a long amber dress, hair up, a cyan wrap, a glint of tech at her throat. */
-  madam: { height: 25, width: 3, skin: 'dark', hair: S.shadow, hairStyle: 'bun', top: S.amber, topStyle: 'long', legs: S.wood, scarf: S.cyanMid, trinket: true },
+  madam: { height: 25, width: 3, slender: true, necklace: S.amber, skin: 'dark', hair: S.shadow, hairStyle: 'bun', top: S.amber, topStyle: 'long', legs: S.wood, scarf: S.cyanMid, trinket: true },
   /** The fence: hooded, a coat full of pockets, a bag, things glinting. */
   fence: { height: 24, width: 2, skin: 'fair', hair: S.woodLight, hairStyle: 'short', head: 'hood', scarf: S.woodLight, top: S.wood, topStyle: 'coat', legs: S.woodLight, pack: 'bag', trinket: true },
 } satisfies Record<string, FolkLook>;
@@ -288,6 +298,19 @@ export const TOWNSFOLK_LOOKS: FolkLook[] = [
   { height: 21, width: 2, skin: 'tan', hair: S.shadow, hairStyle: 'tail', top: S.amberDeep, topStyle: 'shirt', legs: S.woodPale, pack: 'bag' },
 ];
 export const TOWNSFOLK = TOWNSFOLK_LOOKS.map(folkFrames);
+
+/**
+ * The brothel's hostesses (designer: hot girls): slender, long hair in different colours (never red or
+ * copper), fitted dresses to the floor, jewellery at the throat. Alluring, not explicit.
+ */
+export const HOSTESS_LOOKS: FolkLook[] = [
+  { height: 24, width: 2, slender: true, skin: 'fair', hair: S.amber, hairStyle: 'long', top: S.cyanMid, topStyle: 'long', legs: S.wood, necklace: S.cyan },
+  { height: 24, width: 2, slender: true, skin: 'tan', hair: S.shadow, hairStyle: 'long', top: S.amber, topStyle: 'long', legs: S.wood, necklace: S.white, trinket: true },
+  { height: 23, width: 2, slender: true, skin: 'dark', hair: S.shadow, hairStyle: 'tail', top: S.white, topStyle: 'long', legs: S.wood, necklace: S.amber },
+  { height: 25, width: 2, slender: true, skin: 'fair', hair: S.light, hairStyle: 'long', top: S.amberDeep, topStyle: 'long', legs: S.wood, necklace: S.cyan, scarf: S.amber },
+  { height: 23, width: 2, slender: true, skin: 'tan', hair: S.woodLight, hairStyle: 'bun', top: S.cyanDeep, topStyle: 'long', legs: S.wood, necklace: S.amber, trinket: true },
+];
+export const HOSTESSES = HOSTESS_LOOKS.map(folkFrames);
 
 /** The other clan, across the rival line: pale wraps over their heads and faces, so they're known at a distance. */
 export const RIVAL_LOOKS: FolkLook[] = [

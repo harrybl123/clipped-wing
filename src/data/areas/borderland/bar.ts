@@ -2,7 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './barProps';
 import { roof } from './shackProps';
 import type { AreaDefinition, Solid } from '../types';
-import { LATE, OPEN_LATE, cast, local } from './people';
+import { LATE, OPEN_LATE, cast, local, stroller } from './people';
 
 // The bar (Chapter 2): where crews gather; gossip and suspicion spread here, and it's where you hear
 // what the town thinks of you. Warm, smoky and loud. Ground floor: the music corner, crew tables with
@@ -94,14 +94,20 @@ export const bar: AreaDefinition = {
 
   features: [{ type: 'motes', x: 230, top: 60, bottom: 220, halfWidth: 180 }], // smoke drifting up
   people: [
-    cast('barkeep', 444, FLOOR, { knot: 'bar_barkeep', when: OPEN_LATE, flipX: true }),
+    cast('barkeep', 444, FLOOR, { knot: 'bar_barkeep', flipX: true }), // always behind the counter
+    // The morning: last night's leftovers, and someone sweeping up.
+    local('sleeper', 8, 214, FLOOR, ['morning'], { flipX: true }),
+    stroller('sweeper', 6, 100, 340, FLOOR, ['morning']),
+    local('regular', 4, 372, FLOOR, ['morning', 'afternoon']),
     // The music corner, the crews at their tables, the booths upstairs.
-    local('player', 9, 82, FLOOR, LATE),
-    local('crew-1', 2, 150, FLOOR, LATE),
+    local('player', 9, 82, FLOOR, OPEN_LATE),
+    local('crew-1', 2, 150, FLOOR, OPEN_LATE),
     local('crew-2', 8, 200, FLOOR, LATE, { flipX: true }),
     local('crew-3', 7, 232, FLOOR, ['evening'], { flipX: true }),
     local('drinker', 0, 386, FLOOR, OPEN_LATE),
     local('booth-1', 11, 476, GALLERY.y, LATE),
+    local('booth-2', 1, 360, GALLERY.y, ['night'], { flipX: true }),
+    stroller('drifter', 3, 120, 360, FLOOR, LATE),
     // People you know.
     cast('scav_friend', 340, FLOOR, { knot: 'bar_friend', when: ['evening'] }),
     cast('old_scav', 300, FLOOR, { knot: 'bar_old_scav', when: ['night'] }),

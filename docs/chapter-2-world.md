@@ -96,9 +96,9 @@ The order is a **(suggestion)**:
 | Your shack | your brother (morning, evening; asleep in the loft at night) |
 | The swap yard | the fence in the alcove; your brother and the kid underfoot (afternoon); your friend heading out (morning); traders and a crowd |
 | The tally house | the tallyman; the queue; the enforcer watching the weighing (afternoon) |
-| The bar | the barkeep; crews, a player in the music corner, the booths; your friend (evening); the old scavenger (night) |
-| The gambling den | the gambler; a dealer, players, the cage keeper |
-| The brothel | the madam; hostesses |
+| The bar | the barkeep (always); last night's sleeper and a sweeper (morning); regulars; crews, a player in the music corner, the booths; your friend (evening); the old scavenger (night) |
+| The gambling den | the gambler, the dealer and the cage keeper (always); players, more at night |
+| The brothel | the madam (always); hostesses, more at night; callers |
 | The compound | the enforcer on the gate; the boss's son in the yard; someone at the washing |
 | The boss's house | the boss and the watcher; the circle in the side room (evening); a cook |
 | The scrap stacks | the old scavenger (day); the kid on the perch (evening); haulers |

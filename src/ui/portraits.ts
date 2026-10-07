@@ -1,6 +1,6 @@
 import { ELDER_LOOKS, FRIEND_FATHER_LOOK, GUARD_LOOK, PREACHER_LOOK, RESIDENT_LOOKS, VILLAGER_LOOKS, type VillagerLook } from './characters';
 import type { VoiceId } from '../systems/voices';
-import { CAST_LOOKS, type FolkLook } from './borderlandFolk';
+import { CAST_LOOKS, HOSTESS_LOOKS, type FolkLook } from './borderlandFolk';
 import { SHADES } from './pixelArt';
 import type { RowSprite } from './sprites';
 
@@ -789,6 +789,7 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
   tallyman: { name: 'The tallyman', portrait: folkPortrait(CAST_LOOKS.tallyman, { age: 1, items: ['spectacles'] }), voice: 'archivist' },
   barkeep: { name: 'The barkeep', portrait: folkPortrait(CAST_LOOKS.barkeep, { build: 'round', age: 1, beard: 'moustache', mouth: 'smile' }), voice: 'roots_man' },
   madam: { name: 'The madam', portrait: folkPortrait(CAST_LOOKS.madam, { eyes: 'narrow', brow: 'raised', mouth: 'smile', items: ['earring'] }), voice: 'mum' },
+  hostess: { name: 'A hostess', portrait: folkPortrait(HOSTESS_LOOKS[0]!, { build: 'narrow', eyes: 'narrow', mouth: 'smile', items: ['earring', 'beads'] }), voice: 'girl' },
   fence: { name: 'The fence', portrait: folkPortrait(CAST_LOOKS.fence, { build: 'narrow', eyes: 'narrow', mouth: 'smile', items: ['earring'] }), voice: 'preacher' },
 
   // The recurring cast.

@@ -26,3 +26,8 @@ Curtains. Low voices behind them. Not your business.
 "Visiting, or working? You don't look like either." #speaker:madam
 "Everything said in this house stays in this house. Mostly." #speaker:madam
 -> END
+
+=== brothel_hostess ===
+"Well. You're not our usual sort." #speaker:hostess
+"Sit a while, if you like. Talking's free. Everything else, ask her at the desk." #speaker:hostess
+-> END

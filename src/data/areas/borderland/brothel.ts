@@ -2,7 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './brothelProps';
 import { roof } from './shackProps';
 import type { AreaDefinition, Solid } from '../types';
-import { LATE, OPEN_LATE, cast, local } from './people';
+import { ALWAYS, LATE, OPEN_LATE, cast, hostess, local } from './people';
 
 // The brothel (Chapter 2), shown with restraint: the front room and the madam, nothing explicit. The
 // most comfortable room in the settlement, which says something: cloth hung over every wall, swags
@@ -84,10 +84,16 @@ export const brothel: AreaDefinition = {
 
   features: [],
   people: [
-    cast('madam', 124, FLOOR, { knot: 'brothel_madam', when: OPEN_LATE, flipX: true }),
-    local('hostess-1', 9, 246, FLOOR, LATE),
-    local('hostess-2', 3, 300, GALLERY.y, LATE, { flipX: true }),
+    cast('madam', 124, FLOOR, { knot: 'brothel_madam', flipX: true }), // always at her desk
+    // The hostesses: lounging by day, working the room by night.
+    hostess('hostess-1', 0, 236, FLOOR, ALWAYS, { knot: 'brothel_hostess' }),
+    hostess('hostess-2', 1, 300, FLOOR, ALWAYS, { flipX: true }),
+    hostess('hostess-3', 2, 258, GALLERY.y, ALWAYS),
+    hostess('hostess-4', 3, 400, GALLERY.y, LATE, { flipX: true }),
+    hostess('hostess-5', 4, 172, FLOOR, OPEN_LATE),
+    // Callers.
     local('caller', 8, 196, FLOOR, ['night']),
+    local('caller-2', 2, 352, FLOOR, LATE, { flipX: true }),
   ],
 
   interactables: [

@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './gamblingDenProps';
 import type { AreaDefinition, Solid } from '../types';
-import { LATE, OPEN_LATE, cast, local } from './people';
+import { ALWAYS, LATE, cast, local } from './people';
 
 // The gambling den (Chapter 2): below ground, down from the bar, in a sunken compartment of something
 // big. Low light over the tables, faces in shadow, the rattle of the game. Two tables (tokens cut from
@@ -71,11 +71,13 @@ export const gamblingDen: AreaDefinition = {
 
   features: [{ type: 'motes', x: 230, top: 120, bottom: 220, halfWidth: 90 }], // smoke
   people: [
-    local('dealer', 5, 204, FLOOR, LATE, { flipX: true }),
-    local('player-1', 2, 160, FLOOR, LATE),
+    local('dealer', 5, 204, FLOOR, ALWAYS, { flipX: true }), // the game never stops
+    local('player-1', 2, 160, FLOOR, ALWAYS),
+    local('player-3', 8, 262, FLOOR, ['morning', 'afternoon'], { flipX: true }),
+    local('watcher-on', 1, 120, FLOOR, LATE),
     local('player-2', 9, 304, FLOOR, LATE, { flipX: true }),
-    local('cage-keeper', 7, 392, FLOOR, OPEN_LATE, { flipX: true }),
-    cast('gambler', 236, FLOOR, { knot: 'gambling_den_gambler', when: OPEN_LATE }),
+    local('cage-keeper', 7, 392, FLOOR, ALWAYS, { flipX: true }),
+    cast('gambler', 236, FLOOR, { knot: 'gambling_den_gambler' }), // never leaves
   ],
 
   interactables: [
