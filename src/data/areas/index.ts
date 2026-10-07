@@ -8,6 +8,7 @@ import { tallyHouse } from './borderland/tallyHouse';
 import { bar } from './borderland/bar';
 import { gamblingDen } from './borderland/gamblingDen';
 import { brothel } from './borderland/brothel';
+import { compound } from './borderland/compound';
 import { friendsHome } from './friendsHome';
 import { girlsHome } from './girlsHome';
 import { home } from './home';
@@ -97,4 +98,5 @@ export const AREAS: Record<string, AreaDefinition> = {
   [bar.id]: bar,
   [gamblingDen.id]: gamblingDen,
   [brothel.id]: brothel,
+  [compound.id]: compound,
 };

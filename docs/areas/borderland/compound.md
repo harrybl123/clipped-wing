@@ -1,6 +1,8 @@
 # Area brief: the boss's compound
 
-Chapter 2. **(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
+Chapter 2. Built 2026-10-07 (`src/data/areas/borderland/compound.ts`, `story/borderland/compound.ink`; dev `?area=compound`). Outdoors (the lane, the gate, the yard) with the house in cutaway. Not closed yet: Chapter 2 has no calendar or access rules. The boss, his circle and the guards come with the cast.
+
+**(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
 
 ## Purpose
 The boss's home and seat. Off limits at first; it opens once you're brought in. **(doc)** If you move your brother here (big choice 1), he lives here from then on. **(doc)**
