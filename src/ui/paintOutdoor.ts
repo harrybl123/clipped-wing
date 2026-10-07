@@ -322,27 +322,31 @@ export function treePainter(TX: number, HY: number, s: number, sky: Sky, night: 
 }
 
 /** Packed dirt: a sunlit crust on top, grit and buried bits of junk below. */
-function dirt(s: Solid, x: number, y: number, sky: Sky, hard = false): RGB | number {
+function dirt(s: Solid, x: number, y: number, sky: Sky, hard = false, groundY?: number): RGB | number {
   const row = y - s.y;
+  // Underground (below `groundY`): depth is measured from the ground, and the sky doesn't reach it.
+  const under = groundY === undefined ? row : y - groundY;
+  const buried = groundY !== undefined && s.y > groundY + 4;
+  const ground = groundY === undefined ? sky.ground : sky.ground + (0.62 - sky.ground) * smoothstep(8, 60, under);
   if (hard) {
     // The deep ground: hard and dark, no junk in it; the grooves cross your path as notches.
     if (x % 64 < 3 && row < 3) return SHADES.shadow;
     if (row === 0) return scale(rgb(SHADES.woodLight), sky.ground);
     return scale(mix(rgb(SHADES.wood), rgb(SHADES.deep), smoothstep(0, 20, row)), sky.ground * (1 + 0.05 * noise(x / 6 + row)));
   }
-  if (row === 0) return scale(rgb(SHADES.dim), sky.ground);
+  if (row === 0 && !buried) return scale(rgb(SHADES.dim), ground);
   const r = cellRandom(Math.floor(x / 3), Math.floor(y / 2), 21);
   // Deep down (a buried room's earth), fewer bright chips and darker soil, in layers.
-  const deep = smoothstep(14, 60, row);
+  const deep = smoothstep(14, 60, under);
   if (row > 2 && r > 0.93 + deep * 0.05) {
     const kind = cellRandom(Math.floor(x / 3), Math.floor(y / 2), 22);
     const chip = r > 0.985 && deep < 0.5 ? (kind > 0.66 ? SHADES.cyanMid : kind > 0.33 ? SHADES.amber : SHADES.light) : r > 0.965 ? SHADES.dim : SHADES.deep;
-    return scale(rgb(chip), sky.ground * (1 - deep * 0.3));
+    return scale(rgb(chip), ground * (1 - deep * 0.3));
   }
   const grit = noise(x / 2.5 + row * 0.9) * 0.5 + noise(x / 11 + 40) * 0.3;
-  const strata = deep * (Math.floor((row + noise(x / 25) * 4) / 10) % 2 ? 0.12 : 0);
-  const base = mix(mix(mix(rgb(SHADES.woodPale), rgb(SHADES.amberDeep), 0.25), rgb(SHADES.woodLight), smoothstep(1, 14, row)), rgb(SHADES.wood), deep * 0.7);
-  return addLight(scale(base, sky.ground * (1 + 0.2 * grit - strata)), rgb(SHADES.amber), sky.warm * (1 - deep));
+  const strata = deep * (Math.floor((under + noise(x / 25) * 4) / 10) % 2 ? 0.12 : 0);
+  const base = mix(mix(mix(rgb(SHADES.woodPale), rgb(SHADES.amberDeep), 0.25), rgb(SHADES.woodLight), smoothstep(1, 14, under)), rgb(SHADES.wood), deep * 0.7);
+  return addLight(scale(base, ground * (1 + 0.2 * grit - strata)), rgb(SHADES.amber), sky.warm * (1 - deep));
 }
 
 /** The near layer: dirt solids, lines and props; transparent elsewhere so the far layer shows. */
@@ -366,7 +370,7 @@ export function paintOutdoorNear(area: AreaDefinition, slot: TimeSlot): (x: numb
     if (exact !== undefined) return exact;
     const s = solids.find((o) => x >= o.x && x < o.x + o.width && y >= o.y && y < o.y + o.height);
     if (!s) return null;
-    const c = dirt(s, x, y, sky, area.outdoor?.ground === 'deep');
+    const c = dirt(s, x, y, sky, area.outdoor?.ground === 'deep', area.outdoor?.groundY);
     if (typeof c === 'number') return c;
     let lit = c;
     for (const l of lights) lit = addLight(lit, l.rgb, l.strength * falloff(x, y, l.x, l.y, l.radius, l.radiusY ?? l.radius));

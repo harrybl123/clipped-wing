@@ -176,6 +176,8 @@ export interface Outdoor {
   backdrop?: 'plain' | 'settlement';
   /** The ground: scrapland dirt (default), or the deep ground's (harder, darker, no junk, cut with straight grooves running away to the horizon). */
   ground?: 'scrap' | 'deep';
+  /** Ground level, when there's earth far below it (the sunk town): dirt is darker and layered by its depth below this, unlit by the sky, with no sunlit crust on floors underground. */
+  groundY?: number;
 }
 
 export interface AreaDefinition {

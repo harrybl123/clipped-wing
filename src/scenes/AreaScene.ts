@@ -1831,7 +1831,9 @@ export class AreaScene extends Phaser.Scene {
         break;
       case 'crumble': {
         const rows = [0, 1, 2].map((r) => Array.from({ length: feature.width }, (_, i) => (r === 0 ? (i % 7 === 3 ? 'd' : 'p') : (i * 5 + r * 3) % 9 === 0 ? '.' : r === 2 ? 'd' : 'w')).join(''));
-        const key = makeSpriteTexture(this, `crumble-${feature.width}`, rows, { p: SHADES.woodPale, w: SHADES.woodLight, d: SHADES.deep });
+        // Out in the borderland it's a cracked slab, not a rotten board.
+        const colours = this.area.outdoor ? { p: SHADES.light, w: SHADES.dim, d: SHADES.deep } : { p: SHADES.woodPale, w: SHADES.woodLight, d: SHADES.deep };
+        const key = makeSpriteTexture(this, `crumble-${this.area.outdoor ? 'slab-' : ''}${feature.width}`, rows, colours);
         const image = this.add.image(feature.x, feature.y, key).setOrigin(0).setDepth(6);
         const zone = this.add.zone(feature.x, feature.y, feature.width, 3).setOrigin(0).setData('oneWay', true);
         this.crumbleGroup.add(zone);

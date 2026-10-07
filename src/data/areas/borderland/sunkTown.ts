@@ -1,38 +1,46 @@
 import { SHADES as S } from '../../../ui/pixelArt';
+import { heartwoodSolids } from '../tunnels';
 import * as P from './sunkTownProps';
-import type { AreaDefinition, Solid } from '../types';
+import type { AreaDefinition, Rect, Solid } from '../types';
 
 // The sunk town (Chapter 2): half-buried ruins of the old society, rich but unstable. On the surface,
-// domes and a tipped tower top poking out of the dirt, a staircase going down into the ground. Through a
-// broken window, a way down into rooms beneath: smooth walls with no joins, rounded windows full of earth,
-// dead screens still glowing faintly. Between the two rooms, a door that still opens by itself when you
-// come near, then stops halfway and judders (the signature). The ceiling of the deeper room comes down as
-// you run through; a shaft of fallen slabs climbs back up to the surface. Nothing is explained.
-// See docs/areas/borderland/sunk-town.md.
+// domes and a tipped tower top poking out of the dirt, and the mouth of a deep stairwell with a
+// scavenger's rope tied off beside it. Below, three levels, darker and stranger the deeper you go:
+// 1. through a broken window, the screen room, then (past the door that still opens by itself, sticks
+//    halfway and judders) the long room, which opens onto the stairwell;
+// 2. the hall of boxes (walls of identical sealed boxes, some prised open, a floor that gives way into
+//    the level below), a room filled with earth with a crawl dug through it, and someone's old camp;
+// 3. a round tunnel with a carriage lying in it, and at its end the bright room, where a glass column
+//    is still full of cyan light.
+// More to find the deeper you go. Nothing is explained. See docs/areas/borderland/sunk-town.md.
 
-const W = 900;
-const H = 420;
-const SURFACE = 170;
-const ROOM_A = { x: 240, y: 250, end: 520, floor: 330 };
-const ROOM_B = { x: 520, y: 290, end: 820, floor: 370 };
-const SHAFT = { x: 300, end: 330 };
-const CLIMB = { x: 780, end: 820 };
+const W = 1080;
+const H = 880;
+const SURFACE = 168;
 
-/** Ledges up the way down (under the broken window) and up the climb at the far end: [x, y, width]. */
-const LEDGES: [number, number, number][] = [
-  [SHAFT.x, 290, 30], [SHAFT.x, 250, 30], [SHAFT.x, 210, 30],
-  [CLIMB.x + 4, 330, 22], [CLIMB.x + 14, 290, 22], [CLIMB.x + 4, 250, 22], [CLIMB.x + 14, 210, 22],
+// Everything carved out of the ground, on an 8 px grid (heartwoodSolids fills the rest with earth).
+const SHAFT = { x: 304, y: 0, width: 32, height: 248 }; // through the broken window
+const WELL = { x: 864, y: 0, width: 72, height: 832 }; // the deep stairwell
+const SCREEN_ROOM = { x: 240, y: 248, width: 280, height: 80 };
+const LONG_ROOM = { x: 520, y: 288, width: WELL.x - 520, height: 80 };
+const HALL = { x: 520, y: 448, width: WELL.x - 520, height: 80 };
+const GAP = { x: 624, y: 528, width: 64, height: 224 }; // where the hall's floor gave way
+const FILLED = { x: 384, y: 512, width: 136, height: 16 }; // the crawl dug through the filled room
+const CAMP = { x: 248, y: 456, width: 136, height: 72 };
+const TUNNEL = { x: 264, y: 752, width: WELL.x - 264, height: 80 };
+const BRIGHT = { x: 88, y: 672, width: 176, height: 160 };
+
+const CARVED: Rect[] = [
+  { x: 0, y: 0, width: W, height: SURFACE },
+  SHAFT, WELL, SCREEN_ROOM, LONG_ROOM, HALL, GAP, FILLED, CAMP, TUNNEL, BRIGHT,
 ];
 
-/** The earth: everything that isn't a room or a way through, as solid blocks. */
-const EARTH: Solid[] = [
-  { x: 0, y: SURFACE, width: ROOM_A.x, height: H - SURFACE },
-  { x: ROOM_A.x, y: SURFACE, width: SHAFT.x - ROOM_A.x, height: ROOM_A.y - SURFACE },
-  { x: SHAFT.end, y: SURFACE, width: ROOM_A.end - SHAFT.end, height: ROOM_A.y - SURFACE },
-  { x: ROOM_A.x, y: ROOM_A.floor, width: ROOM_A.end - ROOM_A.x, height: H - ROOM_A.floor },
-  { x: ROOM_A.end, y: SURFACE, width: CLIMB.x - ROOM_A.end, height: ROOM_B.y - SURFACE },
-  { x: ROOM_B.x, y: ROOM_B.floor, width: ROOM_B.end - ROOM_B.x, height: H - ROOM_B.floor },
-  { x: ROOM_B.end, y: SURFACE, width: W - ROOM_B.end, height: H - SURFACE },
+const floor = (r: Rect) => r.y + r.height;
+
+/** Fallen slabs to climb on: [x, y, width]. Up the broken window's shaft, then both sides of the stairwell, every 40 px down. */
+const LEDGES: [number, number, number][] = [
+  [SHAFT.x, 288, 32], [SHAFT.x, 248, 32], [SHAFT.x, 208, 32],
+  ...Array.from({ length: 16 }, (_, k): [number, number, number] => [k % 2 === 0 ? WELL.x : WELL.x + 40, 208 + k * 40, 32]),
 ];
 
 export const sunkTown: AreaDefinition = {
@@ -41,67 +49,110 @@ export const sunkTown: AreaDefinition = {
   width: W,
   height: H,
   cavity: { x: 0, y: 0, width: W, height: H, radius: 0 },
-  outdoor: { horizon: 150, treeX: 420, treeScale: 0.85 },
+  outdoor: { horizon: 150, treeX: 420, treeScale: 0.85, groundY: SURFACE },
   ambient: 1,
   playerStart: { x: 30, y: SURFACE },
   surface: 'dirt',
   acoustics: 'open',
 
   solids: [
-    ...EARTH,
+    // The earth: everything that isn't carved, painted as dirt.
+    ...heartwoodSolids(CARVED, W, H).map((s): Solid => ({ ...s, invisible: false })),
     { x: -8, y: 0, width: 8, height: H, invisible: true },
     { x: W, y: 0, width: 8, height: H, invisible: true },
     ...LEDGES.map(([x, y, width]): Solid => ({ x, y, width, height: 4, oneWay: true, invisible: true })),
   ],
 
   lights: [
-    { x: 400, y: 320, colour: S.cyan, radius: 60, radiusY: 14, strength: 0.18 }, // the dead screens' glow on the floor
-    { x: 660, y: 360, colour: S.cyan, radius: 60, radiusY: 14, strength: 0.16 },
+    // Glow leaking into the earth round the rooms (props aren't lit, the dirt is).
+    { x: 330, y: 300, colour: S.cyan, radius: 70, radiusY: 30, strength: 0.12 }, // the screens
+    { x: 740, y: 300, colour: S.cyan, radius: 40, radiusY: 16, strength: 0.08 }, // the strip light's one cell
+    { x: 180, y: 760, colour: S.cyan, radius: 150, radiusY: 110, strength: 0.45 }, // the bright room
   ],
 
   lines: [],
 
   props: [
-    // The surface: domes, the tower top, the stairs into the dirt.
+    // The surface: domes, the tower top, the stairs into the dirt, the stairwell's mouth.
     { sprite: P.dome(70, 30, 1), x: 90, y: SURFACE - 30 },
     { sprite: P.TOWER_TOP, x: 200, y: SURFACE - 44 },
-    { sprite: P.brokenFrame(SHAFT.end - SHAFT.x), x: SHAFT.x - 4, y: SURFACE - 4 },
+    { sprite: P.brokenFrame(SHAFT.width), x: SHAFT.x - 4, y: SURFACE - 4 },
     { sprite: P.dome(110, 44, 2), x: 380, y: SURFACE - 44 },
     { sprite: P.STAIRS_DOWN, x: 540, y: SURFACE - 20 },
-    { sprite: P.dome(56, 22, 3), x: 640, y: SURFACE - 22 },
-    { sprite: P.dome(50, 28, 4), x: 836, y: SURFACE - 28 },
-    // Behind the ways down: earth.
-    { sprite: P.earth(SHAFT.end - SHAFT.x, ROOM_A.y - SURFACE), x: SHAFT.x, y: SURFACE },
-    { sprite: P.earth(CLIMB.end - CLIMB.x, ROOM_B.y - SURFACE), x: CLIMB.x, y: SURFACE },
-    // The rooms.
-    { sprite: P.roomWall(ROOM_A.end - ROOM_A.x, ROOM_A.floor - ROOM_A.y, 1), x: ROOM_A.x, y: ROOM_A.y },
-    { sprite: P.roomWall(ROOM_B.end - ROOM_B.x, ROOM_B.floor - ROOM_B.y, 2), x: ROOM_B.x, y: ROOM_B.y },
+    { sprite: P.dome(56, 22, 3), x: 650, y: SURFACE - 22 },
+    { sprite: P.wellMouth(WELL.width), x: WELL.x - 12, y: SURFACE - 12 },
+    { sprite: P.dome(64, 28, 4), x: 980, y: SURFACE - 28 },
+
+    // The ways down.
+    { sprite: P.earth(SHAFT.width, SCREEN_ROOM.y - SURFACE), x: SHAFT.x, y: SURFACE },
+    { sprite: P.stairwell(WELL.width, floor(WELL) - SURFACE, 470), x: WELL.x, y: SURFACE },
+    { sprite: P.earth(GAP.width, GAP.height), x: GAP.x, y: GAP.y },
+
+    // Level 1: the screen room, the long room.
+    { sprite: P.screenRoom(SCREEN_ROOM.width, SCREEN_ROOM.height), x: SCREEN_ROOM.x, y: SCREEN_ROOM.y },
+    { sprite: P.seats(4), x: 408, y: floor(SCREEN_ROOM) - 16 },
+    { sprite: P.HANGING_PANEL, x: 470, y: SCREEN_ROOM.y },
+    { sprite: P.longRoom(LONG_ROOM.width, LONG_ROOM.height), x: LONG_ROOM.x, y: LONG_ROOM.y },
+
+    // Level 2: the hall of boxes, the filled room's crawl, the camp.
+    { sprite: P.boxHall(HALL.width, HALL.height), x: HALL.x, y: HALL.y },
+    { sprite: P.FALLEN_BOX, x: 770, y: floor(HALL) - 10 },
+    { sprite: P.FALLEN_BOX, x: 560, y: floor(HALL) - 10 },
+    { sprite: P.filledRoom(FILLED.width, 64, 48), x: FILLED.x, y: FILLED.y - 48 },
+    { sprite: P.camp(CAMP.width, CAMP.height), x: CAMP.x, y: CAMP.y },
+    { sprite: P.BEDROLL, x: 262, y: floor(CAMP) - 6 },
+    { sprite: P.DEAD_LAMP, x: 300, y: floor(CAMP) - 6 },
+    { sprite: P.SHOVEL, x: 368, y: floor(CAMP) - 20 },
+
+    // Level 3: the tunnel, the bright room.
+    { sprite: P.tunnel(TUNNEL.width, TUNNEL.height), x: TUNNEL.x, y: TUNNEL.y },
+    { sprite: P.rail(TUNNEL.width), x: TUNNEL.x, y: floor(TUNNEL) - 4 },
+    { sprite: P.CARRIAGE, x: 680, y: floor(TUNNEL) - 36 },
+    { sprite: P.brightRoom(BRIGHT.width, BRIGHT.height), x: BRIGHT.x, y: BRIGHT.y },
+
     ...LEDGES.map(([x, y, width]) => ({ sprite: P.slab(width), x, y })),
   ],
 
   features: [
-    { type: 'autodoor', sprite: P.AUTODOOR, x: ROOM_A.end - 5, y: ROOM_B.y, range: 50 },
-    { type: 'rubble', x: 460, top: ROOM_A.y + 2, floorY: ROOM_A.floor, every: 3800, reset: { x: 340, y: ROOM_A.floor } },
-    { type: 'collapse', from: 580, to: 760, y: ROOM_B.floor, top: ROOM_B.y, reset: { x: 540, y: ROOM_B.floor } },
+    { type: 'autodoor', sprite: P.AUTODOOR, x: SCREEN_ROOM.x + SCREEN_ROOM.width - 5, y: LONG_ROOM.y, range: 50 },
+    // The hall's floor over the gap: it holds a moment, then drops you into the tunnel.
+    { type: 'crumble', x: GAP.x, y: GAP.y, width: GAP.width },
+    // The column's light, rising (and humming).
+    { type: 'motes', x: BRIGHT.x + BRIGHT.width / 2, top: BRIGHT.y, bottom: floor(BRIGHT) - 8, halfWidth: 6 },
   ],
   people: [],
 
   interactables: [
+    // The surface.
     { id: 'dome', x: 435, y: SURFACE, reach: 30, label: 'Look', knot: 'sunk_town_dome' },
     { id: 'stairs', x: 560, y: SURFACE, reach: 14, label: 'Look', knot: 'sunk_town_stairs' },
-    { id: 'screen', x: 300, y: ROOM_A.floor, reach: 20, label: 'Look', knot: 'sunk_town_screen' },
-    { id: 'door', x: ROOM_A.end - 10, y: ROOM_A.floor, reach: 10, label: 'Look', knot: 'sunk_town_door' },
-    { id: 'search', x: 700, y: ROOM_B.floor, reach: 20, label: 'Search', knot: 'sunk_town_search' },
+    { id: 'rope', x: WELL.x - 12, y: SURFACE, reach: 12, label: 'Look', knot: 'sunk_town_rope' },
+    // Level 1.
+    { id: 'screen', x: 376, y: floor(SCREEN_ROOM), reach: 20, label: 'Look', knot: 'sunk_town_screen' },
+    { id: 'seats', x: 440, y: floor(SCREEN_ROOM), reach: 16, label: 'Search', knot: 'sunk_town_search_seats' },
+    { id: 'door', x: SCREEN_ROOM.x + SCREEN_ROOM.width - 12, y: floor(SCREEN_ROOM), reach: 10, label: 'Look', knot: 'sunk_town_door' },
+    { id: 'shelves', x: 640, y: floor(LONG_ROOM), reach: 24, label: 'Search', knot: 'sunk_town_search' },
+    { id: 'tallies', x: 820, y: floor(LONG_ROOM), reach: 16, label: 'Look', knot: 'sunk_town_tallies' },
+    // Level 2.
+    { id: 'boxes', x: 800, y: floor(HALL), reach: 24, label: 'Search', knot: 'sunk_town_search_boxes' },
+    { id: 'crawl', x: FILLED.x + FILLED.width + 10, y: floor(HALL), reach: 10, label: 'Look', knot: 'sunk_town_crawl' },
+    { id: 'chalk', x: 340, y: floor(CAMP), reach: 18, label: 'Look', knot: 'sunk_town_chalk' },
+    { id: 'camp', x: 280, y: floor(CAMP), reach: 18, label: 'Search', knot: 'sunk_town_search_camp' },
+    // Level 3.
+    { id: 'carriage', x: 744, y: floor(TUNNEL), reach: 24, label: 'Search', knot: 'sunk_town_search_carriage' },
+    { id: 'column-look', x: BRIGHT.x + BRIGHT.width / 2 + 40, y: floor(BRIGHT), reach: 16, label: 'Look', knot: 'sunk_town_column' },
+    { id: 'column', x: BRIGHT.x + BRIGHT.width / 2, y: floor(BRIGHT), reach: 14, label: 'Search', knot: 'sunk_town_search_column' },
   ],
 
   exits: [
     { id: 'to-picked-fields', x: 16, y: SURFACE, reach: 12, to: 'picked-fields' },
-    { id: 'to-deep-ground', x: 884, y: SURFACE, reach: 12, to: 'deep-ground' },
+    { id: 'to-deep-ground', x: W - 16, y: SURFACE, reach: 12, to: 'deep-ground' },
   ],
 
   ambience: [
     { sound: 'wind', volume: 0.4 },
     { sound: 'hum', volume: 0.08 }, // something, somewhere, still powered
     { sound: 'drips', volume: 0.2 },
+    { sound: 'creaks', volume: 0.25 }, // the ground settling over the rooms
   ],
 };

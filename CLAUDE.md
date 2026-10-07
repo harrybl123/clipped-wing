@@ -83,6 +83,7 @@ The game is pixel art, so darker and lighter **shades** of these colours are all
     - `outdoor.ground: 'deep'`: the deep ground's hard ground and straight grooves.
     - `outdoor.atRoots`: at the tree's edge you can't see the canopy, only the trunk going up (designer).
     - The `autodoor` feature: the sunk town's door that still opens by itself, sticks halfway and judders.
+    - The sunk town goes deeper (designer: more underground, more rooms, more to find, more detail; no falling debris): three levels round a deep stairwell (details in its brief). `outdoor.groundY` makes earth below ground level dark and layered by depth, unlit by the sky, with no sunlit crust on floors underground; the earth is `heartwoodSolids` over the carved rooms, made visible. A `crumble` in an outdoor area is a cracked slab, not a board.
     - The compound's house has a front entrance (designer).
   - **Not yet:** the scavenger as the player sprite (you walk the borderland as the carver for now); the cast; Chapter 2's calendar.
 
