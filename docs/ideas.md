@@ -19,6 +19,58 @@ The current title screen is visual only. When menus are built for real, consider
   - What does New Game lead into: straight into the prologue, or a title card first?
   - One autosave slot, or player-chosen saves?
 
+## World / setting (noted 2026-10-04)
+
+Harry's framing for the wider world:
+
+- **The integrated:** after humans created AI, survival meant integrating with the technology. Those who did are "the integrated".
+- **Biocomputing:** AI chose to run on cell biology because it uses far less energy.
+- **The remnants:** it is impossible to compete with the integrated. The game follows humans who chose not to integrate, the remnants of society living in the shadow of superintelligent beings.
+- **Why the tree gets resources:** what superintelligence lost is the variance and imperfection of natural organisms. That is why the integrated send resources back to societies like the tree: their ornamental, imperfect production has value in the integrated economy.
+
+## Story structure beyond Act 1 (noted 2026-10-04)
+
+Harry is committing to the game: he's enjoying making it and thinks the story is good.
+
+- **Switch characters after chapter 1:** so the mystery of the tree (the world's secret) stays unrevealed.
+- **Shape:** a political and societal RPG following multiple characters who eventually meet. All are unintegrated (or only partly integrated) humans who cannot compete with the integrated.
+- **One revolutionary network (Harry, 2026-10-04):** Grounded is a revolutionary, and his revolution and the plot in the capital are one network. The diplomat and Grounded are part of it, so the tree is a piece of the uprising the prince lives through. This is the link between the leads, and it sets up Grounded as the hitman's target in chapter 5.
+- **The core conflict: useful vs free (Harry, 2026-10-04).** The government: "if we do that, who knows our fate; we must remain useful." The revolution: "we want to decide what we make." Neither side is wrong. The cost of the free demand: it essentially destroys the society that's been built around the integrated.
+
+## The cast: FINAL (2026-10-04)
+
+Harry: "The carver, the scavenger, the hitman, and the prince. I'm happy with that, make that final." Four playable leads.
+
+1. **The carver** (above, the tree's canopy). After Act 1, among the high scavengers who live in the tree's canopy. Grounded was an old master who ascended and now ranks high among them; his people watch the resources going in and out of the tree and take what they need. He spotted the clipped wing in the carver's work and knew that if he could communicate with one person he could make them a tool.
+   - **Conflict:** control the tree's society (tell it what to produce), or reveal the truth without completely destabilising it.
+   - **Play:** message manipulation and tree espionage: plant ideas, sneak back in to see whether they're resonating.
+   - **Act 1 ending matters:** tube ending, your messages land like a deity's; roots ending, your options are more limited.
+   - **Chapter 4, the carver in the canopy (full design):** [chapter-4-design.md](chapter-4-design.md).
+2. **The scavenger** (the ground). A sister scavenging to feed her little brother on the ground, which is dangerous and run like a mafia. She finds a dog in a world where dogs are basically extinct, and it sniffs out finds. Brought into the boss's circle, she's suspected as the rat; the boss is the real rat, using her as a scapegoat.
+   - **Full chapter design (world, locations, cast, conflict, shape, decisions):** [chapter-2-design.md](chapter-2-design.md).
+3. **The hitman** (semi-integrated). Comes in once the player has discovered how the society works. Not ordered by the integrated; a freelancer who is dangerous because he is semi-integrated.
+   - **Chapter 5, the hitman's journey to the tree (full design):** [chapter-5-design.md](chapter-5-design.md).
+4. **The prince** (one of the last standing human civilisations). An heir in high society, with a diplomat (his "hand") at his side, living through a plot to overthrow the ruling party.
+   - **Full chapter design (world, locations, cast, big and medium decisions):** [chapter-3-design.md](chapter-3-design.md).
+   - **When the game returns to the capital (chapter 5, 6 or later):** the ultimate choice is to reject or lead the revolution. This causes a massive split in the story.
+
+**Chapter order (Harry, 2026-10-04):**
+1. The carver: Act 1, inside the tree.
+2. The scavenger: the borderland clans ([chapter-2-design.md](chapter-2-design.md)).
+3. The prince: his introduction.
+4. The carver again: the scavenger clans in the canopy, continuing the chapter 1 story.
+5. The hitman: his journey towards the tree, where it's revealed his target is Grounded.
+6. The scavenger again: the girl and the dog in the forest, in a standoff with the hunter who tracks her ([chapter-6-design.md](chapter-6-design.md)).
+7. The prince again: back in the capital; the end of this chapter is where everything really hits the fan.
+
+**Superseded options** (kept for reference only, in docs/scenarios-beyond-act1.md): the Lone Ranger as chapter 2 lead, the anomaly hunter, the Act 1 tie-in table (rejected by Harry), and the wider brainstorm lists.
+
+**Open questions:**
+- How and where the four leads meet.
+- Names for all four and their companions (Grounded, the dog, the diplomat).
+- Combat (Harry plans to add it; the scavenger's gambler gives a weapon if helped).
+- The carver's, hitman's and prince's worlds, casts and decisions.
+
 ## Map art (parked 2026-09-30)
 
 The current map is a simple cutaway with lit windows. The designer shared a reference of a
