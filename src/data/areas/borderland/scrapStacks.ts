@@ -14,10 +14,10 @@ const W = 640;
 const H = 540;
 const FLOOR = 510;
 
-/** The ledges, bottom to top: [x, y, width]. Each is a short jump from the last. */
+/** The ledges, bottom to top: [x, y, width]. Each is a short jump from the last, and jammed into a tower at one end at least (designer: some floated in the gaps). */
 const LEDGES: [number, number, number][] = [
   [84, 470, 44], [150, 432, 36], [214, 396, 48], [300, 362, 36], [372, 328, 44], [300, 292, 36],
-  [222, 258, 40], [150, 222, 36], [226, 186, 40], [310, 152, 40],
+  [200, 258, 62], [150, 222, 36], [200, 186, 66], [310, 152, 40],
 ];
 /** The cable bridge, from the top of one tower across to the perch's tower. */
 const BRIDGE = { from: 350, to: 430, y: 130 };
@@ -65,8 +65,8 @@ export const scrapStacks: AreaDefinition = {
     { sprite: P.junkTower(80, 390, 4), x: 330, y: FLOOR - 390 },
     { sprite: P.junkTower(120, 400, 5), x: 420, y: FLOOR - 400 },
     { sprite: P.junkTower(80, 260, 6), x: 540, y: FLOOR - 260 },
-    { sprite: P.HANGING_SHEET, x: 236, y: 300 },
-    { sprite: P.HANGING_SHEET, x: 400, y: 220 },
+    { sprite: P.HANGING_SHEET, x: 284, y: 300 }, // hung on the towers' faces
+    { sprite: P.HANGING_SHEET, x: 470, y: 236 },
     // Ledges jammed into the stacks.
     ...LEDGES.map(([x, y, width]) => ({ sprite: P.ledge(width), x, y })),
     // The perch.
