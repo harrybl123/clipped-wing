@@ -42,7 +42,7 @@ export function devChapter2Day(scene: Phaser.Scene, day: number): void {
   if (day >= 3) set({ c2day2: 'done', found_dog: true, dog_owned: true, dog_name: 'Peggy', dog_choice: 'keep' });
   if (day >= 4) set({ c2day3: 'done', owe_double: false, summoned: true });
   if (day >= 5) set({ c2day4: 'done', in_circle: true, brother_choice: 'home', spar_done: true, bar_arrived: true });
-  if (day >= 6) set({ c2day5: 'done', saw_old: true, board_mark: 'far fields' });
+  if (day >= 6) set({ c2day5: 'done', board_mark: 'far fields' });
   const starts: Record<number, AreaSceneData & { vars: Record<string, string | boolean> }> = {
     2: { areaId: 'shack', start: { x: 382, y: 184 }, vars: { c2day2: 'wake', objective: 'Talk to your brother', objective_target: 'shack:brother' } },
     3: { areaId: 'dogs-hollow', start: { x: 60, y: 206 }, script: 'c2day3_start', vars: { c2day3: 'train' } },

@@ -106,6 +106,11 @@ Every face turns your way, and turns away again. Over by the counter, the boss r
 
 === c2day4_bar ===
 { evening_free: -> c2_evening_boss }
+{ board_night5: -> c2day5_bar_arrive }
+{ c2day4 != "bar":
+    "Go home. Get some sleep. Big day tomorrow, every day." #speaker:boss
+    -> END
+}
 "Here she is. My lucky find." #speaker:boss
 "Barkeep. Whatever she wants." #speaker:boss
 "You know my watcher. You've met my enforcer." #speaker:boss
@@ -185,17 +190,77 @@ The whole bar's waiting.
 
 === c2day4_after_spar_end ===
 You take your staff back from the counter. The barkeep's already pouring you another, on the house, whichever way the bets went.
-"Sit with us a while. The night's young." #speaker:boss
-~ evening_free = true
+"Sit with us a while. The night's young. Get to know my people." #speaker:boss
 ~ c2day4 = "evening"
-~ objective = "Sit with one of the circle"
+-> c2_evening_start
+
+// --- Board night: an evening with the circle (designer: talk to each of them), then the board ---
+
+=== c2_evening_start ===
+~ evening_free = true
+~ eve_boss = false
+~ eve_watcher = false
+~ eve_enforcer = false
+~ eve_son = false
+~ eve_count = 0
+~ objective = "Talk to each of the circle (0 of 4)"
 ~ objective_target = "bar:boss-bar,bar:watcher-bar,bar:enforcer-bar,bar:son-bar"
 -> END
 
-// --- The evening: sitting with one of the circle (your first; there'll be others) ---
+=== c2_evening_again ===
+You've had your talk. The others are waiting.
+-> END
+
+// After each talk: the next, or, once you've sat with all four, the board.
+=== c2_evening_end ===
+~ eve_count += 1
+{ eve_count >= 4: -> c2_board }
+~ objective = "Talk to each of the circle (" + eve_count + " of 4)"
+~ temp left = ""
+{ not eve_boss:
+    ~ left = left + "bar:boss-bar,"
+}
+{ not eve_watcher:
+    ~ left = left + "bar:watcher-bar,"
+}
+{ not eve_enforcer:
+    ~ left = left + "bar:enforcer-bar,"
+}
+{ not eve_son:
+    ~ left = left + "bar:son-bar,"
+}
+~ objective_target = left
+-> END
+
+// The board: every night the watcher puts up where each of the circle is digging tomorrow.
+=== c2_board ===
+~ evening_free = false
+The watcher's been waiting. He's got the board's chalk in his hand.
+"Tomorrow?" #speaker:watcher
+{ c2day5 == "evening": -> c2_board_day5 }
++ [The sunk town]
+    ~ board_mark = "sunk town"
+    "The sunk town. Like always." #speaker:scavenger
++ [The picked fields]
+    ~ board_mark = "fields"
+    "The picked fields." #speaker:scavenger
+    He looks at your boots, at the dirt on them that isn't the fields' dirt, and writes it down anyway.
+- He writes it down. It'll be on the board by morning, for anyone in the circle to read.
+-> c2_evening_done
+
+=== c2_board_day5 ===
+"The old man's asked for a second pair of eyes on his patch. The far end of the fields. Somebody's been on it." #speaker:watcher
+"You'll go with him. I've put you down." #speaker:watcher
++ [All right]
+    "All right." #speaker:scavenger
++ [Who decided that?]
+    "Who decided that?" #speaker:scavenger
+    "I did." #speaker:watcher
+- ~ board_mark = "far fields"
+He writes it down. It'll be on the board by morning, for anyone in the circle to read.
+-> c2day5_evening_done
 
 === c2_evening_done ===
-~ evening_free = false
 ~ circle_night = false
 ~ c2day4 = "home"
 ~ objective = "Go home"
@@ -204,6 +269,8 @@ The night wears on. When you get up to go, the watcher's eyes follow you to the 
 -> END
 
 === c2_evening_boss ===
+{ eve_boss: -> c2_evening_again }
+~ eve_boss = true
 ~ boss_trust += 1
 ~ boss_evenings += 1
 { boss_evenings == 1: -> c2_evening_boss_first }
@@ -229,6 +296,8 @@ He pulls out the chair beside him, and pours for you himself.
 - -> c2_evening_end
 
 === c2_evening_watcher ===
+{ eve_watcher: -> c2_evening_again }
+~ eve_watcher = true
 ~ watcher_evenings += 1
 { watcher_evenings == 1: -> c2_evening_watcher_first }
 "You came back." #speaker:watcher
@@ -251,6 +320,8 @@ You sit down across from the watcher. He doesn't look up for a long time.
 -> c2_evening_end
 
 === c2_evening_enforcer ===
+{ eve_enforcer: -> c2_evening_again }
+~ eve_enforcer = true
 ~ enforcer_evenings += 1
 { enforcer_evenings == 1: -> c2_evening_enforcer_first }
 "Still lucky?" #speaker:enforcer
@@ -272,6 +343,8 @@ The enforcer doesn't move to make room, so you sit on the end of the bench.
 - -> c2_evening_end
 
 === c2_evening_son ===
+{ eve_son: -> c2_evening_again }
+~ eve_son = true
 ~ son_evenings += 1
 { spar_won: -> c2_evening_son_won }
 "Sunk town, she says." #speaker:boss_son
@@ -291,10 +364,6 @@ He's nursing a cup and a swollen eye. He doesn't look at you.
     ~ son_rivalry += 1
 - -> c2_evening_end
 
-=== c2_evening_end ===
-{ c2day4 == "evening": -> c2_evening_done }
-{ c2day5 == "evening": -> c2day5_evening_done }
--> END
 
 // --- Night, the shack ---
 

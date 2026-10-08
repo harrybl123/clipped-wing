@@ -107,15 +107,36 @@ You sit on the stairs to the deep for the rest of the day, with your satchel bet
 ~ first_light = false
 // The tally house fills up for tribute night (there when you arrive, not when you reach the counter).
 ~ tribute_night = true
+// On the way, through the yard: the fence.
+~ day3_yard = true
+-> END
+
+// Through the swap yard on the way to the tally: the fence has noticed too.
+=== c2day3_fence ===
+~ fence_met = true
+"A moment. Just a moment." #speaker:fence
+The fence has come out of the alcove, which you've never seen the fence do.
+"Three big hauls in three weeks. Everyone in the yard's talking." #speaker:fence
+"I don't ask where. Nobody asks where. But I'd pay a great deal to know where." #speaker:fence
++ [It's not for sale]
+    "It's not for sale." #speaker:scavenger
+    "Everything's for sale. Some things just haven't heard the price." #speaker:fence
++ [What would you pay?]
+    "What would you pay?" #speaker:scavenger
+    "More than the boss pays you. Think about it." #speaker:fence
+- The fence goes back into the alcove, and the lamp goes down again.
 -> END
 
 // --- Evening, the tally house ---
 
 === c2day3_tribute ===
-The queue along the rail. Everyone looking at what everyone else brought.
+The queue along the rail. Everyone looking at what everyone else brought, and tonight, everyone looking at you.
+Down the rail, people mutter as you pass. #bark:tribute-2:Third week running #bark:tribute-4:Where's she getting it?
+The first week, they called it luck. The second, the tallyman looked twice. This is the third.
 When it's your turn, you put it all on the scale. The lens. The box. The cable.
 The dish goes down, and stays down.
 The tallyman stops writing.
+"Third week running." #speaker:tallyman
 "Where?" #speaker:tallyman
 + [The sunk town]
     "The sunk town." #speaker:scavenger
@@ -128,13 +149,13 @@ The tallyman stops writing.
 "I see you go. Never with anybody. Where to, every morning?" #speaker:enforcer
 "Nowhere." #speaker:scavenger
 "Nowhere's done well by you." #speaker:enforcer
-"Double, I said." #speaker:boss
+"Once is luck." #speaker:boss
 He's come away from the grille. He picks up the box, and weighs it in one hand, and smiles.
-"And she brings me four times." #speaker:boss
+"Twice, I noticed. Three times..." #speaker:boss
 "Well. Look who's found her feet." #speaker:boss
 + [I had a good day]
     "I had a good day." #speaker:scavenger
-    "Nobody has a day that good." #speaker:boss
+    "Nobody has three weeks that good." #speaker:boss
 + [Say nothing]
     You say nothing. It seems the safest thing.
 - "Come up to the house tomorrow. We should talk, you and I." #speaker:boss
@@ -155,7 +176,7 @@ The watcher stays a moment longer, looking at you, and then follows him.
 {dog_name}'s under the floor already, the way you taught it. You can hear it breathing.
 "Is it true?" #speaker:brother
 He's awake in his bed, whispering.
-"The kid says you put four times on the scale. The kid says the boss talked to you." #speaker:brother
+"The kid says you've had the biggest haul three weeks running. The kid says the boss talked to you." #speaker:brother
 "The kid says a lot." #speaker:scavenger
 "I didn't tell him. About. You know." #speaker:brother
 "I said it was rats, under the floor. Is a dog like a rat?" #speaker:brother

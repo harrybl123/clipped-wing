@@ -95,6 +95,8 @@ export const bar: AreaDefinition = {
   features: [
     // Chapter 2, Day 4: walking in on the circle's night.
     { type: 'trigger', x: 60, y: FLOOR, reach: 40, knot: 'c2day4_bar_arrive', showIf: 'circle_night', hideIf: 'bar_arrived' },
+    // Day 5: board night.
+    { type: 'trigger', x: 60, y: FLOOR, reach: 40, knot: 'c2day5_bar_arrive', showIf: 'board_night5' },
     { type: 'motes', x: 230, top: 60, bottom: 220, halfWidth: 180 }, // smoke drifting up
   ],
   people: [

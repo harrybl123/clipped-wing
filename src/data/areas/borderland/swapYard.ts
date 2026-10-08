@@ -82,7 +82,9 @@ export const swapYard: AreaDefinition = {
     { sprite: P.wall(32, 60), x: 1088, y: FLOOR - 60 },
   ],
 
-  features: [{ type: 'fire', x: 355, y: FLOOR - 1 }],
+  features: [
+    // Chapter 2, Day 3: the fence comes out to meet you on your way to the tally house.
+    { type: 'trigger', x: 1000, y: FLOOR, reach: 40, knot: 'c2day3_fence', showIf: 'day3_yard', hideIf: 'fence_met' },{ type: 'fire', x: 355, y: FLOOR - 1 }],
   people: [
     dogFollowing(1040, FLOOR),
     // Behind the stalls.

@@ -1,58 +1,63 @@
 // ============================================================================
 // Chapter 2, Day 5: life in the circle. Draft text from docs/sequences/chapter-2/part-2.md, for the
 // designer to rewrite. (Designer: get to know the crew more, gambling with them, the brothel; the chapter
-// felt rushed; but don't drag it out.) A short day in town: the old scavenger asks you out to his patch
-// tomorrow, and you go to one or both of the den (bones with the gambler and the enforcer) and the
-// brothel (the madam; a hostess); your brother if you like. Then an evening with the circle, and your
-// ground goes up on the board. Starts in the swap yard (designer: no need to start at home).
+// felt rushed; but don't drag it out.) A short day in town: two of three (designer): the den (bones with
+// the gambler and the enforcer), the brothel (the madam; a hostess), your brother. Then board night at
+// the bar: a talk with each of the circle, and the watcher puts you down for tomorrow (the old man's
+// patch). Starts in the swap yard (designer: no need to start at home).
 // ============================================================================
 
 === c2day5_start ===
 ~ town_day = true
-~ objective = "Spend the day in town"
-~ objective_target = "scrap-stacks:old_scav,gambling-den:gambler,brothel:madam"
-The swap yard, first thing. It's different today.
-People step out of your way. The food trader nods to you, and you've never seen her nod to anyone.
-You're one of the circle. Everybody knows. You've got a day, and nothing you have to do with it.
+~ objective = "Spend the day in town (2 things)"
+-> c2day5_targets
+
+=== c2day5_targets ===
+~ temp left = ""
+{ not saw_den:
+    ~ left = left + "gambling-den:gambler,"
+}
+{ not saw_brothel:
+    ~ left = left + "brothel:madam,"
+}
+{ not saw_brother && brother_moved:
+    ~ left = left + "compound-house:brother-here,"
+}
+{ not saw_brother && not brother_moved:
+    ~ left = left + "shack:brother,"
+}
+~ objective_target = left
+{ town_visits == 0:
+    The swap yard, first thing. It's different today.
+    People step out of your way. The food trader nods to you, and you've never seen her nod to anyone.
+    You're one of the circle. Everybody knows. You've got a day, and nothing you have to do with it, until board night.
+}
 -> END
 
+// After each visit: the next, or, after two (designer: two of three), the evening.
 === c2day5_check ===
-~ objective_target = ""
-{ not saw_old:
-    ~ objective_target = "scrap-stacks:old_scav"
-}
-{ saw_old && not (saw_den || saw_brothel):
-    ~ objective_target = "gambling-den:gambler,brothel:madam"
-}
-{ saw_old && (saw_den || saw_brothel):
-    -> c2day5_to_evening
-}
--> END
+~ town_visits += 1
+{ town_visits >= 2: -> c2day5_to_evening }
+~ objective = "Spend the day in town (1 more)"
+-> c2day5_targets
 
 === c2day5_to_evening ===
 ~ town_day = false
 ~ c2day5 = "evening"
 ~ circle_night = true
-~ evening_free = true
-~ objective = "Sit with one of the circle at the bar"
-~ objective_target = "bar:boss-bar,bar:watcher-bar,bar:enforcer-bar,bar:son-bar"
-The day's gone, somehow. The circle will be at the bar. #time:evening
+~ board_night5 = true
+~ objective = "Board night at the bar"
+~ objective_target = "bar:boss-bar"
+The day's gone, somehow. It's board night: the circle will be at the bar, and the watcher will want to know where you're digging tomorrow. #time:evening
 -> END
 
-// --- The old scavenger, at the stacks ---
-
-=== c2day5_old ===
-~ saw_old = true
-"Hmph. The boss's new favourite, slumming it." #speaker:old_scav
-"Somebody's been on my patch. The far end of the fields. Footprints, mornings. A thread of something pale caught on the wire." #speaker:old_scav
-"Come out with me tomorrow. Another pair of eyes." #speaker:old_scav
-+ [Why me?]
-    "Why me?" #speaker:scavenger
-    "Because you've got luck, and I've got none, and I'm too old to be proud about it." #speaker:old_scav
-+ [All right]
-    "All right." #speaker:scavenger
-- "First light. Tell the watcher, so it's on the board. I'll not have the boss's favourite go missing on my patch." #speaker:old_scav
--> c2day5_check
+// Walking into the bar on board night.
+=== c2day5_bar_arrive ===
+~ bar5_arrived = true
+~ board_night5 = false
+The circle's at their table by the counter, and the bar leaves a little space round it, the way it does.
+"Here she is. Sit, sit." #speaker:boss
+-> c2_evening_start
 
 // --- The den: bones with the gambler and the enforcer ---
 
@@ -177,14 +182,8 @@ The enforcer gets up and goes. The gambler leans in close, the moment he's gone.
 // --- The evening ---
 
 === c2day5_evening_done ===
-~ evening_free = false
 ~ circle_night = false
 ~ c2day5 = "home"
-~ board_mark = "far fields"
-Before you go, the watcher catches your eye across the room.
-"Tomorrow?" #speaker:watcher
-"The far end of the fields. The old man's patch." #speaker:scavenger
-He nods, and writes it down, and that's that. It'll be on the board by morning, for anyone in the circle to read.
 ~ objective = "Go home"
 ~ objective_target = "shack:bed"
 The night's wearing on. #time:night

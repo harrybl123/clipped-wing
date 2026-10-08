@@ -1,7 +1,7 @@
 // ============================================================================
 // Chapter 2, Day 6: the first raid. Draft text from docs/sequences/chapter-2/part-2.md, for the designer
-// to rewrite. You start at the far end of the picked fields, the old scavenger's patch, where he asked
-// you to come (Day 5), and where the board says you'll be. (Designer: it was too obvious the boss was
+// to rewrite. You start at the far end of the picked fields, the old scavenger's patch, where the watcher
+// put you down for (Day 5's board night), and where the board says you'll be. (Designer: it was too obvious the boss was
 // setting you up; nothing here points at him.) The other clan comes over the rise: the first raid on your turf (design
 // doc: a story beat, not a choice), and the first fight beside him. It ends Part 2: "A month on".
 // ============================================================================
@@ -18,7 +18,7 @@ The old scavenger's here already, scraping at nothing.
 
 === c2day6_old ===
 "Hmph. You came." #speaker:old_scav
-"You said somebody's been on your patch." #speaker:scavenger
+"The watcher put me down. He says somebody's been on your patch." #speaker:scavenger
 "Somebody has. Footprints, last few mornings. Pale threads caught on the wire." #speaker:old_scav
 He nods out over the rise.
 "Them. The other clan. Pale wraps, long staves. Their ground starts at the line." #speaker:old_scav

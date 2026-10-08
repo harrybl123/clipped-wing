@@ -264,6 +264,9 @@ VAR seek_arrived = false
 VAR first_light = false
 // The haul's done; the dog's seen you back up to the surface, and been sent home.
 VAR haul_done = false
+// Day 3, on the way to the tally through the yard: the fence wants to know where.
+VAR day3_yard = false
+VAR fence_met = false
 VAR sent_home = false
 // The boss has asked you up to the house.
 VAR summoned = false
@@ -283,6 +286,15 @@ VAR spar_done = false
 VAR told_where = ""
 // An evening to spend with one of the circle (or a friend): their knots offer it while this is true.
 VAR evening_free = false
+// This evening's talks: who you've sat with so far.
+VAR eve_boss = false
+VAR eve_watcher = false
+VAR eve_enforcer = false
+VAR eve_son = false
+VAR eve_count = 0
+// Board night on Day 5: walking into the bar.
+VAR bar5_arrived = false
+VAR board_night5 = false
 // Who you've got to know, and how it's going (Part 2 on; the endings will read these). Evenings with each, counted.
 VAR boss_trust = 0
 VAR watcher_respect = 0
@@ -304,6 +316,7 @@ VAR saw_brother = false
 VAR saw_old = false
 VAR played_bones = false
 VAR town_day = false
+VAR town_visits = 0
 // Your ground for tomorrow, as given to the watcher for the board.
 VAR board_mark = ""
 // Chapter 2, Day 6 (story/borderland/chapter2-day6.ink): the first raid. Stages: fields, raid, after, done.
