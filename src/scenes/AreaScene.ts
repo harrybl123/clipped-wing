@@ -506,8 +506,9 @@ export class AreaScene extends Phaser.Scene {
     const canStand = (r: Phaser.Geom.Rectangle) => !area.solids.some((s) => !s.oneWay && r.right > s.x && r.left < s.x + s.width && r.bottom > s.y && r.top < s.y + s.height);
     this.player = new Player(this, arrival.x, arrival.y, canStand);
     if (worldOf(placeOf(area.id)).id === 'borderland') this.player.look = 'scavenger';
-    // Anyone following you comes in with you.
-    for (const entry of this.people.values()) if (entry.person.follow && entry.image.visible) entry.image.setPosition(Math.max(this.area.cavity.x + 8, arrival.x - 16), arrival.y);
+    // Anyone following you comes in with you (whether or not they're showing yet: after a fight, the
+    // dog comes back beside you, not where it stands when you first come into the area).
+    for (const entry of this.people.values()) if (entry.person.follow) entry.image.setPosition(Math.max(this.area.cavity.x + 8, arrival.x - 16), arrival.y);
     // Pressing down drops through one-way platforms (walkways, bridges, roofs, stairs).
     const notDroppingThrough = (_p: unknown, other: unknown) => !(this.player.dropping && (other as Phaser.GameObjects.GameObject).getData('oneWay'));
     this.physics.add.collider(this.player.sprite, solids, undefined, notDroppingThrough);

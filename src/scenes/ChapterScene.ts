@@ -60,10 +60,29 @@ export function devChapter2Day(scene: Phaser.Scene, day: number): void {
     6: { areaId: 'picked-fields', start: { x: 860, y: 232 }, script: 'c2day6_start', vars: { c2day6: 'fields' } },
     7: { areaId: 'dogs-hollow', start: { x: 60, y: 206 }, script: 'c2day7_start', vars: {} },
   };
+  // Day 7, part way in (dev): &at=den (down the den's steps, the gambler at the wall), &at=tribute (at the
+  // tally house, your share to pay), &at=home (out of the tally, on foot home through the yard at night).
+  const at = params.get('at');
+  const day7: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | boolean> }> = {
+    den: {
+      area: { areaId: 'gambling-den', start: { x: 40, y: 172 } }, slots: 1,
+      vars: { c2day7: 'den', door_marked: true, door_seen: true, mark_scrubbed: true, yard7_done: true, den7: true, gambler_at_wall: true, collectors_here: true, objective: 'See what the gambler wants', objective_target: 'gambling-den:gambler-wall' },
+    },
+    tribute: {
+      area: { areaId: 'tally-house', start: { x: 60, y: 236 } }, slots: 2,
+      vars: { c2day7: 'tribute', door_marked: true, door_seen: true, mark_scrubbed: true, yard7_done: true, den7_seen: true, gambler_choice: 'fought', collectors_won: true, has_chain: true, tribute_night: true, objective: 'Pay your tribute', objective_target: 'tally-house:tallyman' },
+    },
+    home: {
+      area: { areaId: 'swap-yard', start: { x: 552, y: 232 } }, slots: 2,
+      vars: { c2day7: 'home', door_marked: true, door_seen: true, mark_scrubbed: true, yard7_done: true, den7_seen: true, gambler_choice: 'fought', collectors_won: true, has_chain: true, tribute7_done: true, board_mark: 'sunk town', ambush_night: true, ambush_set: true, objective: 'Go home', objective_target: 'shack:bed' },
+    },
+  };
+  const mid = day === 7 && at ? day7[at] : undefined;
   const { vars, ...next } = starts[day] ?? starts[2]!;
-  set(vars);
+  set(mid?.vars ?? vars);
   session.calendar.jumpTo(day as 2 | 3 | 4 | 5 | 6 | 7);
-  scene.scene.start('Area', { ...next, card: day === 3 ? 'Weeks later' : day === 7 ? 'A month on' : `Day ${day}` } satisfies AreaSceneData);
+  for (let i = 0; i < (mid?.slots ?? 0); i++) session.calendar.advance();
+  scene.scene.start('Area', { ...(mid?.area ?? next), card: day === 3 ? 'Weeks later' : day === 7 ? 'A month on' : `Day ${day}` } satisfies AreaSceneData);
 }
 
 /** How long the card holds before fading out (ms). */

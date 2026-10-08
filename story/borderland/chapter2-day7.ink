@@ -408,6 +408,20 @@ You're going somewhere new tomorrow. Wherever the raiders are coming in from. Bu
 The yard's packing up as you come through. The traders cover their stalls and go, quick, not looking at you. #time:night
 When they've gone, there are still people standing between the stalls. Pickers. You know some of their faces.
 They come out into the open, slowly, and stand between you and your door. #beside:mob-1:-34:walk #beside:mob-2:40:walk #beside:mob-3:60:walk
+-> c2day7_ambush_face
+
+// Home another way (round the back, through the stacks): they're waiting outside your door instead.
+=== c2day7_ambush_door ===
+~ ambush_done = true
+Before you can get the door shut, there are voices outside it. Your name. Then "rat".
+You go back out. #goto:swap-yard:70:232:c2day7_ambush_outside
+-> END
+
+=== c2day7_ambush_outside ===
+Pickers, in the dark outside your door. You know some of their faces. They've been waiting. #time:night #beside:mob-1:-30:walk #beside:mob-2:34:walk #beside:mob-3:54:walk
+-> c2day7_ambush_face
+
+=== c2day7_ambush_face ===
 { told_where == "sunk" && not sister_calmed:
     His sister's at the front.
     "Ten days he was down there." #speaker:picker_sister
@@ -430,7 +444,7 @@ They come out into the open, slowly, and stand between you and your door. #besid
     You didn't want to hit them. You hit them anyway. They're your people. #leave:mob-1:420:80 #leave:mob-2:440:70 #leave:mob-3:460:60
     "Rat." #speaker:picker
 - else:
-    You're on the ground in the dirt, in the middle of the yard, and they're standing over you.
+    You're on the ground in the yard's dirt, and they're standing over you.
     Somebody gets a knife under the strap with the circle's mark on it, and cuts it, and throws it in the dirt beside you.
     ~ strap_cut = true
     "Tell him that. Your boss." #speaker:picker

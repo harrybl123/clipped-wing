@@ -470,7 +470,7 @@ export const BEETLE_BATTLE: Record<string, RowSprite> = {
  * beetles glow green. (Placeholder: the beetle's shape, recoloured, until the art pass.)
  */
 export const TICKER_BATTLE: Record<string, RowSprite> = Object.fromEntries(
-  Object.entries(BEETLE_BATTLE).map(([pose, s]) => [pose, recolour(s, { G: SHADES.cyan, l: SHADES.woodPale, o: SHADES.dim, m: SHADES.light, e: SHADES.light, '#': SHADES.white })]),
+  Object.entries(BEETLE_BATTLE).map(([pose, s]) => [pose, recolour(s, { G: SHADES.cyan, l: SHADES.woodLight, o: SHADES.light, m: SHADES.dim, e: SHADES.woodPale, '#': SHADES.white, A: SHADES.white })]),
 );
 
 // --- Chapter 2: the borderland, in daylight ---
