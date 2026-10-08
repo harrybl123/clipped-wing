@@ -53,16 +53,7 @@ export const dogsHollow: AreaDefinition = {
     { sprite: P.scrub(24, 3), x: 156, y: FLOOR - 8 },
   ],
 
-  features: [
-    // Chapter 2, Day 3 (weeks later): training. Things you buried; it finds them (the marker shows where it's digging: designer).
-    {
-      type: 'seek', dog: 'dog-follow', range: 140, showIf: 'training',
-      finds: [
-        { x: 236, y: FLOOR, knot: 'c2day3_train_1', done: 'trained_1', item: 'wire' },
-        { x: 352, y: FLOOR, knot: 'c2day3_train_2', done: 'trained_2', item: 'disc' },
-      ],
-    },
-  ],
+  features: [],
   people: [
     // The dog, nosing about its hollow (once you've found it), unless it's with you.
     dog(262, FLOOR, { knot: 'dogs_hollow_dog', label: 'Pet', flipX: true, showIf: 'found_dog', hideIf: 'dog_with_you', wander: { from: 200, to: 340 } }),

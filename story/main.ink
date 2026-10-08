@@ -248,12 +248,9 @@ VAR dog_on_wire = false
 VAR going_home = false
 // Night 2: out looking for the dog, before you hear it bark on the fields.
 VAR searching = false
-// Chapter 2, Day 3, weeks later (story/borderland/chapter2-day3.ink). Stages: train, sunk, tribute, home, done.
+// Chapter 2, Day 3, weeks later (story/borderland/chapter2-day3.ink). Stages: sunk, tribute, home, done.
 VAR c2day3 = ""
-// Training at the hollow (the things you buried, found), then working the sunk town with the dog.
-VAR training = false
-VAR trained_1 = false
-VAR trained_2 = false
+// Working the sunk town with the dog.
 VAR seeking = false
 VAR sought_1 = false
 VAR sought_2 = false

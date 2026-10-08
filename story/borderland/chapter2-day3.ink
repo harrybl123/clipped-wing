@@ -1,8 +1,9 @@
 // ============================================================================
 // Chapter 2, Day 3: weeks later. Draft text from docs/sequences/chapter-2/part-2.md, for the designer to
-// rewrite. Dawn at the hollow (designer: no need to start at home): training, the dog finding what you
-// buried; then the sunk town, where nobody can see it, following it to finds (designer liked: the dog as a
-// way of playing); then tribute night, where you pay double and more, and the boss sends for you.
+// rewrite. Dawn at the hollow (designer: no need to start at home), three weeks in (designer: no training
+// scene; it didn't fit "three weeks running"); then the sunk town, where nobody can see it, following it to
+// finds (designer liked: the dog as a way of playing), a bite of food for each (designer); then tribute
+// night, the third big haul running, and the boss sends for you.
 // The stages are in `c2day3` (main.ink).
 // ============================================================================
 
@@ -10,44 +11,20 @@
 
 === c2day3_start ===
 ~ dog_with_you = true
-~ training = true
 ~ first_light = true
-~ objective = "Follow " + dog_name + " down into the hollow"
-~ objective_target = "dogs-hollow:dig-spot"
-You've been coming out here for weeks now, every morning before it's light, while the settlement sleeps.
-You bury something. You walk {dog_name} round the rim and back. You let it go.
-"Woof!" #speaker:dog
-At first it found nothing but bones. Now it finds everything. This morning you buried two things, deep, down in the bottom of the hollow.
-Go down with it. When it starts to dig, dig beside it.
--> END
-
-=== c2day3_train_1 ===
-~ trained_1 = true
-The wire you dug up on the fields, a lifetime ago. {dog_name} had it in a breath.
+~ seeking = true
+~ c2day3 = "sunk"
+~ objective = "Work the sunk town with " + dog_name
+~ objective_target = "picked-fields:to-sunk-town"
+Three weeks now. Every morning, out here before it's light, while the settlement sleeps.
+{dog_name} hears you coming before you're over the rim, and comes up out of the hollow at a run.
+"Yip! Yip!" #speaker:dog
+"Morning, you." #speaker:scavenger
+It goes round and round your legs, and noses your satchel for the dried root it knows is in there.
+"Not yet. You know the rule. Find something first." #speaker:scavenger
 "Huff." #speaker:dog
--> c2day3_trained
-
-=== c2day3_train_2 ===
-~ trained_2 = true
-The disc, the first thing it ever found for you, buried an arm's length down. It dug straight to it.
-"Woof!" #speaker:dog
--> c2day3_trained
-
-=== c2day3_trained ===
-{ not (trained_1 && trained_2):
-    ~ objective = "Follow " + dog_name + " to the other one"
-}
-{ trained_1 && trained_2:
-    ~ training = false
-    ~ seeking = true
-    ~ c2day3 = "sunk"
-    ~ objective = "Work the sunk town with " + dog_name
-    ~ objective_target = "picked-fields:to-sunk-town"
-    It sits, and looks at you, and waits.
-    "Woof." #speaker:dog
-    It's ready. You've known that for a week. You just haven't wanted to find out what happens next.
-    The sky's going grey. Soon the fields will be full of pickers. If you're going, it's now, while there's nobody out there to see a dog.
-}
+Three weeks, and the sunk town's given you more than the picked fields gave you in a year. Three tribute nights, three big hauls. People are starting to talk.
+The sky's going grey. Soon the fields will be full of pickers. If you're going, it's now, while there's nobody out there to see a dog.
 -> END
 
 // --- The sunk town ---
@@ -77,7 +54,8 @@ In the tunnel, under the carriage, a coil of cable as thick as your arm, its she
 
 === c2day3_found ===
 ~ sought += 1
-"Woof!" #speaker:dog
+You give {dog_name} a bit of dried root from your satchel, the way you always do. It's gone before it touches the ground.
+"Yip!" #speaker:dog
 { sought >= 3:
     ~ seeking = false
     ~ haul_done = true
@@ -166,13 +144,14 @@ The watcher stays a moment longer, looking at you, and then follows him.
 ~ c2day3 = "home"
 ~ objective = "Go home"
 ~ objective_target = "shack:bed"
-"Next." #speaker:tallyman #time:night
-~ tribute_night = false
+"Next." #speaker:tallyman
 -> END
 
 // --- Night, the shack ---
 
 === c2day3_bed ===
+~ tribute_night = false
+It's dark by the time you're home. #time:night
 {dog_name}'s under the floor already, the way you taught it. You can hear it breathing.
 "Is it true?" #speaker:brother
 He's awake in his bed, whispering.

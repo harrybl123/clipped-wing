@@ -187,13 +187,14 @@ He puts a hand on your shoulder. It's warm, and heavy.
 ~ c2day1 = "home"
 ~ objective = "Go home"
 ~ objective_target = "shack:bed"
-The watcher hasn't taken his eyes off you once. #time:night
-~ tribute_night = false
+The watcher hasn't taken his eyes off you once.
 -> END
 
 // --- Night, the shack ---
 
 === c2day1_bed ===
+~ tribute_night = false
+It's dark by the time you're home. #time:night
 Your brother's asleep in the loft, his hand open on the blanket where the light used to be.
 You put one bowl by his pillow. You eat half the other, and put the rest by his.
 Double, next week. Off the picked fields, where there's nothing left but bolts and dirt. Nobody brings double off the picked fields.
