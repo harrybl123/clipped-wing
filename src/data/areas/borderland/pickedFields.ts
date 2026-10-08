@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './scrapProps';
 import type { AreaDefinition, Solid } from '../types';
-import { DAY, cast, local, straggler, stroller } from './people';
+import { DAY, cast, dogFollowing, local, straggler, stroller } from './people';
 
 // The picked fields (Chapter 2): scavenged clean, where everyone works. The first open sky in the game:
 // a wide waste of dug-over dirt under a pale haze, the tree vast on the horizon with its top lost in
@@ -93,6 +93,8 @@ export const pickedFields: AreaDefinition = {
   ],
 
   features: [
+    // Chapter 2, Day 2: taking the dog to sell, it slips the wire halfway across.
+    { type: 'trigger', x: 740, y: FLOOR, reach: 40, knot: 'c2day2_slips', showIf: 'dog_on_wire' },
     // Chapter 2, Day 1: dig anywhere (designer: search it yourself, nothing signposted). Three finds, unmarked
     // but for a glint in the dirt now and then: by a spoil heap, under the bent mast, out past the hull.
     {
@@ -121,6 +123,7 @@ export const pickedFields: AreaDefinition = {
     stroller('picker-1', 1, 720, 800, FLOOR, DAY),
     stroller('picker-2', 10, 90, 180, FLOOR, ['morning']),
     cast('scav_friend', 152, FLOOR, { knot: 'picked_fields_friend', when: ['afternoon'] }),
+    dogFollowing(60, FLOOR),
     // Chapter 2, Day 1: stragglers in off the plain, standing over you at the third spot.
     straggler('straggler-1', 0, 796, FLOOR, 'stragglers_here', { flipX: true }),
     straggler('straggler-2', 1, 814, FLOOR, 'stragglers_here', { flipX: true }),

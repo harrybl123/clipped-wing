@@ -78,14 +78,18 @@ export const shack: AreaDefinition = {
     { sprite: P.roofHole(22), x: 352, y: TOP - 2 },
   ],
 
-  features: [{ type: 'fire', x: 124, y: FLOOR - 9 }],
+  features: [
+    { type: 'fire', x: 124, y: FLOOR - 9 },
+    // Chapter 2, Day 2: coming home with the dog.
+    { type: 'trigger', x: 96, y: FLOOR, reach: 30, knot: 'c2day2_home', showIf: 'going_home' },
+  ],
   people: [
     // Your brother: up and about by day, asleep in the loft at night.
     cast('brother', 214, FLOOR, { knot: 'shack_brother', when: ['morning', 'evening'], flipX: true }),
     // Asleep in his bed at night, under the blanket, one arm hanging off the edge (designer: he floated
     // beside it). Laid over the bed: its left edge on the bed's (x is the middle, the bottom its bottom).
-    // Chapter 2, Day 2: the dog, home, before it goes under the floor.
-    dog(186, FLOOR, { id: 'dog-home', showIf: 'dog_home' }),
+    // Chapter 2, Day 2: the dog, home, nosing about the place before it goes under the floor.
+    dog(186, FLOOR, { id: 'dog-home', showIf: 'dog_home', wander: { from: 130, to: 300 } }),
     { id: 'brother-asleep', sprite: BROTHER_ASLEEP[0]!, idleFrames: BROTHER_ASLEEP, x: 238 + 15, y: LOFT, knot: 'shack_brother_asleep', label: 'Look', when: ['night'] },
   ],
 

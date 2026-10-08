@@ -2,7 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './swapYardProps';
 import { casingPod, wireBundle } from './scrapProps';
 import type { AreaDefinition } from '../types';
-import { AWAKE, DAY, cast, local, stroller } from './people';
+import { AWAKE, DAY, cast, dogFollowing, local, stroller } from './people';
 
 // The swap yard (Chapter 2): the market, finds for food. Out in the open inside the settlement's walls,
 // the rooftops crowding the horizon and the tree rising behind them. A row of stalls (upturned casings
@@ -84,6 +84,7 @@ export const swapYard: AreaDefinition = {
 
   features: [{ type: 'fire', x: 355, y: FLOOR - 1 }],
   people: [
+    dogFollowing(1040, FLOOR),
     // Behind the stalls.
     local('scrap-trader', 7, 112, FLOOR, AWAKE, { flipX: true }),
     local('food-trader', 5, 244, FLOOR, AWAKE),

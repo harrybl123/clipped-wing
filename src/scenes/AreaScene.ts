@@ -24,7 +24,7 @@ import { setMuted } from '../ui/soundSetting';
 import { makePaintedTexture, makeSpriteTexture, PIXEL } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
 import { ObjectiveMarker } from '../ui/ObjectiveMarker';
-import { type SoundId, Soundscape } from '../ui/soundscape';
+import { type SoundId, SOUND_IDS, Soundscape } from '../ui/soundscape';
 import { FIND_SPRITES, FIRE_FRAMES, type RowSprite } from '../ui/sprites';
 
 export interface AreaSceneData {
@@ -52,6 +52,13 @@ interface PersonEntry {
   along?: number;
   /** Jumping along a route set by `#hop:` (shown until they land, whatever the story says). */
   racing?: boolean;
+  /** Their idle and walking textures (walking ones only if they have `walkFrames`). */
+  idleKeys: string[];
+  walkKeys: string[];
+  /** Walking: the walk frames are playing (the idle cycle waits). */
+  walking?: boolean;
+  /** Moved by the story (#beside, #move, #leave): they stop wandering. */
+  scripted?: boolean;
 }
 
 /** A `barks` condition: a variable that's true, or `<variable>=<value>`. */
@@ -141,6 +148,7 @@ const INSETS: Record<string, RowSprite> = {
 /** A person pacing between two points. */
 interface Wanderer {
   image: Phaser.GameObjects.Image;
+  entry: PersonEntry;
   from: number;
   to: number;
   dir: 1 | -1;
@@ -289,6 +297,8 @@ export class AreaScene extends Phaser.Scene {
   private interactKey!: Phaser.Input.Keyboard.Key;
   private usables: Usable[] = [];
   private current: Usable | null = null;
+  /** Things there only while the story says (a camp's fire and smoke): shown and hidden with the people. */
+  private storyShown: { objects: (Phaser.GameObjects.Image | Phaser.GameObjects.Particles.ParticleEmitter)[]; on: () => boolean }[] = [];
   /** Down on one knee, digging (input held a moment). */
   private digBusy = false;
   private from: string | undefined;
@@ -364,6 +374,8 @@ export class AreaScene extends Phaser.Scene {
     this.wakeAt = null;
     this.mobs = [];
     this.triggers = [];
+    this.storyShown = [];
+    this.digBusy = false;
     this.barks = [];
     this.speech = new Map();
   }
@@ -429,17 +441,18 @@ export class AreaScene extends Phaser.Scene {
     const session = getSession(this);
     for (const person of area.people) {
       const frames = (person.idleFrames ?? [person.sprite]).map((f, i) => makeSpriteTexture(this, `person-${person.id}-${i}`, f.rows, f.colours));
+      const walkKeys = (person.walkFrames ?? []).map((f, i) => makeSpriteTexture(this, `person-${person.id}-walk-${i}`, f.rows, f.colours));
       const image = this.add.image(person.x, person.y, frames[0]!).setOrigin(0.5, 1).setFlipX(person.flipX ?? false).setDepth(8);
+      const entry: PersonEntry = { person, image, scriptHidden: person.hidden ?? false, gone: false, idleKeys: frames, walkKeys };
       if (person.wander) {
-        const walkKeys = (person.walkFrames ?? [person.sprite]).map((f, i) => makeSpriteTexture(this, `person-${person.id}-walk-${i}`, f.rows, f.colours));
-        this.wanderers.push({ image, from: person.wander.from, to: person.wander.to, dir: person.flipX ? -1 : 1, pause: Phaser.Math.Between(0, 1500), walkKeys, idleKey: frames[0]!, stepTimer: 0, frame: 0 });
+        this.wanderers.push({ image, entry, from: person.wander.from, to: person.wander.to, dir: person.flipX ? -1 : 1, pause: Phaser.Math.Between(0, 1500), walkKeys: walkKeys.length ? walkKeys : [frames[0]!], idleKey: frames[0]!, stepTimer: 0, frame: 0 });
       } else if (frames.length > 1) {
         let frame = 0;
-        this.time.addEvent({ delay: 650, loop: true, callback: () => image.setTexture(frames[(frame = (frame + 1) % frames.length)]!) });
+        this.time.addEvent({ delay: 650, loop: true, callback: () => !entry.walking && image.setTexture(frames[(frame = (frame + 1) % frames.length)]!) });
       }
-      const entry: PersonEntry = { person, image, scriptHidden: person.hidden ?? false, gone: false };
       this.people.set(person.id, entry);
-      if (person.knot && !person.wander) {
+      // (Wanderers with something to say can be talked to too, wherever they've got to: the dog.)
+      if (person.knot) {
         // Where they stand now (people can be moved by the story, or follow you).
         this.usables.push({
           get x() { return entry.image.x; },
@@ -690,7 +703,12 @@ export class AreaScene extends Phaser.Scene {
   private updateWanderers(delta: number): void {
     const SPEED = 22; // px per second
     for (const w of this.wanderers) {
-      if (!w.image.visible) continue;
+      if (!w.image.visible || w.entry.scripted) continue;
+      // Someone you're talking to stands still.
+      if (w.entry.person.knot && this.dialogue.isOpen) {
+        w.image.setTexture(w.idleKey);
+        continue;
+      }
       if (w.pause > 0) {
         w.pause -= delta;
         w.image.setTexture(w.idleKey);
@@ -750,7 +768,7 @@ export class AreaScene extends Phaser.Scene {
     if (!this.player.body.enable) return; // e.g. rising up the tube: they stay where they are
     const { x, y } = this.player.feet;
     for (const entry of this.people.values()) {
-      if (!entry.person.follow || !entry.image.visible) continue;
+      if (!entry.person.follow || !entry.image.visible || entry.scripted) continue;
       const img = entry.image;
       let trail = entry.trail;
       const last = trail?.[trail.length - 1];
@@ -766,12 +784,19 @@ export class AreaScene extends Phaser.Scene {
       const gap = total - FOLLOW_GAP - (entry.along ?? 0);
       if (gap <= 0) {
         img.setFlipX(x < img.x);
+        if (entry.walking) img.setTexture(entry.idleKeys[0]!);
+        entry.walking = false;
         continue;
       }
       // A little quicker than you when they've fallen behind.
       entry.along = (entry.along ?? 0) + Math.min(gap, (gap > 40 ? 150 : 95) * (delta / 1000));
       const at = pointAlong(trail, entry.along);
       if (Math.abs(at.x - img.x) > 0.2) img.setFlipX(at.x < img.x);
+      // Their walk frames (if they have any), a step every few pixels.
+      if (entry.walkKeys.length) {
+        entry.walking = true;
+        img.setTexture(entry.walkKeys[Math.floor(entry.along / 5) % entry.walkKeys.length]!);
+      }
       img.setPosition(at.x, at.y);
       // Forget the path they've already walked.
       while (trail.length > 2 && trail[1]!.d < entry.along) trail.shift();
@@ -1236,6 +1261,10 @@ export class AreaScene extends Phaser.Scene {
 
   private refreshPeople(): void {
     for (const entry of this.people.values()) entry.image.setVisible(this.isPresent(entry));
+    for (const s of this.storyShown) {
+      const on = s.on();
+      for (const o of s.objects) o.setVisible(on);
+    }
   }
 
   /** After any conversation: run what it queued (travel, the end of the day), then refresh the scene. */
@@ -1364,6 +1393,8 @@ export class AreaScene extends Phaser.Scene {
    *   #daylight:<x>:<top>:<floor>  daylight breaks in through the wall at (x, top), a shaft down to the floor
    */
   private handleTags(tags: string[]): void {
+    // Who's here follows the story line by line (a variable set just before a line brings people on or takes them off).
+    this.refreshPeople();
     this.clearInset();
     const { calendar } = getSession(this);
     for (const tag of tags) {
@@ -1391,12 +1422,35 @@ export class AreaScene extends Phaser.Scene {
           }
           break;
         case 'beside':
-          // #beside:<id>:<dx>: they're there, dx px from you (wherever you are), facing you.
+          // #beside:<id>:<dx>[:walk]: they're there, dx px from you (wherever you are), facing you; with
+          // `walk`, they walk over to there instead.
           if (entry) {
+            // (Someone following you carries on following from there.)
+            if (!entry.person.follow) entry.scripted = true;
             const x = Phaser.Math.Clamp(this.player.feet.x + Number(args[1] ?? 16), 8, this.area.width - 8);
-            entry.image.setPosition(x, this.player.feet.y).setFlipX(x > this.player.feet.x);
+            if (args[2] === 'walk') this.walkTo(entry, x, 30, () => entry.image.setFlipX(x > this.player.feet.x));
+            else entry.image.setPosition(x, this.player.feet.y).setFlipX(x > this.player.feet.x);
           }
           break;
+        case 'leave':
+          // #leave:<id>:<x>[:<speed>]: they go (run, at a speed above 50) to x on their floor, and are gone.
+          if (entry) {
+            entry.scripted = true;
+            this.walkTo(entry, Number(args[1]), Number(args[2] ?? 70), () => {
+              entry.scriptHidden = true;
+              entry.image.setVisible(false);
+            });
+          }
+          break;
+        case 'bark': {
+          // #bark:<id>:<words>[:<sound>]: words over their head (a dog's growl), and a sound if given.
+          const [, words, sound] = args;
+          if (entry && words) {
+            this.floatText(words, entry.image.x, entry.image.y - entry.image.height - 12, SHADES.white);
+            if (sound && (SOUND_IDS as readonly string[]).includes(sound)) this.soundscape.play(sound as SoundId);
+          }
+          break;
+        }
         case 'hop':
           // #hop:<id>:<x>:<y>[:<x>:<y>...]: they jump from point to point (ledge to ledge), then the scene
           // settles (so if the story has hidden them meanwhile, they go once they land).
@@ -1825,6 +1879,24 @@ export class AreaScene extends Phaser.Scene {
     });
   }
 
+  /** Someone walks (or runs) along their floor to x, their walk frames playing, then `then`. */
+  private walkTo(entry: PersonEntry, x: number, speed: number, then?: () => void): void {
+    const img = entry.image;
+    img.setFlipX(x < img.x);
+    entry.walking = entry.walkKeys.length > 0;
+    let frame = 0;
+    const step = entry.walking ? this.time.addEvent({ delay: speed > 50 ? 90 : 160, loop: true, callback: () => img.setTexture(entry.walkKeys[(frame = (frame + 1) % entry.walkKeys.length)]!) }) : null;
+    this.tweens.add({
+      targets: img, x, duration: (Math.abs(x - img.x) / speed) * 1000,
+      onComplete: () => {
+        step?.remove();
+        entry.walking = false;
+        img.setTexture(entry.idleKeys[0]!);
+        then?.();
+      },
+    });
+  }
+
   /** A word or two floating up over a spot and fading. */
   private floatText(text: string, x: number, y: number, colour: number): void {
     const t = new PixelText(this, 0, 0, text, { color: colour, shadow: SHADES.shadow }).setDepth(30);
@@ -1837,10 +1909,11 @@ export class AreaScene extends Phaser.Scene {
       case 'fire': {
         const keys = FIRE_FRAMES.map((f, i) => makeSpriteTexture(this, `fire-${i}`, f.rows, f.colours));
         const fire = this.add.image(feature.x, feature.y, keys[0]!).setOrigin(0.5, 1).setDepth(5);
-        this.soundscape.addEmitter('fire', () => ({ x: feature.x, y: feature.y }), 70);
+        const lit = () => !feature.showIf || !!getSession(this).story.getVariable(feature.showIf);
+        this.soundscape.addEmitter('fire', () => (lit() ? { x: feature.x, y: feature.y } : null), 70);
         let frame = 0;
         this.time.addEvent({ delay: 140, loop: true, callback: () => fire.setTexture(keys[(frame = (frame + 1) % keys.length)]!) });
-        this.add.particles(0, 0, PIXEL, {
+        const sparks = this.add.particles(0, 0, PIXEL, {
           x: { min: feature.x - 3, max: feature.x + 3 },
           y: feature.y - 10,
           speedY: { min: -12, max: -6 },
@@ -1850,6 +1923,23 @@ export class AreaScene extends Phaser.Scene {
           tint: SHADES.amber,
           alpha: { start: 1, end: 0 },
         }).setDepth(5);
+        if (feature.showIf) this.storyShown.push({ objects: [fire, sparks], on: lit });
+        break;
+      }
+      case 'smoke': {
+        const on = () => !feature.showIf || !!getSession(this).story.getVariable(feature.showIf);
+        const smoke = this.add.particles(0, 0, PIXEL, {
+          x: { min: feature.x - 2, max: feature.x + 2 },
+          y: feature.y,
+          speedY: { min: -16, max: -9 },
+          speedX: { min: -3, max: 3 },
+          scale: { start: 1, end: 3 },
+          lifespan: ((feature.y - feature.top) / 12) * 1000,
+          frequency: 120,
+          tint: SHADES.dim,
+          alpha: { start: 0.7, end: 0 },
+        }).setDepth(4);
+        this.storyShown.push({ objects: [smoke], on });
         break;
       }
       case 'autodoor': {

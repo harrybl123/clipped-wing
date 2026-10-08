@@ -20,6 +20,8 @@ export const SOUND_IDS = [
   'murmur', 'gasp', 'roar', 'jeer', 'chant', 'whispers', 'scream', 'sob',
   'hit', 'spit', 'smash', 'staff', 'latch', 'bolt', 'pound', 'crash', 'hammer', 'splinter', 'grate', 'boots', 'punch',
   'chop', 'shave', 'skid', 'scratch', 'pop', 'rub', 'slip',
+  // The dog (Chapter 2).
+  'bark', 'growl', 'whimper',
 ] as const;
 export type SoundId = (typeof SOUND_IDS)[number];
 
@@ -485,6 +487,27 @@ function oneShot(a: Out, dest: AudioNode, t: number, id: SoundId, v: number, sur
       break;
     case 'scratch':
       for (let i = 0; i < 3; i++) noise(a, dest, t + i * 0.05, 'bandpass', rand(1400, 1700), 4, 0.05, 0.08 * v, 0.01);
+      break;
+    case 'bark':
+      // Two rough barks: a throaty tone that drops, through a burst of breath.
+      for (const k of [0, rand(0.2, 0.26)]) {
+        const p = rand(380, 460);
+        tone(a, dest, t + k, 'triangle', p, p * 0.6, 0.11, 0.3 * v, 0.008);
+        noise(a, dest, t + k, 'bandpass', p * 2.2, 1.5, 0.1, 0.35 * v, 0.006, p * 1.4);
+      }
+      break;
+    case 'growl':
+      // A low rumble that rises and falls, rough with breath.
+      for (let i = 0; i < 10; i++) {
+        const k = t + i * 0.07;
+        tone(a, dest, k, 'triangle', rand(85, 105), rand(80, 100), 0.09, (0.12 + Math.sin((i / 9) * Math.PI) * 0.16) * v, 0.01);
+        noise(a, dest, k, 'bandpass', rand(260, 340), 3, 0.08, 0.12 * v, 0.01);
+      }
+      break;
+    case 'whimper':
+      // A thin, high whine through the nose, rising and falling twice.
+      tone(a, dest, t, 'sine', 780, 1040, 0.28, 0.14 * v, 0.06);
+      tone(a, dest, t + 0.3, 'sine', 960, 700, 0.36, 0.11 * v, 0.05);
       break;
     case 'pop':
       tone(a, dest, t, 'sine', 300, 150, 0.05, 0.25 * v);

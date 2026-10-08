@@ -54,7 +54,8 @@ export const dogsHollow: AreaDefinition = {
   ],
 
   features: [],
-  people: [dog(262, FLOOR, { knot: 'dogs_hollow_dog', label: 'Pet', flipX: true })],
+  // The dog, nosing about its hollow (once you've found it).
+  people: [dog(262, FLOOR, { knot: 'dogs_hollow_dog', label: 'Pet', flipX: true, showIf: 'found_dog', wander: { from: 200, to: 340 } })],
 
   interactables: [
     { id: 'bed', x: 204, y: FLOOR, reach: 12, label: 'Look', knot: 'dogs_hollow_bed' },

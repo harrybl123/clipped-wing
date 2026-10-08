@@ -45,7 +45,8 @@ export interface Line {
 
 /** Something with behaviour, built by AreaScene according to its `type`. */
 export type Feature =
-  | { type: 'fire'; x: number; y: number } // animated flames, bottom-centre at (x, y), with smoke
+  | { type: 'fire'; x: number; y: number; showIf?: string } // animated flames, bottom-centre at (x, y), with sparks (only while the ink variable showIf is true, if given)
+  | { type: 'smoke'; x: number; y: number; top: number; showIf?: string } // grey smoke rising from (x, y) up to `top` (a crack in a ceiling), while showIf is true
   | { type: 'swing'; sprite: RowSprite; x: number; y: number; ropeTop: number } // hanging from ropeTop, sways
   | { type: 'drip'; x: number; y: number; floorY: number } // a drop falls from (x, y) every so often
   | { type: 'motes'; x: number; top: number; bottom: number; halfWidth: number } // pale motes rising in a column (the tube)

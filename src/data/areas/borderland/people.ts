@@ -56,11 +56,15 @@ export const rival = (id: string, look: number, x: number, y: number, when?: Tim
   flipX: true, // facing across the line, at us
 });
 
+/** The dog, following you about (Chapter 2, Day 2: from the camp to home) while `dog_with_you`. */
+export const dogFollowing = (x: number, y: number): Person => dog(x, y, { id: 'dog-follow', showIf: 'dog_with_you', follow: true });
+
 /** The dog. */
 export const dog = (x: number, y: number, extra: Partial<Person> = {}): Person => ({
   id: 'dog',
   sprite: DOG.idle[0]!,
   idleFrames: DOG.idle,
+  walkFrames: DOG.walk,
   x,
   y,
   ...extra,
@@ -82,6 +86,7 @@ export const straggler = (id: string, look: number, x: number, y: number, showIf
   id,
   sprite: STRAGGLERS[look]!.idle[0]!,
   idleFrames: STRAGGLERS[look]!.idle,
+  walkFrames: STRAGGLERS[look]!.walk,
   x,
   y,
   showIf,

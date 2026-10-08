@@ -71,16 +71,17 @@ Not pickers. Nobody you know. They've come in off the plain, and they look like 
 - else:
     You're on your knees in the dirt, and your staff is a long way off. #beside:straggler-1:18 #beside:straggler-2:34 #beside:straggler-3:50
 }
-The third one, the small one, is already halfway to the horizon. Your satchel's strap has been cut clean through, and the flap hangs open. #hide:straggler-3
+The third one, the small one, is already running. Your satchel's strap has been cut clean through, and the flap hangs open. #leave:straggler-3:955:140
 Everything you dug today is going with them.
 { stragglers_won:
-    You could chase them. You'd never catch them: they run like people who've done this before. #hide:straggler-1 #hide:straggler-2
+    The other two get up and go after the small one, not looking back. #leave:straggler-1:955:110 #leave:straggler-2:955:90
+    You could chase them. You'd never catch them: they run like people who've done this before.
 - else:
-    The other two step over you and follow, not hurrying. #hide:straggler-1 #hide:straggler-2
+    The other two step over you and follow, not hurrying. #leave:straggler-1:955:40 #leave:straggler-2:955:35
 }
 ~ finds = 0
-~ stragglers_here = false
 A whole morning, and nothing to show for it. #time:afternoon
+~ stragglers_here = false
 ~ c2day1 = "brother"
 ~ objective = "Find your brother"
 ~ objective_target = "swap-yard:brother"
@@ -88,7 +89,7 @@ A whole morning, and nothing to show for it. #time:afternoon
 
 === c2day1_friend ===
 "I saw them go past. Stragglers." #speaker:scav_friend
-"That's the third lot this month, walking in from wherever it is they walk in from. Did they get much?" #speaker:scav_friend
+"That's the third lot this month. Did they get much?" #speaker:scav_friend
 "Everything." #speaker:scavenger
 "Oh, love." #speaker:scav_friend
 "Your brother was at the yard, with the kid. You should find him before he finds out from someone else." #speaker:scav_friend

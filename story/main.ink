@@ -239,6 +239,12 @@ VAR dog_choice = ""
 VAR dog_name = ""
 // The dog's in the shack with you (before it goes under the floor).
 VAR dog_home = false
+// The stragglers' fire in the camp (lit from when you're sent deep).
+VAR camp_fire = false
+// The dog walking with you (from the camp, home); on a wire to be sold, until it slips it; on your way home.
+VAR dog_with_you = false
+VAR dog_on_wire = false
+VAR going_home = false
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
