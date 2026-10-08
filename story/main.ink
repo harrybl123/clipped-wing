@@ -276,6 +276,7 @@ VAR brother_choice = ""
 VAR brother_moved = false
 // The circle at the bar tonight, and the sparring with the boss's son (the fight writes spar_won).
 VAR circle_night = false
+VAR bar_arrived = false
 VAR spar_won = false
 // Chapter 2, Day 5 (story/borderland/chapter2-day5.ink). Stages: fields, raid, after, done.
 VAR c2day5 = ""

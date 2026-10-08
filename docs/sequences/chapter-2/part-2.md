@@ -40,3 +40,10 @@ Built 2026-10-08 (`story/borderland/chapter2-day3.ink` to `chapter2-day5.ink`; d
 - **The old scavenger** (with you on the raid): Hook (basic); **Yank** (hooks a staff or a leg: knocks raiders off balance, interrupts a wind-up); **Patch up** (heals you both).
 - **Raiders:** Thrust; Whirl (two blows); weak to grabs. **Their leader:** **Mark** (picks you out: you take more damage for 2 rounds), Thrust, Whirl.
 - New rules: `heals` / `healsSide`.
+
+## After the playtest (designer)
+- **The text matches the screen** (designer: the boxes weren't corresponding to what's happening): tribute night's crowd is there from the evening, not when you reach the counter, and there are more of them; the enforcer steps aside; your brother runs off to pack; at the bar, the crews pull back to make a ring.
+- **The sunk town's big drop is gone** (designer: clunky and awkward): the deepest level is down the stairwell.
+- **An invitation to the bar** (designer: there seemed to be none): the boss says it plainly ("Tonight, when the tally's in, my circle drinks at the bar. You'll drink with us."), and walking in, the room goes quiet and he waves you over.
+- **A build-up to the sparring** (designer: rushed and weird): the son asks where you go every morning, calls you a liar, shoves you into a table; you shove back or look to the boss ("Boys will be boys"); "Fists. Put the stick down"; you lean it on the counter ("Not near the bottles!"). **Fists only, no staff** (designer): `scavenger_fists`, her moves without it (Punch, Low kick, Combination, Read him). The son's knocked-down sprite keeps his colours (designer: he changed colour).
+- **A build-up to the raid** (designer: too rushed, too little explanation): the old scavenger explains the other clan (pale wraps, long staves, their ground past the line), the truce ("Cost the boss something. More than he'll ever say."), the footprints at this end; they come over the rise walking, in daylight; the pickers run; their leader points at you ("Her. That's the one.") and calls out terms; stand with him, or try to run and find you can't leave him.

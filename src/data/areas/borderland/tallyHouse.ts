@@ -96,6 +96,10 @@ export const tallyHouse: AreaDefinition = {
     local('tribute-3', 10, 232, FLOOR, ['evening'], { showIf: 'tribute_night' }),
     local('tribute-4', 6, 250, FLOOR, ['evening'], { showIf: 'tribute_night' }),
     local('tribute-5', 8, 268, FLOOR, ['evening'], { showIf: 'tribute_night' }),
+    local('tribute-6', 2, 178, FLOOR, ['evening'], { showIf: 'tribute_night' }),
+    local('tribute-7', 11, 160, FLOOR, ['evening'], { showIf: 'tribute_night', flipX: true }),
+    local('tribute-8', 3, 142, FLOOR, ['evening'], { showIf: 'tribute_night' }),
+    local('tribute-9', 5, 124, FLOOR, ['evening'], { showIf: 'tribute_night' }),
   ],
 
   interactables: [

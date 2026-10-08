@@ -8,32 +8,49 @@
 === c2day5_start ===
 ~ raid_day = true
 ~ digging = true
-~ objective = "Dig beside the old scavenger"
+~ objective = "Find the old scavenger"
 ~ objective_target = "picked-fields:old-scav-fields"
-The far end of the picked fields, out past the hull. Where the boss told you to dig, so you'd be seen digging.
-There's nothing here. There's never been anything here. You dig anyway.
+The far end of the picked fields, out past the hull, as far from the settlement as the fields go. Where the boss told you to dig, so you'd be seen digging.
+Past here, a long way off over the rise, is the line. The other clan's ground.
+The old scavenger's here already, scraping at nothing.
 -> END
 
 === c2day5_old ===
 "Hmph. The boss's new favourite." #speaker:old_scav
+"He sent you out here too? To be seen?" #speaker:old_scav
+"He says somebody's been on our ground. At this end." #speaker:scavenger
+"Somebody has. Footprints, last few mornings. Pale threads caught on the wire." #speaker:old_scav
+He nods out over the rise.
+"Them. The other clan. Pale wraps, long staves. Their ground starts at the line." #speaker:old_scav
+"There's a truce. Has been since before you were born. They keep their side, we keep ours." #speaker:old_scav
+"Cost the boss something, that truce. More than he'll ever say." #speaker:old_scav
++ [What did it cost him?]
+    "What did it cost him?" #speaker:scavenger
+    "More than he'll ever say. I just told you." #speaker:old_scav
++ [So why are they over here?]
+    "So why are they over here?" #speaker:scavenger
+    "That's what the boss wants to know. And now he's got you out here to be seen. Make of that what you like." #speaker:old_scav
+- He scrapes his hook through the dirt and turns up nothing, the way he's turned up nothing for forty years.
 "Four times the tribute. Off this?" #speaker:old_scav
-He scrapes his hook through the dirt and turns up nothing, the way he's turned up nothing for forty years.
 "I'm not going to ask. Somebody will, though. Somebody always does." #speaker:old_scav
-+ [Let them]
-    "Let them." #speaker:scavenger
-    "Said like somebody who's never been asked." #speaker:old_scav
-+ [Thank you]
-    "Thanks. For not asking." #speaker:scavenger
-    "Don't thank me. I said I wasn't going to ask. I didn't say I wasn't going to wonder." #speaker:old_scav
-- Then he goes very still, looking past you, out towards the far end of the fields.
-"Down. Get down." #speaker:old_scav
+Then he goes very still, looking past you, out towards the rise.
+"Don't turn round quick." #speaker:old_scav
 ~ raiders_here = true
 ~ digging = false
-Three of them, coming over the rise in pale wraps, staves out. The other clan. On your ground, in daylight. #move:raider-1:880 #move:raider-2:900 #move:raider-3:920
-All along the fields the pickers are dropping their sieves and running. #leave:digger-7:20:110 #leave:digger-8:20:120 #leave:digger-9:20:100 #leave:digger-2:20:110
-They're not looking at the pickers. They're looking at you. #shake
-"They came straight here. Like they knew." #speaker:old_scav
-"Well? Get your stick up." #speaker:old_scav #combat:first_raid:c2day5_after_raid
+Three of them, coming over the rise in pale wraps, staves out. Walking, not running. In daylight. #move:raider-1:880 #move:raider-2:900 #move:raider-3:920
+"In daylight. They've never come in daylight." #speaker:old_scav
+All along the fields the pickers have seen them too. Sieves dropped. People running for the settlement. #leave:digger-7:20:110 #leave:digger-8:20:120 #leave:digger-9:20:100 #leave:digger-2:20:110
+The one in front stops, and points the staff at you. #shake
+"Her. That's the one." #speaker:raider_lead
+"Sacks down. Walk back to your boss, and tell him whose ground this is now." #speaker:raider_lead
+"They came straight to us. Like they knew we'd be here." #speaker:old_scav
++ [Stand with the old man]
+    You stay where you are. Beside you, the old man takes a fresh grip on his hook.
+    "Good. I'm too old to run." #speaker:old_scav
++ [Run]
+    You turn to run, and your legs won't go. The old man's already got his hook up, and he's not going anywhere.
+    You can't leave him.
+- "Well? Get your stick up." #speaker:old_scav #combat:first_raid:c2day5_after_raid
 -> END
 
 === c2day5_after_raid ===

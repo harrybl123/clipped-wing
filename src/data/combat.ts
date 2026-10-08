@@ -505,6 +505,36 @@ Object.assign(MOVES, {
   },
 } satisfies Record<string, MoveDef>);
 
+// She fights with her fists at the bar (designer: fists only, so no staff): her own moves without it.
+Object.assign(MOVES, {
+  punch: {
+    id: 'punch', name: 'Punch', target: 'enemy', power: 6, kind: 'strike', crit: 0.15, poses: ['attack'],
+    qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    description: 'Basic attack.',
+  },
+  low_kick: {
+    id: 'low_kick', name: 'Low kick', target: 'enemy', power: 6, kind: 'shove', sp: 2, crit: 0.2, interrupts: true, poses: ['shove'],
+    qte: { kind: 'bar', time: 1100, zone: [0.6, 0.8], sweet: [0.68, 0.72], alt: { kind: 'key', time: 800, quick: 300 } },
+    description: 'Takes his legs. Knocks him off balance. Interrupts a charged attack.',
+  },
+  combination: {
+    id: 'combination', name: 'Combination', target: 'enemy', power: 4, kind: 'strike', sp: 3, hits: 3, poses: ['slap', 'palm', 'attack'],
+    qte: { kind: 'notes', outer: 180, perfect: 70, gap: 360, alt: { kind: 'carve', time: 2400, quick: 1200 } },
+    combo: { build: 0.25, finisher: true },
+    description: '3 quick punches, each harder than the last. Land all 3 to knock him off balance.',
+  },
+  read_him: {
+    id: 'read_him', name: 'Read him', target: 'self', sp: 4, braces: true, poses: ['guard'],
+    description: 'Watch him close: his next attack, a good reaction parries it (no damage, and she hits back).',
+  },
+} satisfies Record<string, MoveDef>);
+
+/** The scavenger without her staff (the sparring at the bar: fists only). */
+COMBATANTS.scavenger_fists = {
+  id: 'scavenger_fists', name: 'You', sprite: 'scavenger_fists', hp: 42, sp: 12, attack: 9, defence: 8, speed: 14,
+  basic: 'punch', moves: ['low_kick', 'combination', 'read_him'], reactions: ['dodge', 'parry'],
+};
+
 /** The boss's son: your age, jealous of your rise (design doc). Sparring at the bar. */
 COMBATANTS.boss_son = {
   id: 'boss_son', name: 'The boss\u2019s son', sprite: 'boss_son', hp: 48, attack: 9, defence: 8, speed: 13,
@@ -539,7 +569,7 @@ COMBATANTS.raider_lead = {
 ENCOUNTERS.son_spar = {
   id: 'son_spar',
   name: 'The boss\u2019s son',
-  party: ['scavenger'],
+  party: ['scavenger_fists'],
   enemies: ['boss_son'],
   stage: 'bar',
   timing: { lunge: 950, ease: 1.2 },

@@ -1,6 +1,6 @@
 import { ELDER_LOOKS, FRIEND_FATHER_LOOK, GUARD_LOOK, PREACHER_LOOK, RESIDENT_LOOKS, VILLAGER_LOOKS, type VillagerLook } from './characters';
 import type { VoiceId } from '../systems/voices';
-import { CAST_LOOKS, HOSTESS_LOOKS, STRAGGLER_LOOKS, TOWNSFOLK_LOOKS, type FolkLook } from './borderlandFolk';
+import { CAST_LOOKS, HOSTESS_LOOKS, RIVAL_LOOKS, STRAGGLER_LOOKS, TOWNSFOLK_LOOKS, type FolkLook } from './borderlandFolk';
 import { SHADES } from './pixelArt';
 import type { RowSprite } from './sprites';
 
@@ -863,6 +863,8 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
   // The dog: no voice, its own sounds (a bark, a growl, a whimper, from what it says); its name once it has one.
   dog: { name: 'The dog', portrait: DOG_PORTRAIT, voice: 'dog', nameVar: 'dog_name' },
   food_trader: { name: 'The food trader', portrait: folkPortrait(TOWNSFOLK_LOOKS[5]!, { mouth: 'frown', eyes: 'narrow' }), voice: 'roots_woman' }, // at the swap yard's food stall
+  // The other clan's raiders' leader (Chapter 2, Day 5).
+  raider_lead: { name: 'Their leader', portrait: folkPortrait(RIVAL_LOOKS[0]!, { build: 'broad', eyes: 'narrow', brow: 'heavy', mouth: 'frown' }), voice: 'guard' },
   // Stragglers from elsewhere (Chapter 2, Day 1).
   straggler_thin: { name: 'The thin one', portrait: folkPortrait(STRAGGLER_LOOKS[0]!, { build: 'narrow', eyes: 'hollow', mouth: 'grin' }), voice: 'roots_man' },
   straggler_big: { name: 'The big one', portrait: folkPortrait(STRAGGLER_LOOKS[1]!, { build: 'heavy', brow: 'heavy', beard: 'stubble', mouth: 'frown' }), voice: 'guard' },

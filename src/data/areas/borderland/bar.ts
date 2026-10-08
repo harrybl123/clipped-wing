@@ -92,7 +92,11 @@ export const bar: AreaDefinition = {
     { sprite: P.CLOTH_DOOR, x: 556, y: GALLERY.y - 32 },
   ],
 
-  features: [{ type: 'motes', x: 230, top: 60, bottom: 220, halfWidth: 180 }], // smoke drifting up
+  features: [
+    // Chapter 2, Day 4: walking in on the circle's night.
+    { type: 'trigger', x: 60, y: FLOOR, reach: 40, knot: 'c2day4_bar_arrive', showIf: 'circle_night', hideIf: 'bar_arrived' },
+    { type: 'motes', x: 230, top: 60, bottom: 220, halfWidth: 180 }, // smoke drifting up
+  ],
   people: [
     cast('barkeep', 444, FLOOR, { knot: 'bar_barkeep', flipX: true }), // always behind the counter
     // The morning: last night's leftovers, and someone sweeping up.
@@ -109,13 +113,13 @@ export const bar: AreaDefinition = {
     local('booth-2', 1, 360, GALLERY.y, ['night'], { flipX: true }),
     stroller('drifter', 3, 120, 360, FLOOR, LATE),
     // People you know.
-    cast('scav_friend', 340, FLOOR, { knot: 'bar_friend', when: ['evening'] }),
+    cast('scav_friend', 340, FLOOR, { knot: 'bar_friend', when: ['evening'], hideIf: 'circle_night' }),
     cast('old_scav', 300, FLOOR, { knot: 'bar_old_scav', when: ['night'] }),
     // Chapter 2, Day 4: the boss's circle, out for the evening, the floor cleared round them.
-    cast('boss', 262, FLOOR, { id: 'boss-bar', knot: 'c2day4_bar', when: ['evening'], showIf: 'circle_night', flipX: true }),
-    cast('watcher', 282, FLOOR, { id: 'watcher-bar', when: ['evening'], showIf: 'circle_night', flipX: true }),
-    cast('enforcer', 236, FLOOR, { id: 'enforcer-bar', when: ['evening'], showIf: 'circle_night', flipX: true }),
-    cast('boss_son', 214, FLOOR, { id: 'son-bar', when: ['evening'], showIf: 'circle_night', flipX: true }),
+    cast('boss_son', 290, FLOOR, { id: 'son-bar', when: ['evening'], showIf: 'circle_night', flipX: true }),
+    cast('enforcer', 308, FLOOR, { id: 'enforcer-bar', when: ['evening'], showIf: 'circle_night', flipX: true }),
+    cast('boss', 326, FLOOR, { id: 'boss-bar', knot: 'c2day4_bar', when: ['evening'], showIf: 'circle_night', flipX: true }),
+    cast('watcher', 346, FLOOR, { id: 'watcher-bar', when: ['evening'], showIf: 'circle_night', flipX: true }),
   ],
 
   interactables: [

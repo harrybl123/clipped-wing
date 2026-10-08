@@ -9,8 +9,8 @@ import { dog, dogFollowing, straggler } from './people';
 // scavenger's rope tied off beside it. Below, three levels, darker and stranger the deeper you go:
 // 1. through a broken window, the screen room, then (past the door that still opens by itself, sticks
 //    halfway and judders) the long room, which opens onto the stairwell;
-// 2. the hall of boxes (walls of identical sealed boxes, some prised open, a floor that gives way into
-//    the level below), a room filled with earth with a crawl dug through it, and someone's old camp;
+// 2. the hall of boxes (walls of identical sealed boxes, some prised open), a room filled with earth
+//    with a crawl dug through it, and someone's old camp;
 // 3. a round tunnel with a carriage lying in it, and at its end the bright room, where a glass column
 //    is still full of cyan light.
 // More to find the deeper you go. Nothing is explained. See docs/areas/borderland/sunk-town.md.
@@ -25,7 +25,6 @@ const WELL = { x: 864, y: 0, width: 72, height: 832 }; // the deep stairwell
 const SCREEN_ROOM = { x: 240, y: 248, width: 280, height: 80 };
 const LONG_ROOM = { x: 520, y: 288, width: WELL.x - 520, height: 80 };
 const HALL = { x: 520, y: 448, width: WELL.x - 520, height: 80 };
-const GAP = { x: 624, y: 528, width: 64, height: 224 }; // where the hall's floor gave way
 const FILLED = { x: 384, y: 512, width: 136, height: 16 }; // the crawl dug through the filled room
 const CAMP = { x: 248, y: 456, width: 136, height: 72 };
 const TUNNEL = { x: 264, y: 752, width: WELL.x - 264, height: 80 };
@@ -33,7 +32,7 @@ const BRIGHT = { x: 88, y: 672, width: 176, height: 160 };
 
 const CARVED: Rect[] = [
   { x: 0, y: 0, width: W, height: SURFACE },
-  SHAFT, WELL, SCREEN_ROOM, LONG_ROOM, HALL, GAP, FILLED, CAMP, TUNNEL, BRIGHT,
+  SHAFT, WELL, SCREEN_ROOM, LONG_ROOM, HALL, FILLED, CAMP, TUNNEL, BRIGHT,
 ];
 
 const floor = (r: Rect) => r.y + r.height;
@@ -87,7 +86,6 @@ export const sunkTown: AreaDefinition = {
     // The ways down.
     { sprite: P.earth(SHAFT.width, SCREEN_ROOM.y - SURFACE), x: SHAFT.x, y: SURFACE },
     { sprite: P.stairwell(WELL.width, floor(WELL) - SURFACE, 470), x: WELL.x, y: SURFACE },
-    { sprite: P.earth(GAP.width, GAP.height), x: GAP.x, y: GAP.y },
 
     // Level 1: the screen room, the long room.
     { sprite: P.screenRoom(SCREEN_ROOM.width, SCREEN_ROOM.height), x: SCREEN_ROOM.x, y: SCREEN_ROOM.y },
@@ -116,10 +114,6 @@ export const sunkTown: AreaDefinition = {
 
   features: [
     { type: 'autodoor', sprite: P.AUTODOOR, x: SCREEN_ROOM.x + SCREEN_ROOM.width - 5, y: LONG_ROOM.y, range: 50 },
-    // The hall's floor over the gap: it holds a moment, then drops you into the tunnel.
-    { type: 'crumble', x: GAP.x, y: GAP.y, width: GAP.width },
-    // A long way down: you slide it, against the earth (designer: a huge drop).
-    { type: 'slide', x: GAP.x, width: GAP.width, top: GAP.y, bottom: floor(TUNNEL) - 2 },
     // The column's light, rising (and humming).
     { type: 'motes', x: BRIGHT.x + BRIGHT.width / 2, top: BRIGHT.y, bottom: floor(BRIGHT) - 8, halfWidth: 6 },
     // Chapter 2, Day 2: sent deep, you hear a dog bark from below as you arrive; then, coming out of the

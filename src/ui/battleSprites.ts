@@ -519,8 +519,9 @@ function staff(g: Grid, [ax, ay]: Pt, [bx, by]: Pt): void {
 const SCAV_W = 64;
 const SCAV_H = 62;
 
-function scavengerBack(pose: CarverPose, who: 'scavenger' | 'old' = 'scavenger'): RowSprite {
+function scavengerBack(pose: CarverPose, who: 'scavenger' | 'old' | 'fists' = 'scavenger'): RowSprite {
   const old = who === 'old';
+  const fists = who === 'fists';
   const g = grid(SCAV_W, SCAV_H);
   const x = 32 + { idle: 0, breathe: 0, ready: 0, dodge: -7, attack: 3, slap: 4, palm: -4, shove: 0, grab: 0, guard: 0, hit: 4 }[pose];
   const top = 2 + { idle: 0, breathe: 1, ready: 2, dodge: 2, attack: -1, slap: 0, palm: 0, shove: 3, grab: 4, guard: 3, hit: 1 }[pose];
@@ -559,7 +560,8 @@ function scavengerBack(pose: CarverPose, who: 'scavenger' | 'old' = 'scavenger')
   };
   // What she holds out in front of her is behind her body from here.
   // His hook: a plain pole with a hook at the end, where her staff would be.
-  const tool = () => (old ? hookPole(g, ...p.staff) : staff(g, ...p.staff));
+  // (Fists only: her staff's left against the bar's counter.)
+  const tool = () => (fists ? undefined : old ? hookPole(g, ...p.staff) : staff(g, ...p.staff));
   if (forward) {
     tool();
     drawArms();
@@ -650,6 +652,9 @@ function oldBack(g: Grid, hx: number, hy: number, x: number, top: number): RowSp
 
 /** The old scavenger, from behind, his hook in hand (Chapter 2, the first raid). */
 export const OLD_SCAV_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, scavengerBack(p, 'old')])) as Record<CarverPose, RowSprite>;
+
+/** The scavenger with her fists up, her staff left on the counter (the sparring at the bar). */
+export const SCAVENGER_FISTS_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, scavengerBack(p, 'fists')])) as Record<CarverPose, RowSprite>;
 
 /** The scavenger, from behind, her staff of blocks in hand (Chapter 2). */
 export const SCAVENGER_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, scavengerBack(p)])) as Record<CarverPose, RowSprite>;
@@ -764,18 +769,43 @@ function straggler(pose: Exclude<FoePose, 'down'>, look: StragglerLook): RowSpri
   };
 }
 
-/** Flat on their back in the dirt: the zealot's fall, in a straggler's colours. */
-function stragglerDown(skin: StragglerLook['skin']): RowSprite {
-  const down = zealotDown();
-  const g = down.rows.map((r) => [...r]);
+/**
+ * Flat on their back (a straggler, the son, a raider): the zealot's fall, drawn in their own colours, each
+ * part lit in daylight and outlined (designer: the son changed colour when he went down).
+ */
+function stragglerDown(look: StragglerLook): RowSprite {
+  const W = 76;
+  const H = 24;
+  const g = grid(W, H);
+  const floor = H - 2;
+  limb(g, [[46, floor - 4], [58, floor - 11], [68, floor - 2]], 3, '3');
+  limb(g, [[46, floor - 2], [62, floor - 1], [72, floor - 1]], 3, '3');
+  disc(g, 70, floor - 1, 1.6, 3, '6');
+  poly(g, [[15, floor - 11], [46, floor - 8], [48, floor + 1], [15, floor + 1]], '2');
+  limb(g, [[18, floor - 10], [12, floor - 16], [5, floor - 19]], 2.6, '2');
+  limb(g, [[30, floor - 7], [35, floor - 1], [41, floor]], 2.6, '2');
+  disc(g, 8, floor - 5, 6.5, 5.2, look.head === 'wrap' ? '5' : look.head === 'hair' ? '4' : '1');
+  lightDay(g, '3', ['P', 'D', 'p']);
+  lightDay(g, '2', ['M', 'L', 'm']);
+  lightDay(g, '1', ['K', 'K', 'k']);
+  lightDay(g, '4', ['H', 'H', 'b']);
+  lightDay(g, '5', ['W', 'W', 'w']);
+  lightDay(g, '6', ['b', 'b', 'b']);
+  // The face turned up, eyes shut; hands.
+  for (let x = 6; x <= 13; x++) for (let y = floor - 10; y <= floor - 6; y++) if (((x - 9.5) / 4) ** 2 + ((y - (floor - 8)) / 2.6) ** 2 <= 1) put(g, x, y, 'K');
+  put(g, 8, floor - 8, 'y');
+  put(g, 12, floor - 8, 'y');
+  disc(g, 5, floor - 19, 2.2, 2.2, 'K');
+  disc(g, 41, floor, 2.2, 1.5, 'K');
   outline(g);
-  const s = SKIN_OF[skin];
-  return { rows: rows(g), colours: { ...down.colours, ...s, o: SHADES.dim, m: SHADES.woodPale, e: SHADES.light, '#': SHADES.light, A: SHADES.light, S: SHADES.woodLight, c: SHADES.deep, X: SHADES.shadow } };
+  const [M, L, m] = look.coat ?? [SHADES.dim, SHADES.light, SHADES.woodPale];
+  const [Wc, w] = look.wrap ?? [SHADES.dim, SHADES.woodPale];
+  return { rows: rows(g), colours: { ...SKIN_OF[look.skin], P: SHADES.woodLight, D: SHADES.woodPale, p: SHADES.deep, M, L, m, W: Wc, w, b: SHADES.deep, H: SHADES.deep, y: SHADES.deep, X: SHADES.shadow } };
 }
 
 const stragglerPoses = (look: StragglerLook): Record<FoePose, RowSprite> => ({
   ...(Object.fromEntries(FOE_POSES.filter((p) => p !== 'down').map((p) => [p, straggler(p as Exclude<FoePose, 'down'>, look)])) as Record<Exclude<FoePose, 'down'>, RowSprite>),
-  down: stragglerDown(look.skin),
+  down: stragglerDown(look),
 });
 
 /** The thin straggler: quick, a rag round the head, a shard for a knife. */

@@ -105,12 +105,13 @@ It goes, low and quick through the spoil heaps, and doesn't look back. #leave:do
 You sit on the stairs to the deep for the rest of the day, with your satchel between your feet, until it's time. #time:evening
 ~ dog_with_you = false
 ~ first_light = false
+// The tally house fills up for tribute night (there when you arrive, not when you reach the counter).
+~ tribute_night = true
 -> END
 
 // --- Evening, the tally house ---
 
 === c2day3_tribute ===
-~ tribute_night = true
 The queue along the rail. Everyone looking at what everyone else brought.
 When it's your turn, you put it all on the scale. The lens. The box. The cable.
 The dish goes down, and stays down.

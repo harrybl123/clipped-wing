@@ -19,7 +19,7 @@ The compound's gate. You've walked past it every day of your life, and never onc
 The enforcer looks at you a long moment, the way you'd look at a find you were sure was fake.
 "So I hear. Four times the tribute, off ground that's been picked clean since before we were born." #speaker:enforcer
 "Funny, that." #speaker:enforcer
-The enforcer steps aside. Not far.
+The enforcer steps aside. Not far. #move:enforcer:96
 ~ c2day4 = "house"
 ~ objective = "See the boss"
 ~ objective_target = "compound-house:boss"
@@ -57,7 +57,9 @@ You take it.
     "No. He stays with me." #speaker:scavenger #dim:off
     The boss's smile doesn't move at all.
     "Of course. Family's family. The offer stands." #speaker:boss
-- "Tonight, at the bar. Come and meet the others." #speaker:boss
+- "Now. Tonight, when the tally's in, my circle drinks at the bar. You'll drink with us." #speaker:boss
+"Everyone should see you're one of mine. That's half of what keeps you safe." #speaker:boss
+"The bar. Tonight. Don't be late, and don't be early." #speaker:boss
 ~ c2day4 = "tell"
 ~ objective = "Tell your brother"
 ~ objective_target = "swap-yard:brother"
@@ -73,7 +75,8 @@ The watcher says nothing the whole time. But when you get up to go, he's looking
     "What about {dog_name}?" #speaker:brother
     "{dog_name} stays with me. Nobody there can ever know. Not ever. Not even if he's kind to you. Especially not then." #speaker:scavenger
     "I know. I know! I'm not stupid." #speaker:brother
-    He packs his whole collection into a sack, every last bolt, and you walk him to the gate, and the enforcer takes him in, and he doesn't look back.
+    "I'll get my things. I'll get my things right now!" #speaker:brother
+    He's off across the yard to pack his collection, every last bolt, before you can say anything else. He'll be at the compound's gate before you are. #leave:brother:20:110
     ~ brother_moved = true
 - else:
     "You said no? To the boss?" #speaker:brother
@@ -84,32 +87,52 @@ The watcher says nothing the whole time. But when you get up to go, he's looking
 }
 ~ c2day4 = "bar"
 ~ circle_night = true
-~ objective = "Meet the circle at the bar"
+~ objective = "Go to the bar"
 ~ objective_target = "bar:boss-bar"
-The day's going. Tonight, the bar. #time:evening #hide:brother
+The day's going. Tonight, the bar. #time:evening
 -> END
 
 // --- Evening, the bar ---
 
+// Walking in: the room goes quiet, and the boss waves you over.
+=== c2day4_bar_arrive ===
+~ bar_arrived = true
+The bar's full, and loud, and then, as you come in, it isn't.
+Every face turns your way, and turns away again. Over by the counter, the boss raises his cup.
+"There she is! Come, come. Over here." #speaker:boss
+~ objective = "Join the boss"
+-> END
+
 === c2day4_bar ===
 "Here she is. My lucky find." #speaker:boss
-The room's quieter than a bar should be. Everyone's looking without looking.
+"Barkeep. Whatever she wants." #speaker:boss
 "You know my watcher. You've met my enforcer." #speaker:boss
 "We've met." #speaker:enforcer
 "And this is my son." #speaker:boss
+He's your age. Good shirt, whole, not a patch on it. He looks at you the way you'd look at something on the bottom of your boot.
 "So this is her. The one with the luck." #speaker:boss_son
-"Four times the tribute, and nobody knows how. My father says it's a gift." #speaker:boss_son
-"I say let's see it." #speaker:boss_son
-He steps out into the cleared floor and puts his fists up, grinning. The bar goes quiet.
-+ [Fine]
-    "Fine." #speaker:scavenger
-    You put down your staff.
-+ [I'm not fighting you]
-    "I'm not fighting you." #speaker:scavenger
-    "Go on." #speaker:boss
-    The boss says it pleasantly, the way he says everything.
-    "Indulge him." #speaker:boss
-- "Fists only. First down." #speaker:boss_son #combat:son_spar:c2day4_after_spar
+"Four times the tribute. Out before first light every morning, back after, never with anybody." #speaker:boss_son
+"Where do you go?" #speaker:boss_son
++ [Wherever the finds are]
+    "Wherever the finds are." #speaker:scavenger
+    "That's not an answer." #speaker:boss_son
++ [Ask your father]
+    "Ask your father. He doesn't need to know." #speaker:scavenger
+    The boss laughs. The son doesn't.
+- "My father thinks you're lucky. I think you're a liar." #speaker:boss_son
+He puts a hand flat on your chest, and shoves. #shake
+You go back a step into somebody's table, and a cup goes over, and the whole bar's watching now.
++ [Shove him back]
+    You shove him back, harder. He grins like that's what he wanted. #shake
+    "There she is." #speaker:boss_son
++ [Look at the boss]
+    You look at the boss. The boss shrugs, and smiles, and drinks.
+    "Boys will be boys. Go on. Indulge him." #speaker:boss
+- "Fists. Put the stick down, unless you need it." #speaker:boss_son
+You lean your staff against the counter.
+"Not near the bottles!" #speaker:barkeep
+The crews pull their stools back to make a ring, and somebody's already taking bets. #move:crew-3:180 #move:drinker:420 #move:son-bar:270
+"First one down." #speaker:boss_son #combat:son_spar:c2day4_after_spar
 -> END
 
 === c2day4_after_spar ===
@@ -129,7 +152,7 @@ He steps out into the cleared floor and puts his fists up, grinning. The bar goe
 ~ circle_night = false
 ~ objective = "Go home"
 ~ objective_target = "shack:bed"
-On your way out, the watcher speaks to you for the first time. #time:night
+You pick up your staff from the counter. On your way out, the watcher speaks to you for the first time. #time:night
 "Where do you dig, when you're not where you say?" #speaker:watcher
 He doesn't wait for an answer.
 -> END

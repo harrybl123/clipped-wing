@@ -18,9 +18,9 @@ Three levels below the surface, darker and stranger the deeper you go, with more
 - **The surface:** domes and a tipped tower top in the dirt, stairs into the ground, a broken window (the way into level 1), and the mouth of a deep stairwell with a scavenger's rope tied to a stake beside it.
 - **The stairwell:** a smooth shaft down past every level. Its flights have fallen, leaving scars on the walls; you climb the fallen slabs. The rope hangs down the middle, knotted, and stops short of the bottom.
 - **Level 1:** the screen room (two dead screens, seats facing them, windows full of earth, a hanging ceiling panel, a chalk arrow to the door), the door that opens by itself, and the long room (empty shelves, a dead strip light with one cell lit, a crack along the ceiling, chalk tallies by the stairwell).
-- **Level 2:** the hall of boxes (walls of identical sealed boxes, a few prised open, two still lit; a stretch of floor that gives way and drops you to level 3), a room filled with earth to the ceiling with a crawl dug through it and shored with bent plates (crouch to get through), and beyond it someone's old camp (a blanket, a cup, a dead lamp, a broken digging tool, the walls covered in chalk).
+- **Level 2:** the hall of boxes (walls of identical sealed boxes, a few prised open, two still lit; the floor that gave way into level 3 was taken out (designer: clunky and awkward); level 3 is down the stairwell), a room filled with earth to the ceiling with a crawl dug through it and shored with bent plates (crouch to get through), and beyond it someone's old camp (a blanket, a cup, a dead lamp, a broken digging tool, the walls covered in chalk).
 - **Level 3:** a round tunnel with a rail and a carriage lying in it, and at the end the bright room: clean, no dirt at all, with a glass column full of cyan light, still on and humming.
-- **No falling debris.** **(designer)** The danger is the floor that gives way and the crawl.
+- **No falling debris.** **(designer)** The danger is the crawl, and what's camped down there.
 
 ## Key props (suggestion)
 - **Signature:** a doorway that still opens by itself when you come near, then stops halfway, juddering.

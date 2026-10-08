@@ -4,7 +4,7 @@ import { COMBATANTS, ENCOUNTERS, ITEMS, LESSONS, type Lesson, MOVES } from '../d
 import { getSession } from '../session';
 import { Battle, type Action, type BattleEvent, type Combatant, type Intent, type MoveDef, type Reaction } from '../systems/Combat';
 import type { Grade, Key, Qte, QteKind } from '../systems/qte';
-import { BEETLE_BATTLE, CARVER_BATTLE, DOG_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, OLD_SCAV_BATTLE, RAIDER_BATTLE, RAIDER_LEAD_BATTLE, SCAVENGER_BATTLE, SON_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
+import { BEETLE_BATTLE, CARVER_BATTLE, DOG_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, OLD_SCAV_BATTLE, RAIDER_BATTLE, RAIDER_LEAD_BATTLE, SCAVENGER_BATTLE, SCAVENGER_FISTS_BATTLE, SON_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
 import { CAST, DOG } from '../ui/borderlandFolk';
 import { GIRL, PROTAGONIST, SCAVENGER } from '../ui/characters';
 import { paintFar } from '../ui/paintOutdoor';
@@ -69,6 +69,7 @@ const LOOKS: Record<string, Look> = {
   zealot: { poses: ZEALOT_BATTLE, scale: 1 },
   lackey: { poses: LACKEY_BATTLE, scale: 1 },
   scavenger: { poses: SCAVENGER_BATTLE, scale: 2, cutIn: SCAVENGER.idle[0]! },
+  scavenger_fists: { poses: SCAVENGER_FISTS_BATTLE, scale: 2, cutIn: SCAVENGER.idle[0]! },
   straggler_thin: { poses: STRAGGLER_THIN_BATTLE, scale: 1 },
   straggler_big: { poses: STRAGGLER_BIG_BATTLE, scale: 1 },
   straggler_small: { poses: STRAGGLER_SMALL_BATTLE, scale: 1 },
