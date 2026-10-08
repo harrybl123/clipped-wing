@@ -3,7 +3,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import titleMusicUrl from '../assets/audio/light-through-the-window.mp3';
 import { AREAS } from '../data/areas';
 import { getSession } from '../session';
-import { beginChapter2 } from './ChapterScene';
+import { beginChapter2, devChapter2Day2 } from './ChapterScene';
 import { SHADES } from '../ui/pixelArt';
 import { PIXEL } from '../ui/pixelTextures';
 import { savedMuted } from '../ui/soundSetting';
@@ -47,7 +47,7 @@ export class PreloadScene extends Phaser.Scene {
     if (areaId && areaId in AREAS) this.scene.start('Area', { areaId });
     else if (params?.get('scene') === 'prologue') this.scene.start('Prologue');
     // ?chapter=2: Chapter 2's card, then its Day 1 on the picked fields.
-    else if (params?.get('chapter') === '2') beginChapter2(this);
+    else if (params?.get('chapter') === '2') params.get('day') === '2' ? devChapter2Day2(this) : beginChapter2(this);
     else if (params?.get('scene') === 'chapter') {
       // The chapter card after the prologue, then Day 1.
       getSession(this).calendar.jumpTo(1);

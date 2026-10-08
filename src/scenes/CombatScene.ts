@@ -4,7 +4,8 @@ import { COMBATANTS, ENCOUNTERS, ITEMS, LESSONS, type Lesson, MOVES } from '../d
 import { getSession } from '../session';
 import { Battle, type Action, type BattleEvent, type Combatant, type Intent, type MoveDef, type Reaction } from '../systems/Combat';
 import type { Grade, Key, Qte, QteKind } from '../systems/qte';
-import { BEETLE_BATTLE, CARVER_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, SCAVENGER_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_THIN_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
+import { BEETLE_BATTLE, CARVER_BATTLE, DOG_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, SCAVENGER_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
+import { DOG } from '../ui/borderlandFolk';
 import { GIRL, PROTAGONIST, SCAVENGER } from '../ui/characters';
 import { paintFar } from '../ui/paintOutdoor';
 import { QteRunner } from '../ui/QteRunner';
@@ -70,6 +71,8 @@ const LOOKS: Record<string, Look> = {
   scavenger: { poses: SCAVENGER_BATTLE, scale: 2, cutIn: SCAVENGER.idle[0]! },
   straggler_thin: { poses: STRAGGLER_THIN_BATTLE, scale: 1 },
   straggler_big: { poses: STRAGGLER_BIG_BATTLE, scale: 1 },
+  straggler_small: { poses: STRAGGLER_SMALL_BATTLE, scale: 1 },
+  dog: { poses: DOG_BATTLE, scale: 2, cutIn: DOG.idle[0]! },
 };
 
 interface View {
@@ -183,7 +186,7 @@ export class CombatScene extends Phaser.Scene {
     this.lessons = [...(encounter.teaches ?? []), ...(also && !getSession(this).story.getVariable(also.unless) ? also.lessons : [])];
     // The stage: where it's fought.
     const where = encounter.stage ?? 'market';
-    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : where === 'fields' ? paintFieldsStage() : paintStage());
+    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : where === 'fields' ? paintFieldsStage() : where === 'camp' ? paintCampStage() : paintStage());
     stage.setTexture(`combat-stage-${where}`);
     const party = this.battle.combatants.filter((c) => c.side === 'party');
     const enemies = this.battle.combatants.filter((c) => c.side === 'enemy');
@@ -662,6 +665,13 @@ export class CombatScene extends Phaser.Scene {
           playSound(this, 'scratch', 0.7);
           this.flashWhite(t, 160);
           this.popLabel('BLINDED', t, SHADES.woodPale, 18);
+          break;
+        }
+        case 'drained': {
+          const t = this.views.get(e.target)!;
+          playSound(this, 'scratch', 0.6);
+          this.popLabel(`-${e.amount} SP`, t, SHADES.cyan, 30);
+          this.refresh();
           break;
         }
         case 'braced': {
@@ -1650,5 +1660,47 @@ function paintFieldsStage() {
     if (lump - above > 0.08) return addLight(base, rgb(SHADES.light), 0.3);
     if (lump < 0.25) return addLight(base, rgb(SHADES.woodLight), 0.5);
     return base;
+  };
+}
+
+/**
+ * The stragglers' camp in the sunk town (Chapter 2, Day 2): a buried room of the old society seen down its
+ * length. Walls of dead panels and a ceiling of cracked tiles with earth pushing through, a dead screen
+ * catching a little cyan, the doorway at the back half full of dirt, and their fire in the middle of the
+ * floor throwing amber over everything.
+ */
+function paintCampStage() {
+  const deep = rgb(SHADES.deep);
+  const wood = rgb(SHADES.wood);
+  const amber = rgb(SHADES.amber);
+  const cyan = rgb(SHADES.cyanMid);
+  const vx = 260;
+  const FIRE = { x: 250, y: 176 };
+  return (x: number, y: number) => {
+    const glow = falloff(x, y, FIRE.x, FIRE.y - 10, 170, 90);
+    // The fire: embers, a lick of flame, stones round it.
+    const fd = Math.hypot((x - FIRE.x) / 14, (y - FIRE.y) / 4);
+    if (fd < 1 && y >= FIRE.y - 2) return noise(x * 3.1) > 0.5 ? SHADES.amber : SHADES.amberDeep;
+    if (Math.abs(x - FIRE.x) < 7 - (FIRE.y - y) / 3 && y < FIRE.y && y > FIRE.y - 18) return (FIRE.y - y) > 10 ? SHADES.white : SHADES.amber;
+    if (fd >= 1 && fd < 1.35 && y >= FIRE.y - 3) return SHADES.dim;
+    if (y >= HORIZON) {
+      // The floor: tiles in perspective, cracked, with earth in the cracks.
+      const depth = (y - HORIZON) / (H - HORIZON);
+      const u = (x - vx) / Math.max(0.05, depth);
+      const seam = Math.abs((((u / 34) % 1) + 1) % 1 - 0.5) > 0.46 || Math.abs(((1 / Math.max(0.06, depth)) * 1.5) % 1 - 0.5) > 0.47;
+      const base = addLight(addLight(deep, wood, 0.5), amber, glow * 0.5);
+      if (seam) return glow > 0.35 ? SHADES.woodPale : SHADES.shadow;
+      if (noise2(x / 9, y / 5) > 0.82) return addLight(base, rgb(SHADES.woodPale), 0.4); // earth come through
+      return base;
+    }
+    // The back wall: dead panels, seams, a doorway half full of dirt, a dead screen.
+    const ceiling = 40 + Math.abs(x - vx) * 0.12;
+    if (y < ceiling) return noise2(x / 5, y / 4) > 0.6 ? SHADES.woodLight : SHADES.shadow; // earth pushing through the tiles
+    if (x > 228 && x < 292 && y > HORIZON - 54) return y > HORIZON - 22 + Math.sin(x / 6) * 3 ? SHADES.woodLight : SHADES.shadow; // the doorway
+    if (x > 360 && x < 420 && y > 62 && y < 96) return (x + y) % 9 === 0 ? SHADES.cyan : addLight(rgb(SHADES.cyanDeep), cyan, 0.2 + noise(y) * 0.2); // a dead screen, a little light in it
+    const panel = (x % 44 < 1) || ((y - 40) % 30 < 1);
+    const base = addLight(addLight(deep, wood, 0.35), amber, glow * 0.55);
+    if (panel) return glow > 0.3 ? SHADES.woodPale : SHADES.shadow;
+    return noise(x / 11 + y / 37) > 0.85 ? addLight(base, rgb(SHADES.woodLight), 0.3) : base;
   };
 }

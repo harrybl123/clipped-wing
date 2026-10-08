@@ -222,6 +222,23 @@ VAR food = 0
 VAR tribute_night = false
 // You came up short at the tally house, and the boss let you off. Next week you owe double.
 VAR owe_double = false
+// Chapter 2, Day 2 (story/borderland/chapter2-day2.ink). Stages: wake, ask, deep, camp, home, hide, night, hollow, done.
+VAR c2day2 = ""
+// Sent deep into the sunk town (by the old scavenger); you heard the bark from below; you found the camp.
+VAR going_deep = false
+VAR heard_bark = false
+VAR camp_found = false
+// The stragglers at their camp, and the dog they've tied up there.
+VAR stragglers_camp = false
+VAR dog_tied = false
+// The fight at the camp: you won (the fight writes it).
+VAR camp_won = false
+// The medium choice (design doc): "keep", "sell" or "eat". Whatever you choose, you keep it (designer).
+VAR dog_choice = ""
+// Its name (designer): "Peggy", "Luna" or "Bear".
+VAR dog_name = ""
+// The dog's in the shack with you (before it goes under the floor).
+VAR dog_home = false
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
@@ -248,6 +265,7 @@ INCLUDE archive.ink
 INCLUDE seed-grove.ink
 INCLUDE ascension-gate.ink
 INCLUDE borderland/chapter2-day1.ink
+INCLUDE borderland/chapter2-day2.ink
 INCLUDE borderland/picked-fields.ink
 INCLUDE borderland/shack.ink
 INCLUDE borderland/swap-yard.ink

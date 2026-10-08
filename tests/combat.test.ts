@@ -724,6 +724,23 @@ describe('Chapter 2: the scavenger, the dog and the stragglers', () => {
     expect(MOVES.grit!.blinds).toBe(2);
   });
 
+  it('the camp fight: you and the dog against all three, and it writes camp_won', () => {
+    const e = ENCOUNTERS.stragglers_camp!;
+    expect(e.party).toEqual(['scavenger', 'dog']);
+    expect(e.enemies).toHaveLength(3);
+    expect(e.teaches).toBeUndefined();
+    expect(e.outcomes).toEqual({ won: { camp_won: true }, lost: { camp_won: false } });
+  });
+
+  it('Pinch takes SP off what it hits', () => {
+    const b = new Battle(ENCOUNTERS.stragglers_camp!, MOVES, COMBATANTS, ITEMS, rng(4));
+    const you = b.get('scavenger');
+    const before = you.sp;
+    const events = (b as unknown as { harm: (a: unknown, m: MoveDef, t: unknown, s: number, k: boolean) => BattleEvent[] }).harm(b.get('straggler_small'), MOVES.pinch!, you, 1, false);
+    expect(events.some((e) => e.type === 'drained')).toBe(true);
+    expect(you.sp).toBe(before - 3);
+  });
+
   it('Sniff shows every enemy\u2019s real move: no feints', () => {
     const tricky = { ...COMBATANTS, straggler_thin: { ...COMBATANTS.straggler_thin!, feint: 1 } };
     const fight = { ...ENCOUNTERS.stragglers!, party: ['dog'] };

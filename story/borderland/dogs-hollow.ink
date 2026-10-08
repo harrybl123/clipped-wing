@@ -18,5 +18,6 @@ From the rim you can see anyone coming a long way off. Nobody is.
 // --- People (draft) ---
 
 === dogs_hollow_dog ===
+{ c2day2 == "hollow": -> c2day2_hollow }
 The dog leans into your hand, tail going, and pushes its nose into your satchel looking for food.
 -> END

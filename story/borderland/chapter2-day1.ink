@@ -197,7 +197,8 @@ Your brother's asleep in the loft, his hand open on the blanket where the light 
 You put one bowl by his pillow. You eat half the other, and put the rest by his.
 Double, next week. Off the picked fields, where there's nothing left but bolts and dirt. Nobody brings double off the picked fields.
 ~ c2day1 = "done"
-~ objective = ""
-~ objective_target = ""
-You lie awake a long time, listening to him breathe. #wake:shack:382:184 #endday
+~ c2day2 = "wake"
+~ objective = "Talk to your brother"
+~ objective_target = "shack:brother"
+You lie awake a long time, listening to him breathe. #wake:shack:382:184 #endday:Day 2
 -> END

@@ -2,6 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import { heartwoodSolids } from '../tunnels';
 import * as P from './sunkTownProps';
 import type { AreaDefinition, Rect, Solid } from '../types';
+import { dog, straggler } from './people';
 
 // The sunk town (Chapter 2): half-buried ruins of the old society, rich but unstable. On the surface,
 // domes and a tipped tower top poking out of the dirt, and the mouth of a deep stairwell with a
@@ -119,8 +120,18 @@ export const sunkTown: AreaDefinition = {
     { type: 'crumble', x: GAP.x, y: GAP.y, width: GAP.width },
     // The column's light, rising (and humming).
     { type: 'motes', x: BRIGHT.x + BRIGHT.width / 2, top: BRIGHT.y, bottom: floor(BRIGHT) - 8, halfWidth: 6 },
+    // Chapter 2, Day 2: sent deep, you hear a dog bark from below as you arrive; then, coming out of the
+    // crawl, the stragglers' camp.
+    { type: 'trigger', x: 60, y: SURFACE, reach: 50, knot: 'c2day2_bark', showIf: 'going_deep', hideIf: 'heard_bark' },
+    { type: 'trigger', x: CAMP.x + CAMP.width - 6, y: floor(CAMP), reach: 8, knot: 'c2day2_camp', showIf: 'heard_bark', hideIf: 'camp_found' },
   ],
-  people: [],
+  people: [
+    // The stragglers round their fire, facing the dog they've tied up in the corner.
+    straggler('camp-thin', 0, 304, floor(CAMP), 'stragglers_camp', { flipX: true }),
+    straggler('camp-big', 1, 326, floor(CAMP), 'stragglers_camp', { flipX: true }),
+    straggler('camp-small', 2, 346, floor(CAMP), 'stragglers_camp', { flipX: true }),
+    dog(266, floor(CAMP), { id: 'dog-tied', showIf: 'dog_tied' }),
+  ],
 
   interactables: [
     // The surface.

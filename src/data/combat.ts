@@ -352,6 +352,19 @@ Object.assign(MOVES, {
     tell: { pose: 'windup', lines: ['The scrap is high over his head.'] },
     description: 'Brings the scrap down with all his weight. Guard, or Sweep him before it lands.',
   },
+  // The small one (Day 2): the one who cut your strap, still at it.
+  pelt: {
+    id: 'pelt', name: 'Pelt', target: 'enemy', power: 4, kind: 'strike', hits: 2,
+    qte: { kind: 'notes', outer: 180, perfect: 70, gap: 420, lanes: ['left', 'up', 'right'], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'cock', lines: ['The small one picks up a handful of scrap.', 'The small one weighs a bolt in one hand.'] },
+    description: 'Two bits of scrap, thrown.',
+  },
+  pinch: {
+    id: 'pinch', name: 'Pinch', target: 'enemy', power: 3, kind: 'grab', drains: 3,
+    qte: { kind: 'key', time: 700, quick: 260, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    tell: { pose: 'reach', lines: ['Quick fingers, reaching for your things.', 'The small one darts in close.'] },
+    description: 'Into your things while you\u2019re busy: takes 3 SP.',
+  },
 } satisfies Record<string, MoveDef>);
 
 /** The scavenger, Chapter 2's lead. */
@@ -368,15 +381,15 @@ COMBATANTS.dog = {
 
 /** The thin straggler: fast (quicker than you) and dirty, and now and then a feint. (Designer: the first fight was a little easy.) */
 COMBATANTS.straggler_thin = {
-  id: 'straggler_thin', name: 'The thin one', sprite: 'straggler_thin', hp: 34, attack: 9, defence: 7, speed: 15,
+  id: 'straggler_thin', name: 'The thin one', sprite: 'straggler_thin', hp: 30, attack: 8, defence: 7, speed: 15,
   moves: ['shank', 'grit', 'snatch'], weights: [3, 1.5, 2],
-  weak: ['shove'], poise: 2, feint: 0.15,
+  weak: ['shove'], poise: 1, feint: 0.1,
   ai: { opening: ['shank', 'grit'], maxRepeat: 2, recent: 0.5, when: { hurt: { snatch: 2 }, foeGuarding: { grit: 2.5 } } },
 };
 
 /** The big straggler: slow, heavy, winds up. */
 COMBATANTS.straggler_big = {
-  id: 'straggler_big', name: 'The big one', sprite: 'straggler_big', hp: 54, attack: 11, defence: 10, speed: 8,
+  id: 'straggler_big', name: 'The big one', sprite: 'straggler_big', hp: 48, attack: 10, defence: 9, speed: 8,
   moves: ['club', 'heave'], weights: [3, 1.2],
   weak: ['shove'], poise: 2, feint: 0,
   ai: { opening: ['club', 'heave'], maxRepeat: 2, recent: 0.6, when: { hurt: { heave: 2 }, foeHurt: { heave: 1.8 } } },
@@ -393,9 +406,36 @@ ENCOUNTERS.stragglers = {
   party: ['scavenger'],
   enemies: ['straggler_thin', 'straggler_big'],
   stage: 'fields',
-  timing: { lunge: 900, ease: 1.1 },
+  // (Designer: first too easy, then a little too tough: between the two.)
+  timing: { lunge: 950, ease: 1.2 },
   outcomes: {
     won: { stragglers_won: true },
     lost: { stragglers_won: false },
+  },
+};
+
+/** The small straggler (Day 2): the one who cut your strap. Quick, weak, a thief. */
+COMBATANTS.straggler_small = {
+  id: 'straggler_small', name: 'The small one', sprite: 'straggler_small', hp: 22, attack: 7, defence: 6, speed: 16,
+  moves: ['pelt', 'pinch'], weights: [2, 2],
+  weak: ['pierce'], poise: 1, feint: 0,
+  ai: { opening: ['pinch', 'pelt'], maxRepeat: 2, recent: 0.5, when: { hurt: { pelt: 2 } } },
+};
+
+/**
+ * Chapter 2, Day 2, the sunk town: the same three stragglers, camped deep down, with a dog they mean to eat
+ * (designer: fighting to save the dog). You and the dog, its first fight. Writes `camp_won`; either way the
+ * dog comes with you (the story's).
+ */
+ENCOUNTERS.stragglers_camp = {
+  id: 'stragglers_camp',
+  name: 'The camp',
+  party: ['scavenger', 'dog'],
+  enemies: ['straggler_small', 'straggler_big', 'straggler_thin'],
+  stage: 'camp',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: {
+    won: { camp_won: true },
+    lost: { camp_won: false },
   },
 };

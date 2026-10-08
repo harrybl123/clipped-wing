@@ -68,6 +68,8 @@ export interface MoveDef {
   braces?: boolean;
   /** Every enemy's tell this round shows what it will really do: no feints (the dog's Sniff). */
   reveals?: boolean;
+  /** Takes this much SP off what it hits (the small straggler's Pinch: into your things). */
+  drains?: number;
 }
 
 export interface ItemDef {
@@ -147,7 +149,7 @@ export interface EncounterDef {
    */
   timing?: { lunge?: number; ease?: number };
   /** Where it's fought (the scene paints a stage for each): the market by default. */
-  stage?: 'market' | 'rot' | 'fields';
+  stage?: 'market' | 'rot' | 'fields' | 'camp';
   /** The fight teaches itself: a short explanation the first time each of these comes up (`LESSONS`). */
   teaches?: string[];
   /**
@@ -233,6 +235,7 @@ export type BattleEvent =
   | { type: 'switch'; from: string; to: string }
   | { type: 'weakened'; target: string }
   | { type: 'blinded'; target: string }
+  | { type: 'drained'; target: string; amount: number; sp: number }
   | { type: 'braced'; actor: string }
   | { type: 'revealed'; actor: string }
   | { type: 'qte'; actor: string; grade: Grade }
@@ -673,6 +676,11 @@ export class Battle {
       target.exposed = move.exposes.turns;
       target.exposedMult = move.exposes.mult;
       events.push({ type: 'weakened', target: target.id });
+    }
+    if (move.drains && actor.side !== target.side && target.sp > 0) {
+      const amount = Math.min(target.sp, move.drains);
+      target.sp -= amount;
+      events.push({ type: 'drained', target: target.id, amount, sp: target.sp });
     }
     if (move.blinds && actor.side !== target.side) {
       target.blinded = move.blinds;

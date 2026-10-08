@@ -32,6 +32,14 @@ export function beginChapter2(scene: Phaser.Scene): void {
   scene.scene.start('Chapter', { number: 'Chapter 2', title: 'On the Scent', next } satisfies ChapterSceneData);
 }
 
+/** Dev: straight to the morning of Chapter 2's Day 2, as if Day 1 had been played (`?chapter=2&day=2`). */
+export function devChapter2Day2(scene: Phaser.Scene): void {
+  const session = getSession(scene);
+  for (const [name, value] of [['chapter', 2], ['c2day1', 'done'], ['c2day2', 'wake'], ['owe_double', true], ['traded_light', true], ['food', 0], ['objective', 'Talk to your brother'], ['objective_target', 'shack:brother']] as const) session.story.setVariable(name, value);
+  session.calendar.jumpTo(2);
+  scene.scene.start('Area', { areaId: 'shack', start: { x: 382, y: 184 }, card: 'Day 2' } satisfies AreaSceneData);
+}
+
 /** How long the card holds before fading out (ms). */
 const HOLD = 2800;
 

@@ -1,6 +1,6 @@
 # Sequence plan: Chapter 2, Part 1: Scraping by (Days 1–2)
 
-Day 1 built 2026-10-07 (`story/borderland/chapter2-day1.ink`; dev `?chapter=2`); Day 2 still to build. **(doc)** = [the design doc](../../chapter-2-design.md); **(designer)** = decided in conversation; **(suggestion)** = Claude's proposal. Part of [the chapter's structure](../../chapter-2-story.md).
+Day 1 built 2026-10-07 (`story/borderland/chapter2-day1.ink`; dev `?chapter=2`); Day 2 built 2026-10-08 (`story/borderland/chapter2-day2.ink`; dev `?chapter=2&day=2`). **(doc)** = [the design doc](../../chapter-2-design.md); **(designer)** = decided in conversation; **(suggestion)** = Claude's proposal. Part of [the chapter's structure](../../chapter-2-story.md).
 
 ## What we have so far
 - A nobody on the picked fields, feeding your brother. Tribute night shows how the town runs. You find the dog. **(doc)**
@@ -23,15 +23,17 @@ Opens with her scavenging, not waking at home (designer: Act 1 did that). Stragg
 | Evening | The tally house | **Tribute night.** You're short; the enforcer grabs you; the boss lets you off, kind and frightening at once: "Next week, you bring double" (`owe_double`). The watcher never takes his eyes off you **(suggestion: it's her who's short, not someone else, since she's lost everything)** | "Pay your tribute" |
 | Night | Your shack | His bowl by his pillow. Nobody brings double off the picked fields; the sunk town | "Go home" |
 
-### Day 2: the dog
+### Day 2: the dog (built)
 
 | Time | Where | What happens | Objective shown |
 | --- | --- | --- | --- |
-| Morning | Your shack, the scrap stacks | Your brother begs to come; you say no. The old scavenger warns you off the sunk town: rich, but people don't come back | "Go to the sunk town" |
-| Afternoon | The sunk town | Down through its rooms (already built: the dome, the stairwell, the screen room, the long room, the box hall, the camp, the bright room). At the bottom, stragglers have something cornered: **a dog**, which you've only heard of, and which they mean to eat. You fight them; partway through, the dog joins in (its first fight, as a guest) | "Go deeper" |
-| Afternoon | The sunk town, on the way out | **The dog choice (medium):** keep it, sell it or eat it, alone with it, hungry. Eat: you can't; you're not a monster. Sell: you take it to the swap yard, but it slips its rope and is waiting at your door when you get home (or your brother finds it first and won't let it go). Every way, you keep it | — |
-| Evening | Your shack | **Home to your brother.** He's overjoyed. You hide it under the floor and make him promise not to tell anyone (he can't keep a secret). Skip the tally house tonight, or go and hide what you're carrying | "Hide the dog" |
-| Night | Your shack → the dog's hollow | The dog won't settle; it gets out and you follow it to a hollow on the outskirts, its old den (`found_dog`: the hollow appears on the map). There it digs something up: the first sign of what it can do | "Follow the dog" |
+| Morning | Your shack | Your brother: "double, double" in your sleep; ask the old man at the stacks. He wants to come; no | "Ask the old scavenger" |
+| Morning | The scrap stacks | The old scavenger: nothing on the fields since before you were born; the sunk town, past where the rope stops; nobody goes deep twice; smoke coming up the stairwell, nights | "Go deep into the sunk town" |
+| Afternoon | The sunk town | At the top, a dog barking far below (there aren't any dogs). No marker from there: the bark is your guide **(suggestion)**. Through the crawl: **the stragglers' camp**, the same three, with a dog wired to a pipe, the fire going. You step in; the dog bites through the wire | — |
+| Afternoon | The sunk town | **The fight: you and the dog** (designer: fight to save it) against all three. Win: they run and leave their pack (the wire and the ring back). Lose: the dog has the big one by the leg and you both run | — |
+| Afternoon | The sunk town | **The dog choice (medium):** keep it; sell it (it slips the wire on the way, and is sitting in the shack with your brother when you get home); eat it (you pick up the knife, and put it down: you're not a monster, designer) | — |
+| Evening | Your shack | **Home to your brother.** "Is that a real dog?" He names it with you: **Peggy, Luna or Bear** (designer). Nobody can know; he promises (he'll tell). Hide it under the floor | "Hide {name} under the floor" |
+| Night | Your shack → the dog's hollow | It gets out; prints across the fields (`found_dog`: the hollow appears). Its old den; it digs up a pale disc with a light in it, in the time it takes you to catch up | "Follow {name}" |
 
 ### The gap: weeks later
 Training the dog in the hollow: bury a find, the dog finds it. A short montage you play, then a card ("Weeks later"), into Part 2. **(suggestion)**
@@ -54,5 +56,6 @@ Training the dog in the hollow: bury a find, the dog finds it. A short montage y
 ## Fighters (draft numbers, to playtest)
 - **The scavenger:** Jab (basic); Sweep (takes their legs: off balance, interrupts a wind-up); Rattle (3 blows, building); **Brace** (4 SP: the next blow on her, a good dodge parries it and she hits back; designer: it was a little OP). She can parry from the start.
 - **The dog** (Day 2): Bite (basic); **Sniff** (shows every enemy's real move this round: no feints); Worry (bites and hangs on: 2 hits).
+- **The small straggler** (Day 2, the one who cut your strap): Pelt (two bits of thrown scrap); **Pinch** (into your things: takes 3 SP).
 - **The thin straggler:** Shank; **Grit** (dirt in your eyes: for 2 rounds, dodging is harder); Snatch (grabs for your satchel).
 - **The big straggler:** Club; Heave, then Crush (a wind-up: guard, or Sweep him).

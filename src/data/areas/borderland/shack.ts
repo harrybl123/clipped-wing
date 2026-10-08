@@ -2,7 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import { asleep, CAST_LOOKS } from '../../../ui/borderlandFolk';
 import * as P from './shackProps';
 import type { AreaDefinition } from '../types';
-import { cast } from './people';
+import { cast, dog } from './people';
 
 // Your shack (Chapter 2): home with your brother, on the settlement's outer edge. Small, cramped,
 // kept tidy by someone who's trying, built from whatever could be carried home. Ground floor: the door
@@ -84,6 +84,8 @@ export const shack: AreaDefinition = {
     cast('brother', 214, FLOOR, { knot: 'shack_brother', when: ['morning', 'evening'], flipX: true }),
     // Asleep in his bed at night, under the blanket, one arm hanging off the edge (designer: he floated
     // beside it). Laid over the bed: its left edge on the bed's (x is the middle, the bottom its bottom).
+    // Chapter 2, Day 2: the dog, home, before it goes under the floor.
+    dog(186, FLOOR, { id: 'dog-home', showIf: 'dog_home' }),
     { id: 'brother-asleep', sprite: BROTHER_ASLEEP[0]!, idleFrames: BROTHER_ASLEEP, x: 238 + 15, y: LOFT, knot: 'shack_brother_asleep', label: 'Look', when: ['night'] },
   ],
 
