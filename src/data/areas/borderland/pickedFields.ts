@@ -95,6 +95,8 @@ export const pickedFields: AreaDefinition = {
   features: [
     // Chapter 2, Day 2: taking the dog to sell, it slips the wire halfway across.
     { type: 'trigger', x: 740, y: FLOOR, reach: 40, knot: 'c2day2_slips', showIf: 'dog_on_wire' },
+    // Night 2: out looking for the dog, a bark from somewhere you've never been.
+    { type: 'trigger', x: 140, y: FLOOR, reach: 60, knot: 'c2day2_far_bark', showIf: 'searching' },
     // Chapter 2, Day 1: dig anywhere (designer: search it yourself, nothing signposted). Three finds, unmarked
     // but for a glint in the dirt now and then: by a spoil heap, under the bent mast, out past the hull.
     {

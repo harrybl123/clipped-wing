@@ -1546,6 +1546,10 @@ export class AreaScene extends Phaser.Scene {
         case 'ending':
           if (args[0]) this.afterClose.push(() => this.leaveFor('Ending', { ending: args[0]! } satisfies EndingSceneData, 1500));
           break;
+        case 'sleep':
+          // #sleep:on: the screen goes black (you fall asleep; the lines go on in the dark); #sleep:off: you wake.
+          this.tweens.add({ targets: this.dimmer, alpha: args[0] === 'off' ? 0 : 1, duration: args[0] === 'off' ? 500 : 1800 });
+          break;
         case 'dim':
           this.tweens.add({ targets: this.dimmer, alpha: args[0] === 'off' ? 0 : 0.75, duration: 900 });
           // The big choices: a sting, then your heartbeat until it's made.

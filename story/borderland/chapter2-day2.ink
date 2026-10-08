@@ -45,7 +45,10 @@ He laughs, and it turns into a cough, and he spits.
 He goes back to his sorting, and doesn't look at you again.
 ~ c2day2 = "deep"
 ~ going_deep = true
+// The stragglers are down there already, round their fire, the dog wired up (designer: they should be there, not appear).
 ~ camp_fire = true
+~ stragglers_camp = true
+~ dog_tied = true
 ~ objective = "Go deep into the sunk town"
 ~ objective_target = "picked-fields:to-sunk-town"
 -> END
@@ -63,8 +66,6 @@ There aren't any dogs. Everybody knows that.
 
 === c2day2_camp ===
 ~ camp_found = true
-~ stragglers_camp = true
-~ dog_tied = true
 ~ objective = ""
 Firelight. Somebody's camp, in an old room, with smoke going up a crack in the ceiling.
 And three people round the fire you'd know anywhere. The thin one. The big one. The small one, still wearing your strap round his wrist.
@@ -77,7 +78,7 @@ The big one has a knife out. The fire's already going. #move:camp-big:300
     You don't think about it.
 + [Back away]
     You get as far as one step back. The dog's eyes find yours over their shoulders, and that's that. #bark:dog-tied:Whine...:whimper
-- "Leave it alone." #speaker:scavenger #move:camp-big:326
+- "Leave it alone." #speaker:scavenger #move:camp-big:334
 They turn round. The thin one starts to grin.
 "Her again." #speaker:straggler_thin
 Behind them, the dog throws itself against the wire. #bark:dog-tied:GRRRR:growl #shake
@@ -171,7 +172,8 @@ He puts out a hand, slow, and it sniffs his fingers and then licks them, and he 
     ~ dog_name = "Luna"
 + [Bear]
     ~ dog_name = "Bear"
-- "{dog_name}." #speaker:scavenger
+- ~ dog_owned = true
+"{dog_name}." #speaker:scavenger
 "{dog_name}!" #speaker:brother
 The dog's ears go up, as if it's always been called that. #bark:dog-home:WOOF!:bark
 "Shh! Listen to me. Nobody can know. Not the kid, not anybody. If anyone finds out, they'll take it, or they'll eat it." #speaker:scavenger
@@ -200,14 +202,47 @@ Your brother sits by the panel until he falls asleep there, and you carry him up
 // --- Night ---
 
 === c2day2_night ===
-You lie in the dark and listen to the shack creak.
-Something scratches. Then nothing. Then the door, moving on its wire. #sound:creak
-You're down the ladder before you're awake. The panel's pushed aside, and the hollow's empty, and the door's open a hand's width onto the dark.
-Prints in the dust, going out across the fields.
+You lie in the dark and listen to the shack creak, and to your brother breathing, and under the floor, something else breathing.
+Sleep comes slowly, and then all at once. #sleep:on
+...
+A rustling. Down below. #sound:scratch
+Claws on metal. A scrape. #sound:scratch
+Then the door, moving on its wire. #sound:creak
+Then nothing at all.
+You sit up. #sleep:off #shake
+The panel's pushed aside. You're down the ladder before you're properly awake.
+The hollow under the floor is empty. The door's open a hand's width onto the dark.
+"{dog_name}?" #speaker:scavenger
+Nothing.
+"{dog_name}!" #speaker:scavenger
+"What? What is it?" #speaker:brother
+He's at the top of the ladder, and he sees the open panel, and his face goes. #shake
+"Where's {dog_name}? Did someone take {dog_name}? Did someone come in?" #speaker:brother
++ [Stay here]
+    "Stay here. Don't open the door to anyone. I'll find {dog_name}." #speaker:scavenger
+    "Promise." #speaker:brother
+    "I promise." #speaker:scavenger
++ [Go back to bed]
+    "Go back to bed. {dog_name} just went out. Dogs do that." #speaker:scavenger
+    "How do you know what dogs do?" #speaker:brother
+    You don't. You go anyway.
+- Outside, the settlement is dark and quiet, and if anyone else saw a dog go past tonight, you're finished.
+There are prints in the dust, going out towards the fields.
+~ c2day2 = "search"
+~ searching = true
+~ objective = "Find " + dog_name
+~ objective_target = "picked-fields:to-swap-yard"
+-> END
+
+// On the fields at night, looking: a bark, far off, and the way to its hollow.
+=== c2day2_far_bark ===
+~ searching = false
 ~ found_dog = true
 ~ c2day2 = "hollow"
-~ objective = "Follow " + dog_name
 ~ objective_target = "dogs-hollow:dog"
+You stop, and hold your breath.
+Out past the holes, from somewhere you've never been, a bark. Just one. #sound:bark
+There's a way down there, between the spoil heaps. You'd never have seen it if you weren't looking.
 -> END
 
 // --- The dog's hollow ---

@@ -775,7 +775,7 @@ function dogBack(pose: CarverPose): RowSprite {
   for (let y = top + 10; y < H - 16; y += 3) put(g, cx + lean * ((H - y) / H), y, 'b');
   for (let x = cx - 4; x <= cx + 4; x++) put(g, x, H - 4, 'p');
   outline(g);
-  return { rows: rows(g), colours: { B: SHADES.woodPale, P: SHADES.dim, b: SHADES.woodLight, p: SHADES.light, X: SHADES.shadow } };
+  return { rows: rows(g), colours: { B: SHADES.light, P: SHADES.white, b: SHADES.dim, p: SHADES.white, X: SHADES.shadow } };
 }
 
 /** The dog, fighting beside you. */

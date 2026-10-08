@@ -2,6 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import { asleep, CAST_LOOKS } from '../../../ui/borderlandFolk';
 import * as P from './shackProps';
 import type { AreaDefinition } from '../types';
+import type { RowSprite } from '../../../ui/sprites';
 import { cast, dog } from './people';
 
 // Your shack (Chapter 2): home with your brother, on the settlement's outer edge. Small, cramped,
@@ -14,6 +15,17 @@ import { cast, dog } from './people';
 // Your brother and the dog come with the cast.
 
 const FLOOR = 236;
+/** The dog's bed, once it's yours (designer: the house should change): a nest of sacking by the floor panel, a chewed rag, a bowl cut from a casing. */
+const DOG_BED: RowSprite = {
+  rows: [
+    '..ssssssssss......',
+    '.sSSSSSSSSSSs...bb',
+    'sSSrrSSSSSSSSs.bBBb',
+    'sSSSSSSSSSSSSs.bbbb',
+  ].map((r) => r.padEnd(19, '.')),
+  colours: { s: S.woodLight, S: S.dim, r: S.cyanMid, b: S.woodPale, B: S.deep },
+};
+
 /** Your brother asleep, under a blanket like the one on his bed. */
 const BROTHER_ASLEEP = asleep(CAST_LOOKS.brother, S.amber);
 const LOFT = 184;
@@ -88,6 +100,8 @@ export const shack: AreaDefinition = {
     cast('brother', 214, FLOOR, { knot: 'shack_brother', when: ['morning', 'evening'], flipX: true }),
     // Asleep in his bed at night, under the blanket, one arm hanging off the edge (designer: he floated
     // beside it). Laid over the bed: its left edge on the bed's (x is the middle, the bottom its bottom).
+    // The dog's bed by the floor panel, once it's yours (made a person so the story can bring it in).
+    { id: 'dog-bed', sprite: DOG_BED, x: 300, y: FLOOR, showIf: 'dog_owned', knot: 'shack_dog_bed', label: 'Look' },
     // Chapter 2, Day 2: the dog, home, nosing about the place before it goes under the floor.
     dog(186, FLOOR, { id: 'dog-home', showIf: 'dog_home', wander: { from: 130, to: 300 } }),
     { id: 'brother-asleep', sprite: BROTHER_ASLEEP[0]!, idleFrames: BROTHER_ASLEEP, x: 238 + 15, y: LOFT, knot: 'shack_brother_asleep', label: 'Look', when: ['night'] },

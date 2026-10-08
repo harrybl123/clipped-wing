@@ -123,7 +123,8 @@ export const sunkTown: AreaDefinition = {
     // Chapter 2, Day 2: sent deep, you hear a dog bark from below as you arrive; then, coming out of the
     // crawl, the stragglers' camp.
     { type: 'trigger', x: 60, y: SURFACE, reach: 50, knot: 'c2day2_bark', showIf: 'going_deep', hideIf: 'heard_bark' },
-    { type: 'trigger', x: CAMP.x + CAMP.width - 6, y: floor(CAMP), reach: 8, knot: 'c2day2_camp', showIf: 'heard_bark', hideIf: 'camp_found' },
+    // (Clear of the crawl's low ceiling, so you stand up to face them: designer.)
+    { type: 'trigger', x: CAMP.x + CAMP.width - 20, y: floor(CAMP), reach: 4, knot: 'c2day2_camp', showIf: 'heard_bark', hideIf: 'camp_found' },
     // Their fire, and its smoke going up a crack in the ceiling.
     { type: 'fire', x: 318, y: floor(CAMP), showIf: 'camp_fire' },
     { type: 'smoke', x: 318, y: floor(CAMP) - 12, top: CAMP.y, showIf: 'camp_fire' },
@@ -131,9 +132,9 @@ export const sunkTown: AreaDefinition = {
   people: [
     // The stragglers round their fire, facing the dog they've tied up in the corner.
     // (Round the fire: the thin one this side of it, the big one and the small one beyond.)
-    straggler('camp-thin', 0, 296, floor(CAMP), 'stragglers_camp', { flipX: true }),
-    straggler('camp-big', 1, 338, floor(CAMP), 'stragglers_camp', { flipX: true }),
-    straggler('camp-small', 2, 356, floor(CAMP), 'stragglers_camp', { flipX: true }),
+    straggler('camp-thin', 0, 294, floor(CAMP), 'stragglers_camp', { flipX: true }),
+    straggler('camp-big', 1, 334, floor(CAMP), 'stragglers_camp', { flipX: true }),
+    straggler('camp-small', 2, 348, floor(CAMP), 'stragglers_camp', { flipX: true }),
     dog(266, floor(CAMP), { id: 'dog-tied', showIf: 'dog_tied' }),
     dogFollowing(40, SURFACE),
   ],

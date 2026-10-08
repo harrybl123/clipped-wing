@@ -235,21 +235,29 @@ export function folkFrames(look: FolkLook): { idle: RowSprite[]; walk: RowSprite
  * The dog (Chapter 2): a scruffy, rangy mutt, dusty brown with a pale chest and muzzle and one torn ear,
  * found out on the waste. Your secret, and your brother adores it. Facing right; tail up and wagging.
  */
+/**
+ * The dog: a scruffy, mid-sized mongrel, pale grey-brown with a darker saddle, ears and muzzle, and a dark
+ * outline (designer: it was hard to make out in dark rooms). 20 x 13, facing right.
+ */
 function dog(tailUp: boolean, step: number): RowSprite {
   const rows = [
-    '..........b.b...',
-    '..........bbbb..',
-    't........bbbbeo.',
-    (tailUp ? '.t' : 't.') + '.......bbbmmm.',
-    '.tbbbbbbbbbbmmn.',
-    '..bbbbbbbbbbm...',
-    '..bBBBBBBBpp....',
-    '..bBBBBBBBpp....',
-    step === 0 ? '..b.b.....b.b...' : '...b.b...b.b....',
-    step === 0 ? '..b.b.....b.b...' : '...b.b...b.b....',
-    step === 0 ? '..d.d.....d.d...' : '...d.d...d.d....',
+    '..............xx.xx.',
+    '.............xEExEEx',
+    (tailUp ? 'xx' : '..') + '...........xffffex.',
+    (tailUp ? 'xTx' : '.x.') + '.........xffffoMx',
+    (tailUp ? '.xTx' : 'xTx.') + '.xxxxxxxxffffMMNx',
+    '..xTxxssssssssffffxx',
+    '..xffSSSSSSSffffffx.',
+    '..xffffffffffffffx..',
+    '..xfpppppppppppfx...',
+    ...(step === 0
+      ? ['..xffx.......xffx...', '..xfx.........xfx...', '..xdx.........xdx...', '..xx...........xx...']
+      : ['...xffx.....xffx....', '...xfx.......xfx....', '...xdx.......xdx....', '...xx........xx.....']),
   ];
-  return { rows: rows.map((r) => r.padEnd(16, '.').slice(0, 16)), colours: { b: SHADES.woodPale, B: SHADES.woodLight, t: SHADES.woodPale, e: SHADES.shadow, o: SHADES.shadow, m: SHADES.dim, n: SHADES.shadow, p: SHADES.light, d: SHADES.deep } };
+  return {
+    rows: rows.map((r) => r.padEnd(20, '.').slice(0, 20)),
+    colours: { x: SHADES.shadow, f: SHADES.light, s: SHADES.dim, S: SHADES.woodPale, T: SHADES.dim, E: SHADES.woodPale, e: SHADES.light, o: SHADES.shadow, M: SHADES.dim, N: SHADES.shadow, p: SHADES.white, d: SHADES.woodPale },
+  };
 }
 
 export const DOG = { idle: [dog(true, 0), dog(false, 0)], walk: [dog(true, 0), dog(true, 1)] };

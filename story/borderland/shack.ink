@@ -55,6 +55,10 @@ Not yet.
     "Maybe means yes!" #speaker:brother
 - -> END
 
+=== shack_dog_bed ===
+{dog_name}'s bed: sacking, a rag your brother gave up to it, a bowl cut from a casing. Pushed up close to the loose panel, so it can be down the hole the moment anyone knocks.
+-> END
+
 === shack_brother_asleep ===
 { traded_light: Your brother, asleep with one arm hanging off the bed, his hand open where his light used to be. | Your brother, asleep with one arm hanging off the bed, holding the tin thing he found. }
 -> END

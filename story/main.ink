@@ -222,7 +222,7 @@ VAR food = 0
 VAR tribute_night = false
 // You came up short at the tally house, and the boss let you off. Next week you owe double.
 VAR owe_double = false
-// Chapter 2, Day 2 (story/borderland/chapter2-day2.ink). Stages: wake, ask, deep, camp, home, hide, night, hollow, done.
+// Chapter 2, Day 2 (story/borderland/chapter2-day2.ink). Stages: wake, ask, deep, home, hide, night, search, hollow, done.
 VAR c2day2 = ""
 // Sent deep into the sunk town (by the old scavenger); you heard the bark from below; you found the camp.
 VAR going_deep = false
@@ -237,14 +237,17 @@ VAR camp_won = false
 VAR dog_choice = ""
 // Its name (designer): "Peggy", "Luna" or "Bear".
 VAR dog_name = ""
-// The dog's in the shack with you (before it goes under the floor).
+// The dog's in the shack with you (before it goes under the floor); it's yours (named: its bed's in the shack from then on).
 VAR dog_home = false
+VAR dog_owned = false
 // The stragglers' fire in the camp (lit from when you're sent deep).
 VAR camp_fire = false
 // The dog walking with you (from the camp, home); on a wire to be sold, until it slips it; on your way home.
 VAR dog_with_you = false
 VAR dog_on_wire = false
 VAR going_home = false
+// Night 2: out looking for the dog, before you hear it bark on the fields.
+VAR searching = false
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
