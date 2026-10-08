@@ -21,7 +21,7 @@ There's never enough to go round. Your brother hasn't eaten since yesterday morn
 // turn them up. The third brings the stragglers.
 
 === c2day1_dig_1 ===
-At the edge of somebody's spoil heap, where the sieves miss things: a coil of wire, fine as hair, still bright inside. It'll weigh something.
+At the edge of somebody's spoil heap, where the sieves miss things: a coil of wire, fine as hair, still bright inside. Somebody will pay for that.
 ~ dug_1 = true
 -> c2day1_found
 
@@ -152,13 +152,13 @@ The whole settlement's here, in a queue along the rail, everyone looking at what
 When it's your turn the tallyman doesn't look up.
 "Name." #speaker:tallyman
 You give it. He finds your sign on the slate.
-"On the scale." #speaker:tallyman
+"On the counter." #speaker:tallyman
 + [I was robbed]
     "I had finds. Good ones. Stragglers took them, out on the fields." #speaker:scavenger
-    "The scale doesn't weigh stories." #speaker:tallyman
-+ [Put the food on the scale]
-    You set the bowls on the dish. It barely moves.
-    "Food isn't finds. Take it off." #speaker:tallyman
+    "Can't price a story." #speaker:tallyman
++ [Put the food on the counter]
+    You set the bowls down in front of him. He looks at them, then at you.
+    "Root and slop. Food isn't finds. Take it off." #speaker:tallyman
 + [Say nothing]
     You put your empty hands on the counter.
 - "Short." #speaker:tallyman

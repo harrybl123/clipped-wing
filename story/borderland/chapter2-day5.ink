@@ -9,7 +9,7 @@
 
 === c2day5_start ===
 ~ town_day = true
-~ objective = "Spend the day in town (2 things)"
+~ objective = "Spend the day in town (2 of 3)"
 -> c2day5_targets
 
 === c2day5_targets ===
@@ -31,6 +31,8 @@
     The swap yard, first thing. It's different today.
     People step out of your way. The food trader nods to you, and you've never seen her nod to anyone.
     You're one of the circle. Everybody knows. You've got a day, and nothing you have to do with it, until board night.
+    The gambler's been asking for you down at the den. The madam's sent word she'd like a look at you. And {brother_moved: your brother's at the compound, and you haven't seen him since he moved in.|your brother will be home, wanting to hear all about it.}
+    Time enough for two of them, before the bar.
 }
 -> END
 
@@ -38,7 +40,7 @@
 === c2day5_check ===
 ~ town_visits += 1
 { town_visits >= 2: -> c2day5_to_evening }
-~ objective = "Spend the day in town (1 more)"
+~ objective = "Spend the day in town (1 more of 2)"
 -> c2day5_targets
 
 === c2day5_to_evening ===
@@ -56,7 +58,11 @@ The day's gone, somehow. It's board night: the circle will be at the bar, and th
 ~ bar5_arrived = true
 ~ board_night5 = false
 The circle's at their table by the counter, and the bar leaves a little space round it, the way it does.
-"Here she is. Sit, sit." #speaker:boss
+The boss sees you, and stands, and bangs his cup on the counter till the room goes quiet.
+"To the luckiest girl on the edge! Four times the tribute, and she's only getting started!" #speaker:boss
+The whole bar drinks to you. #bark:crew-1:To luck! #bark:drinker:Luck! #bark:crew-2:Four times!
+His son drinks too, last, and doesn't look at you while he does it.
+"Sit, sit. My people want to know you better." #speaker:boss
 -> c2_evening_start
 
 // --- The den: bones with the gambler and the enforcer ---
@@ -186,18 +192,26 @@ The enforcer gets up and goes. The gambler leans in close, the moment he's gone.
 ~ c2day5 = "home"
 ~ objective = "Go home"
 ~ objective_target = "shack:bed"
-The night's wearing on. #time:night
+It's late when the circle breaks up. #time:night
+On your way to the door, the old scavenger's come in out of the cold, and he catches your sleeve.
+"Far end tomorrow, they tell me. My patch." #speaker:old_scav
+"First light. Don't be late. I don't wait for favourites." #speaker:old_scav
 -> END
 
 === c2day5_bed ===
 { brother_moved:
-    The shack's quiet without him. Under the floor, {dog_name} sighs.
+    His bed's still made. You keep looking at it.
 - else:
-    Your brother's asleep, an arm hanging off the bed. Under the floor, {dog_name} sighs.
+    Your brother's asleep with an arm hanging off the bed, muttering something about bread.
 }
+You lift the loose panel. {dog_name} pushes its head up into your hands, warm, and you sit like that for a long time.
+{ saw_brothel:
+    There was a girl last year. Clever with finds, like you. Nobody says what happened to her.
+}
+Tomorrow, the far end of the fields. Just a patch that needs a second pair of eyes.
 ~ c2day5 = "done"
 ~ c2day6 = "fields"
 ~ objective = ""
 ~ objective_target = ""
-First light, the far end of the fields. #wake:picked-fields:860:232:c2day6_start #endday:Day 6
+You fall asleep with your hand on its head. #wake:picked-fields:860:232:c2day6_start #endday:Day 6
 -> END

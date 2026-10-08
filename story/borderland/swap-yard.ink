@@ -42,7 +42,7 @@ The fence buys what nobody else will, and asks nothing.
 
 === swap_yard_fencer ===
 "Something special? I don't ask where. Nobody asks where. That's the whole trick of it." #speaker:fence
-"The tallyman weighs. I appreciate. Different trade." #speaker:fence
+"The tallyman prices. I appreciate. Different trade." #speaker:fence
 -> END
 
 === swap_yard_brother ===

@@ -111,9 +111,14 @@ The fence has come out of the alcove, which you've never seen the fence do.
 The queue along the rail. Everyone looking at what everyone else brought, and tonight, everyone looking at you.
 Down the rail, people mutter as you pass. #bark:tribute-2:Third week running #bark:tribute-4:Where's she getting it?
 The first week, they called it luck. The second, the tallyman looked twice. This is the third.
-When it's your turn, you put it all on the scale. The lens. The box. The cable.
-The dish goes down, and stays down.
-The tallyman stops writing.
+When it's your turn, you put it all on the counter. The lens. The box. The cable.
+The tallyman picks up the lens first, and holds it up to the lamp.
+"Old glass. Not a scratch. Someone'll grind that into an eye." #speaker:tallyman
+He shakes the box beside his ear, and turns it over, looking for a seam.
+"Sealed. Never been opened. Never." #speaker:tallyman
+He bends the cable, and peers in at the bright stuff through the crack.
+"That's not copper. I don't know what that is." #speaker:tallyman
+He puts it down. He stops writing.
 "Third week running." #speaker:tallyman
 "Where?" #speaker:tallyman
 + [The sunk town]
@@ -128,7 +133,7 @@ The tallyman stops writing.
 "Nowhere." #speaker:scavenger
 "Nowhere's done well by you." #speaker:enforcer
 "Once is luck." #speaker:boss
-He's come away from the grille. He picks up the box, and weighs it in one hand, and smiles.
+He's come away from the grille. He picks up the box, and turns it in the lamplight, and smiles.
 "Twice, I noticed. Three times..." #speaker:boss
 "Well. Look who's found her feet." #speaker:boss
 + [I had a good day]
@@ -137,7 +142,7 @@ He's come away from the grille. He picks up the box, and weighs it in one hand, 
 + [Say nothing]
     You say nothing. It seems the safest thing.
 - "Come up to the house tomorrow. We should talk, you and I." #speaker:boss
-He puts the box back on the scale, gently, and goes.
+He puts the box back on the counter, gently, and goes.
 The watcher stays a moment longer, looking at you, and then follows him.
 ~ owe_double = false
 ~ summoned = true

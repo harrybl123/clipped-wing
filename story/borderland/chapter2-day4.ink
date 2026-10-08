@@ -160,16 +160,31 @@ The crews pull their stools back to make a ring, and coins go down on the tables
 He's on the floor, and he doesn't get up straight away. For a moment the bar doesn't make a sound.
 Then it does. #bark:crew-1:Pay up!:hit #bark:crew-3:She dropped him! #bark:drinker:Ha!
 Coins slap down on tables. Someone who bet on the boy kicks a stool over. #bark:crew-2:Rigged! #bark:player:Told you she had it
+He gets up slowly, on one knee first. There's blood coming from his nose, over his lip, down onto that good shirt.
+He touches it, and looks at his fingers as if they belong to somebody else.
 The boss laughs, too loud, and claps, and everybody claps with him.
-"Never ask again. That was the wager." #speaker:scavenger
-"This isn't over." #speaker:boss_son
-He says it quietly, so only you hear.
+His son looks at him clapping. Just for a moment. Then he looks anywhere else.
+"Somebody get the boy a rag." #speaker:boss
+"I don't need a rag." #speaker:boss_son
+He wipes his face on his sleeve instead, and ruins the shirt.
++ [Offer him a hand]
+    You hold out your hand. He looks at it.
+    "Don't." #speaker:boss_son
+    He gets up on his own, and nearly doesn't.
++ [Never ask again]
+    "Never ask again. That was the wager." #speaker:scavenger
+    "I heard the wager." #speaker:boss_son
+    ~ son_rivalry += 1
+- "This isn't over." #speaker:boss_son
+He says it quietly, through the blood, so only you hear.
 ~ son_rivalry += 1
 -> c2day4_after_spar_end
 
 === c2day4_spar_lost ===
 You're on the floor. He stands over you with his arms up, and the bar goes up with him. #bark:crew-1:Pay up!:hit #bark:crew-3:Told you! #bark:drinker:Ha!
 Coins slap down on tables. #bark:crew-2:Easy money #bark:player:She nearly had him
+He's got a split lip all the same, and he's grinning through the blood, licking at it like it's a prize.
+"You hit harder than you look." #speaker:boss_son
 "Well? The wager. Where do you go every morning?" #speaker:boss_son
 The whole bar's waiting.
 + [The sunk town]
@@ -274,10 +289,29 @@ The night wears on. When you get up to go, the watcher's eyes follow you to the 
 ~ boss_trust += 1
 ~ boss_evenings += 1
 { boss_evenings == 1: -> c2_evening_boss_first }
-"You again. Good." #speaker:boss
-"My son doesn't like you. Don't take it hard. He doesn't like anyone I like." #speaker:boss
-"He thinks everything I give away is his." #speaker:boss
--> c2_evening_end
+-> c2_evening_boss_second
+
+// The second night: his son's mother, and a gift.
+=== c2_evening_boss_second ===
+"Sit by me. Not over there. By me." #speaker:boss
+{ brother_moved:
+    "Your brother had three helpings tonight. Three! I like a boy who eats." #speaker:boss
+- else:
+    "Your brother's still out on the edge, I hear. The offer stands. I don't take things back." #speaker:boss
+}
+"My son's mother would've liked you. She dug the line too, when it was five clans. She didn't come back from it one day." #speaker:boss
+"He was six. He's been angry ever since. At me, mostly." #speaker:boss
+He pushes something across the table: a satchel strap, new leather, with the circle's mark stitched into it.
+"Yours is held together with wire. Can't have that. Not on one of mine." #speaker:boss
++ [Take it]
+    "Thank you." #speaker:scavenger
+    "Wear it where people can see it." #speaker:boss
+    ~ boss_trust += 1
++ [It's too much]
+    "It's too much." #speaker:scavenger
+    "It's a strap. Don't make it more than it is." #speaker:boss
+    He puts it in your hand anyway, and closes your fingers over it.
+- -> c2_evening_end
 
 === c2_evening_boss_first ===
 He pulls out the chair beside him, and pours for you himself.
@@ -300,8 +334,23 @@ He pulls out the chair beside him, and pours for you himself.
 ~ eve_watcher = true
 ~ watcher_evenings += 1
 { watcher_evenings == 1: -> c2_evening_watcher_first }
-"You came back." #speaker:watcher
-"Most people don't, to my table." #speaker:watcher
+-> c2_evening_watcher_second
+
+// The second night: he knows where you were today.
+=== c2_evening_watcher_second ===
+He's stacking the circle's tokens into a little tower, one on another, and doesn't stop when you sit.
+{ saw_brothel:
+    "The madam poured you a cup today. She doesn't pour for many." #speaker:watcher
+- else:
+    "Bones, with the enforcer. In daylight. That'll have got round." #speaker:watcher
+}
++ [Are you following me?]
+    "Are you following me?" #speaker:scavenger
+    "I don't need to follow anybody. Everybody comes past here in the end." #speaker:watcher
++ [Say nothing]
+    You say nothing. He puts another token on the tower.
+    "Good. You're learning." #speaker:watcher
+- "Here's something for nothing. Fill your satchel less. Heavy satchels make people curious." #speaker:watcher
 ~ watcher_respect += 1
 -> c2_evening_end
 
@@ -324,9 +373,27 @@ You sit down across from the watcher. He doesn't look up for a long time.
 ~ eve_enforcer = true
 ~ enforcer_evenings += 1
 { enforcer_evenings == 1: -> c2_evening_enforcer_first }
-"Still lucky?" #speaker:enforcer
-"Luck runs out. That's the thing about it." #speaker:enforcer
--> c2_evening_end
+-> c2_evening_enforcer_second
+
+// The second night: arms, across the table.
+=== c2_evening_enforcer_second ===
+The enforcer plants an elbow on the table, hand open, and the crews at the next table turn their stools to watch.
+{ played_bones:
+    "Bones is luck. This isn't." #speaker:enforcer
+- else:
+    "Too good for bones this morning. Let's see if you're too good for this." #speaker:enforcer
+}
++ [Push with everything]
+    You lock hands. It's like pushing on the tally house's hull.
+    You hold. You hold longer than anybody at the next table thought you would, and then your arm goes down, slowly, all the way.
+    "You held." #speaker:enforcer
+    It sounds like the most anyone's said to you all night.
+    ~ enforcer_doubt -= 1
++ [Let the enforcer win]
+    You lock hands, and let your arm go down. It's over in a breath.
+    "Don't do that. Don't ever let me win." #speaker:enforcer
+    ~ enforcer_doubt += 1
+- -> c2_evening_end
 
 === c2_evening_enforcer_first ===
 The enforcer doesn't move to make room, so you sit on the end of the bench.
@@ -346,14 +413,19 @@ The enforcer doesn't move to make room, so you sit on the end of the bench.
 { eve_son: -> c2_evening_again }
 ~ eve_son = true
 ~ son_evenings += 1
+{ son_evenings > 1: -> c2_evening_son_second }
 { spar_won: -> c2_evening_son_won }
-"Sunk town, she says." #speaker:boss_son
+{ told_where == "deep":
+    "The deep ground, she says." #speaker:boss_son
+- else:
+    "Sunk town, she says." #speaker:boss_son
+}
 "I'm going to find out where you really go. And when I do, my father will know too." #speaker:boss_son
 ~ son_rivalry += 1
 -> c2_evening_end
 
 === c2_evening_son_won ===
-He's nursing a cup and a swollen eye. He doesn't look at you.
+He's holding a wet rag to his nose, and an eye's starting to close. He doesn't look at you.
 + [Offer him a drink]
     You put a cup in front of him. He looks at it a long time, and then drinks it.
     "Don't think this makes us friends." #speaker:boss_son
@@ -363,6 +435,36 @@ He's nursing a cup and a swollen eye. He doesn't look at you.
     "I remember what I said." #speaker:boss_son
     ~ son_rivalry += 1
 - -> c2_evening_end
+
+// The second night: the next day, sorer.
+=== c2_evening_son_second ===
+{ spar_won: -> c2_evening_son_second_won }
+He's still grinning about the spar. His lip's scabbed over.
+"I asked around. Nobody's been past the stairwell in ten years. So either you're braver than all of them, or you're lying." #speaker:boss_son
+"Take me with you one morning. Then I'll believe you." #speaker:boss_son
++ [Never]
+    "Never." #speaker:scavenger
+    "Then you're lying." #speaker:boss_son
+    ~ son_rivalry += 1
++ [Maybe]
+    "Maybe." #speaker:scavenger
+    He looks surprised. Then he looks like he doesn't trust it.
+    ~ son_rivalry -= 1
+- -> c2_evening_end
+
+=== c2_evening_son_second_won ===
+His nose is swollen, and there's a bruise coming up yellow under one eye. He's drinking on his own at the end of the table.
+"He's never clapped like that. Not for me. Not once." #speaker:boss_son
++ [He's proud of you]
+    "He's proud of you." #speaker:scavenger
+    "You don't know him." #speaker:boss_son
++ [Then stop trying]
+    "Then stop trying to make him." #speaker:scavenger
+    He laughs, and it hurts his nose, and he swears.
+    "Easy for you to say." #speaker:boss_son
+    ~ son_rivalry -= 1
+- "Don't tell anyone I said that." #speaker:boss_son
+-> c2_evening_end
 
 
 // --- Night, the shack ---
