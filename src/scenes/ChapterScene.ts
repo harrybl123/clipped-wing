@@ -44,6 +44,14 @@ export function devChapter2Day(scene: Phaser.Scene, day: number): void {
   if (day >= 5) set({ c2day4: 'done', in_circle: true, brother_choice: 'home', spar_done: true, bar_arrived: true });
   if (day >= 6) set({ c2day5: 'done', board_mark: 'far fields' });
   if (day >= 7) set({ c2day6: 'done', raid_won: true });
+  // Earlier choices, for trying each path (dev): &brother=compound (big choice 1: he moved in), &spar=won|sunk|deep
+  // (won the spar, or lost it and told the bar the sunk town or the deep ground), &gambler=helped (gave him a find on Day 5).
+  const params = new URLSearchParams(window.location.search);
+  if (day >= 5 && params.get('brother') === 'compound') set({ brother_choice: 'compound', brother_moved: true });
+  const spar = params.get('spar');
+  if (day >= 5 && spar === 'won') set({ spar_won: true });
+  if (day >= 5 && (spar === 'sunk' || spar === 'deep')) set({ spar_won: false, told_where: spar });
+  if (day >= 6 && params.get('gambler') === 'helped') set({ gambler_trust: 1 });
   const starts: Record<number, AreaSceneData & { vars: Record<string, string | boolean> }> = {
     2: { areaId: 'shack', start: { x: 382, y: 184 }, vars: { c2day2: 'wake', objective: 'Talk to your brother', objective_target: 'shack:brother' } },
     3: { areaId: 'dogs-hollow', start: { x: 60, y: 206 }, script: 'c2day3_start', vars: { c2day3: 'sunk' } },
