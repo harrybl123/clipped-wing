@@ -297,8 +297,9 @@ export class AreaScene extends Phaser.Scene {
   private interactKey!: Phaser.Input.Keyboard.Key;
   private usables: Usable[] = [];
   private current: Usable | null = null;
-  /** The dog's finding, checked every frame (`seek`). */
+  /** The dog's finding, checked every frame (`seek`); where it's digging now, for the marker. */
   private seeks: (() => void)[] = [];
+  private seekSpot: { x: number; y: number } | null = null;
   /** Things there only while the story says (a camp's fire and smoke): shown and hidden with the people. */
   private storyShown: { objects: (Phaser.GameObjects.Image | Phaser.GameObjects.Particles.ParticleEmitter)[]; on: () => boolean }[] = [];
   /** Down on one knee, digging (input held a moment). */
@@ -378,6 +379,7 @@ export class AreaScene extends Phaser.Scene {
     this.triggers = [];
     this.storyShown = [];
     this.seeks = [];
+    this.seekSpot = null;
     this.digBusy = false;
     this.barks = [];
     this.speech = new Map();
@@ -1331,8 +1333,9 @@ export class AreaScene extends Phaser.Scene {
     return { x: Phaser.Math.Clamp(at.x, view.x + 12, view.right - 12), y: Phaser.Math.Clamp(at.y, view.y + 24, view.bottom - 8) };
   }
 
-  /** Over a person, object or door in this area. */
+  /** Over a person, object or door in this area (`dig-spot`: wherever the dog is digging, if it is). */
   private pointAt(thing: string | undefined): { x: number; y: number } | null {
+    if (thing === 'dig-spot') return this.seekSpot ? { x: this.seekSpot.x, y: this.seekSpot.y - 26 } : null;
     const entry = thing ? this.people.get(thing) : undefined;
     if (entry) return entry.image.visible ? { x: entry.image.x, y: entry.image.y - entry.image.height - 5 } : null;
     const it = this.area.interactables.find((i) => i.id === thing);
@@ -1848,6 +1851,7 @@ export class AreaScene extends Phaser.Scene {
         state.timer?.remove();
         state.find = null;
         state.ready = false;
+        this.seekSpot = null;
         if (dog) dog.scripted = false;
         return;
       }
@@ -1861,6 +1865,7 @@ export class AreaScene extends Phaser.Scene {
       this.floatText('!', dog.image.x, dog.image.y - 24, SHADES.amber);
       this.walkTo(dog, find.x, 90, find.y, () => {
         state.ready = true;
+        this.seekSpot = { x: find.x, y: find.y };
         // Sniffing and scrabbling at the spot, dirt flying, until you come.
         state.timer = this.time.addEvent({
           delay: 900, loop: true,

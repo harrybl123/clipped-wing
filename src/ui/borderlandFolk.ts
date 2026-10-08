@@ -251,8 +251,9 @@ function dog(tailUp: boolean, step: number): RowSprite {
     '..xffffffffffffffx..',
     '..xfpppppppppppfx...',
     ...(step === 0
-      ? ['..xffx.......xffx...', '..xfx.........xfx...', '..xdx.........xdx...', '..xx...........xx...']
-      : ['...xffx.....xffx....', '...xfx.......xfx....', '...xdx.......xdx....', '...xx........xx.....']),
+      // (Paws on the ground: no outline under them, or it floats a pixel up: designer.)
+      ? ['..xffx.......xffx...', '..xfx.........xfx...', '..xdx.........xdx...']
+      : ['...xffx.....xffx....', '...xfx.......xfx....', '...xdx.......xdx....']),
   ];
   return {
     rows: rows.map((r) => r.padEnd(20, '.').slice(0, 20)),

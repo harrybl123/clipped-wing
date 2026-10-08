@@ -12,7 +12,7 @@
 ~ dog_with_you = true
 ~ training = true
 ~ objective = "Follow " + dog_name + " down into the hollow"
-~ objective_target = ""
+~ objective_target = "dogs-hollow:dig-spot"
 You've been coming out here for weeks now, every morning before it's light, while the settlement sleeps.
 You bury something. You walk {dog_name} round the rim and back. You let it go.
 "Woof!" #speaker:dog
@@ -68,7 +68,7 @@ In the tunnel, under the carriage, a coil of cable as thick as your arm, its she
 // Coming down into the sunk town with it: no marker from here (the dog's nose is the guide).
 === c2day3_arrive ===
 ~ seek_arrived = true
-~ objective_target = ""
+~ objective_target = "sunk-town:dig-spot"
 {dog_name} puts its nose to the ground at the top of the stairwell, and its tail goes up.
 "sniff sniff" #speaker:dog
 -> END

@@ -54,9 +54,7 @@ export const dogsHollow: AreaDefinition = {
   ],
 
   features: [
-    // Chapter 2, Day 3 (weeks later): training (designer: it wasn't clear what to do).
-    { type: 'hint', x: 240, y: FLOOR, reach: 240, text: 'Go down into the hollow with the dog. When it digs, stand beside it and press E.', showIf: 'training' },
-    // Things you buried; it finds them.
+    // Chapter 2, Day 3 (weeks later): training. Things you buried; it finds them (the marker shows where it's digging: designer).
     {
       type: 'seek', dog: 'dog-follow', range: 140, showIf: 'training',
       finds: [
