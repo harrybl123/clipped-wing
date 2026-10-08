@@ -34,7 +34,7 @@ export const local = (id: string, look: number, x: number, y: number, when?: Tim
 });
 
 /** A townsperson strolling back and forth. */
-export const stroller = (id: string, look: number, from: number, to: number, y: number, when?: TimeSlot[]): Person => ({
+export const stroller = (id: string, look: number, from: number, to: number, y: number, when?: TimeSlot[], hideIf?: string): Person => ({
   id,
   sprite: TOWNSFOLK[look]!.idle[0]!,
   idleFrames: TOWNSFOLK[look]!.idle,
@@ -43,6 +43,7 @@ export const stroller = (id: string, look: number, from: number, to: number, y: 
   y,
   wander: { from, to },
   when,
+  hideIf,
 });
 
 /** One of the other clan, across the rival line. */
@@ -59,7 +60,7 @@ export const rival = (id: string, look: number, x: number, y: number, when?: Tim
 });
 
 /** The dog, following you about (Chapter 2, Day 2: from the camp to home) while `dog_with_you`. */
-export const dogFollowing = (x: number, y: number): Person => dog(x, y, { id: 'dog-follow', showIf: 'dog_with_you', follow: true });
+export const dogFollowing = (x: number, y: number): Person => dog(x, y, { id: 'dog-follow', showIf: 'dog_with_you', follow: true, knot: 'dog_pet', label: 'Pet' });
 
 /** The dog. */
 export const dog = (x: number, y: number, extra: Partial<Person> = {}): Person => ({

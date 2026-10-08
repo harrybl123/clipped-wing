@@ -300,6 +300,10 @@ export class AreaScene extends Phaser.Scene {
   /** The dog's finding, checked every frame (`seek`); where it's digging now, for the marker. */
   private seeks: (() => void)[] = [];
   private seekSpot: { x: number; y: number } | null = null;
+  /** Long drops you slide down (`slide`), and whether you're sliding now (and how long till the next puff of dust). */
+  private slides: Extract<Feature, { type: 'slide' }>[] = [];
+  private sliding = false;
+  private slideDust = 0;
   /** Things there only while the story says (a camp's fire and smoke): shown and hidden with the people. */
   private storyShown: { objects: (Phaser.GameObjects.Image | Phaser.GameObjects.Particles.ParticleEmitter)[]; on: () => boolean }[] = [];
   /** Down on one knee, digging (input held a moment). */
@@ -380,6 +384,8 @@ export class AreaScene extends Phaser.Scene {
     this.storyShown = [];
     this.seeks = [];
     this.seekSpot = null;
+    this.slides = [];
+    this.sliding = false;
     this.digBusy = false;
     this.barks = [];
     this.speech = new Map();
@@ -466,6 +472,8 @@ export class AreaScene extends Phaser.Scene {
           label: person.label ?? 'Talk',
           use: talk(person.knot),
           enabled: () => this.isPresent(entry),
+          // Someone at your heels (the dog) doesn't get in the way of everything else you walk past.
+          fallback: person.follow,
         });
       }
     }
@@ -558,6 +566,7 @@ export class AreaScene extends Phaser.Scene {
     this.updateShyPeople();
     this.updateFollowers(delta);
     for (const seek of this.seeks) seek();
+    this.updateSlides(delta);
     this.updateCrumbles(delta);
     this.updateCollapses(delta);
     this.updateBeetles(delta);
@@ -1957,6 +1966,25 @@ export class AreaScene extends Phaser.Scene {
     });
   }
 
+  /** Sliding down a long drop: slowed, crouched against the earth, dust and a scrape. */
+  private updateSlides(delta: number): void {
+    const { x, y } = this.player.feet;
+    const body = this.player.body;
+    const on = !body.blocked.down && body.velocity.y > 0 && this.slides.some((s) => x >= s.x - 4 && x <= s.x + s.width + 4 && y >= s.top && y <= s.bottom);
+    if (on) {
+      body.setVelocityY(Math.min(body.velocity.y, 75));
+      this.slideDust -= delta;
+      if (this.slideDust <= 0) {
+        this.slideDust = 90;
+        const puff = this.add.rectangle(x + Phaser.Math.Between(-4, 4), y - 2, 2, 2, SHADES.woodPale).setDepth(11);
+        this.tweens.add({ targets: puff, y: puff.y - Phaser.Math.Between(6, 14), x: puff.x + Phaser.Math.Between(-6, 6), alpha: 0, duration: 400, onComplete: () => puff.destroy() });
+        if (Math.random() < 0.3) this.soundscape.play('skid', undefined, 0.35);
+      }
+    }
+    if (on !== this.sliding) this.player.kneeling = on;
+    this.sliding = on;
+  }
+
   /** Someone walks (or runs) along their floor to x, their walk frames playing, then `then`. */
   private walkTo(entry: PersonEntry, x: number, speed: number, yOrThen?: number | (() => void), maybeThen?: () => void): void {
     const y = typeof yOrThen === 'number' ? yOrThen : entry.image.y;
@@ -2249,6 +2277,9 @@ export class AreaScene extends Phaser.Scene {
         break;
       case 'seek':
         this.time.delayedCall(0, () => this.addSeek(feature));
+        break;
+      case 'slide':
+        this.slides.push(feature);
         break;
       case 'barks':
         this.barks.push({ feature, index: 0, left: 0 });

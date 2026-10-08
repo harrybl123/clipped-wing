@@ -11,6 +11,7 @@
 === c2day3_start ===
 ~ dog_with_you = true
 ~ training = true
+~ first_light = true
 ~ objective = "Follow " + dog_name + " down into the hollow"
 ~ objective_target = "dogs-hollow:dig-spot"
 You've been coming out here for weeks now, every morning before it's light, while the settlement sleeps.
@@ -45,6 +46,7 @@ The disc, the first thing it ever found for you, buried an arm's length down. It
     It sits, and looks at you, and waits.
     "Woof." #speaker:dog
     It's ready. You've known that for a week. You just haven't wanted to find out what happens next.
+    The sky's going grey. Soon the fields will be full of pickers. If you're going, it's now, while there's nobody out there to see a dog.
 }
 -> END
 
@@ -78,18 +80,31 @@ In the tunnel, under the carriage, a coil of cable as thick as your arm, its she
 "Woof!" #speaker:dog
 { sought >= 3:
     ~ seeking = false
-    ~ c2day3 = "tribute"
-    ~ objective = "Pay your tribute"
-    ~ objective_target = "tally-house:tallyman"
+    ~ haul_done = true
+    ~ objective = "Climb back out with " + dog_name
+    ~ objective_target = "sunk-town:to-picked-fields"
     Your satchel's so heavy the new strap creaks.
-    More than you've found in a year. More than double. In one afternoon.
-    You send {dog_name} back to the hollow before you go anywhere near the settlement. It knows the way.
-    "Woof." #speaker:dog
-    It goes, low and quick, and doesn't look back. #leave:dog-follow:1060:130 #time:evening
-    ~ dog_with_you = false
+    More value than you've found in a year. In one morning.
 - else:
     ~ objective = "Work the sunk town with " + dog_name + " (" + sought + " found)"
 }
+-> END
+
+// Back up top with the haul: the dog sent home before anyone's about.
+=== c2day3_send_home ===
+~ sent_home = true
+The fields are filling up with pickers now, out past the hull. Nobody's looking this way yet.
+You crouch down beside {dog_name}.
+"Home. The hollow. Go on." #speaker:scavenger
+"Whine..." #speaker:dog
+"I know. Go on." #speaker:scavenger
+It goes, low and quick through the spoil heaps, and doesn't look back. #leave:dog-follow:-30:120
+~ c2day3 = "tribute"
+~ objective = "Pay your tribute"
+~ objective_target = "tally-house:tallyman"
+You sit on the stairs to the deep for the rest of the day, with your satchel between your feet, until it's time. #time:evening
+~ dog_with_you = false
+~ first_light = false
 -> END
 
 // --- Evening, the tally house ---
@@ -108,6 +123,10 @@ The tallyman stops writing.
     "Here and there." #speaker:scavenger
     "Nobody finds this here and there." #speaker:tallyman
 - The queue's gone quiet behind you. You can feel every one of them looking at your satchel.
+"Out before first light every morning, this one. Back after." #speaker:enforcer
+"I see you go. Never with anybody. Where to, every morning?" #speaker:enforcer
+"Nowhere." #speaker:scavenger
+"Nowhere's done well by you." #speaker:enforcer
 "Double, I said." #speaker:boss
 He's come away from the grille. He picks up the box, and weighs it in one hand, and smiles.
 "And she brings me four times." #speaker:boss

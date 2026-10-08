@@ -165,7 +165,7 @@ export class DialogueBox {
     const id = tags.find((t) => t.startsWith('speaker:'))?.slice('speaker:'.length).trim();
     if (id && SPEAKERS[id]?.voice === 'dog') {
       const words = text.toLowerCase();
-      playSound(this.scene, words.includes('gr') ? 'growl' : words.includes('whin') || words.includes('whimp') ? 'whimper' : words.includes('sniff') || words.includes('huff') ? 'rub' : 'bark');
+      playSound(this.scene, words.includes('gr') ? 'growl' : words.includes('whin') || words.includes('whimp') ? 'whimper' : words.includes('sniff') ? 'rub' : words.includes('yip') || words.includes('huff') || words.includes('mrr') ? 'yip' : 'bark');
     }
     if (!type) return;
     const { voices, muffled } = this.voiceFor(tags);

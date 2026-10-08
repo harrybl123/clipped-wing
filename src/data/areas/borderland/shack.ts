@@ -104,7 +104,7 @@ export const shack: AreaDefinition = {
     // Asleep in his bed at night, under the blanket, one arm hanging off the edge (designer: he floated
     // beside it). Laid over the bed: its left edge on the bed's (x is the middle, the bottom its bottom).
     // Chapter 2, Day 2: the dog, home, nosing about the place before it goes under the floor.
-    dog(186, FLOOR, { id: 'dog-home', showIf: 'dog_home', wander: { from: 130, to: 300 } }),
+    dog(186, FLOOR, { id: 'dog-home', showIf: 'dog_home', wander: { from: 130, to: 300 }, knot: 'dog_pet', label: 'Pet' }),
     { id: 'brother-asleep', sprite: BROTHER_ASLEEP[0]!, idleFrames: BROTHER_ASLEEP, x: 238 + 15, y: LOFT, knot: 'shack_brother_asleep', label: 'Look', when: ['night'], hideIf: 'brother_moved' },
   ],
 

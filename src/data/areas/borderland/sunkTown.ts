@@ -118,6 +118,8 @@ export const sunkTown: AreaDefinition = {
     { type: 'autodoor', sprite: P.AUTODOOR, x: SCREEN_ROOM.x + SCREEN_ROOM.width - 5, y: LONG_ROOM.y, range: 50 },
     // The hall's floor over the gap: it holds a moment, then drops you into the tunnel.
     { type: 'crumble', x: GAP.x, y: GAP.y, width: GAP.width },
+    // A long way down: you slide it, against the earth (designer: a huge drop).
+    { type: 'slide', x: GAP.x, width: GAP.width, top: GAP.y, bottom: floor(TUNNEL) - 2 },
     // The column's light, rising (and humming).
     { type: 'motes', x: BRIGHT.x + BRIGHT.width / 2, top: BRIGHT.y, bottom: floor(BRIGHT) - 8, halfWidth: 6 },
     // Chapter 2, Day 2: sent deep, you hear a dog bark from below as you arrive; then, coming out of the
@@ -126,6 +128,7 @@ export const sunkTown: AreaDefinition = {
     // (Clear of the crawl's low ceiling, so you stand up to face them: designer.)
     { type: 'trigger', x: CAMP.x + CAMP.width - 20, y: floor(CAMP), reach: 4, knot: 'c2day2_camp', showIf: 'heard_bark', hideIf: 'camp_found' },
     { type: 'trigger', x: 60, y: SURFACE, reach: 50, knot: 'c2day3_arrive', showIf: 'seeking', hideIf: 'seek_arrived' },
+    { type: 'trigger', x: 90, y: SURFACE, reach: 70, knot: 'c2day3_send_home', showIf: 'haul_done', hideIf: 'sent_home' },
     // Chapter 2, Day 3 (weeks later): working the sunk town with the dog. It finds what nobody else could.
     {
       type: 'seek', dog: 'dog-follow', range: 150, showIf: 'seeking',

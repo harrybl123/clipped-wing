@@ -21,7 +21,7 @@ export const SOUND_IDS = [
   'hit', 'spit', 'smash', 'staff', 'latch', 'bolt', 'pound', 'crash', 'hammer', 'splinter', 'grate', 'boots', 'punch',
   'chop', 'shave', 'skid', 'scratch', 'pop', 'rub', 'slip',
   // The dog (Chapter 2).
-  'bark', 'growl', 'whimper',
+  'bark', 'growl', 'whimper', 'yip',
 ] as const;
 export type SoundId = (typeof SOUND_IDS)[number];
 
@@ -502,6 +502,13 @@ function oneShot(a: Out, dest: AudioNode, t: number, id: SoundId, v: number, sur
         const k = t + i * 0.07;
         tone(a, dest, k, 'triangle', rand(85, 105), rand(80, 100), 0.09, (0.12 + Math.sin((i / 9) * Math.PI) * 0.16) * v, 0.01);
         noise(a, dest, k, 'bandpass', rand(260, 340), 3, 0.08, 0.12 * v, 0.01);
+      }
+      break;
+    case 'yip':
+      // Happy: two quick, high little yaps, rising.
+      for (const [k, f] of [[0, 900], [0.11, 1150]] as const) {
+        tone(a, dest, t + k, 'triangle', f, f * 1.25, 0.06, 0.18 * v, 0.004);
+        noise(a, dest, t + k, 'bandpass', f * 2, 3, 0.04, 0.1 * v, 0.004);
       }
       break;
     case 'whimper':

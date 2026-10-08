@@ -19,5 +19,11 @@ From the rim you can see anyone coming a long way off. Nobody is.
 
 === dogs_hollow_dog ===
 { c2day2 == "hollow": -> c2day2_hollow }
-The dog leans into your hand, tail going, and pushes its nose into your satchel looking for food.
+-> dog_pet
+
+// Petting the dog, wherever it is (designer: a cute noise).
+=== dog_pet ===
+{~You scratch behind its ears, and its back leg goes, thump thump thump.|It rolls over for its belly. You oblige.|It leans its whole weight against your leg, and sighs.|You rub its head. It shoves its nose into your hand for more.}
+{~"Yip!"|"Huff huff!"|"Yip yip!"|"Mrrrf."} #speaker:dog
 -> END
+

@@ -260,6 +260,11 @@ VAR sought_2 = false
 VAR sought_3 = false
 VAR sought = 0
 VAR seek_arrived = false
+// First light: out before anyone else, so nobody sees the dog (the fields are empty).
+VAR first_light = false
+// The haul's done; the dog's seen you back up to the surface, and been sent home.
+VAR haul_done = false
+VAR sent_home = false
 // The boss has asked you up to the house.
 VAR summoned = false
 // Chapter 2, Day 4 (story/borderland/chapter2-day4.ink). Stages: gate, house, tell, bar, home, done.
