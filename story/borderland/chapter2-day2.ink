@@ -69,7 +69,8 @@ There aren't any dogs. Everybody knows that.
 ~ objective = ""
 Firelight. Somebody's camp, in an old room, with smoke going up a crack in the ceiling.
 And three people round the fire you'd know anywhere. The thin one. The big one. The small one, still wearing your strap round his wrist.
-In the corner, tied by the neck with wire to a pipe, is a dog. #bark:dog-tied:Grrrr...:growl
+In the corner, tied by the neck with wire to a pipe, is a dog.
+"Grrrr..." #speaker:dog
 It's real. It's thin, and its fur's matted, and it's showing them every tooth it's got.
 "Hold it still." #speaker:straggler_big
 "You hold it still. It's had my hand once." #speaker:straggler_thin
@@ -77,49 +78,60 @@ The big one has a knife out. The fire's already going. #move:camp-big:300
 + [Step in]
     You don't think about it.
 + [Back away]
-    You get as far as one step back. The dog's eyes find yours over their shoulders, and that's that. #bark:dog-tied:Whine...:whimper
+    You get as far as one step back. The dog's eyes find yours over their shoulders, and that's that.
+    "Whine..." #speaker:dog
 - "Leave it alone." #speaker:scavenger #move:camp-big:334
 They turn round. The thin one starts to grin.
 "Her again." #speaker:straggler_thin
-Behind them, the dog throws itself against the wire. #bark:dog-tied:GRRRR:growl #shake
-It bites down on it, and pulls, and the wire sings. #bark:dog-tied:Grrrrr...:growl
+Behind them, the dog throws itself against the wire. #shake
+"GRRRR" #speaker:dog
+It bites down on it, and pulls, and the wire sings.
+"Grrrrr..." #speaker:dog
 "Get it! It's getting loose!" #speaker:straggler_small
 The wire snaps. #sound:crack #shake #move:dog-tied:316
-The dog goes straight for the big one's leg. #bark:dog-tied:WOOF! WOOF!:bark #combat:stragglers_camp:c2day2_after_camp
+The dog goes straight for the big one's leg. #combat:stragglers_camp:c2day2_after_camp
+"WOOF! WOOF!" #speaker:dog
 -> END
 
 === c2day2_after_camp ===
 { camp_won:
-    The big one goes over backwards into the fire and comes up howling. #bark:dog-tied:WOOF!:bark
+    The big one goes over backwards into the fire and comes up howling.
+    "WOOF!" #speaker:dog
     That's enough for all three of them. They run for the crawl. #leave:camp-big:392:90 #leave:camp-thin:392:110 #leave:camp-small:392:120
     You hear them scrambling away through it a long time after you stop seeing them.
     They've left their pack. Your wire's in it, and the ring of casing. Not the cube.
     ~ finds = 2
 - else:
-    You're down, and the big one's standing over you, and then he isn't: the dog has him by the leg, and won't let go. #bark:dog-tied:GRRRR:growl #shake
+    You're down, and the big one's standing over you, and then he isn't: the dog has him by the leg, and won't let go. #shake
+    "GRRRR" #speaker:dog
     He goes down shrieking, and the other two look at the dog, and look at each other, and run. #leave:camp-thin:392:110 #leave:camp-small:392:120
     The big one crawls after them, and then he's up and running too. #leave:camp-big:392:80
 }
 ~ stragglers_camp = false
 Then it's just you and the dog, breathing hard, looking at each other across the fire.
 It comes towards you, slowly, head low. #beside:dog-tied:14:walk
-It sniffs your boots. Your knees. Your hands. #bark:dog-tied:sniff sniff
+It sniffs your boots. Your knees. Your hands.
+"sniff sniff" #speaker:dog
 Then it sits down in the dirt, and waits to see what you'll do.
 You haven't eaten since yesterday. Neither has it, by the look of it.
 + [Keep it]
     ~ dog_choice = "keep"
     You hold out your hand. It thinks about it for a long time.
-    Then it puts its nose against your fingers. #bark:dog-tied:Huff.
+    Then it puts its nose against your fingers.
+    "Huff." #speaker:dog
 + [Sell it]
     ~ dog_choice = "sell"
     A dog. A living dog. The fence would give you a year of food for it. More.
-    You twist the snapped wire into a leash and loop it over its head. It doesn't fight you. It just looks at you. #bark:dog-tied:Whine...:whimper
+    You twist the snapped wire into a leash and loop it over its head. It doesn't fight you. It just looks at you.
+    "Whine..." #speaker:dog
 + [Eat it]
     ~ dog_choice = "eat"
     You pick up the big one's knife from where he dropped it.
-    The dog looks at the knife. Then at you. #bark:dog-tied:Whine...:whimper
+    The dog looks at the knife. Then at you.
+    "Whine..." #speaker:dog
     You put the knife down. You're not a monster.
-    It wags its tail, once, as if it knew all along. #bark:dog-tied:Woof.:bark
+    It wags its tail, once, as if it knew all along.
+    "Woof." #speaker:dog
 - ~ dog_tied = false
 ~ dog_with_you = true
 ~ dog_on_wire = dog_choice == "sell"
@@ -137,7 +149,8 @@ You haven't eaten since yesterday. Neither has it, by the look of it.
 // Taking it to sell: halfway across the fields, it slips the wire.
 === c2day2_slips ===
 ~ dog_on_wire = false
-The wire goes tight, then slack. #bark:dog-follow:Yip!:bark
+The wire goes tight, then slack.
+"Yip!" #speaker:dog
 It's twisted its head out of the loop, and it's off across the fields, fast and low, and it doesn't look back. #leave:dog-follow:980:140
 You stand there with the empty wire in your hand until it's out of sight.
 ~ dog_with_you = false
@@ -160,9 +173,11 @@ You stand there with the empty wire in your hand until it's out of sight.
 "It's real." #speaker:scavenger
 { dog_choice == "sell":
     "It came to me. It came right in. It's ours, isn't it? Say it's ours." #speaker:brother
-    You look at it. It looks at you. There's no selling it now. #bark:dog-home:Woof.:bark
+    You look at it. It looks at you. There's no selling it now.
+    "Woof." #speaker:dog
 }
-He puts out a hand, slow, and it sniffs his fingers and then licks them, and he makes a noise you haven't heard him make since he was very small. #bark:dog-home:sniff sniff
+He puts out a hand, slow, and it sniffs his fingers and then licks them, and he makes a noise you haven't heard him make since he was very small.
+"sniff sniff" #speaker:dog
 "What's it called?" #speaker:brother
 "I don't know. It didn't say." #speaker:scavenger
 "Then we have to call it something." #speaker:brother
@@ -175,7 +190,8 @@ He puts out a hand, slow, and it sniffs his fingers and then licks them, and he 
 - ~ dog_owned = true
 "{dog_name}." #speaker:scavenger
 "{dog_name}!" #speaker:brother
-The dog's ears go up, as if it's always been called that. #bark:dog-home:WOOF!:bark
+The dog's ears go up, as if it's always been called that.
+"WOOF!" #speaker:dog
 "Shh! Listen to me. Nobody can know. Not the kid, not anybody. If anyone finds out, they'll take it, or they'll eat it." #speaker:scavenger
 "I won't tell. I promise. I promise I promise." #speaker:brother
 He's going to tell somebody. You can see it on him already.
@@ -249,14 +265,16 @@ There's a way down there, between the spoil heaps. You'd never have seen it if y
 
 === c2day2_hollow ===
 A hollow out past the fields, in the lee of a fallen slab, where the wind doesn't reach.
-{dog_name} is in the bottom of it, digging. #bark:dog:Woof!:bark
+{dog_name} is in the bottom of it, digging.
+"Woof!" #speaker:dog
 There's sacking here, chewed, and old bones, and a nest worn into the dirt. It's been living here. On its own. You'd never have known it was here.
 It stops, and noses at something, and backs out of the hole with it in its mouth, and brings it to you. #beside:dog:12:walk
 It's a disc of some pale metal, clean as the day it was made, with a light inside that comes on when you hold it.
 You've dug the picked fields every day of your life and never found anything like it. {dog_name} found it in the time it took you to catch up.
 It sits, and looks at you, and looks at the ground, and waits, as if to say: what else?
 ~ c2day2 = "done"
+~ c2day3 = "train"
 ~ objective = ""
 ~ objective_target = ""
-You sit down in the dirt beside it, and start to think. #wake:shack:382:184 #endday:Weeks later
+You sit down in the dirt beside it, and start to think. #wake:dogs-hollow:60:206:c2day3_start #endday:Weeks later
 -> END

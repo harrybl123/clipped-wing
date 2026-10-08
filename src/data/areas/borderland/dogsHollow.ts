@@ -1,7 +1,7 @@
 import * as P from './dogsHollowProps';
 import { cableCoil, casingPod } from './scrapProps';
 import type { AreaDefinition } from '../types';
-import { dog } from './people';
+import { dog, dogFollowing } from './people';
 
 // The dog's hollow (Chapter 2): your secret training spot on the outskirts, not on the map until you've
 // found the dog (designer). A dip in the ground, out of sight, sheltered by a toppled slab leaning over it
@@ -53,9 +53,21 @@ export const dogsHollow: AreaDefinition = {
     { sprite: P.scrub(24, 3), x: 156, y: FLOOR - 8 },
   ],
 
-  features: [],
-  // The dog, nosing about its hollow (once you've found it).
-  people: [dog(262, FLOOR, { knot: 'dogs_hollow_dog', label: 'Pet', flipX: true, showIf: 'found_dog', wander: { from: 200, to: 340 } })],
+  features: [
+    // Chapter 2, Day 3 (weeks later): training. Things you buried; it finds them.
+    {
+      type: 'seek', dog: 'dog-follow', range: 140, showIf: 'training',
+      finds: [
+        { x: 236, y: FLOOR, knot: 'c2day3_train_1', done: 'trained_1', item: 'wire' },
+        { x: 352, y: FLOOR, knot: 'c2day3_train_2', done: 'trained_2', item: 'disc' },
+      ],
+    },
+  ],
+  people: [
+    // The dog, nosing about its hollow (once you've found it), unless it's with you.
+    dog(262, FLOOR, { knot: 'dogs_hollow_dog', label: 'Pet', flipX: true, showIf: 'found_dog', hideIf: 'dog_with_you', wander: { from: 200, to: 340 } }),
+    dogFollowing(60, RIM),
+  ],
 
   interactables: [
     { id: 'bed', x: 204, y: FLOOR, reach: 12, label: 'Look', knot: 'dogs_hollow_bed' },

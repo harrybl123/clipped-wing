@@ -519,14 +519,15 @@ function staff(g: Grid, [ax, ay]: Pt, [bx, by]: Pt): void {
 const SCAV_W = 64;
 const SCAV_H = 62;
 
-function scavengerBack(pose: CarverPose): RowSprite {
+function scavengerBack(pose: CarverPose, who: 'scavenger' | 'old' = 'scavenger'): RowSprite {
+  const old = who === 'old';
   const g = grid(SCAV_W, SCAV_H);
   const x = 32 + { idle: 0, breathe: 0, ready: 0, dodge: -7, attack: 3, slap: 4, palm: -4, shove: 0, grab: 0, guard: 0, hit: 4 }[pose];
   const top = 2 + { idle: 0, breathe: 1, ready: 2, dodge: 2, attack: -1, slap: 0, palm: 0, shove: 3, grab: 4, guard: 3, hit: 1 }[pose];
   const headDx = { idle: 1, breathe: 1, ready: 1, dodge: -3, attack: 2, slap: 4, palm: -3, shove: 0, grab: 0, guard: 0, hit: 6 }[pose];
   const headDy = { idle: 0, breathe: 0, ready: 1, dodge: 0, attack: -1, slap: 0, palm: 0, shove: 2, grab: 4, guard: 3, hit: -1 }[pose];
-  // Slim: narrower shoulders than the carver's.
-  const sw = 14;
+  // Slim: narrower shoulders than the carver's. (The old scavenger is broader, stooped a little.)
+  const sw = old ? 16 : 14;
   const ls: Pt = [x - sw, top + 28];
   const rs: Pt = [x + sw, top + 28];
   // Arms [left, right], each ending in the hand; and the staff, from one end to the other.
@@ -557,8 +558,10 @@ function scavengerBack(pose: CarverPose): RowSprite {
     limb(g, right, 2.6, '1');
   };
   // What she holds out in front of her is behind her body from here.
+  // His hook: a plain pole with a hook at the end, where her staff would be.
+  const tool = () => (old ? hookPole(g, ...p.staff) : staff(g, ...p.staff));
   if (forward) {
-    staff(g, ...p.staff);
+    tool();
     drawArms();
   }
   // Her back: bare shoulders, the crop top, bare skin at the waist, then her trousers.
@@ -568,19 +571,21 @@ function scavengerBack(pose: CarverPose): RowSprite {
   disc(g, x + sw - 2, top + 29, 4, 4, 'Z');
   g.forEach((row, y) => row.forEach((c, cx) => {
     if (c !== 'Z') return;
-    row[cx] = y >= top + 31 && y <= top + 41 ? '2' : y >= top + 49 ? '3' : '1';
+    // His coat covers all of his back.
+    row[cx] = old ? (y >= top + 52 ? '3' : '2') : y >= top + 31 && y <= top + 41 ? '2' : y >= top + 49 ? '3' : '1';
   }));
   // The top's straps over her shoulders.
-  for (const side of [-1, 1]) for (let y = top + 25; y < top + 31; y++) put(g, x + side * 7, y, '2');
+  if (!old) for (const side of [-1, 1]) for (let y = top + 25; y < top + 31; y++) put(g, x + side * 7, y, '2');
   // Neck and head.
   poly(g, [[x - 3 + headDx / 2, top + 17 + headDy], [x + 3 + headDx / 2, top + 17 + headDy], [x + 4, top + 27], [x - 4, top + 27]], '1');
   if (!forward) {
     drawArms();
-    staff(g, ...p.staff);
+    tool();
   }
   const hx = x + headDx;
   const hy = top + 11 + headDy;
   disc(g, hx, hy, 7.5, 9, '4');
+  if (old) return oldBack(g, hx, hy, x, top);
   // The ponytail, tied high, hanging down her back (swinging with her).
   const swing = { dodge: 4, palm: 4, slap: -4, hit: -5, attack: -2 }[pose as string] ?? 0;
   for (let i = 0; i <= 26; i++) {
@@ -612,6 +617,40 @@ function scavengerBack(pose: CarverPose): RowSprite {
   };
 }
 
+/** A scavenging hook: a plain pole, a hook bent at the far end. */
+function hookPole(g: Grid, [ax, ay]: Pt, [bx, by]: Pt): void {
+  limb(g, [[ax, ay], [bx, by]], 0.8, '9');
+  const len = Math.hypot(bx - ax, by - ay);
+  const [ux, uy] = [(bx - ax) / len, (by - ay) / len];
+  limb(g, [[bx, by], [bx + uy * 4, by - ux * 4], [bx + uy * 4 - ux * 4, by - ux * 4 - uy * 4]], 0.8, '7');
+}
+
+/** The old scavenger's head from behind (short grey hair, goggles' strap), his coat, the pack frame; lit and outlined. */
+function oldBack(g: Grid, hx: number, hy: number, x: number, top: number): RowSprite {
+  // Short grey hair: the head's disc is hair; trim it shorter at the neck.
+  for (let y = Math.round(hy + 6); y < hy + 10; y++) for (let dx = -8; dx <= 8; dx++) if (g[y]?.[Math.round(hx + dx)] === '4') put(g, hx + dx, y, '1');
+  // The pack's frame on his back.
+  for (const side of [-1, 1]) limb(g, [[x + side * 9, top + 28], [x + side * 9, top + 52]], 0.8, '7');
+  for (const y of [top + 32, top + 46]) limb(g, [[x - 9, y], [x + 9, y]], 0.7, '7');
+  lightDay(g, '1', ['K', 'K', 'k']);
+  lightDay(g, '2', ['M', 'L', 'm']);
+  lightDay(g, '3', ['P', 'D', 'p']);
+  lightDay(g, '4', ['H', 'W', 'h']);
+  // The goggles' strap round the back of his head.
+  for (let i = -7; i <= 7; i++) put(g, hx + i, hy - 1, 'g');
+  outline(g);
+  return {
+    rows: rows(g),
+    colours: {
+      K: SHADES.skinTan, k: SHADES.skinTanShade, M: SHADES.woodLight, L: SHADES.dim, m: SHADES.wood, P: SHADES.woodPale, D: SHADES.dim, p: SHADES.woodLight,
+      H: SHADES.light, W: SHADES.white, h: SHADES.dim, g: SHADES.deep, '7': SHADES.dim, '9': SHADES.woodPale, X: SHADES.shadow,
+    },
+  };
+}
+
+/** The old scavenger, from behind, his hook in hand (Chapter 2, the first raid). */
+export const OLD_SCAV_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, scavengerBack(p, 'old')])) as Record<CarverPose, RowSprite>;
+
 /** The scavenger, from behind, her staff of blocks in hand (Chapter 2). */
 export const SCAVENGER_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, scavengerBack(p)])) as Record<CarverPose, RowSprite>;
 
@@ -629,8 +668,13 @@ interface StragglerLook {
   skin: 'tan' | 'fair' | 'dark';
   /** A rag wound round the head (the face showing), shaved with a beard, or a mop of hair. */
   head: 'wrap' | 'shaved' | 'hair';
-  /** What's in their hand: a shard of something sharp, or a lump of scrap. */
-  holds: 'shard' | 'lump';
+  /** What's in their hand: a shard of something sharp, a lump of scrap, a staff (the other clan), or nothing (fists). */
+  holds: 'shard' | 'lump' | 'staff' | 'none';
+  /** The coat's colours [base, lit, shade], if not the stragglers' patched grey; `patched` false for a whole one. */
+  coat?: [number, number, number];
+  patched?: boolean;
+  /** The head wrap's colours [base, shade], if not the stragglers' dull rag (the other clan's are pale). */
+  wrap?: [number, number];
 }
 
 /**
@@ -653,7 +697,7 @@ function straggler(pose: Exclude<FoePose, 'down'>, look: StragglerLook): RowSpri
   disc(g, cx + rf + 1, FOE_H - 2, 3.2, 1.5, '6');
   // The coat: to below the hips, hanging open, its hem ragged.
   poly(g, [[x - 11 - b, top + 16], [x + 11 + b, top + 16], [hx0 + 11 + b / 2, hip + 7], [hx0 - 11 - b / 2, hip + 7]], '2');
-  for (let i = -10 - b / 2; i <= 10 + b / 2; i += 3) limb(g, [[hx0 + i, hip + 6], [hx0 + i + 1, hip + 9 + (Math.abs(i * 7) % 4)]], 0.6, '2');
+  if (look.patched !== false) for (let i = -10 - b / 2; i <= 10 + b / 2; i += 3) limb(g, [[hx0 + i, hip + 6], [hx0 + i + 1, hip + 9 + (Math.abs(i * 7) % 4)]], 0.6, '2');
   disc(g, x - 10 - b, top + 19, 3.2, 3.2, '2');
   disc(g, x + 10 + b, top + 19, 3.2, 3.2, '2');
   const rs: Pt = [x - 11 - b, top + 19];
@@ -674,7 +718,7 @@ function straggler(pose: Exclude<FoePose, 'down'>, look: StragglerLook): RowSpri
   lightDay(g, '6', ['b', 'b', 'b']);
   lightDay(g, '4', ['H', 'H', 'b']);
   // Patches on the coat, in whatever was going.
-  for (const [px, py, c] of [[-6, 24, 'T'], [4, 32, 'U'], [-3, 37, 'T']] as const) for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) if (g[top + py + j]?.[x + px + i]?.match(/[MLm]/)) put(g, x + px + i, top + py + j, c);
+  if (look.patched !== false) for (const [px, py, c] of [[-6, 24, 'T'], [4, 32, 'U'], [-3, 37, 'T']] as const) for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) if (g[top + py + j]?.[x + px + i]?.match(/[MLm]/)) put(g, x + px + i, top + py + j, c);
   // The face.
   const fx = hx + f.look * 0.6;
   disc(g, fx, hy + 1.6, 4.4, look.head === 'wrap' ? 4 : 5, 'K');
@@ -700,18 +744,21 @@ function straggler(pose: Exclude<FoePose, 'down'>, look: StragglerLook): RowSpri
   }
   const hand = at(f.right[1]);
   if (look.holds === 'shard') limb(g, [[hand[0], hand[1] - 2], [hand[0] - 2, hand[1] - 9]], 0.7, 'G');
-  else {
+  else if (look.holds === 'staff') limb(g, [[hand[0] - 1, hand[1] + 14], [hand[0] + 1, hand[1] - 22]], 0.8, '7');
+  else if (look.holds === 'lump') {
     disc(g, hand[0] - 2, hand[1] - 4, 4, 3.4, '7');
     put(g, hand[0] - 4, hand[1] - 6, '8');
     put(g, hand[0] - 3, hand[1] - 6, '8');
   }
   outline(g);
   const skin = SKIN_OF[look.skin];
+  const [M, L, m] = look.coat ?? [SHADES.dim, SHADES.light, SHADES.woodPale];
+  const [W, w] = look.wrap ?? [SHADES.dim, SHADES.woodPale];
   return {
     rows: rows(g),
     colours: {
-      ...skin, P: SHADES.woodLight, D: SHADES.woodPale, p: SHADES.deep, M: SHADES.dim, L: SHADES.light, m: SHADES.woodPale,
-      W: SHADES.dim, w: SHADES.woodPale, b: SHADES.deep, T: SHADES.greenDeep, U: SHADES.amberDeep, y: SHADES.deep, h: SHADES.woodLight,
+      ...skin, P: SHADES.woodLight, D: SHADES.woodPale, p: SHADES.deep, M, L, m,
+      W, w, b: SHADES.deep, T: SHADES.greenDeep, U: SHADES.amberDeep, y: SHADES.deep, h: SHADES.woodLight,
       G: SHADES.white, '7': SHADES.woodPale, '8': SHADES.cyanMid, X: SHADES.shadow, H: SHADES.deep,
     },
   };
@@ -737,6 +784,13 @@ export const STRAGGLER_THIN_BATTLE = stragglerPoses({ broad: 0, skin: 'tan', hea
 export const STRAGGLER_BIG_BATTLE = stragglerPoses({ broad: 4, skin: 'fair', head: 'shaved', holds: 'lump' });
 /** The small straggler (the one who cut your strap): slight, a mop of dark hair, a shard. */
 export const STRAGGLER_SMALL_BATTLE = stragglerPoses({ broad: -3, skin: 'dark', head: 'hair', holds: 'shard' });
+
+/** The boss's son: your age, a good cyan shirt (whole, matched), a mop of dark hair, his fists. */
+export const SON_BATTLE = stragglerPoses({ broad: 0, skin: 'tan', head: 'hair', holds: 'none', coat: [SHADES.cyanMid, SHADES.cyan, SHADES.cyanDeep], patched: false });
+/** The other clan's raiders: pale wraps and coats (their look in the areas), staves. */
+export const RAIDER_BATTLE = stragglerPoses({ broad: 1, skin: 'tan', head: 'wrap', holds: 'staff', coat: [SHADES.light, SHADES.white, SHADES.dim], patched: false, wrap: [SHADES.white, SHADES.light] });
+/** Their leader on the raid: bigger, the same pale. */
+export const RAIDER_LEAD_BATTLE = stragglerPoses({ broad: 4, skin: 'dark', head: 'wrap', holds: 'staff', coat: [SHADES.light, SHADES.white, SHADES.dim], patched: false, wrap: [SHADES.white, SHADES.light] });
 
 // --- The dog, from behind (Chapter 2) ---
 // Low in the foreground beside you, seen from behind: haunches, a tail, the back running up to the

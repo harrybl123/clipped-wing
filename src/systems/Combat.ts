@@ -70,6 +70,9 @@ export interface MoveDef {
   reveals?: boolean;
   /** Takes this much SP off what it hits (the small straggler's Pinch: into your things). */
   drains?: number;
+  /** Gives back this much HP: to the user (the boss's son's Breather), or with `healsSide` to everyone standing on the user's side (the old scavenger's Patch up). */
+  heals?: number;
+  healsSide?: boolean;
 }
 
 export interface ItemDef {
@@ -149,7 +152,7 @@ export interface EncounterDef {
    */
   timing?: { lunge?: number; ease?: number };
   /** Where it's fought (the scene paints a stage for each): the market by default. */
-  stage?: 'market' | 'rot' | 'fields' | 'camp';
+  stage?: 'market' | 'rot' | 'fields' | 'camp' | 'bar';
   /** The fight teaches itself: a short explanation the first time each of these comes up (`LESSONS`). */
   teaches?: string[];
   /**
@@ -572,6 +575,12 @@ export class Battle {
    */
   private strike(actor: Combatant, move: MoveDef, target: Combatant, { reactions = [], grades = [] }: { reactions?: Reaction[]; grades?: Grade[] }): BattleEvent[] {
     const events: BattleEvent[] = [{ type: 'move', actor: actor.id, move: move.id, target: target.id }];
+    if (move.heals) {
+      for (const c of move.healsSide ? this.living(actor.side) : [actor]) {
+        c.hp = Math.min(c.def.hp, c.hp + move.heals);
+        events.push({ type: 'heal', target: c.id, hp: c.hp, sp: c.sp });
+      }
+    }
     if (move.target === 'self' || !move.power) return events;
     const window = this.reactionWindow(move.id, target.id);
     let landed = 0;

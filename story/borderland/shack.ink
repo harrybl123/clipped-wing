@@ -39,6 +39,8 @@ The one on the end still glows a little at night. He calls it his light.
 
 === shack_bed ===
 { c2day2 == "night": -> c2day2_night }
+{ c2day3 == "home": -> c2day3_bed }
+{ c2day4 == "home": -> c2day4_bed }
 { c2day1 == "home": -> c2day1_bed }
 Not yet.
 -> END

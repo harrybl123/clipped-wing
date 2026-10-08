@@ -43,8 +43,8 @@ describe('typing a line out', () => {
 });
 
 describe('voices', () => {
-  it('every speaker has a voice', () => {
-    for (const [id, s] of Object.entries(SPEAKERS)) expect(s.voice === 'crowd' || s.voice in VOICES, id).toBe(true);
+  it('every speaker has a voice (the dog has its sounds instead)', () => {
+    for (const [id, s] of Object.entries(SPEAKERS)) expect(s.voice === 'crowd' || s.voice === 'dog' || s.voice in VOICES, id).toBe(true);
   });
   it('the faceless voices belong to someone', () => {
     for (const v of Object.values(FACELESS_VOICES)) expect(v in VOICES).toBe(true);

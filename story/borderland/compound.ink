@@ -77,6 +77,7 @@ Beds with frames, and blankets nobody's patched.
 // --- People (draft) ---
 
 === compound_enforcer ===
+{ c2day4 == "gate": -> c2day4_gate }
 "Nobody goes in unless they're asked. You asked?" #speaker:enforcer
 -> END
 
@@ -86,8 +87,14 @@ Beds with frames, and blankets nobody's patched.
 -> END
 
 === house_boss ===
+{ c2day4 == "house": -> c2day4_boss }
 "Come in, come in. Anyone who digs as hard as you is welcome at my table." #speaker:boss
 "We look after our own here. Remember that." #speaker:boss
+-> END
+
+=== house_brother ===
+"They have bread every day here. Every day!" #speaker:brother
+"He says I can sit by him at dinner. He says I'm sharp." #speaker:brother
 -> END
 
 === house_watcher ===

@@ -248,6 +248,35 @@ VAR dog_on_wire = false
 VAR going_home = false
 // Night 2: out looking for the dog, before you hear it bark on the fields.
 VAR searching = false
+// Chapter 2, Day 3, weeks later (story/borderland/chapter2-day3.ink). Stages: train, sunk, tribute, home, done.
+VAR c2day3 = ""
+// Training at the hollow (the things you buried, found), then working the sunk town with the dog.
+VAR training = false
+VAR trained_1 = false
+VAR trained_2 = false
+VAR seeking = false
+VAR sought_1 = false
+VAR sought_2 = false
+VAR sought_3 = false
+VAR sought = 0
+VAR seek_arrived = false
+// The boss has asked you up to the house.
+VAR summoned = false
+// Chapter 2, Day 4 (story/borderland/chapter2-day4.ink). Stages: gate, house, tell, bar, home, done.
+VAR c2day4 = ""
+// In the circle: you tell the boss where you're digging, and when (design doc: he passes it on).
+VAR in_circle = false
+// Big choice 1 (design doc): your brother moves into the compound ("compound") or stays with you ("home").
+VAR brother_choice = ""
+VAR brother_moved = false
+// The circle at the bar tonight, and the sparring with the boss's son (the fight writes spar_won).
+VAR circle_night = false
+VAR spar_won = false
+// Chapter 2, Day 5 (story/borderland/chapter2-day5.ink). Stages: fields, raid, after, done.
+VAR c2day5 = ""
+VAR raid_day = false
+VAR raiders_here = false
+VAR raid_won = false
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
@@ -275,6 +304,9 @@ INCLUDE seed-grove.ink
 INCLUDE ascension-gate.ink
 INCLUDE borderland/chapter2-day1.ink
 INCLUDE borderland/chapter2-day2.ink
+INCLUDE borderland/chapter2-day3.ink
+INCLUDE borderland/chapter2-day4.ink
+INCLUDE borderland/chapter2-day5.ink
 INCLUDE borderland/picked-fields.ink
 INCLUDE borderland/shack.ink
 INCLUDE borderland/swap-yard.ink

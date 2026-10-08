@@ -32,12 +32,26 @@ export function beginChapter2(scene: Phaser.Scene): void {
   scene.scene.start('Chapter', { number: 'Chapter 2', title: 'On the Scent', next } satisfies ChapterSceneData);
 }
 
-/** Dev: straight to the morning of Chapter 2's Day 2, as if Day 1 had been played (`?chapter=2&day=2`). */
-export function devChapter2Day2(scene: Phaser.Scene): void {
+/** Dev: straight to the start of one of Chapter 2's days, as if the days before had been played (`?chapter=2&day=2` to `5`). */
+export function devChapter2Day(scene: Phaser.Scene, day: number): void {
   const session = getSession(scene);
-  for (const [name, value] of [['chapter', 2], ['c2day1', 'done'], ['c2day2', 'wake'], ['owe_double', true], ['traded_light', true], ['food', 0], ['objective', 'Talk to your brother'], ['objective_target', 'shack:brother']] as const) session.story.setVariable(name, value);
-  session.calendar.jumpTo(2);
-  scene.scene.start('Area', { areaId: 'shack', start: { x: 382, y: 184 }, card: 'Day 2' } satisfies AreaSceneData);
+  const set = (vars: Record<string, string | number | boolean>) => {
+    for (const [name, value] of Object.entries(vars)) session.story.setVariable(name, value);
+  };
+  set({ chapter: 2, c2day1: 'done', owe_double: true, traded_light: true, objective: '', objective_target: '' });
+  if (day >= 3) set({ c2day2: 'done', found_dog: true, dog_owned: true, dog_name: 'Peggy', dog_choice: 'keep' });
+  if (day >= 4) set({ c2day3: 'done', owe_double: false, summoned: true });
+  if (day >= 5) set({ c2day4: 'done', in_circle: true, brother_choice: 'home' });
+  const starts: Record<number, AreaSceneData & { vars: Record<string, string | boolean> }> = {
+    2: { areaId: 'shack', start: { x: 382, y: 184 }, vars: { c2day2: 'wake', objective: 'Talk to your brother', objective_target: 'shack:brother' } },
+    3: { areaId: 'dogs-hollow', start: { x: 60, y: 206 }, script: 'c2day3_start', vars: { c2day3: 'train' } },
+    4: { areaId: 'compound', start: { x: 40, y: 232 }, script: 'c2day4_start', vars: { c2day4: 'gate' } },
+    5: { areaId: 'picked-fields', start: { x: 860, y: 232 }, script: 'c2day5_start', vars: { c2day5: 'fields' } },
+  };
+  const { vars, ...next } = starts[day] ?? starts[2]!;
+  set(vars);
+  session.calendar.jumpTo(day as 2 | 3 | 4 | 5);
+  scene.scene.start('Area', { ...next, card: day === 3 ? 'Weeks later' : `Day ${day}` } satisfies AreaSceneData);
 }
 
 /** How long the card holds before fading out (ms). */

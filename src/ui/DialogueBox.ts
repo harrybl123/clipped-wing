@@ -8,6 +8,7 @@ import { PixelText } from './PixelText';
 import { CROWD_VOICES, FACELESS_VOICES, type TypedLetter, typeLine, type Voice, VOICES } from '../systems/voices';
 import { playConfirm, playMove } from './sfx';
 import { playSyllable } from './voice';
+import { playSound } from './soundscape';
 import { MORE_ARROW } from './sprites';
 
 const MARGIN = 8;
@@ -160,6 +161,12 @@ export class DialogueBox {
     this.lineText.setText(text);
     this.fit();
     this.typing = null;
+    // The dog's line is a sound: a growl, a whimper, a sniff, or a bark.
+    const id = tags.find((t) => t.startsWith('speaker:'))?.slice('speaker:'.length).trim();
+    if (id && SPEAKERS[id]?.voice === 'dog') {
+      const words = text.toLowerCase();
+      playSound(this.scene, words.includes('gr') ? 'growl' : words.includes('whin') || words.includes('whimp') ? 'whimper' : words.includes('sniff') || words.includes('huff') ? 'rub' : 'bark');
+    }
     if (!type) return;
     const { voices, muffled } = this.voiceFor(tags);
     const letters = typeLine(this.lineText.laidOut, voices[0]);
@@ -173,6 +180,7 @@ export class DialogueBox {
     const id = tags.find((t) => t.startsWith('speaker:'))?.slice('speaker:'.length).trim();
     const voice = id ? SPEAKERS[id]?.voice : undefined;
     if (voice === 'crowd') return { voices: CROWD_VOICES.map((v) => VOICES[v]), muffled: false };
+    if (voice === 'dog') return { voices: [], muffled: false };
     if (voice) return { voices: [VOICES[voice]], muffled: false };
     const name = tags.find((t) => t.startsWith('name:'))?.slice('name:'.length).trim();
     const faceless = name ? FACELESS_VOICES[name] : undefined;
@@ -281,7 +289,9 @@ export class DialogueBox {
     if (nameOnly) this.nameText.setText(nameOnly).setX(textX);
     if (!speaker || !id) return;
     this.portrait.setTexture(makeSpriteTexture(this.scene, `portrait-${id}`, speaker.portrait.rows, speaker.portrait.colours));
-    this.nameText.setText(name ?? speaker.name).setX(textX);
+    const named = speaker.nameVar ? String(this.story.getVariable(speaker.nameVar) ?? '') : '';
+    this.nameText.setText(name ?? (named || speaker.name)).setX(textX);
+
   }
 
   /** The story's current choices as options: choosing one continues the story. */

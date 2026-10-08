@@ -773,7 +773,64 @@ function folkPortrait(look: FolkLook, face: NpcFace = {}): RowSprite {
  * Portraits by the speaker id used in ink tags (`#speaker:mum`), with the name shown above the line. A
  * `#name:` tag on the same line overrides the name (the escort is "The guard" until he's "Your escort").
  */
-export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice: VoiceId | 'crowd' }> = {
+/**
+ * The dog (Chapter 2): its head and shoulders, three-quarter on, ears up, a pale scruffy coat with a darker
+ * saddle over the head, a pale muzzle, a dark nose, bright eyes. Drawn like its sprite (pale, outlined).
+ */
+export const DOG_PORTRAIT: RowSprite = (() => {
+  const W = 48;
+  const g = Array.from({ length: W }, () => Array.from({ length: W }, () => '.'));
+  const put = (x: number, y: number, c: string) => {
+    if (y >= 0 && y < W && x >= 0 && x < W) g[Math.round(y)]![Math.round(x)] = c;
+  };
+  const disc = (cx: number, cy: number, rx: number, ry: number, c: string) => {
+    for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++) for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++) if (((x - cx) / (rx + 0.3)) ** 2 + ((y - cy) / (ry + 0.3)) ** 2 <= 1) put(x, y, c);
+  };
+  const tri = (a: [number, number], b: [number, number], c: [number, number], col: string) => {
+    for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
+      const s = (p: [number, number], q: [number, number]) => (q[0] - p[0]) * (y - p[1]) - (q[1] - p[1]) * (x - p[0]);
+      const [d1, d2, d3] = [s(a, b), s(b, c), s(c, a)];
+      if (!((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0))) put(x, y, col);
+    }
+  };
+  // Shoulders and neck, scruffy at the edges.
+  for (let y = 32; y < W; y++) {
+    const half = 9 + (y - 32) * 0.9;
+    for (let x = Math.round(24 - half); x <= Math.round(24 + half); x++) put(x, y, x < 24 - half + 3 ? 's' : 'f');
+  }
+  // Ears, then the head over their roots.
+  tri([13, 18], [16, 3], [23, 14], 'E');
+  tri([27, 13], [33, 2], [36, 17], 'E');
+  tri([16, 15], [17, 7], [21, 14], 'e');
+  tri([29, 13], [32, 6], [34, 15], 'e');
+  disc(24, 22, 11, 10, 'f');
+  // The darker saddle over the top of the head, down between the eyes.
+  disc(24, 15, 8, 4, 'S');
+  for (let y = 15; y < 22; y++) put(24, y, 'S');
+  // Shaded down its left side.
+  for (let y = 14; y < 34; y++) for (let x = 0; x < 18; x++) if (g[y]![x] === 'f') g[y]![x] = 's';
+  // The muzzle, turned a little to its left (our right), and the nose.
+  disc(28, 30, 7, 5, 'm');
+  disc(33, 27.5, 2.4, 1.8, 'n');
+  put(33, 26, 'W');
+  for (let x = 25; x <= 32; x++) put(x, 33, x === 32 ? 'n' : 's'); // the mouth
+  // Eyes, with a glint.
+  for (const [ex, ey] of [[19, 22], [29, 21]] as const) {
+    disc(ex, ey, 1.6, 1.4, 'o');
+    put(ex + 1, ey - 1, 'W');
+  }
+  // A dark outline round all of it.
+  const filled = (x: number, y: number) => (g[y]?.[x] ?? '.') !== '.' && g[y]![x] !== 'x';
+  const marks: [number, number][] = [];
+  g.forEach((row, y) => row.forEach((v, x) => { if (v === '.' && (filled(x - 1, y) || filled(x + 1, y) || filled(x, y - 1) || filled(x, y + 1))) marks.push([x, y]); }));
+  for (const [x, y] of marks) g[y]![x] = 'x';
+  return {
+    rows: g.map((r) => r.join('')),
+    colours: { f: SHADES.light, s: SHADES.dim, S: SHADES.woodPale, m: SHADES.white, n: SHADES.shadow, E: SHADES.woodPale, e: SHADES.woodLight, o: SHADES.shadow, W: SHADES.white, x: SHADES.shadow },
+  };
+})();
+
+export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice: VoiceId | 'crowd' | 'dog'; nameVar?: string }> = {
   you: { name: 'You', portrait: PROTAGONIST_PORTRAIT , voice: 'you' },
   mum: { name: 'Mum', portrait: MUM_PORTRAIT , voice: 'mum' },
   tender: { name: 'The Tender', portrait: TENDER_PORTRAIT , voice: 'tender' },
@@ -797,6 +854,8 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
   madam: { name: 'The madam', portrait: folkPortrait(CAST_LOOKS.madam, { eyes: 'narrow', brow: 'raised', mouth: 'smile', items: ['earring'] }), voice: 'mum' },
   hostess: { name: 'A hostess', portrait: folkPortrait(HOSTESS_LOOKS[0]!, { build: 'narrow', eyes: 'narrow', mouth: 'smile', items: ['earring', 'beads'] }), voice: 'girl' },
   fence: { name: 'The fence', portrait: folkPortrait(CAST_LOOKS.fence, { build: 'narrow', eyes: 'narrow', mouth: 'smile', items: ['earring'] }), voice: 'preacher' },
+  // The dog: no voice, its own sounds (a bark, a growl, a whimper, from what it says); its name once it has one.
+  dog: { name: 'The dog', portrait: DOG_PORTRAIT, voice: 'dog', nameVar: 'dog_name' },
   food_trader: { name: 'The food trader', portrait: folkPortrait(TOWNSFOLK_LOOKS[5]!, { mouth: 'frown', eyes: 'narrow' }), voice: 'roots_woman' }, // at the swap yard's food stall
   // Stragglers from elsewhere (Chapter 2, Day 1).
   straggler_thin: { name: 'The thin one', portrait: folkPortrait(STRAGGLER_LOOKS[0]!, { build: 'narrow', eyes: 'hollow', mouth: 'grin' }), voice: 'roots_man' },

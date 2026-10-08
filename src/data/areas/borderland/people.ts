@@ -46,14 +46,16 @@ export const stroller = (id: string, look: number, from: number, to: number, y: 
 });
 
 /** One of the other clan, across the rival line. */
-export const rival = (id: string, look: number, x: number, y: number, when?: TimeSlot[]): Person => ({
+export const rival = (id: string, look: number, x: number, y: number, when?: TimeSlot[], extra: Partial<Person> = {}): Person => ({
   id,
   sprite: RIVALS[look]!.idle[0]!,
   idleFrames: RIVALS[look]!.idle,
+  walkFrames: RIVALS[look]!.walk,
   x,
   y,
   when,
   flipX: true, // facing across the line, at us
+  ...extra,
 });
 
 /** The dog, following you about (Chapter 2, Day 2: from the camp to home) while `dog_with_you`. */

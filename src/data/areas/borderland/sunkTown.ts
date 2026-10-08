@@ -125,6 +125,16 @@ export const sunkTown: AreaDefinition = {
     { type: 'trigger', x: 60, y: SURFACE, reach: 50, knot: 'c2day2_bark', showIf: 'going_deep', hideIf: 'heard_bark' },
     // (Clear of the crawl's low ceiling, so you stand up to face them: designer.)
     { type: 'trigger', x: CAMP.x + CAMP.width - 20, y: floor(CAMP), reach: 4, knot: 'c2day2_camp', showIf: 'heard_bark', hideIf: 'camp_found' },
+    { type: 'trigger', x: 60, y: SURFACE, reach: 50, knot: 'c2day3_arrive', showIf: 'seeking', hideIf: 'seek_arrived' },
+    // Chapter 2, Day 3 (weeks later): working the sunk town with the dog. It finds what nobody else could.
+    {
+      type: 'seek', dog: 'dog-follow', range: 150, showIf: 'seeking',
+      finds: [
+        { x: 600, y: floor(LONG_ROOM), knot: 'c2day3_find_1', done: 'sought_1', item: 'lens' },
+        { x: 790, y: floor(HALL), knot: 'c2day3_find_2', done: 'sought_2', item: 'box' },
+        { x: 420, y: floor(TUNNEL), knot: 'c2day3_find_3', done: 'sought_3', item: 'cable' },
+      ],
+    },
     // Their fire, and its smoke going up a crack in the ceiling.
     { type: 'fire', x: 318, y: floor(CAMP), showIf: 'camp_fire' },
     { type: 'smoke', x: 318, y: floor(CAMP) - 12, top: CAMP.y, showIf: 'camp_fire' },

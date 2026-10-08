@@ -15,9 +15,9 @@ The shape of [Chapter 2, The Scavenger](chapter-2-design.md), agreed with the de
 
 | Part | Days | What happens | Choices | Fights |
 | --- | --- | --- | --- | --- |
-| 1. Scraping by | 1–2 | Scavenging the picked fields, stragglers, trading at the swap yard, tribute night at the tally house; the sunk town, the dog, home to your brother | medium: the dog | stragglers (the tutorial); the dog's first fight |
+| 1. Scraping by (built) | 1–2 | Scavenging the picked fields, stragglers, trading at the swap yard, tribute night at the tally house; the sunk town, the dog, home to your brother | medium: the dog | stragglers (the tutorial); the dog's first fight |
 | *gap: weeks later* | | Training the dog in the dog's hollow | | |
-| 2. The rise | 3–4 | The dog's finds make your hauls jump; the tallyman notices; the boss summons you; the circle at the bar and the compound | big 1: your brother | the son (sparring); the first rival raid on the picked fields, with the old scavenger |
+| 2. The rise (built) | 3–5 | The dog's finds make your hauls jump; the tallyman notices; the boss summons you; the circle at the bar and the compound | big 1: your brother | the son (sparring); the first rival raid on the picked fields, with the old scavenger |
 | *gap: a month on* | | | | |
 | 3. The squeeze | 5–7 | Raids land wherever you've been; suspicion spreads through the bar, den and brothel; red herrings; the scout | medium: your friend's secret, the gambler's debt, the rival drop (in the deep ground); big 2: the rival line | debt collectors at the den; the drop's guards; the scout, chased across the scrap stacks |
 | 4. The reveal | 8 (first half) | The dog knows the drop's scent on the boss; your other clues come together | | the enforcer corners you |

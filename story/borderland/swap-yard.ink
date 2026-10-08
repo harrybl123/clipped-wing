@@ -47,6 +47,7 @@ The fence buys what nobody else will, and asks nothing.
 
 === swap_yard_brother ===
 { c2day1 == "brother": -> c2day1_brother }
+{ c2day4 == "tell": -> c2day4_tell }
 "We're spying! The kid says that man's sold the same pot three times." #speaker:brother
 "Don't tell anyone we were spying. Not even the kid. Wait, the kid knows." #speaker:brother
 -> END

@@ -1,0 +1,42 @@
+# Sequence plan: Chapter 2, Part 2: The rise (Days 3–5)
+
+Built 2026-10-08 (`story/borderland/chapter2-day3.ink` to `chapter2-day5.ink`; dev `?chapter=2&day=3|4|5`). **(doc)** = [the design doc](../../chapter-2-design.md); **(designer)** = decided in conversation; **(suggestion)** = Claude's proposal. Part of [the chapter's structure](../../chapter-2-story.md). Draft text throughout.
+
+## Decided
+- **"Weeks later" lands on tribute night:** you pay double and more, and the boss notices. **(designer accepted the suggestion)**
+- **The dog is a way of playing:** on the grounds it runs ahead, sniffs, and digs where something is; you follow it to finds (the `seek` feature). **(designer accepted)**
+- **Days needn't start at home:** Day 3 starts at the hollow, Day 4 at the compound's gate, Day 5 out on the fields. **(designer)**
+- **The dog has its own speech box:** a portrait, its name once it has one, and its own sounds (bark, growl, whimper, sniff) for its lines. **(designer)**
+- "You know the answers; we can do this over multiple days." **(designer)** The rest is Claude's, below.
+
+## Day 3: weeks later (suggestion)
+
+| Time | Where | What happens | Objective |
+| --- | --- | --- | --- |
+| Dawn | The dog's hollow | Weeks of training before light. Two things buried; it finds them (`seek`) | "Let {name} find what you buried" |
+| Day | The sunk town | No marker inside: its nose is the guide. It runs ahead and digs: a lens in the long room, a sealed box in the hall, a cable in the tunnel. Then you send it back to the hollow | "Work the sunk town with {name}" |
+| Evening | The tally house | Four times the tribute. The tallyman stops writing: "Where?" The boss: "Look who's found her feet. Come up to the house tomorrow." The watcher looks a moment longer | "Pay your tribute" |
+| Night | Your shack | Your brother's heard from the kid. "I said it was rats. Is a dog like a rat?" | "Go home" |
+
+## Day 4: the compound (suggestion)
+
+| Time | Where | What happens | Objective |
+| --- | --- | --- | --- |
+| Morning | The compound's gate | The enforcer: "Four times the tribute, off ground that's been picked clean. Funny, that." | "Go in" |
+| Morning | The boss's house | Bread. "You've a gift. I don't ask how." His circle, his table; **you tell him where you dig, and when** (`in_circle`: the design doc's setup for the frame). **Big choice 1:** bring your brother to live here (`brother_choice`) | "See the boss" |
+| Afternoon | The swap yard | Tell your brother: he packs his collection and goes (`brother_moved`; he's at the boss's table from then on, not at home), or he sulks and takes your hand anyway | "Tell your brother" |
+| Evening | The bar | The circle. The boss's son: "Let's see some luck." **Sparring** (`son_spar`): his Cheap shot, Showboat into a Big swing, and a Breather when he's losing. The boss sends you to dig the far fields tomorrow, "to be seen". The watcher: "Where do you dig, when you're not where you say?" | "Meet the circle at the bar" |
+| Night | Your shack | Empty without him, or silent with him | "Go home" |
+
+## Day 5: the first raid (suggestion)
+
+| Time | Where | What happens | Objective |
+| --- | --- | --- | --- |
+| Morning | The picked fields' far end | Digging for show beside the old scavenger. "I'm not going to ask. Somebody will." | "Dig beside the old scavenger" |
+| Morning | The picked fields | **The raid** (design doc: a story beat): three of the other clan over the rise; the pickers run; they're looking at you. **You and the old scavenger fight** (`first_raid`). "How did they know we'd be here?" He looks at you and says nothing. Then "A month on" | — |
+
+## Fighters (draft numbers)
+- **The boss's son:** Cheap shot (feints often); **Showboat** into Big swing (a wind-up: guard or Sweep him); **Breather** (heals himself when he's losing).
+- **The old scavenger** (with you on the raid): Hook (basic); **Yank** (hooks a staff or a leg: knocks raiders off balance, interrupts a wind-up); **Patch up** (heals you both).
+- **Raiders:** Thrust; Whirl (two blows); weak to grabs. **Their leader:** **Mark** (picks you out: you take more damage for 2 rounds), Thrust, Whirl.
+- New rules: `heals` / `healsSide`.

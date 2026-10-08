@@ -88,7 +88,7 @@ export const FIRE_FRAMES: readonly RowSprite[] = [
 ].map((rows) => ({ rows, colours: { a: SHADES.amber, w: SHADES.white, l: SHADES.woodLight, d: SHADES.deep } }));
 
 /** Finds dug up out of the dirt (Chapter 2), shown rising over you as you find them: a coil of wire, a ring of pale casing, a cube of dark glass with a light inside. */
-export const FIND_SPRITES: Record<'wire' | 'ring' | 'cube', RowSprite> = {
+export const FIND_SPRITES: Record<'wire' | 'ring' | 'cube' | 'box' | 'cable' | 'lens' | 'disc', RowSprite> = {
   wire: {
     rows: [
       '..llll...',
@@ -126,5 +126,56 @@ export const FIND_SPRITES: Record<'wire' | 'ring' | 'cube', RowSprite> = {
       'ddddddd..',
     ],
     colours: { w: SHADES.dim, d: SHADES.woodLight, k: SHADES.deep, c: SHADES.cyanMid, C: SHADES.cyan },
+  },
+  // A sealed box, heavy, a seam round it and a little light on its lid.
+  box: {
+    rows: [
+      'wwwwwwwwww',
+      'wllllllCll',
+      'wllllllllm',
+      'mmmmmmmmmm',
+      'wllllllllm',
+      'wllllllllm',
+      'mmmmmmmmmm',
+    ],
+    colours: { w: SHADES.white, l: SHADES.light, m: SHADES.dim, C: SHADES.cyan },
+  },
+  // A coil of cable thick as your arm, its sheath cracked.
+  cable: {
+    rows: [
+      '..dddddd..',
+      '.dkkkkkkd.',
+      'dkdddddkkd',
+      'dkd....dkd',
+      'dkd..cddkd',
+      'dkkdddkkd.',
+      '.ddkkkkd..',
+      '...dddd...',
+    ],
+    colours: { d: SHADES.dim, k: SHADES.woodLight, c: SHADES.cyanMid },
+  },
+  // A lens, clear as water, in a ring of pale metal.
+  lens: {
+    rows: [
+      '..wwww..',
+      '.wcCCcw.',
+      'wcCWCCcd',
+      'wcCCCCcd',
+      '.dcCCcd.',
+      '..dddd..',
+    ],
+    colours: { w: SHADES.white, d: SHADES.dim, c: SHADES.cyanMid, C: SHADES.cyan, W: SHADES.white },
+  },
+  // A disc of pale metal with a light inside (the dog's first find).
+  disc: {
+    rows: [
+      '..wwww..',
+      '.wllllw.',
+      'wllCClld',
+      'wlCWClld',
+      '.dllllw.',
+      '..dddd..',
+    ],
+    colours: { w: SHADES.white, l: SHADES.light, d: SHADES.dim, C: SHADES.cyan, W: SHADES.white },
   },
 };

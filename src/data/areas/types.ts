@@ -76,6 +76,10 @@ export type Feature =
       type: 'dig'; y: number; from: number; to: number; showIf: string;
       finds: { x: number; reach: number; knot: string; done: string; item: FindItem }[];
     } // ground you search by digging anywhere along floor y, from..to, while showIf is true (designer: search it yourself, nothing signposted). Most of it gives nothing; at a find (within `reach` of x, until the ink variable `done`) the thing comes up out of the dirt where you can see it, then its knot plays. A faint glint in the dirt now and then gives each find away, and digging close by turns up a hint
+  | {
+      type: 'seek'; dog: string; range: number; showIf: string;
+      finds: { x: number; y: number; knot: string; done: string; item: FindItem }[];
+    } // the dog finds things (Chapter 2): while showIf is true and the dog (person id, following you) is with you, when you come within `range` of a find on the floor you're both on, it runs to it, sniffs and digs there; dig beside it (E) and the thing comes up (as with `dig`), its knot plays, and the dog follows you again
   | { type: 'trigger'; x: number; y: number; reach: number; knot: string; showIf?: string; hideIf?: string } // plays a knot by itself once when you reach this spot on surface y (while showIf is true and hideIf isn't; the knot should set hideIf so it doesn't play again on the next visit)
   | { type: 'quarry'; people: string[]; y: number; path: { x: number; wait?: number; look?: boolean }[]; speed: number; range: number; lose: number; reset: { x: number; y: number }; showIf: string; done: string }; // people you tail (the first leads, the rest keep their distance from him): they walk the path on floor y, stopping `wait` ms at each point, and at `look` points turn round. If they see you (in front of them, too close, or behind within `range` while they look, not in a shadow), or you fall more than `lose` px behind, you're back at `reset` and they start again. At the end they slip away and the ink variable `done` becomes true. Only while showIf is true
 
@@ -106,7 +110,7 @@ export type Surface = 'wood' | 'plank' | 'metal' | 'fungus' | 'wet' | 'dirt';
 
 /** Something the player can walk up to and press E on, which runs an ink knot. */
 /** Things you can dig up (a small sprite each, shown coming out of the ground). */
-export type FindItem = 'wire' | 'ring' | 'cube';
+export type FindItem = 'wire' | 'ring' | 'cube' | 'box' | 'cable' | 'lens' | 'disc';
 
 export interface Interactable {
   id: string;

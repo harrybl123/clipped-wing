@@ -4,8 +4,8 @@ import { COMBATANTS, ENCOUNTERS, ITEMS, LESSONS, type Lesson, MOVES } from '../d
 import { getSession } from '../session';
 import { Battle, type Action, type BattleEvent, type Combatant, type Intent, type MoveDef, type Reaction } from '../systems/Combat';
 import type { Grade, Key, Qte, QteKind } from '../systems/qte';
-import { BEETLE_BATTLE, CARVER_BATTLE, DOG_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, SCAVENGER_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
-import { DOG } from '../ui/borderlandFolk';
+import { BEETLE_BATTLE, CARVER_BATTLE, DOG_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, OLD_SCAV_BATTLE, RAIDER_BATTLE, RAIDER_LEAD_BATTLE, SCAVENGER_BATTLE, SON_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
+import { CAST, DOG } from '../ui/borderlandFolk';
 import { GIRL, PROTAGONIST, SCAVENGER } from '../ui/characters';
 import { paintFar } from '../ui/paintOutdoor';
 import { QteRunner } from '../ui/QteRunner';
@@ -73,6 +73,10 @@ const LOOKS: Record<string, Look> = {
   straggler_big: { poses: STRAGGLER_BIG_BATTLE, scale: 1 },
   straggler_small: { poses: STRAGGLER_SMALL_BATTLE, scale: 1 },
   dog: { poses: DOG_BATTLE, scale: 2, cutIn: DOG.idle[0]! },
+  old_scav: { poses: OLD_SCAV_BATTLE, scale: 2, cutIn: CAST.old_scav.idle[0]! },
+  boss_son: { poses: SON_BATTLE, scale: 1 },
+  raider: { poses: RAIDER_BATTLE, scale: 1 },
+  raider_lead: { poses: RAIDER_LEAD_BATTLE, scale: 1 },
 };
 
 interface View {
@@ -186,7 +190,7 @@ export class CombatScene extends Phaser.Scene {
     this.lessons = [...(encounter.teaches ?? []), ...(also && !getSession(this).story.getVariable(also.unless) ? also.lessons : [])];
     // The stage: where it's fought.
     const where = encounter.stage ?? 'market';
-    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : where === 'fields' ? paintFieldsStage() : where === 'camp' ? paintCampStage() : paintStage());
+    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : where === 'fields' ? paintFieldsStage() : where === 'camp' ? paintCampStage() : where === 'bar' ? paintBarStage() : paintStage());
     stage.setTexture(`combat-stage-${where}`);
     const party = this.battle.combatants.filter((c) => c.side === 'party');
     const enemies = this.battle.combatants.filter((c) => c.side === 'enemy');
@@ -1702,5 +1706,56 @@ function paintCampStage() {
     const base = addLight(addLight(deep, wood, 0.35), amber, glow * 0.55);
     if (panel) return glow > 0.3 ? SHADES.woodPale : SHADES.shadow;
     return noise(x / 11 + y / 37) > 0.85 ? addLight(base, rgb(SHADES.woodLight), 0.3) : base;
+  };
+}
+
+/**
+ * The bar (Chapter 2, Day 4): its floor cleared for a fight, seen down the room. A wall of scrap panels,
+ * lamps hanging over a counter at the back with bottles on it, the crowd in a ring (lamplit faces at the
+ * back, dark shoulders near), and boards under your feet in a pool of amber.
+ */
+function paintBarStage() {
+  const deep = rgb(SHADES.deep);
+  const wood = rgb(SHADES.wood);
+  const amber = rgb(SHADES.amber);
+  const vx = 260;
+  const LAMPS: [number, number][] = [[90, 46], [200, 40], [330, 40], [430, 46]];
+  return (x: number, y: number) => {
+    let glow = 0;
+    for (const [lx, ly] of LAMPS) glow += falloff(x, y, lx, ly + 10, 60, 50) * 0.5;
+    glow += falloff(x, y, vx, FLOOR, 120, 40) * 0.4;
+    for (const [lx, ly] of LAMPS) {
+      if (Math.abs(x - lx) < 1 && y < ly - 3) return SHADES.shadow;
+      const d = Math.hypot(x - lx, (y - ly) * 1.3);
+      if (d < 2) return SHADES.white;
+      if (d < 3.6) return SHADES.amber;
+    }
+    if (y >= HORIZON) {
+      const depth = (y - HORIZON) / (H - HORIZON);
+      const u = (x - vx) / Math.max(0.05, depth);
+      const seam = Math.abs((((u / 22) % 1) + 1) % 1 - 0.5) > 0.47;
+      const base = addLight(addLight(deep, wood, 0.6), amber, Math.min(0.6, glow));
+      if (seam) return glow > 0.3 ? SHADES.woodLight : SHADES.shadow;
+      return noise(x / 6 + y / 2) > 0.85 ? addLight(base, rgb(SHADES.woodPale), 0.3) : base;
+    }
+    // The crowd in a ring: lamplit faces at the back, darker, taller shoulders nearer (gapped behind him).
+    const col = Math.floor(x / 10);
+    const h = 16 + noise(col * 2.3) * 16;
+    const gap = Math.abs(x - vx) < 50 && noise(col * 5.1) < 0.6;
+    if (!gap && y > HORIZON - h && y < HORIZON) {
+      const head = y < HORIZON - h + 6 && Math.abs((x % 10) - 5) < 3;
+      const body = y >= HORIZON - h + 6;
+      if (head) return glow > 0.25 ? SHADES.dim : SHADES.woodLight;
+      if (body) return SHADES.shadow;
+    }
+    // The counter at the back, bottles on it.
+    if (y > 78 && y < 84 && x > 140 && x < 380) return SHADES.woodPale;
+    if (y > 84 && y < 104 && x > 140 && x < 380) return SHADES.wood;
+    if (y > 66 && y < 78 && x > 140 && x < 380 && x % 9 < 2) return noise(x) > 0.5 ? SHADES.cyanMid : SHADES.amberDeep;
+    // Scrap panels on the wall.
+    const panel = (Math.floor(x / 38) * 7 + Math.floor(y / 26) * 3) % 4;
+    const base = addLight(addLight(deep, wood, 0.25 + panel * 0.08), amber, Math.min(0.55, glow));
+    if (x % 38 < 1 || y % 26 < 1) return SHADES.shadow;
+    return base;
   };
 }

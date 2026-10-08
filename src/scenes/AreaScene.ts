@@ -297,6 +297,8 @@ export class AreaScene extends Phaser.Scene {
   private interactKey!: Phaser.Input.Keyboard.Key;
   private usables: Usable[] = [];
   private current: Usable | null = null;
+  /** The dog's finding, checked every frame (`seek`). */
+  private seeks: (() => void)[] = [];
   /** Things there only while the story says (a camp's fire and smoke): shown and hidden with the people. */
   private storyShown: { objects: (Phaser.GameObjects.Image | Phaser.GameObjects.Particles.ParticleEmitter)[]; on: () => boolean }[] = [];
   /** Down on one knee, digging (input held a moment). */
@@ -375,6 +377,7 @@ export class AreaScene extends Phaser.Scene {
     this.mobs = [];
     this.triggers = [];
     this.storyShown = [];
+    this.seeks = [];
     this.digBusy = false;
     this.barks = [];
     this.speech = new Map();
@@ -552,6 +555,7 @@ export class AreaScene extends Phaser.Scene {
     this.updateMovers(delta);
     this.updateShyPeople();
     this.updateFollowers(delta);
+    for (const seek of this.seeks) seek();
     this.updateCrumbles(delta);
     this.updateCollapses(delta);
     this.updateBeetles(delta);
@@ -1829,6 +1833,71 @@ export class AreaScene extends Phaser.Scene {
     }
   }
 
+  /**
+   * The dog finds things (`seek`): near a find on your floor, it leaves you, runs to it, and sniffs and digs
+   * there until you come and dig beside it.
+   */
+  private addSeek(f: Extract<Feature, { type: 'seek' }>): void {
+    const story = getSession(this).story;
+    const on = () => !!story.getVariable(f.showIf);
+    const state: { find: (typeof f.finds)[number] | null; ready: boolean; timer: Phaser.Time.TimerEvent | null } = { find: null, ready: false, timer: null };
+    this.seeks.push(() => {
+      const dog = this.people.get(f.dog);
+      if (state.find && (story.getVariable(state.find.done) || !on() || !dog?.image.visible)) {
+        // Found (or stopped): back to following you.
+        state.timer?.remove();
+        state.find = null;
+        state.ready = false;
+        if (dog) dog.scripted = false;
+        return;
+      }
+      if (state.find || !on() || !dog?.image.visible || this.dialogue.isOpen) return;
+      const { x, y } = this.player.feet;
+      const find = f.finds.find((s) => !story.getVariable(s.done) && Math.abs(s.y - y) <= 4 && Math.abs(dog.image.y - s.y) <= 4 && Math.abs(s.x - x) <= f.range);
+      if (!find) return;
+      state.find = find;
+      dog.scripted = true;
+      this.soundscape.play('bark', undefined, 0.6);
+      this.floatText('!', dog.image.x, dog.image.y - 24, SHADES.amber);
+      this.walkTo(dog, find.x, 90, () => {
+        state.ready = true;
+        // Sniffing and scrabbling at the spot, dirt flying, until you come.
+        state.timer = this.time.addEvent({
+          delay: 900, loop: true,
+          callback: () => {
+            dog.image.setFlipX(!dog.image.flipX);
+            this.soundscape.play('scratch', undefined, 0.5);
+            for (let n = 0; n < 3; n++) {
+              const clod = this.add.rectangle(find.x, find.y - 1, 1, 1, SHADES.woodPale).setDepth(11);
+              this.tweens.add({ targets: clod, x: clod.x + Phaser.Math.Between(-10, 10), y: clod.y - Phaser.Math.Between(3, 8), duration: 170, yoyo: true, onComplete: () => clod.destroy() });
+            }
+            if (Math.random() < 0.35) this.floatText(Math.random() < 0.5 ? 'sniff sniff' : 'Woof!', dog.image.x, dog.image.y - 24, SHADES.white);
+          },
+        });
+      });
+    });
+    for (const find of f.finds) {
+      this.usables.push({
+        x: find.x, y: find.y, reach: 14, label: 'Dig',
+        enabled: () => state.find === find && state.ready,
+        use: () => {
+          if (this.digBusy) return;
+          this.digBusy = true;
+          this.player.kneeling = true;
+          this.soundscape.play('scratch', undefined, 0.6);
+          this.time.delayedCall(700, () => {
+            this.player.kneeling = false;
+            state.timer?.remove();
+            this.showFind(find.item, find.x, find.y, () => {
+              this.digBusy = false;
+              this.dialogue.open(find.knot, () => this.conversationClosed());
+            });
+          });
+        },
+      });
+    }
+  }
+
   /** Digging where you stand: a moment on one knee, then whatever's there. */
   private dig(f: Extract<Feature, { type: 'dig' }>): void {
     if (this.digBusy) return;
@@ -2170,6 +2239,9 @@ export class AreaScene extends Phaser.Scene {
       case 'dig':
         // (Set up once you're in the area: its prompt goes where you stand.)
         this.time.delayedCall(0, () => this.addDig(feature));
+        break;
+      case 'seek':
+        this.time.delayedCall(0, () => this.addSeek(feature));
         break;
       case 'barks':
         this.barks.push({ feature, index: 0, left: 0 });

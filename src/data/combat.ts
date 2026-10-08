@@ -439,3 +439,120 @@ ENCOUNTERS.stragglers_camp = {
     lost: { camp_won: false },
   },
 };
+
+// --- Chapter 2, Part 2: the boss's son, the old scavenger, the other clan's raiders (draft numbers) ---
+
+Object.assign(MOVES, {
+  // The boss's son, sparring at the bar: showy, and he plays dirty when it's going badly.
+  cheap_shot: {
+    id: 'cheap_shot', name: 'Cheap shot', target: 'enemy', power: 7, kind: 'strike',
+    qte: { kind: 'key', time: 700, quick: 260, alt: { kind: 'weave', time: 650, quick: 260, gap: 520 } },
+    tell: { pose: 'glance', lines: ['He looks away, all innocence.', 'He grins at somebody behind you.'] },
+    description: 'A quick one while you\u2019re not looking.',
+  },
+  showboat: {
+    id: 'showboat', name: 'Showboat', target: 'self', windsUp: 'big_swing',
+    tell: { pose: 'jeer', lines: ['He throws his arms wide for the room.', 'He turns to make sure his father\u2019s watching.'] },
+    description: 'Plays to the room before a big one.',
+  },
+  big_swing: {
+    id: 'big_swing', name: 'Big swing', target: 'enemy', power: 15, kind: 'strike',
+    softened: { guard: 0.25, dodge: 0.08 },
+    qte: { kind: 'draw', time: 420, quick: 160, wait: [700, 1400], alt: { kind: 'bar', time: 1300, zone: [0.72, 0.86], sweet: [0.77, 0.81] } },
+    tell: { pose: 'windup', lines: ['He\u2019s drawn right back.'] },
+    description: 'Everything he\u2019s got, for the room. Guard, or Sweep him first.',
+  },
+  breather: {
+    id: 'breather', name: 'Breather', target: 'self', heals: 8,
+    tell: { pose: 'shift', lines: ['He backs off a step, breathing hard.', 'He wipes his mouth.'] },
+    description: 'He backs off and gets his breath: some health back.',
+  },
+
+  // The old scavenger: his hook, a lifetime of dirty tricks, and he looks after you.
+  hook_swipe: {
+    id: 'hook_swipe', name: 'Hook', target: 'enemy', power: 6, kind: 'strike', crit: 0.1,
+    qte: { kind: 'key', time: 850, quick: 320, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    description: 'Basic attack with his hook.',
+  },
+  yank: {
+    id: 'yank', name: 'Yank', target: 'enemy', power: 7, kind: 'grab', sp: 2, interrupts: true,
+    qte: { kind: 'hold', time: 1000, zone: [0.65, 0.85], sweet: [0.72, 0.78], alt: { kind: 'key', time: 850, quick: 320 } },
+    description: 'Hooks a staff or a leg and pulls. Knocks off balance anyone weak to grabs. Interrupts a charged attack.',
+  },
+  patch_up: {
+    id: 'patch_up', name: 'Patch up', target: 'self', sp: 3, heals: 8, healsSide: true,
+    description: 'Rag and spit: both of you get some health back.',
+  },
+
+  // The other clan's raiders: staves, and they fight together.
+  thrust: {
+    id: 'thrust', name: 'Thrust', target: 'enemy', power: 8, kind: 'pierce',
+    qte: { kind: 'weave', time: 650, quick: 260, gap: 520, alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'squared', lines: ['The staff comes level.', 'They set their feet.'] },
+    description: 'The end of a staff, hard.',
+  },
+  whirl: {
+    id: 'whirl', name: 'Whirl', target: 'enemy', power: 5, kind: 'strike', hits: 2,
+    qte: { kind: 'notes', outer: 180, perfect: 70, gap: 400, lanes: ['left', 'up', 'right'], alt: { kind: 'weave', time: 650, quick: 260, gap: 520 } },
+    tell: { pose: 'cock', lines: ['The staff starts to turn.', 'They spin the staff once, testing.'] },
+    description: 'Two blows, one end then the other.',
+  },
+  mark: {
+    id: 'mark', name: 'Mark', target: 'enemy', power: 2, kind: 'none', exposes: { turns: 2, mult: 1.4 },
+    qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    tell: { pose: 'reach', lines: ['The leader points the staff at you, and calls out.', 'The leader whistles, two notes.'] },
+    description: 'Picks you out for the others: for 2 rounds you take more damage.',
+  },
+} satisfies Record<string, MoveDef>);
+
+/** The boss's son: your age, jealous of your rise (design doc). Sparring at the bar. */
+COMBATANTS.boss_son = {
+  id: 'boss_son', name: 'The boss\u2019s son', sprite: 'boss_son', hp: 48, attack: 9, defence: 8, speed: 13,
+  moves: ['cheap_shot', 'showboat', 'breather'], weights: [3, 1.4, 0.8],
+  weak: ['shove'], poise: 2, feint: 0.2,
+  ai: { opening: ['cheap_shot', 'showboat'], maxRepeat: 2, recent: 0.5, when: { hurt: { breather: 3, cheap_shot: 1.5 }, foeHurt: { showboat: 2 } } },
+};
+
+/** The old scavenger, beside you on the raid. */
+COMBATANTS.old_scav = {
+  id: 'old_scav', name: 'The old scavenger', sprite: 'old_scav', hp: 34, sp: 9, attack: 8, defence: 9, speed: 9,
+  basic: 'hook_swipe', moves: ['yank', 'patch_up'], reactions: ['dodge'],
+};
+
+/** One of the other clan's raiders. */
+COMBATANTS.raider = {
+  id: 'raider', name: 'Raider', sprite: 'raider', hp: 30, attack: 9, defence: 8, speed: 12,
+  moves: ['thrust', 'whirl'], weights: [2, 1.5],
+  weak: ['grab'], poise: 1, feint: 0.15,
+  ai: { maxRepeat: 2, recent: 0.5 },
+};
+
+/** The raiders' leader: marks you out for the others. */
+COMBATANTS.raider_lead = {
+  id: 'raider_lead', name: 'Their leader', sprite: 'raider_lead', hp: 46, attack: 10, defence: 9, speed: 11,
+  moves: ['mark', 'thrust', 'whirl'], weights: [1.5, 2, 1.5],
+  weak: ['grab'], poise: 2, feint: 0.1,
+  ai: { opening: ['mark', 'thrust'], maxRepeat: 2, recent: 0.5 },
+};
+
+/** Chapter 2, Day 4, the bar: the boss's son wants to see what you've got. You alone. Writes `spar_won`. */
+ENCOUNTERS.son_spar = {
+  id: 'son_spar',
+  name: 'The boss\u2019s son',
+  party: ['scavenger'],
+  enemies: ['boss_son'],
+  stage: 'bar',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { spar_won: true }, lost: { spar_won: false } },
+};
+
+/** Chapter 2, Day 5, the picked fields: the first rival raid, you and the old scavenger. Writes `raid_won`. */
+ENCOUNTERS.first_raid = {
+  id: 'first_raid',
+  name: 'The raid',
+  party: ['scavenger', 'old_scav'],
+  enemies: ['raider', 'raider_lead', 'raider'],
+  stage: 'fields',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { raid_won: true }, lost: { raid_won: false } },
+};

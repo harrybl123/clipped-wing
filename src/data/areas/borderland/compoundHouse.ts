@@ -135,6 +135,8 @@ export const compoundHouse: AreaDefinition = {
     local('circle-2', 10, 494, FLOOR, ['evening'], { flipX: true }),
     // Someone at the stove.
     local('cook', 4, 330, FLOOR, AWAKE, { flipX: true }),
+    // Your brother, if he's come to live here (big choice 1): fed, at the boss's elbow.
+    cast('brother', 130, FLOOR, { id: 'brother-here', knot: 'house_brother', when: AWAKE, showIf: 'brother_moved' }),
   ],
 
   interactables: [
