@@ -35,6 +35,7 @@ From up here, you'd see every hand at the counter. That's the point of it.
 === tally_house_tallyman ===
 { c2day1 == "tribute": -> c2day1_tribute }
 { c2day3 == "tribute": -> c2day3_tribute }
+{ c2day7 == "tribute" && not tribute7_done: -> c2day7_tribute }
 "Next. Everything on the counter, nothing in the pockets." #speaker:tallyman
 "Thirty years I've looked at what comes out of the ground. I know what it's worth before you've let go of it." #speaker:tallyman
 -> END

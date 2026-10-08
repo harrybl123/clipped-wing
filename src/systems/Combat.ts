@@ -73,6 +73,12 @@ export interface MoveDef {
   /** Gives back this much HP: to the user (the boss's son's Breather), or with `healsSide` to everyone standing on the user's side (the old scavenger's Patch up). */
   heals?: number;
   healsSide?: boolean;
+  /** Knocks the wind out of what it hits: for `turns` rounds its own blows do `mult` times the harm (a debt collector's Shakedown). */
+  saps?: { turns: number; mult: number };
+  /** Braver in numbers: `mob` times more harm for each other enemy still standing beside the user (an angry picker's Pile in). */
+  mob?: number;
+  /** Hangs on: what it hits takes `power` harm at the start of each of the next `turns` rounds, unless it guards (a ticker's Latch). Never the last of their health. */
+  clings?: { turns: number; power: number };
 }
 
 export interface ItemDef {
@@ -152,7 +158,7 @@ export interface EncounterDef {
    */
   timing?: { lunge?: number; ease?: number };
   /** Where it's fought (the scene paints a stage for each): the market by default. */
-  stage?: 'market' | 'rot' | 'fields' | 'camp' | 'bar';
+  stage?: 'market' | 'rot' | 'fields' | 'camp' | 'bar' | 'den' | 'yard';
   /** The fight teaches itself: a short explanation the first time each of these comes up (`LESSONS`). */
   teaches?: string[];
   /**
@@ -192,6 +198,12 @@ export interface Combatant {
   exposedMult: number;
   /** Rounds left half-blind (`blinds`): reacting is harder. */
   blinded: number;
+  /** Rounds left winded (`saps`), and how much it multiplies the harm their own blows do. */
+  sapped: number;
+  sappedMult: number;
+  /** Rounds left with something hanging on (`clings`), and the harm it does each round. */
+  clinging: number;
+  clingPower: number;
   /** Braced (`braces`) until their next turn. */
   braced: boolean;
 }
@@ -238,6 +250,9 @@ export type BattleEvent =
   | { type: 'switch'; from: string; to: string }
   | { type: 'weakened'; target: string }
   | { type: 'blinded'; target: string }
+  | { type: 'sapped'; target: string }
+  | { type: 'clung'; target: string }
+  | { type: 'gnawed'; target: string; amount: number; hp: number }
   | { type: 'drained'; target: string; amount: number; sp: number }
   | { type: 'braced'; actor: string }
   | { type: 'revealed'; actor: string }
@@ -312,7 +327,7 @@ export class Battle {
       if (!def) throw new Error(`Combat: no combatant called "${defId}"`);
       for (const m of [...def.moves, ...(def.basic ? [def.basic] : [])]) if (!moves[m]) throw new Error(`Combat: ${defId} has unknown move "${m}"`);
       const n = all.slice(0, i).filter((d) => d === defId).length;
-      return { id: n ? `${defId}-${n + 1}` : defId, def, side, hp: def.hp, sp: def.sp ?? 0, down: false, guarding: false, offBalance: 0, recoverIn: 0, steady: false, exposed: 0, exposedMult: 1, blinded: 0, braced: false };
+      return { id: n ? `${defId}-${n + 1}` : defId, def, side, hp: def.hp, sp: def.sp ?? 0, down: false, guarding: false, offBalance: 0, recoverIn: 0, steady: false, exposed: 0, exposedMult: 1, blinded: 0, sapped: 0, sappedMult: 1, clinging: 0, clingPower: 0, braced: false };
     };
     this.combatants = [...encounter.party.map(make('party')), ...encounter.enemies.map(make('enemy'))];
     if (!this.combatants.some((c) => c.side === 'party') || !this.combatants.some((c) => c.side === 'enemy')) {
@@ -667,6 +682,8 @@ export class Battle {
     if (crit) amount *= CRIT;
     if (target.guarding) amount *= move.softened?.guard ?? GUARD;
     if (target.exposed > 0) amount *= target.exposedMult;
+    if (actor.sapped > 0) amount *= actor.sappedMult;
+    if (move.mob) amount *= 1 + move.mob * this.living(actor.side).filter((c) => c !== actor).length;
     const n = Math.max(1, Math.round(amount));
     target.hp = Math.max(0, target.hp - n);
     events.push({
@@ -694,6 +711,16 @@ export class Battle {
     if (move.blinds && actor.side !== target.side) {
       target.blinded = move.blinds;
       events.push({ type: 'blinded', target: target.id });
+    }
+    if (move.clings && actor.side !== target.side) {
+      target.clinging = move.clings.turns;
+      target.clingPower = move.clings.power;
+      events.push({ type: 'clung', target: target.id });
+    }
+    if (move.saps && actor.side !== target.side) {
+      target.sapped = move.saps.turns;
+      target.sappedMult = move.saps.mult;
+      events.push({ type: 'sapped', target: target.id });
     }
     return events;
   }
@@ -786,8 +813,19 @@ export class Battle {
     for (const c of this.combatants) {
       if (c.exposed > 0) c.exposed--;
       if (c.blinded > 0) c.blinded--;
+      if (c.sapped > 0) c.sapped--;
     }
     const events: BattleEvent[] = [{ type: 'round', round: this._round }];
+    // Whatever's hanging on gnaws at the start of each round (guarding shakes it off); it never finishes anyone.
+    for (const c of this.combatants) {
+      if (c.clinging <= 0 || c.hp <= 0) continue;
+      c.clinging--;
+      if (c.guarding) { c.clinging = 0; continue; }
+      const amount = Math.min(c.clingPower, c.hp - 1);
+      if (amount <= 0) continue;
+      c.hp -= amount;
+      events.push({ type: 'gnawed', target: c.id, amount, hp: c.hp });
+    }
     this.intents.clear();
     for (const enemy of this.living('enemy')) {
       const forced = this.nextIntent.get(enemy.id);

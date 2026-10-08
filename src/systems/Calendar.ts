@@ -1,5 +1,5 @@
-/** The week, in order. The prologue comes before day 1. */
-export const DAYS = ['prologue', 1, 2, 3, 4, 5, 6, 7] as const;
+/** The days, in order. The prologue comes before day 1. Chapter 1 is a week; Chapter 2 runs on past it (its Part 3 and on). */
+export const DAYS = ['prologue', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 export type Day = (typeof DAYS)[number];
 
 export const TIME_SLOTS = ['morning', 'afternoon', 'evening', 'night'] as const;

@@ -4,7 +4,7 @@ import { COMBATANTS, ENCOUNTERS, ITEMS, LESSONS, type Lesson, MOVES } from '../d
 import { getSession } from '../session';
 import { Battle, type Action, type BattleEvent, type Combatant, type Intent, type MoveDef, type Reaction } from '../systems/Combat';
 import type { Grade, Key, Qte, QteKind } from '../systems/qte';
-import { BEETLE_BATTLE, CARVER_BATTLE, DOG_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, OLD_SCAV_BATTLE, RAIDER_BATTLE, RAIDER_LEAD_BATTLE, SCAVENGER_BATTLE, SCAVENGER_FISTS_BATTLE, SON_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
+import { BEETLE_BATTLE, CARVER_BATTLE, COLLECTOR_BATTLE, COLLECTOR_BIG_BATTLE, TICKER_BATTLE, PICKER_BATTLE, PICKER_LOUD_BATTLE, DOG_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, OLD_SCAV_BATTLE, RAIDER_BATTLE, RAIDER_LEAD_BATTLE, SCAVENGER_BATTLE, SCAVENGER_FISTS_BATTLE, SON_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
 import { CAST, DOG } from '../ui/borderlandFolk';
 import { GIRL, PROTAGONIST, SCAVENGER } from '../ui/characters';
 import { paintFar } from '../ui/paintOutdoor';
@@ -78,6 +78,11 @@ const LOOKS: Record<string, Look> = {
   boss_son: { poses: SON_BATTLE, scale: 1 },
   raider: { poses: RAIDER_BATTLE, scale: 1 },
   raider_lead: { poses: RAIDER_LEAD_BATTLE, scale: 1 },
+  collector: { poses: COLLECTOR_BATTLE, scale: 1 },
+  collector_big: { poses: COLLECTOR_BIG_BATTLE, scale: 1 },
+  picker: { poses: PICKER_BATTLE, scale: 1 },
+  picker_loud: { poses: PICKER_LOUD_BATTLE, scale: 1 },
+  ticker: { poses: TICKER_BATTLE, scale: 1 },
 };
 
 interface View {
@@ -191,7 +196,7 @@ export class CombatScene extends Phaser.Scene {
     this.lessons = [...(encounter.teaches ?? []), ...(also && !getSession(this).story.getVariable(also.unless) ? also.lessons : [])];
     // The stage: where it's fought.
     const where = encounter.stage ?? 'market';
-    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : where === 'fields' ? paintFieldsStage() : where === 'camp' ? paintCampStage() : where === 'bar' ? paintBarStage() : paintStage());
+    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : where === 'fields' ? paintFieldsStage() : where === 'camp' ? paintCampStage() : where === 'bar' ? paintBarStage() : where === 'den' ? paintDenStage() : where === 'yard' ? paintYardStage() : paintStage());
     stage.setTexture(`combat-stage-${where}`);
     const party = this.battle.combatants.filter((c) => c.side === 'party');
     const enemies = this.battle.combatants.filter((c) => c.side === 'enemy');
@@ -670,6 +675,27 @@ export class CombatScene extends Phaser.Scene {
           playSound(this, 'scratch', 0.7);
           this.flashWhite(t, 160);
           this.popLabel('BLINDED', t, SHADES.woodPale, 18);
+          break;
+        }
+        case 'clung': {
+          const t = this.views.get(e.target)!;
+          playSound(this, 'scratch', 0.7);
+          this.popLabel('LATCHED ON', t, SHADES.cyan, 18);
+          break;
+        }
+        case 'gnawed': {
+          const t = this.views.get(e.target)!;
+          playSound(this, 'scratch', 0.5);
+          this.flashWhite(t, 90);
+          this.popLabel(`-${e.amount}`, t, SHADES.cyan, 30);
+          this.refresh();
+          break;
+        }
+        case 'sapped': {
+          // Winded: their own blows land softer for a couple of rounds.
+          const t = this.views.get(e.target)!;
+          playSound(this, 'punch', 0.7);
+          this.popLabel('WINDED', t, SHADES.woodPale, 18);
           break;
         }
         case 'drained': {
@@ -1243,6 +1269,8 @@ export class CombatScene extends Phaser.Scene {
       const intent = this.battle.intentOf(v.c.id);
       const marks = [
         ...(v.c.exposed > 0 ? [`WEAKENED ${v.c.exposed}`] : []),
+        ...(v.c.sapped > 0 ? [`WINDED ${v.c.sapped}`] : []),
+        ...(v.c.clinging > 0 ? [`LATCHED ${v.c.clinging}`] : []),
         ...(intent?.lured ? ['LURED'] : []),
       ];
       status.setText(marks.join('\n')).setColor(v.c.exposed > 0 ? SHADES.green : SHADES.amber);
@@ -1758,5 +1786,91 @@ function paintBarStage() {
     const base = addLight(addLight(deep, wood, 0.25 + panel * 0.08), amber, Math.min(0.55, glow));
     if (x % 38 < 1 || y % 26 < 1) return SHADES.shadow;
     return base;
+  };
+}
+
+/**
+ * The gambling den (Chapter 2, Day 7): a low room in the hull of something enormous, two lamps hung low
+ * over the tables, smoke, the debt wall at the back scored with strokes, the house's cage to one side.
+ */
+function paintDenStage() {
+  const deep = rgb(SHADES.deep);
+  const wood = rgb(SHADES.wood);
+  const amber = rgb(SHADES.amber);
+  const vx = 260;
+  const LAMPS: [number, number][] = [[150, 56], [370, 56]];
+  return (x: number, y: number) => {
+    let glow = 0;
+    for (const [lx, ly] of LAMPS) glow += falloff(x, y, lx, ly + 16, 70, 46) * 0.55;
+    for (const [lx, ly] of LAMPS) {
+      if (Math.abs(x - lx) < 1 && y < ly - 3) return SHADES.shadow;
+      const d = Math.hypot(x - lx, (y - ly) * 1.4);
+      if (d < 2) return SHADES.white;
+      if (d < 4) return SHADES.amber;
+    }
+    if (y >= HORIZON) {
+      const depth = (y - HORIZON) / (H - HORIZON);
+      const u = (x - vx) / Math.max(0.05, depth);
+      const plate = Math.abs((((u / 30) % 1) + 1) % 1 - 0.5) > 0.48;
+      const base = addLight(addLight(deep, wood, 0.4), amber, Math.min(0.5, glow));
+      if (plate) return SHADES.shadow;
+      return noise(x / 5 + y / 3) > 0.88 ? addLight(base, rgb(SHADES.dim), 0.2) : base;
+    }
+    // The hull's ribs, curving down.
+    const rib = Math.abs(((x + (HORIZON - y) * 0.25) % 64) - 32) > 30;
+    // The debt wall: rows of strokes, a few struck through.
+    if (x > 190 && x < 330 && y > 40 && y < HORIZON - 14) {
+      const row = Math.floor((y - 40) / 9);
+      if ((y - 40) % 9 < 5 && x % 4 === 0 && noise(row * 3.1 + Math.floor(x / 20)) > 0.3) return glow > 0.2 ? SHADES.dim : SHADES.woodPale;
+      if ((y - 40) % 9 === 2 && noise(row * 7.7) > 0.75) return SHADES.dim;
+      return addLight(addLight(deep, wood, 0.35), amber, Math.min(0.4, glow));
+    }
+    // The cage, bars at the right.
+    if (x > 420 && y > HORIZON - 60 && y < HORIZON && x % 7 < 1) return SHADES.dim;
+    // Smoke hanging under the roof.
+    const smoke = y < 70 && noise(x / 14 + y / 9) > 0.6 ? 0.12 : 0;
+    const base = addLight(addLight(deep, wood, 0.2 + smoke), amber, Math.min(0.45, glow));
+    return rib ? SHADES.shadow : base;
+  };
+}
+
+/**
+ * The swap yard at night (Chapter 2, Day 7): empty stalls under slack awnings, shack roofs against a dark
+ * sky, the tree's shape on the horizon, and the last of a cooking fire.
+ */
+function paintYardStage() {
+  const deep = rgb(SHADES.deep);
+  const wood = rgb(SHADES.wood);
+  const amber = rgb(SHADES.amber);
+  const vx = 260;
+  return (x: number, y: number) => {
+    const glow = falloff(x, y, 120, HORIZON + 6, 70, 30) * 0.6;
+    if (y >= HORIZON) {
+      const depth = (y - HORIZON) / (H - HORIZON);
+      const u = (x - vx) / Math.max(0.05, depth);
+      const rut = Math.abs((((u / 40) % 1) + 1) % 1 - 0.5) > 0.47;
+      const base = addLight(addLight(deep, wood, 0.35), amber, Math.min(0.5, glow));
+      if (rut) return SHADES.shadow;
+      return noise(x / 4 + y / 2) > 0.86 ? addLight(base, rgb(SHADES.woodPale), 0.3) : base;
+    }
+    // The fire, low at the left.
+    const fd = Math.hypot(x - 120, (y - (HORIZON - 3)) * 1.6);
+    if (fd < 3) return SHADES.amber;
+    if (fd < 5) return SHADES.amberDeep;
+    // Stalls and shacks in a ragged line, roofs at different heights; a slack awning here and there.
+    const col = Math.floor(x / 34);
+    const roof = HORIZON - 26 - noise(col * 3.7) * 30;
+    if (y > roof) {
+      if (Math.abs(y - roof) < 2) return SHADES.woodPale;
+      const lit = addLight(addLight(deep, wood, 0.3), amber, Math.min(0.5, glow));
+      if (x % 34 < 1) return SHADES.shadow;
+      return lit;
+    }
+    // The tree, far off, and the night sky.
+    const tree = Math.abs(x - 380) < 10 - (y - 10) * 0.02 && y > 10;
+    const crown = Math.hypot((x - 380) / 1.6, y - 18) < 30;
+    if (tree || crown) return SHADES.shadow;
+    const star = noise(x * 13.1 + y * 7.3) > 0.985;
+    return star ? SHADES.dim : addLight(deep, rgb(SHADES.cyanDeep), 0.15 + (1 - y / HORIZON) * 0.1);
   };
 }

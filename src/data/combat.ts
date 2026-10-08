@@ -586,3 +586,158 @@ ENCOUNTERS.first_raid = {
   timing: { lunge: 950, ease: 1.2 },
   outcomes: { won: { raid_won: true }, lost: { raid_won: false } },
 };
+
+// --- Chapter 2, Part 3: the den's debt collectors, and the angry pickers (draft numbers) ---
+
+Object.assign(MOVES, {
+  // The debt collectors: the house's men. One talks and goes through your pockets; one hits.
+  shakedown: {
+    id: 'shakedown', name: 'Shakedown', target: 'enemy', power: 5, kind: 'grab', saps: { turns: 2, mult: 0.7 },
+    qte: { kind: 'grip', time: 3800, zone: [0.36, 0.64], narrow: 0.16, tug: 0.8, keep: 0.7, quick: 2600, alt: { kind: 'hold', time: 1000, zone: [0.65, 0.85], sweet: [0.72, 0.78] } },
+    tell: { pose: 'reach', lines: ['He smiles, and reaches for your collar.', '"Let’s see what you’re carrying."'] },
+    description: 'A fist in your gut and a hand in your pockets: for 2 rounds you hit softer.',
+  },
+  backhand: {
+    id: 'backhand', name: 'Backhand', target: 'enemy', power: 6, kind: 'strike',
+    qte: { kind: 'side', time: 650, quick: 250, alt: { kind: 'key', time: 750, quick: 280 } },
+    tell: { pose: 'glance', lines: ['He looks bored.', 'He sighs, and flexes his hand.'] },
+    description: 'The back of his hand, without looking.',
+  },
+  cosh: {
+    id: 'cosh', name: 'Cosh', target: 'enemy', power: 10, kind: 'strike',
+    qte: { kind: 'bar', time: 1100, zone: [0.62, 0.82], sweet: [0.7, 0.74], alt: { kind: 'draw', time: 460, quick: 180, wait: [600, 1200] } },
+    tell: { pose: 'squared', lines: ['He taps the cosh on his palm.', 'He steps in, cosh low.'] },
+    description: 'A short, heavy club.',
+  },
+  make_example: {
+    id: 'make_example', name: 'Make an example', target: 'self', windsUp: 'example',
+    tell: { pose: 'shift', lines: ['He turns to the room, so they can all see.', '"Watch this, everyone."'] },
+    description: 'He makes sure the whole den is watching.',
+  },
+  example: {
+    id: 'example', name: 'The example', target: 'enemy', power: 16, kind: 'strike',
+    softened: { guard: 0.3, dodge: 0.1 },
+    qte: { kind: 'balance', time: 1800, zone: [0.36, 0.64], keep: 0.6, keepPerfect: 0.9, alt: { kind: 'bar', time: 1300, zone: [0.72, 0.86], sweet: [0.77, 0.81] } },
+    tell: { pose: 'windup', lines: ['The cosh is right back over his shoulder.'] },
+    description: 'For the room. Guard, or Sweep him before it lands.',
+  },
+
+  // The angry pickers: your own people. Untrained, desperate, and braver together.
+  pile_in: {
+    id: 'pile_in', name: 'Pile in', target: 'enemy', power: 4, kind: 'strike', mob: 0.35,
+    qte: { kind: 'notes', outer: 190, perfect: 75, gap: 440, lanes: ['left', 'up', 'right'], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'cock', lines: ['They look at each other, and come on together.', '"All of us. Go on!"'] },
+    description: 'They all pile in: harder for every one of them still standing.',
+  },
+  hurl: {
+    id: 'hurl', name: 'Hurl', target: 'enemy', power: 6, kind: 'pierce',
+    qte: { kind: 'key', time: 750, quick: 280, alt: { kind: 'weave', time: 650, quick: 260, gap: 520 } },
+    tell: { pose: 'glance', lines: ['A hand goes down for a stone.', '"Rat!"'] },
+    description: 'A stone from the yard.',
+  },
+  drag: {
+    id: 'drag', name: 'Drag', target: 'enemy', power: 5, kind: 'grab', hits: 2,
+    qte: { kind: 'mash', presses: 7, time: 1700, alt: { kind: 'hold', time: 1000, zone: [0.65, 0.85], sweet: [0.72, 0.78] } },
+    tell: { pose: 'reach', lines: ['Hands out for your hair, your strap.', 'They lunge for your satchel.'] },
+    description: 'Hands on you, pulling you down: 2 hits.',
+  },
+} satisfies Record<string, MoveDef>);
+
+/** The talker: goes through your pockets while he hits you. */
+COMBATANTS.collector = {
+  id: 'collector', name: 'The talker', sprite: 'collector', hp: 34, attack: 9, defence: 8, speed: 13,
+  moves: ['shakedown', 'backhand'], weights: [1.6, 2.4],
+  weak: ['shove'], poise: 1, feint: 0.15,
+  ai: { opening: ['shakedown', 'backhand'], maxRepeat: 2, recent: 0.5, when: { foeGuarding: { shakedown: 2 } } },
+};
+
+/** The muscle: heavy, slow, and he likes an audience. */
+COMBATANTS.collector_big = {
+  id: 'collector_big', name: 'The muscle', sprite: 'collector_big', hp: 52, attack: 11, defence: 10, speed: 7,
+  moves: ['cosh', 'make_example'], weights: [3, 1.2],
+  weak: ['pierce'], poise: 2, feint: 0,
+  ai: { opening: ['cosh', 'make_example'], maxRepeat: 2, recent: 0.6, when: { hurt: { make_example: 2 }, foeHurt: { make_example: 1.8 } } },
+};
+
+/**
+ * Chapter 2, Day 7, the gambling den: the house's debt collectors, come for the gambler (or for you, if you
+ * walked away: "Friend of his? Then you can pay."). You alone. Writes `collectors_won`.
+ */
+ENCOUNTERS.debt_collectors = {
+  id: 'debt_collectors',
+  name: 'The house’s men',
+  party: ['scavenger'],
+  enemies: ['collector', 'collector_big'],
+  stage: 'den',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { collectors_won: true }, lost: { collectors_won: false } },
+};
+
+/** A picker off the fields: thin, angry, and not a fighter. */
+COMBATANTS.picker = {
+  id: 'picker', name: 'Picker', sprite: 'picker', hp: 20, attack: 8, defence: 6, speed: 11,
+  moves: ['pile_in', 'hurl', 'drag'], weights: [2.5, 1.5, 1.5],
+  weak: ['strike'], poise: 1, feint: 0,
+  ai: { maxRepeat: 2, recent: 0.5 },
+};
+
+/** The one who started it: louder, and with a shard. */
+COMBATANTS.picker_loud = {
+  id: 'picker_loud', name: 'The loud one', sprite: 'picker_loud', hp: 30, attack: 9, defence: 7, speed: 12,
+  moves: ['pile_in', 'hurl', 'drag'], weights: [2, 2, 1.5],
+  weak: ['shove'], poise: 1, feint: 0.1,
+  ai: { opening: ['hurl', 'pile_in'], maxRepeat: 2, recent: 0.5 },
+};
+
+/**
+ * Chapter 2, Day 7, the swap yard at night: pickers who think you're the rat, waiting for you on the way
+ * home. Your own people (the first fight against your own side). Writes `ambush_won`.
+ */
+ENCOUNTERS.angry_pickers = {
+  id: 'angry_pickers',
+  name: 'Your own people',
+  party: ['scavenger'],
+  enemies: ['picker', 'picker_loud', 'picker'],
+  stage: 'yard',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { ambush_won: true }, lost: { ambush_won: false } },
+};
+
+// The sunk town's tickers: small, shelled, clicking things from the old machines. Your staff skids off the
+// casing; the dog's teeth find the joints.
+Object.assign(MOVES, {
+  latch: {
+    id: 'latch', name: 'Latch', target: 'enemy', power: 3, kind: 'pierce', clings: { turns: 3, power: 3 },
+    qte: { kind: 'hold', time: 1000, zone: [0.62, 0.84], sweet: [0.7, 0.76], alt: { kind: 'key', time: 750, quick: 280 } },
+    tell: { pose: 'squared', lines: ['It goes very still, and clicks once.', 'Its legs bunch under it.'] },
+    description: 'It latches on and hangs there, gnawing every round: guard to shake it off.',
+  },
+  skitter: {
+    id: 'skitter', name: 'Skitter', target: 'enemy', power: 5, kind: 'pierce', hits: 2,
+    qte: { kind: 'weave', time: 600, quick: 240, gap: 480, alt: { kind: 'notes', outer: 180, perfect: 70, gap: 400 } },
+    tell: { pose: 'cock', lines: ['Click-click-click.', 'It runs a fast circle round you.'] },
+    description: 'In and out, two quick nips.',
+  },
+} satisfies Record<string, MoveDef>);
+
+/** A ticker: low, shelled, quick. Strikes skid off it; teeth and points get in. */
+COMBATANTS.ticker = {
+  id: 'ticker', name: 'Ticker', sprite: 'ticker', hp: 22, attack: 8, defence: 9, speed: 14,
+  moves: ['skitter', 'latch'], weights: [2, 1.4],
+  weak: ['pierce'], resists: ['strike'], poise: 1, feint: 0.1,
+  ai: { maxRepeat: 2, recent: 0.5, when: { foeGuarding: { skitter: 2 } } },
+};
+
+/**
+ * Chapter 2, Day 7, dawn in the sunk town: the tickers, nested down where the lost picker went (or where
+ * nobody goes). You and the dog. Writes `tickers_won`.
+ */
+ENCOUNTERS.tickers = {
+  id: 'tickers',
+  name: 'Something in the dark',
+  party: ['scavenger', 'dog'],
+  enemies: ['ticker', 'ticker', 'ticker'],
+  stage: 'camp',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { tickers_won: true }, lost: { tickers_won: false } },
+};

@@ -10,6 +10,7 @@ None of it is food.
 
 === swap_yard_food ===
 { c2day1 == "trade": -> c2day1_trade }
+{ c2day7 == "yard" && mark_scrubbed && not yard7_done: -> c2day7_yard }
 Roots. Something dried. A pot of something hot, if you can pay.
 You've nothing to trade yet.
 -> END

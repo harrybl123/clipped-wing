@@ -464,6 +464,15 @@ export const BEETLE_BATTLE: Record<string, RowSprite> = {
   down: beetleDown(),
 };
 
+/**
+ * The sunk town's tickers (Chapter 2, Day 7): small things that nest in the old machines down there and
+ * click in the dark. Nobody knows what they are. Shelled in pale casing with cyan glints where the rot
+ * beetles glow green. (Placeholder: the beetle's shape, recoloured, until the art pass.)
+ */
+export const TICKER_BATTLE: Record<string, RowSprite> = Object.fromEntries(
+  Object.entries(BEETLE_BATTLE).map(([pose, s]) => [pose, recolour(s, { G: SHADES.cyan, l: SHADES.woodPale, o: SHADES.dim, m: SHADES.light, e: SHADES.light, '#': SHADES.white })]),
+);
+
 // --- Chapter 2: the borderland, in daylight ---
 // Out here figures are drawn in colour (the scavenger and the borderland's people are, in the areas):
 // each part its own colour, lighter where the sun catches its top and right, darker down its left, and a
@@ -821,6 +830,13 @@ export const SON_BATTLE = stragglerPoses({ broad: 0, skin: 'tan', head: 'hair', 
 export const RAIDER_BATTLE = stragglerPoses({ broad: 1, skin: 'tan', head: 'wrap', holds: 'staff', coat: [SHADES.light, SHADES.white, SHADES.dim], patched: false, wrap: [SHADES.white, SHADES.light] });
 /** Their leader on the raid: bigger, the same pale. */
 export const RAIDER_LEAD_BATTLE = stragglerPoses({ broad: 4, skin: 'dark', head: 'wrap', holds: 'staff', coat: [SHADES.light, SHADES.white, SHADES.dim], patched: false, wrap: [SHADES.white, SHADES.light] });
+
+/** The den's debt collectors: the house's men, in its dark coats. The talker has his hands free for your pockets; the muscle carries a cosh. */
+export const COLLECTOR_BATTLE = stragglerPoses({ broad: 1, skin: 'fair', head: 'hair', holds: 'none', coat: [SHADES.woodLight, SHADES.woodPale, SHADES.wood], patched: false });
+export const COLLECTOR_BIG_BATTLE = stragglerPoses({ broad: 5, skin: 'tan', head: 'shaved', holds: 'lump', coat: [SHADES.woodLight, SHADES.woodPale, SHADES.wood], patched: false });
+/** Angry pickers from the fields: your own people, in their patched picking clothes, with whatever was to hand. */
+export const PICKER_BATTLE = stragglerPoses({ broad: 0, skin: 'tan', head: 'wrap', holds: 'none' });
+export const PICKER_LOUD_BATTLE = stragglerPoses({ broad: 2, skin: 'dark', head: 'hair', holds: 'shard' });
 
 // --- The dog, from behind (Chapter 2) ---
 // Low in the foreground beside you, seen from behind: haunches, a tail, the back running up to the

@@ -123,6 +123,10 @@ export const sunkTown: AreaDefinition = {
     { type: 'trigger', x: CAMP.x + CAMP.width - 20, y: floor(CAMP), reach: 4, knot: 'c2day2_camp', showIf: 'heard_bark', hideIf: 'camp_found' },
     { type: 'trigger', x: 60, y: SURFACE, reach: 50, knot: 'c2day3_arrive', showIf: 'seeking', hideIf: 'seek_arrived' },
     { type: 'trigger', x: 90, y: SURFACE, reach: 70, knot: 'c2day3_send_home', showIf: 'haul_done', hideIf: 'sent_home' },
+    // Chapter 2, Day 7 (a month on): something's nested in the tunnel's carriage. The dog knows first.
+    { type: 'trigger', x: 60, y: SURFACE, reach: 50, knot: 'c2day7_sunk_arrive', showIf: 'dawn7', hideIf: 'dawn7_arrived' },
+    { type: 'trigger', x: 600, y: floor(TUNNEL), reach: 30, knot: 'c2day7_nest', showIf: 'dawn7_arrived', hideIf: 'nest_found' },
+    { type: 'trigger', x: 90, y: SURFACE, reach: 70, knot: 'c2day7_send_home', showIf: 'nest_done', hideIf: 'dawn7_home' },
     // Chapter 2, Day 3 (weeks later): working the sunk town with the dog. It finds what nobody else could.
     {
       type: 'seek', dog: 'dog-follow', range: 150, showIf: 'seeking',
@@ -163,6 +167,8 @@ export const sunkTown: AreaDefinition = {
     { id: 'chalk', x: 340, y: floor(CAMP), reach: 18, label: 'Look', knot: 'sunk_town_chalk' },
     { id: 'camp', x: 280, y: floor(CAMP), reach: 18, label: 'Search', knot: 'sunk_town_search_camp' },
     // Level 3.
+    // Day 7: the marker's spot, at the carriage where they nest.
+    { id: 'nest', x: 600, y: floor(TUNNEL), reach: 20, label: 'Look', knot: 'c2day7_nest', showIf: 'dawn7_arrived', hideIf: 'nest_found' },
     { id: 'carriage', x: 744, y: floor(TUNNEL), reach: 24, label: 'Search', knot: 'sunk_town_search_carriage' },
     { id: 'column-look', x: BRIGHT.x + BRIGHT.width / 2 + 40, y: floor(BRIGHT), reach: 16, label: 'Look', knot: 'sunk_town_column' },
     { id: 'column', x: BRIGHT.x + BRIGHT.width / 2, y: floor(BRIGHT), reach: 14, label: 'Search', knot: 'sunk_town_search_column' },

@@ -741,6 +741,48 @@ describe('Chapter 2: the scavenger, the dog and the stragglers', () => {
     expect(you.sp).toBe(before - 3);
   });
 
+  type Harm = { harm: (a: unknown, m: MoveDef, t: unknown, s: number, k: boolean) => BattleEvent[]; startRound: () => BattleEvent[] };
+
+  it('Shakedown winds you: your own blows land softer for two rounds', () => {
+    const b = new Battle(ENCOUNTERS.debt_collectors!, MOVES, COMBATANTS, ITEMS, () => 0.5);
+    const you = b.get('scavenger');
+    const events = (b as unknown as Harm).harm(b.get('collector'), MOVES.shakedown!, you, 1, false);
+    expect(events.some((e) => e.type === 'sapped')).toBe(true);
+    expect(you.sapped).toBe(2);
+    const muscle = b.get('collector_big');
+    const hit = (b as unknown as Harm).harm(you, MOVES.jab!, muscle, 1, false).find((e) => e.type === 'damage') as { amount: number };
+    you.sapped = 0;
+    const clean = (b as unknown as Harm).harm(you, MOVES.jab!, muscle, 1, false).find((e) => e.type === 'damage') as { amount: number };
+    expect(hit.amount).toBeLessThan(clean.amount);
+  });
+
+  it('Pile in hits harder for every picker still standing', () => {
+    const b = new Battle(ENCOUNTERS.angry_pickers!, MOVES, COMBATANTS, ITEMS, () => 0.5);
+    const you = b.get('scavenger');
+    const all = (b as unknown as Harm).harm(b.get('picker'), MOVES.pile_in!, you, 1, false).find((e) => e.type === 'damage') as { amount: number };
+    for (const c of b.living('enemy')) if (c.id !== 'picker') c.hp = 0;
+    you.hp = you.def.hp;
+    const alone = (b as unknown as Harm).harm(b.get('picker'), MOVES.pile_in!, you, 1, false).find((e) => e.type === 'damage') as { amount: number };
+    expect(all.amount).toBeGreaterThan(alone.amount);
+  });
+
+  it('a ticker\u2019s Latch gnaws each round, never finishes you, and guarding shakes it off', () => {
+    const b = new Battle(ENCOUNTERS.tickers!, MOVES, COMBATANTS, ITEMS, () => 0.5);
+    const dog = b.get('dog');
+    (b as unknown as Harm).harm(b.get('ticker'), MOVES.latch!, dog, 1, false);
+    expect(dog.clinging).toBe(3);
+    const before = dog.hp;
+    expect((b as unknown as Harm).startRound().some((e) => e.type === 'gnawed')).toBe(true);
+    expect(dog.hp).toBe(before - 3);
+    dog.hp = 2;
+    (b as unknown as Harm).startRound();
+    expect(dog.hp).toBe(1);
+    dog.clinging = 3;
+    dog.guarding = true;
+    (b as unknown as Harm).startRound();
+    expect(dog.clinging).toBe(0);
+  });
+
   it('Sniff shows every enemy\u2019s real move: no feints', () => {
     const tricky = { ...COMBATANTS, straggler_thin: { ...COMBATANTS.straggler_thin!, feint: 1 } };
     const fight = { ...ENCOUNTERS.stragglers!, party: ['dog'] };

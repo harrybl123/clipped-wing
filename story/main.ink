@@ -321,6 +321,51 @@ VAR c2day6 = ""
 VAR raid_day = false
 VAR raiders_here = false
 VAR raid_won = false
+// Chapter 2, Day 7, a month on (story/borderland/chapter2-day7.ink; docs/sequences/chapter-2/part-3.md).
+// Stages: dawn, yard, brother, den, tribute, home, done.
+VAR c2day7 = ""
+// Dawn in the sunk town with the dog: arrived; the tickers' nest found, fought (the fight writes tickers_won); the dog sent home.
+VAR dawn7 = false
+VAR dawn7_arrived = false
+VAR nest_found = false
+VAR nest_done = false
+VAR tickers_won = false
+VAR dawn7_home = false
+// The lost picker's lamp (if you told the bar the sunk town), taken; given back to his sister.
+VAR has_lamp = false
+VAR sister_here = false
+VAR sister_calmed = false
+// The son in the yard with the deep ground's tracks (if you told the bar the deep ground).
+VAR son_in_yard = false
+// The rat on your door: there, seen, scrubbed. Your brother and the kid scrubbing it (at home), and set on catching the rat.
+VAR door_marked = false
+VAR door_seen = false
+VAR mark_scrubbed = false
+VAR brother_scrubbing = false
+VAR brother_spying = false
+VAR yard7_done = false
+// Your brother at the compound: he asks why you go out before it's light.
+VAR saw_brother7 = false
+VAR brother_asked = false
+// The den: the gambler at the debt wall, the house's men; your choice ("fought", "paid", "left"); the fight writes collectors_won.
+VAR den7 = false
+VAR den7_seen = false
+VAR gambler_at_wall = false
+VAR collectors_here = false
+VAR gambler_choice = ""
+VAR collectors_won = false
+// Your week went to the den (short at the tally); his chain, if you helped him (doc: he gives you a weapon).
+VAR week_paid = false
+VAR has_chain = false
+VAR tribute7_done = false
+// On the way home: pickers waiting for you in the yard (the fight writes ambush_won); they cut your strap if you lost.
+VAR ambush_night = false
+VAR ambush_set = false
+VAR ambush_done = false
+VAR ambush_won = false
+VAR strap_cut = false
+// Chapter 2, Day 8 (not built yet).
+VAR c2day8 = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
@@ -352,6 +397,7 @@ INCLUDE borderland/chapter2-day3.ink
 INCLUDE borderland/chapter2-day4.ink
 INCLUDE borderland/chapter2-day5.ink
 INCLUDE borderland/chapter2-day6.ink
+INCLUDE borderland/chapter2-day7.ink
 INCLUDE borderland/picked-fields.ink
 INCLUDE borderland/shack.ink
 INCLUDE borderland/swap-yard.ink

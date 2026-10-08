@@ -2,7 +2,8 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './swapYardProps';
 import { casingPod, wireBundle } from './scrapProps';
 import type { AreaDefinition } from '../types';
-import { AWAKE, DAY, cast, dogFollowing, local, stroller } from './people';
+import type { RowSprite } from '../../../ui/sprites';
+import { AWAKE, DAY, LATE, cast, dogFollowing, local, stroller } from './people';
 
 // The swap yard (Chapter 2): the market, finds for food. Out in the open inside the settlement's walls,
 // the rooftops crowding the horizon and the tree rising behind them. A row of stalls (upturned casings
@@ -15,6 +16,23 @@ import { AWAKE, DAY, cast, dogFollowing, local, stroller } from './people';
 
 const W = 1120;
 const FLOOR = 232;
+
+/** The rat sign, chalked on your shack's front in the night (Chapter 2, Day 7), high on the wall (the rows under it are empty). */
+const RAT_MARK: RowSprite = {
+  rows: [
+    '.....w.w.......',
+    '..wwwwwwww.....',
+    '.w.......ww...w',
+    'w..w.......w.w.',
+    '.w.......ww..w.',
+    '..wwwwwwww....w',
+    '...w..w........',
+    ...Array.from({ length: 18 }, () => '...............'),
+  ],
+  colours: { w: S.white },
+};
+/** What's left of it, scrubbed: it goes grey, and stays grey. */
+const RAT_SMUDGE: RowSprite = { rows: RAT_MARK.rows, colours: { w: S.dim } };
 
 export const swapYard: AreaDefinition = {
   id: 'swap-yard',
@@ -84,7 +102,10 @@ export const swapYard: AreaDefinition = {
 
   features: [
     // Chapter 2, Day 3: the fence comes out to meet you on your way to the tally house.
-    { type: 'trigger', x: 1000, y: FLOOR, reach: 40, knot: 'c2day3_fence', showIf: 'day3_yard', hideIf: 'fence_met' },{ type: 'fire', x: 355, y: FLOOR - 1 }],
+    { type: 'trigger', x: 1000, y: FLOOR, reach: 40, knot: 'c2day3_fence', showIf: 'day3_yard', hideIf: 'fence_met' },
+    // Chapter 2, Day 7: the mark on your door; on the way home that night, your own people waiting.
+    { type: 'trigger', x: 70, y: FLOOR, reach: 40, knot: 'c2day7_door', showIf: 'door_marked', hideIf: 'door_seen' },
+    { type: 'trigger', x: 430, y: FLOOR, reach: 30, knot: 'c2day7_ambush', showIf: 'ambush_night', hideIf: 'ambush_done' },{ type: 'fire', x: 355, y: FLOOR - 1 }],
   people: [
     dogFollowing(1040, FLOOR),
     // Behind the stalls.
@@ -97,6 +118,18 @@ export const swapYard: AreaDefinition = {
     cast('lookout', 626, FLOOR, { knot: 'swap_yard_lookout', when: ['afternoon'] }),
     // Your friend, on the way out to the fields.
     cast('scav_friend', 1010, FLOOR, { knot: 'swap_yard_friend', when: ['morning'], flipX: true }),
+    // Chapter 2, Day 7: the rat on your door; your brother and the kid scrubbing it (if he's still at home).
+    { id: 'rat-mark', sprite: RAT_MARK, x: 46, y: FLOOR, showIf: 'door_marked', hideIf: 'mark_scrubbed' },
+    { id: 'rat-smudge', sprite: RAT_SMUDGE, x: 46, y: FLOOR, showIf: 'mark_scrubbed' },
+    cast('brother', 40, FLOOR, { id: 'brother-door', when: ['morning'], showIf: 'brother_scrubbing' }),
+    cast('lookout', 60, FLOOR, { id: 'lookout-door', when: ['morning'], showIf: 'brother_scrubbing', flipX: true }),
+    // The lost picker's sister (if you told the bar the sunk town), or the son back from the deep ground.
+    local('sister', 9, 300, FLOOR, ['morning'], { showIf: 'sister_here', flipX: true }),
+    cast('boss_son', 330, FLOOR, { id: 'son-yard', when: ['morning'], showIf: 'son_in_yard', flipX: true }),
+    // Pickers waiting between the stalls on the way home from the tally (Day 7).
+    local('mob-1', 10, 300, FLOOR, LATE, { showIf: 'ambush_set' }),
+    local('mob-2', 0, 340, FLOOR, LATE, { showIf: 'ambush_set', flipX: true }),
+    local('mob-3', 11, 360, FLOOR, LATE, { showIf: 'ambush_set' }),
     // The crowd.
     stroller('swapper-1', 0, 150, 420, FLOOR, AWAKE),
     stroller('swapper-2', 3, 600, 900, FLOOR, AWAKE),

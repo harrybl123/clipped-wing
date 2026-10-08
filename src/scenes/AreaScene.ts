@@ -1,3 +1,4 @@
+import { DAYS } from '../systems/Calendar';
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { closedReason, ON_FOOT } from '../data/access';
@@ -1721,7 +1722,7 @@ export class AreaScene extends Phaser.Scene {
   /** The end of the day: on to the next morning, waking in bed (or wherever #wake said), with a card (days not built yet say so). */
   private endDay(card?: string): void {
     const { calendar } = getSession(this);
-    const next = calendar.day === 'prologue' ? 1 : Math.min(7, calendar.day + 1);
+    const next = calendar.day === 'prologue' ? 1 : Math.min(DAYS[DAYS.length - 1] as number, calendar.day + 1);
     const wake = this.wakeAt ?? undefined;
     this.leaving = true;
     this.cameras.main.fadeOut(1200, 0, 0, 0);

@@ -69,7 +69,11 @@ export const gamblingDen: AreaDefinition = {
     { sprite: P.DEBT_WALL, x: 400, y: 150 },
   ],
 
-  features: [{ type: 'motes', x: 230, top: 120, bottom: 220, halfWidth: 90 }], // smoke
+  features: [
+    { type: 'motes', x: 230, top: 120, bottom: 220, halfWidth: 90 }, // smoke
+    // Chapter 2, Day 7: coming down the steps into it.
+    { type: 'trigger', x: 100, y: FLOOR, reach: 30, knot: 'c2day7_den', showIf: 'den7', hideIf: 'den7_seen' },
+  ],
   people: [
     local('dealer', 5, 204, FLOOR, ALWAYS, { flipX: true }), // the game never stops
     local('player-1', 2, 160, FLOOR, ALWAYS),
@@ -77,7 +81,11 @@ export const gamblingDen: AreaDefinition = {
     local('watcher-on', 1, 120, FLOOR, LATE),
     local('player-2', 9, 304, FLOOR, LATE, { flipX: true }),
     local('cage-keeper', 7, 392, FLOOR, ALWAYS, { flipX: true }),
-    cast('gambler', 236, FLOOR, { knot: 'gambling_den_gambler' }), // never leaves
+    cast('gambler', 236, FLOOR, { knot: 'gambling_den_gambler', hideIf: 'gambler_at_wall' }), // never leaves
+    // Chapter 2, Day 7: the house's men have him up against the debt wall.
+    cast('gambler', 418, FLOOR, { id: 'gambler-wall', knot: 'gambling_den_gambler', showIf: 'gambler_at_wall', flipX: true }),
+    local('collector-1', 8, 396, FLOOR, ['afternoon'], { showIf: 'collectors_here' }),
+    local('collector-2', 7, 440, FLOOR, ['afternoon'], { showIf: 'collectors_here', flipX: true }),
     // Chapter 2, Day 5: the enforcer at the bones table, out of place in daylight.
     cast('enforcer', 214, FLOOR, { id: 'enforcer-den', showIf: 'town_day', flipX: true }),
   ],

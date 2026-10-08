@@ -1,6 +1,6 @@
 # Sequence plan: Chapter 2, Part 3: The squeeze (Days 7–9)
 
-Planned 2026-10-08, not built. **(doc)** = [the design doc](../../chapter-2-design.md); **(designer)** = decided in conversation; **(suggestion)** = Claude's proposal. Part of [the chapter's structure](../../chapter-2-story.md). Text here is a sketch of the beats, not lines.
+Planned 2026-10-08; Day 7 built (`story/borderland/chapter2-day7.ink`; dev `?chapter=2&day=7`), see "Day 7 as built" below. **(doc)** = [the design doc](../../chapter-2-design.md); **(designer)** = decided in conversation; **(suggestion)** = Claude's proposal. Part of [the chapter's structure](../../chapter-2-story.md). Text here is a sketch of the beats, not lines.
 
 ## Decided
 - **The structure's row stands** (designer: "about right"): raids land wherever you've been; suspicion spreads through the bar, den and brothel; red herrings; the scout. Medium choices: your friend's secret, the gambler's debt, the rival drop. Big choice 2: the rival line.
@@ -81,6 +81,17 @@ Then Part 4, the reveal, follows straight on.
 - **The chase** (Day 9): you chasing a runner along a path, catching them at its end.
 - The shack search reuses `#when` and the hiding timer; the friend's tail reuses `quarry`.
 - New stages for the den (`den`), the deep ground (`deep`), the rival line at night (`line`).
+
+## Day 7 as built (designer: build day by day, a rough structure first, then playtest; more fights, and fights with the dog)
+- **Dawn in the sunk town with the dog** (added: fights with the dog): it won't nose for finds; down in the tunnel, the **tickers** (`tickers`: small shelled things nesting in the carriage, nobody knows what; strikes skid off, teeth get in; **Latch** hangs on and gnaws every round until you guard). If you told the bar the sunk town, the lost picker's lamp is there: take it or leave it. Then the dog home.
+- **The rat on your door** (the swap yard, outside your shack): your brother and the kid scrubbing it, set on catching the rat themselves (`brother_spying`), or you alone with the yard watching. It goes grey and stays grey.
+- **The yard:** the food trader won't look at you; what you told the bar: the lost picker's sister (give her his lamp, or not), the son with rival tracks from the deep ground, or the son's version of the spar going round.
+- **Your brother at the compound** (if he moved): the circle's strap, "even family", "why do you go out before it's light?"
+- **The den** (medium choice): the house's men have the gambler at the debt wall. Step in (fight), pay his debt with your week (short at the tally), or walk away (they stop you on the steps anyway: "Friend of his? Then you can pay."). Help him and he gives you his chain (`has_chain`; **its move isn't in the fights yet**). **The debt collectors** (`debt_collectors`, a den stage): the talker's **Shakedown** winds you (your blows land softer for 2 rounds); the muscle's **Make an example** winds up for the room.
+- **Tribute:** small finds, or none; the enforcer's accusation in front of the queue; the boss: "She's one of mine." Then the watcher with the board's chalk, at the tally tonight: which lie goes up (`board_mark`).
+- **The yard at night** (added: your own side): the traders pack up and go; pickers waiting (the sister among them unless you gave her the lamp). **The angry pickers** (`angry_pickers`, a yard stage at night): **Pile in** hits harder for every one still standing. Lose, and they cut the strap with the circle's mark (`strap_cut`).
+- **Home:** your brother awake in the loft, or the dog's nose on your cut lip. Day 8 isn't built.
+- The calendar now runs to Day 10.
 
 ## Open questions for the designer
 - Is three days right, or should one of these threads wait for Part 4?

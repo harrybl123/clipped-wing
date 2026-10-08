@@ -70,5 +70,5 @@ He doesn't say who. He doesn't need to. Anyone can read the board.
 ~ objective = ""
 ~ objective_target = ""
 ~ c2day6 = "done"
-The boss will want to know. Everyone will want to know. #wake:shack:382:184 #endday:A month on
+The boss will want to know. Everyone will want to know. #wake:dogs-hollow:60:206:c2day7_start #endday:A month on
 -> END
