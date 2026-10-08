@@ -1853,13 +1853,13 @@ export class AreaScene extends Phaser.Scene {
       }
       if (state.find || !on() || !dog?.image.visible || this.dialogue.isOpen) return;
       const { x, y } = this.player.feet;
-      const find = f.finds.find((s) => !story.getVariable(s.done) && Math.abs(s.y - y) <= 4 && Math.abs(dog.image.y - s.y) <= 4 && Math.abs(s.x - x) <= f.range);
+      const find = f.finds.find((s) => !story.getVariable(s.done) && Math.abs(s.y - y) <= 30 && Math.abs(dog.image.y - s.y) <= 30 && Math.abs(s.x - x) <= f.range);
       if (!find) return;
       state.find = find;
       dog.scripted = true;
       this.soundscape.play('bark', undefined, 0.6);
       this.floatText('!', dog.image.x, dog.image.y - 24, SHADES.amber);
-      this.walkTo(dog, find.x, 90, () => {
+      this.walkTo(dog, find.x, 90, find.y, () => {
         state.ready = true;
         // Sniffing and scrabbling at the spot, dirt flying, until you come.
         state.timer = this.time.addEvent({
@@ -1953,14 +1953,16 @@ export class AreaScene extends Phaser.Scene {
   }
 
   /** Someone walks (or runs) along their floor to x, their walk frames playing, then `then`. */
-  private walkTo(entry: PersonEntry, x: number, speed: number, then?: () => void): void {
+  private walkTo(entry: PersonEntry, x: number, speed: number, yOrThen?: number | (() => void), maybeThen?: () => void): void {
+    const y = typeof yOrThen === 'number' ? yOrThen : entry.image.y;
+    const then = typeof yOrThen === 'function' ? yOrThen : maybeThen;
     const img = entry.image;
     img.setFlipX(x < img.x);
     entry.walking = entry.walkKeys.length > 0;
     let frame = 0;
     const step = entry.walking ? this.time.addEvent({ delay: speed > 50 ? 90 : 160, loop: true, callback: () => img.setTexture(entry.walkKeys[(frame = (frame + 1) % entry.walkKeys.length)]!) }) : null;
     this.tweens.add({
-      targets: img, x, duration: (Math.abs(x - img.x) / speed) * 1000,
+      targets: img, x, y, duration: (Math.max(Math.abs(x - img.x), Math.abs(y - img.y)) / speed) * 1000,
       onComplete: () => {
         step?.remove();
         entry.walking = false;

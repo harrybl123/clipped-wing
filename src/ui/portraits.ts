@@ -793,31 +793,37 @@ export const DOG_PORTRAIT: RowSprite = (() => {
       if (!((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0))) put(x, y, col);
     }
   };
-  // Shoulders and neck, scruffy at the edges.
-  for (let y = 32; y < W; y++) {
-    const half = 9 + (y - 32) * 0.9;
+  // Shoulders and neck, fluffy at the edges (designer: cuter).
+  for (let y = 34; y < W; y++) {
+    const half = 10 + (y - 34) * 0.9;
     for (let x = Math.round(24 - half); x <= Math.round(24 + half); x++) put(x, y, x < 24 - half + 3 ? 's' : 'f');
   }
-  // Ears, then the head over their roots.
-  tri([13, 18], [16, 3], [23, 14], 'E');
-  tri([27, 13], [33, 2], [36, 17], 'E');
-  tri([16, 15], [17, 7], [21, 14], 'e');
-  tri([29, 13], [32, 6], [34, 15], 'e');
-  disc(24, 22, 11, 10, 'f');
-  // The darker saddle over the top of the head, down between the eyes.
-  disc(24, 15, 8, 4, 'S');
-  for (let y = 15; y < 22; y++) put(24, y, 'S');
+  // One ear up (soft, rounded at the tip), the other flopped over.
+  tri([12, 20], [13, 6], [21, 15], 'E');
+  disc(13.5, 8, 1.6, 1.6, 'E');
+  tri([14, 17], [14.5, 10], [19, 15], 'e');
+  disc(36, 16, 5, 6, 'E');
+  disc(37, 18, 3, 3.5, 'e');
+  // A round head, the cheeks fluffing out.
+  disc(24, 25, 13, 12, 'f');
+  disc(12.5, 31, 4, 4, 'f');
+  disc(35.5, 31, 4, 4, 'f');
+  // The darker patch on top, and the white blaze down the middle to the muzzle.
+  disc(24, 14.5, 4.5, 2.2, 'S');
+  for (let y = 15; y < 29; y++) for (let dx = -1; dx <= 1; dx++) put(24 + dx, y, y < 18 && dx !== 0 ? 'S' : 'm');
   // Shaded down its left side.
-  for (let y = 14; y < 34; y++) for (let x = 0; x < 18; x++) if (g[y]![x] === 'f') g[y]![x] = 's';
-  // The muzzle, turned a little to its left (our right), and the nose.
-  disc(28, 30, 7, 5, 'm');
-  disc(33, 27.5, 2.4, 1.8, 'n');
-  put(33, 26, 'W');
-  for (let x = 25; x <= 32; x++) put(x, 33, x === 32 ? 'n' : 's'); // the mouth
-  // Eyes, with a glint.
-  for (const [ex, ey] of [[19, 22], [29, 21]] as const) {
-    disc(ex, ey, 1.6, 1.4, 'o');
-    put(ex + 1, ey - 1, 'W');
+  for (let y = 14; y < 36; y++) for (let x = 0; x < 15; x++) if (g[y]![x] === 'f') g[y]![x] = 's';
+  // A small round muzzle, a button nose, a little smile.
+  disc(24, 32, 6.5, 4.2, 'm');
+  disc(24, 29.4, 2.4, 1.6, 'n');
+  put(25, 29, 'W');
+  for (const [x, y] of [[21, 33], [22, 34], [23, 34], [24, 33], [25, 34], [26, 34], [27, 33]] as const) put(x, y, 's');
+  // Big round eyes, each with a glint.
+  for (const ex of [17, 31]) {
+    disc(ex, 24, 2.6, 2.8, 'o');
+    put(ex + 1, 23, 'W');
+    put(ex + 1, 22, 'W');
+    put(ex - 1, 26, 'g');
   }
   // A dark outline round all of it.
   const filled = (x: number, y: number) => (g[y]?.[x] ?? '.') !== '.' && g[y]![x] !== 'x';
@@ -826,7 +832,7 @@ export const DOG_PORTRAIT: RowSprite = (() => {
   for (const [x, y] of marks) g[y]![x] = 'x';
   return {
     rows: g.map((r) => r.join('')),
-    colours: { f: SHADES.light, s: SHADES.dim, S: SHADES.woodPale, m: SHADES.white, n: SHADES.shadow, E: SHADES.woodPale, e: SHADES.woodLight, o: SHADES.shadow, W: SHADES.white, x: SHADES.shadow },
+    colours: { f: SHADES.light, s: SHADES.dim, S: SHADES.woodPale, m: SHADES.white, n: SHADES.shadow, E: SHADES.woodPale, e: SHADES.woodLight, o: SHADES.shadow, W: SHADES.white, g: SHADES.woodLight, x: SHADES.shadow },
   };
 })();
 

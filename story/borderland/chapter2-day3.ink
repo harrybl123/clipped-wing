@@ -11,25 +11,31 @@
 === c2day3_start ===
 ~ dog_with_you = true
 ~ training = true
-~ objective = "Let " + dog_name + " find what you buried"
+~ objective = "Follow " + dog_name + " down into the hollow"
 ~ objective_target = ""
-Weeks of it, now. Out here every morning before it's light, while the settlement sleeps.
+You've been coming out here for weeks now, every morning before it's light, while the settlement sleeps.
 You bury something. You walk {dog_name} round the rim and back. You let it go.
 "Woof!" #speaker:dog
-At first it found nothing but bones. Now it finds everything. This morning you buried two things, deep, in the bottom of the hollow.
+At first it found nothing but bones. Now it finds everything. This morning you buried two things, deep, down in the bottom of the hollow.
+Go down with it. When it starts to dig, dig beside it.
 -> END
 
 === c2day3_train_1 ===
+~ trained_1 = true
 The wire you dug up on the fields, a lifetime ago. {dog_name} had it in a breath.
 "Huff." #speaker:dog
 -> c2day3_trained
 
 === c2day3_train_2 ===
+~ trained_2 = true
 The disc, the first thing it ever found for you, buried an arm's length down. It dug straight to it.
 "Woof!" #speaker:dog
 -> c2day3_trained
 
 === c2day3_trained ===
+{ not (trained_1 && trained_2):
+    ~ objective = "Follow " + dog_name + " to the other one"
+}
 { trained_1 && trained_2:
     ~ training = false
     ~ seeking = true
@@ -37,6 +43,7 @@ The disc, the first thing it ever found for you, buried an arm's length down. It
     ~ objective = "Work the sunk town with " + dog_name
     ~ objective_target = "picked-fields:to-sunk-town"
     It sits, and looks at you, and waits.
+    "Woof." #speaker:dog
     It's ready. You've known that for a week. You just haven't wanted to find out what happens next.
 }
 -> END
@@ -44,14 +51,17 @@ The disc, the first thing it ever found for you, buried an arm's length down. It
 // --- The sunk town ---
 
 === c2day3_find_1 ===
+~ sought_1 = true
 In the long room, under the shelves everyone's already cleared, {dog_name} digs out a lens as wide as your palm. Clear as water. Not a scratch on it.
 -> c2day3_found
 
 === c2day3_find_2 ===
+~ sought_2 = true
 In the hall of boxes, where every box was prised open years ago, there's one more, buried under the others. Sealed. Heavy. Something inside it shifts when you tilt it.
 -> c2day3_found
 
 === c2day3_find_3 ===
+~ sought_3 = true
 In the tunnel, under the carriage, a coil of cable as thick as your arm, its sheath cracked and something bright inside.
 -> c2day3_found
 
