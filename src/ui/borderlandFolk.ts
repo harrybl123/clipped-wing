@@ -340,3 +340,31 @@ export const STRAGGLER_LOOKS: FolkLook[] = [
   { height: 22, width: 2, skin: 'dark', hair: S.shadow, hairStyle: 'messy', top: S.woodPale, topStyle: 'shirt', legs: S.wood, pack: 'bag' },
 ];
 export const STRAGGLERS = STRAGGLER_LOOKS.map(folkFrames);
+
+/**
+ * Someone asleep in bed, seen from the side, to lay over a bed prop: their head on the pillow (at the
+ * left), the blanket over them in a long mound, one arm hanging off the edge. Two frames, breathing. The
+ * bottom row is the bed's bottom; place it with its left edge at the bed's.
+ */
+export function asleep(look: FolkLook, blanket: number): RowSprite[] {
+  const [skin, skinShade] = SKIN[look.skin];
+  const frame = (breath: number): RowSprite => {
+    const W = 30;
+    const H = 12;
+    const g = Array.from({ length: H }, () => Array.from({ length: W }, () => '.'));
+    // The blanket: a long mound over the body, rising at the shoulder and the hip.
+    for (let x = 7; x < W - 1; x++) {
+      const top = 4 - (x > 9 && x < 15 ? 1 + breath : 0) - (x > 19 && x < 24 ? 1 : 0);
+      for (let y = top; y <= 9; y++) g[y]![x] = y === top ? 'B' : (x + y) % 6 === 0 ? 'b' : 'C';
+    }
+    // The head on the pillow, the hair over the top and back of it.
+    for (let y = 1; y <= 6; y++) for (let x = 1; x <= 7; x++) if ((x - 4) ** 2 / 9 + (y - 3.5) ** 2 / 6.5 <= 1) g[y]![x] = x < 4 || y < 3 ? 'h' : 'k';
+    g[3]![6] = 'K';
+    g[4]![6] = 'K';
+    g[4]![5] = 'd'; // a closed eye
+    // An arm hanging off the edge of the bed.
+    for (let y = 9; y <= 11; y++) g[y]![15] = y === 11 ? 'K' : 'k';
+    return { rows: g.map((r) => r.join('')), colours: { B: SHADES.light, C: blanket, b: SHADES.woodLight, h: look.hair, k: skinShade, K: skin, d: SHADES.deep } };
+  };
+  return [frame(0), frame(1)];
+}

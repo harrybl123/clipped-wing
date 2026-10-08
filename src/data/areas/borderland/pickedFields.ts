@@ -81,10 +81,6 @@ export const pickedFields: AreaDefinition = {
     { sprite: P.trackMarker(26), x: 818, y: FLOOR - 26 },
     { sprite: P.dugHole(16), x: 860, y: FLOOR - 4 },
     { sprite: P.trackMarker(30), x: 930, y: FLOOR - 30 },
-    // Ground nobody's turned over lately: where you dig on Chapter 2's first morning.
-    { sprite: P.dugHole(8), x: 166, y: FLOOR - 4 },
-    { sprite: P.dugHole(8), x: 296, y: FLOOR - 4 },
-    { sprite: P.dugHole(8), x: 766, y: FLOOR - 4 },
     // Tech scraps: what's too broken to sell, but still bright.
     { sprite: P.casingPod(20), x: 122, y: FLOOR - 11 },
     { sprite: P.screenSlab(16), x: 228, y: FLOOR - 5 },
@@ -96,10 +92,31 @@ export const pickedFields: AreaDefinition = {
     { sprite: P.wireBundle(20), x: 906, y: FLOOR - 9 },
   ],
 
-  features: [],
+  features: [
+    // Chapter 2, Day 1: dig anywhere (designer: search it yourself, nothing signposted). Three finds, unmarked
+    // but for a glint in the dirt now and then: by a spoil heap, under the bent mast, out past the hull.
+    {
+      type: 'dig', y: FLOOR, from: 40, to: 920, showIf: 'digging',
+      finds: [
+        { x: 186, reach: 12, knot: 'c2day1_dig_1', done: 'dug_1', item: 'wire' },
+        { x: 318, reach: 12, knot: 'c2day1_dig_2', done: 'dug_2', item: 'ring' },
+        { x: 772, reach: 12, knot: 'c2day1_dig_3', done: 'dug_3', item: 'cube' },
+      ],
+    },
+  ],
   people: [
     // Pickers, working the fields.
     local('digger-1', 0, 200, FLOOR, DAY),
+    // The morning crowd: everybody out picking the same dirt (designer: hundreds of them).
+    local('digger-3', 3, 70, FLOOR, ['morning']),
+    local('digger-4', 6, 132, FLOOR, ['morning'], { flipX: true }),
+    local('digger-5', 9, 268, FLOOR, ['morning']),
+    local('digger-6', 2, 384, FLOOR, ['morning'], { flipX: true }),
+    local('digger-7', 7, 650, FLOOR, ['morning']),
+    local('digger-8', 5, 690, FLOOR, ['morning'], { flipX: true }),
+    local('digger-9', 8, 864, FLOOR, ['morning']),
+    stroller('picker-3', 4, 440, 620, FLOOR, ['morning']),
+    stroller('picker-4', 10, 40, 160, FLOOR, ['morning']),
     local('digger-2', 11, 712, FLOOR, DAY, { flipX: true }),
     stroller('picker-1', 1, 720, 800, FLOOR, DAY),
     stroller('picker-2', 10, 90, 180, FLOOR, ['morning']),
@@ -117,10 +134,6 @@ export const pickedFields: AreaDefinition = {
     { id: 'glow', x: HULL.x + 201, y: FLOOR, reach: 10, label: 'Look', knot: 'picked_fields_glow' },
     { id: 'tree', x: CROWN.x + 4, y: CROWN.y, reach: 12, label: 'Look', knot: 'picked_fields_tree' },
     { id: 'glass', x: 680, y: FLOOR, reach: 12, label: 'Look', knot: 'picked_fields_glass' },
-    // Chapter 2, Day 1: spots to dig, while you're digging, until you've dug each.
-    { id: 'dig-1', x: 170, y: FLOOR, reach: 10, label: 'Dig', knot: 'c2day1_dig_1', showIf: 'digging', hideIf: 'dug_1' },
-    { id: 'dig-2', x: 300, y: FLOOR, reach: 10, label: 'Dig', knot: 'c2day1_dig_2', showIf: 'digging', hideIf: 'dug_2' },
-    { id: 'dig-3', x: 770, y: FLOOR, reach: 10, label: 'Dig', knot: 'c2day1_dig_3', showIf: 'digging', hideIf: 'dug_3' },
   ],
 
   exits: [

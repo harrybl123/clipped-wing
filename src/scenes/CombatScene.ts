@@ -410,7 +410,6 @@ export class CombatScene extends Phaser.Scene {
       return;
     }
     await this.teach('react');
-    await this.teach('parry');
     // The tell's last moment: he flashes and shudders.
     playSound(this, 'tick');
     this.flashWhite(view, 80);
@@ -446,6 +445,8 @@ export class CombatScene extends Phaser.Scene {
     const strikeAt = { x: t.home.x + 70, y: H - 14 };
     const near = { x: t.home.x + 92, y: H - 34 };
     const at = this.anchorOf(t);
+    // Braced (her Brace): the first blow she gets out of the way of, she parries.
+    let braced = t.c.braced;
     // A blow lands on its beat: slipped if you got it, the full blow (and you stagger) if not.
     const land = (grade: Grade, last: boolean) => {
       this.setPose(view, 'attack');
@@ -461,7 +462,9 @@ export class CombatScene extends Phaser.Scene {
       } else {
         playSound(this, 'whoosh');
         this.setPose(t, 'dodge');
-        this.popLabel(grade === 'perfect' && t.c.def.reactions?.includes('parry') ? 'PARRY!' : 'DODGE', t, SHADES.green);
+        const parry = (grade === 'perfect' && t.c.def.reactions?.includes('parry')) || braced;
+        braced = false;
+        this.popLabel(parry ? 'PARRY!' : 'DODGE', t, SHADES.green);
         this.tweens.add({ targets: t.sprite, x: t.home.x - 16, duration: 90, yoyo: true, hold: 160 });
       }
     };

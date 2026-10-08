@@ -52,6 +52,8 @@ export class Player {
   /** (x, y) is where the feet stand. */
   /** Whether you're crouching. */
   crouching = false;
+  /** Down on one knee (digging): drawn crouched while the scene holds you still. */
+  kneeling = false;
   /** Wearing the cloak (Day 6 on, wherever you're not expected): set by the scene. */
   cloaked = false;
   /** Who you are: the carver (in the tree) or the scavenger (Chapter 2, in the borderland). Set by the scene. */
@@ -126,8 +128,8 @@ export class Player {
 
   private animate(direction: number): void {
     const c = this.look === 'scavenger' ? '-scav' : this.cloaked ? '-cloak' : '';
-    if (this.crouching) {
-      if (direction !== 0) this.sprite.play(`player-crawl${c}`, true);
+    if (this.crouching || this.kneeling) {
+      if (direction !== 0 && !this.kneeling) this.sprite.play(`player-crawl${c}`, true);
       else {
         this.sprite.anims.stop();
         this.sprite.setTexture(`player-crouch${c}`);

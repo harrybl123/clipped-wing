@@ -555,8 +555,8 @@ describe('combat data', () => {
 });
 
 describe('the market scrap teaches itself', () => {
-  it('is the only fight that teaches (with the rot, and Chapter 2\u2019s first), and every lesson says what to press', () => {
-    expect(Object.values(ENCOUNTERS).filter((e) => e.teaches).map((e) => e.id)).toEqual(['market_scrap', 'rot_beetles', 'stragglers']);
+  it('is the only fight that teaches (with the rot; not Chapter 2), and every lesson says what to press', () => {
+    expect(Object.values(ENCOUNTERS).filter((e) => e.teaches).map((e) => e.id)).toEqual(['market_scrap', 'rot_beetles']);
     for (const e of Object.values(ENCOUNTERS)) for (const l of [...(e.teaches ?? []), ...(e.alsoTeaches?.lessons ?? [])]) expect(LESSONS).toHaveProperty(l);
     // Held back at the market (never fought): the rot fight teaches everything the market would have.
     expect(ENCOUNTERS.rot_beetles!.alsoTeaches).toEqual({ unless: 'fought', lessons: ENCOUNTERS.market_scrap!.teaches });
@@ -697,22 +697,22 @@ describe('Chapter 2: the scavenger, the dog and the stragglers', () => {
     expect(e.outcomes).toEqual({ won: { stragglers_won: true }, lost: { stragglers_won: false } });
   });
 
-  it('Brace: until her next turn, a dodge parries and she hits back', () => {
+  it('Brace: the next blow she dodges, she parries and hits back; then it\u2019s spent', () => {
     const b = new Battle(ENCOUNTERS.stragglers!, MOVES, COMBATANTS, ITEMS, rng(3));
     toParty(b);
     expect(b.current!.id).toBe('scavenger');
     const events = b.act({ type: 'skill', move: 'brace' });
     expect(events.some((e) => e.type === 'braced')).toBe(true);
-    // The stragglers' attacks this round: a dodge becomes a parry (no harm, a counter), unless it can't be reacted to.
-    const hp = b.get('scavenger').hp;
+    // The stragglers' attacks this round: the first dodge becomes a parry (no harm, a counter), then it's spent.
     const after: BattleEvent[] = [];
     while (!b.outcome && b.current!.side === 'enemy') after.push(...b.enemyTurn('dodge'));
     const reactions = after.filter((e) => e.type === 'reaction');
-    for (const r of reactions) expect(r).toMatchObject({ reaction: 'parry' });
     if (reactions.length) {
+      expect(reactions[0]).toMatchObject({ reaction: 'parry' });
+      for (const r of reactions.slice(1)) expect(r).toMatchObject({ reaction: 'dodge' });
       expect(after.some((e) => e.type === 'counter')).toBe(true);
-      expect(b.get('scavenger').hp).toBe(hp);
     }
+    expect(b.get('scavenger').braced).toBe(reactions.length === 0);
   });
 
   it('Grit half-blinds: reacting is harder for two rounds', () => {

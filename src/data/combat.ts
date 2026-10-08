@@ -187,7 +187,7 @@ COMBATANTS.lackey = {
   ai: { maxRepeat: 2, when: { hurt: { jeer: 0 } } },
 };
 
-export type Lesson = 'turns' | 'tells' | 'react' | 'offBalance' | 'windUp' | 'allies' | 'parry';
+export type Lesson = 'turns' | 'tells' | 'react' | 'offBalance' | 'windUp' | 'allies';
 
 /**
  * The first fights teach themselves (designer: the scene is the tutorial). Each shows once, the first time
@@ -201,7 +201,6 @@ export const LESSONS: Record<Lesson, string> = {
   offBalance: 'That enemy is off balance. Hit it again before it recovers to knock it down and get an extra turn.',
   windUp: 'An enemy is charging a heavy attack. Guard to take less of it, or Shove it before it lands to stop it.',
   allies: 'You\u2019ll fight alongside friends, each with their own abilities.',
-  parry: 'React perfectly to parry: you take no damage and hit back.',
 };
 
 export const ENCOUNTERS: Record<string, EncounterDef> = {
@@ -291,9 +290,10 @@ Object.assign(MOVES, {
     combo: { build: 0.25, finisher: true },
     description: '3 quick blows, each stronger than the last. Land all 3 to knock the enemy off balance.',
   },
+  // (Designer: a little OP. Now it costs more and is spent on the first blow it turns.)
   brace: {
-    id: 'brace', name: 'Brace', target: 'self', sp: 2, braces: true, poses: ['guard'],
-    description: 'Until her next turn, a good reaction parries too: no damage, and she hits back.',
+    id: 'brace', name: 'Brace', target: 'self', sp: 4, braces: true, poses: ['guard'],
+    description: 'The next attack on her: a good reaction parries it (no damage, and she hits back).',
   },
 
   // The dog (Day 2 on). It sniffs out what nobody else can (design doc), in a fight as well.
@@ -366,26 +366,26 @@ COMBATANTS.dog = {
   basic: 'bite', moves: ['sniff', 'worry'], reactions: ['dodge'],
 };
 
-/** The thin straggler: fast and dirty. Shows you a feint now and then. */
+/** The thin straggler: fast (quicker than you) and dirty, and now and then a feint. (Designer: the first fight was a little easy.) */
 COMBATANTS.straggler_thin = {
-  id: 'straggler_thin', name: 'The thin one', sprite: 'straggler_thin', hp: 26, attack: 8, defence: 7, speed: 13,
+  id: 'straggler_thin', name: 'The thin one', sprite: 'straggler_thin', hp: 34, attack: 9, defence: 7, speed: 15,
   moves: ['shank', 'grit', 'snatch'], weights: [3, 1.5, 2],
-  weak: ['shove'], poise: 1, feint: 0,
+  weak: ['shove'], poise: 2, feint: 0.15,
   ai: { opening: ['shank', 'grit'], maxRepeat: 2, recent: 0.5, when: { hurt: { snatch: 2 }, foeGuarding: { grit: 2.5 } } },
 };
 
 /** The big straggler: slow, heavy, winds up. */
 COMBATANTS.straggler_big = {
-  id: 'straggler_big', name: 'The big one', sprite: 'straggler_big', hp: 42, attack: 10, defence: 9, speed: 8,
+  id: 'straggler_big', name: 'The big one', sprite: 'straggler_big', hp: 54, attack: 11, defence: 10, speed: 8,
   moves: ['club', 'heave'], weights: [3, 1.2],
   weak: ['shove'], poise: 2, feint: 0,
   ai: { opening: ['club', 'heave'], maxRepeat: 2, recent: 0.6, when: { hurt: { heave: 2 }, foeHurt: { heave: 1.8 } } },
 };
 
 /**
- * Chapter 2, Day 1, the picked fields: stragglers from elsewhere come for your haul (designer). Your first
- * fight as the scavenger, so it teaches the basics, and the parry. Writes `stragglers_won`; either way the
- * third one is gone with your finds (the story's).
+ * Chapter 2, Day 1, the picked fields: stragglers from elsewhere come for your haul (designer). No tutorial
+ * in Chapter 2 (designer): you learned to fight in Chapter 1. Tighter timing than Act 1's first fights.
+ * Writes `stragglers_won`; either way the third one is gone with your finds (the story's).
  */
 ENCOUNTERS.stragglers = {
   id: 'stragglers',
@@ -393,8 +393,7 @@ ENCOUNTERS.stragglers = {
   party: ['scavenger'],
   enemies: ['straggler_thin', 'straggler_big'],
   stage: 'fields',
-  timing: { lunge: 1000, ease: 1.3 },
-  teaches: ['turns', 'tells', 'react', 'parry', 'offBalance', 'windUp'],
+  timing: { lunge: 900, ease: 1.1 },
   outcomes: {
     won: { stragglers_won: true },
     lost: { stragglers_won: false },

@@ -9,42 +9,47 @@
 // --- Morning, the picked fields ---
 
 === c2day1_start ===
-The picked fields. Everybody's dug them. Everybody's still digging them.
-Your brother hasn't eaten since yesterday morning. Neither have you.
+The picked fields. Hundreds of you, out here every morning, bent over the same dirt, sifting it for anything worth something.
+There's never enough to go round. Your brother hasn't eaten since yesterday morning. Neither have you.
 ~ c2day1 = "dig"
 ~ digging = true
 ~ objective = "Dig for finds"
-~ objective_target = "picked-fields:dig-1"
+~ objective_target = ""
 -> END
+
+// Digging anywhere on the fields (the `dig` feature in pickedFields.ts): three finds, in whatever order you
+// turn them up. The third brings the stragglers.
 
 === c2day1_dig_1 ===
-You work the edge of somebody's spoil heap, where the sieves miss things. #sound:scratch
-A coil of wire, fine as hair, still bright inside. It'll weigh something.
+At the edge of somebody's spoil heap, where the sieves miss things: a coil of wire, fine as hair, still bright inside. It'll weigh something.
 ~ dug_1 = true
-~ finds += 1
-~ objective_target = "picked-fields:dig-2"
--> END
+-> c2day1_found
 
 === c2day1_dig_2 ===
-By the bent mast the ground's been turned so many times it's soft as flour. #sound:scratch
-Your fingers find a ring of pale casing, no bigger than your palm, smooth as an egg. Somebody will want it, for something.
+By the bent mast, in ground turned so many times it's soft as flour: a ring of pale casing, no bigger than your palm, smooth as an egg. Somebody will want it, for something.
 ~ dug_2 = true
-~ finds += 1
-~ objective_target = "picked-fields:dig-3"
--> END
+-> c2day1_found
 
 === c2day1_dig_3 ===
-Out past the hull, where nobody bothers. You dig down an arm's length, then another. #sound:scratch
-A cube of dark glass. Inside it, faint, a light that turns when you turn it.
+Out past the hull, where nobody bothers, an arm's length down: a cube of dark glass. Inside it, faint, a light that turns when you turn it.
 That's food for a week. More.
 ~ dug_3 = true
+-> c2day1_found
+
+=== c2day1_found ===
 ~ finds += 1
+{ finds < 3:
+    ~ objective = "Dig for finds ({finds} found)"
+    -> END
+}
+-> c2day1_stragglers
+
+=== c2day1_stragglers ===
 ~ digging = false
 ~ stragglers_here = true
 ~ objective = ""
-~ objective_target = ""
-When you look up, there are three people standing over you. #show:straggler-1 #show:straggler-2 #show:straggler-3
-Not pickers. Nobody you know. They've come in off the plain, from wherever people come from, and they look like they've walked the whole way.
+When you look up, there are three people standing over you. #beside:straggler-1:18 #beside:straggler-2:34 #beside:straggler-3:50
+Not pickers. Nobody you know. They've come in off the plain, and they look like they've walked the whole way.
 "That's a nice bag." #speaker:straggler_thin
 + [Who are you?]
     "Who are you? You're not from here." #speaker:scavenger
@@ -61,10 +66,10 @@ Not pickers. Nobody you know. They've come in off the plain, from wherever peopl
 
 === c2day1_after_stragglers ===
 { stragglers_won:
-    The thin one's on his back in the dirt. The big one's backing away, one hand pressed to his ribs.
+    The thin one's on his back in the dirt. The big one's backing away, one hand pressed to his ribs. #beside:straggler-1:18 #beside:straggler-2:34 #beside:straggler-3:50
     Then you feel how light your satchel is.
 - else:
-    You're on your knees in the dirt, and your staff is a long way off.
+    You're on your knees in the dirt, and your staff is a long way off. #beside:straggler-1:18 #beside:straggler-2:34 #beside:straggler-3:50
 }
 The third one, the small one, is already halfway to the horizon. Your satchel's strap has been cut clean through, and the flap hangs open. #hide:straggler-3
 Everything you dug today is going with them.
@@ -125,7 +130,7 @@ The trader turns your brother's light over in her fingers, then cups her hands r
 
 === c2day1_trade_haggle ===
 "At night." #speaker:scavenger
-"Everything glows at night, if you want it to enough. Two bowls." #speaker:food_trader
+"Can't eat a light. Two bowls." #speaker:food_trader
 + [It's worth four]
     "It's worth four, and you know it." #speaker:scavenger
     "It's worth what I'll give you. Two." #speaker:food_trader
@@ -160,7 +165,7 @@ He draws a line through your sign. The queue goes quiet.
 The enforcer comes off the wall.
 "Short?" #speaker:enforcer
 "It's the first time." #speaker:scavenger
-"It's always the first time." #speaker:enforcer
+"Then make it the last." #speaker:enforcer
 The enforcer takes hold of your satchel, what's left of the strap, and pulls you round to face the queue.
 "Let her go." #speaker:boss
 The boss comes away from the grille, where he's been watching all evening, and the queue opens to let him through. The watcher comes after him, a step behind, the way he always is.
@@ -191,7 +196,6 @@ The watcher hasn't taken his eyes off you once. #time:night
 Your brother's asleep in the loft, his hand open on the blanket where the light used to be.
 You put one bowl by his pillow. You eat half the other, and put the rest by his.
 Double, next week. Off the picked fields, where there's nothing left but bolts and dirt. Nobody brings double off the picked fields.
-There's one place nobody's picked clean. The sunk town. Rich, they say, and people go down and don't come up.
 ~ c2day1 = "done"
 ~ objective = ""
 ~ objective_target = ""

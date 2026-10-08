@@ -16,8 +16,8 @@ Opens with her scavenging, not waking at home (designer: Act 1 did that). Stragg
 
 | Time | Where | What happens | Objective shown |
 | --- | --- | --- | --- |
-| Morning | The picked fields | Dig three spots (a coil of wire, a ring of pale casing, a cube of glass with a light inside) | "Dig for finds" |
-| Morning | The picked fields | **Stragglers** stand over you at the third spot. The fight (the tutorial). Win or lose, the third one runs off with your finds (the strap cut) | — |
+| Morning | The picked fields | Hundreds of pickers in the same dirt. Dig anywhere (designer: search it yourself, no markers): three finds, given away only by a glint in the dirt now and then (a coil of wire, a ring of pale casing, a cube of glass with a light inside); each comes up out of the ground where you can see it | "Dig for finds" |
+| Morning | The picked fields | **Stragglers** stand over you at the third find. The fight (no tutorial in Chapter 2: designer). Win or lose, the third one runs off with your finds (the strap cut) | — |
 | Afternoon | The picked fields, the swap yard | Your friend saw them go. Your brother, at the yard: he gives you his light (the one thing in his collection that glows) to trade | "Find your brother" |
 | Afternoon | The swap yard | The food trader gives you two bowls for it | "Trade for food" |
 | Evening | The tally house | **Tribute night.** You're short; the enforcer grabs you; the boss lets you off, kind and frightening at once: "Next week, you bring double" (`owe_double`). The watcher never takes his eyes off you **(suggestion: it's her who's short, not someone else, since she's lost everything)** | "Pay your tribute" |
@@ -52,7 +52,7 @@ Training the dog in the hollow: bury a find, the dog finds it. A short montage y
 - **Unique abilities** for her, the dog and the opposition; nothing borrowed from Act 1 (designer: Rot-ink doesn't fit; unique to the scavenger).
 
 ## Fighters (draft numbers, to playtest)
-- **The scavenger:** Jab (basic); Sweep (takes their legs: off balance, interrupts a wind-up); Rattle (3 blows, building); **Brace** (until her next turn, a good dodge parries and hits back). She can parry from the start.
+- **The scavenger:** Jab (basic); Sweep (takes their legs: off balance, interrupts a wind-up); Rattle (3 blows, building); **Brace** (4 SP: the next blow on her, a good dodge parries it and she hits back; designer: it was a little OP). She can parry from the start.
 - **The dog** (Day 2): Bite (basic); **Sniff** (shows every enemy's real move this round: no feints); Worry (bites and hangs on: 2 hits).
 - **The thin straggler:** Shank; **Grit** (dirt in your eyes: for 2 rounds, dodging is harder); Snatch (grabs for your satchel).
 - **The big straggler:** Club; Heave, then Crush (a wind-up: guard, or Sweep him).

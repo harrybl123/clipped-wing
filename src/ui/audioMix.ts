@@ -84,7 +84,12 @@ export function setAcoustics(scene: Phaser.Scene, acoustics: Acoustics): void {
   mix.acoustics = acoustics;
   mix.room.buffer = roomImpulse(a.ctx, acoustics);
   mix.wet.gain.setTargetAtTime(ACOUSTICS[acoustics].echo, a.ctx.currentTime, 0.3);
+  // Voices carry less in the open, over the wind (designer: speech in the borderland seemed silent): lift them there.
+  mix.buses.voices.gain.setTargetAtTime(VOLUMES.voices * (VOICE_LIFT[acoustics] ?? 1), a.ctx.currentTime, 0.3);
 }
+
+/** How much louder voices are in some spaces. */
+const VOICE_LIFT: Partial<Record<Acoustics, number>> = { open: 1.8, street: 1.3 };
 
 /** Changes a bus's volume (for a settings screen, or the dev mute). */
 export function setVolume(scene: Phaser.Scene, bus: Bus, volume: number): void {

@@ -86,3 +86,45 @@ export const FIRE_FRAMES: readonly RowSprite[] = [
     '.dllllllllld',
   ],
 ].map((rows) => ({ rows, colours: { a: SHADES.amber, w: SHADES.white, l: SHADES.woodLight, d: SHADES.deep } }));
+
+/** Finds dug up out of the dirt (Chapter 2), shown rising over you as you find them: a coil of wire, a ring of pale casing, a cube of dark glass with a light inside. */
+export const FIND_SPRITES: Record<'wire' | 'ring' | 'cube', RowSprite> = {
+  wire: {
+    rows: [
+      '..llll...',
+      '.l....l..',
+      'l.cccc.l.',
+      'l.c..c.l.',
+      'l.c.lc.l.',
+      'l.cc.c.l.',
+      '.l....lw.',
+      '..llll.ww',
+    ],
+    colours: { l: SHADES.light, c: SHADES.cyanMid, w: SHADES.dim },
+  },
+  ring: {
+    rows: [
+      '..wwwww..',
+      '.wlllllw.',
+      'wll...lld',
+      'wl.....ld',
+      'wll...lld',
+      '.dlllllb.',
+      '..ddddd..',
+    ],
+    colours: { w: SHADES.white, l: SHADES.light, d: SHADES.dim, b: SHADES.woodPale },
+  },
+  cube: {
+    rows: [
+      '..wwwwww.',
+      '.w....wd.',
+      'wwwwwwdd.',
+      'wkkkkkdd.',
+      'wkkckkdd.',
+      'wkcCckdd.',
+      'wkkckkd..',
+      'ddddddd..',
+    ],
+    colours: { w: SHADES.dim, d: SHADES.woodLight, k: SHADES.deep, c: SHADES.cyanMid, C: SHADES.cyan },
+  },
+};

@@ -3,7 +3,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { closedReason, ON_FOOT } from '../data/access';
 import { AREAS, AREA_NAMES, placeOf } from '../data/areas';
 import { worldOf } from '../data/map';
-import type { AmbienceLayer, AreaDefinition, Exit, Feature, Person, Surface } from '../data/areas/types';
+import type { AmbienceLayer, AreaDefinition, Exit, Feature, FindItem, Person, Surface } from '../data/areas/types';
 import { nextHop } from '../data/route';
 import { Player } from '../objects/Player';
 import type { CarveSceneData } from './CarveScene';
@@ -25,7 +25,7 @@ import { makePaintedTexture, makeSpriteTexture, PIXEL } from '../ui/pixelTexture
 import { PixelText } from '../ui/PixelText';
 import { ObjectiveMarker } from '../ui/ObjectiveMarker';
 import { type SoundId, Soundscape } from '../ui/soundscape';
-import { FIRE_FRAMES, type RowSprite } from '../ui/sprites';
+import { FIND_SPRITES, FIRE_FRAMES, type RowSprite } from '../ui/sprites';
 
 export interface AreaSceneData {
   areaId: string;
@@ -154,6 +154,8 @@ interface Wanderer {
 
 /** Anything the player can walk up to and press E on. */
 interface Usable {
+  /** Only offered when nothing else is in reach (digging, wherever you stand). */
+  fallback?: boolean;
   /** False while unavailable (e.g. a person who isn't here at this time of day). */
   enabled?: () => boolean;
   x: number;
@@ -287,6 +289,8 @@ export class AreaScene extends Phaser.Scene {
   private interactKey!: Phaser.Input.Keyboard.Key;
   private usables: Usable[] = [];
   private current: Usable | null = null;
+  /** Down on one knee, digging (input held a moment). */
+  private digBusy = false;
   private from: string | undefined;
   private start: { x: number; y: number } | undefined;
   private card: string | undefined;
@@ -528,7 +532,7 @@ export class AreaScene extends Phaser.Scene {
   override update(_time: number, delta: number): void {
     const interactPressed = Phaser.Input.Keyboard.JustDown(this.interactKey);
     const caught = this.watchmen.some((w) => w.alarm !== null) || this.quarries.some((q) => q.alarm !== null) || this.mobs.some((m) => m.alarm !== null);
-    const blocked = this.leaving || caught || this.dialogue.isOpen || this.game.loop.frame === this.dialogueClosedFrame;
+    const blocked = this.leaving || caught || this.dialogue.isOpen || this.game.loop.frame === this.dialogueClosedFrame || this.digBusy;
     this.player.update(blocked);
     this.stepUp();
     this.updateWanderers(delta);
@@ -656,17 +660,20 @@ export class AreaScene extends Phaser.Scene {
   private nearestInteractable(): Usable | null {
     const { x, y } = this.player.feet;
     let best: Usable | null = null;
+    let fallback: Usable | null = null;
     for (const it of this.usables) {
       if (it.enabled && !it.enabled()) continue;
       const dx = Math.abs(x - it.x);
       if (Math.abs(y - it.y) > 4 || dx > it.reach) continue;
-      if (!best || dx < Math.abs(x - best.x)) best = it;
+      if (it.fallback) fallback ??= it;
+      else if (!best || dx < Math.abs(x - best.x)) best = it;
     }
-    return best;
+    return best ?? fallback;
   }
 
   private setCurrent(it: Usable | null): void {
-    if (it === this.current) return;
+    // (A prompt that moves with you, like digging, follows you.)
+    if (it === this.current && !it?.fallback) return;
     this.current = it;
     if (!it) {
       this.prompt.setVisible(false);
@@ -1339,6 +1346,7 @@ export class AreaScene extends Phaser.Scene {
    *   #lights:<x>:<top>:<bottom>  lights rise up the tube
    *   #card:<text>            a title card
    *   #goto:<area>[:<x>:<y>[:<knot>]]  after the conversation, go there (optionally to a spot, playing a knot)
+   *   #beside:<id>:<dx>       someone there beside you, dx px away, facing you
    *   #endday[:<card>]        after the conversation, the day ends (the card shows on the next morning)
    *   #wake:<area>:<x>:<y>[:<knot>]  the next morning starts there instead of in your bed (with #endday)
    *   #shake                  the screen shakes
@@ -1380,6 +1388,13 @@ export class AreaScene extends Phaser.Scene {
             entry.image.setFlipX(x < entry.image.x);
             const duration = (Math.hypot(x - entry.image.x, y - entry.image.y) / 26) * 1000;
             this.tweens.add({ targets: entry.image, x, y, duration });
+          }
+          break;
+        case 'beside':
+          // #beside:<id>:<dx>: they're there, dx px from you (wherever you are), facing you.
+          if (entry) {
+            const x = Phaser.Math.Clamp(this.player.feet.x + Number(args[1] ?? 16), 8, this.area.width - 8);
+            entry.image.setPosition(x, this.player.feet.y).setFlipX(x > this.player.feet.x);
           }
           break;
         case 'hop':
@@ -1724,6 +1739,99 @@ export class AreaScene extends Phaser.Scene {
     });
   }
 
+  /**
+   * Ground to search (`dig`): an E prompt wherever you stand on it. Most of it is picked clean; at a find
+   * the thing comes up out of the dirt, then its knot plays. Each find glints faintly now and then.
+   */
+  private addDig(f: Extract<Feature, { type: 'dig' }>): void {
+    const story = getSession(this).story;
+    const on = () => !!story.getVariable(f.showIf);
+    const scene = this;
+    this.usables.push({
+      fallback: true,
+      get x() { return scene.player.feet.x; },
+      y: f.y,
+      reach: 1,
+      label: 'Dig',
+      enabled: () => on() && this.player.feet.x >= f.from && this.player.feet.x <= f.to,
+      use: () => this.dig(f),
+    });
+    // A glint in the dirt over each find not yet dug: a pixel of light, now and then.
+    for (const find of f.finds) {
+      const glint = this.add.rectangle(find.x, f.y + 1, 1, 1, SHADES.white).setDepth(9).setAlpha(0);
+      this.time.addEvent({
+        delay: 2600 + Math.random() * 1800,
+        loop: true,
+        callback: () => {
+          if (!on() || story.getVariable(find.done)) return;
+          glint.setPosition(find.x + Phaser.Math.Between(-3, 3), f.y + Phaser.Math.Between(1, 3));
+          this.tweens.add({ targets: glint, alpha: { from: 0, to: 1 }, scaleX: { from: 1, to: 3 }, duration: 160, yoyo: true, hold: 60 });
+        },
+      });
+    }
+  }
+
+  /** Digging where you stand: a moment on one knee, then whatever's there. */
+  private dig(f: Extract<Feature, { type: 'dig' }>): void {
+    if (this.digBusy) return;
+    const story = getSession(this).story;
+    const { x, y } = this.player.feet;
+    this.digBusy = true;
+    this.player.kneeling = true;
+    // Dirt thrown up behind you, three scrapes.
+    const back = this.player.sprite.flipX ? 1 : -1;
+    for (let i = 0; i < 3; i++) {
+      this.time.delayedCall(i * 260, () => {
+        this.soundscape.play('scratch', undefined, 0.6);
+        for (let n = 0; n < 4; n++) {
+          const clod = this.add.rectangle(x + back * 2, y - 1, 1, 1, n % 2 ? SHADES.woodPale : SHADES.dim).setDepth(11);
+          this.tweens.add({ targets: clod, x: clod.x + back * Phaser.Math.Between(4, 12), y: clod.y - Phaser.Math.Between(4, 10), duration: 180, yoyo: true, ease: 'Quad.easeOut', onComplete: () => clod.destroy() });
+        }
+      });
+    }
+    this.time.delayedCall(820, () => {
+      this.player.kneeling = false;
+      const find = f.finds.find((s) => !story.getVariable(s.done) && Math.abs(x - s.x) <= s.reach);
+      if (find) {
+        this.showFind(find.item, x, y, () => {
+          this.digBusy = false;
+          this.dialogue.open(find.knot, () => this.conversationClosed());
+        });
+        return;
+      }
+      this.digBusy = false;
+      // Nothing; but close to something, you can tell.
+      const near = f.finds.some((s) => !story.getVariable(s.done) && Math.abs(x - s.x) <= s.reach + 40);
+      const lines = near ? ['Something hard, close by.', 'Not here. Near, though.'] : ['Dirt.', 'Bolts.', 'Nothing.', 'A bent nail.', 'Picked clean.', 'Grit.'];
+      this.floatText(lines[Math.floor(Math.random() * lines.length)]!, x, y - 30, near ? SHADES.amber : SHADES.light);
+    });
+  }
+
+  /** What you dug up, coming up out of the dirt into the light over your head, with a glint and a chime. */
+  private showFind(item: FindItem, x: number, y: number, then: () => void): void {
+    const sprite = FIND_SPRITES[item];
+    const image = this.add.image(x, y, makeSpriteTexture(this, `find-${item}`, sprite.rows, sprite.colours)).setOrigin(0.5, 1).setDepth(12);
+    this.soundscape.play('chime');
+    this.tweens.add({ targets: image, y: y - 34, duration: 600, ease: 'Back.easeOut' });
+    // A glint: a small cross of light.
+    this.time.delayedCall(560, () => {
+      const h = this.add.rectangle(x, y - 40, 9, 1, SHADES.white).setDepth(13);
+      const v = this.add.rectangle(x, y - 40, 1, 9, SHADES.white).setDepth(13);
+      this.tweens.add({ targets: [h, v], scale: { from: 0.2, to: 1.4 }, alpha: { from: 1, to: 0 }, duration: 420, onComplete: () => [h, v].forEach((o) => o.destroy()) });
+    });
+    this.time.delayedCall(1300, () => {
+      this.tweens.add({ targets: image, alpha: 0, duration: 300, onComplete: () => image.destroy() });
+      then();
+    });
+  }
+
+  /** A word or two floating up over a spot and fading. */
+  private floatText(text: string, x: number, y: number, colour: number): void {
+    const t = new PixelText(this, 0, 0, text, { color: colour, shadow: SHADES.shadow }).setDepth(30);
+    t.setPosition(Math.round(Phaser.Math.Clamp(x - t.width / 2, 2, this.area.width - t.width - 2)), y);
+    this.tweens.add({ targets: t, y: y - 10, alpha: { from: 1, to: 0 }, duration: 1600, ease: 'Sine.easeIn', onComplete: () => t.destroy() });
+  }
+
   private addFeature(feature: Feature): void {
     switch (feature.type) {
       case 'fire': {
@@ -1964,6 +2072,10 @@ export class AreaScene extends Phaser.Scene {
       }
       case 'trigger':
         this.triggers.push(feature);
+        break;
+      case 'dig':
+        // (Set up once you're in the area: its prompt goes where you stand.)
+        this.time.delayedCall(0, () => this.addDig(feature));
         break;
       case 'barks':
         this.barks.push({ feature, index: 0, left: 0 });

@@ -64,7 +64,7 @@ export interface MoveDef {
   exposes?: { turns: number; mult: number };
   /** Leaves what it hits half-blind for `turns` rounds: their reactions come faster and narrower (a straggler's fistful of grit). */
   blinds?: number;
-  /** Until the user's next turn, a good reaction parries as well as a perfect one (the scavenger's Brace, her staff held across her). */
+  /** The next blow on the user (before their next turn): a good reaction parries it as well as a perfect one (the scavenger's Brace, her staff held across her). */
   braces?: boolean;
   /** Every enemy's tell this round shows what it will really do: no feints (the dog's Sniff). */
   reveals?: boolean;
@@ -578,8 +578,11 @@ export class Battle {
     for (let i = 0; i < (move.hits ?? 1) && target.hp > 0 && actor.hp > 0; i++) {
       const reaction = reactions[i] ?? 'none';
       let r: Reaction = window && (reaction === 'none' || target.def.reactions?.includes(reaction)) ? reaction : 'none';
-      // Braced: a good reaction turns the blow aside and hits back, like a perfect one.
-      if (r === 'dodge' && target.braced) r = 'parry';
+      // Braced: the next blow, a good reaction turns it aside and hits back, like a perfect one. Spent on that blow.
+      if (r !== 'none' && target.braced) {
+        if (r === 'dodge') r = 'parry';
+        target.braced = false;
+      }
       if (window) events.push({ type: 'reaction', actor: actor.id, target: target.id, reaction: r });
       if (r === 'parry') {
         // A clean parry: no harm, and a free hit back (the target's basic attack), which can't chain.

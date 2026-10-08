@@ -1,4 +1,5 @@
 import { SHADES as S } from '../../../ui/pixelArt';
+import { asleep, CAST_LOOKS } from '../../../ui/borderlandFolk';
 import * as P from './shackProps';
 import type { AreaDefinition } from '../types';
 import { cast } from './people';
@@ -13,6 +14,8 @@ import { cast } from './people';
 // Your brother and the dog come with the cast.
 
 const FLOOR = 236;
+/** Your brother asleep, under a blanket like the one on his bed. */
+const BROTHER_ASLEEP = asleep(CAST_LOOKS.brother, S.amber);
 const LOFT = 184;
 const TOP = 92;
 
@@ -79,7 +82,9 @@ export const shack: AreaDefinition = {
   people: [
     // Your brother: up and about by day, asleep in the loft at night.
     cast('brother', 214, FLOOR, { knot: 'shack_brother', when: ['morning', 'evening'], flipX: true }),
-    cast('brother', 232, LOFT, { id: 'brother-asleep', knot: 'shack_brother_asleep', when: ['night'] }),
+    // Asleep in his bed at night, under the blanket, one arm hanging off the edge (designer: he floated
+    // beside it). Laid over the bed: its left edge on the bed's (x is the middle, the bottom its bottom).
+    { id: 'brother-asleep', sprite: BROTHER_ASLEEP[0]!, idleFrames: BROTHER_ASLEEP, x: 238 + 15, y: LOFT, knot: 'shack_brother_asleep', label: 'Look', when: ['night'] },
   ],
 
   interactables: [

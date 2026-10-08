@@ -52,5 +52,5 @@ Not yet.
 - -> END
 
 === shack_brother_asleep ===
-Your brother, asleep with one arm hanging off the cot, holding the tin thing he found.
+{ traded_light: Your brother, asleep with one arm hanging off the bed, his hand open where his light used to be. | Your brother, asleep with one arm hanging off the bed, holding the tin thing he found. }
 -> END
