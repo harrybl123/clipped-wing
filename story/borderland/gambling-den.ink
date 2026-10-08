@@ -24,6 +24,7 @@ A few are struck through. Paid, or gone.
 // --- People (draft) ---
 
 === gambling_den_gambler ===
+{ c2day5 == "town" && not saw_den: -> c2day5_den }
 "I'm due. You get a feel for it, you know? I'm due." #speaker:gambler
 "You couldn't spare a little something? Just until the next hand." #speaker:gambler
 -> END

@@ -1,74 +1,204 @@
 // ============================================================================
-// Chapter 2, Day 5: the first raid. Draft text from docs/sequences/chapter-2/part-2.md, for the designer
-// to rewrite. You start at the far end of the picked fields, where the boss sent you to dig, to be seen.
-// The old scavenger beside you. The other clan comes over the rise: the first raid on your turf (design
-// doc: a story beat, not a choice), and the first fight beside him. It ends Part 2: "A month on".
+// Chapter 2, Day 5: life in the circle. Draft text from docs/sequences/chapter-2/part-2.md, for the
+// designer to rewrite. (Designer: get to know the crew more, gambling with them, the brothel; the chapter
+// felt rushed; but don't drag it out.) A short day in town: the old scavenger asks you out to his patch
+// tomorrow, and you go to one or both of the den (bones with the gambler and the enforcer) and the
+// brothel (the madam; a hostess); your brother if you like. Then an evening with the circle, and your
+// ground goes up on the board. Starts in the swap yard (designer: no need to start at home).
 // ============================================================================
 
 === c2day5_start ===
-~ raid_day = true
-~ digging = true
-~ objective = "Find the old scavenger"
-~ objective_target = "picked-fields:old-scav-fields"
-The far end of the picked fields, out past the hull, as far from the settlement as the fields go. Where the boss told you to dig, so you'd be seen digging.
-Past here, a long way off over the rise, is the line. The other clan's ground.
-The old scavenger's here already, scraping at nothing.
+~ town_day = true
+~ objective = "Spend the day in town"
+~ objective_target = "scrap-stacks:old_scav,gambling-den:gambler,brothel:madam"
+The swap yard, first thing. It's different today.
+People step out of your way. The food trader nods to you, and you've never seen her nod to anyone.
+You're one of the circle. Everybody knows. You've got a day, and nothing you have to do with it.
 -> END
+
+=== c2day5_check ===
+~ objective_target = ""
+{ not saw_old:
+    ~ objective_target = "scrap-stacks:old_scav"
+}
+{ saw_old && not (saw_den || saw_brothel):
+    ~ objective_target = "gambling-den:gambler,brothel:madam"
+}
+{ saw_old && (saw_den || saw_brothel):
+    -> c2day5_to_evening
+}
+-> END
+
+=== c2day5_to_evening ===
+~ town_day = false
+~ c2day5 = "evening"
+~ circle_night = true
+~ evening_free = true
+~ objective = "Sit with one of the circle at the bar"
+~ objective_target = "bar:boss-bar,bar:watcher-bar,bar:enforcer-bar,bar:son-bar"
+The day's gone, somehow. The circle will be at the bar. #time:evening
+-> END
+
+// --- The old scavenger, at the stacks ---
 
 === c2day5_old ===
-"Hmph. The boss's new favourite." #speaker:old_scav
-"He sent you out here too? To be seen?" #speaker:old_scav
-"He says somebody's been on our ground. At this end." #speaker:scavenger
-"Somebody has. Footprints, last few mornings. Pale threads caught on the wire." #speaker:old_scav
-He nods out over the rise.
-"Them. The other clan. Pale wraps, long staves. Their ground starts at the line." #speaker:old_scav
-"There's a truce. Has been since before you were born. They keep their side, we keep ours." #speaker:old_scav
-"Cost the boss something, that truce. More than he'll ever say." #speaker:old_scav
-+ [What did it cost him?]
-    "What did it cost him?" #speaker:scavenger
-    "More than he'll ever say. I just told you." #speaker:old_scav
-+ [So why are they over here?]
-    "So why are they over here?" #speaker:scavenger
-    "That's what the boss wants to know. And now he's got you out here to be seen. Make of that what you like." #speaker:old_scav
-- He scrapes his hook through the dirt and turns up nothing, the way he's turned up nothing for forty years.
-"Four times the tribute. Off this?" #speaker:old_scav
-"I'm not going to ask. Somebody will, though. Somebody always does." #speaker:old_scav
-Then he goes very still, looking past you, out towards the rise.
-"Don't turn round quick." #speaker:old_scav
-~ raiders_here = true
-~ digging = false
-Three of them, coming over the rise in pale wraps, staves out. Walking, not running. In daylight. #move:raider-1:880 #move:raider-2:900 #move:raider-3:920
-"In daylight. They've never come in daylight." #speaker:old_scav
-All along the fields the pickers have seen them too. Sieves dropped. People running for the settlement. #leave:digger-7:20:110 #leave:digger-8:20:120 #leave:digger-9:20:100 #leave:digger-2:20:110
-The one in front stops, and points the staff at you. #shake
-"Her. That's the one." #speaker:raider_lead
-"Sacks down. Walk back to your boss, and tell him whose ground this is now." #speaker:raider_lead
-"They came straight to us. Like they knew we'd be here." #speaker:old_scav
-+ [Stand with the old man]
-    You stay where you are. Beside you, the old man takes a fresh grip on his hook.
-    "Good. I'm too old to run." #speaker:old_scav
-+ [Run]
-    You turn to run, and your legs won't go. The old man's already got his hook up, and he's not going anywhere.
-    You can't leave him.
-- "Well? Get your stick up." #speaker:old_scav #combat:first_raid:c2day5_after_raid
+~ saw_old = true
+"Hmph. The boss's new favourite, slumming it." #speaker:old_scav
+"Somebody's been on my patch. The far end of the fields. Footprints, mornings. A thread of something pale caught on the wire." #speaker:old_scav
+"Come out with me tomorrow. Another pair of eyes." #speaker:old_scav
++ [Why me?]
+    "Why me?" #speaker:scavenger
+    "Because you've got luck, and I've got none, and I'm too old to be proud about it." #speaker:old_scav
++ [All right]
+    "All right." #speaker:scavenger
+- "First light. Tell the watcher, so it's on the board. I'll not have the boss's favourite go missing on my patch." #speaker:old_scav
+-> c2day5_check
+
+// --- The den: bones with the gambler and the enforcer ---
+
+=== c2day5_den ===
+~ saw_den = true
+The gambler's at the big table, and so's the enforcer, out of place in daylight. They both look up.
+"Here she is! Sit, sit. Luck herself." #speaker:gambler
+"Let's see if it works on bones." #speaker:enforcer
+"Bones: the dealer throws one, you call higher or lower, then you throw yours. Three throws. Best of three takes the pot." #speaker:gambler
++ [Put a find in the pot]
+    You put down the cable's offcut. The gambler whistles.
+    -> c2day5_bones(1, 0)
++ [Just watch]
+    "Not today." #speaker:scavenger
+    "Not today, she says. With four times the tribute." #speaker:enforcer
+    -> c2day5_den_talk
+
+=== c2day5_bones(round, wins) ===
+~ temp dealer = RANDOM(1, 6)
+~ temp mine = RANDOM(1, 6)
+The dealer throws: {dealer}.
++ [Higher]
+    You throw: {mine}.
+    { mine > dealer:
+        -> c2day5_bones_won(round, wins)
+    }
++ [Lower]
+    You throw: {mine}.
+    { mine < dealer:
+        -> c2day5_bones_won(round, wins)
+    }
+- { round < 3: -> c2day5_bones(round + 1, wins) }
+-> c2day5_bones_end(wins)
+
+=== c2day5_bones_won(round, wins) ===
+"Ha!" #speaker:gambler
+{ round < 3: -> c2day5_bones(round + 1, wins + 1) }
+-> c2day5_bones_end(wins + 1)
+
+=== c2day5_bones_end(wins) ===
+~ played_bones = true
+{ wins >= 2:
+    You take the pot. The gambler slaps the table and laughs like it's his.
+    "Lucky at everything." #speaker:enforcer
+    He doesn't laugh.
+    ~ enforcer_doubt += 1
+- else:
+    The house takes the pot. It always does, in the end.
+    "Not lucky at everything, then." #speaker:enforcer
+    He sounds almost pleased.
+}
+-> c2day5_den_talk
+
+=== c2day5_den_talk ===
+"Board says the sunk town, most mornings. Funny place to be lucky." #speaker:enforcer
+"You read the board?" #speaker:scavenger
+"Everyone reads the board." #speaker:enforcer
+The enforcer gets up and goes. The gambler leans in close, the moment he's gone.
+"You couldn't spare me something? I'm in deep with the house. Deep. Just until my luck turns." #speaker:gambler
++ [Give him a find]
+    You give him one. He holds it like it's his firstborn.
+    "I won't forget this. I won't. You'll see." #speaker:gambler
+    ~ gambler_trust += 1
++ [Not today]
+    "Not today." #speaker:scavenger
+    "No. No, course not. Course not." #speaker:gambler
+    He's already looking at the cage.
+- -> c2day5_check
+
+// --- The brothel: the madam, and a hostess ---
+
+=== c2day5_brothel ===
+~ saw_brothel = true
+~ madam_trust += 1
+"Well. The boss's new favourite, in my house. Sit." #speaker:madam
+"Everyone tells me things. Mostly they don't mean to. Today they're all telling me about you." #speaker:madam
++ [What are they saying?]
+    "What are they saying?" #speaker:scavenger
+    "That you're lucky. That luck like that is never luck. The usual." #speaker:madam
++ [Why should I trust you?]
+    "Why should I trust you?" #speaker:scavenger
+    "You shouldn't. That's the first useful thing I'll ever tell you." #speaker:madam
+- She pours two cups, and pushes one across.
+"There was a girl last year. The boss's new favourite, like you. Clever with finds, like you." #speaker:madam
+"What happened to her?" #speaker:scavenger
+"Nobody says." #speaker:madam
+"That's what happened to her." #speaker:madam
+-> c2day5_check
+
+=== c2day5_hostess ===
+~ hostess_trust += 1
+"You're the one everyone's talking about." #speaker:hostess
+"I came in off the plain, the same as those stragglers. Two winters ago. The madam took me in when nobody else would." #speaker:hostess
+"So I know what it's like, everyone looking at you, wondering what you are." #speaker:hostess
+"Come and sit with us, if it gets too much out there. Nobody asks questions in here. Not out loud." #speaker:hostess
 -> END
 
-=== c2day5_after_raid ===
-{ raid_won:
-    The leader goes down in the dirt, and the other two drag them up, and the three of them go back over the rise the way they came. #leave:raider-1:960:120 #leave:raider-2:960:120 #leave:raider-3:960:110
-    The old scavenger leans on his hook, breathing hard.
-    "Not bad. For a favourite." #speaker:old_scav
+// --- Your brother ---
+
+=== c2day5_brother ===
+~ saw_brother = true
+{ brother_moved: -> c2day5_brother_compound }
+"There's bread! You brought bread!" #speaker:brother
+"The kid asked about the noise under the floor again. I said it was the wind. Is it the wind?" #speaker:brother
+"It's the wind." #speaker:scavenger
+"I knew it was the wind." #speaker:brother
+-> c2day5_check
+
+=== c2day5_brother_compound ===
+"Look! Look at my boots! They gave me boots!" #speaker:brother
+"And I eat with them, at the big table. He lets me sit by him." #speaker:brother
+"He asked if we ever had rats, at home. I said no! Was that right?" #speaker:brother
++ [That was right]
+    "That was right." #speaker:scavenger
+    He beams.
++ [What else did he ask?]
+    "What else did he ask?" #speaker:scavenger
+    "Just stuff. About you. Where you go. I said I didn't know! Because I don't!" #speaker:brother
+- He runs off to show someone else his boots.
+-> c2day5_check
+
+// --- The evening ---
+
+=== c2day5_evening_done ===
+~ evening_free = false
+~ circle_night = false
+~ c2day5 = "home"
+~ board_mark = "far fields"
+Before you go, the watcher catches your eye across the room.
+"Tomorrow?" #speaker:watcher
+"The far end of the fields. The old man's patch." #speaker:scavenger
+He nods, and writes it down, and that's that. It'll be on the board by morning, for anyone in the circle to read.
+~ objective = "Go home"
+~ objective_target = "shack:bed"
+The night's wearing on. #time:night
+-> END
+
+=== c2day5_bed ===
+{ brother_moved:
+    The shack's quiet without him. Under the floor, {dog_name} sighs.
 - else:
-    You're down, and the old scavenger's down, and they take your sacks and his, and go back over the rise without hurrying. #leave:raider-1:960:60 #leave:raider-2:960:60 #leave:raider-3:960:55
-    "Well. That's how it goes." #speaker:old_scav
+    Your brother's asleep, an arm hanging off the bed. Under the floor, {dog_name} sighs.
 }
-~ raiders_here = false
-~ c2day5 = "after"
-"Raiders. On our ground. In daylight." #speaker:old_scav
-"How did they know we'd be here? Nobody digs here. Nobody's dug here in years." #speaker:scavenger
-He looks at you for a long time, and doesn't say anything, and you know exactly what he isn't saying.
+~ c2day5 = "done"
+~ c2day6 = "fields"
 ~ objective = ""
 ~ objective_target = ""
-~ c2day5 = "done"
-The boss will want to know. Everyone will want to know. #wake:shack:382:184 #endday:A month on
+First light, the far end of the fields. #wake:picked-fields:860:232:c2day6_start #endday:Day 6
 -> END

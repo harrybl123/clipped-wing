@@ -278,8 +278,36 @@ VAR brother_moved = false
 VAR circle_night = false
 VAR bar_arrived = false
 VAR spar_won = false
-// Chapter 2, Day 5 (story/borderland/chapter2-day5.ink). Stages: fields, raid, after, done.
+// The sparring's wager: if you lost, what you told the bar ("sunk" or "deep").
+VAR spar_done = false
+VAR told_where = ""
+// An evening to spend with one of the circle (or a friend): their knots offer it while this is true.
+VAR evening_free = false
+// Who you've got to know, and how it's going (Part 2 on; the endings will read these). Evenings with each, counted.
+VAR boss_trust = 0
+VAR watcher_respect = 0
+VAR enforcer_doubt = 0
+VAR son_rivalry = 0
+VAR gambler_trust = 0
+VAR madam_trust = 0
+VAR hostess_trust = 0
+VAR boss_evenings = 0
+VAR watcher_evenings = 0
+VAR enforcer_evenings = 0
+VAR son_evenings = 0
+// Chapter 2, Day 5, life in the circle (story/borderland/chapter2-day5.ink). Stages: town, evening, home, done.
 VAR c2day5 = ""
+// The day in town: who you've been to see.
+VAR saw_den = false
+VAR saw_brothel = false
+VAR saw_brother = false
+VAR saw_old = false
+VAR played_bones = false
+VAR town_day = false
+// Your ground for tomorrow, as given to the watcher for the board.
+VAR board_mark = ""
+// Chapter 2, Day 6 (story/borderland/chapter2-day6.ink): the first raid. Stages: fields, raid, after, done.
+VAR c2day6 = ""
 VAR raid_day = false
 VAR raiders_here = false
 VAR raid_won = false
@@ -313,6 +341,7 @@ INCLUDE borderland/chapter2-day2.ink
 INCLUDE borderland/chapter2-day3.ink
 INCLUDE borderland/chapter2-day4.ink
 INCLUDE borderland/chapter2-day5.ink
+INCLUDE borderland/chapter2-day6.ink
 INCLUDE borderland/picked-fields.ink
 INCLUDE borderland/shack.ink
 INCLUDE borderland/swap-yard.ink

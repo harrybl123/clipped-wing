@@ -78,6 +78,8 @@ export const gamblingDen: AreaDefinition = {
     local('player-2', 9, 304, FLOOR, LATE, { flipX: true }),
     local('cage-keeper', 7, 392, FLOOR, ALWAYS, { flipX: true }),
     cast('gambler', 236, FLOOR, { knot: 'gambling_den_gambler' }), // never leaves
+    // Chapter 2, Day 5: the enforcer at the bones table, out of place in daylight.
+    cast('enforcer', 214, FLOOR, { id: 'enforcer-den', showIf: 'town_day', flipX: true }),
   ],
 
   interactables: [

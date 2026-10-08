@@ -119,6 +119,10 @@ const BORDERLAND_CLOSED: Partial<Record<Day, Record<string, string>>> = {
     'rival-line': "That's the other clan's line. Nobody goes up there without the boss's say.",
     'deep-ground': 'Too far out. Nobody goes out there.',
   },
+  6: {
+    'rival-line': "That's the other clan's line. Nobody goes up there without the boss's say.",
+    'deep-ground': 'Too far out. Nobody goes out there.',
+  },
   3: {
     compound: "The boss's compound. Nobody goes in unless they're asked.",
     'compound-house': "The boss's house. Nobody goes in unless they're asked.",

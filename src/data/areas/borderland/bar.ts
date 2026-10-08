@@ -116,10 +116,10 @@ export const bar: AreaDefinition = {
     cast('scav_friend', 340, FLOOR, { knot: 'bar_friend', when: ['evening'], hideIf: 'circle_night' }),
     cast('old_scav', 300, FLOOR, { knot: 'bar_old_scav', when: ['night'] }),
     // Chapter 2, Day 4: the boss's circle, out for the evening, the floor cleared round them.
-    cast('boss_son', 290, FLOOR, { id: 'son-bar', when: ['evening'], showIf: 'circle_night', flipX: true }),
-    cast('enforcer', 308, FLOOR, { id: 'enforcer-bar', when: ['evening'], showIf: 'circle_night', flipX: true }),
+    cast('boss_son', 290, FLOOR, { id: 'son-bar', knot: 'circle_son', when: ['evening'], showIf: 'circle_night', flipX: true }),
+    cast('enforcer', 308, FLOOR, { id: 'enforcer-bar', knot: 'circle_enforcer', when: ['evening'], showIf: 'circle_night', flipX: true }),
     cast('boss', 326, FLOOR, { id: 'boss-bar', knot: 'c2day4_bar', when: ['evening'], showIf: 'circle_night', flipX: true }),
-    cast('watcher', 346, FLOOR, { id: 'watcher-bar', when: ['evening'], showIf: 'circle_night', flipX: true }),
+    cast('watcher', 346, FLOOR, { id: 'watcher-bar', knot: 'circle_watcher', when: ['evening'], showIf: 'circle_night', flipX: true }),
   ],
 
   interactables: [

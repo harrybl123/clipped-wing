@@ -41,16 +41,18 @@ export function devChapter2Day(scene: Phaser.Scene, day: number): void {
   set({ chapter: 2, c2day1: 'done', owe_double: true, traded_light: true, objective: '', objective_target: '' });
   if (day >= 3) set({ c2day2: 'done', found_dog: true, dog_owned: true, dog_name: 'Peggy', dog_choice: 'keep' });
   if (day >= 4) set({ c2day3: 'done', owe_double: false, summoned: true });
-  if (day >= 5) set({ c2day4: 'done', in_circle: true, brother_choice: 'home' });
+  if (day >= 5) set({ c2day4: 'done', in_circle: true, brother_choice: 'home', spar_done: true, bar_arrived: true });
+  if (day >= 6) set({ c2day5: 'done', saw_old: true, board_mark: 'far fields' });
   const starts: Record<number, AreaSceneData & { vars: Record<string, string | boolean> }> = {
     2: { areaId: 'shack', start: { x: 382, y: 184 }, vars: { c2day2: 'wake', objective: 'Talk to your brother', objective_target: 'shack:brother' } },
     3: { areaId: 'dogs-hollow', start: { x: 60, y: 206 }, script: 'c2day3_start', vars: { c2day3: 'train' } },
     4: { areaId: 'compound', start: { x: 40, y: 232 }, script: 'c2day4_start', vars: { c2day4: 'gate' } },
-    5: { areaId: 'picked-fields', start: { x: 860, y: 232 }, script: 'c2day5_start', vars: { c2day5: 'fields' } },
+    5: { areaId: 'swap-yard', start: { x: 600, y: 232 }, script: 'c2day5_start', vars: { c2day5: 'town' } },
+    6: { areaId: 'picked-fields', start: { x: 860, y: 232 }, script: 'c2day6_start', vars: { c2day6: 'fields' } },
   };
   const { vars, ...next } = starts[day] ?? starts[2]!;
   set(vars);
-  session.calendar.jumpTo(day as 2 | 3 | 4 | 5);
+  session.calendar.jumpTo(day as 2 | 3 | 4 | 5 | 6);
   scene.scene.start('Area', { ...next, card: day === 3 ? 'Weeks later' : `Day ${day}` } satisfies AreaSceneData);
 }
 

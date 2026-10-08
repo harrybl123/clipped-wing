@@ -93,6 +93,7 @@ Beds with frames, and blankets nobody's patched.
 -> END
 
 === house_brother ===
+{ c2day5 == "town" && not saw_brother: -> c2day5_brother }
 "They have bread every day here. Every day!" #speaker:brother
 "He says I can sit by him at dinner. He says I'm sharp." #speaker:brother
 -> END

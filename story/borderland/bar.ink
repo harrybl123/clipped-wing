@@ -35,3 +35,20 @@ The booths, curtains half drawn. Voices, low. Whatever's said up here isn't said
 "Hmph. You. Still digging where everyone's already dug?" #speaker:old_scav
 "Dig where it's dangerous, or dig for nothing. Those are your choices." #speaker:old_scav
 -> END
+
+// --- The circle, out for the evening (Chapter 2): sit with one of them while you've an evening free ---
+
+=== circle_watcher ===
+{ evening_free: -> c2_evening_watcher }
+The watcher doesn't look up.
+-> END
+
+=== circle_enforcer ===
+{ evening_free: -> c2_evening_enforcer }
+"Move along." #speaker:enforcer
+-> END
+
+=== circle_son ===
+{ evening_free: -> c2_evening_son }
+He turns his back on you.
+-> END

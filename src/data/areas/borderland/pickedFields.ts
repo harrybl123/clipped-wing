@@ -127,7 +127,7 @@ export const pickedFields: AreaDefinition = {
     cast('scav_friend', 152, FLOOR, { knot: 'picked_fields_friend', when: ['afternoon'] }),
     dogFollowing(60, FLOOR),
     // Chapter 2, Day 5: the old scavenger digging beside you; then the other clan, over the rise.
-    cast('old_scav', 836, FLOOR, { id: 'old-scav-fields', knot: 'c2day5_old', showIf: 'raid_day', flipX: true }),
+    cast('old_scav', 836, FLOOR, { id: 'old-scav-fields', knot: 'c2day6_old', showIf: 'raid_day', flipX: true }),
     rival('raider-1', 0, 930, FLOOR, undefined, { showIf: 'raiders_here' }),
     rival('raider-2', 1, 946, FLOOR, undefined, { showIf: 'raiders_here' }),
     rival('raider-3', 0, 950, FLOOR, undefined, { showIf: 'raiders_here' }),

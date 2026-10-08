@@ -41,6 +41,7 @@ The one on the end still glows a little at night. He calls it his light.
 { c2day2 == "night": -> c2day2_night }
 { c2day3 == "home": -> c2day3_bed }
 { c2day4 == "home": -> c2day4_bed }
+{ c2day5 == "home": -> c2day5_bed }
 { c2day1 == "home": -> c2day1_bed }
 Not yet.
 -> END
@@ -49,6 +50,7 @@ Not yet.
 
 === shack_brother ===
 { c2day2 == "wake": -> c2day2_brother }
+{ c2day5 == "town" && not saw_brother: -> c2day5_brother }
 { c2day2 == "hide": -> c2day2_brother_evening }
 {~"Did you find anything? Show me. Show me!"|"I counted the tally marks again. We've got more than last week. I think."|"Can I come out with you tomorrow? I'll be quiet. I'll be so quiet."} #speaker:brother
 * [Not yet.]
