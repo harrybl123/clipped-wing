@@ -127,6 +127,9 @@ const BORDERLAND_CLOSED: Partial<Record<Day, Record<string, string>>> = {
     'rival-line': "That's the other clan's line. Nobody goes up there without the boss's say.",
     'deep-ground': 'Not today.',
   },
+  8: {
+    'rival-line': "That's the other clan's line. Nobody goes up there without the boss's say.",
+  },
   3: {
     compound: "The boss's compound. Nobody goes in unless they're asked.",
     'compound-house': "The boss's house. Nobody goes in unless they're asked.",
@@ -151,4 +154,4 @@ export const isAreaOpen = (areaId: string, day: Day, slot: TimeSlot) => closedRe
  * sneaking (Nights 4 and 5), the escort up the trunk (Day 5), going up to the archivist and the seed grove
  * or stealing (Night 5), tailing the Tender (Day 6), and the chase (Day 7).
  */
-export const ON_FOOT = ['girl_with_you', 'sneaking', 'escorted', 'archivist_waiting', 'in_grove', 'stealing', 'tailing', 'chased', 'ambush_night', 'noon8', 'searchers_coming'] as const;
+export const ON_FOOT = ['girl_with_you', 'sneaking', 'escorted', 'archivist_waiting', 'in_grove', 'stealing', 'tailing', 'chased', 'ambush_night', 'noon8', 'searchers_coming', 'chase9'] as const;

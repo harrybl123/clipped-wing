@@ -441,5 +441,5 @@ Somebody reads the board, and writes it down, and carries it out to the deep gro
 ~ c2day9 = "morning"
 ~ objective = ""
 ~ objective_target = ""
-You don't let go of it all night. #wake:shack:382:184 #endday:Day 9
+You don't let go of it all night. #wake:shack:382:184:c2day9_start #endday:Day 9
 -> END

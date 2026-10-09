@@ -415,8 +415,44 @@ VAR found_note = false
 VAR saw_madam8 = false
 VAR madam_told = false
 VAR friend_lie_known = false
-// Chapter 2, Day 9 (not built yet).
+// Chapter 2, Day 9, the watch (story/borderland/chapter2-day9.ink). Stages: morning, house, fields, dusk, dog, watch, chase, choice, home, done.
 VAR c2day9 = ""
+// Dawn: your brother out all night with the kid, back muddy (if he's still with you).
+VAR brother_out9 = false
+VAR brother_back9 = false
+// The boss's house: the son, if he saw you head for the fields; the boss knows about the dog (if your brother's there).
+VAR house9_done = false
+VAR son_at_house = false
+VAR boss_knows_dog = false
+// The old scavenger on the fields, and the track out to the line; the fence (if you go by).
+VAR old9 = false
+VAR old9_done = false
+VAR line_open = false
+VAR fence9 = false
+// Dusk at the line: your friend at the dip (medium choice, `friend_choice`: "reported" or "covered"); the watcher.
+VAR line9_arrived = false
+VAR friend_at_line = false
+VAR friend_seen9 = false
+VAR watcher_at_line = false
+VAR friend_choice = ""
+// Trust with the other side (covering for your friend, letting the scout go).
+VAR rival_trust = 0
+// Night: the watch, the raiders through the dip (the fight writes line_won), the scout gone towards the settlement.
+VAR watched9 = false
+VAR line_raid = false
+VAR line_won = false
+VAR scout_gone9 = false
+// The chase up the scrap stacks; the scout cornered on the perch (the fight writes scout_won).
+VAR chase9 = false
+VAR chase_seen = false
+VAR scout_cornered = false
+VAR scout_won = false
+// Big choice 2 (design doc): "turned_in" (to the watcher) or "let_go" (and the scout's your friend over there).
+VAR scout_choice = ""
+VAR turnin9 = false
+VAR letgo9 = false
+VAR scout_held = false
+VAR scout_friend = false
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
@@ -450,6 +486,7 @@ INCLUDE borderland/chapter2-day5.ink
 INCLUDE borderland/chapter2-day6.ink
 INCLUDE borderland/chapter2-day7.ink
 INCLUDE borderland/chapter2-day8.ink
+INCLUDE borderland/chapter2-day9.ink
 INCLUDE borderland/picked-fields.ink
 INCLUDE borderland/shack.ink
 INCLUDE borderland/swap-yard.ink

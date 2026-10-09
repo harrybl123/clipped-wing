@@ -130,6 +130,8 @@ export const pickedFields: AreaDefinition = {
     dogFollowing(60, FLOOR),
     // Chapter 2, Day 5: the old scavenger digging beside you; then the other clan, over the rise.
     cast('old_scav', 836, FLOOR, { id: 'old-scav-fields', knot: 'c2day6_old', showIf: 'raid_day', flipX: true }),
+    // Day 9: the old scavenger on a crate at the edge of the fields, sore from the raid; he knows the line.
+    cast('old_scav', 470, FLOOR, { id: 'old-scav-9', knot: 'fields_old9', when: ['afternoon', 'evening'], showIf: 'old9', flipX: true }),
     // Day 7: after the raid on the old wells: the old scavenger patching people up, the hurt, the one who points.
     cast('old_scav', 596, FLOOR, { id: 'old-scav-wells', when: ['morning'], showIf: 'wells_raid' }),
     local('hurt-1', 1, 610, FLOOR, ['morning'], { showIf: 'wells_raid', flipX: true }),
@@ -158,6 +160,8 @@ export const pickedFields: AreaDefinition = {
     { id: 'to-swap-yard', x: 20, y: FLOOR, reach: 16, to: 'swap-yard' },
     { id: 'to-dogs-hollow', x: 300, y: FLOOR, reach: 10, to: 'dogs-hollow', showIf: 'found_dog' }, // a secret until you've found the dog
     { id: 'to-sunk-town', x: 822, y: FLOOR, reach: 12, to: 'sunk-town' },
+    // The track out to the rival line (Chapter 2, Day 9: the old scavenger shows you it).
+    { id: 'to-rival-line', x: 500, y: FLOOR, reach: 12, to: 'rival-line', showIf: 'line_open' },
     { id: 'to-trees-edge', x: 940, y: FLOOR, reach: 16, to: 'trees-edge' },
   ],
 

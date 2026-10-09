@@ -2,7 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './rivalLineProps';
 import { cableCoil, dugHole, trackMarker } from './scrapProps';
 import type { AreaDefinition, Solid } from '../types';
-import { AWAKE, LATE, local, rival } from './people';
+import { AWAKE, LATE, cast, dogFollowing, local, rival } from './people';
 
 // The rival line (Chapter 2): the border with another clan's turf. Where you catch the rival scout (big
 // choice 2), and where crossing over begins if you befriend them. Your side, picked bare, with a watch post
@@ -67,10 +67,25 @@ export const rivalLine: AreaDefinition = {
     { sprite: P.CAIRN, x: 800, y: FLOOR - 6 },
   ],
 
-  features: [],
+  features: [
+    // Chapter 2, Day 9: at dusk, your friend at the dip; at night, the watch.
+    { type: 'trigger', x: 50, y: FLOOR, reach: 40, knot: 'c2day9_line_arrive', showIf: 'line_open', hideIf: 'line9_arrived' },
+    { type: 'trigger', x: 520, y: FLOOR, reach: 30, knot: 'c2day9_friend', showIf: 'friend_at_line', hideIf: 'friend_seen9' },
+  ],
   people: [
-    // Our side's watch, by the post.
-    local('our-watch', 7, 236, FLOOR, AWAKE),
+    // Our side's watch, by the post (not on Day 9: you're the watch).
+    local('our-watch', 7, 236, FLOOR, AWAKE, { hideIf: 'line_open' }),
+    // Day 9, dusk: your friend at the dip, and the one from their side, through the gap; the watcher, come to set the watch.
+    cast('scav_friend', 568, FLOOR, { id: 'friend-line', when: ['evening'], showIf: 'friend_at_line' }),
+    rival('friend-rival', 1, 652, FLOOR, ['evening'], { showIf: 'friend_at_line' }),
+    cast('watcher', 30, FLOOR, { id: 'watcher-line', when: ['evening'], showIf: 'watcher_at_line' }),
+    // Day 9, night: two of them and the scout, through the dip on your watch.
+    rival('line-raider-1', 0, 660, FLOOR, ['night'], { showIf: 'line_raid' }),
+    rival('line-raider-2', 1, 680, FLOOR, ['night'], { showIf: 'line_raid' }),
+    rival('scout-line', 1, 700, FLOOR, ['night'], { showIf: 'line_raid', hideIf: 'scout_gone9' }),
+    // If you let the scout go, you walk them back out to the dip.
+    rival('scout-free', 1, 572, FLOOR, ['night'], { showIf: 'letgo9' }),
+    dogFollowing(30, FLOOR),
     // Theirs, by their fire across the line.
     rival('their-watch', 0, 712, FLOOR, AWAKE),
     rival('their-fire-1', 1, 776, FLOOR, LATE),

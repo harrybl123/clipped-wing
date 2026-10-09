@@ -87,6 +87,7 @@ Beds with frames, and blankets nobody's patched.
 -> END
 
 === house_boss ===
+{ c2day9 == "morning" && not house9_done: -> c2day9_house }
 { c2day4 == "house": -> c2day4_boss }
 "Come in, come in. Anyone who digs as hard as you is welcome at my table." #speaker:boss
 "We look after our own here. Remember that." #speaker:boss

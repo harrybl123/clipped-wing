@@ -838,6 +838,9 @@ export const COLLECTOR_BIG_BATTLE = stragglerPoses({ broad: 5, skin: 'tan', head
 export const PICKER_BATTLE = stragglerPoses({ broad: 0, skin: 'tan', head: 'wrap', holds: 'none' });
 export const PICKER_LOUD_BATTLE = stragglerPoses({ broad: 2, skin: 'dark', head: 'hair', holds: 'shard' });
 
+/** The other clan's scout: small and quick, the same pale wrap, a short blade. */
+export const SCOUT_BATTLE = stragglerPoses({ broad: -3, skin: 'fair', head: 'wrap', holds: 'shard', coat: [SHADES.light, SHADES.white, SHADES.dim], patched: false, wrap: [SHADES.white, SHADES.light] });
+
 // --- The dog, from behind (Chapter 2) ---
 // Low in the foreground beside you, seen from behind: haunches, a tail, the back running up to the
 // shoulders, the head and two ears over them. Scruffy, grey-brown like its sprite in the areas, a pale belly.

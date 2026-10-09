@@ -4,7 +4,7 @@ import { COMBATANTS, ENCOUNTERS, ITEMS, LESSONS, type Lesson, MOVES } from '../d
 import { getSession } from '../session';
 import { Battle, type Action, type BattleEvent, type Combatant, type Intent, type MoveDef, type Reaction } from '../systems/Combat';
 import type { Grade, Key, Qte, QteKind } from '../systems/qte';
-import { BEETLE_BATTLE, CARVER_BATTLE, COLLECTOR_BATTLE, COLLECTOR_BIG_BATTLE, TICKER_BATTLE, PICKER_BATTLE, PICKER_LOUD_BATTLE, DOG_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, OLD_SCAV_BATTLE, RAIDER_BATTLE, RAIDER_LEAD_BATTLE, SCAVENGER_BATTLE, SCAVENGER_FISTS_BATTLE, SON_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
+import { BEETLE_BATTLE, CARVER_BATTLE, COLLECTOR_BATTLE, COLLECTOR_BIG_BATTLE, TICKER_BATTLE, SCOUT_BATTLE, PICKER_BATTLE, PICKER_LOUD_BATTLE, DOG_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, OLD_SCAV_BATTLE, RAIDER_BATTLE, RAIDER_LEAD_BATTLE, SCAVENGER_BATTLE, SCAVENGER_FISTS_BATTLE, SON_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
 import { CAST, DOG } from '../ui/borderlandFolk';
 import { GIRL, PROTAGONIST, SCAVENGER } from '../ui/characters';
 import { paintFar } from '../ui/paintOutdoor';
@@ -83,6 +83,7 @@ const LOOKS: Record<string, Look> = {
   picker: { poses: PICKER_BATTLE, scale: 1 },
   picker_loud: { poses: PICKER_LOUD_BATTLE, scale: 1 },
   ticker: { poses: TICKER_BATTLE, scale: 1 },
+  scout: { poses: SCOUT_BATTLE, scale: 1 },
 };
 
 interface View {
@@ -675,6 +676,28 @@ export class CombatScene extends Phaser.Scene {
           playSound(this, 'scratch', 0.7);
           this.flashWhite(t, 160);
           this.popLabel('BLINDED', t, SHADES.woodPale, 18);
+          break;
+        }
+        case 'evading': {
+          const t = this.views.get(e.target)!;
+          playSound(this, 'skid', 0.5);
+          this.popLabel('SLIPPERY', t, SHADES.light, 18);
+          this.refresh();
+          break;
+        }
+        case 'evaded': {
+          const t = this.views.get(e.target)!;
+          playSound(this, 'skid', 0.7);
+          this.popLabel('SLIPPED IT', t, SHADES.light, 18);
+          this.refresh();
+          break;
+        }
+        case 'silenced': {
+          const t = this.views.get(e.target)!;
+          playSound(this, 'scratch', 0.6);
+          this.flashWhite(t, 140);
+          this.popLabel('DUST', t, SHADES.woodPale, 18);
+          this.refresh();
           break;
         }
         case 'warded': {
@@ -1278,6 +1301,7 @@ export class CombatScene extends Phaser.Scene {
         ...(v.c.exposed > 0 ? [`WEAKENED ${v.c.exposed}`] : []),
         ...(v.c.sapped > 0 ? [`WINDED ${v.c.sapped}`] : []),
         ...(v.c.clinging > 0 ? [`LATCHED ${v.c.clinging}`] : []),
+        ...(v.c.evading ? ['SLIPPERY'] : []),
         ...(intent?.lured ? ['LURED'] : []),
       ];
       status.setText(marks.join('\n')).setColor(v.c.exposed > 0 ? SHADES.green : SHADES.amber);

@@ -106,6 +106,19 @@ Built 2026-10-09 (`story/borderland/chapter2-day8.ink`; dev `?chapter=2&day=8`, 
 6. **The brothel, evening:** the madam and the bead: the girl was the boss's favourite, the raids started wherever she'd been, they marked her a rat and walked her out past the tree's edge; "be careful whose hand's on your shoulder". The hostess: your friend hasn't been at the brothel in weeks; she goes out past the stacks.
 7. **Home.** Day 9 isn't built.
 
+## Day 9 as built (designer: build it; fold the drop's consequences in)
+Built 2026-10-09 (`story/borderland/chapter2-day9.ink`; dev `?chapter=2&day=9`, `&at=line|watch|chase`, `&drop=leave|take|swap` (default swap), `&brother=compound`).
+1. **Your shack, dawn:** your brother out all night with the kid, back muddy, "we saw something, we're nearly sure" (Part 4's witness); or the shack empty. A runner: the watcher wants you.
+2. **The boss's house:** what you've done catches up. The enforcer found the note: the boss has it ("I've told the enforcer it's nothing. Don't make me a liar."). You swapped the drop: "From tonight, the circle gives me its squares. Me, not the board." (the watcher looks at him). The son saw you at dawn: says so, and the boss shuts him up. **Your brother at the compound: "Your brother tells me you've a friend. Four legs."** (`boss_knows_dog`; big choice 1 closes). Then the night watch at the line, sunset to first light, written on the board.
+3. **The picked fields:** the old scavenger, sore from the raid: "I don't think it's you. Rats are careful. You're not careful, you're just secret." The dip under the fence; **the track out to the line** (a new exit, `line_open`).
+4. **The swap yard (optional):** the fence: somebody on our side is being paid in the other clan's pale goods; "it isn't you".
+5. **The rival line, dusk:** your friend at the dip, holding hands through the gap with someone from their side. The watcher arrives. **Medium choice: report her, or cover** (`friend_choice`; `rival_trust`).
+6. **The hollow:** the dog; nobody comes out to the line at night.
+7. **The line, night:** the watch; three through the dip; the scout runs for the settlement; **fight: two raiders** (`line_raid`, with the dog).
+8. **The scrap stacks:** the scout up the stacks to the kid's perch (`#hop`); you climb after them; **fight: the scout** (new **Slip**: slips your next blow outright unless the dog's sniffed them out; **Dust**: no skills for 2 rounds). By the drop: swap, furious and reckless (`scout_angry`: "Somebody's going to pay for row five"; the contact, paid in pale things, is in trouble with them too); leave, you know them (`scout_known`: no feints); take, they go for your satchel (`scout_desperate`: For the satchel). "That mark. You're his."
+9. **Big choice 2:** take them to the watcher at the compound gate ("You did the right thing tonight"; `watcher_respect`), or walk them out to the dip and let them go ("Come to the cairn on our side. Ask for me."; `scout_friend`, `rival_trust`).
+10. **Home,** before dawn. Then Day 10 (Part 4, not planned yet).
+
 ## Open questions for the designer
 - Is three days right, or should one of these threads wait for Part 4?
 - The picker lost in the sunk town (if you told the bar): too dark, or right for the ramp?

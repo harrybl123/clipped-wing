@@ -803,3 +803,73 @@ ENCOUNTERS.drop_guards = {
   timing: { lunge: 950, ease: 1.2 },
   outcomes: { won: { guards_won: true }, lost: { guards_won: false } },
 };
+
+// --- Chapter 2, Day 9: the night watch at the rival line, and the scout (draft numbers) ---
+
+Object.assign(MOVES, {
+  // The scout: small, fast, never where you hit.
+  cut: {
+    id: 'cut', name: 'Cut', target: 'enemy', power: 6, kind: 'pierce', crit: 0.15,
+    qte: { kind: 'key', time: 650, quick: 240, alt: { kind: 'weave', time: 600, quick: 240, gap: 480 } },
+    tell: { pose: 'squared', lines: ['The blade flicks out.', 'They come in low.'] },
+    description: 'A quick cut with a short blade.',
+  },
+  slip: {
+    id: 'slip', name: 'Slip', target: 'self', evades: true,
+    tell: { pose: 'shift', lines: ['They stay light on their feet, watching your hands.', 'They sway, loose, ready.'] },
+    description: 'Ready to slip your next blow outright, unless the dog sniffs them out first.',
+  },
+  dust: {
+    id: 'dust', name: 'Dust', target: 'enemy', power: 2, kind: 'none', silences: 2,
+    qte: { kind: 'side', time: 650, quick: 250, alt: { kind: 'key', time: 750, quick: 280 } },
+    tell: { pose: 'glance', lines: ['A fist closes on a handful of dirt.', 'They glance at the dog.'] },
+    description: 'Dirt in the face: for 2 rounds, no skills.',
+  },
+  // (Day 9, if you took the note off their drop: they want it back.)
+  grab_satchel: {
+    id: 'grab_satchel', name: 'For the satchel', target: 'enemy', power: 5, kind: 'grab', hits: 2,
+    qte: { kind: 'grip', time: 3600, zone: [0.36, 0.64], narrow: 0.16, tug: 0.85, keep: 0.7, quick: 2400, alt: { kind: 'mash', presses: 8, time: 1700 } },
+    tell: { pose: 'reach', lines: ['Their eyes go to your satchel.', '"Where is it? Give it here!"'] },
+    description: 'Both hands on your satchel, for the note: 2 hits. Keep hold.',
+  },
+} satisfies Record<string, MoveDef>);
+
+/** The other clan's scout (Day 9): quick and slippery. The drop changes them (the encounter's variants). */
+COMBATANTS.scout = {
+  id: 'scout', name: 'The scout', sprite: 'scout', hp: 40, attack: 9, defence: 8, speed: 17,
+  moves: ['cut', 'slip', 'dust'], weights: [3, 1.5, 1.4],
+  weak: ['grab'], poise: 1, feint: 0.25,
+  ai: { opening: ['slip', 'cut'], maxRepeat: 2, recent: 0.5, when: { hurt: { slip: 2 }, foeGuarding: { dust: 2 } } },
+};
+/** You swapped the drop: they went to row five for nothing. Angry: hit harder, guard less, no time for tricks. */
+COMBATANTS.scout_angry = { ...COMBATANTS.scout, id: 'scout_angry', attack: 12, defence: 6, feint: 0, weights: [4, 0.8, 1.2] };
+/** You watched them collect it: you know their face, and their tricks. No feints. */
+COMBATANTS.scout_known = { ...COMBATANTS.scout, id: 'scout_known', feint: 0 };
+/** You took the note: they want it back. */
+COMBATANTS.scout_desperate = { ...COMBATANTS.scout, id: 'scout_desperate', moves: ['cut', 'slip', 'grab_satchel'], weights: [2.5, 1.2, 2.5] };
+
+/** The scout cornered on the kid's perch, you and the dog. Writes `scout_won`. Variants by the drop (`c2day9_cornered`). */
+const scoutFight = (id: string, enemy: string): EncounterDef => ({
+  id,
+  name: 'The scout',
+  party: ['scavenger', 'dog'],
+  enemies: [enemy],
+  stage: 'yard',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { scout_won: true }, lost: { scout_won: false } },
+});
+ENCOUNTERS.scout_fight = scoutFight('scout_fight', 'scout');
+ENCOUNTERS.scout_angry = scoutFight('scout_angry', 'scout_angry');
+ENCOUNTERS.scout_known = scoutFight('scout_known', 'scout_known');
+ENCOUNTERS.scout_desperate = scoutFight('scout_desperate', 'scout_desperate');
+
+/** Chapter 2, Day 9, the rival line at night: two of the other clan through the dip, on your watch. You and the dog. Writes `line_won`. */
+ENCOUNTERS.line_raid = {
+  id: 'line_raid',
+  name: 'The line',
+  party: ['scavenger', 'dog'],
+  enemies: ['raider', 'raider'],
+  stage: 'yard',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { line_won: true }, lost: { line_won: false } },
+};

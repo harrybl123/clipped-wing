@@ -42,6 +42,7 @@ The fence buys what nobody else will, and asks nothing.
 // --- People (draft) ---
 
 === swap_yard_fencer ===
+{ (c2day9 == "fields" || c2day9 == "dusk") && not fence9: -> c2day9_fence }
 "Something special? I don't ask where. Nobody asks where. That's the whole trick of it." #speaker:fence
 "The tallyman prices. I appreciate. Different trade." #speaker:fence
 -> END

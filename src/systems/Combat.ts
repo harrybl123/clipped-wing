@@ -81,6 +81,10 @@ export interface MoveDef {
   clings?: { turns: number; power: number };
   /** Shields everyone else on the user's side: they're guarding until their next turn (a drop guard's Ward, staff planted in front of the other). */
   wards?: boolean;
+  /** The user slips the next blow aimed at them, outright, unless the dog's sniffed them out first (the scout's Slip). */
+  evades?: boolean;
+  /** Dust in the eyes: what it hits can't use skills for `silences` rounds (the scout's Dust, on the dog's nose). */
+  silences?: number;
 }
 
 export interface ItemDef {
@@ -206,6 +210,10 @@ export interface Combatant {
   /** Rounds left with something hanging on (`clings`), and the harm it does each round. */
   clinging: number;
   clingPower: number;
+  /** Slipping the next blow (`evades`). */
+  evading: boolean;
+  /** Rounds left unable to use skills (`silences`). */
+  silenced: number;
   /** Braced (`braces`) until their next turn. */
   braced: boolean;
 }
@@ -255,6 +263,9 @@ export type BattleEvent =
   | { type: 'sapped'; target: string }
   | { type: 'clung'; target: string }
   | { type: 'warded'; target: string }
+  | { type: 'evading'; target: string }
+  | { type: 'evaded'; target: string }
+  | { type: 'silenced'; target: string }
   | { type: 'gnawed'; target: string; amount: number; hp: number }
   | { type: 'drained'; target: string; amount: number; sp: number }
   | { type: 'braced'; actor: string }
@@ -330,7 +341,7 @@ export class Battle {
       if (!def) throw new Error(`Combat: no combatant called "${defId}"`);
       for (const m of [...def.moves, ...(def.basic ? [def.basic] : [])]) if (!moves[m]) throw new Error(`Combat: ${defId} has unknown move "${m}"`);
       const n = all.slice(0, i).filter((d) => d === defId).length;
-      return { id: n ? `${defId}-${n + 1}` : defId, def, side, hp: def.hp, sp: def.sp ?? 0, down: false, guarding: false, offBalance: 0, recoverIn: 0, steady: false, exposed: 0, exposedMult: 1, blinded: 0, sapped: 0, sappedMult: 1, clinging: 0, clingPower: 0, braced: false };
+      return { id: n ? `${defId}-${n + 1}` : defId, def, side, hp: def.hp, sp: def.sp ?? 0, down: false, guarding: false, offBalance: 0, recoverIn: 0, steady: false, exposed: 0, exposedMult: 1, blinded: 0, sapped: 0, sappedMult: 1, clinging: 0, clingPower: 0, evading: false, silenced: 0, braced: false };
     };
     this.combatants = [...encounter.party.map(make('party')), ...encounter.enemies.map(make('enemy'))];
     if (!this.combatants.some((c) => c.side === 'party') || !this.combatants.some((c) => c.side === 'enemy')) {
@@ -402,7 +413,8 @@ export class Battle {
     const list: Command[] = [];
     if (this.allOutReady) list.push({ type: 'allOut', usable: true });
     list.push({ type: 'attack', usable: !!actor.def.basic, ...(actor.def.basic ? {} : { reason: 'No attack' }) });
-    list.push({ type: 'skill', usable: actor.def.moves.length > 0, ...(actor.def.moves.length ? {} : { reason: 'No skills' }) });
+    const noSkill = !actor.def.moves.length ? 'No skills' : actor.silenced > 0 ? 'Can\u2019t, not yet' : undefined;
+    list.push({ type: 'skill', usable: !noSkill, ...(noSkill ? { reason: noSkill } : {}) });
     list.push({ type: 'guard', usable: true });
     if (this.items.size) list.push({ type: 'item', usable: true });
     if (this.encounter.run) list.push({ type: 'run', usable: true });
@@ -606,7 +618,17 @@ export class Battle {
         events.push({ type: 'warded', target: c.id });
       }
     }
+    if (move.evades) {
+      actor.evading = true;
+      events.push({ type: 'evading', target: actor.id });
+    }
     if (move.target === 'self' || !move.power) return events;
+    if (target.evading && actor.side !== target.side) {
+      // Slipped: the blow finds nothing.
+      target.evading = false;
+      events.push({ type: 'evaded', target: target.id });
+      return events;
+    }
     const window = this.reactionWindow(move.id, target.id);
     let landed = 0;
     // Was the target about to unleash a wound-up blow? (Before this lands, in case it floors them.)
@@ -668,6 +690,8 @@ export class Battle {
   /** Sniffed out: every enemy still to act this round shows its real move's tell. */
   private reveal(actor: Combatant): BattleEvent[] {
     for (const foe of this.living('enemy')) {
+      // Sniffed out: nobody slips anything this round.
+      foe.evading = false;
       const intent = this.intents.get(foe.id);
       const tell = intent && this.move(intent.move).tell;
       if (intent && tell?.lines.length && !this.hasActed(foe.id)) intent.tell = { pose: tell.pose, line: tell.lines[0]! };
@@ -726,6 +750,10 @@ export class Battle {
       target.clinging = move.clings.turns;
       target.clingPower = move.clings.power;
       events.push({ type: 'clung', target: target.id });
+    }
+    if (move.silences && actor.side !== target.side) {
+      target.silenced = move.silences;
+      events.push({ type: 'silenced', target: target.id });
     }
     if (move.saps && actor.side !== target.side) {
       target.sapped = move.saps.turns;
@@ -824,6 +852,7 @@ export class Battle {
       if (c.exposed > 0) c.exposed--;
       if (c.blinded > 0) c.blinded--;
       if (c.sapped > 0) c.sapped--;
+      if (c.silenced > 0) c.silenced--;
     }
     const events: BattleEvent[] = [{ type: 'round', round: this._round }];
     // Whatever's hanging on gnaws at the start of each round (guarding shakes it off); it never finishes anyone.

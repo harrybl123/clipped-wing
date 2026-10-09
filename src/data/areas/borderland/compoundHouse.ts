@@ -137,6 +137,8 @@ export const compoundHouse: AreaDefinition = {
     local('cook', 4, 330, FLOOR, AWAKE, { flipX: true }),
     // Your brother, if he's come to live here (big choice 1): fed, at the boss's elbow.
     cast('brother', 130, FLOOR, { id: 'brother-here', knot: 'house_brother', when: AWAKE, showIf: 'brother_moved' }),
+    // Day 9: the son in the doorway, if he saw you head for the fields at dawn.
+    cast('boss_son', 60, FLOOR, { id: 'son-house', when: ['morning'], showIf: 'son_at_house' }),
   ],
 
   interactables: [

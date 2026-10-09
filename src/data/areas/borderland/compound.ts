@@ -2,7 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './compoundProps';
 import { roof } from './shackProps';
 import type { AreaDefinition } from '../types';
-import { DAY, cast, local, stroller } from './people';
+import { DAY, cast, local, rival, stroller } from './people';
 
 // The boss's compound (Chapter 2): his home and seat, on a rise at the top of the settlement, walled
 // with the best scrap. Off limits at first; it opens once you're brought in (and if you move your brother
@@ -73,6 +73,9 @@ export const compound: AreaDefinition = {
   people: [
     // On the gate, outside.
     cast('enforcer', 116, FLOOR, { knot: 'compound_enforcer', when: ['morning', 'evening', 'night'] }),
+    // Day 9, before dawn: the watcher waiting up at the gate; the scout you've brought him.
+    cast('watcher', 96, FLOOR, { id: 'watcher-gate', when: ['night'], showIf: 'turnin9', flipX: true }),
+    rival('scout-gate', 1, 76, FLOOR, ['night'], { showIf: 'turnin9' }),
     // The yard.
     cast('boss_son', 296, FLOOR, { knot: 'compound_son', when: ['afternoon', 'evening'], flipX: true }),
     local('washer', 4, 236, FLOOR, ['morning']),

@@ -47,6 +47,7 @@ export function devChapter2Day(scene: Phaser.Scene, day: number): void {
   if (day >= 5) set({ c2day4: 'done', in_circle: true, brother_choice: 'home', spar_done: true, bar_arrived: true });
   if (day >= 6) set({ c2day5: 'done', board_mark: 'far fields' });
   if (day >= 7) set({ c2day6: 'done', raid_won: true });
+  if (day >= 9) set({ c2day8: 'done', drop_choice: params0().get('drop') ?? 'swap', has_bead: true, friend_lie_known: true, scout_seen: params0().get('drop') === 'leave', has_note: params0().get('drop') === 'take' });
   if (day >= 8) set({ c2day7: 'done', board_mark: params0().get('square') === 'ditch' ? 'ditch' : 'hull', gambler_choice: 'fought', has_chain: true });
   // Earlier choices, for trying each path (dev): &brother=compound (big choice 1: he moved in), &spar=won|sunk|deep
   // (won the spar, or lost it and told the bar the sunk town or the deep ground), &gambler=helped (gave him a find on Day 5).
@@ -64,6 +65,7 @@ export function devChapter2Day(scene: Phaser.Scene, day: number): void {
     6: { areaId: 'picked-fields', start: { x: 860, y: 232 }, script: 'c2day6_start', vars: { c2day6: 'fields' } },
     7: { areaId: 'dogs-hollow', start: { x: 60, y: 206 }, script: 'c2day7_start', vars: {} },
     8: { areaId: 'shack', start: { x: 382, y: 184 }, script: 'c2day8_start', vars: {} },
+    9: { areaId: 'shack', start: { x: 382, y: 184 }, script: 'c2day9_start', vars: {} },
   };
   // Day 7, part way in (dev): &at=den (down the den's steps, the gambler at the wall), &at=tribute (at the
   // tally house, your share to pay), &at=home (out of the tally, on foot home through the yard at night).
@@ -95,11 +97,18 @@ export function devChapter2Day(scene: Phaser.Scene, day: number): void {
     search: { area: { areaId: 'swap-yard', start: { x: 1060, y: 232 } }, slots: 0, vars: { ...after, c2day8: 'noon', noon8: true, sent_home8: true, objective: 'Go home', objective_target: 'swap-yard:to-shack' } },
     brothel: { area: { areaId: 'shack', start: { x: 90, y: 236 } }, slots: 2, vars: { ...after, c2day8: 'brothel', noon8_seen: true, search_started: false, objective: 'Ask the madam about the bead', objective_target: 'brothel:madam' } },
   };
-  const mid = at ? (day === 7 ? day7[at] : day === 6 ? day6[at] : day === 8 ? day8[at] : undefined) : undefined;
+  // Day 9: &at=line (the fields, just shown the way to the line, at dusk), &at=watch (the line at night, the dog with
+  // you), &at=chase (the stacks, the scout ahead of you). With &drop=leave|take|swap (default swap).
+  const day9: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | boolean> }> = {
+    line: { area: { areaId: 'picked-fields', start: { x: 470, y: 232 } }, slots: 1, vars: { c2day9: 'dusk', house9_done: true, old9: true, old9_done: true, line_open: true, objective: 'Go out to the line by sunset', objective_target: 'picked-fields:to-rival-line' } },
+    watch: { area: { areaId: 'rival-line', start: { x: 140, y: 232 } }, slots: 3, vars: { c2day9: 'watch', house9_done: true, old9: true, old9_done: true, line_open: true, line9_arrived: true, friend_seen9: true, friend_choice: 'covered', dog_with_you: true, objective: 'Keep watch at the post', objective_target: 'rival-line:post' } },
+    chase: { area: { areaId: 'scrap-stacks', start: { x: 616, y: 510 } }, slots: 3, vars: { c2day9: 'chase', house9_done: true, old9_done: true, line_open: true, line9_arrived: true, friend_seen9: true, friend_choice: 'covered', watched9: true, line_won: true, dog_with_you: true, chase9: true, objective: 'After the scout', objective_target: 'scrap-stacks:scout-stacks' } },
+  };
+  const mid = at ? (day === 7 ? day7[at] : day === 6 ? day6[at] : day === 8 ? day8[at] : day === 9 ? day9[at] : undefined) : undefined;
   const { vars, ...next } = starts[day] ?? starts[2]!;
   set(mid?.vars ?? vars);
   if (at === 'home' && params.get('brother') !== 'compound') set({ brother_scrubbing: true });
-  session.calendar.jumpTo(day as 2 | 3 | 4 | 5 | 6 | 7 | 8);
+  session.calendar.jumpTo(day as 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9);
   for (let i = 0; i < (mid?.slots ?? 0); i++) session.calendar.advance();
   scene.scene.start('Area', { ...(mid?.area ?? next), card: day === 3 ? 'Weeks later' : day === 7 ? 'Two weeks on' : `Day ${day}` } satisfies AreaSceneData);
 }

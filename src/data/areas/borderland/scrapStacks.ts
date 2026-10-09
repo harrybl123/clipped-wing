@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './scrapStacksProps';
 import type { AreaDefinition, Line, Solid } from '../types';
-import { DAY, cast, stroller } from './people';
+import { DAY, cast, dogFollowing, rival, stroller } from './people';
 
 // The scrap stacks (Chapter 2): towers of compacted junk two screens high between the shacks, for
 // climbing and hiding; this chapter's back routes, a way across the settlement over the top, out of
@@ -78,10 +78,17 @@ export const scrapStacks: AreaDefinition = {
     { type: 'trigger', x: 40, y: FLOOR, reach: 30, knot: 'c2day8_stacks', showIf: 'stacks8', hideIf: 'son_met8' },
     { type: 'watch', who: 'boss_son', from: 150, to: 400, y: FLOOR, speed: 24, range: 90, see: 50, pause: 1600, reset: { x: 40, y: FLOOR }, showIf: 'son_waiting', caught: 'c2day8_caught' },
     { type: 'trigger', x: 600, y: FLOOR, reach: 20, knot: 'c2day8_slipped', showIf: 'son_waiting' },
+    // Day 9, night: the scout at the foot of the stacks, up and away to the perch; you after them.
+    { type: 'trigger', x: 600, y: FLOOR, reach: 40, knot: 'c2day9_stacks', showIf: 'chase9', hideIf: 'chase_seen' },
+    { type: 'trigger', x: 400, y: BRIDGE.y, reach: 34, knot: 'c2day9_cornered', showIf: 'chase_seen', hideIf: 'scout_cornered' },
   ],
   people: [
     cast('old_scav', 360, FLOOR, { knot: 'scrap_stacks_old_scav', when: DAY, flipX: true }),
     cast('lookout', 504, PERCH.y, { knot: 'scrap_stacks_lookout', when: ['evening'] }),
+    // Day 9: the scout, at the foot of the stacks, then (cornered) on the perch.
+    rival('scout-stacks', 1, 560, FLOOR, ['night'], { showIf: 'chase9', hideIf: 'scout_cornered' }),
+    rival('scout-perch', 1, 482, PERCH.y, ['night'], { showIf: 'scout_cornered', hideIf: ['turnin9', 'letgo9'] }),
+    dogFollowing(30, FLOOR),
     // Day 8: the son, when he's caught you (he comes up beside you).
     cast('boss_son', 300, FLOOR, { id: 'boss-son-dawn', when: ['morning'], showIf: 'son_confront' }),
     stroller('hauler-1', 1, 420, 600, FLOOR, DAY),
