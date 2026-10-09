@@ -197,6 +197,11 @@ It goes, low and quick, and the fields swallow it. #leave:dog-follow:300:120
 
 // --- Midday, the swap yard: what came of the drop ---
 
+// Home round the back, through the stacks: the yard's noise brings you out to it.
+=== c2day8_noon_back ===
+Out front, the yard's loud. Louder than it should be at midday. You go out to see. #goto:swap-yard:60:232:c2day8_noon
+-> END
+
 === c2day8_noon ===
 ~ noon8_seen = true
 ~ noon8 = false

@@ -151,4 +151,4 @@ export const isAreaOpen = (areaId: string, day: Day, slot: TimeSlot) => closedRe
  * sneaking (Nights 4 and 5), the escort up the trunk (Day 5), going up to the archivist and the seed grove
  * or stealing (Night 5), tailing the Tender (Day 6), and the chase (Day 7).
  */
-export const ON_FOOT = ['girl_with_you', 'sneaking', 'escorted', 'archivist_waiting', 'in_grove', 'stealing', 'tailing', 'chased', 'ambush_night'] as const;
+export const ON_FOOT = ['girl_with_you', 'sneaking', 'escorted', 'archivist_waiting', 'in_grove', 'stealing', 'tailing', 'chased', 'ambush_night', 'noon8', 'searchers_coming'] as const;

@@ -102,6 +102,8 @@ export const shack: AreaDefinition = {
     { type: 'trigger', x: 96, y: FLOOR, reach: 30, knot: 'c2day2_home', showIf: 'going_home' },
     // Chapter 2, Day 8: home just ahead of the enforcer's search.
     { type: 'trigger', x: 96, y: FLOOR, reach: 30, knot: 'c2day8_search_start', showIf: 'searchers_coming', hideIf: 'search_started' },
+    // (Home round the back without coming through the yard: the noise outside brings you out to it.)
+    { type: 'trigger', x: 380, y: FLOOR, reach: 40, knot: 'c2day8_noon_back', showIf: 'noon8', hideIf: 'noon8_seen' },
   ],
   people: [
     // Your brother: up and about by day, asleep in the loft at night.
