@@ -118,11 +118,10 @@ export const swapYard: AreaDefinition = {
     cast('lookout', 626, FLOOR, { knot: 'swap_yard_lookout', when: ['afternoon'] }),
     // Your friend, on the way out to the fields.
     cast('scav_friend', 1010, FLOOR, { knot: 'swap_yard_friend', when: ['morning'], flipX: true }),
-    // Chapter 2, Day 7: the rat on your door; your brother and the kid scrubbing it (if he's still at home).
+    // Chapter 2, Day 7: the rat on your door, chalked while you're at the tally; your brother out scrubbing it (if he's still at home).
     { id: 'rat-mark', sprite: RAT_MARK, x: 46, y: FLOOR, showIf: 'door_marked', hideIf: 'mark_scrubbed' },
     { id: 'rat-smudge', sprite: RAT_SMUDGE, x: 46, y: FLOOR, showIf: 'mark_scrubbed' },
-    cast('brother', 40, FLOOR, { id: 'brother-door', when: ['morning'], showIf: 'brother_scrubbing' }),
-    cast('lookout', 60, FLOOR, { id: 'lookout-door', when: ['morning'], showIf: 'brother_scrubbing', flipX: true }),
+    cast('brother', 40, FLOOR, { id: 'brother-door', when: ['night'], showIf: 'brother_scrubbing' }),
     // The lost picker's sister (if you told the bar the sunk town), or the son back from the deep ground.
     local('sister', 9, 300, FLOOR, ['morning'], { showIf: 'sister_here', flipX: true }),
     cast('boss_son', 330, FLOOR, { id: 'son-yard', when: ['morning'], showIf: 'son_in_yard', flipX: true }),

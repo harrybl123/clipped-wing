@@ -93,6 +93,8 @@ export const pickedFields: AreaDefinition = {
   ],
 
   features: [
+    // Chapter 2, Day 7: the old wells, raided at first light (the patch you put on the board).
+    { type: 'trigger', x: 630, y: FLOOR, reach: 34, knot: 'c2day7_wells', showIf: 'wells_raid', hideIf: 'wells_seen' },
     // Chapter 2, Day 2: taking the dog to sell, it slips the wire halfway across.
     { type: 'trigger', x: 740, y: FLOOR, reach: 40, knot: 'c2day2_slips', showIf: 'dog_on_wire' },
     // Night 2: out looking for the dog, a bark from somewhere you've never been.
@@ -128,6 +130,11 @@ export const pickedFields: AreaDefinition = {
     dogFollowing(60, FLOOR),
     // Chapter 2, Day 5: the old scavenger digging beside you; then the other clan, over the rise.
     cast('old_scav', 836, FLOOR, { id: 'old-scav-fields', knot: 'c2day6_old', showIf: 'raid_day', flipX: true }),
+    // Day 7: after the raid on the old wells: the old scavenger patching people up, the hurt, the one who points.
+    cast('old_scav', 596, FLOOR, { id: 'old-scav-wells', when: ['morning'], showIf: 'wells_raid' }),
+    local('hurt-1', 1, 610, FLOOR, ['morning'], { showIf: 'wells_raid', flipX: true }),
+    local('hurt-2', 3, 574, FLOOR, ['morning'], { showIf: 'wells_raid' }),
+    local('accuser', 10, 660, FLOOR, ['morning'], { showIf: 'wells_raid', flipX: true }),
     rival('raider-1', 0, 930, FLOOR, undefined, { showIf: 'raiders_here' }),
     rival('raider-2', 1, 946, FLOOR, undefined, { showIf: 'raiders_here' }),
     rival('raider-3', 0, 950, FLOOR, undefined, { showIf: 'raiders_here' }),
@@ -138,6 +145,7 @@ export const pickedFields: AreaDefinition = {
   ],
 
   interactables: [
+    { id: 'old-wells', x: 620, y: FLOOR, reach: 20, label: 'Look', knot: 'c2day7_wells', showIf: 'wells_raid', hideIf: 'wells_seen' },
     { id: 'hole', x: 255, y: FLOOR, reach: 12, label: 'Look', knot: 'picked_fields_hole' },
     { id: 'mast', x: 346, y: FLOOR, reach: 12, label: 'Look', knot: 'picked_fields_mast' },
     { id: 'hull', x: HULL.x + 30, y: FLOOR, reach: 14, label: 'Look', knot: 'picked_fields_hull' },

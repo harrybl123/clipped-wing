@@ -67,8 +67,62 @@ The one in front stops. They look as surprised to see you as you are to see them
 "They said they thought this end was empty." #speaker:scavenger
 "Then somebody's been telling them where's empty, and where isn't." #speaker:old_scav
 He doesn't say who. He doesn't need to. Anyone can read the board.
+~ raid_day = false
+~ c2day6 = "tally"
+~ raid_night = true
+~ tribute_night = true
+~ objective = "Go to the tally house"
+~ objective_target = "tally-house:to-swap-yard"
+"The boss will want to know. Everyone will." #speaker:old_scav
+"Come on. The tally house. Tonight they'll all be there." #speaker:old_scav
+The day goes, waiting for it. #time:evening
+-> END
+
+// --- Evening, the tally house: the night of the first raid ---
+// (Designer: the raids, and why people turn on you, need setting up; that people think there's an informant.)
+
+=== c2day6_tally ===
+~ raid_told = true
+~ objective_target = ""
+Nobody's queuing tonight. The whole settlement's in the tally house, and they're all talking about one thing. #bark:tribute-2:In daylight #bark:tribute-5:The far end #bark:tribute-8:They've never crossed
+The boss comes away from the grille, and they go quiet for him. The old scavenger's by the door, still dusty from the fields.
+"You've heard. The other clan came over the line this morning. In daylight." #speaker:boss
+"First time since the truce. Since before most of you were born." #speaker:boss
+"They walked straight to the far end of the fields. Where nobody digs. Where two of ours happened to be, this one morning." #speaker:boss
+"How did they know?" #speaker:boss
+Nobody answers. #bark:tribute-4:Somebody told them
+"Somebody told them." #speaker:boss
+"Somebody in this room is talking to the other side. An informant." #speaker:boss
+The word goes round the tally house like a draught. #bark:tribute-1:An informant #bark:tribute-6:Here?
+"If any of you know who, you come to me. Not to the bar. Not to your neighbour. To me." #speaker:boss
+The enforcer's looking down the queue, face by face. At you, a moment longer than the rest.
+"Who was out at the far end?" #speaker:enforcer
+{ raid_won:
+    "The old man. And her. They saw them off." #speaker:tallyman
+- else:
+    "The old man. And her. They lost their sacks." #speaker:tallyman
+}
+"Then she's the last person who'd have told them. Isn't she?" #speaker:boss
+He smiles at you, over all their heads. The room relaxes, a little.
+The watcher doesn't. He's looking at the board's chalk in his hand, as if it's just said something to him.
+~ c2day6 = "home"
+~ objective = "Go home"
+~ objective_target = "shack:bed"
+-> END
+
+=== c2day6_bed ===
+~ tribute_night = false
+~ raid_night = false
+It's dark when you get home. #time:night
+{ brother_moved:
+    The shack's empty. Under the floor, {dog_name} sighs.
+- else:
+    Your brother's asleep. Under the floor, {dog_name} sighs.
+}
+Somebody told them where you'd be. You keep turning it over, and it keeps coming back the same.
+Somebody who reads the board.
+~ c2day6 = "done"
 ~ objective = ""
 ~ objective_target = ""
-~ c2day6 = "done"
-The boss will want to know. Everyone will want to know. #wake:dogs-hollow:60:206:c2day7_start #endday:A month on
+And you're on the board. #wake:dogs-hollow:60:206:c2day7_start #endday:Two weeks on
 -> END

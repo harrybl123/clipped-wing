@@ -83,15 +83,17 @@ Then Part 4, the reveal, follows straight on.
 - New stages for the den (`den`), the deep ground (`deep`), the rival line at night (`line`).
 
 ## Day 7 as built (designer: build day by day, a rough structure first, then playtest; more fights, and fights with the dog)
-- **Dawn in the sunk town with the dog** (added: fights with the dog): it won't nose for finds; down in the tunnel, the **tickers** (`tickers`: small shelled things nesting in the carriage, nobody knows what; strikes skid off, teeth get in; **Latch** hangs on and gnaws every round until you guard). If you told the bar the sunk town, the lost picker's lamp is there: take it or leave it. Then the dog home.
-- **The rat on your door** (the swap yard, outside your shack): your brother and the kid scrubbing it, set on catching the rat themselves (`brother_spying`), or you alone with the yard watching. It goes grey and stays grey.
-- **The yard:** the food trader won't look at you; what you told the bar: the lost picker's sister (give her his lamp, or not), the son with rival tracks from the deep ground, or the son's version of the spar going round.
-- **Your brother at the compound** (if he moved): the circle's strap, "even family", "why do you go out before it's light?"
-- **The den** (medium choice): the house's men have the gambler at the debt wall. Step in (fight), pay his debt with your week (short at the tally), or walk away (they stop you on the steps anyway: "Friend of his? Then you can pay."). Help him and he gives you his chain (`has_chain`; **its move isn't in the fights yet**). **The debt collectors** (`debt_collectors`, a den stage): the talker's **Shakedown** winds you (your blows land softer for 2 rounds); the muscle's **Make an example** winds up for the room.
-- **Tribute:** small finds, or none; the enforcer's accusation in front of the queue; the boss: "She's one of mine." Then the watcher with the board's chalk, at the tally tonight: which lie goes up (`board_mark`).
-- **The yard at night** (added: your own side): the traders pack up and go; pickers waiting (the sister among them unless you gave her the lamp). **The angry pickers** (`angry_pickers`, a yard stage at night): **Pile in** hits harder for every one still standing. Lose, and they cut the strap with the circle's mark (`strap_cut`).
-- **Home:** your brother awake in the loft, or the dog's nose on your cut lip. Day 8 isn't built.
-- The calendar now runs to Day 10.
+**Rebuilt after the first playtest** (designer: the story was unclear; it snapped from good to bad with no build-up; set up the raids, and that people think you're an informant). The turn now happens in steps, each one on screen, and the reason it points at you is stated: **every night you put a false patch on the board to keep the dog secret, and the raiders keep hitting the patch the board says you'll be on.** You're never there, and your alibi is the dog.
+- **End of Day 6, the night of the first raid** (new): the tally house is full of it. The boss: the other clan crossed the line in daylight, the first time since the truce; they knew where our people would be; "Somebody in this room is talking to the other side. An informant." The enforcer looks at you; the boss covers for you ("She's the last person who'd have told them"); the watcher looks at his chalk. In bed: "Somebody who reads the board. And you're on the board." Card: **Two weeks on** (was "A month on").
+1. **Dawn at the hollow:** the false patches, the mast raided last week (your patch), "informant" said in the bar; last night you put down the old wells. **The sunk town with the dog:** the tickers (`tickers`; Latch), the lost picker's lamp if you told the bar the sunk town.
+2. **The old wells** (new): shouting as you send the dog home; the wells raided at first light, people hurt, sacks gone. A picker: "She was down for the wells. So where was she?" You can't say. The old scavenger puts it together: the far end, the mast, the wells, "every time where the board says you'll be, and you're never there. That's what an informant looks like."
+3. **The yard:** the word got there first; what you told the bar after the spar (the lost picker's sister and his lamp, the son's tracks, or the son's version).
+4. **Your brother at the compound** (if he moved): "even family".
+5. **The den** (medium choice): the gambler's debt; the house's men (`debt_collectors`; Shakedown winds you); his chain if you help (`has_chain`; **its move isn't in the fights yet**).
+6. **Tribute:** the enforcer lists the three raids, "every one where she said she'd be", and "four times the tribute; unless somebody's paying them"; the boss: "She's one of mine." The board: which lie tonight.
+7. **The yard at night:** the traders pack up; pickers waiting (`angry_pickers`; Pile in). Lose, and they cut your strap.
+8. **Your door** (moved to last): the rat chalked while you were at the tally; your brother out scrubbing it, crying ("The kid says everyone's saying you're telling the other clan things"), set on finding the real one; or you alone in the dark. Then bed. Day 8 isn't built.
+- Dev: `?chapter=2&day=6&at=tally`; `?chapter=2&day=7` with `&at=den|tribute|home`, `&brother=compound`, `&spar=won|sunk|deep`, `&gambler=helped`.
 
 ## Open questions for the designer
 - Is three days right, or should one of these threads wait for Part 4?

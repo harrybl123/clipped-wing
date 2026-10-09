@@ -1,11 +1,12 @@
 // ============================================================================
-// Chapter 2, Day 7: a month on. Draft text from docs/sequences/chapter-2/part-3.md, for the designer to
-// rewrite (designer: get the rough structure down, then playtest). The town turns on you: three raids in a
-// month, each where the board said you'd be. Dawn in the sunk town with the dog, and something down there
-// (designer: fights with the dog); a mark on your door; what you told the bar comes back; your brother (big
-// choice 1); the gambler's debt comes due (medium choice; the house's men); the enforcer accuses you at the
-// tally; and on the way home, your own people are waiting for you.
-// The stages are in `c2day7` (main.ink): dawn, yard, brother, den, tribute, home, done.
+// Chapter 2, Day 7: two weeks on. Draft text from docs/sequences/chapter-2/part-3.md, for the designer to
+// rewrite (designer: get the rough structure down, then playtest). The town turns on you, step by step,
+// each step on screen (designer: it snapped from good to bad with no build-up; make the raids and why
+// people think you're the informant clear): you put a false patch on the board every night, to keep the dog
+// secret, and the raiders keep hitting the patch the board says you'll be on. Dawn in the sunk town with the
+// dog and something down there; a raid on the old wells, last night's patch; the yard; your brother; the
+// gambler's debt; the enforcer's accusation at the tally; your own people in the yard; the rat on your door.
+// The stages are in `c2day7` (main.ink): dawn, wells, yard, brother, den, tribute, home, done.
 // ============================================================================
 
 // --- Dawn, the hollow ---
@@ -17,9 +18,11 @@
 ~ dawn7 = true
 ~ objective = "Go down the sunk town with " + dog_name
 ~ objective_target = "picked-fields:to-sunk-town"
-Three raids in a month. The far end of the fields, then the old wells, then the mast. Every one of them on ground that was up on the board the night before.
-Nobody's said it to your face yet. They don't need to.
-You've been filling your satchel less, the way the watcher said. It hasn't helped.
+Two weeks since the far end.
+Every night since the son started asking where you go, you've put a patch of the fields up on the board. Never the sunk town. Nobody needs to know where you really dig. Nobody needs to find the dog.
+The other clan's come once more since: the mast, last week, at dawn. You'd put the mast on the board the night before. You didn't think anything of it.
+In the bar, people have started saying the boss's word. Informant.
+Last night, you put down the old wells.
 {dog_name} comes up out of the hollow and leans on your legs, the way it always does.
 "Yip!" #speaker:dog
 { told_where == "sunk":
@@ -94,47 +97,43 @@ The sky's grey. Out on the fields, the first pickers.
 It goes, low through the spoil heaps, looking back at you once. #leave:dog-follow:-30:120
 ~ dog_with_you = false
 ~ first_light = false
-~ c2day7 = "yard"
-~ door_marked = true
-~ objective = "Go home"
-~ objective_target = "swap-yard:to-shack"
-{ not brother_moved:
-    ~ brother_scrubbing = true
-}
+~ c2day7 = "wells"
+~ wells_raid = true
+Then, from out on the fields: shouting. Somebody screaming a name.
+~ objective = "Go and see"
+~ objective_target = "picked-fields:old-wells"
 -> END
 
-// --- Morning, outside your door ---
+// --- Morning, the old wells: the patch you put on the board, raided at first light ---
 
-=== c2day7_door ===
-~ door_seen = true
-Somebody's been at your door in the night.
-A rat, in chalk, as long as your arm. Everyone knows the sign. Everyone in the yard can see it.
-{ brother_moved:
-    -> c2day7_door_alone
-}
-Your brother's on his knees in front of it with a wet rag, scrubbing, and the kid lookout's holding the bucket.
-He's crying. He's trying not to.
-"It won't come off. It just goes grey." #speaker:brother
-"We saw them, sort of. In the dark. Three of them. The kid says pickers." #speaker:brother
-"We're going to find the real one. The real rat. Then they'll all have to say sorry." #speaker:lookout
-+ [Leave it to me]
-    "Leave it to me. Both of you. I mean it." #speaker:scavenger
-    "You always say that." #speaker:brother
-+ [Be careful]
-    "Then be careful. Don't let anybody see you looking." #speaker:scavenger
-    The kid grins. Your brother doesn't.
-- ~ brother_spying = true
-You take the rag off him, and finish it yourself. It goes grey, and stays grey.
--> c2day7_door_done
+=== c2day7_wells ===
+~ wells_seen = true
+The old wells. Your patch, on the board.
+Pickers standing round, the way people stand round something that's already happened. Sieves trampled into the dirt. One man holding his arm against his chest. A woman with blood down the side of her face.
+The old scavenger's there, tying a rag round somebody's head. He sees you, and his hands stop.
+"They came at first light. Four of them, pale wraps. Walked straight to the wells like they'd been told the way." #speaker:old_scav
+"Took every sack. Broke his arm for him when he held on to his." #speaker:old_scav
+"She was down for the wells." #speaker:picker
+One of the pickers is pointing at you.
+"It was on the board. Her name, the wells. So where was she?" #speaker:picker
++ [I was digging somewhere else]
+    "I was digging somewhere else." #speaker:scavenger
+    "Where?" #speaker:picker
+    You can't tell him. You can't tell anybody. Your alibi's under the floor of your shack.
++ [Say nothing]
+    You don't answer. You can't. Your alibi's under the floor of your shack.
+- The old scavenger finishes his knot, and stands up slowly, and comes over to you, close, so the others don't hear.
+"The far end. You were down for it, with me. They came." #speaker:old_scav
+"The mast, last week. You were down for it. They came. You weren't there." #speaker:old_scav
+"Now the wells." #speaker:old_scav
+"Every time, where the board says you'll be. And you're never there." #speaker:old_scav
+"I'm not saying it's you. I'm saying that's what an informant looks like. Somebody who says one thing on the board and does another." #speaker:old_scav
+Every lie you've put on the board to keep the dog safe, they've hit.
+"Go on. Before they stop just pointing." #speaker:old_scav
+-> c2day7_wells_done
 
-=== c2day7_door_alone ===
-Nobody's here to scrub it but you. You spit on your sleeve and get to work.
-Behind you the yard's filling up. Nobody says anything. #bark:swapper-1:Rat #bark:haggler:Told you
-It goes grey, and stays grey.
--> c2day7_door_done
-
-=== c2day7_door_done ===
-~ mark_scrubbed = true
+=== c2day7_wells_done ===
+~ c2day7 = "yard"
 { told_where == "sunk":
     ~ sister_here = true
 }
@@ -145,10 +144,13 @@ It goes grey, and stays grey.
 ~ objective_target = "swap-yard:food-stall"
 -> END
 
+// --- Morning, outside your door ---
+
 // --- The swap yard ---
 
 === c2day7_yard ===
 ~ yard7_done = true
+The word's got to the yard before you. People stop talking as you pass, and start again behind you. #bark:swapper-1:The wells #bark:haggler:Her patch
 The food trader takes your find, and gives you your bowl, and doesn't look at you once.
 Last month she nodded to you. You'd never seen her nod to anyone.
 { told_where == "sunk": -> c2day7_sister }
@@ -247,9 +249,6 @@ Then he remembers something, and stops smiling.
 ~ collectors_here = true
 ~ objective = "See what the gambler wants"
 ~ objective_target = "gambling-den:gambler-wall"
-{ not brother_moved:
-    Your brother and the kid go off up the yard together, heads close, whispering. Planning. #leave:brother-door:640:60 #leave:lookout-door:660:60
-}
 Word gets round the way it does, mouth to mouth, until somebody says it to you: the gambler's in trouble at the den, and he's asking for you. #time:afternoon
 -> END
 
@@ -357,9 +356,10 @@ The queue along the rail. Tonight nobody's looking at what anybody else brought.
     "Picked-fields stuff. You used to bring me things I'd never seen." #speaker:tallyman
 }
 The enforcer comes off the wall, and the queue goes quiet to listen.
-"The far end of the fields. The old wells. The mast." #speaker:enforcer
-"Three raids. Every one on ground that was on the board. And every one of them, somewhere she'd been, or somewhere she said she'd be." #speaker:enforcer
-"Out every morning before it's light. Never with anybody. Four times the tribute off nothing, and now nothing at all." #speaker:enforcer
+"The far end of the fields. The mast. The old wells, this morning." #speaker:enforcer
+"Three raids. Every one on ground that was on the board. Every one where she said she'd be." #speaker:enforcer
+"Out every morning before it's light. Never with anybody. Never where she says." #speaker:enforcer
+"Four times the tribute, a month ago. Where from? Nobody finds that much. Unless somebody's paying them for something." #speaker:enforcer
 "Who's she been bringing it to instead?" #speaker:enforcer
 + [I've never been near them]
     "I've never been near the other clan. Not once." #speaker:scavenger
@@ -393,6 +393,10 @@ You're going somewhere new tomorrow. Wherever the raiders are coming in from. Bu
     "The picked fields." #speaker:scavenger
 - He writes it down. He looks at you a moment longer than he needs to.
 ~ ambush_set = true
+~ door_marked = true
+{ not brother_moved:
+    ~ brother_scrubbing = true
+}
 "Fill your satchel less, I said. Not fill it with nothing." #speaker:watcher
 ~ c2day7 = "home"
 ~ ambush_night = true
@@ -451,8 +455,46 @@ Pickers, in the dark outside your door. You know some of their faces. They've be
     They go, not hurrying. #leave:mob-1:420:50 #leave:mob-2:440:45 #leave:mob-3:460:40
 }
 ~ objective = "Go home"
+~ objective_target = "swap-yard:to-shack"
+-> END
+
+// --- Night, outside your door: the last straw ---
+=== c2day7_door ===
+~ door_seen = true
+Somebody's been at your door while you were at the tally.
+A rat, in chalk, as long as your arm. Everyone knows the sign. Everyone in the yard will see it in the morning.
+{ brother_moved:
+    -> c2day7_door_alone
+}
+Your brother's on his knees in front of it with a wet rag and a bucket, scrubbing. He came out when he heard the shouting.
+He's crying. He's trying not to.
+"It won't come off. It just goes grey." #speaker:brother
+"I saw them do it. From the window. I didn't open the door. I'm sorry. I'm sorry." #speaker:brother
+"The kid says everyone's saying you're telling the other clan things. I said you'd never. I said it loud." #speaker:brother
+"We're going to find the real one, me and the kid. Then they'll all have to say sorry." #speaker:brother
++ [Leave it to me]
+    "Leave it to me. I mean it." #speaker:scavenger
+    "You always say that." #speaker:brother
++ [Be careful]
+    "Then be careful. Don't let anybody see you looking." #speaker:scavenger
+    He nods, very seriously, and wipes his nose on his sleeve.
+- ~ brother_spying = true
+You take the rag off him, and finish it yourself. It goes grey, and stays grey.
+He goes in ahead of you. #leave:brother-door:30:50
+-> c2day7_door_done
+
+=== c2day7_door_alone ===
+Nobody's here to scrub it but you. You spit on your sleeve and get to work, in the dark, on your own.
+It goes grey, and stays grey.
+-> c2day7_door_done
+
+=== c2day7_door_done ===
+~ mark_scrubbed = true
+~ brother_scrubbing = false
+~ objective = "Go to bed"
 ~ objective_target = "shack:bed"
 -> END
+
 
 // --- Night, the shack ---
 
@@ -460,14 +502,12 @@ Pickers, in the dark outside your door. You know some of their faces. They've be
 ~ tribute_night = false
 { brother_moved:
     The shack's dark, and cold, and empty.
-    You lift the loose panel. {dog_name} is there, already awake, and it puts its nose against your cut lip, and whines.
+    You lift the loose panel. {dog_name} is there, already awake, and it puts its nose against your face, and whines.
 - else:
-    Your brother's in the loft under his blanket. He's not asleep. He's been waiting.
-    "Was it them? The ones with the chalk?" #speaker:brother
-    "Go to sleep." #speaker:scavenger
-    "The kid and me are going to find the real one. You'll see." #speaker:brother
+    Your brother's gone up to the loft. You can hear him not sleeping.
     Under the floor, {dog_name} whines.
 }
+Every patch you put on the board, they hit. Somebody reads that board, and tells them.
 Tomorrow, you find out where they're coming in from. Before somebody in the yard finds out where you go.
 ~ c2day7 = "done"
 ~ c2day8 = "dawn"

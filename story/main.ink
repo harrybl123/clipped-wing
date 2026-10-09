@@ -321,6 +321,9 @@ VAR c2day6 = ""
 VAR raid_day = false
 VAR raiders_here = false
 VAR raid_won = false
+// The night of the first raid: the tally house full of it (the boss: an informant).
+VAR raid_night = false
+VAR raid_told = false
 // Chapter 2, Day 7, a month on (story/borderland/chapter2-day7.ink; docs/sequences/chapter-2/part-3.md).
 // Stages: dawn, yard, brother, den, tribute, home, done.
 VAR c2day7 = ""
@@ -331,6 +334,9 @@ VAR nest_found = false
 VAR nest_done = false
 VAR tickers_won = false
 VAR dawn7_home = false
+// The old wells, raided at first light: last night's patch on the board.
+VAR wells_raid = false
+VAR wells_seen = false
 // The lost picker's lamp (if you told the bar the sunk town), taken; given back to his sister.
 VAR has_lamp = false
 VAR sister_here = false

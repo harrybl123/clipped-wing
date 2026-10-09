@@ -75,7 +75,10 @@ export const tallyHouse: AreaDefinition = {
     ...[WALK.x, 500, 560, WALK.end - 2].map((x) => ({ sprite: { rows: ['h', 'm', 'm', 'm', 'm', 'm', 'm', 'm', 'm', 'm'], colours: { h: S.light, m: S.dim } }, x, y: WALK.y - 10 })),
   ],
 
-  features: [],
+  features: [
+    // Chapter 2, the night of the first raid (Day 6): walking into it.
+    { type: 'trigger', x: 90, y: FLOOR, reach: 40, knot: 'c2day6_tally', showIf: 'raid_night', hideIf: 'raid_told' },
+  ],
   people: [
     // The tallyman, behind the counter.
     cast('tallyman', 336, FLOOR, { knot: 'tally_house_tallyman', when: AWAKE, flipX: true }),
@@ -91,6 +94,7 @@ export const tallyHouse: AreaDefinition = {
     cast('enforcer', 300, FLOOR, { id: 'enforcer-tribute', when: ['evening'], showIf: 'tribute_night', flipX: true }),
     cast('boss', 500, FLOOR, { id: 'boss-tribute', when: ['evening'], showIf: 'tribute_night', flipX: true }),
     cast('watcher', 520, FLOOR, { id: 'watcher-tribute', when: ['evening'], showIf: 'tribute_night', flipX: true }),
+    cast('old_scav', 70, FLOOR, { id: 'old-scav-tally', when: ['evening'], showIf: 'raid_night' }),
     local('tribute-1', 1, 196, FLOOR, ['evening'], { showIf: 'tribute_night' }),
     local('tribute-2', 4, 214, FLOOR, ['evening'], { showIf: 'tribute_night' }),
     local('tribute-3', 10, 232, FLOOR, ['evening'], { showIf: 'tribute_night' }),
