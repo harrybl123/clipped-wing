@@ -110,7 +110,8 @@ export const shack: AreaDefinition = {
     // (Unless he's gone to live at the compound: big choice 1.)
     cast('brother', 214, FLOOR, { knot: 'shack_brother', when: ['morning', 'evening'], flipX: true, hideIf: ['brother_moved', 'brother_out9'] }),
     // Day 9, dawn: back in at the door after a night out with the kid, muddy to the knees.
-    cast('brother', 84, FLOOR, { id: 'brother-back', when: ['morning'], showIf: 'brother_back9' }),
+    cast('brother', 84, FLOOR, { id: 'brother-back', when: ['morning'], showIf: 'brother_back9', hideIf: 'brother_asleep9' }),
+    { id: 'brother-asleep-day', sprite: BROTHER_ASLEEP[0]!, idleFrames: BROTHER_ASLEEP, x: 238 + 15, y: LOFT, when: ['morning'], showIf: 'brother_asleep9' },
     // The dog's bed by the floor panel, once it's yours (made a person so the story can bring it in).
     { id: 'dog-bed', sprite: DOG_BED, x: 300, y: FLOOR, showIf: 'dog_owned', hideIf: 'search_started', knot: 'shack_dog_bed', label: 'Look' },
     // Day 8: the search. The dog's things to hide (people, so the story can show and take them), the searchers, your brother in the doorway.

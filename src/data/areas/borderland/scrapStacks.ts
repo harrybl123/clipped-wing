@@ -81,6 +81,8 @@ export const scrapStacks: AreaDefinition = {
     // Day 9, night: the scout at the foot of the stacks, up and away to the perch; you after them.
     { type: 'trigger', x: 600, y: FLOOR, reach: 40, knot: 'c2day9_stacks', showIf: 'chase9', hideIf: 'chase_seen' },
     { type: 'trigger', x: 400, y: BRIDGE.y, reach: 34, knot: 'c2day9_cornered', showIf: 'chase_seen', hideIf: 'scout_cornered' },
+    // (Up onto the perch without crossing the bridge: the same.)
+    { type: 'trigger', x: PERCH.x + 20, y: PERCH.y, reach: 24, knot: 'c2day9_cornered', showIf: 'chase_seen', hideIf: 'scout_cornered' },
   ],
   people: [
     cast('old_scav', 360, FLOOR, { knot: 'scrap_stacks_old_scav', when: DAY, flipX: true }),

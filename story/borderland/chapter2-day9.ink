@@ -35,6 +35,7 @@ He's muddy to the knees, and grinning, and trying not to.
     "You go out before it's light every day." #speaker:brother
     You haven't got an answer to that.
 - He climbs up to the loft in his muddy boots, and he's asleep before you've finished being angry. #leave:brother-back:236:50
+~ brother_asleep9 = true
 And there's a runner at the door from the compound. The watcher wants you. The house, now.
 -> END
 
@@ -48,7 +49,7 @@ There's a runner at the door from the compound before you've got your boots on. 
 === c2day9_house ===
 ~ c2day9 = "house"
 ~ house9_done = true
-The boss is at his table, and the watcher's beside him with the board. A side room's door is open behind them.
+The boss is at his table, and the watcher's beside him with the board.
 "Sit. Eat. You look like you've had a week." #speaker:boss
 { found_note: -> c2day9_house_note }
 -> c2day9_house_board
@@ -106,7 +107,7 @@ The bread's dry in your mouth.
 "Three raids, and they're coming in somewhere. The watcher wants a pair of eyes on the line tonight. I said yours." #speaker:boss
 "Sunset to first light. The post at the line. Nobody else will be out there." #speaker:watcher
 "Prove them all wrong." #speaker:boss
-He puts his hand on your shoulder. The whole table sees it.
+He puts his hand on your shoulder. The watcher watches him do it.
 And the watcher writes it down: your name, the line, sunset to first light. On the board, in the side room, for anyone who reads it.
 ~ c2day9 = "fields"
 ~ old9 = true
@@ -172,7 +173,7 @@ And somebody at the dip under it, by their sign. Two somebodies.
 === c2day9_friend ===
 ~ friend_seen9 = true
 One of them's in a pale wrap, crouched on the far side of the dip. The other's on this side, on her knees, holding their hand through the gap.
-Your friend.
+Your friend. The pale thread round her wrist.
 She sees you, and lets go. The one in the pale wrap's gone, back into the dark on their side, before you can see a face. #leave:friend-rival:900:90
 "Oh. Oh, no." #speaker:scav_friend
 "You're not here. Tell me you're not here." #speaker:scavenger
@@ -259,7 +260,7 @@ And the small one's still out there. Towards the settlement. In the dark.
 "Sniff... sniff sniff!" #speaker:dog
 ~ c2day9 = "chase"
 ~ chase9 = true
-~ objective = "After the scout"
+~ objective = "Follow " + dog_name + ": it has the scout's scent"
 ~ objective_target = "scrap-stacks:scout-stacks"
 -> END
 
@@ -276,51 +277,47 @@ They're on the kid's perch, at the top. There's no way down the far side that is
 
 === c2day9_cornered ===
 ~ scout_cornered = true
+~ chase9 = false
 ~ objective = ""
 ~ objective_target = ""
 They're backed up to the edge of the perch, with the whole settlement below them, and a blade in their hand.
+It's the small one. The one who came through the dip with the other two, and ran.
 {dog_name} puts itself between you, low, growling. #bark:dog-follow:GRRR:growl
 The scout looks at the dog, and their eyes go wide.
 "A dog. A real one." #speaker:scout
+{ drop_choice == "leave":
+    And you know that face. You watched it dig up the drop under the marker stone, yesterday.
+}
+"Where were you going? In there?" #speaker:scavenger
+"To meet somebody." #speaker:scout
+"Who?" #speaker:scavenger
+"Our contact. On your side. The one who tells us where you'll all be." #speaker:scout
+"The other two were only there to keep your watch busy while I got past. And the contact knew the watch would be you, on your own. It's on your board." #speaker:scout
 { drop_choice == "swap": -> c2day9_cornered_swap }
-{ drop_choice == "leave": -> c2day9_cornered_leave }
--> c2day9_cornered_take
+{ drop_choice == "take": -> c2day9_cornered_take }
+"Now get out of my way." #speaker:scout
+You don't. They come at you. #combat:scout_known:c2day9_after_scout
+-> END
 
 // You swapped the drop: they went to row five for nothing.
 === c2day9_cornered_swap ===
-"Row five. That was you, wasn't it." #speaker:scout
-"You sent us to dirt. We stood about in empty dirt half the day, and went back with nothing." #speaker:scout
-"Do you know what they do to us, when we go back with nothing? Somebody's going to pay for row five." #speaker:scout
-"Who wrote the note?" #speaker:scavenger
-"Our contact on your side. The one who's paid in pale things." #speaker:scout
-"And our contact's in trouble too, now. Because of you. They'll want to know who's been at their drop." #speaker:scout
+"And somebody sent us to row five yesterday. Empty dirt, half a day." #speaker:scout
+They look at you, and work it out.
+"That was you." #speaker:scout
+"The contact wanted to know who's been at their drop. That's what tonight was for." #speaker:scout
 They don't wait for you to answer. They come at you, blade first, careless with fury. #combat:scout_angry:c2day9_after_scout
--> END
-
-// You watched them collect it: you know their face.
-=== c2day9_cornered_leave ===
-"I saw you. At the drop. Under the marker, yesterday morning." #speaker:scavenger
-They go still.
-"Then you saw nothing. I carry. I don't read." #speaker:scout
-"Who writes them?" #speaker:scavenger
-"I carry. I don't ask." #speaker:scout
-You know how they move, now. Where they look before they jump. #combat:scout_known:c2day9_after_scout
 -> END
 
 // You took the note: they want it back.
 === c2day9_cornered_take ===
+"And somebody took a note off our drop yesterday." #speaker:scout
 { found_note:
-    "Where is it? The note. Who's got it?" #speaker:scout
-    "Not me. Not any more." #speaker:scavenger
-    "Then who?" #speaker:scout
-    You think of the boss's coat, and the inside pocket. You don't say.
-    They don't believe you.
+    "Where is it? Who's got it?" #speaker:scout
+    You think of the boss's coat, and the inside pocket. You don't say. They don't believe you.
 - else:
-    "You. You've got it. The note." #speaker:scout
     Their eyes go to your satchel.
-    "Give it here. You don't know what you're holding." #speaker:scout
 }
-They come for your satchel with both hands. #combat:scout_desperate:c2day9_after_scout
+They come for it with both hands. #combat:scout_desperate:c2day9_after_scout
 -> END
 
 === c2day9_after_scout ===
@@ -332,21 +329,24 @@ They come for your satchel with both hands. #combat:scout_desperate:c2day9_after
 }
 They pull the wrap down off their face. Younger than you, with a burn down one cheek, breathing hard.
 They look at your strap. The circle's mark, stitched into it.
-"That mark. You're his." #speaker:scout
-"Everyone says I'm his." #speaker:scavenger
+"That mark. You're his. You're one of the circle." #speaker:scout
+"Everyone says I'm the one telling you where we dig." #speaker:scavenger
+"You? We'd know. It isn't you." #speaker:scout
 ~ c2day9 = "choice"
 -> c2day9_choice
 
-// Big choice 2 (design doc): turn them in to the watcher, or let them go.
+// Big choice 2 (design doc), with a reason each way (designer: there was no incentive to let them go):
+// your name, or the truth.
 === c2day9_choice ===
-"Well? Shout for them. That's what the watch is for." #speaker:scout #dim:on
+"So. Shout for your watcher, and he gets one of us on his floor. Proof we come through the dip. Proof it's not you that let us in." #speaker:scout
+"Or let me go, and I'll tell you where our contact meets us, and when. You can see their face for yourself." #speaker:scout #dim:on
 + [Take them to the watcher]
     ~ scout_choice = "turned_in"
-    "Get up." #speaker:scavenger #dim:off
+    "Get up. You're coming with me." #speaker:scavenger #dim:off
     -> c2day9_turned_in
-+ [Let them go]
++ [Let them go, for the meeting place]
     ~ scout_choice = "let_go"
-    "Get up. I'll walk you out." #speaker:scavenger #dim:off
+    "Where? When?" #speaker:scavenger #dim:off
     -> c2day9_let_go
 
 === c2day9_turned_in ===
@@ -360,49 +360,43 @@ Then you walk the scout through the sleeping yard and the tally house, all the w
 The watcher's at the compound gate, as if he's been waiting up.
 He looks at the scout a long time. Then at you.
 "On your watch. Through the dip, like the old man said." #speaker:watcher
-"They had two with them. They kept me busy. This one went for the settlement." #speaker:scavenger
-"For the settlement. For who?" #speaker:watcher
-"They wouldn't say." #speaker:scavenger
+"Two of them kept me busy. This one went into the settlement. To meet somebody on our side." #speaker:scavenger
+"Who?" #speaker:watcher
+"They won't say." #speaker:scavenger
 "They'll say to me." #speaker:watcher
 He takes the scout by the arm, and stops, and says one more thing, low.
-"You did the right thing tonight. Whatever they say in the yard tomorrow." #speaker:watcher
+"You did the right thing tonight. Whatever they say in the yard, I'll say this: you brought one in." #speaker:watcher
 He takes them in through the gate, and it shuts behind them. #leave:watcher-gate:320:50 #leave:scout-gate:320:50
 ~ watcher_respect += 1
 ~ scout_held = true
--> c2day9_home_go
+-> c2day9_dawn
 
 === c2day9_let_go ===
+"Not here. Walk me out, and I'll tell you at the dip." #speaker:scout
 ~ letgo9 = true
 You walk them down off the stacks, and out across the fields in the dark, all the way back to the line. {dog_name} trots between you. #goto:rival-line:540:232:c2day9_dip
 -> END
 
 === c2day9_dip ===
-At the dip, they stop.
-"Why?" #speaker:scout
-+ [Because it isn't me]
-    "Because everyone on my side thinks I'm the one talking to you. And it isn't me." #speaker:scavenger
-    "I know it isn't you. We'd know." #speaker:scout
-+ [Because of the dog]
-    "Because you looked at the dog like it was a miracle." #speaker:scavenger
-    "It is a miracle. Do you know how long since anyone saw one?" #speaker:scout
-- "Our contact's on your side. Somebody who gets paid in pale things, and writes your squares on hide." #speaker:scout
-"I don't know who. I carry. But I know where they meet us, when it's more than a note." #speaker:scout
-"Come to the cairn on our side, one night. Ask for me. I'll find out what I can." #speaker:scout
-They go under the fence on their belly, and stand up on the far side, and look back once at the dog. #leave:scout-free:900:90
+At the dip, they stop, and keep their word.
+"The cairn, on our side. Three nights from now, when there's no moon. Your contact comes through the dip alone, and we meet them there." #speaker:scout
+"Lie up by your post, and you'll see who comes." #speaker:scout
+"Why tell me?" #speaker:scavenger
+"Because they've been selling your people to us, and now they're setting you up to hang for it. And because you didn't shout." #speaker:scout
+They look at {dog_name} one last time.
+"And because of the dog. Nobody's seen one in my whole life." #speaker:scout
+They go under the fence on their belly, and stand up on the far side, and they're gone. #leave:scout-free:900:90
 ~ rival_trust += 1
 ~ scout_friend = true
--> c2day9_home_go
+~ knows_meeting = true
+-> c2day9_dawn
 
-=== c2day9_home_go ===
-~ c2day9 = "home"
-~ objective = "Go home"
-~ objective_target = "shack:bed"
-First light's not far off.
--> END
-
-// --- Before dawn, the shack ---
-
-=== c2day9_bed ===
+// No walking home through every area (designer): the night ends here.
+=== c2day9_dawn ===
+~ c2day9 = "done"
+~ objective = ""
+~ objective_target = ""
+You get home as the sky goes grey.
 { dog_with_you:
     ~ dog_with_you = false
     {dog_name} goes down the hole under the floor without being told, and you hear it turn round three times and settle.
@@ -415,13 +409,10 @@ First light's not far off.
 { scout_choice == "turned_in":
     The watcher has the scout. Whatever they say to him, they'll say it tonight.
 - else:
-    The other side has a contact on yours. Somebody paid in pale things. Somebody who reads the board.
+    Three nights. The cairn, and the dip, and whoever comes through it alone.
 }
 { boss_knows_dog:
     And the boss knows about the dog.
 }
-~ c2day9 = "done"
-~ objective = ""
-~ objective_target = ""
 You lie down in your clothes, and don't sleep, and it's light. #wake:shack:382:184 #endday:Day 10
 -> END

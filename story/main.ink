@@ -420,6 +420,7 @@ VAR c2day9 = ""
 // Dawn: your brother out all night with the kid, back muddy (if he's still with you).
 VAR brother_out9 = false
 VAR brother_back9 = false
+VAR brother_asleep9 = false
 // The boss's house: the son, if he saw you head for the fields; the boss knows about the dog (if your brother's there).
 VAR house9_done = false
 VAR son_at_house = false
@@ -453,6 +454,11 @@ VAR turnin9 = false
 VAR letgo9 = false
 VAR scout_held = false
 VAR scout_friend = false
+// Let go, the scout told you where and when their contact meets them: the cairn, three nights on, no moon.
+VAR knows_meeting = false
+// Your friend: Day 7 in the yard (the pale thread at her wrist), Day 8 at midday (she warns you of the search).
+VAR friend7 = false
+VAR friend8 = false
 
 INCLUDE prologue.ink
 INCLUDE day1.ink

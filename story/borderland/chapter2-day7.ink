@@ -212,6 +212,24 @@ Nobody looks at you while they say it.
 -> c2day7_yard_done
 
 === c2day7_yard_done ===
+-> c2day7_friend
+
+// Your friend: the only one who walks towards you all morning. (Her secret is Day 9's: the thread's the first sign.)
+=== c2day7_friend ===
+~ friend7 = true
+"There you are. Love." #speaker:scav_friend #beside:scav_friend:-26:walk
+Your friend, pushing through the yard to you. The only person all morning who's walked towards you instead of away.
+"I heard about the wells. I don't believe a word of it. I told the trader so, to her face." #speaker:scav_friend
++ [Where have you been?]
+    "I came looking for you. Two nights running. You weren't home." #speaker:scavenger
+    "Oh. The madam's got me on the door at the brothel. Nights. It's good money." #speaker:scav_friend
+    She says it fast, like she's said it before.
++ [Thank you]
+    "Thank you. You're the only one." #speaker:scavenger
+    "Don't be daft. Course I am." #speaker:scav_friend
+- There's a thread round her wrist, plaited, pale. You've never seen her wear anything like it. She sees you see it, and pulls her sleeve down over it.
+"Got to go. Things. Mind yourself." #speaker:scav_friend
+She's off towards the fields gate before you can ask. #leave:scav_friend:1065:70
 ~ gambler_in_yard = true
 -> c2day7_gambler
 

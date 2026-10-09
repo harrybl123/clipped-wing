@@ -119,7 +119,7 @@ export const swapYard: AreaDefinition = {
     cast('brother', 646, FLOOR, { knot: 'swap_yard_brother', when: ['afternoon'] }),
     cast('lookout', 626, FLOOR, { knot: 'swap_yard_lookout', when: ['afternoon'] }),
     // Your friend, on the way out to the fields.
-    cast('scav_friend', 1010, FLOOR, { knot: 'swap_yard_friend', when: ['morning'], flipX: true }),
+    cast('scav_friend', 1010, FLOOR, { knot: 'swap_yard_friend', when: ['morning'], flipX: true, hideIf: 'noon8_seen' }),
     // Chapter 2, Day 7: the rat on your door, chalked while you're at the tally; your brother out scrubbing it (if he's still at home).
     { id: 'rat-mark', sprite: RAT_MARK, x: 46, y: FLOOR, showIf: 'door_marked', hideIf: 'mark_scrubbed' },
     { id: 'rat-smudge', sprite: RAT_SMUDGE, x: 46, y: FLOOR, showIf: 'mark_scrubbed' },
@@ -127,6 +127,11 @@ export const swapYard: AreaDefinition = {
     // The lost picker's sister (if you told the bar the sunk town), or the son back from the deep ground.
     local('sister', 9, 300, FLOOR, ['morning'], { showIf: 'sister_here', flipX: true }),
     cast('boss_son', 330, FLOOR, { id: 'son-yard', when: ['morning'], showIf: 'son_in_yard', flipX: true }),
+    // Day 8, midday: your friend, come to warn you; the enforcer and two of the circle's men, coming for your shack.
+    cast('scav_friend', 900, FLOOR, { id: 'friend-noon', when: ['morning'], showIf: 'noon8_seen' }),
+    cast('enforcer', 556, FLOOR, { id: 'enforcer-yard', when: ['afternoon'], showIf: 'searchers_coming', hideIf: 'search_started' }),
+    local('searcher-yard-1', 7, 576, FLOOR, ['afternoon'], { showIf: 'searchers_coming', hideIf: 'search_started' }),
+    local('searcher-yard-2', 8, 592, FLOOR, ['afternoon'], { showIf: 'searchers_coming', hideIf: 'search_started' }),
     // The gambler, out of the den in daylight, looking for you (Day 7).
     cast('gambler', 620, FLOOR, { id: 'gambler-yard', when: ['morning'], showIf: 'gambler_in_yard', flipX: true }),
     // Pickers waiting between the stalls on the way home from the tally (Day 7).

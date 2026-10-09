@@ -234,9 +234,13 @@ Nobody hurt. And somebody, somewhere, is wondering why.
 // The enforcer, coming up the yard with two of the circle's men.
 === c2day8_search_coming ===
 ~ c2day8 = "search"
+~ friend8 = true
+"Go. Go home, now." #speaker:scav_friend #beside:friend-noon:24:walk
+Your friend, out of breath, grabbing your arm.
+"The enforcer's coming for your place. I heard them at the tally. Whatever you've got in there, you haven't got long." #speaker:scav_friend
 ~ searchers_coming = true
-Then the yard goes quiet. The enforcer's coming up it, with two of the circle's men, and people are getting out of the way. #time:afternoon
-They're heading for your door.
+Then the yard goes quiet. The enforcer's coming through the tally gate, with two of the circle's men, and people are getting out of the way. #time:afternoon #leave:enforcer-yard:40:22 #leave:searcher-yard-1:40:22 #leave:searcher-yard-2:40:22
+They're heading for your door. Slowly, so everybody sees.
 ~ objective = "Get home first"
 ~ objective_target = "swap-yard:to-shack"
 -> END
