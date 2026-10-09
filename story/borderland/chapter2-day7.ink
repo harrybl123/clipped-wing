@@ -19,10 +19,11 @@
 ~ objective = "Go down the sunk town with " + dog_name
 ~ objective_target = "picked-fields:to-sunk-town"
 Two weeks since the far end.
-Every night since the son started asking where you go, you've put a patch of the fields up on the board. Never the sunk town. Nobody needs to know where you really dig. Nobody needs to find the dog.
-The other clan's come once more since: the mast, last week, at dawn. You'd put the mast on the board the night before. You didn't think anything of it.
+The board has the picked fields chalked on it as a grid, rows one to twelve across, the landmarks drawn in: the hull, the mast, the old wells, the ditch. Every night each of the circle's signs goes in a square.
+Every night since the son started asking where you go, you've put yours in a square of the fields. Never the sunk town. Nobody needs to know where you really dig. Nobody needs to find the dog.
+The other clan's come once more since the far end: the mast, row six, last week, at dawn. The square you'd put your sign in the night before. You didn't think anything of it.
 In the bar, people have started saying the boss's word. Informant.
-Last night, you put down the old wells.
+Last night, you put your sign in the old wells. Row eleven.
 {dog_name} comes up out of the hollow and leans on your legs, the way it always does.
 "Yip!" #speaker:dog
 { told_where == "sunk":
@@ -108,14 +109,14 @@ Then, from out on the fields: shouting. Somebody screaming a name.
 
 === c2day7_wells ===
 ~ wells_seen = true
-The old wells. Your patch, on the board.
+The old wells. Row eleven. Your square on the board.
 Pickers standing round, the way people stand round something that's already happened. Sieves trampled into the dirt. One man holding his arm against his chest. A woman with blood down the side of her face.
 The old scavenger's there, tying a rag round somebody's head. He sees you, and his hands stop.
 "They came at first light. Four of them, pale wraps. Walked straight to the wells like they'd been told the way." #speaker:old_scav
 "Took every sack. Broke his arm for him when he held on to his." #speaker:old_scav
 "She was down for the wells." #speaker:picker
 One of the pickers is pointing at you.
-"It was on the board. Her name, the wells. So where was she?" #speaker:picker
+"It was on the board. Her sign, row eleven. So where was she?" #speaker:picker
 + [I was digging somewhere else]
     "I was digging somewhere else." #speaker:scavenger
     "Where?" #speaker:picker
@@ -127,7 +128,9 @@ One of the pickers is pointing at you.
 "The mast, last week. You were down for it. They came. You weren't there." #speaker:old_scav
 "Now the wells." #speaker:old_scav
 "Every time, where the board says you'll be. And you're never there." #speaker:old_scav
-"I'm not saying it's you. I'm saying that's what an informant looks like. Somebody who says one thing on the board and does another." #speaker:old_scav
+"I'm not saying it's you. I'm saying what they'll say." #speaker:old_scav
+"That you sell them the board. You tell the other clan which squares we'll be digging, you keep well away yourself because you know they're coming, and they pay you for it in finds." #speaker:old_scav
+"Four times the tribute, they'll say. That's where it came from." #speaker:old_scav
 Every lie you've put on the board to keep the dog safe, they've hit.
 "Go on. Before they stop just pointing." #speaker:old_scav
 -> c2day7_wells_done
@@ -150,7 +153,7 @@ Every lie you've put on the board to keep the dog safe, they've hit.
 
 === c2day7_yard ===
 ~ yard7_done = true
-The word's got to the yard before you. People stop talking as you pass, and start again behind you. #bark:swapper-1:The wells #bark:haggler:Her patch
+The word's got to the yard before you. People stop talking as you pass, and start again behind you. #bark:swapper-1:The wells #bark:haggler:Her square
 The food trader takes your find, and gives you your bowl, and doesn't look at you once.
 Last month she nodded to you. You'd never seen her nod to anyone.
 { told_where == "sunk": -> c2day7_sister }
@@ -209,11 +212,33 @@ Nobody looks at you while they say it.
 -> c2day7_yard_done
 
 === c2day7_yard_done ===
+~ gambler_in_yard = true
+-> c2day7_gambler
+
+// The gambler finds you in the yard: the house's men are coming for him this afternoon.
+=== c2day7_gambler ===
+"There you are. There you are." #speaker:gambler #beside:gambler-yard:28:walk
+The gambler, out of the den in daylight, which you've never seen. He looks like he hasn't slept.
+"The house's men are coming for me. This afternoon. Thirty strokes on the wall, and a month past due." #speaker:gambler
+{ gambler_trust > 0:
+    "You helped me before. I'm not asking for finds this time. I swear I'm not." #speaker:gambler
+- else:
+    "I know you said no before. I know. It's not finds I'm asking for." #speaker:gambler
+}
+"Just come down. Just stand there. Nobody touches anybody with the boss's favourite in the room." #speaker:gambler
++ [I'll come]
+    "I'll come." #speaker:scavenger
+    "I knew. I knew you would." #speaker:gambler
++ [The boss's favourite?]
+    "Haven't you heard what they're saying about me?" #speaker:scavenger
+    "Course I have. Everybody has. But he still put his hand on your shoulder, didn't he? They'll see that, not the talk." #speaker:gambler
+    "Please." #speaker:gambler
+- He goes off towards the tally house gate, quick, looking back to make sure you're coming. #leave:gambler-yard:552:70
 { brother_moved:
     ~ c2day7 = "brother"
     ~ objective = "See your brother"
     ~ objective_target = "compound-house:brother-here"
-    You haven't seen your brother in a week. The compound's on the way to nowhere you need to be. You go anyway.
+    The den's down through the bar, past the compound. Your brother's in there. You haven't seen him in a week.
 - else:
     -> c2day7_to_den
 }
@@ -247,22 +272,22 @@ Then he remembers something, and stops smiling.
 ~ den7 = true
 ~ gambler_at_wall = true
 ~ collectors_here = true
-~ objective = "See what the gambler wants"
+~ objective = "Go down to the den"
 ~ objective_target = "gambling-den:gambler-wall"
-Word gets round the way it does, mouth to mouth, until somebody says it to you: the gambler's in trouble at the den, and he's asking for you. #time:afternoon
+By the time you get there, it's afternoon. #time:afternoon
 -> END
 
 === c2day7_den ===
 ~ den7_seen = true
 Down the steps, and it's quiet in the den. Nobody's playing.
-The house's men have the gambler up against the debt wall, where everyone can see. One's talking. One's holding a cosh, and isn't.
+They didn't wait. The house's men already have the gambler up against the debt wall, where everyone can see. One's talking. One's holding a cosh, and isn't.
 "Thirty strokes on the wall, and a month past due." #speaker:collector
 { gambler_trust > 0:
-    "She'll help! She helped me once! Tell them!" #speaker:gambler
+    "She's here! Tell them! Tell them whose she is!" #speaker:gambler
     They both turn round, and look at you.
 - else:
-    The gambler sees you, and looks away. Somebody at the next table says he was drinking with the enforcer last night, and that he talked a lot.
-    "I didn't say anything. I didn't. Help me?" #speaker:gambler
+    "She's here. See? See?" #speaker:gambler
+    Somebody at the next table says he was drinking with the enforcer last night, and that he talked a lot. He can't meet your eye.
 }
 "Friend of yours?" #speaker:collector
 + [Step in]
@@ -316,7 +341,7 @@ The muscle's there before you, blocking them. You didn't hear him move.
 
 // You helped him: he gives you his weapon (doc).
 === c2day7_den_gift ===
-The gambler's sitting on the floor under the debt wall, holding his ribs.
+The gambler's slid down the debt wall to the floor. His hands are shaking.
 "Nobody's ever. Nobody's ever done that." #speaker:gambler
 He unwinds something from round his waist, under his shirt: a chain, a short one, with a weight on the end the size of a fist, cut from something that isn't metal and isn't stone.
 "I won it. Years ago. Only good thing I ever won. It's yours." #speaker:gambler
@@ -346,6 +371,15 @@ Upstairs, the bar's filling up. It's tribute night. #time:evening
 === c2day7_tribute ===
 ~ tribute7_done = true
 The queue along the rail. Tonight nobody's looking at what anybody else brought. They're looking at you. #bark:tribute-2:That's her #bark:tribute-5:Rat
+{ gambler_choice == "fought":
+    The den's got round too. #bark:tribute-3:The house's men #bark:tribute-7:Floored them both
+}
+{ gambler_choice == "paid":
+    The den's got round too. #bark:tribute-3:Paid his wall #bark:tribute-7:With what?
+}
+{ gambler_choice == "left":
+    The den's got round too. #bark:tribute-3:Walked off #bark:tribute-7:Left him to them
+}
 { week_paid:
     You've nothing to put on the counter. Everything you dug this week went to the den.
     "Short." #speaker:tallyman
@@ -359,8 +393,14 @@ The enforcer comes off the wall, and the queue goes quiet to listen.
 "The far end of the fields. The mast. The old wells, this morning." #speaker:enforcer
 "Three raids. Every one on ground that was on the board. Every one where she said she'd be." #speaker:enforcer
 "Out every morning before it's light. Never with anybody. Never where she says." #speaker:enforcer
-"Four times the tribute, a month ago. Where from? Nobody finds that much. Unless somebody's paying them for something." #speaker:enforcer
-"Who's she been bringing it to instead?" #speaker:enforcer
+"She sells them the board. Tells them which squares we'll be digging, keeps herself clear, and they pay her in finds." #speaker:enforcer
+"Four times the tribute, a month ago. Off ground that's been picked clean since before we were born. Where else would it come from?" #speaker:enforcer
+{ gambler_choice == "fought":
+    "And this afternoon she put two of the house's men on the floor of the den. For a debtor. Who's she think she is?" #speaker:enforcer
+}
+{ gambler_choice == "paid":
+    "And this afternoon she paid off a debtor's wall. Her whole week. Where's a picker get a week to throw away?" #speaker:enforcer
+}
 + [I've never been near them]
     "I've never been near the other clan. Not once." #speaker:scavenger
     "That's what a rat would say." #speaker:enforcer
@@ -374,6 +414,10 @@ He doesn't shout. He doesn't need to. The queue opens for him.
 He puts his hand on your shoulder, warm and heavy, the way he did the first night. He leaves it there a long moment, so everyone sees it.
 "Anyone who has something to say about her says it to me." #speaker:boss
 Nobody does. The enforcer goes back to the wall.
+{ gambler_choice == "fought":
+    The boss's hand tightens, just a little, on your shoulder. Quietly, only for you:
+    "And the house's business is the house's. The den pays me too. Don't make me choose between you." #speaker:boss
+}
 { week_paid:
     "And she's short. Next week, double. Like old times." #speaker:boss
     He says it like a joke. Nobody laughs.
@@ -383,14 +427,17 @@ Nobody does. The enforcer goes back to the wall.
 // Board night, short: the watcher, at the tally house tonight.
 === c2day7_board ===
 The watcher's beside you, with the board's chalk.
-"Tomorrow?" #speaker:watcher
-You're going somewhere new tomorrow. Wherever the raiders are coming in from. But that isn't going on the board.
-+ [The sunk town]
-    ~ board_mark = "sunk town"
-    "The sunk town." #speaker:scavenger
-+ [The picked fields]
-    ~ board_mark = "fields"
-    "The picked fields." #speaker:scavenger
+"Tomorrow? Which square?" #speaker:watcher
+You're going somewhere new tomorrow. Wherever the raiders are coming in from. That isn't going on the board.
+And whatever square you name, they might hit.
++ [The hull, row two]
+    ~ board_mark = "hull"
+    "The hull. Row two." #speaker:scavenger
+    Close to the settlement. Plenty of pickers. Plenty of help, if they come.
++ [The ditch, row nine]
+    ~ board_mark = "ditch"
+    "The ditch. Row nine." #speaker:scavenger
+    Out past the mast. Hardly anybody digs it. If they come, there's hardly anybody to hurt.
 - He writes it down. He looks at you a moment longer than he needs to.
 ~ ambush_set = true
 ~ door_marked = true

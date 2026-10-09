@@ -125,6 +125,8 @@ export const swapYard: AreaDefinition = {
     // The lost picker's sister (if you told the bar the sunk town), or the son back from the deep ground.
     local('sister', 9, 300, FLOOR, ['morning'], { showIf: 'sister_here', flipX: true }),
     cast('boss_son', 330, FLOOR, { id: 'son-yard', when: ['morning'], showIf: 'son_in_yard', flipX: true }),
+    // The gambler, out of the den in daylight, looking for you (Day 7).
+    cast('gambler', 620, FLOOR, { id: 'gambler-yard', when: ['morning'], showIf: 'gambler_in_yard', flipX: true }),
     // Pickers waiting between the stalls on the way home from the tally (Day 7).
     local('mob-1', 10, 300, FLOOR, LATE, { showIf: 'ambush_set' }),
     local('mob-2', 0, 340, FLOOR, LATE, { showIf: 'ambush_set', flipX: true }),

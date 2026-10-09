@@ -355,6 +355,7 @@ VAR saw_brother7 = false
 VAR brother_asked = false
 // The den: the gambler at the debt wall, the house's men; your choice ("fought", "paid", "left"); the fight writes collectors_won.
 VAR den7 = false
+VAR gambler_in_yard = false
 VAR den7_seen = false
 VAR gambler_at_wall = false
 VAR collectors_here = false
