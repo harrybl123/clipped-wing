@@ -563,5 +563,5 @@ Tomorrow, you find out where they're coming in from. Before somebody in the yard
 ~ collectors_here = false
 ~ objective = ""
 ~ objective_target = ""
-You don't sleep. #wake:shack:382:184 #endday:Day 8
+You don't sleep. #wake:shack:382:184:c2day8_start #endday:Day 8
 -> END

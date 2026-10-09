@@ -67,6 +67,10 @@ export type Feature =
       face?: 1 | -1;
       /** A standing watch who glances back over his shoulder now and then: `tell` over his head first, then he looks the other way for `for` ms (with a longer reach, `range`), and someone may call him back round (`back`). */
       glance?: { every: number; for: number; range?: number; tell?: string; back?: { who: string; text: string } };
+      /** One of the borderland's cast keeping watch instead of the night watchman (a `CastId`, Chapter 2: the boss's son at dawn): no lantern, only where he's looking. */
+      who?: string;
+      /** Caught: this knot plays (once) instead of sending you back to `reset`. */
+      caught?: string;
     } // a watchman with a lantern on floor y, pacing from..to (pausing `pause` ms at each end) or, if from === to, standing and turning round every `pause` ms. He sees you if you're in his lantern's light (up to `range` px ahead, and no more than `see` px above him, default 60) and not in a shadow: you're sent back to `reset`. Only while showIf is true
   | { type: 'shadow'; x: number; y: number; width: number; crouch?: boolean; showIf?: string } // a dark doorway or nook on floor y, x..x+width: standing in it (or with `crouch`, crouching in it: low cover like a seed bed), the watch (or a quarry) can't see you
   | { type: 'mob'; delay: number; speed: number; showIf: string } // a crowd with torches that follows the exact path you took through the area (stairs, ledges, lifts alike), setting off `delay` ms after you arrive and walking at `speed` px/s. Stop too long and they catch you: you're thrown back to where you came in, and they start again. Only while showIf is true

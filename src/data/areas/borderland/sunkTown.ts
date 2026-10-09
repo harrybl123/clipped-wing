@@ -127,6 +127,8 @@ export const sunkTown: AreaDefinition = {
     { type: 'trigger', x: 60, y: SURFACE, reach: 50, knot: 'c2day7_sunk_arrive', showIf: 'dawn7', hideIf: 'dawn7_arrived' },
     { type: 'trigger', x: 600, y: floor(TUNNEL), reach: 30, knot: 'c2day7_nest', showIf: 'dawn7_arrived', hideIf: 'nest_found' },
     { type: 'trigger', x: 90, y: SURFACE, reach: 70, knot: 'c2day7_send_home', showIf: 'nest_done', hideIf: 'dawn7_home' },
+    // Day 8: back from the deep ground at midday, the dog sent home.
+    { type: 'trigger', x: 90, y: SURFACE, reach: 70, knot: 'c2day8_send_home', showIf: 'noon8', hideIf: 'sent_home8' },
     // Chapter 2, Day 3 (weeks later): working the sunk town with the dog. It finds what nobody else could.
     {
       type: 'seek', dog: 'dog-follow', range: 150, showIf: 'seeking',

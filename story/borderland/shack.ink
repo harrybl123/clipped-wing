@@ -45,6 +45,7 @@ The one on the end still glows a little at night. He calls it his light.
 { c2day1 == "home": -> c2day1_bed }
 { c2day6 == "home": -> c2day6_bed }
 { c2day7 == "home" && ambush_done: -> c2day7_bed }
+{ c2day8 == "home": -> c2day8_bed }
 { c2day7 == "home": -> c2day7_ambush_door }
 Not yet.
 -> END

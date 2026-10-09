@@ -79,6 +79,8 @@ export interface MoveDef {
   mob?: number;
   /** Hangs on: what it hits takes `power` harm at the start of each of the next `turns` rounds, unless it guards (a ticker's Latch). Never the last of their health. */
   clings?: { turns: number; power: number };
+  /** Shields everyone else on the user's side: they're guarding until their next turn (a drop guard's Ward, staff planted in front of the other). */
+  wards?: boolean;
 }
 
 export interface ItemDef {
@@ -252,6 +254,7 @@ export type BattleEvent =
   | { type: 'blinded'; target: string }
   | { type: 'sapped'; target: string }
   | { type: 'clung'; target: string }
+  | { type: 'warded'; target: string }
   | { type: 'gnawed'; target: string; amount: number; hp: number }
   | { type: 'drained'; target: string; amount: number; sp: number }
   | { type: 'braced'; actor: string }
@@ -594,6 +597,13 @@ export class Battle {
       for (const c of move.healsSide ? this.living(actor.side) : [actor]) {
         c.hp = Math.min(c.def.hp, c.hp + move.heals);
         events.push({ type: 'heal', target: c.id, hp: c.hp, sp: c.sp });
+      }
+    }
+    if (move.wards) {
+      for (const c of this.living(actor.side)) {
+        if (c === actor) continue;
+        c.guarding = true;
+        events.push({ type: 'warded', target: c.id });
       }
     }
     if (move.target === 'self' || !move.power) return events;

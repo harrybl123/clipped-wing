@@ -73,10 +73,17 @@ export const scrapStacks: AreaDefinition = {
     { sprite: P.PERCH, x: PERCH.x + 2, y: PERCH.y - 16 },
   ],
 
-  features: [],
+  features: [
+    // Chapter 2, Day 8, first light: the boss's son waiting at the foot of the stacks. Over the top, or he sees you.
+    { type: 'trigger', x: 40, y: FLOOR, reach: 30, knot: 'c2day8_stacks', showIf: 'stacks8', hideIf: 'son_met8' },
+    { type: 'watch', who: 'boss_son', from: 150, to: 400, y: FLOOR, speed: 24, range: 90, see: 50, pause: 1600, reset: { x: 40, y: FLOOR }, showIf: 'son_waiting', caught: 'c2day8_caught' },
+    { type: 'trigger', x: 600, y: FLOOR, reach: 20, knot: 'c2day8_slipped', showIf: 'son_waiting' },
+  ],
   people: [
     cast('old_scav', 360, FLOOR, { knot: 'scrap_stacks_old_scav', when: DAY, flipX: true }),
     cast('lookout', 504, PERCH.y, { knot: 'scrap_stacks_lookout', when: ['evening'] }),
+    // Day 8: the son, when he's caught you (he comes up beside you).
+    cast('boss_son', 300, FLOOR, { id: 'boss-son-dawn', when: ['morning'], showIf: 'son_confront' }),
     stroller('hauler-1', 1, 420, 600, FLOOR, DAY),
     stroller('hauler-2', 10, 60, 200, FLOOR, ['morning']),
   ],

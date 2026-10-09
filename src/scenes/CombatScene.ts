@@ -677,6 +677,13 @@ export class CombatScene extends Phaser.Scene {
           this.popLabel('BLINDED', t, SHADES.woodPale, 18);
           break;
         }
+        case 'warded': {
+          const t = this.views.get(e.target)!;
+          playSound(this, 'staff', 0.6);
+          this.popLabel('WARDED', t, SHADES.light, 18);
+          this.refresh();
+          break;
+        }
         case 'clung': {
           const t = this.views.get(e.target)!;
           playSound(this, 'scratch', 0.7);

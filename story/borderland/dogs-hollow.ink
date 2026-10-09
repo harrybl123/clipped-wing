@@ -18,6 +18,7 @@ From the rim you can see anyone coming a long way off. Nobody is.
 // --- People (draft) ---
 
 === dogs_hollow_dog ===
+{ c2day8 == "hollow": -> c2day8_hollow }
 { c2day2 == "hollow": -> c2day2_hollow }
 -> dog_pet
 

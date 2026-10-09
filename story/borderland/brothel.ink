@@ -24,6 +24,7 @@ Curtains. Low voices behind them. Not your business.
 
 === brothel_madam ===
 { c2day5 == "town" && not saw_brothel: -> c2day5_brothel }
+{ c2day8 == "brothel" && not saw_madam8: -> c2day8_madam }
 "Visiting, or working? You don't look like either." #speaker:madam
 "Everything said in this house stays in this house. Mostly." #speaker:madam
 -> END

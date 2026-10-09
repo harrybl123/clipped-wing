@@ -741,3 +741,65 @@ ENCOUNTERS.tickers = {
   timing: { lunge: 950, ease: 1.2 },
   outcomes: { won: { tickers_won: true }, lost: { tickers_won: false } },
 };
+
+// --- Chapter 2, Day 8: the son's rematch at dawn, and the drop's guards in the deep ground (draft numbers) ---
+
+Object.assign(MOVES, {
+  // The son, with a length of pipe this time, and nobody watching.
+  pipe: {
+    id: 'pipe', name: 'Pipe', target: 'enemy', power: 9, kind: 'strike',
+    qte: { kind: 'bar', time: 1050, zone: [0.6, 0.8], sweet: [0.68, 0.72], alt: { kind: 'side', time: 650, quick: 250 } },
+    tell: { pose: 'squared', lines: ['He swings the pipe loose from his wrist.', 'He grips the pipe in both hands.'] },
+    description: 'A length of pipe, swung hard.',
+  },
+  // The other clan's drop guards: staves, and they look after each other.
+  low_sweep: {
+    id: 'low_sweep', name: 'Low sweep', target: 'enemy', power: 7, kind: 'shove',
+    qte: { kind: 'side', time: 620, quick: 240, alt: { kind: 'weave', time: 650, quick: 260, gap: 520 } },
+    tell: { pose: 'cock', lines: ['The staff drops low, towards your ankles.', 'They crouch, staff level with the dirt.'] },
+    description: 'The staff along the ground, at your legs.',
+  },
+  ward: {
+    id: 'ward', name: 'Ward', target: 'self', wards: true,
+    tell: { pose: 'shift', lines: ['One plants the staff in front of the other.', 'They close up, staves crossed.'] },
+    description: 'Plants the staff in front of the other: they’re guarded until their next turn.',
+  },
+} satisfies Record<string, MoveDef>);
+
+/** The boss's son at dawn, with a pipe: the rematch nobody's betting on. */
+COMBATANTS.boss_son_pipe = {
+  id: 'boss_son_pipe', name: 'The boss’s son', sprite: 'boss_son', hp: 52, attack: 10, defence: 8, speed: 13,
+  moves: ['pipe', 'cheap_shot', 'showboat'], weights: [3, 2, 1.2],
+  weak: ['shove'], poise: 2, feint: 0.2,
+  ai: { opening: ['pipe', 'cheap_shot'], maxRepeat: 2, recent: 0.5, when: { foeHurt: { showboat: 2 } } },
+};
+
+/** Chapter 2, Day 8, dawn in the scrap stacks: the son caught you trying to slip past. You alone. Writes `rematch_won`. */
+ENCOUNTERS.son_rematch = {
+  id: 'son_rematch',
+  name: 'The boss’s son',
+  party: ['scavenger'],
+  enemies: ['boss_son_pipe'],
+  stage: 'yard',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { rematch_won: true }, lost: { rematch_won: false } },
+};
+
+/** One of the other clan's guards on the drop. */
+COMBATANTS.drop_guard = {
+  id: 'drop_guard', name: 'Drop guard', sprite: 'raider', hp: 34, attack: 9, defence: 9, speed: 11,
+  moves: ['thrust', 'low_sweep', 'ward'], weights: [2, 2, 1.2],
+  weak: ['grab'], poise: 1, feint: 0.15,
+  ai: { opening: ['low_sweep', 'thrust'], maxRepeat: 2, recent: 0.5, when: { hurt: { ward: 2 } } },
+};
+
+/** Chapter 2, Day 8, the deep ground: two of the other clan, come to check their drop. You and the dog. Writes `guards_won`. */
+ENCOUNTERS.drop_guards = {
+  id: 'drop_guards',
+  name: 'The drop',
+  party: ['scavenger', 'dog'],
+  enemies: ['drop_guard', 'drop_guard'],
+  stage: 'fields',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { guards_won: true }, lost: { guards_won: false } },
+};

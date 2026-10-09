@@ -105,7 +105,9 @@ export const swapYard: AreaDefinition = {
     { type: 'trigger', x: 1000, y: FLOOR, reach: 40, knot: 'c2day3_fence', showIf: 'day3_yard', hideIf: 'fence_met' },
     // Chapter 2, Day 7: the mark on your door; on the way home that night, your own people waiting.
     { type: 'trigger', x: 70, y: FLOOR, reach: 40, knot: 'c2day7_door', showIf: 'door_marked', hideIf: 'door_seen' },
-    { type: 'trigger', x: 430, y: FLOOR, reach: 30, knot: 'c2day7_ambush', showIf: 'ambush_night', hideIf: 'ambush_done' },{ type: 'fire', x: 355, y: FLOOR - 1 }],
+    { type: 'trigger', x: 430, y: FLOOR, reach: 30, knot: 'c2day7_ambush', showIf: 'ambush_night', hideIf: 'ambush_done' },
+    // Day 8: back at midday, the yard full of what came of the drop.
+    { type: 'trigger', x: 980, y: FLOOR, reach: 40, knot: 'c2day8_noon', showIf: 'noon8', hideIf: 'noon8_seen' },{ type: 'fire', x: 355, y: FLOOR - 1 }],
   people: [
     dogFollowing(1040, FLOOR),
     // Behind the stalls.

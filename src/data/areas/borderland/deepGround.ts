@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './deepGroundProps';
 import type { AreaDefinition } from '../types';
+import { dogFollowing, rival } from './people';
 
 // The deep ground (Chapter 2): forbidden and far out; the edge of what the borderland knows. Past the
 // last junk the ground changes: harder, darker, cut through with straight grooves that run away to the
@@ -45,8 +46,18 @@ export const deepGround: AreaDefinition = {
     ...[1190, 1260, 1330, 1390].map((x, i) => ({ sprite: P.post(i === 2), x, y: FLOOR - 72 })),
   ],
 
-  features: [],
-  people: [],
+  features: [
+    // Chapter 2, Day 8: out here with the dog, on the raiders' trail, to their drop under the fallen marker.
+    { type: 'trigger', x: 50, y: FLOOR, reach: 40, knot: 'c2day8_deep_arrive', showIf: 'going_deep8', hideIf: 'deep_arrived' },
+    { type: 'seek', dog: 'dog-follow', range: 220, showIf: 'seeking8', finds: [{ x: 1100, y: FLOOR, knot: 'c2day8_drop', done: 'drop_found', item: 'box' }] },
+  ],
+  people: [
+    dogFollowing(30, FLOOR),
+    // Day 8: the drop's guards, coming in from the posts; and (if you watch) the one who collects it.
+    rival('drop-guard-1', 0, 1392, FLOOR, ['morning'], { showIf: 'drop_guards_here' }),
+    rival('drop-guard-2', 1, 1396, FLOOR, ['morning'], { showIf: 'drop_guards_here' }),
+    rival('scout', 1, 1396, FLOOR, ['morning'], { showIf: 'scout_coming' }),
+  ],
 
   interactables: [
     { id: 'grooves', x: 500, y: FLOOR, reach: 30, label: 'Look', knot: 'deep_ground_grooves' },

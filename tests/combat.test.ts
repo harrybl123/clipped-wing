@@ -783,6 +783,15 @@ describe('Chapter 2: the scavenger, the dog and the stragglers', () => {
     expect(dog.clinging).toBe(0);
   });
 
+  it('Ward guards the other drop guard until its next turn', () => {
+    const b = new Battle(ENCOUNTERS.drop_guards!, MOVES, COMBATANTS, ITEMS, () => 0.5);
+    const [one, two] = b.living('enemy');
+    const events = (b as unknown as { strike: (a: unknown, m: MoveDef, t: unknown, o: object) => BattleEvent[] }).strike(one, MOVES.ward!, one, {});
+    expect(events.some((e) => e.type === 'warded')).toBe(true);
+    expect(two!.guarding).toBe(true);
+    expect(one!.guarding).toBe(false);
+  });
+
   it('Sniff shows every enemy\u2019s real move: no feints', () => {
     const tricky = { ...COMBATANTS, straggler_thin: { ...COMBATANTS.straggler_thin!, feint: 1 } };
     const fight = { ...ENCOUNTERS.stragglers!, party: ['dog'] };

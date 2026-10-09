@@ -19,6 +19,7 @@ import { DialogueBox } from '../ui/DialogueBox';
 import { paintArea } from '../ui/paintArea';
 import { FAR_SCROLL, farSize, paintFar, paintOutdoorNear } from '../ui/paintOutdoor';
 import { VILLAGERS, WATCHMAN } from '../ui/characters';
+import { CAST, type CastId } from '../ui/borderlandFolk';
 import { SHADES } from '../ui/pixelArt';
 import { duckScore, updateScore, type ScoreId } from '../ui/score';
 import { setMuted } from '../ui/soundSetting';
@@ -942,6 +943,11 @@ export class AreaScene extends Phaser.Scene {
         if (w.alarm <= 0) {
           w.alarm = null;
           w.callout.setVisible(false);
+          if (f.caught && !this.dialogue.isOpen) {
+            // Caught by someone who'll have it out with you there and then (the son at dawn).
+            this.dialogue.open(f.caught, () => this.conversationClosed());
+            continue;
+          }
           this.knockBack(f.reset);
           if (f.start !== undefined) {
             // Back to the start of the scene: he walks to his post again.
@@ -1012,7 +1018,7 @@ export class AreaScene extends Phaser.Scene {
       const range = w.glance === 'look' ? (f.glance?.range ?? f.range) : f.range;
       w.lantern.setPosition(lx, ly);
       // The lantern's light: a wedge spreading out ahead of him.
-      w.cone.clear().fillStyle(SHADES.amber, w.alarm !== null ? 0.28 : 0.13).fillTriangle(lx, ly, lx + w.dir * range, f.y - (f.see ?? WATCH_VIEW_Y), lx + w.dir * range, f.y + 2);
+      w.cone.clear().fillStyle(f.who ? SHADES.white : SHADES.amber, w.alarm !== null ? 0.28 : f.who ? 0.12 : 0.13).fillTriangle(lx, ly, lx + w.dir * range, f.y - (f.see ?? WATCH_VIEW_Y), lx + w.dir * range, f.y + 2);
       w.cone.fillTriangle(lx, ly, lx + w.dir * range, f.y + 2, lx, f.y + 2);
       if (w.alarm !== null || this.dialogue.isOpen || this.leaving) continue;
       const ahead = (px - w.image.x) * w.dir;
@@ -1021,7 +1027,7 @@ export class AreaScene extends Phaser.Scene {
       const seen = !inShadow && py <= f.y + 4 && f.y - py <= seeUp && ahead >= -8 && ahead <= range;
       if (seen) {
         w.alarm = 900;
-        w.callout.setText("Who's there?").setPosition(Math.round(w.image.x - w.callout.width / 2), f.y - 44).setVisible(true);
+        w.callout.setText(f.who ? 'There you are.' : "Who's there?").setPosition(Math.round(w.image.x - w.callout.width / 2), f.y - 44).setVisible(true);
         this.cameras.main.flash(300, 242, 180, 90);
       }
     }
@@ -2227,12 +2233,15 @@ export class AreaScene extends Phaser.Scene {
         break;
       }
       case 'watch': {
-        const idleKey = makeSpriteTexture(this, 'watchman-0', WATCHMAN.idle[0]!.rows, WATCHMAN.idle[0]!.colours);
-        const walkKeys = WATCHMAN.walk.map((f, i) => makeSpriteTexture(this, `watchman-walk-${i}`, f.rows, f.colours));
+        // (Chapter 2: one of the cast keeping watch, by daylight, without a lantern.)
+        const look = feature.who ? CAST[feature.who as CastId] : WATCHMAN;
+        const key = feature.who ? `watch-${feature.who}` : 'watchman';
+        const idleKey = makeSpriteTexture(this, `${key}-0`, look.idle[0]!.rows, look.idle[0]!.colours);
+        const walkKeys = (look.walk ?? look.idle).map((f, i) => makeSpriteTexture(this, `${key}-walk-${i}`, f.rows, f.colours));
         const start = feature.start ?? (feature.from === feature.to ? feature.from : Math.round((feature.from + feature.to) / 2));
         const image = this.add.image(start, feature.y, idleKey).setOrigin(0.5, 1).setDepth(9);
         this.soundscape.addEmitter('footsteps', () => (image.visible ? { x: image.x, y: image.y } : null), 90);
-        const lantern = this.add.rectangle(start, feature.y - 13, 3, 4, SHADES.amber).setStrokeStyle(1, SHADES.deep).setDepth(10);
+        const lantern = this.add.rectangle(start, feature.y - 13, 3, 4, SHADES.amber).setStrokeStyle(1, SHADES.deep).setDepth(10).setAlpha(feature.who ? 0 : 1);
         const cone = this.add.graphics().setDepth(7);
         const callout = new PixelText(this, 0, 0, '', { color: SHADES.amber, shadow: SHADES.shadow }).setDepth(21).setVisible(false);
         this.watchmen.push({ feature, image, lantern, cone, callout, dir: feature.face ?? 1, wait: feature.pause ?? WATCH_PAUSE, alarm: null, walkKeys, idleKey, step: 0, arrived: feature.start === undefined, glance: 'idle' });

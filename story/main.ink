@@ -371,8 +371,52 @@ VAR ambush_set = false
 VAR ambush_done = false
 VAR ambush_won = false
 VAR strap_cut = false
-// Chapter 2, Day 8 (not built yet).
+// Chapter 2, Day 8, digging (story/borderland/chapter2-day8.ink). Stages: dawn, hollow, deep, noon, search, brothel, home, done.
 VAR c2day8 = ""
+// Dawn: the son waiting at the foot of the scrap stacks; you slipped past, or he caught you (the fight writes rematch_won); he saw which way you went.
+VAR stacks8 = false
+VAR son_met8 = false
+VAR son_waiting = false
+VAR son_slipped = false
+VAR son_confront = false
+VAR rematch_won = false
+VAR son_saw = false
+// The deep ground with the dog: the drop (your square, midday; the girl's bead); its guards (the fight writes guards_won).
+VAR going_deep8 = false
+VAR deep_arrived = false
+VAR seeking8 = false
+VAR drop_found = false
+VAR has_bead = false
+VAR drop_guards_here = false
+VAR guards_won = false
+// The medium choice (design doc): "leave" (and watch the pickup: the scout), "take" (the note's yours now), "swap" (row five).
+VAR drop_choice = ""
+VAR has_note = false
+VAR scout_coming = false
+VAR scout_seen = false
+// Midday: back through the yard, what came of it; the dog home.
+VAR noon8 = false
+VAR noon8_seen = false
+VAR sent_home8 = false
+// The enforcer's search of your shack: coming; the things to hide (Act 1's evidence); what they found.
+VAR searchers_coming = false
+VAR search_started = false
+VAR searchers_in = false
+VAR evidence8_left = 0
+VAR ev_bed = false
+VAR ev_bowl = false
+VAR ev_hair = false
+VAR ev_note = false
+VAR found_bed = false
+VAR found_bowl = false
+VAR found_hair = false
+VAR found_note = false
+// The madam and the bead; the hostess on your friend.
+VAR saw_madam8 = false
+VAR madam_told = false
+VAR friend_lie_known = false
+// Chapter 2, Day 9 (not built yet).
+VAR c2day9 = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
@@ -405,6 +449,7 @@ INCLUDE borderland/chapter2-day4.ink
 INCLUDE borderland/chapter2-day5.ink
 INCLUDE borderland/chapter2-day6.ink
 INCLUDE borderland/chapter2-day7.ink
+INCLUDE borderland/chapter2-day8.ink
 INCLUDE borderland/picked-fields.ink
 INCLUDE borderland/shack.ink
 INCLUDE borderland/swap-yard.ink

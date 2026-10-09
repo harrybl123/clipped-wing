@@ -3,7 +3,7 @@ import { asleep, CAST_LOOKS } from '../../../ui/borderlandFolk';
 import * as P from './shackProps';
 import type { AreaDefinition } from '../types';
 import type { RowSprite } from '../../../ui/sprites';
-import { cast, dog } from './people';
+import { cast, dog, local } from './people';
 
 // Your shack (Chapter 2): home with your brother, on the settlement's outer edge. Small, cramped,
 // kept tidy by someone who's trying, built from whatever could be carried home. Ground floor: the door
@@ -29,6 +29,12 @@ const DOG_BED: RowSprite = {
 /** Your brother asleep, under a blanket like the one on his bed. */
 const BROTHER_ASLEEP = asleep(CAST_LOOKS.brother, S.amber);
 const LOFT = 184;
+/** The dog's bowl, cut from a casing (Day 8: to hide before the search). */
+const DOG_BOWL: RowSprite = { rows: ['bBBBBb', '.bbbb.'], colours: { b: S.woodPale, B: S.deep } };
+/** Grey hairs all over your blanket. */
+const DOG_HAIR: RowSprite = { rows: ['.h..h.h..', 'h.hh..h.h'], colours: { h: S.light } };
+/** Your satchel on the floor by the table, the drop's note in it. */
+const SATCHEL: RowSprite = { rows: ['.ssssss.', 'sSSSSSSs', 'sSSnSSSs', 'sSSSSSSs', '.ssssss.'], colours: { s: S.woodLight, S: S.amberDeep, n: S.light } };
 const TOP = 92;
 
 export const shack: AreaDefinition = {
@@ -94,13 +100,24 @@ export const shack: AreaDefinition = {
     { type: 'fire', x: 124, y: FLOOR - 9 },
     // Chapter 2, Day 2: coming home with the dog.
     { type: 'trigger', x: 96, y: FLOOR, reach: 30, knot: 'c2day2_home', showIf: 'going_home' },
+    // Chapter 2, Day 8: home just ahead of the enforcer's search.
+    { type: 'trigger', x: 96, y: FLOOR, reach: 30, knot: 'c2day8_search_start', showIf: 'searchers_coming', hideIf: 'search_started' },
   ],
   people: [
     // Your brother: up and about by day, asleep in the loft at night.
     // (Unless he's gone to live at the compound: big choice 1.)
     cast('brother', 214, FLOOR, { knot: 'shack_brother', when: ['morning', 'evening'], flipX: true, hideIf: 'brother_moved' }),
     // The dog's bed by the floor panel, once it's yours (made a person so the story can bring it in).
-    { id: 'dog-bed', sprite: DOG_BED, x: 300, y: FLOOR, showIf: 'dog_owned', knot: 'shack_dog_bed', label: 'Look' },
+    { id: 'dog-bed', sprite: DOG_BED, x: 300, y: FLOOR, showIf: 'dog_owned', hideIf: 'search_started', knot: 'shack_dog_bed', label: 'Look' },
+    // Day 8: the search. The dog's things to hide (people, so the story can show and take them), the searchers, your brother in the doorway.
+    { id: 'ev-bed', sprite: DOG_BED, x: 300, y: FLOOR, showIf: 'ev_bed', knot: 'c2day8_hide_bed', label: 'Hide' },
+    { id: 'ev-bowl', sprite: DOG_BOWL, x: 334, y: FLOOR, showIf: 'ev_bowl', knot: 'c2day8_hide_bowl', label: 'Hide' },
+    { id: 'ev-hair', sprite: DOG_HAIR, x: 376, y: LOFT, showIf: 'ev_hair', knot: 'c2day8_hide_hair', label: 'Hide' },
+    { id: 'ev-note', sprite: SATCHEL, x: 150, y: FLOOR, showIf: 'ev_note', knot: 'c2day8_hide_note', label: 'Hide' },
+    cast('brother', 168, FLOOR, { id: 'brother-search', when: ['afternoon'], showIf: 'searchers_coming', hideIf: 'brother_moved' }),
+    cast('enforcer', 110, FLOOR, { id: 'enforcer-search', when: ['afternoon'], showIf: 'searchers_in' }),
+    local('searcher-1', 7, 140, FLOOR, ['afternoon'], { showIf: 'searchers_in' }),
+    local('searcher-2', 8, 196, FLOOR, ['afternoon'], { showIf: 'searchers_in', flipX: true }),
     // Asleep in his bed at night, under the blanket, one arm hanging off the edge (designer: he floated
     // beside it). Laid over the bed: its left edge on the bed's (x is the middle, the bottom its bottom).
     // Chapter 2, Day 2: the dog, home, nosing about the place before it goes under the floor.
