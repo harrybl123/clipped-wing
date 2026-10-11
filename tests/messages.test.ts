@@ -1,6 +1,5 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { compileInk } from '../scripts/ink.mjs';
+import { storyJson } from './compiledStory';
 import { glossaryVariable, MESSAGES, REPLY_SETS, scratches } from '../src/data/messages';
 import { StoryBridge } from '../src/systems/StoryBridge';
 import { comparable, SymbolMatcher } from '../src/systems/SymbolMatcher';
@@ -39,8 +38,7 @@ describe.each(Object.values(MESSAGES))('message $id', (message) => {
   });
 
   it('has a glossary variable in ink for every symbol', () => {
-    const result = compileInk();
-    const story = new StoryBridge(readFileSync(result.outFile, 'utf8'));
+    const story = new StoryBridge(storyJson());
     for (const s of message.symbols) if (!s.given) expect(story.variableNames()).toContain(glossaryVariable(s.id));
   });
 });
@@ -80,7 +78,7 @@ describe('message 3', () => {
 
 describe('replies', () => {
   it('offers three (or one fixed) well-formed pictures per set, each filling a variable that exists in ink', () => {
-    const story = new StoryBridge(readFileSync(compileInk().outFile, 'utf8'));
+    const story = new StoryBridge(storyJson());
     for (const [id, set] of Object.entries(REPLY_SETS)) {
       expect([1, 3], id).toContain(set.options.length); // three to choose from, or one fixed picture
       expect(story.variableNames()).toContain(set.variable);

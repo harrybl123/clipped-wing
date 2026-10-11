@@ -39,14 +39,27 @@ They look at each other, the way boys do when they've already decided, and they'
 The shack's quiet. Your brother's old blanket's still on his bed. You haven't moved it.
 -> c2day10_knock
 
-// The boss comes to you (so the dog stays out of sight of the town).
+// The boss comes to you (so the dog stays out of sight of the town). Scene by scene (designer): you answer
+// the door, he comes in, you call the dog up, it goes to him.
 === c2day10_knock ===
-A knock. Not a runner's knock: slow, and heavy, and patient.
+~ brother_dawn10 = false
+~ knock10 = true
+A knock at the door. Not a runner's knock: slow, and heavy, and patient. #sound:pound
+~ objective = "Answer the door"
+~ objective_target = "shack:door"
+-> END
+
+=== c2day10_boss_in ===
+~ boss_in10 = true
+~ objective = ""
+~ objective_target = ""
 ~ boss_visit10 = true
 ~ son_visit10 = true
+You open it. #sound:latch
 The boss. In your doorway, in his long coat, with his son behind him carrying his stick.
 "May I?" #speaker:boss
-He doesn't wait. He has to stoop to get in. He looks round your shack like a man looking round a room he used to live in. #move:boss-shack10:150
+He doesn't wait. He has to stoop to get in. #route:boss-shack10:in:35
+He walks slowly round your shack, looking at everything, like a man looking round a room he used to live in.
 { boss_knows_dog:
     "Your brother can't stop talking about it. I thought I'd come and see for myself, before I go mad with wanting to." #speaker:boss
 - else:
@@ -62,6 +75,7 @@ He doesn't wait. He has to stoop to get in. He looks round your shack like a man
     }
 }
 "A dog. Out here. Let me see it. I won't tell a soul. I keep secrets. It's what I'm for." #speaker:boss
+He looks at the panel in your floor. He knew where to look.
 ~ objective = "Call " + dog_name
 ~ objective_target = "shack:floor-panel"
 -> END
@@ -69,14 +83,15 @@ He doesn't wait. He has to stoop to get in. He looks round your shack like a man
 === c2day10_call_dog ===
 ~ boss_growled10 = true
 ~ knows_boss = true
-~ dog_home = true
-You lift the panel. {dog_name} comes up out of the hole, low, and shakes itself, and looks at the stranger in its house. #beside:dog-home:20:walk
+~ dog_up10 = true
+You lift the panel. {dog_name} comes up out of the hole, low, and shakes itself, and looks at the stranger in its house.
 "Oh. Oh, look at you." #speaker:boss
-He crouches, slowly, the way a big man does, and holds out his hand.
-{dog_name} goes to it. Sniffs his fingers. His sleeve. His coat.
+He comes over, slowly, and lowers himself onto his heels the way a big man does, and holds out his hand. #beside:boss-shack10:-40:walk
+{dog_name} goes to it. #beside:dog-up10:-22:walk
+It sniffs his fingers. His sleeve. His coat. #face:dog-up10:boss-shack10
 And stops.
 Its hackles go up, all down its back. #shake
-"Grrrrr..." #speaker:dog #bark:dog-home:GRRRR:growl #dim:on
+"Grrrrr..." #speaker:dog #bark:dog-up10:GRRRR:growl #dim:on
 You know that growl. You heard it in the deep ground, over the drop under the marker stone.
 { drop_choice == "take" && found_note:
     It's got its nose against his coat. The inside pocket. Where he put your note.
@@ -94,12 +109,14 @@ He laughs, and stands, and brushes his knees.
 - else:
     "Oh. And that business at the ditch. They say you were out at the line that night. I told them you were on my business." #speaker:boss
 }
-He goes. #leave:boss-shack10:70:40
+He goes, ducking out under your door. #leave:boss-shack10:64:40
 ~ boss_visit10 = false
 His son doesn't, not at once. He's looking at you. At the dog. At the door his father went out of.
 "What did it smell?" #speaker:boss_son
-You don't answer. He goes after his father. #leave:son-shack10:70:60
+You don't answer. He goes after his father. #leave:son-shack10:62:60
 ~ son_visit10 = false
+{dog_name} stands looking at the door a long time. Then it goes back down the hole under the floor, and won't come up. #leave:dog-up10:275:40
+~ dog_up10 = false
 ~ c2day10 = "brother"
 { brother_moved: -> c2day10_circle_come }
 ~ stacks10 = true
@@ -150,27 +167,30 @@ And then your brother's at the door. In his strap, with two of the circle behind
 "I asked him! I asked the boss, and he said yes!" #speaker:brother
 "Asked him what?" #speaker:scavenger
 "To keep {dog_name} safe. At the compound. With me. Nobody'll ever find it there. These two are to help carry it." #speaker:brother
-The two of the circle look past him, at the dog. One of them's got a sack.
+The two of the circle look past him, at the panel in your floor. One of them's got a sack.
 "No." #speaker:scavenger
 "It's the boss! He said!" #speaker:brother
 "Step aside, girl." #speaker:collector #name:One of the circle
-"Grrrr." #speaker:dog #bark:dog-home:GRRR:growl
-{dog_name} comes and stands with you. #combat:circle_men_dog:c2day10_after_circle
+~ dog_up10 = true
+Under the floor, a growl. The panel lifts, and {dog_name} comes up out of the hole, and stands with you. #show:dog-up10 #beside:dog-up10:20:walk
+"Grrrr." #speaker:dog #bark:dog-up10:GRRR:growl #combat:circle_men_dog:c2day10_after_circle
 -> END
 
 === c2day10_after_circle ===
 { circle_won10:
     They go back out of your door with the empty sack, and your brother between them.
 - else:
-    They've got the sack over {dog_name}'s head, and it twists, and bites, and it's out, and down the hole under the floor before they can get it back. They leave cursing, with your brother between them.
+    They've got the sack over {dog_name}'s head, and it twists, and bites, and it's out, and down the hole under the floor before they can get it back. #leave:dog-up10:275:120
+    They leave cursing, with your brother between them.
 }
 "You hit them. They're the boss's. You hit the boss's men." #speaker:brother
 "He's not what you think he is." #speaker:scavenger
 "You're just jealous! He said you'd be like this! He said!" #speaker:brother
+~ dog_up10 = false
 He goes with them. He doesn't look back. #leave:brother-circle10:70:60 #leave:circle-shack-1:70:60 #leave:circle-shack-2:70:60
 ~ circle_shack10 = false
 { circle_won10:
-    {dog_name} pushes its head under your hand, and leaves it there.
+    {dog_name} pushes its head under your hand, and leaves it there. Then it goes back down under the floor. #leave:dog-up10:275:40
 }
 -> c2day10_to_yard
 
@@ -358,7 +378,8 @@ When he's gone, the scout comes to the wire. They knew you'd be there. #beside:s
 "Whose hair was that?" #speaker:scavenger
 "His daughter's." #speaker:scout
 ~ knows_why = true
-"Years back, when your clan and mine made the truce, he gave her to us. To seal it. A boss's own child, so nobody would break it." #speaker:scout
+"Years back, when the war between your clan and mine had gone on so long there was nobody left to dig, there was a truce. Our boss wouldn't sign it without a hostage. Not a picker. His. A boss's own child, so he'd never break it." #speaker:scout
+"Your old ones made him do it. It was his girl or the war, and everybody's children in it. They say he carried her to the cairn himself, and then sat down in the dip and wouldn't get up."
 "She's alive. She's grown. Our boss keeps her, and every time yours wants to see a lock of her hair, he brings us your squares." #speaker:scout
 "Every secret he sells keeps her breathing." #speaker:scout
 "And you're the one he's picked to hang for it. Like the girl before you." #speaker:scout
@@ -378,11 +399,14 @@ They go back into the dark. #leave:scout-cairn10:900:70
 ~ night10_seen = true
 ~ dog_with_you = false
 ~ enforcer_night10 = true
-~ dog_home = true
-~ dog_with_you = false
 The door's open. It was shut when you left. #time:night
 The enforcer's sitting at your table, in the dark, with two of the circle standing behind him.
-{dog_name} comes up out of the hole under the floor, and sees them, and stands between you and them. #beside:dog-home:20:walk
+{ dog_with_you:
+    {dog_name} pushes past your legs, and puts itself between you and them, low, its lips back off its teeth. #beside:dog-follow:20:walk
+- else:
+    ~ dog_up10 = true
+    The panel in the floor lifts. {dog_name} comes up out of the hole, and sees them, and stands between you and them. #show:dog-up10 #beside:dog-up10:20:walk
+}
 "There she is." #speaker:enforcer
 "The boss says you're the rat. He's got the proof." #speaker:enforcer
 { found_note:
@@ -434,8 +458,11 @@ He comes and stands beside you. On your other side, {dog_name}, growling. #besid
     You're on the floor with the enforcer's knee in your back. The son's beside you, the same, his pipe kicked away into the corner.
     And torches in the lane. Half the circle, and half the yard behind them.
 }
-{dog_name} goes for the nearest leg in the door, and bites, and then it's out between their feet and into the dark. #leave:dog-home:-30:150
-~ dog_home = false
+{ dog_with_you:
+    {dog_name} goes for the nearest leg in the door, and bites, and then it's out between their feet and into the dark. #leave:dog-follow:30:150
+- else:
+    {dog_name} goes for the nearest leg in the door, and bites, and then it's out between their feet and into the dark. #leave:dog-up10:30:150
+}
 ~ dog_ran10 = true
 Nobody catches it. Nobody even sees which way it went.
 They take you by the arms. They take the son by the arms too, and he lets them, and he looks at nobody.
@@ -447,6 +474,8 @@ They take you by the arms. They take the son by the arms too, and he lets them, 
 ~ friend_back10 = friend_choice == "reported"
 ~ brother_brand10 = brother_moved
 They walk you up the lane, through the yard, with the whole settlement coming out of their doors to watch. #goto:tally-house:120:236:c2day10_tally
+~ dog_with_you = false
+~ dog_up10 = false
 -> END
 
 // --- Night, the tally house: in front of everyone (designer) ---

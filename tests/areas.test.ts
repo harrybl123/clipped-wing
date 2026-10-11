@@ -1,6 +1,5 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { compileInk } from '../scripts/ink.mjs';
+import { compiledInk, storyJson } from './compiledStory';
 import { ON_FOOT } from '../src/data/access';
 import { AREA_NAMES, AREAS, INSIDE_AREAS, PLANNED_AREAS } from '../src/data/areas';
 import type { AreaDefinition } from '../src/data/areas/types';
@@ -9,9 +8,9 @@ import type { RowSprite } from '../src/ui/sprites';
 
 /** Compiles the real story via the project script, so INCLUDEs resolve relative to story/. */
 function compileStory(): StoryBridge {
-  const result = compileInk();
+  const result = compiledInk();
   if (!result.ok) throw new Error(result.errors.join('\n'));
-  return new StoryBridge(readFileSync(result.outFile, 'utf8'));
+  return new StoryBridge(storyJson());
 }
 
 function spritesOf(area: AreaDefinition): [string, RowSprite][] {

@@ -14,15 +14,17 @@ const ENTRY_FILE = 'main.ink';
 const OUT_FILE = resolve(PROJECT_ROOT, 'src/generated/main.ink.json');
 
 /**
- * @typedef {{ ok: boolean, errors: string[], warnings: string[], outFile: string }} InkResult
+ * @typedef {{ ok: boolean, errors: string[], warnings: string[], outFile: string, json?: string }} InkResult
  */
 
 /**
  * Compiles the story and writes the JSON. On failure nothing is written, so the last
  * good JSON stays in place (the dev server keeps running the previous version).
+ * With `write: false` (the tests) it only returns the JSON, so it never races the dev server writing the file.
+ * @param {{ write?: boolean }} [options]
  * @returns {InkResult}
  */
-export function compileInk() {
+export function compileInk({ write = true } = {}) {
   const entryPath = resolve(STORY_DIR, ENTRY_FILE);
   const fileHandler = {
     /** @param {string} filename */
@@ -54,9 +56,11 @@ export function compileInk() {
     return { ok: false, errors, warnings, outFile: OUT_FILE };
   }
 
-  mkdirSync(dirname(OUT_FILE), { recursive: true });
-  writeFileSync(OUT_FILE, /** @type {string} */ (json));
-  return { ok: true, errors, warnings, outFile: OUT_FILE };
+  if (write) {
+    mkdirSync(dirname(OUT_FILE), { recursive: true });
+    writeFileSync(OUT_FILE, /** @type {string} */ (json));
+  }
+  return { ok: true, errors, warnings, outFile: OUT_FILE, json: /** @type {string} */ (json) };
 }
 
 /**

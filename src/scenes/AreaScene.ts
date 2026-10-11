@@ -485,11 +485,15 @@ export class AreaScene extends Phaser.Scene {
 
     // Who's here depends on the time of day and the story; refresh when either changes.
     this.refreshPeople();
-    this.events.on('calendar-changed', () => {
+    // (Removed when the scene shuts down: otherwise every area you'd been through kept listening, and an
+    // outdoor area's listener repainted the sky in a room with none, and the game froze on a black screen.)
+    const calendarChanged = () => {
       if (area.outdoor) this.paintOutdoor();
       this.refreshPeople();
       this.refreshObjective();
-    });
+    };
+    this.events.on('calendar-changed', calendarChanged);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off('calendar-changed', calendarChanged));
 
     const solids = this.physics.add.staticGroup();
     for (const s of area.solids) {
@@ -1462,9 +1466,13 @@ export class AreaScene extends Phaser.Scene {
           break;
         case 'leave':
           // #leave:<id>:<x>[:<speed>]: they go (run, at a speed above 50) to x on their floor, and are gone.
+          // (They finish walking off even if the story stops showing them meanwhile: nobody vanishes mid-stride.)
           if (entry) {
             entry.scripted = true;
+            entry.racing = true;
+            entry.image.setVisible(true);
             this.walkTo(entry, Number(args[1]), Number(args[2] ?? 70), () => {
+              entry.racing = false;
               entry.scriptHidden = true;
               entry.image.setVisible(false);
             });
@@ -1477,6 +1485,13 @@ export class AreaScene extends Phaser.Scene {
             this.floatText(words, entry.image.x, entry.image.y - entry.image.height - 12, SHADES.white);
             if (sound && (SOUND_IDS as readonly string[]).includes(sound)) this.soundscape.play(sound as SoundId);
           }
+          break;
+        }
+        case 'face': {
+          // #face:<id>:<other id or x>: they turn to face someone (or a spot).
+          const other = args[1] ? this.people.get(args[1]) : undefined;
+          const x = other ? other.image.x : Number(args[1]);
+          if (entry && !Number.isNaN(x)) entry.image.setFlipX(x < entry.image.x);
           break;
         }
         case 'route': {

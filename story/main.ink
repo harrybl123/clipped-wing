@@ -466,6 +466,9 @@ VAR brother_dawn10 = false
 VAR boss_visit10 = false
 VAR son_visit10 = false
 VAR boss_growled10 = false
+VAR knock10 = false
+VAR boss_in10 = false
+VAR dog_up10 = false // the dog up out of the hole under your floor (Day 10)
 // What you know at the end (Part 5's endings): it's the boss (always); a witness (your brother, at home); why
 // (his daughter, if you let the scout go); the watcher with you (if he respects you).
 VAR knows_boss = false

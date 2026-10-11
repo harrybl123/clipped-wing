@@ -1,22 +1,22 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { Story } from 'inkjs';
 import { describe, expect, it } from 'vitest';
-import { compileInk } from '../scripts/ink.mjs';
+import { compiledInk, storyJson } from './compiledStory';
 
 describe('ink pipeline', () => {
   it('compiles story/main.ink to JSON the runtime can load', () => {
-    const result = compileInk();
+    const result = compiledInk();
     expect(result.errors).toEqual([]);
     expect(result.ok).toBe(true);
 
-    const story = new Story(readFileSync(result.outFile, 'utf8'));
+    const story = new Story(storyJson());
     expect(story.variablesState['suspicion']).toBe(0);
     expect(story.variablesState['food_store']).toBe(8);
     expect(story.variablesState['dialogue_style']).toBe('');
   });
 
   it('has Mum ask how you are the first time, and remembers your dialogue style', () => {
-    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const story = new Story(storyJson());
     story.ChoosePathString('home_mum');
     expect(story.ContinueMaximally()).toContain('How are you feeling');
     expect(story.currentChoices).toHaveLength(3);
@@ -28,7 +28,7 @@ describe('ink pipeline', () => {
   });
 
   it('has a prologue ending in #end', () => {
-    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const story = new Story(storyJson());
     story.ChoosePathString('prologue');
     let tags: string[] = [];
     while (story.canContinue) {
@@ -39,7 +39,7 @@ describe('ink pipeline', () => {
   });
 
   it('plays Day 2 through: the rite, two visits, the rejection, the fire, the decoding and the choice', () => {
-    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const story = new Story(storyJson());
     const v = story.variablesState;
     const play = (knot: string, ...choices: number[]) => {
       story.ChoosePathString(knot);
@@ -92,7 +92,7 @@ describe('ink pipeline', () => {
   });
 
   it('plays Day 3 through: the carving, the rite, the girl, the window, the second rejection, hiding, confiding', () => {
-    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const story = new Story(storyJson());
     const v = story.variablesState;
     const play = (knot: string, ...choices: number[]) => {
       story.ChoosePathString(knot);
@@ -139,7 +139,7 @@ describe('ink pipeline', () => {
   });
 
   it('on Day 4, if you answered a day late, you send the fledgling, and message 3 comes back with message 2 folded in', () => {
-    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const story = new Story(storyJson());
     const v = story.variablesState;
     const play = (knot: string, ...choices: number[]) => {
       story.ChoosePathString(knot);
@@ -170,7 +170,7 @@ describe('ink pipeline', () => {
   });
 
   it('plays Day 4 through: the summons, the reply, the shrine, the market, the girl, the ritual, message 3, the night', () => {
-    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const story = new Story(storyJson());
     const v = story.variablesState;
     const play = (knot: string, ...choices: number[]) => {
       story.ChoosePathString(knot);
@@ -233,7 +233,7 @@ describe('ink pipeline', () => {
 
   describe('Day 5', () => {
     const start = (truth: boolean) => {
-      const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+      const story = new Story(storyJson());
       const v = story.variablesState;
       const play = (knot: string, ...choices: number[]) => {
         story.ChoosePathString(knot);
@@ -315,7 +315,7 @@ describe('ink pipeline', () => {
 
   describe('Day 6', () => {
     const play6 = (seed: 'healthy' | 'roots') => {
-      const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+      const story = new Story(storyJson());
       const v = story.variablesState;
       const play = (knot: string, ...choices: number[]) => {
         story.ChoosePathString(knot);
@@ -385,7 +385,7 @@ describe('ink pipeline', () => {
 
   describe('Day 7', () => {
     const start = (vars: Record<string, string | number | boolean>) => {
-      const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+      const story = new Story(storyJson());
       const v = story.variablesState;
       const play = (knot: string, ...choices: number[]) => {
         story.ChoosePathString(knot);
@@ -480,7 +480,7 @@ describe('ink pipeline', () => {
   });
 
   it('on Day 4, holding back at the market skips the fight, and winning it raises suspicion', () => {
-    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const story = new Story(storyJson());
     const v = story.variablesState;
     v['day4'] = 'market';
     story.ChoosePathString('market_mum');
@@ -502,7 +502,7 @@ describe('ink pipeline', () => {
   });
 
   it('on Day 4 night, the beetles in the deep rot start the fight once, and the story carries on either way', () => {
-    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const story = new Story(storyJson());
     const v = story.variablesState;
     const run = (knot: string) => {
       story.ChoosePathString(knot);
@@ -543,7 +543,7 @@ describe('ink pipeline', () => {
   });
 
   it('ends the game loyally if you ignore the message a second time', () => {
-    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const story = new Story(storyJson());
     story.variablesState['reply1'] = 'usual';
     story.ChoosePathString('day3_second_choice');
     story.ContinueMaximally();
@@ -567,7 +567,7 @@ describe('ink pipeline', () => {
   });
 
   it('has the market turn on you as the week goes on', () => {
-    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const story = new Story(storyJson());
     const say = (day: number) => {
       for (let d = 2; d <= 7; d++) story.variablesState[`day${d}`] = d <= day ? 'wake' : '';
       story.ChoosePathString('market_food_seller');
@@ -580,7 +580,7 @@ describe('ink pipeline', () => {
   });
 
   it('says how the bird turned out from the slips while carving', () => {
-    const story = new Story(readFileSync(compileInk().outFile, 'utf8'));
+    const story = new Story(storyJson());
     const verdict = (flaws: number) => {
       story.variablesState['carve_flaws'] = flaws;
       story.ChoosePathString('day3_rite');

@@ -102,6 +102,8 @@ export const shack: AreaDefinition = {
     { type: 'trigger', x: 96, y: FLOOR, reach: 30, knot: 'c2day2_home', showIf: 'going_home' },
     // Chapter 2, Day 8: home just ahead of the enforcer's search.
     { type: 'trigger', x: 96, y: FLOOR, reach: 30, knot: 'c2day8_search_start', showIf: 'searchers_coming', hideIf: 'search_started' },
+    // Day 10, dawn: the knock; you answer it and the boss comes in.
+    { type: 'trigger', x: 96, y: FLOOR, reach: 30, knot: 'c2day10_boss_in', showIf: 'knock10', hideIf: 'boss_in10' },
     // Day 10, night: the enforcer's waiting inside.
     { type: 'trigger', x: 96, y: FLOOR, reach: 30, knot: 'c2day10_night', showIf: 'night10', hideIf: 'night10_seen' },
     // (Home round the back without coming through the yard: the noise outside brings you out to it.)
@@ -111,8 +113,10 @@ export const shack: AreaDefinition = {
     // Chapter 2, Day 10. Dawn: your brother and the kid, back from the stacks; the boss and his son, come to meet the dog.
     cast('brother', 112, FLOOR, { id: 'brother-dawn10', when: ['morning'], showIf: 'brother_dawn10' }),
     cast('lookout', 134, FLOOR, { id: 'lookout-dawn10', when: ['morning'], showIf: 'brother_dawn10' }),
-    cast('boss', 84, FLOOR, { id: 'boss-shack10', when: ['morning'], showIf: 'boss_visit10', flipX: true }),
-    cast('boss_son', 66, FLOOR, { id: 'son-shack10', when: ['morning'], showIf: 'son_visit10' }),
+    cast('boss', 70, FLOOR, { id: 'boss-shack10', when: ['morning'], showIf: 'boss_visit10' }),
+    cast('boss_son', 62, FLOOR, { id: 'son-shack10', when: ['morning'], showIf: 'son_visit10' }),
+    // The dog, up out of the hole under the floor and back down it (Day 10: so it comes and goes where it lives).
+    dog(275, FLOOR, { id: 'dog-up10', showIf: 'dog_up10' }),
     // (At the compound) your brother brings two of the circle for the dog.
     cast('brother', 112, FLOOR, { id: 'brother-circle10', when: ['morning', 'afternoon'], showIf: 'circle_shack10' }),
     local('circle-shack-1', 7, 92, FLOOR, ['morning', 'afternoon'], { showIf: 'circle_shack10' }),
@@ -157,6 +161,11 @@ export const shack: AreaDefinition = {
     { id: 'collection', x: 292, y: LOFT, reach: 12, label: 'Look', knot: 'shack_collection' },
     { id: 'bed', x: 382, y: LOFT, reach: 18, label: 'Sleep', knot: 'shack_bed' },
   ],
+
+  routes: {
+    // Day 10: the boss, in at your door and slowly round your shack, looking at everything.
+    in: [{ x: 110, y: FLOOR }, { x: 236, y: FLOOR }, { x: 180, y: FLOOR }],
+  },
 
   exits: [
     { id: 'door', x: 70, y: FLOOR, reach: 10, to: 'swap-yard' },

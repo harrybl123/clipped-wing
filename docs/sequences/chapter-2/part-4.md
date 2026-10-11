@@ -69,3 +69,12 @@ Designer: build it; the brand is at the tally house, in front of everyone; if yo
 7. **The tally house, in front of everyone:** the boss at the counter; your brother at his side (compound) or not there (taken); the son held by the door; the watcher looking at the boss (if he's with you); your friend (reported) pushes through: "Traitor!", and you know who it really was. The sentence: the brand at first light, and out past the tree's edge. Part 5 next.
 
 Not yet: the gambler's chain as a move; placeholder sprites for the enforcer and the circle's men.
+
+### After the first Day 10 playtest
+
+Designer: the boss's visit should play out scene by scene; the dog was already out when you went back for it; the boss should have been forced to give his daughter up; a freeze going home in the evening; make it clear **why** he did it, eventually (bear in mind for Part 5).
+
+- The knock: you answer the door (a trigger by it); he comes in and walks slowly round your shack (`#route`); you call the dog up out of the floor (`dog-up10`, its own figure, up out of the hole and back down it); he comes over and holds out his hand; the dog goes to him, sniffs (`#face`), growls. After he's gone, it goes back down the hole, so it's under the floor when you come back for it.
+- The daughter: the truce wasn't his idea: the other clan's boss wouldn't sign without a boss's own child as a hostage, and your clan's old ones made him choose, his girl or the war.
+- **For Part 5 (designer):** everyone should come to understand why he did it by the end, not only those who let the scout go (who learn it here).
+- Fixed: people walking off (`#leave`) finish their walk even if the story stops showing them; a time change indoors after coming in from outdoors froze the game on a black screen (an old area's listener was still attached).
