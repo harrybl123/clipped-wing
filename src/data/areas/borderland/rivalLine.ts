@@ -75,6 +75,17 @@ export const rivalLine: AreaDefinition = {
     // Day 10 (if you let the scout go): the line at nightfall; up to the wire once he's gone under it.
     { type: 'trigger', x: 50, y: FLOOR, reach: 40, knot: 'c2day10_line_arrive', showIf: 'cairn10', hideIf: 'line10_seen' },
     { type: 'trigger', x: 540, y: FLOOR, reach: 24, knot: 'c2day10_cairn', showIf: 'boss_crossed10', hideIf: 'cairn10_seen' },
+    // Day 10: tailing him from your post to the dip (designer: he should notice if you get close). He stops and
+    // looks back; get down in the dark (the dug hole, the coil, the wire's foot, behind your sign) or he sees you.
+    {
+      type: 'quarry', people: ['boss-line10'], y: FLOOR,
+      path: [{ x: 16 }, { x: 230, wait: 2200, look: true }, { x: 330, wait: 2400, look: true }, { x: 460, wait: 2600, look: true }, { x: 574, wait: 2200, look: true }, { x: 592 }],
+      speed: 24, range: 120, lose: 260, reset: { x: POST.x + 24, y: POST.y }, showIf: 'tail10', done: 'boss_crossed10',
+    },
+    { type: 'shadow', x: 270, y: FLOOR, width: 26, crouch: true },
+    { type: 'shadow', x: 334, y: FLOOR, width: 24, crouch: true },
+    { type: 'shadow', x: 408, y: FLOOR, width: 24, crouch: true },
+    { type: 'shadow', x: 528, y: FLOOR, width: 28, crouch: true },
   ],
   people: [
     // Our side's watch, by the post (not on Day 9: you're the watch).
@@ -91,7 +102,9 @@ export const rivalLine: AreaDefinition = {
     rival('scout-free', 1, 572, FLOOR, ['night'], { showIf: 'letgo9' }),
     dogFollowing(30, FLOOR),
     // Day 10: the boss along the track and under the fence; the scout at the cairn.
-    cast('boss', 16, FLOOR, { id: 'boss-line10', when: ['evening', 'night'], showIf: 'boss_at_line10' }),
+    // (Along the track under your post, and on to the dip, tailed; then at the cairn.)
+    cast('boss', 16, FLOOR, { id: 'boss-line10', when: ['night'], showIf: 'tail10' }),
+    cast('boss', 780, FLOOR, { id: 'boss-cairn10', when: ['night'], showIf: 'cairn_meet10', flipX: true }),
     rival('scout-cairn10', 1, 760, FLOOR, ['night'], { showIf: 'cairn_meet10', flipX: true }),
     dogLeading(200, FLOOR), // Day 9: on the scout's scent
     // Theirs, by their fire across the line.
@@ -112,7 +125,6 @@ export const rivalLine: AreaDefinition = {
     // Day 9: the dog on the scout's scent, from under the post back along the track.
     scent: [{ x: 200, y: FLOOR }, { x: 150, y: FLOOR }, { x: 96, y: FLOOR }, { x: 44, y: FLOOR }, { x: 18, y: FLOOR }],
     // Day 10: the boss, along the track, down into the dip, under the fence and up to the cairn; and back.
-    'boss-in': [{ x: 578, y: FLOOR }, { x: 600, y: DIP.floor }, { x: 622, y: DIP.floor }, { x: 650, y: FLOOR }, { x: 780, y: FLOOR }],
     'boss-out': [{ x: 650, y: FLOOR }, { x: 622, y: DIP.floor }, { x: 600, y: DIP.floor }, { x: 578, y: FLOOR }, { x: 0, y: FLOOR }],
   },
 

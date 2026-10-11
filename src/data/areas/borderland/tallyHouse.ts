@@ -99,7 +99,6 @@ export const tallyHouse: AreaDefinition = {
     // enforcer, the watcher; your brother at the boss's side (if he moved in); the son held by the door; your friend.
     ...[1, 4, 10, 6, 8, 2, 11, 3, 5, 7, 9, 0].map((look, i) => local(`brand-${i}`, look, 150 + i * 11, FLOOR, ['night'], { showIf: 'brand_night', flipX: i % 3 === 0 })),
     cast('boss', 330, FLOOR, { id: 'boss-brand', when: ['night'], showIf: 'brand_night', flipX: true }),
-    cast('enforcer', 300, FLOOR, { id: 'enforcer-brand', when: ['night'], showIf: 'brand_night', flipX: true }),
     cast('watcher', 362, FLOOR, { id: 'watcher-brand', when: ['night'], showIf: 'brand_night', flipX: true }),
     cast('brother', 348, FLOOR, { id: 'brother-brand', when: ['night'], showIf: 'brother_brand10', flipX: true }),
     cast('boss_son', 60, FLOOR, { id: 'son-brand', when: ['night'], showIf: 'brand_night' }),

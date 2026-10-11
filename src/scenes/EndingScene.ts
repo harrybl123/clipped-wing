@@ -14,7 +14,7 @@ export interface EndingSceneData {
 }
 
 /** The endings: ones that stop the game early, and Act 1's two (Day 7). Draft words, for the designer. */
-const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number; coda?: string }> = {
+const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number; coda?: string; chapterEnd?: boolean }> = {
   // Ignoring Grounded's message twice (the design doc's "short, comfortable loyal ending").
   loyal: {
     title: 'You stayed loyal to the Tree.',
@@ -49,6 +49,17 @@ const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number
     ],
     coda: 'End of Chapter 1',
     retryDay: 7,
+  },
+  // Chapter 2, the end of Part 4 (the reveal): in the tally house's cellar, waiting for the brand. Part 5 isn't built yet.
+  part4: {
+    title: 'Waiting for the light.',
+    lines: [
+      'They leave you in the cellar under the tally house, in the dark, with the noise of the whole settlement over your head.',
+      'Somewhere out past the shacks, a dog is lying low with a roll of hide in its teeth.',
+    ],
+    coda: 'End of Part 4. Part 5, The fall, is next.',
+    chapterEnd: false,
+    retryDay: 10,
   },
   // The same, with the girl you blamed beside you.
   fall_together: {
@@ -101,7 +112,7 @@ export class EndingScene extends Phaser.Scene {
     const start = getSession(this).dayStarts[ending.retryDay];
     const choices = [
       // Finishing Chapter 1 opens the next (designer).
-      ...(ending.coda ? [{ label: 'Begin Chapter 2', run: () => beginChapter2(this) }] : []),
+      ...(ending.coda && ending.chapterEnd !== false ? [{ label: 'Begin Chapter 2', run: () => beginChapter2(this) }] : []),
       ...(start ? [{ label: `Try again from Day ${ending.retryDay}`, run: () => this.retry(ending.retryDay) }] : []),
       { label: 'Back to the title', run: () => this.scene.start('Title') },
     ];

@@ -963,6 +963,7 @@ ENCOUNTERS.enforcer_night = {
   party: ['scavenger', 'dog', 'son_ally'],
   enemies: ['circle_man', 'enforcer', 'circle_man_big'],
   stage: 'yard',
+  mustWin: true,
   timing: { lunge: 950, ease: 1.2 },
   outcomes: { won: { enforcer_won: true }, lost: { enforcer_won: false } },
 };

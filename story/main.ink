@@ -468,6 +468,10 @@ VAR son_visit10 = false
 VAR boss_growled10 = false
 VAR knock10 = false
 VAR boss_in10 = false
+// Following him at the line: along the track under your post, and you tail him to the dip.
+VAR tail10 = false
+// Winning against the enforcer (you have to): the boss's rubbing of the board, gone into the dark in the dog's teeth.
+VAR has_rubbing10 = false
 VAR dog_up10 = false // the dog up out of the hole under your floor (Day 10)
 // What you know at the end (Part 5's endings): it's the boss (always); a witness (your brother, at home); why
 // (his daughter, if you let the scout go); the watcher with you (if he respects you).
@@ -495,7 +499,6 @@ VAR watcher10_seen = false
 VAR cairn10 = false
 VAR line10_seen = false
 VAR lying_up10 = false
-VAR boss_at_line10 = false
 VAR boss_crossed10 = false
 VAR cairn10_seen = false
 VAR cairn_meet10 = false

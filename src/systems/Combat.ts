@@ -152,6 +152,8 @@ export interface EncounterDef {
   name?: string;
   party: string[];
   enemies: string[];
+  /** You have to win it (designer): lose, and you're straight back into it from the start. */
+  mustWin?: boolean;
   /** Run is offered (and this outcome follows), or not at all. */
   run?: string;
   /** What's in the bag for this fight: item id → how many. */

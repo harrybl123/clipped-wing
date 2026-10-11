@@ -1132,11 +1132,13 @@ export class AreaScene extends Phaser.Scene {
       const travel = f.path[q.next] ? Math.sign(f.path[q.next]!.x - leader.image.x) || dir : dir;
       // Facing: the way they're going, or back the way they came while they look round.
       for (const e of entries) e.image.setFlipX((q.looking ? -travel : travel) < 0);
-      if (this.dialogue.isOpen || this.leaving || Math.abs(py - f.y) > 40) continue;
+      if (this.dialogue.isOpen || this.leaving) continue;
       const rear = entries.reduce((a, e) => ((e.image.x - a.image.x) * travel < 0 ? e : a), leader);
       const behind = (rear.image.x - px) * travel; // how far behind them you are (negative: in front)
       const nearest = Math.min(...entries.map((e) => Math.abs(e.image.x - px)));
-      const seen = !this.inShadow() && (behind < -6 || nearest < 18 || (q.looking && q.wait > 0 && behind <= f.range));
+      // Up off their level (on the post above them) they don't see you; but stay up there and you lose them.
+      const level = Math.abs(py - f.y) <= 40;
+      const seen = level && !this.inShadow() && (behind < -6 || nearest < 18 || (q.looking && q.wait > 0 && behind <= f.range));
       const lost = !q.looking && q.turnIn <= 0 && behind > f.lose;
       if (seen || lost) {
         q.alarm = 1000;

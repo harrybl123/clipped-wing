@@ -78,3 +78,11 @@ Designer: the boss's visit should play out scene by scene; the dog was already o
 - The daughter: the truce wasn't his idea: the other clan's boss wouldn't sign without a boss's own child as a hostage, and your clan's old ones made him choose, his girl or the war.
 - **For Part 5 (designer):** everyone should come to understand why he did it by the end, not only those who let the scout go (who learn it here).
 - Fixed: people walking off (`#leave`) finish their walk even if the story stops showing them; a time change indoors after coming in from outdoors froze the game on a black screen (an old area's listener was still attached).
+
+### After the second Day 10 playtest
+
+Designer: following the boss at the line was too easy (you could walk right behind him); the knockout line should say what you did; winning the enforcer fight should matter (and you have to win it); the tally house went nowhere.
+
+- **The line is a tail** (the `quarry`, like Act 1's Day 6): he walks in under your post, then on to the dip, stopping three times to look back; be close in the open when he looks and he sees you ("Hm? Who's that?"), fall too far behind (or stay up on the post) and you lose him; either way you're back on the post and he starts again. Low cover to crouch in: the dug hole, the cable coil, the wire's foot, behind your sign. A tail now also loses you if you hang back off their level (it used to ignore you entirely up there).
+- **The enforcer fight has to be won** (`mustWin` on an encounter: lose, and it starts again). Winning: your staff into his jaw, and he goes down across your table; his two men run; out of his coat, the boss's rubbing of the board (every row, every name, his mark in the corner: what he sells them, brought to plant under your floor). You give it to the dog, and it gets away into the dark with it (`has_rubbing10`, for Part 5). Then the yard with torches, and the tally house anyway.
+- **The end of Part 4:** after the sentence, an ending card ("Waiting for the light", End of Part 4) instead of standing in the tally house with nothing to do.

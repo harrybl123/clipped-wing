@@ -350,13 +350,13 @@ The line, in the last of the light. Nobody on the post. Nobody anywhere. #time:n
 You lie flat on the post's planks with {dog_name} pressed against you, and wait.
 Their fires, far off. Wind in the wire. Your heart.
 Then {dog_name}'s ears go up. It doesn't growl. It goes very, very still.
-~ boss_at_line10 = true
-Somebody's coming along the track from the fields. Big. A long coat. No lamp. #route:boss-line10:boss-in:55
+~ tail10 = true
+Somebody's coming along the track from the fields. Big. A long coat. No lamp.
 He walks right under the post. You could drop a stone on his head.
-He goes down into the dip, and under the fence, like he's done it a hundred times.
-~ boss_crossed10 = true
-~ objective = "Get closer"
-~ objective_target = "rival-line:our-sign"
+He stops just past it, and looks back along the track the way he came. You don't breathe.
+Then he walks on, slowly, towards the dip.
+~ objective = "Follow him. Keep back, and get down in the dark when he looks round"
+~ objective_target = "rival-line:boss-line10;rival-line:our-sign"
 -> END
 
 === c2day10_cairn ===
@@ -369,8 +369,7 @@ They hand him a bundle. Pale cloth, pale things, like the fence gets offered.
 And then he says something you can't hear, and holds out his hand, and waits.
 One of them puts something in it. Small. A plait of pale hair, tied with thread.
 He holds it against his face, a long time. #dim:on
-Then he puts it away inside his coat, and comes back to the fence. #route:boss-line10:boss-out:55:leave #dim:off
-~ boss_at_line10 = false
+Then he puts it away inside his coat, and comes back to the fence. #route:boss-cairn10:boss-out:55:leave #dim:off
 He passes so close to the sign you could touch his coat. {dog_name} shakes, and doesn't make a sound.
 ~ scout_cairn10 = true
 When he's gone, the scout comes to the wire. They knew you'd be there. #beside:scout-cairn10:40:walk
@@ -450,23 +449,31 @@ He comes and stands beside you. On your other side, {dog_name}, growling. #besid
 -> END
 
 === c2day10_after_night ===
-{ enforcer_won:
-    The enforcer goes down across your table, and the table goes with him, and he doesn't get up. #shake #sound:crash
-    For one breath it's quiet. The son looks at you. You look at him.
-    Then torches in the lane. Shouting. Half the circle, and half the yard behind them, woken by the noise.
-- else:
-    You're on the floor with the enforcer's knee in your back. The son's beside you, the same, his pipe kicked away into the corner.
-    And torches in the lane. Half the circle, and half the yard behind them.
-}
+You bring your staff round with everything you've got left, into the hinge of the enforcer's jaw. #shake #sound:staff
+He spins half round. Then all that weight goes, slowly, and comes down across your table, and takes the table with it. #sound:crash
+He doesn't get up.
+The two of the circle look at him, and at you, and at the son with his pipe, and back out of your door, and run. #leave:circle-night-1:30:110 #leave:circle-night-2:30:120
+For one breath it's quiet. The son looks at you. You look at him.
+Something's spilled out of the enforcer's coat onto your floor. A roll of hide.
+You open it out. Chalk, rubbed through it from underneath: every row of the board, every square, every name. Night after night of it. And in the corner, the boss's own mark.
+~ has_rubbing10 = true
+"That's the board." #speaker:boss_son
+"He's been taking it off the board, every night. That's what he sells them." #speaker:scavenger
+"And the enforcer was bringing it here. To find it under your floor." #speaker:boss_son
+Then torches in the lane. Shouting. Half the circle, and half the yard behind them, woken by the noise.
+"They'll go through everything you've got before you're out of the door." #speaker:boss_son
+You roll the hide tight, and push it between {dog_name}'s teeth.
+"Hollow. Go. Don't let anybody take it off you." #speaker:scavenger
 { dog_with_you:
-    {dog_name} goes for the nearest leg in the door, and bites, and then it's out between their feet and into the dark. #leave:dog-follow:30:150
+    {dog_name} goes for the nearest leg in the door, and bites, and then it's out between their feet and into the dark, with the hide in its mouth. #leave:dog-follow:30:150
 - else:
-    {dog_name} goes for the nearest leg in the door, and bites, and then it's out between their feet and into the dark. #leave:dog-up10:30:150
+    {dog_name} goes for the nearest leg in the door, and bites, and then it's out between their feet and into the dark, with the hide in its mouth. #leave:dog-up10:30:150
 }
 ~ dog_ran10 = true
 Nobody catches it. Nobody even sees which way it went.
 They take you by the arms. They take the son by the arms too, and he lets them, and he looks at nobody.
-"Tally house. Now. Everyone's to see." #speaker:enforcer
+They lift the enforcer between four of them, groaning.
+"Tally house. Now. Everyone's to see." #speaker:collector #name:One of the circle
 ~ enforcer_night10 = false
 ~ son_night10 = false
 ~ c2day10 = "tally"
@@ -492,6 +499,7 @@ The crowd moves like water. Somebody spits. #sound:jeer
     Your brother isn't here. They took him up to the compound to be "seen to", and nobody's said a word about him since.
 }
 The son's held between two men by the door. His father hasn't looked at him once.
+The enforcer isn't here. They carried him up to the compound with his jaw the size of a fist.
 { watcher_ally:
     The watcher's by the counter with the board. He's not looking at you. He's looking at the boss.
 }
@@ -514,12 +522,13 @@ And you know now who it really was, and who it was never going to be, and you se
 The boss holds up his hand, and the tally house goes quiet.
 "At first light. In front of everyone. The brand, and out past the tree's edge, like the last one." #speaker:boss
 "And nobody here will feed her, or hide her, or speak her name again." #speaker:boss
+He doesn't know about the hide. Somewhere out in the dark, {dog_name} has it in its teeth.
 He looks at you then. Only you. The same look as in your shack, when the dog growled.
 He knows you know. And it's too late for it to matter.
 ~ c2day10 = "done"
 ~ objective = ""
 ~ objective_target = ""
-They take you down to the tally house's cellar to wait for the light.
+They take you down to the tally house's cellar to wait for the light. #ending:part4
 -> END
 
 === c2day10_not_now ===

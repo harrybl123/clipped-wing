@@ -979,7 +979,9 @@ export class CombatScene extends Phaser.Scene {
     await this.frame(WIDE, 500);
     await this.wait(900);
     for (const cam of this.cameras.cameras) cam.fadeOut(600, 0, 0, 0);
-    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Area', this.params.back));
+    // A fight you have to win: lost, and it starts again.
+    const again = outcome === 'lost' && this.battle.encounter.mustWin;
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => (again ? this.scene.restart(this.params) : this.scene.start('Area', this.params.back)));
   }
 
   /** Whose turn it is: they come into focus (with friends), and the camera takes in the whole stage. */
