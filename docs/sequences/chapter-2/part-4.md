@@ -1,0 +1,57 @@
+# Chapter 2, Part 4: The reveal (Day 10)
+
+Plan for one dramatic day (designer). The design doc fixes the reveal: the boss set you up, to keep his daughter alive on the other side; the dog always knows the drop's scent on him; your brother, the scout and the watcher each add a piece, depending on your choices; the enforcer corners you. Everything below is **(suggestion)** unless marked.
+
+## Decided
+- **One day** (designer): Day 10, the calendar's last. Part 5 (the fall) follows on that night or the next dawn.
+- **The boss's son turns** (designer): the twist.
+- **The dog stays secret from the town** (designer): it's revealed later, only if an ending needs it ("end the conflict").
+- **Every choice so far is served** (designer): each branch below says what it changes.
+- **Does the boss know you know?** (designer: Claude decides) **Not until the dog growls at him.** He sees it, he sees your face, and that's what sends the enforcer tonight. The dog shows you the truth and dooms you in the same moment: your rise and your downfall, as the design doc says.
+
+## The day
+
+Day 9 ends with the card **"Three nights on"** (it says "Day 10" now), so the cairn meeting the scout promised is tonight.
+
+| When | Where | What happens | Branches |
+| --- | --- | --- | --- |
+| Dawn | Your shack | Three nights since the line. Something worse than chalk on your door. | **Brother at home:** he comes in at first light, white, with the kid: "We saw him. At the dip, two nights ago. Big, in a coat. He went under the fence like he'd done it a hundred times." He won't say the name; you don't let him. **Brother at the compound:** the shack's empty; his old blanket. **Scout turned in:** a runner: the scout's gone from the compound in the night, the lock not broken. **Let go:** another raid in the three nights, and the yard knows you were at the line. |
+| Morning | The boss's house | **The boss wants to meet the dog.** How he knows: your brother told him (compound); or the enforcer's search (if he found the bed, bowl or hair); or the gambler sold it (if you walked away from him); or the son saw you at first light with it. He's all warmth: bring it, he's never seen one. **The dog sniffs his coat and goes rigid, hackles up, and growls.** It's the drop's scent, from the deep ground. His smile stops for a moment; he sees you see it. Then he laughs: "Dogs." | **Note taken by the enforcer:** the dog goes for his inside pocket, where he put it. **The son** is in the doorway, and watches his father's face, not the dog. |
+| Afternoon | Wherever your choices take you | The pieces come due, one after another (each an objective, as many as your choices give you). | See "The pieces" below. |
+| Evening | The rival line (if you let the scout go) | **The cairn.** You lie up by the post in the dark with the dog. A big man comes along the track alone, and goes under the fence at the dip. You follow to the cairn, and see the boss hand over a scrap of hide and take a bundle of pale things. The scout finds you after: his daughter, given over for the truce years ago, held ever since. "Every secret he sells keeps her breathing." | **Turned in:** no cairn. Instead, the watcher (if he respects you) or nobody. |
+| Night | The lane home (or the tally gate) | **The enforcer corners you**, with two of the circle: the boss says you're the rat, and he's got the proof (the drop's note; or the dog's bed; or the gambler's word). **Fight: the enforcer** (the chapter's toughest yet; you and the dog). | **The son turns:** mid-fight, or just as you go down, he steps in on your side. "I've watched you for weeks to prove it was you. Three nights ago I watched him instead." He fights with you. Win or lose, more of the circle come running, and it ends with you dragged to the tally house. Part 5: the brand. |
+
+## The pieces (afternoon)
+
+Each choice adds a piece, or takes one away. Nobody gets them all.
+
+| Your choice | What it gives you on Day 10 |
+| --- | --- |
+| **Brother at home** (big 1) | The witness (design doc). At the scrap stacks' perch, he and the kid say it: it was the boss at the dip. Then the circle's men come up the stacks for them. **Fight: the circle's men.** Win or lose, your brother falls on the way down, hurt, and they take him. You'll leave without him (design doc). |
+| **Brother at the compound** (big 1) | He meets you at the gate in his strap, proud: the boss is sending men to take the dog somewhere safe tonight, he asked them to. Then two of the circle come with him "to help". **Fight: the circle's men,** while your brother watches, not understanding. He stays with the boss (design doc). |
+| **Scout let go** (big 2) | The cairn tonight, and the why: the daughter (design doc: only if you befriended them). |
+| **Scout turned in** (big 2) | The scout vanished from the watcher's floor; only the boss had the key. If the watcher respects you, it's his first doubt. |
+| **The watcher's respect** (reported your friend, turned the scout in, Day 4–5 evenings) | In the tally house's side room, with the board: the squares were copied; since you swapped the drop the boss collects them himself. He's come to the same suspicion (design doc), and he says it to you, once, quietly. |
+| **The gambler** (Day 5, Day 7) | **Walked away:** he's the one who sold you (design doc): you see him leave the enforcer's table with coin, and he can't look at you. **Fought or paid:** he finds you and warns you: the enforcer's been asking about a dog, and he's coming tonight. If you have his chain, it's your new move against the enforcer. |
+| **Your friend** (Day 9) | **Reported:** she's gone; her mother in the yard, asking everyone; the circle took her to the compound. **Covered:** she finds you with word from her sweetheart: get off the lanes tonight. |
+| **The drop** (Day 8) | **Took the note, found in the search:** the boss has it in his coat (the dog's nose finds it); tonight the enforcer waves it at you as the proof. **Took it, hidden:** it's still yours, and still the most dangerous thing you own. **Swapped:** the boss collects the squares himself now; the watcher noticed. **Left it:** you saw only a hooded figure (design doc); the dog's nose is your proof. |
+| **The madam** (optional, the brothel) | The girl who vanished was the boss's last new recruit, and the raids followed her too. You're the next one. |
+| **The son** (the spar, the rematch, Day 9) | How he turns: if you won the spar and offered your hand, he's been half on your side since; if you beat him at the stacks on Day 8, he says so; whatever happened, his father shutting him up on Day 9 is the crack. |
+
+## What you know at the end (for Part 5's endings)
+
+- **Always:** it's the boss (the dog). The son is with you.
+- **Brother at home:** a witness, hurt and taken.
+- **Scout let go:** why (the daughter); the rivals trust you. Opens "save the girl".
+- **The watcher's respect:** someone on your own side believes you. With the rivals too, opens "end the conflict".
+- **"Keep it raging"** is open to everyone (design doc).
+
+## New things to build
+- **Fights:** the circle's men (two, one with a cudgel); **the enforcer** (big, slow, hits through guard; calls his men in); the son as a party member for the enforcer fight (a fighter you sparred with: his moves from the spar).
+- **The dog's growl at the boss:** a moment, on screen (hackles, the growl, the boss's face).
+- **The cairn:** a spot on the far side of the rival line (the area extends past the fence, or a small new area).
+- The card at the end of Day 9 becomes "Three nights on".
+
+## Questions
+- Where is the brand put on you in Part 5: the tally house, in front of everyone?
+- Does your friend, if reported, come back in Part 5?
