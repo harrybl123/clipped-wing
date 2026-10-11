@@ -48,6 +48,13 @@ export interface CombatSceneData {
   pick?: boolean;
 }
 
+/** Where party member i of n stands (and their panel sits), along the bottom: their own place, in party order. */
+function partySlot(i: number, n: number): number {
+  const width = 104;
+  const left = n === 2 ? 110 : 62;
+  return left + i * width;
+}
+
 /** The line where the enemy stands, deep in the frame. */
 const FLOOR = 190;
 const HORIZON = 118;
@@ -991,21 +998,22 @@ export class CombatScene extends Phaser.Scene {
   }
 
   /**
-   * With friends, one is in full focus: big in the foreground, lit. The others step back to the edge of
-   * the frame, smaller and in shadow, until it's their turn (or they're the one being attacked).
+   * With friends, everyone has their own place along the bottom, in party order, with their panel under
+   * them (designer: with three, two stood on the same spot at the edge). Whoever's in focus (their turn, or
+   * being attacked) steps forward in their own place, big and lit; the others stay back, smaller and in shadow.
    */
   private focus(id: string, snap = false): void {
     const party = [...this.views.values()].filter((v) => v.c.side === 'party');
     if (party.length < 2) return;
-    let edge = 0;
-    for (const v of party) {
+    party.forEach((v, i) => {
       const on = v.c.id === id;
-      v.home = on ? { x: 160, y: H + 8, scale: 2 } : { x: 42 - edge++ * 30, y: H + 16, scale: 1.5 };
+      const x = partySlot(i, party.length);
+      v.home = on ? { x, y: H - 2, scale: 2 } : { x, y: H + 16, scale: 1.5 };
       v.sprite.setDepth(on ? 12 : 10).setTint(on ? 0xffffff : 0x8a8a8a);
       v.flash.setDepth(on ? 13 : 11);
       if (snap) v.sprite.setPosition(v.home.x, v.home.y).setScale(v.home.scale);
       else this.tweens.add({ targets: v.sprite, x: v.home.x, y: v.home.y, scale: v.home.scale, duration: 280, ease: 'Quad.easeOut' });
-    }
+    });
   }
 
   /** His next blow is the big one he wound up for. */
@@ -1371,8 +1379,8 @@ export class CombatScene extends Phaser.Scene {
     const current = this.battle.current?.id;
     party.forEach((v, i) => {
       const on = party.length > 1 && (v.c.id === current || (current && this.battle.get(current).side === 'enemy' && v.home.scale === 2));
-      // Under them: the one in focus under their figure, the others at the left edge, under theirs.
-      const x = party.length === 1 ? Math.round(v.home.x - width / 2) : v.home.scale === 2 ? 112 : 4;
+      // Under them: each in their own place along the bottom, in party order.
+      const x = Math.round((party.length === 1 ? v.home.x : partySlot(i, party.length)) - width / 2);
       const y = H - 32 - (on ? 3 : 0);
       const pts = [[x + 6, y], [x + width, y], [x + width - 6, y + 29], [x, y + 29]].map(([a, b]) => new Phaser.Math.Vector2(a!, b!));
       g.fillStyle(SHADES.shadow, 0.94).fillPoints(pts, true);
