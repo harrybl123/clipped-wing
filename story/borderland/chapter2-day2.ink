@@ -114,49 +114,25 @@ It sniffs your boots. Your knees. Your hands.
 "sniff sniff" #speaker:dog
 Then it sits down in the dirt, and waits to see what you'll do.
 You haven't eaten since yesterday. Neither has it, by the look of it.
-A dog. Nobody's seen a living dog in years. #dim:on
-// Each option explains itself in a second box, as in Chapter 1 (designer).
-- (choose)
 + [Keep it]
-    Another mouth, when you can't feed the two you've got. And a secret: a dog would be worth more than you are, to anyone who saw it.
-    ++ [Yes. Keep it.]
-        -> keep
-    ++ [No. Think again.]
-        -> choose
-+ [Sell it]
-    The fence would give you a year of food for it. More. Your brother would eat every day.
-    ++ [Yes. Sell it.]
-        -> sell
-    ++ [No. Think again.]
-        -> choose
-+ [Eat it]
-    Meat. Real meat, for days, for you and your brother. Nobody would ever know.
-    ++ [Yes. Eat it.]
-        -> eat
-    ++ [No. Think again.]
-        -> choose
-- (keep)
     ~ dog_choice = "keep"
-    You hold out your hand. It thinks about it for a long time. #dim:off
+    You hold out your hand. It thinks about it for a long time.
     Then it puts its nose against your fingers.
     "Huff." #speaker:dog
-    -> chosen
-- (sell)
++ [Sell it]
     ~ dog_choice = "sell"
-    A dog. A living dog. The fence would give you a year of food for it. More. #dim:off
+    A dog. A living dog. The fence would give you a year of food for it. More.
     You twist the snapped wire into a leash and loop it over its head. It doesn't fight you. It just looks at you.
     "Whine..." #speaker:dog
-    -> chosen
-- (eat)
++ [Eat it]
     ~ dog_choice = "eat"
-    You pick up the big one's knife from where he dropped it. #dim:off
+    You pick up the big one's knife from where he dropped it.
     The dog looks at the knife. Then at you.
     "Whine..." #speaker:dog
     You put the knife down. You're not a monster.
     It wags its tail, once, as if it knew all along.
     "Woof." #speaker:dog
-- (chosen)
-~ dog_tied = false
+- ~ dog_tied = false
 ~ dog_with_you = true
 ~ dog_on_wire = dog_choice == "sell"
 ~ going_home = true
