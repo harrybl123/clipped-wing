@@ -457,5 +457,5 @@ You get home as the sky goes grey.
 { boss_knows_dog:
     And the boss knows about the dog.
 }
-You lie down in your clothes, and don't sleep, and it's light. #wake:shack:382:184 #endday:Day 10
+You lie down in your clothes, and don't sleep, and it's light. #wake:shack:382:184:c2day10_start #endday:Three nights on
 -> END

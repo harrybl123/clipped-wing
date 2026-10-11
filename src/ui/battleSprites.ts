@@ -528,8 +528,9 @@ function staff(g: Grid, [ax, ay]: Pt, [bx, by]: Pt): void {
 const SCAV_W = 64;
 const SCAV_H = 62;
 
-function scavengerBack(pose: CarverPose, who: 'scavenger' | 'old' | 'fists' = 'scavenger'): RowSprite {
-  const old = who === 'old';
+function scavengerBack(pose: CarverPose, who: 'scavenger' | 'old' | 'fists' | 'son' = 'scavenger'): RowSprite {
+  const son = who === 'son';
+  const old = who === 'old' || son;
   const fists = who === 'fists';
   const g = grid(SCAV_W, SCAV_H);
   const x = 32 + { idle: 0, breathe: 0, ready: 0, dodge: -7, attack: 3, slap: 4, palm: -4, shove: 0, grab: 0, guard: 0, hit: 4 }[pose];
@@ -570,7 +571,8 @@ function scavengerBack(pose: CarverPose, who: 'scavenger' | 'old' | 'fists' = 's
   // What she holds out in front of her is behind her body from here.
   // His hook: a plain pole with a hook at the end, where her staff would be.
   // (Fists only: her staff's left against the bar's counter.)
-  const tool = () => (fists ? undefined : old ? hookPole(g, ...p.staff) : staff(g, ...p.staff));
+  // (The boss's son: a length of pipe.)
+  const tool = () => (fists ? undefined : son ? pipe(g, ...p.staff) : old ? hookPole(g, ...p.staff) : staff(g, ...p.staff));
   if (forward) {
     tool();
     drawArms();
@@ -596,6 +598,7 @@ function scavengerBack(pose: CarverPose, who: 'scavenger' | 'old' | 'fists' = 's
   const hx = x + headDx;
   const hy = top + 11 + headDy;
   disc(g, hx, hy, 7.5, 9, '4');
+  if (son) return sonBack(g, hx, hy, top);
   if (old) return oldBack(g, hx, hy, x, top);
   // The ponytail, tied high, hanging down her back (swinging with her).
   const swing = { dodge: 4, palm: 4, slap: -4, hit: -5, attack: -2 }[pose as string] ?? 0;
@@ -636,6 +639,31 @@ function hookPole(g: Grid, [ax, ay]: Pt, [bx, by]: Pt): void {
   limb(g, [[bx, by], [bx + uy * 4, by - ux * 4], [bx + uy * 4 - ux * 4, by - ux * 4 - uy * 4]], 0.8, '7');
 }
 
+/** A length of pipe: the near half of the staff's line, thick and dull. */
+function pipe(g: Grid, [ax, ay]: Pt, [bx, by]: Pt): void {
+  limb(g, [[(ax + bx) / 2, (ay + by) / 2], [bx, by]], 1.3, '7');
+}
+
+/** The boss's son from behind: a mop of dark hair, his bright scarf, a good cyan shirt; lit and outlined. */
+function sonBack(g: Grid, hx: number, hy: number, top: number): RowSprite {
+  for (let y = Math.round(hy + 6); y < hy + 10; y++) for (let dx = -8; dx <= 8; dx++) if (g[y]?.[Math.round(hx + dx)] === '4') put(g, hx + dx, y, '1');
+  // The scarf round his neck.
+  for (let y = top + 22; y < top + 26; y++) for (let dx = -5; dx <= 5; dx++) if (g[y]?.[Math.round(hx + dx)]) put(g, hx + dx, y, '6');
+  lightDay(g, '1', ['K', 'K', 'k']);
+  lightDay(g, '2', ['C', 'Q', 'c']);
+  lightDay(g, '3', ['P', 'D', 'p']);
+  lightDay(g, '4', ['H', 'h', 'H']);
+  lightDay(g, '6', ['A', 'A', 'a']);
+  outline(g);
+  return {
+    rows: rows(g),
+    colours: {
+      K: SHADES.skinTan, k: SHADES.skinTanShade, C: SHADES.cyanMid, Q: SHADES.cyan, c: SHADES.cyanDeep, P: SHADES.woodPale, D: SHADES.dim, p: SHADES.woodLight,
+      H: SHADES.deep, h: SHADES.dim, A: SHADES.amber, a: SHADES.amberDeep, '7': SHADES.dim, X: SHADES.shadow,
+    },
+  };
+}
+
 /** The old scavenger's head from behind (short grey hair, goggles' strap), his coat, the pack frame; lit and outlined. */
 function oldBack(g: Grid, hx: number, hy: number, x: number, top: number): RowSprite {
   // Short grey hair: the head's disc is hair; trim it shorter at the neck.
@@ -661,6 +689,9 @@ function oldBack(g: Grid, hx: number, hy: number, x: number, top: number): RowSp
 
 /** The old scavenger, from behind, his hook in hand (Chapter 2, the first raid). */
 export const OLD_SCAV_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, scavengerBack(p, 'old')])) as Record<CarverPose, RowSprite>;
+
+/** The boss's son, from behind, with a length of pipe: on your side at last (Chapter 2, Day 10). */
+export const SON_BACK_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, scavengerBack(p, 'son')])) as Record<CarverPose, RowSprite>;
 
 /** The scavenger with her fists up, her staff left on the counter (the sparring at the bar). */
 export const SCAVENGER_FISTS_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, scavengerBack(p, 'fists')])) as Record<CarverPose, RowSprite>;
@@ -883,3 +914,6 @@ function dogBack(pose: CarverPose): RowSprite {
 
 /** The dog, fighting beside you. */
 export const DOG_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, dogBack(p)])) as Record<CarverPose, RowSprite>;
+
+/** The enforcer: the boss's muscle, broad, a scrap plate strapped on, bare arms (Chapter 2, Day 10). */
+export const ENFORCER_BATTLE = stragglerPoses({ broad: 7, skin: 'tan', head: 'hair', holds: 'none', coat: [SHADES.woodLight, SHADES.amberDeep, SHADES.wood], patched: false });

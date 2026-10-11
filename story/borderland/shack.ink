@@ -17,6 +17,8 @@ The table was a hatch. The wheel still turns, if you want it to. Nothing opens.
 
 === shack_floor ===
 { c2day2 == "hide": -> c2day2_hide }
+{ c2day10 == "dawn" && boss_visit10 && not boss_growled10: -> c2day10_call_dog }
+{ c2day10 == "line" && not cairn10: -> c2day10_fetch_dog }
 The loose panel in the floor. Underneath, a dry hollow, out of sight.
 -> END
 
@@ -46,6 +48,7 @@ The one on the end still glows a little at night. He calls it his light.
 { c2day6 == "home": -> c2day6_bed }
 { c2day7 == "home" && ambush_done: -> c2day7_bed }
 { c2day8 == "home": -> c2day8_bed }
+{ c2day10 != "" && c2day10 != "done": -> c2day10_not_now }
 { c2day7 == "home": -> c2day7_ambush_door }
 Not yet.
 -> END

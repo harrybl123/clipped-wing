@@ -4,7 +4,7 @@ import { COMBATANTS, ENCOUNTERS, ITEMS, LESSONS, type Lesson, MOVES } from '../d
 import { getSession } from '../session';
 import { Battle, type Action, type BattleEvent, type Combatant, type Intent, type MoveDef, type Reaction } from '../systems/Combat';
 import type { Grade, Key, Qte, QteKind } from '../systems/qte';
-import { BEETLE_BATTLE, CARVER_BATTLE, COLLECTOR_BATTLE, COLLECTOR_BIG_BATTLE, TICKER_BATTLE, SCOUT_BATTLE, PICKER_BATTLE, PICKER_LOUD_BATTLE, DOG_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, OLD_SCAV_BATTLE, RAIDER_BATTLE, RAIDER_LEAD_BATTLE, SCAVENGER_BATTLE, SCAVENGER_FISTS_BATTLE, SON_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
+import { BEETLE_BATTLE, CARVER_BATTLE, COLLECTOR_BATTLE, COLLECTOR_BIG_BATTLE, TICKER_BATTLE, SCOUT_BATTLE, PICKER_BATTLE, PICKER_LOUD_BATTLE, DOG_BATTLE, ENFORCER_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, OLD_SCAV_BATTLE, RAIDER_BATTLE, RAIDER_LEAD_BATTLE, SCAVENGER_BATTLE, SCAVENGER_FISTS_BATTLE, SON_BACK_BATTLE, SON_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
 import { CAST, DOG } from '../ui/borderlandFolk';
 import { GIRL, PROTAGONIST, SCAVENGER } from '../ui/characters';
 import { paintFar } from '../ui/paintOutdoor';
@@ -76,6 +76,8 @@ const LOOKS: Record<string, Look> = {
   dog: { poses: DOG_BATTLE, scale: 2, cutIn: DOG.idle[0]! },
   old_scav: { poses: OLD_SCAV_BATTLE, scale: 2, cutIn: CAST.old_scav.idle[0]! },
   boss_son: { poses: SON_BATTLE, scale: 1 },
+  son_back: { poses: SON_BACK_BATTLE, scale: 2, cutIn: CAST.boss_son.idle[0]! },
+  enforcer: { poses: ENFORCER_BATTLE, scale: 1 },
   raider: { poses: RAIDER_BATTLE, scale: 1 },
   raider_lead: { poses: RAIDER_LEAD_BATTLE, scale: 1 },
   collector: { poses: COLLECTOR_BATTLE, scale: 1 },

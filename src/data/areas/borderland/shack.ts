@@ -102,10 +102,26 @@ export const shack: AreaDefinition = {
     { type: 'trigger', x: 96, y: FLOOR, reach: 30, knot: 'c2day2_home', showIf: 'going_home' },
     // Chapter 2, Day 8: home just ahead of the enforcer's search.
     { type: 'trigger', x: 96, y: FLOOR, reach: 30, knot: 'c2day8_search_start', showIf: 'searchers_coming', hideIf: 'search_started' },
+    // Day 10, night: the enforcer's waiting inside.
+    { type: 'trigger', x: 96, y: FLOOR, reach: 30, knot: 'c2day10_night', showIf: 'night10', hideIf: 'night10_seen' },
     // (Home round the back without coming through the yard: the noise outside brings you out to it.)
     { type: 'trigger', x: 380, y: FLOOR, reach: 40, knot: 'c2day8_noon_back', showIf: 'noon8', hideIf: 'noon8_seen' },
   ],
   people: [
+    // Chapter 2, Day 10. Dawn: your brother and the kid, back from the stacks; the boss and his son, come to meet the dog.
+    cast('brother', 112, FLOOR, { id: 'brother-dawn10', when: ['morning'], showIf: 'brother_dawn10' }),
+    cast('lookout', 134, FLOOR, { id: 'lookout-dawn10', when: ['morning'], showIf: 'brother_dawn10' }),
+    cast('boss', 84, FLOOR, { id: 'boss-shack10', when: ['morning'], showIf: 'boss_visit10', flipX: true }),
+    cast('boss_son', 66, FLOOR, { id: 'son-shack10', when: ['morning'], showIf: 'son_visit10' }),
+    // (At the compound) your brother brings two of the circle for the dog.
+    cast('brother', 112, FLOOR, { id: 'brother-circle10', when: ['morning', 'afternoon'], showIf: 'circle_shack10' }),
+    local('circle-shack-1', 7, 92, FLOOR, ['morning', 'afternoon'], { showIf: 'circle_shack10' }),
+    local('circle-shack-2', 10, 132, FLOOR, ['morning', 'afternoon'], { showIf: 'circle_shack10' }),
+    // Night: the enforcer at your table, two of the circle behind him; the son in your doorway.
+    cast('enforcer', 168, FLOOR, { id: 'enforcer-night10', when: ['evening', 'night'], showIf: 'enforcer_night10', flipX: true }),
+    local('circle-night-1', 7, 196, FLOOR, ['evening', 'night'], { showIf: 'enforcer_night10', flipX: true }),
+    local('circle-night-2', 10, 214, FLOOR, ['evening', 'night'], { showIf: 'enforcer_night10', flipX: true }),
+    cast('boss_son', 84, FLOOR, { id: 'son-night10', when: ['evening', 'night'], showIf: 'son_night10' }),
     // Your brother: up and about by day, asleep in the loft at night.
     // (Unless he's gone to live at the compound: big choice 1.)
     cast('brother', 214, FLOOR, { knot: 'shack_brother', when: ['morning', 'evening'], flipX: true, hideIf: ['brother_moved', 'brother_out9'] }),

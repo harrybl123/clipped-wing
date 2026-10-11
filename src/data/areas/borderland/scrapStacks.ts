@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './scrapStacksProps';
 import type { AreaDefinition, Line, Solid } from '../types';
-import { DAY, cast, dogFollowing, rival, stroller } from './people';
+import { DAY, cast, dogFollowing, local, rival, stroller } from './people';
 
 // The scrap stacks (Chapter 2): towers of compacted junk two screens high between the shacks, for
 // climbing and hiding; this chapter's back routes, a way across the settlement over the top, out of
@@ -83,6 +83,9 @@ export const scrapStacks: AreaDefinition = {
     { type: 'trigger', x: 400, y: BRIDGE.y, reach: 34, knot: 'c2day9_cornered', showIf: 'chase_seen', hideIf: 'scout_cornered' },
     // (Up onto the perch without crossing the bridge: the same.)
     { type: 'trigger', x: PERCH.x + 20, y: PERCH.y, reach: 24, knot: 'c2day9_cornered', showIf: 'chase_seen', hideIf: 'scout_cornered' },
+    // Day 10: up to your brother and the kid on the perch (from the bridge, or onto the perch).
+    { type: 'trigger', x: 400, y: BRIDGE.y, reach: 34, knot: 'c2day10_perch', showIf: 'stacks10', hideIf: 'perch10_seen' },
+    { type: 'trigger', x: PERCH.x + 10, y: PERCH.y, reach: 20, knot: 'c2day10_perch', showIf: 'stacks10', hideIf: 'perch10_seen' },
   ],
   people: [
     cast('old_scav', 360, FLOOR, { knot: 'scrap_stacks_old_scav', when: DAY, flipX: true }),
@@ -91,6 +94,11 @@ export const scrapStacks: AreaDefinition = {
     rival('scout-stacks', 1, 560, FLOOR, ['night'], { showIf: 'chase9', hideIf: 'scout_cornered' }),
     rival('scout-perch', 1, 482, PERCH.y, ['night'], { showIf: 'scout_cornered', hideIf: ['turnin9', 'letgo9'] }),
     dogFollowing(30, FLOOR),
+    // Day 10: your brother and the kid flat on the perch, watching the compound; the circle's men come up after them.
+    cast('brother', 466, PERCH.y, { id: 'brother-perch10', when: ['afternoon'], showIf: 'stacks10', hideIf: 'brother_taken10' }),
+    cast('lookout', 490, PERCH.y, { id: 'lookout-perch10', when: ['afternoon'], showIf: 'stacks10', hideIf: 'brother_taken10' }),
+    local('circle-stacks-1', 7, 400, BRIDGE.y, ['afternoon'], { showIf: 'circle_stacks10', hideIf: 'brother_taken10' }),
+    local('circle-stacks-2', 10, 330, 152, ['afternoon'], { showIf: 'circle_stacks10', hideIf: 'brother_taken10' }),
     // Day 8: the son, when he's caught you (he comes up beside you).
     cast('boss_son', 300, FLOOR, { id: 'boss-son-dawn', when: ['morning'], showIf: 'son_confront' }),
     stroller('hauler-1', 1, 420, 600, FLOOR, DAY),
@@ -121,6 +129,13 @@ export const scrapStacks: AreaDefinition = {
       { x: 400, y: BRIDGE.y }, { x: 352, y: BRIDGE.y }, { x: 330, y: 152 }, { x: 232, y: 186 }, { x: 168, y: 222 }, { x: 230, y: 258 },
       { x: 318, y: 292 }, { x: 394, y: 328 }, { x: 318, y: 362 }, { x: 238, y: 396 }, { x: 168, y: 432 }, { x: 106, y: 470 },
       { x: 70, y: FLOOR }, { x: 0, y: FLOOR },
+    ],
+    // Day 10: your brother, off the perch in the scuffle, down two ledges.
+    fall: [{ x: 436, y: PERCH.y }, { x: 400, y: BRIDGE.y }, { x: 330, y: 152 }],
+    // ...and carried down the stacks by the circle's men, and away.
+    carried: [
+      { x: 330, y: 152 }, { x: 232, y: 186 }, { x: 168, y: 222 }, { x: 230, y: 258 }, { x: 318, y: 292 }, { x: 394, y: 328 },
+      { x: 318, y: 362 }, { x: 238, y: 396 }, { x: 168, y: 432 }, { x: 106, y: 470 }, { x: 70, y: FLOOR }, { x: 0, y: FLOOR },
     ],
   },
 

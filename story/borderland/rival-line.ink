@@ -5,6 +5,7 @@
 
 === rival_line_post ===
 { c2day9 == "watch" && not watched9: -> c2day9_watch }
+{ cairn10 && not lying_up10: -> c2day10_lie_up }
 From the post you can see a long way down the line in both directions. Nothing moves.
 -> END
 

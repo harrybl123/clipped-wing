@@ -72,6 +72,9 @@ export const rivalLine: AreaDefinition = {
     // Chapter 2, Day 9: at dusk, your friend at the dip; at night, the watch.
     { type: 'trigger', x: 50, y: FLOOR, reach: 40, knot: 'c2day9_line_arrive', showIf: 'line_open', hideIf: 'line9_arrived' },
     { type: 'trigger', x: 520, y: FLOOR, reach: 30, knot: 'c2day9_friend', showIf: 'friend_at_line', hideIf: 'friend_seen9' },
+    // Day 10 (if you let the scout go): the line at nightfall; up to the wire once he's gone under it.
+    { type: 'trigger', x: 50, y: FLOOR, reach: 40, knot: 'c2day10_line_arrive', showIf: 'cairn10', hideIf: 'line10_seen' },
+    { type: 'trigger', x: 540, y: FLOOR, reach: 24, knot: 'c2day10_cairn', showIf: 'boss_crossed10', hideIf: 'cairn10_seen' },
   ],
   people: [
     // Our side's watch, by the post (not on Day 9: you're the watch).
@@ -87,6 +90,9 @@ export const rivalLine: AreaDefinition = {
     // If you let the scout go, you walk them back out to the dip.
     rival('scout-free', 1, 572, FLOOR, ['night'], { showIf: 'letgo9' }),
     dogFollowing(30, FLOOR),
+    // Day 10: the boss along the track and under the fence; the scout at the cairn.
+    cast('boss', 16, FLOOR, { id: 'boss-line10', when: ['evening', 'night'], showIf: 'boss_at_line10' }),
+    rival('scout-cairn10', 1, 760, FLOOR, ['night'], { showIf: 'cairn_meet10', flipX: true }),
     dogLeading(200, FLOOR), // Day 9: on the scout's scent
     // Theirs, by their fire across the line.
     rival('their-watch', 0, 712, FLOOR, AWAKE),
@@ -105,6 +111,9 @@ export const rivalLine: AreaDefinition = {
   routes: {
     // Day 9: the dog on the scout's scent, from under the post back along the track.
     scent: [{ x: 200, y: FLOOR }, { x: 150, y: FLOOR }, { x: 96, y: FLOOR }, { x: 44, y: FLOOR }, { x: 18, y: FLOOR }],
+    // Day 10: the boss, along the track, down into the dip, under the fence and up to the cairn; and back.
+    'boss-in': [{ x: 578, y: FLOOR }, { x: 600, y: DIP.floor }, { x: 622, y: DIP.floor }, { x: 650, y: FLOOR }, { x: 780, y: FLOOR }],
+    'boss-out': [{ x: 650, y: FLOOR }, { x: 622, y: DIP.floor }, { x: 600, y: DIP.floor }, { x: 578, y: FLOOR }, { x: 0, y: FLOOR }],
   },
 
   exits: [{ id: 'to-picked-fields', x: 16, y: FLOOR, reach: 12, to: 'picked-fields' }],

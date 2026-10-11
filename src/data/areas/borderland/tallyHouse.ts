@@ -95,6 +95,18 @@ export const tallyHouse: AreaDefinition = {
     cast('boss', 500, FLOOR, { id: 'boss-tribute', when: ['evening'], showIf: 'tribute_night', flipX: true }),
     cast('watcher', 520, FLOOR, { id: 'watcher-tribute', when: ['evening'], showIf: 'tribute_night', flipX: true }),
     cast('old_scav', 70, FLOOR, { id: 'old-scav-tally', when: ['evening'], showIf: 'raid_night' }),
+    // Chapter 2, Day 10, night: the whole settlement, packed in to see you sentenced. The boss at the counter; the
+    // enforcer, the watcher; your brother at the boss's side (if he moved in); the son held by the door; your friend.
+    ...[1, 4, 10, 6, 8, 2, 11, 3, 5, 7, 9, 0].map((look, i) => local(`brand-${i}`, look, 150 + i * 11, FLOOR, ['night'], { showIf: 'brand_night', flipX: i % 3 === 0 })),
+    cast('boss', 330, FLOOR, { id: 'boss-brand', when: ['night'], showIf: 'brand_night', flipX: true }),
+    cast('enforcer', 300, FLOOR, { id: 'enforcer-brand', when: ['night'], showIf: 'brand_night', flipX: true }),
+    cast('watcher', 362, FLOOR, { id: 'watcher-brand', when: ['night'], showIf: 'brand_night', flipX: true }),
+    cast('brother', 348, FLOOR, { id: 'brother-brand', when: ['night'], showIf: 'brother_brand10', flipX: true }),
+    cast('boss_son', 60, FLOOR, { id: 'son-brand', when: ['night'], showIf: 'brand_night' }),
+    local('son-guard-1', 7, 48, FLOOR, ['night'], { showIf: 'brand_night' }),
+    local('son-guard-2', 10, 74, FLOOR, ['night'], { showIf: 'brand_night', flipX: true }),
+    cast('old_scav', 136, FLOOR, { id: 'old-scav-brand', when: ['night'], showIf: 'brand_night' }),
+    cast('scav_friend', 180, FLOOR, { id: 'friend-brand', when: ['night'], showIf: 'friend_back10' }),
     local('tribute-1', 1, 196, FLOOR, ['evening'], { showIf: 'tribute_night' }),
     local('tribute-2', 4, 214, FLOOR, ['evening'], { showIf: 'tribute_night' }),
     local('tribute-3', 10, 232, FLOOR, ['evening'], { showIf: 'tribute_night' }),

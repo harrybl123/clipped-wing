@@ -74,6 +74,8 @@ export const compound: AreaDefinition = {
     // On the gate, outside.
     cast('enforcer', 116, FLOOR, { knot: 'compound_enforcer', when: ['morning', 'evening', 'night'] }),
     // Day 9, before dawn: the watcher waiting up at the gate; the scout you've brought him.
+    // Day 10, afternoon: the watcher by the tribute shed, with the board (if he respects you).
+    cast('watcher', 390, FLOOR, { id: 'watcher-10', knot: 'c2day10_watcher', when: ['afternoon'], showIf: 'watcher10', flipX: true }),
     cast('watcher', 96, FLOOR, { id: 'watcher-gate', when: ['night'], showIf: 'turnin9', flipX: true }),
     rival('scout-gate', 1, 76, FLOOR, ['night'], { showIf: 'turnin9' }),
     // The yard.

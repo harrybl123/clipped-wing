@@ -457,6 +457,57 @@ VAR scout_held = false
 VAR scout_friend = false
 // Let go, the scout told you where and when their contact meets them: the cairn, three nights on, no moon.
 VAR knows_meeting = false
+
+// --- Chapter 2, Day 10: the reveal (story/borderland/chapter2-day10.ink) ---
+// Stages: dawn, brother, yard, watcher, line, home, tally, done.
+VAR c2day10 = ""
+// Dawn: your brother and the kid (at home); the boss and his son come to meet the dog, and the dog knows him.
+VAR brother_dawn10 = false
+VAR boss_visit10 = false
+VAR son_visit10 = false
+VAR boss_growled10 = false
+// What you know at the end (Part 5's endings): it's the boss (always); a witness (your brother, at home); why
+// (his daughter, if you let the scout go); the watcher with you (if he respects you).
+VAR knows_boss = false
+VAR witness10 = false
+VAR knows_why = false
+VAR watcher_ally = false
+// Your brother. At home: up the stacks with the kid, the circle's men (the fight writes circle_won10), he falls
+// and is taken. At the compound: he brings two of the circle to take the dog.
+VAR stacks10 = false
+VAR perch10_seen = false
+VAR circle_stacks10 = false
+VAR brother_taken10 = false
+VAR circle_shack10 = false
+VAR circle_won10 = false
+// The yard: the gambler, your friend (or her mother); the watcher's runner.
+VAR yard10 = false
+VAR yard10_seen = false
+VAR gambler_yard10 = false
+VAR friend_yard10 = false
+VAR friend_mother10 = false
+VAR watcher10 = false
+VAR watcher10_seen = false
+// The cairn (if you let the scout go): you lie up on the post; the boss through the dip; the scout tells you why.
+VAR cairn10 = false
+VAR line10_seen = false
+VAR lying_up10 = false
+VAR boss_at_line10 = false
+VAR boss_crossed10 = false
+VAR cairn10_seen = false
+VAR cairn_meet10 = false
+VAR scout_cairn10 = false
+// Night: the enforcer at your table, the son (the fight writes enforcer_won); the dog gets away.
+VAR night10 = false
+VAR night10_seen = false
+VAR enforcer_night10 = false
+VAR son_night10 = false
+VAR enforcer_won = false
+VAR dog_ran10 = false
+// The tally house, in front of everyone; your friend back (if you reported her).
+VAR brand_night = false
+VAR friend_back10 = false
+VAR brother_brand10 = false
 // Your friend: Day 7 in the yard (the pale thread at her wrist), Day 8 at midday (she warns you of the search).
 VAR friend7 = false
 VAR friend8 = false
@@ -494,6 +545,7 @@ INCLUDE borderland/chapter2-day6.ink
 INCLUDE borderland/chapter2-day7.ink
 INCLUDE borderland/chapter2-day8.ink
 INCLUDE borderland/chapter2-day9.ink
+INCLUDE borderland/chapter2-day10.ink
 INCLUDE borderland/picked-fields.ink
 INCLUDE borderland/shack.ink
 INCLUDE borderland/swap-yard.ink

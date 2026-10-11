@@ -101,6 +101,8 @@ export const swapYard: AreaDefinition = {
   ],
 
   features: [
+    // Chapter 2, Day 10, afternoon: the yard (the gambler, your friend or her mother).
+    { type: 'trigger', x: 560, y: FLOOR, reach: 560, knot: 'c2day10_yard', showIf: 'yard10', hideIf: 'yard10_seen' },
     { type: 'lead', person: 'dog-lead', route: 'scent', near: 70 },
     // Chapter 2, Day 3: the fence comes out to meet you on your way to the tally house.
     { type: 'trigger', x: 1000, y: FLOOR, reach: 40, knot: 'c2day3_fence', showIf: 'day3_yard', hideIf: 'fence_met' },
@@ -111,7 +113,12 @@ export const swapYard: AreaDefinition = {
     { type: 'trigger', x: 980, y: FLOOR, reach: 40, knot: 'c2day8_noon', showIf: 'noon8', hideIf: 'noon8_seen' },{ type: 'fire', x: 355, y: FLOOR - 1 }],
   people: [
     dogFollowing(1040, FLOOR),
-    dogLeading(1030, FLOOR), // Day 9: on the scout's scent, through the sleeping yard
+    dogLeading(1030, FLOOR),
+    // Day 10, afternoon: the gambler out of the den in daylight; your friend by the pot, or her mother asking at every stall; the watcher's runner.
+    cast('gambler', 300, FLOOR, { id: 'gambler-yard10', when: ['afternoon'], showIf: 'gambler_yard10' }),
+    cast('scav_friend', 368, FLOOR, { id: 'friend-yard10', when: ['afternoon'], showIf: 'friend_yard10', flipX: true }),
+    local('friend-mother10', 6, 420, FLOOR, ['afternoon'], { showIf: 'friend_mother10', flipX: true }),
+    local('runner10', 3, 200, FLOOR, ['afternoon'], { showIf: 'watcher10', hideIf: 'watcher10_seen' }), // Day 9: on the scout's scent, through the sleeping yard
     // Behind the stalls.
     local('scrap-trader', 7, 112, FLOOR, AWAKE, { flipX: true }),
     local('food-trader', 5, 244, FLOOR, AWAKE),

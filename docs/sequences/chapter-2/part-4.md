@@ -55,3 +55,17 @@ Each choice adds a piece, or takes one away. Nobody gets them all.
 ## Questions
 - Where is the brand put on you in Part 5: the tally house, in front of everyone?
 - Does your friend, if reported, come back in Part 5?
+
+## As built (Day 10)
+
+Designer: build it; the brand is at the tally house, in front of everyone; if you reported your friend, she comes back calling you a traitor, so you feel it once you know.
+
+1. **Dawn, your shack** (card "Three nights on"). At home: your brother and the kid, "we saw him", and they run out to watch from the perch. The scout's news (another raid, or the scout you brought in). **The boss comes to your shack** to meet the dog (instead of you taking it through town: it stays secret), with his son. How he knows: your brother; the search; the gambler; the son. You call the dog up from under the floor; it sniffs his coat and growls: the drop's scent (the note in his pocket, if the enforcer found it). His face stops; he knows you know. "Dogs." The son: "What did it smell?"
+2. **Your brother.** *At home:* up the stacks to the perch: "It was the boss." The circle's men come up the ledges (**fight: `circle_men`**, you alone); he falls two ledges and they carry him down to the compound. *At the compound:* he brings two of the circle to take the dog "somewhere safe" (**fight: `circle_men_dog`**); he goes with them, calling you jealous.
+3. **The yard.** The gambler: if you walked away from him on Day 7, he's counting the enforcer's coin and tells you he sold you; otherwise he warns you the enforcer's coming tonight. Your friend (covered): a warning from over the line. Reported: her mother, asking every stall if anyone's seen her.
+4. **The watcher** (if `watcher_respect` >= 2): at the compound, the board's been copied; the boss collects the squares (swap); the scout gone from a locked cellar (turned in). He won't say the name. `watcher_ally`.
+5. **The cairn** (if you let the scout go): fetch the dog, lie up on the post; the boss walks under you, under the fence, to the cairn: hide for pale things, a lock of pale hair he holds to his face. The scout: his daughter, given for the truce, kept ever since; "every secret he sells keeps her breathing". `knows_why`.
+6. **Night, your shack:** the enforcer at your table with two of the circle, and the proof (the note; the dog's bed; the gambler's word; the boss's word). The son in the doorway: he watched his father at the dip, and stands with you. **Fight: `enforcer_night`** (you, the dog and the son against the enforcer and two of the circle). Win or lose, the yard comes with torches; the dog bites and gets away into the dark (`dog_ran10`); they take you and the son.
+7. **The tally house, in front of everyone:** the boss at the counter; your brother at his side (compound) or not there (taken); the son held by the door; the watcher looking at the boss (if he's with you); your friend (reported) pushes through: "Traitor!", and you know who it really was. The sentence: the brand at first light, and out past the tree's edge. Part 5 next.
+
+Not yet: the gambler's chain as a move; placeholder sprites for the enforcer and the circle's men.

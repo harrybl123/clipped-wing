@@ -873,3 +873,96 @@ ENCOUNTERS.line_raid = {
   timing: { lunge: 950, ease: 1.2 },
   outcomes: { won: { line_won: true }, lost: { line_won: false } },
 };
+
+// --- Chapter 2, Day 10: the circle's men, the enforcer, and the son on your side (draft numbers) ---
+
+/** One of the boss's circle, sent to do a job. */
+COMBATANTS.circle_man = { ...COMBATANTS.collector!, id: 'circle_man', name: 'One of the circle' };
+/** The bigger one, with a cosh. */
+COMBATANTS.circle_man_big = { ...COMBATANTS.collector_big!, id: 'circle_man_big', name: 'One of the circle' };
+
+/** Chapter 2, Day 10, up the scrap stacks: the circle's men come for your brother and the kid. You alone. Writes `circle_won10`. */
+ENCOUNTERS.circle_men = {
+  id: 'circle_men',
+  name: 'The boss\u2019s men',
+  party: ['scavenger'],
+  enemies: ['circle_man', 'circle_man_big'],
+  stage: 'yard',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { circle_won10: true }, lost: { circle_won10: false } },
+};
+
+/** Chapter 2, Day 10, your shack: your brother brings the circle's men to take the dog. You and the dog. Writes `circle_won10`. */
+ENCOUNTERS.circle_men_dog = { ...ENCOUNTERS.circle_men!, id: 'circle_men_dog', party: ['scavenger', 'dog'] };
+
+Object.assign(MOVES, {
+  // The enforcer: slow, enormous, and he doesn't care what you're holding up in front of you.
+  maul: {
+    id: 'maul', name: 'Maul', target: 'enemy', power: 11, kind: 'strike',
+    qte: { kind: 'bar', time: 1150, zone: [0.62, 0.82], sweet: [0.7, 0.74], alt: { kind: 'side', time: 700, quick: 260 } },
+    tell: { pose: 'squared', lines: ['He rolls his shoulders.', 'He comes forward, fists low.'] },
+    description: 'A fist like a lump of scrap.',
+  },
+  square_up: {
+    id: 'square_up', name: 'Square up', target: 'self', windsUp: 'crusher',
+    tell: { pose: 'shift', lines: ['He sets his feet, and lets you see him do it.', '"Hold still."'] },
+    description: 'He sets himself for the big one.',
+  },
+  crusher: {
+    id: 'crusher', name: 'Crusher', target: 'enemy', power: 19, kind: 'strike',
+    softened: { guard: 0.55, dodge: 0.1 },
+    qte: { kind: 'draw', time: 420, quick: 160, wait: [800, 1500], alt: { kind: 'bar', time: 1300, zone: [0.72, 0.86], sweet: [0.77, 0.81] } },
+    tell: { pose: 'windup', lines: ['He\u2019s brought both fists right back over his head.'] },
+    description: 'Straight through anything you hold up: guarding barely helps. Dodge it, or knock him off his feet first.',
+  },
+  throttle: {
+    id: 'throttle', name: 'Throttle', target: 'enemy', power: 6, kind: 'grab', silences: 2,
+    qte: { kind: 'grip', time: 3600, zone: [0.36, 0.64], narrow: 0.16, tug: 0.9, keep: 0.7, quick: 2600, alt: { kind: 'hold', time: 1000, zone: [0.65, 0.85], sweet: [0.72, 0.78] } },
+    tell: { pose: 'reach', lines: ['His hand opens, wide as your face.', 'He reaches for your throat.'] },
+    description: 'A hand round your throat: for 2 rounds, no skills.',
+  },
+
+  // The boss's son, on your side: his pipe, and his dirty tricks, for once at somebody else.
+  son_pipe: {
+    id: 'son_pipe', name: 'Pipe', target: 'enemy', power: 7, kind: 'strike',
+    qte: { kind: 'bar', time: 1050, zone: [0.6, 0.8], sweet: [0.68, 0.72], alt: { kind: 'key', time: 800, quick: 300 } },
+    description: 'Basic attack with his pipe.',
+  },
+  low_blow: {
+    id: 'low_blow', name: 'Low blow', target: 'enemy', power: 9, kind: 'shove', sp: 3, crit: 0.3, interrupts: true,
+    qte: { kind: 'key', time: 700, quick: 260, alt: { kind: 'weave', time: 650, quick: 260, gap: 520 } },
+    description: 'Something his father would be ashamed of. Knocks off balance anyone weak to shoves; interrupts a big swing.',
+  },
+  get_up: {
+    id: 'get_up', name: 'Get up', target: 'self', sp: 3, heals: 10,
+    description: 'He spits, and gets up again: some health back.',
+  },
+} satisfies Record<string, MoveDef>);
+
+/** The enforcer, at your table, at night. */
+COMBATANTS.enforcer = {
+  id: 'enforcer', name: 'The enforcer', sprite: 'enforcer', hp: 92, attack: 12, defence: 11, speed: 8,
+  moves: ['maul', 'square_up', 'throttle'], weights: [3, 1.2, 1.4],
+  weak: ['shove'], resists: ['strike'], poise: 3, feint: 0.05,
+  ai: { opening: ['maul', 'throttle'], maxRepeat: 2, recent: 0.5, when: { hurt: { square_up: 2 }, foeGuarding: { square_up: 2.5 } } },
+};
+
+/** The boss's son, beside you (from behind, his pipe in hand). */
+COMBATANTS.son_ally = {
+  id: 'son_ally', name: 'The boss\u2019s son', sprite: 'son_back', hp: 46, sp: 9, attack: 10, defence: 8, speed: 13,
+  basic: 'son_pipe', moves: ['low_blow', 'get_up'], reactions: ['dodge'],
+};
+
+/**
+ * Chapter 2, Day 10, your shack at night: the enforcer and two of the circle come for you and the dog, and
+ * the boss's son stands with you (designer: the son turns). Writes `enforcer_won`.
+ */
+ENCOUNTERS.enforcer_night = {
+  id: 'enforcer_night',
+  name: 'The enforcer',
+  party: ['scavenger', 'dog', 'son_ally'],
+  enemies: ['circle_man', 'enforcer', 'circle_man_big'],
+  stage: 'yard',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { enforcer_won: true }, lost: { enforcer_won: false } },
+};
