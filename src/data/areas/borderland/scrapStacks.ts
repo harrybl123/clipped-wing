@@ -109,6 +109,21 @@ export const scrapStacks: AreaDefinition = {
     { id: 'to-swap-yard', x: 624, y: FLOOR, reach: 12, to: 'swap-yard' },
   ],
 
+  routes: {
+    // Day 9: the scout up the stacks to the perch, ledge by ledge (designer: they flew up).
+    climb: [
+      { x: 112, y: FLOOR }, { x: 106, y: 470 }, { x: 168, y: 432 }, { x: 238, y: 396 }, { x: 318, y: 362 }, { x: 394, y: 328 },
+      { x: 318, y: 292 }, { x: 230, y: 258 }, { x: 168, y: 222 }, { x: 232, y: 186 }, { x: 330, y: 152 }, { x: 346, y: 152 },
+      { x: 362, y: BRIDGE.y }, { x: 428, y: BRIDGE.y }, { x: 450, y: PERCH.y }, { x: 482, y: PERCH.y },
+    ],
+    // The dog sent home from the top: back down the way it came, and off past your shack.
+    'dog-home': [
+      { x: 400, y: BRIDGE.y }, { x: 352, y: BRIDGE.y }, { x: 330, y: 152 }, { x: 232, y: 186 }, { x: 168, y: 222 }, { x: 230, y: 258 },
+      { x: 318, y: 292 }, { x: 394, y: 328 }, { x: 318, y: 362 }, { x: 238, y: 396 }, { x: 168, y: 432 }, { x: 106, y: 470 },
+      { x: 70, y: FLOOR }, { x: 0, y: FLOOR },
+    ],
+  },
+
   ambience: [
     { sound: 'wind', volume: 0.4 },
     { sound: 'chatter', volume: 0.1, when: ['morning', 'afternoon', 'evening'] },

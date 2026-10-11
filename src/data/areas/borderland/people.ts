@@ -60,7 +60,10 @@ export const rival = (id: string, look: number, x: number, y: number, when?: Tim
 });
 
 /** The dog, following you about (Chapter 2, Day 2: from the camp to home) while `dog_with_you`. */
-export const dogFollowing = (x: number, y: number): Person => dog(x, y, { id: 'dog-follow', showIf: 'dog_with_you', follow: true, knot: 'dog_pet', label: 'Pet' });
+export const dogFollowing = (x: number, y: number): Person => dog(x, y, { id: 'dog-follow', showIf: 'dog_with_you', hideIf: 'dog_leading', follow: true, knot: 'dog_pet', label: 'Pet' });
+
+/** The dog out in front, nose down, leading you (with a `lead` feature and a route: Day 9, the scout's scent). */
+export const dogLeading = (x: number, y: number): Person => dog(x, y, { id: 'dog-lead', showIf: 'dog_leading' });
 
 /** The dog. */
 export const dog = (x: number, y: number, extra: Partial<Person> = {}): Person => ({

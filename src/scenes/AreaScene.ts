@@ -341,6 +341,8 @@ export class AreaScene extends Phaser.Scene {
   private shadows: Extract<Feature, { type: 'shadow' }>[] = [];
   private shadowGraphics: Phaser.GameObjects.Graphics | null = null;
   private quarries: Quarry[] = [];
+  /** Someone leading you along a route (the `lead` feature): the point they're at, and whether they're on the move. */
+  private leads: { feature: Extract<Feature, { type: 'lead' }>; index: number; moving: boolean; idle: number }[] = [];
   private mobs: Mob[] = [];
   private triggers: Extract<Feature, { type: 'trigger' }>[] = [];
   private barks: Barks[] = [];
@@ -380,6 +382,7 @@ export class AreaScene extends Phaser.Scene {
     this.shadows = [];
     this.shadowGraphics = null;
     this.quarries = [];
+    this.leads = [];
     this.wakeAt = null;
     this.mobs = [];
     this.triggers = [];
@@ -575,6 +578,7 @@ export class AreaScene extends Phaser.Scene {
     this.updateBeetles(delta);
     this.updateWatch(delta);
     this.updateQuarries(delta);
+    this.updateLeads(delta);
     this.updateMobs(delta);
     this.updateTriggers();
     this.updateBarks(delta);
@@ -1475,6 +1479,22 @@ export class AreaScene extends Phaser.Scene {
           }
           break;
         }
+        case 'route': {
+          // #route:<id>:<route>[:<speed>][:leave]: they go along one of the area's routes (walking, and
+          // jumping or dropping between levels), and with `leave`, are gone at the end of it.
+          const points = this.area.routes?.[args[1] ?? ''];
+          if (entry && points) {
+            entry.scripted = true;
+            entry.racing = true;
+            entry.image.setVisible(true);
+            this.travelRoute(entry, points, Number(args[2] || 80), () => {
+              entry.racing = false;
+              if (args[3] === 'leave') entry.scriptHidden = true;
+              this.refreshPeople();
+            });
+          }
+          break;
+        }
         case 'hop':
           // #hop:<id>:<x>:<y>[:<x>:<y>...]: they jump from point to point (ledge to ledge), then the scene
           // settles (so if the story has hidden them meanwhile, they go once they land).
@@ -1585,6 +1605,78 @@ export class AreaScene extends Phaser.Scene {
           if (message) this.afterClose.push(() => this.openDecode({ message, then: then || undefined }));
           break;
         }
+      }
+    }
+  }
+
+  /** Someone goes along a list of points: walking along a level, jumping up or dropping down between levels. */
+  private travelRoute(entry: PersonEntry, points: { x: number; y: number }[], speed: number, then?: () => void): void {
+    const next = (i: number) => {
+      const to = points[i];
+      if (!to) return then?.();
+      this.stepTo(entry, to, speed, () => next(i + 1));
+    };
+    next(0);
+  }
+
+  /** One step of a route: a walk if it's on their level, otherwise a jump up or a drop down. */
+  private stepTo(entry: PersonEntry, to: { x: number; y: number }, speed: number, then: () => void): void {
+    const img = entry.image;
+    if (Math.abs(to.y - img.y) <= 2) {
+      if (Math.abs(to.x - img.x) < 1) return then();
+      this.walkTo(entry, to.x, speed, to.y, then);
+      return;
+    }
+    const from = { x: img.x, y: img.y };
+    const up = from.y - to.y;
+    // A jump goes up and over; a drop is a little hop off the edge, then falling.
+    const height = up > 0 ? 10 + up * 0.35 : 6;
+    img.setFlipX(to.x < from.x);
+    img.setTexture(entry.walkKeys[1] ?? entry.idleKeys[0]!);
+    const arc = { t: 0 };
+    this.tweens.add({
+      targets: arc, t: 1, duration: 260 + Math.abs(up) * 5 + Math.abs(to.x - from.x) * 2,
+      ease: up > 0 ? 'Sine.easeOut' : 'Quad.easeIn',
+      onUpdate: () => img.setPosition(Phaser.Math.Linear(from.x, to.x, arc.t), Phaser.Math.Linear(from.y, to.y, up > 0 ? Math.sqrt(arc.t) : arc.t * arc.t) - Math.sin(Math.PI * arc.t) * height),
+      onComplete: () => {
+        img.setPosition(to.x, to.y).setTexture(entry.idleKeys[0]!);
+        this.time.delayedCall(90, then);
+      },
+    });
+  }
+
+  /**
+   * Someone leading you (the dog on the scout's scent, designer: actually follow it): they go on a point
+   * at a time while you keep up, sniffing as they go, and wait for you, looking back and barking now and
+   * then, when you don't.
+   */
+  private updateLeads(delta: number): void {
+    const { x, y } = this.player.feet;
+    for (const lead of this.leads) {
+      const entry = this.people.get(lead.feature.person);
+      const route = this.area.routes?.[lead.feature.route];
+      if (!entry || !route || !entry.image.visible || lead.moving || this.dialogue.isOpen) continue;
+      const img = entry.image;
+      const near = Math.abs(x - img.x) <= lead.feature.near && Math.abs(y - img.y) <= 60;
+      if (near && lead.index < route.length - 1) {
+        lead.moving = true;
+        lead.idle = 0;
+        const to = route[++lead.index]!;
+        this.stepTo(entry, to, 100, () => {
+          lead.moving = false;
+          const ahead = route[lead.index + 1];
+          if (ahead) img.setFlipX(ahead.x < img.x);
+          if (Math.random() < 0.35) this.floatText(Math.random() < 0.5 ? 'sniff' : 'sniff sniff', img.x, img.y - img.height - 12, SHADES.white);
+        });
+        continue;
+      }
+      if (near) continue;
+      img.setFlipX(x < img.x);
+      lead.idle += delta;
+      if (lead.idle > 3200) {
+        lead.idle = 0;
+        this.floatText('Woof!', img.x, img.y - img.height - 12, SHADES.white);
+        this.soundscape.play('bark', { x: img.x, y: img.y });
       }
     }
   }
@@ -2282,6 +2374,16 @@ export class AreaScene extends Phaser.Scene {
       case 'trigger':
         this.triggers.push(feature);
         break;
+      case 'lead': {
+        const lead = { feature, index: 0, moving: false, idle: 0 };
+        this.leads.push(lead);
+        // They start at the route's first point (once everyone's placed).
+        this.time.delayedCall(0, () => {
+          const start = this.area.routes?.[feature.route]?.[0];
+          if (start) this.people.get(feature.person)?.image.setPosition(start.x, start.y);
+        });
+        break;
+      }
       case 'dig':
         // (Set up once you're in the area: its prompt goes where you stand.)
         this.time.delayedCall(0, () => this.addDig(feature));

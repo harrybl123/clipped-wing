@@ -165,26 +165,39 @@ The fence doesn't come out of the alcove this time. Just the voice, and the lamp
 ~ friend_at_line = true
 The sun's going down behind you as you get there. #time:evening
 The rival line. The post on its stilts. Your clan's sign, facing out. The fence, junk and wire, too high to climb.
-And somebody at the dip under it, by their sign. Two somebodies.
+Voices. Low, somewhere up by the dip.
+Then somebody laughs, a short, snorting laugh, cut off quick. You know that laugh.
 ~ objective = "Get closer"
 ~ objective_target = "rival-line:our-sign"
 -> END
 
+// Designer: the discovery should be more dramatic.
 === c2day9_friend ===
 ~ friend_seen9 = true
-One of them's in a pale wrap, crouched on the far side of the dip. The other's on this side, on her knees, holding their hand through the gap.
-Your friend. The pale thread round her wrist.
-She sees you, and lets go. The one in the pale wrap's gone, back into the dark on their side, before you can see a face. #leave:friend-rival:900:90
-"Oh. Oh, no." #speaker:scav_friend
-"You're not here. Tell me you're not here." #speaker:scavenger
-"It's not what it looks like." #speaker:scav_friend
-"It looks like you're holding hands with the other clan through the fence." #speaker:scavenger
-"Then it's exactly what it looks like." #speaker:scav_friend
-"Eight months. They're a picker, same as us. On their side. We found each other at the fence, and we kept coming back." #speaker:scav_friend
-"They've never asked me a thing. Not where we dig. Not the board. Nothing. I swear it on my mother." #speaker:scav_friend
-Then, behind you: boots on the track. The watcher, come to set the watch. #beside:watcher-line:-60:walk
+Two of them, at the dip. One on the far side in a pale wrap. One on this side, on her knees in the mud, her forehead pressed to the wire.
+Their hands are through the gap, holding on. Then they lean in through it, and kiss.
+The one on this side is your friend.
+The pale thread's round her wrist. Of course it is. It always was.
+You don't mean to make a sound. You make one. #sound:skid
+The pale one's on their feet in a heartbeat, and there's a blade in their hand, pointing through the wire at you. #shake
+"No! No, don't, she's mine, she's my friend!" #speaker:scav_friend
+Your friend's between you and the wire, arms out. The blade wavers, and drops.
+"Go. Go! I'll find you." #speaker:scav_friend
+They go, back into the dark on their side, without a word. #leave:friend-rival:900:110
+Your friend turns round. She's crying already. #beside:friend-line:24:walk
+"How long?" #speaker:scavenger
+"Eight months." #speaker:scav_friend
+"Eight months. And the brothel door. That was this." #speaker:scavenger
+"I lied to everybody. I had to." #speaker:scav_friend
+"They hit the wells. They hit the mast. People are hurt, and they've chalked rat on my door. And you've been out here every night with one of them." #speaker:scavenger
+"They've never asked me a thing! Not where we dig, not the board, nothing. I swear it on my mother." #speaker:scav_friend
+"They're a picker, same as us. That's all. That's all it is." #speaker:scav_friend
+She grabs your hands. Hers are freezing.
+"If the boss finds out, they'll hang me off the tally gate. You know they will." #speaker:scav_friend
+Then, behind you: boots on the track. Somebody coming up from the fields. #sound:boots #beside:watcher-line:-60:walk
 ~ watcher_at_line = true
-She looks at you. She doesn't ask. She just looks.
+The watcher, come to set the watch.
+"Please," she says, without any sound at all.
 -> c2day9_friend_choice
 
 // The medium choice (design doc): report her, or cover for her.
@@ -260,57 +273,56 @@ And the small one's still out there. Towards the settlement. In the dark.
 "Sniff... sniff sniff!" #speaker:dog
 ~ c2day9 = "chase"
 ~ chase9 = true
-~ objective = "Follow " + dog_name + ": it has the scout's scent"
-~ objective_target = "scrap-stacks:scout-stacks"
+~ dog_leading = true
+It's off down the track, nose to the ground, and it looks back to see if you're coming.
+~ objective = "Follow " + dog_name
+~ objective_target = "rival-line:dog-lead;picked-fields:dog-lead;swap-yard:dog-lead;scrap-stacks:scout-stacks"
 -> END
 
 // --- Night, the scrap stacks: the chase ---
 
 === c2day9_stacks ===
 ~ chase_seen = true
-There. At the foot of the stacks. The small one, in the pale wrap, looking back at the noise you're making.
-They go up the stacks like they were born on them. #hop:scout-stacks:540:250:500:180:470:112
+~ dog_leading = false
+{dog_name} stops dead at the foot of the stacks, and growls up at the dark. #bark:dog-follow:grrr:growl
+There. The small one, in the pale wrap, looking back at the noise you're making.
+They go up the stacks like they were born on them, ledge to ledge, never missing a hold. #route:scout-stacks:climb:120
 ~ objective = "Up after them"
 ~ objective_target = "scrap-stacks:view"
-They're on the kid's perch, at the top. There's no way down the far side that isn't a long fall.
+They're making for the kid's perch, at the top. There's no way down the far side that isn't a long fall.
 -> END
 
+// Designer: beat them first, then make them talk.
 === c2day9_cornered ===
 ~ scout_cornered = true
 ~ chase9 = false
 ~ objective = ""
 ~ objective_target = ""
 They're backed up to the edge of the perch, with the whole settlement below them, and a blade in their hand.
-It's the small one. The one who came through the dip with the other two, and ran.
 {dog_name} puts itself between you, low, growling. #bark:dog-follow:GRRR:growl
 The scout looks at the dog, and their eyes go wide.
 "A dog. A real one." #speaker:scout
 { drop_choice == "leave":
     And you know that face. You watched it dig up the drop under the marker stone, yesterday.
 }
-"Where were you going? In there?" #speaker:scavenger
-"To meet somebody." #speaker:scout
-"Who?" #speaker:scavenger
-"Our contact. On your side. The one who tells us where you'll all be." #speaker:scout
-"The other two were only there to keep your watch busy while I got past. And the contact knew the watch would be you, on your own. It's on your board." #speaker:scout
+"Where were you going?" #speaker:scavenger
 { drop_choice == "swap": -> c2day9_cornered_swap }
 { drop_choice == "take": -> c2day9_cornered_take }
-"Now get out of my way." #speaker:scout
+"Get out of my way." #speaker:scout
 You don't. They come at you. #combat:scout_known:c2day9_after_scout
 -> END
 
 // You swapped the drop: they went to row five for nothing.
 === c2day9_cornered_swap ===
-"And somebody sent us to row five yesterday. Empty dirt, half a day." #speaker:scout
+"Somebody sent us to row five yesterday. Empty dirt, half a day." #speaker:scout
 They look at you, and work it out.
 "That was you." #speaker:scout
-"The contact wanted to know who's been at their drop. That's what tonight was for." #speaker:scout
 They don't wait for you to answer. They come at you, blade first, careless with fury. #combat:scout_angry:c2day9_after_scout
 -> END
 
 // You took the note: they want it back.
 === c2day9_cornered_take ===
-"And somebody took a note off our drop yesterday." #speaker:scout
+"Somebody took a note off our drop yesterday." #speaker:scout
 { found_note:
     "Where is it? Who's got it?" #speaker:scout
     You think of the boss's coat, and the inside pocket. You don't say. They don't believe you.
@@ -322,38 +334,70 @@ They come for it with both hands. #combat:scout_desperate:c2day9_after_scout
 
 === c2day9_after_scout ===
 { scout_won:
-    They're down on the perch's planks, the blade gone over the edge, {dog_name}'s teeth an inch from their face.
+    They're down on the perch's planks, the blade gone over the edge, and {dog_name}'s teeth an inch from their face.
 - else:
-    You're down. They've got their blade up, and then {dog_name} is between you, and they don't use it.
-    They could run. They don't. They're looking at the dog.
+    You're down. They've got their blade up, and then {dog_name} has their wrist in its jaws, and the blade's gone over the edge.
+    Now they're the one on the planks, and {dog_name} won't let go.
 }
-They pull the wrap down off their face. Younger than you, with a burn down one cheek, breathing hard.
+"Where were you going?" #speaker:scavenger
+They spit, and say nothing.
++ [Let the dog closer]
+    "{dog_name}." #speaker:scavenger
+    It leans in, and growls, right in their face. #bark:dog-follow:GRRRR:growl
+    "All right! All right." #speaker:scout
++ [Pin them]
+    You put your staff across their chest, and lean on it, until they can't breathe.
+    "All right! All right." #speaker:scout
+- You ease off. They pull the wrap down off their face: younger than you, with a burn down one cheek, breathing hard.
 They look at your strap. The circle's mark, stitched into it.
 "That mark. You're his. You're one of the circle." #speaker:scout
-"Everyone says I'm the one telling you where we dig." #speaker:scavenger
+"Everyone over here says I'm the one telling you where we dig." #speaker:scavenger
+They laugh, and it hurts them to.
 "You? We'd know. It isn't you." #speaker:scout
+"Then who?" #speaker:scavenger
+"You don't know how it works over here, do you? None of you down in the dirt do." #speaker:scout
+"Somebody on your side sells you to us. Where you'll dig, when you'll be there. Our people pay for it in pale things, and we take the sacks." #speaker:scout
+"I was going in tonight to meet them. The other two were only there to keep your watch busy. And they knew the watch would be you, on your own. It's on your board." #speaker:scout
+"You were picked. If anybody saw us come through tonight, it was your watch we came through." #speaker:scout
+"Why tell me any of this?" #speaker:scavenger
+"Because it isn't what it looks like. It's not your clan against mine. It's somebody on your side who wants it that way, and we're tired of getting fat on your hunger." #speaker:scout
+"And because they're going to hang you for it. That isn't fair, and you ought to know." #speaker:scout
+They look at {dog_name}.
+"And if it ever comes to it, we'd rather have you with us than on the end of a rope." #speaker:scout
 ~ c2day9 = "choice"
 -> c2day9_choice
 
 // Big choice 2 (design doc), with a reason each way (designer: there was no incentive to let them go):
-// your name, or the truth.
+// your name, or the truth. Each option explains itself in a second box, as in Chapter 1 (designer).
 === c2day9_choice ===
-"So. Shout for your watcher, and he gets one of us on his floor. Proof we come through the dip. Proof it's not you that let us in." #speaker:scout
-"Or let me go, and I'll tell you where our contact meets us, and when. You can see their face for yourself." #speaker:scout #dim:on
+"So. Shout for your watcher, and he gets one of us on his floor. Or let me go, and I'll tell you where our contact meets us, and when. You can see their face for yourself." #speaker:scout
+Your name back, or the truth.
+Take them in, and the yard has its proof. Let them go, and you might find out who's been doing this to you. #dim:on
+- (choose)
 + [Take them to the watcher]
-    ~ scout_choice = "turned_in"
-    "Get up. You're coming with me." #speaker:scavenger #dim:off
-    -> c2day9_turned_in
+    The watcher gets one of the other clan on his floor: proof of how they come in, and proof it wasn't you. The yard will have to stop saying rat.
+    But whatever the scout knows, the watcher hears it, and the watcher tells the boss everything. And you'll never see the contact's face.
+    ++ [Yes. Take them in.]
+        ~ scout_choice = "turned_in"
+        "Get up. You're coming with me." #speaker:scavenger #dim:off
+        -> c2day9_turned_in
+    ++ [No. Think again.]
+        -> choose
 + [Let them go, for the meeting place]
-    ~ scout_choice = "let_go"
-    "Where? When?" #speaker:scavenger #dim:off
-    -> c2day9_let_go
+    They tell you where and when the contact meets them, and you can lie up and see for yourself who's been selling you.
+    But you go home with nothing. The yard still says rat. And if anyone ever finds out you let one of them walk, that's the rope.
+    ++ [Yes. Let them go.]
+        ~ scout_choice = "let_go"
+        "Where? When?" #speaker:scavenger #dim:off
+        -> c2day9_let_go
+    ++ [No. Think again.]
+        -> choose
 
 === c2day9_turned_in ===
-At the foot of the stacks, you send {dog_name} home. Nobody in the settlement can see it now. #leave:dog-follow:16:120
+You send {dog_name} home. It goes down the stacks the way it came up, ledge by ledge, and off towards the shack, looking back at you once. #route:dog-follow:dog-home:110:leave
 ~ dog_with_you = false
 ~ turnin9 = true
-Then you walk the scout through the sleeping yard and the tally house, all the way to the compound. #goto:compound:60:232:c2day9_gate
+Then you walk the scout down, and through the sleeping yard and the tally house, all the way to the compound. #goto:compound:60:232:c2day9_gate
 -> END
 
 === c2day9_gate ===
@@ -381,10 +425,9 @@ You walk them down off the stacks, and out across the fields in the dark, all th
 At the dip, they stop, and keep their word.
 "The cairn, on our side. Three nights from now, when there's no moon. Your contact comes through the dip alone, and we meet them there." #speaker:scout
 "Lie up by your post, and you'll see who comes." #speaker:scout
-"Why tell me?" #speaker:scavenger
-"Because they've been selling your people to us, and now they're setting you up to hang for it. And because you didn't shout." #speaker:scout
+"You didn't shout. I won't forget that." #speaker:scout
 They look at {dog_name} one last time.
-"And because of the dog. Nobody's seen one in my whole life." #speaker:scout
+"Nor that. Nobody's seen a dog in my whole life." #speaker:scout
 They go under the fence on their belly, and stand up on the far side, and they're gone. #leave:scout-free:900:90
 ~ rival_trust += 1
 ~ scout_friend = true

@@ -129,3 +129,14 @@ Built 2026-10-09 (`story/borderland/chapter2-day9.ink`; dev `?chapter=2&day=9`, 
 - The picker lost in the sunk town (if you told the bar): too dark, or right for the ramp?
 - If the enforcer finds the drop's note in your shack, is that the point of no return (straight into Part 4), or a crack that widens?
 - The gambler's weapon: a chain, loaded bones, something else?
+
+### After the Day 9 playtest (second round)
+
+Designer: no marker on the map for the boss's house; the friend's discovery should be more dramatic; actually follow the dog; the scout flew up the stacks; the scout tells you everything straight away (beat them first, then make them talk, and give them a real reason); the big choices need a second box as in Chapter 1; the dog flew off screen sideways when sent home.
+
+- The map marks an inside room (the boss's house) at the place it's in (`placeOf`).
+- **Your friend at the dip:** a laugh you know from down the track; at the wire, a kiss through the gap; you make a sound, the pale one draws a blade, she gets between you; then it's out (eight months, the brothel door, the raids, the rat on your door), she begs, and the watcher's boots on the track.
+- **Following the dog:** after the raiders, the dog leads you on the scent from the line, across the fields and through the sleeping yard to the stacks (`lead` and a `scent` route in each; `dog_leading`); it waits, looking back and barking, if you fall behind. Dev: `&day=9&at=follow`.
+- **Routes:** the scout climbs the stacks ledge by ledge (`climb`); the dog goes home down them (`dog-home`).
+- **The scout:** cornered, they won't talk ("Get out of my way"; or row five, or the note); after the fight, you make them (the dog closer, or your staff across their chest). Then why: it isn't clan against clan, it's somebody on your side who wants it that way; they've picked you to hang for it, and that isn't fair; "we'd rather have you with us than on the end of a rope". Then what they were doing (the contact, the diversion, your watch on the board).
+- **Big choices explain themselves:** the dog (Day 2), your brother (Day 4) and the scout (Day 9) each open a second box: what it would mean, then "Yes" or "No. Think again." Taking the scout in clears your name but the watcher tells the boss everything; letting them go gets you the meeting, but the yard still says rat.

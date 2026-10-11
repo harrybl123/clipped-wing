@@ -2,7 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './rivalLineProps';
 import { cableCoil, dugHole, trackMarker } from './scrapProps';
 import type { AreaDefinition, Solid } from '../types';
-import { AWAKE, LATE, cast, dogFollowing, local, rival } from './people';
+import { AWAKE, LATE, cast, dogFollowing, dogLeading, local, rival } from './people';
 
 // The rival line (Chapter 2): the border with another clan's turf. Where you catch the rival scout (big
 // choice 2), and where crossing over begins if you befriend them. Your side, picked bare, with a watch post
@@ -68,6 +68,7 @@ export const rivalLine: AreaDefinition = {
   ],
 
   features: [
+    { type: 'lead', person: 'dog-lead', route: 'scent', near: 70 },
     // Chapter 2, Day 9: at dusk, your friend at the dip; at night, the watch.
     { type: 'trigger', x: 50, y: FLOOR, reach: 40, knot: 'c2day9_line_arrive', showIf: 'line_open', hideIf: 'line9_arrived' },
     { type: 'trigger', x: 520, y: FLOOR, reach: 30, knot: 'c2day9_friend', showIf: 'friend_at_line', hideIf: 'friend_seen9' },
@@ -86,6 +87,7 @@ export const rivalLine: AreaDefinition = {
     // If you let the scout go, you walk them back out to the dip.
     rival('scout-free', 1, 572, FLOOR, ['night'], { showIf: 'letgo9' }),
     dogFollowing(30, FLOOR),
+    dogLeading(200, FLOOR), // Day 9: on the scout's scent
     // Theirs, by their fire across the line.
     rival('their-watch', 0, 712, FLOOR, AWAKE),
     rival('their-fire-1', 1, 776, FLOOR, LATE),
@@ -99,6 +101,11 @@ export const rivalLine: AreaDefinition = {
     { id: 'their-sign', x: 668, y: FLOOR, reach: 10, label: 'Look', knot: 'rival_line_their_sign' },
     { id: 'cairn', x: 805, y: FLOOR, reach: 12, label: 'Look', knot: 'rival_line_cairn' },
   ],
+
+  routes: {
+    // Day 9: the dog on the scout's scent, from under the post back along the track.
+    scent: [{ x: 200, y: FLOOR }, { x: 150, y: FLOOR }, { x: 96, y: FLOOR }, { x: 44, y: FLOOR }, { x: 18, y: FLOOR }],
+  },
 
   exits: [{ id: 'to-picked-fields', x: 16, y: FLOOR, reach: 12, to: 'picked-fields' }],
 

@@ -445,6 +445,7 @@ VAR line_won = false
 VAR scout_gone9 = false
 // The chase up the scrap stacks; the scout cornered on the perch (the fight writes scout_won).
 VAR chase9 = false
+VAR dog_leading = false // Day 9: the dog out in front on the scout's scent (you follow it)
 VAR chase_seen = false
 VAR scout_cornered = false
 VAR scout_won = false

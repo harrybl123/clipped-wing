@@ -98,10 +98,12 @@ export function devChapter2Day(scene: Phaser.Scene, day: number): void {
     brothel: { area: { areaId: 'shack', start: { x: 90, y: 236 } }, slots: 2, vars: { ...after, c2day8: 'brothel', noon8_seen: true, search_started: false, objective: 'Ask the madam about the bead', objective_target: 'brothel:madam' } },
   };
   // Day 9: &at=line (the fields, just shown the way to the line, at dusk), &at=watch (the line at night, the dog with
-  // you), &at=chase (the stacks, the scout ahead of you). With &drop=leave|take|swap (default swap).
+  // you), &at=follow (the line after the raiders, following the dog on the scout's scent), &at=chase (the stacks,
+  // the scout ahead of you). With &drop=leave|take|swap (default swap).
   const day9: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | boolean> }> = {
     line: { area: { areaId: 'picked-fields', start: { x: 470, y: 232 } }, slots: 1, vars: { c2day9: 'dusk', house9_done: true, old9: true, old9_done: true, line_open: true, objective: 'Go out to the line by sunset', objective_target: 'picked-fields:to-rival-line' } },
     watch: { area: { areaId: 'rival-line', start: { x: 140, y: 232 } }, slots: 3, vars: { c2day9: 'watch', house9_done: true, old9: true, old9_done: true, line_open: true, line9_arrived: true, friend_seen9: true, friend_choice: 'covered', dog_with_you: true, objective: 'Keep watch at the post', objective_target: 'rival-line:post' } },
+    follow: { area: { areaId: 'rival-line', start: { x: 230, y: 232 } }, slots: 3, vars: { c2day9: 'chase', house9_done: true, old9_done: true, line_open: true, line9_arrived: true, friend_seen9: true, friend_choice: 'covered', watched9: true, line_won: true, scout_gone9: true, dog_with_you: true, chase9: true, dog_leading: true, objective: 'Follow the dog', objective_target: 'rival-line:dog-lead;picked-fields:dog-lead;swap-yard:dog-lead;scrap-stacks:scout-stacks' } },
     chase: { area: { areaId: 'scrap-stacks', start: { x: 616, y: 510 } }, slots: 3, vars: { c2day9: 'chase', house9_done: true, old9_done: true, line_open: true, line9_arrived: true, friend_seen9: true, friend_choice: 'covered', watched9: true, line_won: true, dog_with_you: true, chase9: true, objective: 'After the scout', objective_target: 'scrap-stacks:scout-stacks' } },
   };
   const mid = at ? (day === 7 ? day7[at] : day === 6 ? day6[at] : day === 8 ? day8[at] : day === 9 ? day9[at] : undefined) : undefined;

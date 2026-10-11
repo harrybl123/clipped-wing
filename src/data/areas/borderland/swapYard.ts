@@ -3,7 +3,7 @@ import * as P from './swapYardProps';
 import { casingPod, wireBundle } from './scrapProps';
 import type { AreaDefinition } from '../types';
 import type { RowSprite } from '../../../ui/sprites';
-import { AWAKE, DAY, LATE, cast, dogFollowing, local, stroller } from './people';
+import { AWAKE, DAY, LATE, cast, dogFollowing, dogLeading, local, stroller } from './people';
 
 // The swap yard (Chapter 2): the market, finds for food. Out in the open inside the settlement's walls,
 // the rooftops crowding the horizon and the tree rising behind them. A row of stalls (upturned casings
@@ -101,6 +101,7 @@ export const swapYard: AreaDefinition = {
   ],
 
   features: [
+    { type: 'lead', person: 'dog-lead', route: 'scent', near: 70 },
     // Chapter 2, Day 3: the fence comes out to meet you on your way to the tally house.
     { type: 'trigger', x: 1000, y: FLOOR, reach: 40, knot: 'c2day3_fence', showIf: 'day3_yard', hideIf: 'fence_met' },
     // Chapter 2, Day 7: the mark on your door; on the way home that night, your own people waiting.
@@ -110,6 +111,7 @@ export const swapYard: AreaDefinition = {
     { type: 'trigger', x: 980, y: FLOOR, reach: 40, knot: 'c2day8_noon', showIf: 'noon8', hideIf: 'noon8_seen' },{ type: 'fire', x: 355, y: FLOOR - 1 }],
   people: [
     dogFollowing(1040, FLOOR),
+    dogLeading(1030, FLOOR), // Day 9: on the scout's scent, through the sleeping yard
     // Behind the stalls.
     local('scrap-trader', 7, 112, FLOOR, AWAKE, { flipX: true }),
     local('food-trader', 5, 244, FLOOR, AWAKE),
@@ -155,6 +157,11 @@ export const swapYard: AreaDefinition = {
     { id: 'crates', x: 464, y: FLOOR - 38, reach: 12, label: 'Look', knot: 'swap_yard_view' },
     { id: 'fence', x: 922, y: FLOOR, reach: 14, label: 'Look', knot: 'swap_yard_fence' },
   ],
+
+  routes: {
+    // Day 9: the dog on the scout's scent, through the yard to the stacks.
+    scent: [{ x: 1030, y: FLOOR }, { x: 970, y: FLOOR }, { x: 900, y: FLOOR }, { x: 840, y: FLOOR }, { x: 780, y: FLOOR }],
+  },
 
   exits: [
     { id: 'to-shack', x: 30, y: FLOOR, reach: 12, to: 'shack' },

@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './scrapProps';
 import type { AreaDefinition, Solid } from '../types';
-import { DAY, cast, dogFollowing, local, rival, straggler, stroller } from './people';
+import { DAY, cast, dogFollowing, dogLeading, local, rival, straggler, stroller } from './people';
 
 // The picked fields (Chapter 2): scavenged clean, where everyone works. The first open sky in the game:
 // a wide waste of dug-over dirt under a pale haze, the tree vast on the horizon with its top lost in
@@ -93,6 +93,7 @@ export const pickedFields: AreaDefinition = {
   ],
 
   features: [
+    { type: 'lead', person: 'dog-lead', route: 'scent', near: 70 },
     // Chapter 2, Day 7: the old wells, raided at first light (the patch you put on the board).
     { type: 'trigger', x: 630, y: FLOOR, reach: 34, knot: 'c2day7_wells', showIf: 'wells_raid', hideIf: 'wells_seen' },
     // Chapter 2, Day 2: taking the dog to sell, it slips the wire halfway across.
@@ -128,6 +129,7 @@ export const pickedFields: AreaDefinition = {
     stroller('picker-2', 10, 90, 180, FLOOR, ['morning'], 'first_light'),
     cast('scav_friend', 152, FLOOR, { knot: 'picked_fields_friend', when: ['afternoon'] }),
     dogFollowing(60, FLOOR),
+    dogLeading(470, FLOOR), // Day 9: on the scout's scent, in from the line
     // Chapter 2, Day 5: the old scavenger digging beside you; then the other clan, over the rise.
     cast('old_scav', 836, FLOOR, { id: 'old-scav-fields', knot: 'c2day6_old', showIf: 'raid_day', flipX: true }),
     // Day 9: the old scavenger on a crate at the edge of the fields, sore from the raid; he knows the line.
@@ -155,6 +157,14 @@ export const pickedFields: AreaDefinition = {
     { id: 'tree', x: CROWN.x + 4, y: CROWN.y, reach: 12, label: 'Look', knot: 'picked_fields_tree' },
     { id: 'glass', x: 680, y: FLOOR, reach: 12, label: 'Look', knot: 'picked_fields_glass' },
   ],
+
+  routes: {
+    // Day 9: the dog on the scout's scent, in from the line and across to the yard (over a spoil heap).
+    scent: [
+      { x: 470, y: FLOOR }, { x: 400, y: FLOOR }, { x: 330, y: FLOOR }, { x: 250, y: FLOOR }, { x: 188, y: FLOOR },
+      { x: 165, y: FLOOR - 7 }, { x: 138, y: FLOOR }, { x: 76, y: FLOOR }, { x: 24, y: FLOOR },
+    ],
+  },
 
   exits: [
     { id: 'to-swap-yard', x: 20, y: FLOOR, reach: 16, to: 'swap-yard' },

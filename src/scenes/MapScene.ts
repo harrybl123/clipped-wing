@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT as H, GAME_WIDTH as W } from '../config';
 import { closedReason } from '../data/access';
-import { AREAS, PLANNED_AREAS } from '../data/areas';
+import { AREAS, PLANNED_AREAS, placeOf } from '../data/areas';
 import { MAP_CANOPY_Y, MAP_PLACES, MAP_TUBE_X, neighbourInDirection, treeHalfWidth, WORLDS, worldOf, type MapPlace, type MapWorld } from '../data/map';
 import { addLight, falloff, noise, rgb, SHADES, smoothstep, type PixelColour, type RGB } from '../ui/pixelArt';
 import { paintBorderlandMap } from '../ui/paintBorderlandMap';
@@ -97,8 +97,9 @@ export class MapScene extends Phaser.Scene {
     }
 
     // The objective: a red bird bobbing over the place you need to go (the same marker as in the areas).
-    // A choice (",") gets a bird over each place.
-    const targets = String(getSession(this).story.getVariable('objective_target') ?? '').split(',').map((t) => t.split(':')[0]);
+    // A choice (",") gets a bird over each place; a room inside somewhere (the boss's house) is marked at
+    // the place it's in.
+    const targets = String(getSession(this).story.getVariable('objective_target') ?? '').split(',').map((t) => placeOf(t.split(':')[0] ?? ''));
     for (const target of new Set(targets)) {
       const goal = this.places.find((p) => p.id === target);
       if (!goal) continue;

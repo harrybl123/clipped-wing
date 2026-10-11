@@ -59,6 +59,17 @@ describe.each(Object.values(AREAS))('area $id', (area) => {
     }
   });
 
+  it('has routes that stand on solid surfaces, and leaders with a route and a person', () => {
+    for (const [name, points] of Object.entries(area.routes ?? {})) {
+      for (const { x, y } of points) expect(area.solids.some((s) => y === s.y && x >= s.x && x <= s.x + s.width), `${name} at ${x},${y}`).toBe(true);
+    }
+    for (const f of area.features) {
+      if (f.type !== 'lead') continue;
+      expect(area.routes?.[f.route], f.route).toBeDefined();
+      expect(area.people.map((p) => p.id)).toContain(f.person);
+    }
+  });
+
   it('only uses ink knots and variables that exist', () => {
     const story = compileStory();
     const knots = [...area.interactables.map((it) => it.knot), ...area.people.flatMap((p) => (p.knot ? [p.knot] : []))];

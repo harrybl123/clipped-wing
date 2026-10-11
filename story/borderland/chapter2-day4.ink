@@ -49,15 +49,27 @@ You take it.
 "Good girl. Now. That brother of yours." #speaker:boss
 "A boy shouldn't be living in a shack on the edge of nowhere, eating when his sister has a good day." #speaker:boss
 "Bring him here. He'll eat every day. He'll sleep warm. He'll be safe, which is more than you can promise him." #speaker:boss #dim:on
+// Each option explains itself in a second box, as in Chapter 1 (designer).
+- (choose)
 + [Yes. Bring him here]
-    ~ brother_choice = "compound"
-    "Yes. Thank you." #speaker:scavenger #dim:off
-    "There. That wasn't hard." #speaker:boss
+    He'd eat every day, and sleep warm, behind the compound's wall. But he'd be the boss's, not yours, and you'd only see him when the boss allows.
+    And he'd be here, in the middle of everything, with your secret in his head.
+    ++ [Yes. Send him to the compound.]
+        ~ brother_choice = "compound"
+        "Yes. Thank you." #speaker:scavenger #dim:off
+        "There. That wasn't hard." #speaker:boss
+    ++ [No. Think again.]
+        -> choose
 + [No. He stays with me]
-    ~ brother_choice = "home"
-    "No. He stays with me." #speaker:scavenger #dim:off
-    The boss's smile doesn't move at all.
-    "Of course. Family's family. The offer stands." #speaker:boss
+    He stays in the shack on the edge of nowhere, eating when you have a good day. But he stays yours, and the dog stays his.
+    And the boss isn't used to hearing no.
+    ++ [Yes. Keep him at home.]
+        ~ brother_choice = "home"
+        "No. He stays with me." #speaker:scavenger #dim:off
+        The boss's smile doesn't move at all.
+        "Of course. Family's family. The offer stands." #speaker:boss
+    ++ [No. Think again.]
+        -> choose
 - "Now. Tonight, when the tally's in, my circle drinks at the bar. You'll drink with us." #speaker:boss
 "Everyone should see you're one of mine. That's half of what keeps you safe." #speaker:boss
 "The bar. Tonight. Don't be late, and don't be early." #speaker:boss
