@@ -123,12 +123,14 @@ export function devChapter2Day(scene: Phaser.Scene, day: number): void {
     chase: { area: { areaId: 'scrap-stacks', start: { x: 616, y: 510 } }, slots: 3, vars: { c2day9: 'chase', house9_done: true, old9_done: true, line_open: true, line9_arrived: true, friend_seen9: true, friend_choice: 'covered', watched9: true, line_won: true, dog_with_you: true, chase9: true, objective: 'After the scout', objective_target: 'scrap-stacks:scout-stacks' } },
   };
   // Day 10: &at=yard (the yard in the afternoon, after your brother), &at=line (the line at nightfall, the dog with
-  // you; let go), &at=night (home at night, the enforcer waiting), &at=tally (the tally house, in front of everyone).
+  // you; let go), &at=night (home at night, the enforcer waiting), &at=won (just after beating him), &at=tally (the tally house, in front of everyone).
   const after10 = { c2day10: 'yard', boss_growled10: true, knows_boss: true, perch10_seen: true, witness10: params.get('brother') !== 'compound', brother_taken10: params.get('brother') !== 'compound', dog_home: true };
   const day10: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | boolean> }> = {
     yard: { area: { areaId: 'swap-yard', start: { x: 40, y: 232 } }, slots: 1, vars: { ...after10, yard10: true, gambler_yard10: true, friend_yard10: params.get('friend') !== 'reported', friend_mother10: params.get('friend') === 'reported', objective: 'Go through the yard', objective_target: 'swap-yard:gambler-yard10' } },
     line: { area: { areaId: 'rival-line', start: { x: 30, y: 232 } }, slots: 2, vars: { ...after10, c2day10: 'line', yard10: true, yard10_seen: true, cairn10: true, dog_home: false, dog_with_you: true, objective: 'Go out to the line: lie up by the post', objective_target: 'rival-line:post' } },
     night: { area: { areaId: 'swap-yard', start: { x: 60, y: 232 } }, slots: 3, vars: { ...after10, c2day10: 'home', yard10: true, yard10_seen: true, night10: true, objective: 'Go home', objective_target: 'shack:door' } },
+    // (Straight after beating the enforcer, in your shack: the rubbing, the dog away into the dark.)
+    won: { area: { areaId: 'shack', start: { x: 120, y: 236 }, script: 'c2day10_after_night' }, slots: 3, vars: { ...after10, c2day10: 'home', yard10: true, yard10_seen: true, night10: true, night10_seen: true, enforcer_night10: true, son_night10: true, enforcer_won: true, dog_home: false, dog_up10: true } },
     tally: { area: { areaId: 'tally-house', start: { x: 120, y: 236 }, script: 'c2day10_tally' }, slots: 3, vars: { ...after10, c2day10: 'tally', yard10: true, yard10_seen: true, night10: true, night10_seen: true, brand_night: true, dog_home: false, dog_ran10: true, friend_back10: params.get('friend') === 'reported', brother_brand10: params.get('brother') === 'compound' } },
   };
   const mid = at ? (day === 7 ? day7[at] : day === 6 ? day6[at] : day === 8 ? day8[at] : day === 9 ? day9[at] : day === 10 ? day10[at] : undefined) : undefined;
