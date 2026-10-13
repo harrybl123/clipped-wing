@@ -8,10 +8,14 @@ Design for the third playable chapter, the prince's introduction. The wider cast
 
 An heir in one of the last human cities spends a week performing his duties: diplomacy and politics. His father shares his wisdom at times, and his diplomat (his "hand") is always at his side. Signs of civil unrest slowly build, and chaos erupts in the city below. By the end the prince realises the man at his side is the one behind it.
 
-- **The overarching conflict of the game is introduced here,** but quietly. It comes to the forefront when the game returns to the capital (chapter 5, 6 or later).
+- **The overarching conflict of the game is introduced here,** but quietly. **This chapter is the seeds; chapter 7, back in the capital, is where it all breaks** (Harry, 2026-10-13).
 - **The chapter ends with the prince still in the capital.**
 - **The big decisions are big political decisions on the society:** the people below or high society above.
 - **Design principle:** the choices set the state of the capital you return to.
+
+## Writing
+
+- **Snappier, more impactful dialogue than earlier chapters** (Harry, 2026-10-13): short lines that land.
 
 ## What the player knows
 
@@ -24,6 +28,7 @@ An heir in one of the last human cities spends a week performing his duties: dip
 - The society that's left is effectively only governance. It governs the other places, like the tree, and is the point of interaction between the integrated and the output of humans.
 - It is sort of cruel: places like the tree are best managed unaware of their own situation. Humans have to remain useful.
 - **The conflict:** the prince's father runs the steady ship. He carefully manages the relationship with the integrated. He's wise, knows disturbing it is a risk he won't take, and is tortured by the decisions he makes but believes this is the only way. The people trying to overthrow him aren't bad, just people striving to change society. Neither side is wrong.
+- **He's the revolution's target, and he hardens (Harry, 2026-10-13):** he starts tortured but careful; as the aggression towards him builds, he mounts increasingly aggressive pushbacks. He doesn't die. The diplomat is still the one planting the revolution.
 - **The look:** quite futuristic, almost a futurist society, but with a castle vibe. It's high tech and trades with the integrated, so there are no old-fashioned roles like archivists.
 - **Background only, never stated:** the integrated supply the capital's energy in exchange for human output, and send less when output drops. Unrest cuts output, which cuts energy, which feeds more unrest. The sealed wing hums when the father is negotiating, and nobody says with whom.
 
@@ -33,6 +38,22 @@ An heir in one of the last human cities spends a week performing his duties: dip
 - **In upper society** it's felt but invisible: flat toasts, empty seats, polite allies. You feel the build but don't know why.
 - **Midweek** you spot the symbol in upper society, stitched in your friend's sleeve.
 - **The father** sits between both worlds.
+
+## What builds: two realisations (Harry, 2026-10-13)
+
+Over the week the prince slowly realises two things, and they meet at the broadcast:
+
+- **Your father's secret, harsher strategies.** He starts tortured but careful. As the unrest grows, he pushes back harder, and more of it happens behind your back. You find out piece by piece. (The world's secret, what the sealed wing is for, still waits for chapter 4: what you find is what he does, not why.)
+  - **His pushbacks, in order** (Harry, 2026-10-13). Each one answers something the movement does:
+    1. **The symbol spreads:** he cuts the power on the streets where it keeps appearing.
+    2. **They start meeting in secret:** informants, rewarded for reporting revolutionary sentiment, so citizens turn on each other, which is what he wants.
+    3. **The riot (midweek), the first real violence:** he calls them terrorists, on every screen.
+    4. **With the word said, the raids:** on their meeting places. You're below with your hand when one happens (the medium choice below).
+    5. **High society wavers** (the symbol in your friend's sleeve, the empty seats): **guests of the citadel.** Heirs of families he doubts are invited to live in the citadel, as an honour, and only realise once they're in that they can't leave. **Your friend is one of them** (Harry). **(suggestion)** The sleeve choice sets how: told the guard captain, he's brought in because of you; asked him, he's brought in anyway.
+       **His escape is woven into this chapter** (Harry), so chapter 5 can find him on the road with the messenger. How, still to decide.
+    6. **The broadcast:** the last, which he hands you to read out: everyone taken in the raids and the riot is to be **sent away to be useful**, "given work" in the managed places outside the capital. Nobody says where, or what the work is. Quiet and permanent, and a hint at the world's secret without telling it.
+  - **How you find out: down in the city with your hand** (Harry, 2026-10-13). The diplomat takes you down into the streets in secret, and the people there show you what's really going on. They know who you are, so they're cautious, but they want to tell you (Harry). **(suggestion)** He has his own reason: he wants you to see it. At the end, when you realise he's behind the unrest, these trips look different: he chose what you saw.
+- **Your hand is behind the unrest.** The diplomat plants the symbol and connects the plotters, warm and at your side the whole time. The last beat of the chapter.
 
 ## Locations
 
@@ -101,11 +122,11 @@ A crowd turns violent. Who leads it depends on decision 1. Your hand gently push
 
 ### 3. The broadcast (ending)
 
-After the riot the city is waiting, and you address it on every screen. This decides where the diplomat ends up. Every path ends on the reveal that he's behind the disarray, with you still in the citadel.
+Made overt (Harry, 2026-10-13: the choice of whose words was too hidden; "broadly right"). After the riot the city is waiting, and you address it on every screen. Your father hands you his last pushback to announce: everyone taken in the raids and the riot is to be sent away to be useful (Harry). You choose what you say, knowing what it means, with him watching. It sets the city you come back to, and where the diplomat ends up. Every path ends on the reveal that he's behind the disarray, with you still in the citadel.
 
-- **Your father's script:** steady and calm. The city stays quiet on the surface, so the diplomat has to act in the open. He's exposed and flees the citadel. When you return, he's out in the city, against you.
-- **The diplomat's draft:** warm and hopeful. The symbol goes out under your name, and only afterwards do you realise his words carried it. He stays at your side, trusted by everyone, and only you know. When you return, he's still your hand.
-- **Your own words:** your father draws you closer and lets you feel the weight he carries, without telling you what it is. The diplomat keeps his distance. When you return, you're in your father's confidence.
+- **Back your father:** you read out his order. The city goes quiet out of fear, and he trusts you. The diplomat has to act in the open, is exposed and flees the citadel. When you return, he's out in the city, against you.
+- **Defy him:** you promise the people change, live, against his order. The city cheers your name; your father is humiliated and hardens further. The revolution has your face on it now, and the diplomat stays at your side, trusted by everyone, and only you know. When you return, he's still your hand.
+- **Open: a middle way?** (for example, asking for patience, or announcing the order but softening it). If it stays, your father draws you closer and lets you feel the weight he carries, without telling you what it is; the diplomat keeps his distance. When you return, you're in your father's confidence.
 
 ## Medium decisions
 
@@ -121,10 +142,14 @@ After the riot the city is waiting, and you address it on every screen. This dec
 - **The physician's request:** he asks you to persuade your father to rest and hand more to you.
   - **Do it:** you take on more duties, which unknowingly helps the plotters.
   - **Refuse:** the physician turns distant.
+- **The raid** (Harry, 2026-10-13): on a trip below, you see an illegal meeting place (an underground bar or a hideout) raided and ransacked by your father's men. The people there are citizens banding together against injustice; the capital and your father call them terrorists. One of the ways you learn how harsh he's become.
+  - **Step in:** you order them to stand down.
+  - **Stay out of it:** you don't get involved in the violence.
+  - **(suggestion)** Stepping in shows your face below: the people saw the prince stop it, and the guard captain tells your father where you've been. Staying out keeps your cover, and you carry what you watched. Your hand brought you there, and may have known the raid was coming.
 
 ## When the game returns to the capital
 
-Chapter 5, 6 or later. The conflict about decision-making comes to the forefront. The ultimate choice is to reject or lead the revolution, which causes a massive split in the story. Chapter 3's choices decide who's where: whether the riot leader you thought was executed is out there leading, whether the diplomat is at your side or against you, and how close you are to your father.
+Chapter 7, where it all breaks. The conflict about decision-making comes to the forefront. The ultimate choice is to reject or lead the revolution, which causes a massive split in the story. Chapter 3's choices decide who's where: whether the riot leader you thought was executed is out there leading, whether the diplomat is at your side or against you, and how close you are to your father.
 
 ## Open questions
 
