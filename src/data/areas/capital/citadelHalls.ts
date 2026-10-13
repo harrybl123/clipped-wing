@@ -34,6 +34,12 @@ function grandStair(): Solid[] {
   }).flat();
 }
 
+/** The glass lift's shaft, at the far end, between the floors. */
+const LIFT = W - 16 - 32;
+/** The message tube: along the ceiling, then down into the top of the diplomat's door. */
+const TUBE_Y = TOP + 5;
+const TUBE_DOWN = 732;
+
 /** A tall window onto the city, on the upper floor. */
 const tallWindow = (x: number) => ({ x, y: TOP + 22, width: 52, height: 72, horizon: TOP + 58, treeX: 2000, mullions: 13 });
 
@@ -58,7 +64,7 @@ export const citadelHalls: AreaDefinition = {
   solids: [
     { x: 0, y: FLOOR, width: W, height: 270 - FLOOR },
     { x: 16, y: UPPER, width: CL - 16, height: 6, oneWay: true }, // the left gallery
-    { x: CR, y: UPPER, width: W - 16 - CR, height: 6, oneWay: true }, // the right gallery
+    { x: CR, y: UPPER, width: LIFT - CR, height: 6, oneWay: true }, // the right gallery, up to the lift's shaft
     ...grandStair(),
     { x: 0, y: 0, width: 16, height: 270, invisible: true },
     { x: W - 16, y: 0, width: 16, height: 270, invisible: true },
@@ -73,6 +79,14 @@ export const citadelHalls: AreaDefinition = {
   ],
 
   lines: [
+    // The message tube, brass: along the ceiling and down to the diplomat's door.
+    { from: { x: 16, y: TUBE_Y - 1 }, to: { x: TUBE_DOWN + 1, y: TUBE_Y - 1 }, colour: S.amber },
+    { from: { x: 16, y: TUBE_Y + 1 }, to: { x: TUBE_DOWN - 1, y: TUBE_Y + 1 }, colour: S.amberDeep },
+    { from: { x: TUBE_DOWN + 1, y: TUBE_Y - 1 }, to: { x: TUBE_DOWN + 1, y: UPPER - 49 }, colour: S.amber },
+    { from: { x: TUBE_DOWN - 1, y: TUBE_Y + 1 }, to: { x: TUBE_DOWN - 1, y: UPPER - 49 }, colour: S.amberDeep },
+    // And one under the gallery, the length of the state floor.
+    { from: { x: 16, y: UPPER + 9 }, to: { x: CL - 1, y: UPPER + 9 }, colour: S.amberDeep },
+    { from: { x: CR, y: UPPER + 9 }, to: { x: LIFT - 1, y: UPPER + 9 }, colour: S.amberDeep },
     // The stair's gold rails, up each flight.
     { from: { x: C - FOOT - 2, y: FLOOR - 14 }, to: { x: CL + 2, y: UPPER - 6 }, colour: S.amber },
     { from: { x: C + FOOT + 2, y: FLOOR - 14 }, to: { x: CR - 2, y: UPPER - 6 }, colour: S.amber },
@@ -102,6 +116,8 @@ export const citadelHalls: AreaDefinition = {
     { sprite: P.STATUE, x: 760, y: FLOOR - 46 },
     { sprite: P.doorway(26, 46), x: 827, y: FLOOR - 46 },
     { sprite: P.rug(300), x: 630, y: FLOOR - 3 },
+    { sprite: P.liftShaft(32, FLOOR - TOP - 8), x: LIFT, y: TOP + 8 },
+    { sprite: P.TUBE_MOUTH, x: TUBE_DOWN - 2, y: UPPER - 52 },
     // Upstairs, the private floor.
     { sprite: P.doorway(24, 46), x: 88, y: UPPER - 46 },
     { sprite: P.doorway(24, 46), x: 238, y: UPPER - 46 },
@@ -111,7 +127,14 @@ export const citadelHalls: AreaDefinition = {
     { sprite: P.doorway(24, 46), x: 848, y: UPPER - 46 },
   ],
 
-  features: [],
+  features: [
+    // Capsules shooting through the tubes: messages, all day, to the diplomat's office.
+    { type: 'pulse', points: [{ x: 16, y: TUBE_Y }, { x: TUBE_DOWN, y: TUBE_Y }, { x: TUBE_DOWN, y: UPPER - 50 }], speed: 160, every: 2200, count: 2, sprite: P.CAPSULE },
+    { type: 'pulse', points: [{ x: LIFT - 2, y: UPPER + 9 }, { x: CR, y: UPPER + 9 }], speed: 140, every: 3400, sprite: P.CAPSULE },
+    { type: 'pulse', points: [{ x: CL - 2, y: UPPER + 9 }, { x: 16, y: UPPER + 9 }], speed: 140, every: 3400, sprite: P.CAPSULE },
+    // The glass lift, up and down between the floors.
+    { type: 'mover', sprite: P.liftCar(28), x: LIFT + 2, y: FLOOR - 2, to: { x: LIFT + 2, y: UPPER - 2 }, speed: 40 },
+  ],
   people: [],
   interactables: [],
 

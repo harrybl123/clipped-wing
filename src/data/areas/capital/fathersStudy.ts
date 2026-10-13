@@ -4,7 +4,8 @@ import type { AreaDefinition } from '../types';
 
 // Your father's study (Chapter 3): his wisdom (docs/areas/capital/fathers-study.md). The warmest room in
 // the citadel: dark wood panelling over the marble floor, shelves of books and old things from before, amber lamplight,
-// a clock. His desk by the window over the city, a screen on it kept face down. In the back wall, the
+// the castle's own hearth, the only real fire in the citadel; a case clock; a model of the city under glass.
+// His desk by the window over the city, a screen on it kept face down. In the back wall, the
 // door to the sealed wing, and you can hear it hum.
 
 const W = 480;
@@ -38,6 +39,7 @@ export const fathersStudy: AreaDefinition = {
 
   lights: [
     { x: 366, y: 196, colour: S.amber, radius: 90, radiusY: 50, strength: 0.32 }, // the desk lamp
+    { x: 200, y: 210, colour: S.amber, radius: 80, radiusY: 50, strength: 0.4 }, // the fire
     { x: 150, y: 150, colour: S.amber, radius: 140, radiusY: 80, strength: 0.14 }, // the room, warm
     { x: 286, y: 200, colour: S.cyan, radius: 30, radiusY: 40, strength: 0.14 }, // round the sealed wing's door
   ],
@@ -46,8 +48,11 @@ export const fathersStudy: AreaDefinition = {
 
   props: [
     { sprite: P.doorway(24, 46), x: 22, y: FLOOR - 46 },
-    { sprite: P.bookshelf(130, 112), x: 60, y: FLOOR - 112 },
-    { sprite: P.bookshelf(60, 112), x: 196, y: FLOOR - 112 },
+    { sprite: P.CITY_MODEL, x: 52, y: FLOOR - 34 },
+    { sprite: P.bookshelf(80, 112), x: 88, y: FLOOR - 112 },
+    { sprite: P.HEARTH, x: 174, y: FLOOR - 46 },
+    { sprite: P.bookshelf(40, 112), x: 230, y: FLOOR - 112 },
+    { sprite: P.CASE_CLOCK, x: 304, y: FLOOR - 64 },
     // The door to the sealed wing: plain, dark, blue light at its edges.
     { sprite: P.doorway(26, 50), x: 273, y: FLOOR - 50 },
     { sprite: P.rug(150), x: 300, y: FLOOR - 3 },
@@ -56,7 +61,10 @@ export const fathersStudy: AreaDefinition = {
     { sprite: P.LAMP, x: 448, y: FLOOR - 7 },
   ],
 
-  features: [],
+  features: [
+    { type: 'fire', x: 200, y: FLOOR - 7 },
+    { type: 'swing', sprite: P.PENDULUM, x: 313, y: FLOOR - 28, ropeTop: FLOOR - 45, quiet: true, ropeColour: S.amberDeep },
+  ],
   people: [],
   interactables: [],
 

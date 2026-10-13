@@ -31,7 +31,7 @@ export const audienceHall: AreaDefinition = {
   walls: 'marble',
   cavity: { x: 16, y: TOP, width: W - 32, height: FLOOR - TOP, radius: 2 },
   ambient: 0.9,
-  playerStart: { x: 120, y: FLOOR },
+  playerStart: { x: 140, y: FLOOR },
   surface: 'stone',
   acoustics: 'hall',
   ambience: [
@@ -71,9 +71,11 @@ export const audienceHall: AreaDefinition = {
     { sprite: P.lightStrip(110), x: 430, y: 110 },
     { sprite: P.banner(20, 90), x: 266, y: TOP + 14 },
     { sprite: P.banner(20, 90), x: 456, y: TOP + 14 },
-    // The doors in.
+    // The doors in: the great doors set in the old castle's gate, its portcullis raised for good.
+    { sprite: P.oldArch(76, 100), x: 2, y: FLOOR - 100 },
+    { sprite: P.PORTCULLIS, x: 16, y: FLOOR - 86 },
     { sprite: P.greatDoors(40, 62), x: 20, y: FLOOR - 62 },
-    { sprite: P.doorway(26, 46), x: 77, y: FLOOR - 46 },
+    { sprite: P.doorway(26, 46), x: 104, y: FLOOR - 46 },
     // The petitioners' benches and the rope they wait behind.
     { sprite: P.rug(380), x: 170, y: FLOOR - 3 },
     { sprite: P.bench(56), x: 160, y: FLOOR - 9 },
@@ -82,7 +84,6 @@ export const audienceHall: AreaDefinition = {
     { sprite: P.bench(56), x: 440, y: FLOOR - 9 },
     { sprite: P.ropeLine(31), x: 528, y: FLOOR - 16 },
     // The dais: the great screen, the throne, your seat beside it.
-    { sprite: P.screen(120, 64), x: 620, y: TOP + 26 },
     { sprite: P.column(DAIS - TOP), x: 596, y: TOP },
     { sprite: P.column(DAIS - TOP), x: 760, y: TOP },
     { sprite: P.rug(150), x: 604, y: DAIS - 3 },
@@ -90,12 +91,18 @@ export const audienceHall: AreaDefinition = {
     { sprite: P.THRONE, x: 674, y: DAIS - 60 },
   ],
 
-  features: [],
+  features: [
+    { type: 'frames', frames: P.scrollingScreen(120, 64), x: 620, y: TOP + 26, every: 450 },
+    // Light running along the gold in the floor, towards the throne.
+    { type: 'pulse', points: [{ x: 70, y: FLOOR + 3 }, { x: DAIS_FROM, y: FLOOR + 3 }], speed: 110, every: 300, count: 3, colour: S.cyan },
+    { type: 'swing', sprite: P.CHANDELIER, x: 235, y: TOP + 62, ropeTop: TOP, quiet: true, ropeColour: S.amberDeep },
+    { type: 'swing', sprite: P.CHANDELIER, x: 425, y: TOP + 62, ropeTop: TOP, quiet: true, ropeColour: S.amberDeep },
+  ],
   people: [],
   interactables: [],
 
   exits: [
     { id: 'to-halls', x: 40, y: FLOOR, reach: 16, to: 'citadel-halls' },
-    { id: 'to-lifts', x: 90, y: FLOOR, reach: 12, to: 'lifts' },
+    { id: 'to-lifts', x: 117, y: FLOOR, reach: 12, to: 'lifts' },
   ],
 };

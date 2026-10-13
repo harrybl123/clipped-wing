@@ -39,7 +39,11 @@ export const diplomatsOffice: AreaDefinition = {
     { x: 380, y: 100, colour: S.cyan, radius: 40, radiusY: 30, strength: 0.14 }, // the screen
   ],
 
-  lines: [],
+  lines: [
+    // The message tube, down from the ceiling to his desk.
+    { from: { x: 299, y: TOP }, to: { x: 299, y: FLOOR - 62 }, colour: S.amberDeep },
+    { from: { x: 302, y: TOP }, to: { x: 302, y: FLOOR - 62 }, colour: S.amber },
+  ],
 
   props: [
     { sprite: P.doorway(24, 46), x: 22, y: FLOOR - 46 },
@@ -51,12 +55,15 @@ export const diplomatsOffice: AreaDefinition = {
     { sprite: P.DESK, x: 260, y: FLOOR - 26 },
     { sprite: P.LETTERS, x: 262, y: FLOOR - 33 },
     { sprite: P.HIGH_CHAIR, x: 308, y: FLOOR - 28 },
-    { sprite: P.screen(44, 28), x: 358, y: 86 },
+    { sprite: P.TUBE_MOUTH, x: 299, y: FLOOR - 62 },
     // His private door, down to the lifts.
     { sprite: P.doorway(24, 46), x: 424, y: FLOOR - 46 },
   ],
 
-  features: [],
+  features: [
+    { type: 'pulse', points: [{ x: 301, y: TOP + 2 }, { x: 301, y: FLOOR - 58 }], speed: 170, every: 2600, sprite: P.CAPSULE },
+    { type: 'frames', frames: P.scrollingScreen(44, 28), x: 358, y: 86, every: 400 },
+  ],
   people: [],
   interactables: [],
 

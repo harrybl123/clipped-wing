@@ -77,7 +77,6 @@ export const glasshouse: AreaDefinition = {
     { sprite: P.plantBed(70, 26), x: 60, y: FLOOR - 26 },
     { sprite: P.POTTED_TREE, x: 140, y: FLOOR - 56 },
     { sprite: P.plantBed(100, 30), x: 180, y: FLOOR - 30 },
-    { sprite: P.FOUNTAIN, x: 300, y: FLOOR - 30 },
     { sprite: P.plantBed(80, 24), x: 350, y: FLOOR - 24 },
     { sprite: P.POTTED_TREE, x: 430, y: FLOOR - 56 },
     // The terrace.
@@ -87,7 +86,12 @@ export const glasshouse: AreaDefinition = {
     { sprite: P.COUCH, x: 572, y: TERRACE - 16 },
   ],
 
-  features: [],
+  features: [
+    { type: 'frames', frames: P.FOUNTAIN_FRAMES, x: 300, y: FLOOR - 30, every: 200 },
+    { type: 'drip', x: 160, y: GLASS + 2, floorY: FLOOR },
+    { type: 'drip', x: 342, y: GLASS + 2, floorY: FLOOR },
+    { type: 'drip', x: 470, y: GLASS + 2, floorY: TERRACE },
+  ],
   people: [],
   interactables: [],
 

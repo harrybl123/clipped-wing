@@ -33,11 +33,20 @@ export const sealedWing: AreaDefinition = {
   ],
 
   lights: [
-    { x: 524, y: 190, colour: S.cyan, radius: 90, radiusY: 60, strength: 0.4 }, // the door's glow
+    { x: 524, y: 190, colour: S.cyan, radius: 100, radiusY: 70, strength: 1 }, // the door's glow, strong enough to show on the marble
     { x: 60, y: 190, colour: S.amber, radius: 60, radiusY: 40, strength: 0.12 }, // from the study behind you
   ],
 
-  lines: [],
+  lines: [
+    // Cables: along the ceiling and down into the door's frame; along the floor and into its foot.
+    { from: { x: 16, y: TOP + 4 }, to: { x: 500, y: TOP + 4 }, colour: S.deep },
+    { from: { x: 16, y: TOP + 5 }, to: { x: 500, y: TOP + 5 }, colour: S.cyanDeep },
+    { from: { x: 500, y: TOP + 4 }, to: { x: 500, y: FLOOR - 68 }, colour: S.deep },
+    { from: { x: 501, y: TOP + 5 }, to: { x: 501, y: FLOOR - 68 }, colour: S.cyanDeep },
+    { from: { x: 140, y: FLOOR - 2 }, to: { x: 502, y: FLOOR - 2 }, colour: S.deep },
+    { from: { x: 140, y: FLOOR - 3 }, to: { x: 502, y: FLOOR - 3 }, colour: S.cyanDeep },
+    { from: { x: 260, y: FLOOR - 5 }, to: { x: 502, y: FLOOR - 5 }, colour: S.deep },
+  ],
 
   props: [
     { sprite: P.doorway(24, 46), x: 22, y: FLOOR - 46 },
@@ -50,7 +59,11 @@ export const sealedWing: AreaDefinition = {
     { sprite: P.SEALED_DOOR, x: 502, y: FLOOR - 68 },
   ],
 
-  features: [],
+  features: [
+    // Light running along the cables into the door.
+    { type: 'pulse', points: [{ x: 16, y: TOP + 4 }, { x: 500, y: TOP + 4 }, { x: 500, y: FLOOR - 68 }], speed: 150, every: 700, count: 3, colour: S.cyan },
+    { type: 'pulse', points: [{ x: 140, y: FLOOR - 3 }, { x: 502, y: FLOOR - 3 }], speed: 130, every: 900, count: 2, colour: S.cyan },
+  ],
   people: [],
   interactables: [],
 

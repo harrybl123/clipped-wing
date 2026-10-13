@@ -47,7 +47,9 @@ export interface Line {
 export type Feature =
   | { type: 'fire'; x: number; y: number; showIf?: string } // animated flames, bottom-centre at (x, y), with sparks (only while the ink variable showIf is true, if given)
   | { type: 'smoke'; x: number; y: number; top: number; showIf?: string } // grey smoke rising from (x, y) up to `top` (a crack in a ceiling), while showIf is true
-  | { type: 'swing'; sprite: RowSprite; x: number; y: number; ropeTop: number } // hanging from ropeTop, sways
+  | { type: 'swing'; sprite: RowSprite; x: number; y: number; ropeTop: number; quiet?: boolean; ropeColour?: number } // hanging from ropeTop, sways (creaking, unless quiet: a chandelier, a pendulum); its rope or chain in ropeColour
+  | { type: 'frames'; frames: RowSprite[]; x: number; y: number; every: number; showIf?: string } // an animated prop (top-left at x, y): cycles through its frames every `every` ms (a screen scrolling, a table of light flickering, water running)
+  | { type: 'pulse'; points: { x: number; y: number }[]; speed: number; every: number; count?: number; sprite?: RowSprite; colour?: number; showIf?: string } // something travelling along a line, over and over: a capsule shooting through a message tube, light running along a cable. `count` of them, spaced out; each sets off again `every` ms after it arrives (a 2×2 dot of `colour` if no sprite)
   | { type: 'drip'; x: number; y: number; floorY: number } // a drop falls from (x, y) every so often
   | { type: 'motes'; x: number; top: number; bottom: number; halfWidth: number } // pale motes rising in a column (the tube)
   | { type: 'mover'; sprite: RowSprite; x: number; y: number; to: { x: number; y: number }; speed: number; ropeTop?: number } // a one-way platform (top-left at x, y) going to `to` and back at `speed` px/s, pausing at each end; optional ropes up to ropeTop

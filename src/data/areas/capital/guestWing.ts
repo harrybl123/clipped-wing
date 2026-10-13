@@ -61,11 +61,10 @@ export const guestWing: AreaDefinition = {
     { sprite: P.closedDoor(26, 46), x: 488, y: FLOOR - 46 },
     // The guards' post, and the way out.
     { sprite: P.BARRIER, x: 532, y: FLOOR - 22 },
-    { sprite: P.screen(30, 20), x: 540, y: 120 },
     { sprite: P.doorway(24, 46), x: 596, y: FLOOR - 46 },
   ],
 
-  features: [],
+  features: [{ type: 'frames', frames: P.SURVEILLANCE_FRAMES, x: 540, y: 116, every: 700 }],
   people: [],
   interactables: [],
 

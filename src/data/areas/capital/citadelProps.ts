@@ -51,16 +51,20 @@ export const column = (height: number): RowSprite => ({
   colours: C,
 });
 
-/** A screen in a gold frame: a dim blue glow, lines of something scrolling across it. */
-export const screen = (width: number, height: number): RowSprite => ({
+/** A screen in a gold frame: a dim blue glow, lines of something across it (`scroll` moves them up a row each). */
+export const screen = (width: number, height: number, scroll = 0): RowSprite => ({
   rows: fill(width, height, (x, y) => {
     if (x === 0 || y === 0 || x === width - 1 || y === height - 1) return 'a';
     if (x === 1 || y === 1 || x === width - 2 || y === height - 2) return 'd';
-    if (y % 3 === 0 && x > 3 && x < width - 4 - ((y * 7) % 9)) return 'G';
+    const line = y + scroll;
+    if (line % 3 === 0 && x > 3 && x < width - 4 - ((line * 7) % 9)) return line % 12 === 0 ? 'c' : 'G';
     return (x + y) % 7 === 0 ? 'g' : 's';
   }),
   colours: C,
 });
+
+/** A screen's frames, its lines scrolling up (for the `frames` feature). */
+export const scrollingScreen = (width: number, height: number): RowSprite[] => [0, 1, 2].map((i) => screen(width, height, i));
 
 /** A strip of blue light, upright, set into the wall. */
 export const lightStrip = (height: number): RowSprite => ({
@@ -227,7 +231,7 @@ export const councilSeat = (taken: boolean): RowSprite => ({
 });
 
 /** The council's table of light: a round plinth, and above it the city drawn in blue light, districts lit or dark. */
-export const HOLO_TABLE: RowSprite = {
+export const holoTable = (phase: number): RowSprite => ({
   rows: fill(96, 66, (x, y) => {
     // The plinth.
     if (y >= 54) return y === 54 ? 'a' : y === 55 ? 'W' : x < 10 || x > 85 ? '.' : x === 10 ? 'm' : x === 85 ? 'W' : 'h';
@@ -237,11 +241,17 @@ export const HOLO_TABLE: RowSprite = {
     const hill = 46 - 34 * Math.exp(-(((x - cx) / 22) ** 2)) - (Math.floor(x / 4) % 3) * 2;
     if (y < hill) return Math.abs(x - cx) < 1 && y > hill - 10 ? 'c' : '.';
     const dark = x < 28 || (x > 62 && x < 72); // districts with the power cut
+    // A scan sweeping across it, a bright line; the cut districts flickering.
+    if (Math.abs(x - (14 + phase * 22)) < 1) return dark ? 'G' : 'W';
+    if (dark && (x + phase * 5) % 9 === 0 && y % 2 === 0) return 'G';
     if (y < hill + 1 || x % 4 === 0) return dark ? 'g' : 'c';
-    return (x * 3 + y) % 5 === 0 ? (dark ? 'g' : 'W') : '.';
+    return (x * 3 + y + phase) % 5 === 0 ? (dark ? 'g' : 'W') : '.';
   }),
   colours: C,
-};
+});
+export const HOLO_TABLE = holoTable(0);
+/** The table of light, flickering, a scan sweeping across it (for the `frames` feature). */
+export const HOLO_FRAMES = [0, 1, 2, 3].map(holoTable);
 
 // --- Your father's study ---
 
@@ -328,15 +338,18 @@ export const POTTED_TREE: RowSprite = {
 };
 
 /** A fountain: a marble basin, a gold spout, water caught in the light. */
-export const FOUNTAIN: RowSprite = {
+const fountain = (phase: number): RowSprite => ({
   rows: fill(40, 30, (x, y) => {
-    if (y >= 18) return x < 1 || x > 38 ? '.' : y === 18 ? 'W' : y === 19 ? 'c' : x === 1 ? 'm' : x === 38 ? 'W' : 'h';
-    if (x >= 18 && x <= 21) return y > 6 ? (x === 19 || x === 20 ? 'a' : '.') : y > 2 ? 'c' : '.';
+    if (y >= 18) return x < 1 || x > 38 ? '.' : y === 18 ? 'W' : y === 19 ? ((x + phase) % 4 === 0 ? 'W' : 'c') : x === 1 ? 'm' : x === 38 ? 'W' : 'h';
+    if (x >= 18 && x <= 21) return y > 6 ? (x === 19 || x === 20 ? 'a' : '.') : y > 2 ? ((y + phase) % 3 === 0 ? 'W' : 'c') : '.';
     const fall = Math.abs(x - 19.5) - (y - 3) * 0.9;
-    return Math.abs(fall) < 0.8 && y > 3 ? 'c' : '.';
+    return Math.abs(fall) < 0.8 && y > 3 ? ((y + phase) % 3 === 0 ? 'W' : 'c') : '.';
   }),
   colours: C,
-};
+});
+export const FOUNTAIN = fountain(0);
+/** The fountain's water running (for the `frames` feature). */
+export const FOUNTAIN_FRAMES = [0, 1, 2].map(fountain);
 
 // --- The banquet gallery ---
 
@@ -456,3 +469,148 @@ export const vines = (height: number): RowSprite => ({
   }),
   colours: { ...C, L: S.greenMid, e: S.green, E: S.greenDeep },
 });
+
+// --- The citadel's own things (designer: more creative) ---
+
+/**
+ * The castle's bones: where the marble's been cut back, the old rough stone of the castle it was built on,
+ * an arch of it, worn, the mortar dark (the citadel was a castle before it was anything else).
+ */
+export const oldArch = (width: number, height: number): RowSprite => ({
+  rows: fill(width, height, (x, y) => {
+    const cx = (width - 1) / 2;
+    const inner = Math.max(0, height - 14 - Math.sqrt(Math.max(0, 1 - ((x - cx) / (width / 2 - 8)) ** 2)) * 14);
+    const opening = Math.abs(x - cx) < width / 2 - 8 && y > height - 14 - Math.sqrt(Math.max(0, 1 - ((x - cx) / (width / 2 - 8)) ** 2)) * (height - 22);
+    if (opening) return y > inner + 2 && (x + y) % 9 === 0 ? 'n' : 's';
+    // Rough stones in courses, each its own shade; the mortar between them dark.
+    const course = Math.floor(y / 7);
+    const sx = x + (course % 2) * 5;
+    if (y % 7 === 0 || sx % 11 === 0) return 'd';
+    const r = ((Math.floor(sx / 11) * 37 + course * 17) % 10) / 10;
+    if ((x * 7 + y * 3) % 13 === 0) return 'n'; // pitting
+    return r > 0.7 ? 'm' : r > 0.35 ? 'p' : 'n';
+  }),
+  colours: C,
+});
+
+/** The old castle's portcullis, raised over the great doors for good: black iron, spikes along its foot. */
+export const PORTCULLIS: RowSprite = {
+  rows: fill(48, 16, (x, y) => {
+    if (y === 0) return 'n';
+    if (x % 6 === 2) return y === 15 ? 'd' : y === 14 ? 's' : 's';
+    if (y % 5 === 2) return 's';
+    return '.';
+  }),
+  colours: C,
+};
+
+/** A hearth of old rough stone, the castle's own: the only real fire in the citadel. */
+export const HEARTH: RowSprite = {
+  rows: fill(52, 46, (x, y) => {
+    if (y < 4) return y === 0 ? 'm' : 'p'; // the mantel
+    if (y < 6) return 'd';
+    const opening = x > 9 && x < 42 && y > 14;
+    if (opening) return y > 40 ? (x % 4 === 0 ? 'A' : 'd') : 's'; // the firebox, embers on its floor
+    const course = Math.floor(y / 6);
+    const sx = x + (course % 2) * 4;
+    if (y % 6 === 0 || sx % 9 === 0) return 'd';
+    const r = ((Math.floor(sx / 9) * 31 + course * 13) % 10) / 10;
+    return r > 0.65 ? 'm' : r > 0.3 ? 'p' : 'n';
+  }),
+  colours: C,
+};
+
+/** A tall case clock of dark wood: a gold face, a glass door in its waist where the pendulum swings. */
+export const CASE_CLOCK: RowSprite = {
+  rows: fill(18, 64, (x, y) => {
+    if (y < 16) {
+      const d = Math.hypot(x - 8.5, y - 8);
+      if (d < 6) return d > 5 ? 'a' : (x === 8 && y > 3 && y < 9) || (y === 8 && x > 8 && x < 13) ? 'd' : 'W'; // the face and its hands
+      return x < 1 || x > 16 ? '.' : y === 0 ? 'a' : 'w';
+    }
+    if (x < 2 || x > 15) return '.';
+    if (y > 18 && y < 48 && x > 4 && x < 13) return x === 5 || x === 12 ? 'A' : 's'; // the glass door, dark behind it
+    return x === 2 || x === 15 ? 'd' : x > 12 ? 'n' : 'w';
+  }),
+  colours: C,
+};
+
+/** The pendulum's bob: a gold disc. */
+export const PENDULUM: RowSprite = { rows: ['.aa.', 'aWaa', 'aaaa', '.aa.'], colours: C };
+
+/** A model of the city under a glass dome, on a stand: the citadel at its top, tiny, in gold. */
+export const CITY_MODEL: RowSprite = {
+  rows: fill(30, 34, (x, y) => {
+    if (y >= 26) return y === 26 ? 'a' : x < 10 || x > 19 ? '.' : x === 10 ? 'w' : 'n'; // the stand
+    const d = Math.hypot((x - 14.5) / 14, (y - 25) / 24);
+    if (d > 1) return '.';
+    if (d > 0.93) return (x + y) % 2 ? 'G' : '.'; // the glass
+    const hill = 25 - 16 * Math.exp(-(((x - 14.5) / 6) ** 2));
+    if (y < hill) return Math.abs(x - 14.5) < 1 && y > hill - 4 ? 'a' : '.';
+    return y < 13 ? (x % 2 ? 'W' : 'a') : (x + y) % 3 === 0 ? 'm' : 'h';
+  }),
+  colours: C,
+};
+
+/** A brass telescope on a tripod, pointed up and out at the horizon. */
+export const TELESCOPE: RowSprite = {
+  rows: fill(26, 26, (x, y) => {
+    // The barrel, rising to the right.
+    const along = x - 2;
+    const barrelY = 12 - along * 0.45;
+    if (along >= 0 && along < 22 && Math.abs(y - barrelY) < (along > 16 ? 2 : 1.4)) return y < barrelY ? 'W' : along % 6 === 0 ? 'A' : 'a';
+    // The tripod.
+    if (y > 10 && (Math.abs(x - 11 - (y - 10) * 0.45) < 0.6 || Math.abs(x - 11 + (y - 10) * 0.45) < 0.6 || (x === 11 && y > 12))) return 'A';
+    return '.';
+  }),
+  colours: C,
+};
+
+/** A chandelier: a ring of gold hung with points of light. */
+export const CHANDELIER: RowSprite = {
+  rows: fill(32, 12, (x, y) => {
+    const ring = Math.abs(((x - 15.5) / 15) ** 2 + ((y - 5) / 3) ** 2 - 1) < 0.18;
+    if (ring) return y < 5 ? 'A' : 'a';
+    if (y >= 8 && x % 4 === 1 && Math.abs(x - 15.5) < 14) return y === 8 ? 'a' : y === 9 ? 'c' : y === 10 ? 'W' : '.';
+    return '.';
+  }),
+  colours: C,
+};
+
+/** A glass lift shaft: thin gold ribs, the glass's blue edges. */
+export const liftShaft = (width: number, height: number): RowSprite => ({
+  rows: fill(width, height, (x, y) => {
+    if (x === 0 || x === width - 1) return 'G';
+    if (x === 1 || x === width - 2) return y % 24 === 0 ? 'a' : (x + y) % 4 === 0 ? 'g' : '.';
+    if (y % 24 === 0) return 'a';
+    return (x - y * 0.6) % 31 < 1 ? 'g' : '.'; // a glint across the glass
+  }),
+  colours: C,
+});
+
+/** The glass lift's floor: gold on top, a lit underside. */
+export const liftCar = (width: number): RowSprite => ({
+  rows: [fill(width, 1, () => 'W')[0]!, fill(width, 1, () => 'a')[0]!, fill(width, 1, (x) => (x % 4 === 0 ? 'c' : 'A'))[0]!, fill(width, 1, () => 'G')[0]!],
+  colours: C,
+});
+
+/** A capsule in the message tubes: brass, a seal in gold. */
+export const CAPSULE: RowSprite = { rows: ['aWWa', 'AaaA'], colours: C };
+
+/** Where a message tube comes out: a brass mouth with a flap. */
+export const TUBE_MOUTH: RowSprite = { rows: ['.aa.', 'aAAa', 'aAAa', 'AssA', 'A..A', 'AaaA'], colours: C };
+
+/** The guards' screens: the corridor's doors, each in its own little frame, one flickering. */
+export const surveillance = (phase: number): RowSprite => ({
+  rows: fill(30, 20, (x, y) => {
+    if (x === 0 || y === 0 || x === 29 || y === 19 || x === 14 || x === 15 || y === 9 || y === 10) return x === 14 || x === 15 || y === 9 || y === 10 ? 'd' : 'a';
+    const cell = (x > 15 ? 1 : 0) + (y > 10 ? 2 : 0);
+    if (cell === phase % 4 && (x + y + phase) % 3 === 0) return 'g'; // static
+    const lx = x > 15 ? x - 16 : x - 1;
+    const ly = y > 10 ? y - 11 : y - 1;
+    if (lx > 4 && lx < 9 && ly > 1) return 'w'; // a door
+    return ly === 7 ? 'G' : 's';
+  }),
+  colours: C,
+});
+export const SURVEILLANCE_FRAMES = [0, 1, 2, 3].map(surveillance);

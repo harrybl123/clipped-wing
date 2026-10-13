@@ -2204,11 +2204,56 @@ export class AreaScene extends Phaser.Scene {
         });
         break;
       }
+      case 'frames': {
+        const keys = feature.frames.map((f, i) => makeSpriteTexture(this, `frames-${feature.x}-${feature.y}-${i}`, f.rows, f.colours));
+        const image = this.add.image(feature.x, feature.y, keys[0]!).setOrigin(0).setDepth(3);
+        let frame = 0;
+        const shown = () => !feature.showIf || !!getSession(this).story.getVariable(feature.showIf);
+        image.setVisible(shown());
+        this.time.addEvent({ delay: feature.every, loop: true, callback: () => image.setTexture(keys[(frame = (frame + 1) % keys.length)]!).setVisible(shown()) });
+        break;
+      }
+      case 'pulse': {
+        // Along the line at a steady speed; each one waits `every` ms at the end before setting off again.
+        const pts = feature.points;
+        const lengths = pts.slice(1).map((p, i) => Math.hypot(p.x - pts[i]!.x, p.y - pts[i]!.y));
+        const total = lengths.reduce((a, b) => a + b, 0);
+        const at = (d: number) => {
+          let left = d;
+          for (let i = 0; i < lengths.length; i++) {
+            if (left <= lengths[i]! || i === lengths.length - 1) {
+              const t = lengths[i]! ? Math.min(1, left / lengths[i]!) : 0;
+              return { x: pts[i]!.x + (pts[i + 1]!.x - pts[i]!.x) * t, y: pts[i]!.y + (pts[i + 1]!.y - pts[i]!.y) * t };
+            }
+            left -= lengths[i]!;
+          }
+          return pts[0]!;
+        };
+        const key = feature.sprite
+          ? makeSpriteTexture(this, `pulse-${pts[0]!.x}-${pts[0]!.y}`, feature.sprite.rows, feature.sprite.colours)
+          : makeSpriteTexture(this, `pulse-dot-${feature.colour ?? SHADES.cyan}`, ['cc', 'cc'], { c: feature.colour ?? SHADES.cyan });
+        const shown = () => !feature.showIf || !!getSession(this).story.getVariable(feature.showIf);
+        const duration = (total / feature.speed) * 1000;
+        for (let n = 0; n < (feature.count ?? 1); n++) {
+          const image = this.add.image(pts[0]!.x, pts[0]!.y, key).setDepth(3).setVisible(false);
+          const run = { d: 0 };
+          this.tweens.add({
+            targets: run, d: total, duration, delay: (n * (duration + feature.every)) / (feature.count ?? 1), repeat: -1, repeatDelay: feature.every,
+            onStart: () => image.setVisible(shown()),
+            onRepeat: () => image.setVisible(shown()),
+            onUpdate: () => {
+              const p = at(run.d);
+              image.setPosition(Math.round(p.x), Math.round(p.y)).setVisible(shown() && run.d < total);
+            },
+          });
+        }
+        break;
+      }
       case 'swing': {
-        const rope = this.add.line(0, 0, feature.x, feature.ropeTop, feature.x, feature.y, SHADES.woodPale).setOrigin(0).setDepth(4);
+        const rope = this.add.line(0, 0, feature.x, feature.ropeTop, feature.x, feature.y, feature.ropeColour ?? SHADES.woodPale).setOrigin(0).setDepth(4);
         const key = makeSpriteTexture(this, `swing-${feature.x}-${feature.y}`, feature.sprite.rows, feature.sprite.colours);
         const item = this.add.image(feature.x, feature.y, key).setOrigin(0.5, 0).setDepth(4);
-        this.soundscape.addEmitter('creak', () => ({ x: feature.x, y: feature.y }), 50, 0.5);
+        if (!feature.quiet) this.soundscape.addEmitter('creak', () => ({ x: feature.x, y: feature.y }), 50, 0.5);
         const sway = { offset: -1 };
         this.tweens.add({
           targets: sway, offset: 1, duration: 1800, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',

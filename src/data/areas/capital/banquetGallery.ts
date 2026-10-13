@@ -49,7 +49,6 @@ export const banquetGallery: AreaDefinition = {
   props: [
     { sprite: P.doorway(24, 46), x: 22, y: FLOOR - 46 },
     // The dance floor and its screen.
-    { sprite: P.screen(90, 50), x: 70, y: TOP + 30 },
     { sprite: P.rug(160), x: 56, y: FLOOR - 3 },
     { sprite: P.column(FLOOR - TOP), x: 228, y: TOP },
     // The long table: chairs along its far side, every place empty.
@@ -67,7 +66,10 @@ export const banquetGallery: AreaDefinition = {
     { sprite: P.column(30), x: W - 14, y: FLOOR - 30 },
   ],
 
-  features: [],
+  features: [
+    { type: 'frames', frames: P.scrollingScreen(90, 50), x: 70, y: TOP + 30, every: 450 },
+    ...[330, 420, 510].map((x) => ({ type: 'swing' as const, sprite: P.CHANDELIER, x, y: TOP + 56, ropeTop: TOP, quiet: true, ropeColour: S.amberDeep })),
+  ],
   people: [],
   interactables: [],
 

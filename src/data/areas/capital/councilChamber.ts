@@ -52,7 +52,6 @@ export const councilChamber: AreaDefinition = {
   lines: [],
 
   props: [
-    { sprite: P.screen(70, 40), x: 205, y: TOP + 12 },
     { sprite: P.banner(16, 70), x: 60, y: TOP + 8 },
     { sprite: P.banner(16, 70), x: 400, y: TOP + 8 },
     { sprite: P.lightStrip(90), x: 150, y: TOP + 20 },
@@ -65,11 +64,12 @@ export const councilChamber: AreaDefinition = {
     ...seats([370, 384], FLOOR - 16, [true, true]),
     ...seats([418, 432], FLOOR - 32, [false, true]),
     { sprite: P.HEIR_SEAT, x: 446, y: FLOOR - 48 - 32 },
-    // The table of light.
-    { sprite: P.HOLO_TABLE, x: 192, y: FLOOR - 66 },
   ],
 
-  features: [],
+  features: [
+    { type: 'frames', frames: P.HOLO_FRAMES, x: 192, y: FLOOR - 66, every: 240 },
+    { type: 'frames', frames: P.scrollingScreen(70, 40), x: 205, y: TOP + 12, every: 500 },
+  ],
   people: [],
   interactables: [],
 

@@ -68,14 +68,14 @@ export const princeQuarters: AreaDefinition = {
     { sprite: P.LAMP, x: 210, y: FLOOR - 7 },
     { sprite: P.COUCH, x: 220, y: FLOOR - 16 },
     { sprite: P.LOW_TABLE, x: 266, y: FLOOR - 7 },
-    { sprite: P.screen(44, 28), x: 334, y: 100 },
     // The columns at the balcony's opening, and the rail along it.
     { sprite: P.column(FLOOR - TOP), x: BALCONY - 10, y: TOP },
+    { sprite: P.TELESCOPE, x: 470, y: FLOOR - 26 },
     { sprite: P.rail(W - BALCONY - 14, 16), x: BALCONY, y: FLOOR - 16 },
     { sprite: P.column(30), x: W - 14, y: FLOOR - 30 },
   ],
 
-  features: [],
+  features: [{ type: 'frames', frames: P.scrollingScreen(44, 28), x: 334, y: 100, every: 500 }],
   people: [],
   interactables: [],
 
