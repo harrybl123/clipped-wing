@@ -65,9 +65,13 @@ export const rivalLine: AreaDefinition = {
     { sprite: P.wire(160), x: 700, y: FLOOR - 30 },
     { sprite: P.FOOTPRINTS, x: 650, y: FLOOR - 2 },
     { sprite: P.CAIRN, x: 800, y: FLOOR - 6 },
+    { sprite: P.HUT, x: 862, y: FLOOR - 30 }, // past the cairn, where they keep his daughter
   ],
 
   features: [
+    // Chapter 2, Day 11 (save the girl): the scout at the dip; the hut past the cairn.
+    { type: 'trigger', x: 545, y: FLOOR, reach: 30, knot: 'c2day11_girl_dip', showIf: 'girl11', hideIf: 'girl_dip11' },
+    { type: 'trigger', x: 830, y: FLOOR, reach: 30, knot: 'c2day11_girl_hut', showIf: 'girl_dip11', hideIf: 'girl_hut11' },
     { type: 'lead', person: 'dog-lead', route: 'scent', near: 70 },
     // Chapter 2, Day 9: at dusk, your friend at the dip; at night, the watch.
     { type: 'trigger', x: 50, y: FLOOR, reach: 40, knot: 'c2day9_line_arrive', showIf: 'line_open', hideIf: 'line9_arrived' },
@@ -88,6 +92,15 @@ export const rivalLine: AreaDefinition = {
     { type: 'shadow', x: 528, y: FLOOR, width: 28, crouch: true },
   ],
   people: [
+    // Day 11 (save the girl): the scout at the dip, then beside you; the hut's guards; his daughter; her father at the fence.
+    rival('scout-girl11', 1, 572, FLOOR, ['evening', 'night'], { showIf: 'girl11', hideIf: 'girl_dip11' }),
+    rival('scout-follow11', 1, 560, FLOOR, ['evening', 'night'], { showIf: 'girl_dip11', hideIf: 'edge_ready11', follow: true }),
+    rival('hut-guard-1', 0, 862, FLOOR, ['evening', 'night'], { showIf: 'girl_dip11', hideIf: 'daughter11', flipX: true }),
+    rival('hut-guard-2', 1, 900, FLOOR, ['evening', 'night'], { showIf: 'girl_dip11', hideIf: 'daughter11', flipX: true }),
+    rival('daughter11', 2, 884, FLOOR, ['evening', 'night'], { showIf: 'daughter11', flipX: true }),
+    cast('boss', 566, FLOOR, { id: 'boss-girl11', when: ['evening', 'night'], showIf: 'father11' }),
+    local('circle-girl-1', 7, 520, FLOOR, ['evening', 'night'], { showIf: 'father11' }),
+    local('circle-girl-2', 10, 540, FLOOR, ['evening', 'night'], { showIf: 'father11' }),
     // Our side's watch, by the post (not on Day 9: you're the watch).
     local('our-watch', 7, 236, FLOOR, AWAKE, { hideIf: 'line_open' }),
     // Day 9, dusk: your friend at the dip, and the one from their side, through the gap; the watcher, come to set the watch.
@@ -114,6 +127,7 @@ export const rivalLine: AreaDefinition = {
   ],
 
   interactables: [
+    { id: 'hut', x: 880, y: FLOOR, reach: 14, label: 'Look', knot: 'rival_line_hut', showIf: 'girl_dip11' },
     { id: 'post', x: POST.x + 24, y: POST.y, reach: 26, label: 'Watch', knot: 'rival_line_post' },
     { id: 'our-sign', x: 548, y: FLOOR, reach: 10, label: 'Look', knot: 'rival_line_our_sign' },
     { id: 'gap', x: 590, y: DIP.floor, reach: 10, label: 'Look', knot: 'rival_line_gap' },

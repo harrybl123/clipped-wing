@@ -14,7 +14,7 @@ export interface EndingSceneData {
 }
 
 /** The endings: ones that stop the game early, and Act 1's two (Day 7). Draft words, for the designer. */
-const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number; coda?: string }> = {
+const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number; coda?: string; chapter?: 2 }> = {
   // Ignoring Grounded's message twice (the design doc's "short, comfortable loyal ending").
   loyal: {
     title: 'You stayed loyal to the Tree.',
@@ -49,6 +49,41 @@ const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number
     ],
     coda: 'End of Chapter 1',
     retryDay: 7,
+  },
+  // Chapter 2's endings: out past the tree's edge towards the woods, with the dog (designer: uneasy; unsure where
+  // life will take you). One per last act (big choice 3). Draft text.
+  c2_girl: {
+    title: 'Into the woods.',
+    lines: [
+      'Behind you, two clans shouting at each other across a fence, over a woman with pale hair, and her father on his knees.',
+      'They will hate you on both sides of it for a long time.',
+      'Ahead, the trees, and the dog, nose down, sure of something you are not.',
+    ],
+    coda: 'End of Chapter 2',
+    chapter: 2,
+    retryDay: 11,
+  },
+  c2_truce: {
+    title: 'Into the woods.',
+    lines: [
+      'Behind you, a truce, with a dog at the middle of it that both sides now know is real, and want.',
+      'They will come looking for it. Maybe not soon. But they will.',
+      'Ahead, the trees, and the dog, trotting on as if nothing out there could ever be worse than people.',
+    ],
+    coda: 'End of Chapter 2',
+    chapter: 2,
+    retryDay: 11,
+  },
+  c2_war: {
+    title: 'Into the woods.',
+    lines: [
+      'Behind you, smoke over the settlement, and horns along the line, and nobody looking for one branded girl and a dog.',
+      'You did that. You will be thinking about it for a long time.',
+      'Ahead, the trees, dark and quiet, and the dog, already a little way in, waiting for you.',
+    ],
+    coda: 'End of Chapter 2',
+    chapter: 2,
+    retryDay: 11,
   },
   // The same, with the girl you blamed beside you.
   fall_together: {
@@ -101,7 +136,7 @@ export class EndingScene extends Phaser.Scene {
     const start = getSession(this).dayStarts[ending.retryDay];
     const choices = [
       // Finishing Chapter 1 opens the next (designer).
-      ...(ending.coda ? [{ label: 'Begin Chapter 2', run: () => beginChapter2(this) }] : []),
+      ...(ending.coda && ending.chapter !== 2 ? [{ label: 'Begin Chapter 2', run: () => beginChapter2(this) }] : []),
       ...(start ? [{ label: `Try again from Day ${ending.retryDay}`, run: () => this.retry(ending.retryDay) }] : []),
       { label: 'Back to the title', run: () => this.scene.start('Title') },
     ];

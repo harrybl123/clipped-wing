@@ -112,6 +112,10 @@ export const swapYard: AreaDefinition = {
     // Day 8: back at midday, the yard full of what came of the drop.
     { type: 'trigger', x: 980, y: FLOOR, reach: 40, knot: 'c2day8_noon', showIf: 'noon8', hideIf: 'noon8_seen' },{ type: 'fire', x: 355, y: FLOOR - 1 }],
   people: [
+    // Chapter 2, Day 11, dusk (keep it raging): the yard full to see you walked out; the boss at the tally gate; the son.
+    ...[1, 4, 10, 6, 8, 2, 11, 0, 3].map((look, i) => local(`war-crowd-${i}`, look, 380 + i * 22, FLOOR, ['evening', 'night'], { showIf: 'war11', flipX: i % 2 === 0 })),
+    cast('boss', 552, FLOOR, { id: 'boss-war11', when: ['evening', 'night'], showIf: 'war11', hideIf: 'riot_won', flipX: true }),
+    cast('boss_son', 600, FLOOR, { id: 'son-war11', when: ['evening', 'night'], showIf: 'son_war11', hideIf: 'edge11', flipX: true }),
     dogFollowing(1040, FLOOR),
     dogLeading(1030, FLOOR),
     // Day 10, afternoon: the gambler out of the den in daylight; your friend by the pot, or her mother asking at every stall; the watcher's runner.
@@ -156,6 +160,8 @@ export const swapYard: AreaDefinition = {
   ],
 
   interactables: [
+    // Day 11 (keep it raging): up on the crates, where everyone can see you.
+    { id: 'war-spot11', x: 464, y: FLOOR - 38, reach: 12, label: 'Shout', knot: 'c2day11_war_yard', showIf: 'war11', hideIf: 'war_yard11' },
     { id: 'scrap-stall', x: 96, y: FLOOR, reach: 14, label: 'Look', knot: 'swap_yard_scrap' },
     { id: 'food-stall', x: 260, y: FLOOR, reach: 16, label: 'Trade', knot: 'swap_yard_food' },
     { id: 'scales', x: 310, y: FLOOR, reach: 8, label: 'Look', knot: 'swap_yard_scales' },

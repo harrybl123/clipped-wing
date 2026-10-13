@@ -20,6 +20,7 @@ From the rim you can see anyone coming a long way off. Nobody is.
 === dogs_hollow_dog ===
 { c2day8 == "hollow": -> c2day8_hollow }
 { c2day9 == "dog": -> c2day9_hollow }
+{ c2day11 == "hollow": -> c2day11_hollow }
 { c2day2 == "hollow": -> c2day2_hollow }
 -> dog_pet
 

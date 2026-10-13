@@ -80,3 +80,23 @@ export const CAIRN: RowSprite = {
   rows: ['....hh....', '...mmmm...', '..nnnnnn..', '.mmmGGmmm.', 'nnnnnnnnnn', 'wwwwwwwwww'],
   colours: C,
 };
+
+/** A hut on their side, past the cairn: pale cloth over a frame of poles, a flap for a door. */
+export const HUT: RowSprite = (() => {
+  const w = 40;
+  const h = 30;
+  const rows: string[] = [];
+  for (let y = 0; y < h; y++) {
+    let row = '';
+    const half = Math.min(w / 2, 4 + y * 0.8);
+    for (let x = 0; x < w; x++) {
+      const d = Math.abs(x - w / 2 + 0.5);
+      if (d > half) row += '.';
+      else if (d > half - 1) row += 'n';
+      else if (y > 14 && Math.abs(x - 20) < 4) row += y === 15 ? 'n' : 'X';
+      else row += y % 6 === 0 ? 'm' : 'L';
+    }
+    rows.push(row);
+  }
+  return { rows, colours: { ...C, L: S.light, X: S.shadow } };
+})();

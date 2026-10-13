@@ -2,7 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './compoundProps';
 import { roof } from './shackProps';
 import type { AreaDefinition } from '../types';
-import { DAY, cast, local, rival, stroller } from './people';
+import { DAY, cast, dogFollowing, local, rival, stroller } from './people';
 
 // The boss's compound (Chapter 2): his home and seat, on a rise at the top of the settlement, walled
 // with the best scrap. Off limits at first; it opens once you're brought in (and if you move your brother
@@ -71,6 +71,9 @@ export const compound: AreaDefinition = {
 
   features: [],
   people: [
+    // Chapter 2, Day 11 (end the conflict): the watcher, waiting for you by the tribute shed.
+    cast('watcher', 390, FLOOR, { id: 'watcher-truce11', knot: 'c2day11_truce_watcher', when: ['afternoon', 'evening'], showIf: 'truce11', hideIf: 'truce_watcher11', flipX: true }),
+    dogFollowing(30, FLOOR),
     // On the gate, outside.
     cast('enforcer', 116, FLOOR, { knot: 'compound_enforcer', when: ['morning', 'evening', 'night'] }),
     // Day 9, before dawn: the watcher waiting up at the gate; the scout you've brought him.

@@ -514,6 +514,46 @@ VAR dog_ran10 = false
 VAR brand_night = false
 VAR friend_back10 = false
 VAR brother_brand10 = false
+
+// --- Chapter 2, Day 11: the fall (story/borderland/chapter2-day11.ink) ---
+// Stages: brand, cellar, out, hollow, choice, girl, truce, war, edge, done.
+VAR c2day11 = ""
+// First light: the brand, in front of everyone (the morning crowd).
+VAR brand_morning11 = false
+// The cellar, and who lets you out (designer: whoever you've helped; or the son).
+VAR in_cellar11 = false
+VAR watcher_cellar11 = false
+VAR friend_cellar11 = false
+VAR gambler_cellar11 = false
+VAR let_out11 = false
+// Big choice 3 (design doc): "girl", "truce" or "war".
+VAR last_act = ""
+// Save the girl: the scout at the dip, the hut past the cairn (the fight), the daughter, her father at the fence.
+VAR girl11 = false
+VAR girl_dip11 = false
+VAR girl_hut11 = false
+VAR daughter11 = false
+VAR father11 = false
+// End the conflict: the watcher, the tally house with both clans (the fight), the dog shown to everyone.
+VAR truce11 = false
+VAR truce_watcher11 = false
+VAR truce_tally11 = false
+VAR dog_revealed11 = false
+// Keep it raging: the crates in the yard, the riot (the fight), the son.
+VAR war11 = false
+VAR war_yard11 = false
+VAR son_war11 = false
+// Everyone hears why, in every ending (designer).
+VAR boss_why = false
+// Dusk, the tree's edge: your brother (compound) or the old scavenger (home), then the woods.
+VAR edge_ready11 = false
+VAR edge11 = false
+VAR brother_edge11 = false
+VAR old_edge11 = false
+// The fights write these.
+VAR hut_won = false
+VAR circle_won11 = false
+VAR riot_won = false
 // Your friend: Day 7 in the yard (the pale thread at her wrist), Day 8 at midday (she warns you of the search).
 VAR friend7 = false
 VAR friend8 = false
@@ -552,6 +592,7 @@ INCLUDE borderland/chapter2-day7.ink
 INCLUDE borderland/chapter2-day8.ink
 INCLUDE borderland/chapter2-day9.ink
 INCLUDE borderland/chapter2-day10.ink
+INCLUDE borderland/chapter2-day11.ink
 INCLUDE borderland/picked-fields.ink
 INCLUDE borderland/shack.ink
 INCLUDE borderland/swap-yard.ink

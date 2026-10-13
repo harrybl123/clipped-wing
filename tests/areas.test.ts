@@ -91,6 +91,7 @@ describe('areas within an area', () => {
     it(`${id} is built, inside a place on the map, with doors both ways`, () => {
       expect(AREAS[id]).toBeDefined();
       expect(Object.keys(PLANNED_AREAS)).toContain(of);
+      if (INSIDE_AREAS[id]!.storyOnly) return; // (reached only through the story)
       expect(AREAS[of]!.exits.some((e) => e.to === id)).toBe(true);
       expect(AREAS[id]!.exits.some((e) => e.to === of)).toBe(true);
     });

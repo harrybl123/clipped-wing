@@ -22,6 +22,10 @@ Someone has, recently.
 Their sign, facing back at yours. It means the same thing.
 -> END
 
+=== rival_line_hut ===
+A hut of pale cloth over poles, past the cairn. Somebody's kept in there. A lamp, low, behind the flap.
+-> END
+
 === rival_line_cairn ===
 Plates stacked into a pile on their side. A marker, or a message.
 -> END

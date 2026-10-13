@@ -21,19 +21,19 @@ describe('Calendar', () => {
     expect(seen).toEqual(['prologue:afternoon', 'prologue:evening', 'prologue:night', '1:morning', '1:afternoon']);
   });
 
-  it('stops at night on the last day (10)', () => {
-    const c = at(10, 'evening');
+  it('stops at night on the last day (11)', () => {
+    const c = at(11, 'evening');
     expect(c.advance()).toBe(true);
     expect(c.isLastSlot).toBe(true);
     expect(c.advance()).toBe(false);
-    expect([c.day, c.slot]).toEqual([10, 'night']);
+    expect([c.day, c.slot]).toEqual([11, 'night']);
   });
 
-  it('walks every day in 43 steps', () => {
+  it('walks every day in 47 steps', () => {
     const c = new Calendar();
     let steps = 0;
     while (c.advance()) steps++;
-    expect(steps).toBe(11 * 4 - 1);
+    expect(steps).toBe(12 * 4 - 1);
   });
 
   it(`allows ${AFTERNOON_ACTIONS_PER_DAY} afternoon actions on normal days`, () => {
@@ -76,7 +76,7 @@ describe('Calendar', () => {
     expect(restored.toJSON()).toEqual({ day: 4, slot: 'afternoon', afternoonActionsUsed: 1 });
   });
 
-  it.each([null, 'x', {}, { day: 11, slot: 'morning', afternoonActionsUsed: 0 }, { day: 1, slot: 'dawn', afternoonActionsUsed: 0 }, { day: 1, slot: 'night', afternoonActionsUsed: -1 }, { day: 1, slot: 'night', afternoonActionsUsed: 1.5 }])(
+  it.each([null, 'x', {}, { day: 12, slot: 'morning', afternoonActionsUsed: 0 }, { day: 1, slot: 'dawn', afternoonActionsUsed: 0 }, { day: 1, slot: 'night', afternoonActionsUsed: -1 }, { day: 1, slot: 'night', afternoonActionsUsed: 1.5 }])(
     'rejects invalid saved state %j',
     (data) => {
       expect(() => Calendar.fromJSON(data)).toThrow('invalid saved state');

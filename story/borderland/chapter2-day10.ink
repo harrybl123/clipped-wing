@@ -528,7 +528,7 @@ He knows you know. And it's too late for it to matter.
 ~ c2day10 = "done"
 ~ objective = ""
 ~ objective_target = ""
-They take you down to the tally house's cellar to wait for the light.
+They take you down to the tally house's cellar to wait for the light. #wake:tally-house:240:236:c2day11_brand #endday:First light
 -> END
 
 === c2day10_not_now ===

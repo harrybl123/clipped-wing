@@ -872,6 +872,8 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
   // Chapter 2, Day 8: one of the other clan's guards on their drop.
   drop_guard: { name: 'Drop guard', portrait: folkPortrait(RIVAL_LOOKS[1]!, { eyes: 'narrow', mouth: 'frown' }), voice: 'roots_man' },
   // Chapter 2, Day 9: the other clan's scout.
+  // Chapter 2, Day 11: the boss's daughter, kept by the other clan since the truce.
+  daughter: { name: 'His daughter', portrait: folkPortrait(RIVAL_LOOKS[2]!, { eyes: 'wide', mouth: 'flat' }), voice: 'young' },
   scout: { name: 'The scout', portrait: folkPortrait(RIVAL_LOOKS[1]!, { eyes: 'wide', mouth: 'frown', items: ['scar'] }), voice: 'young' },
   // Stragglers from elsewhere (Chapter 2, Day 1).
   straggler_thin: { name: 'The thin one', portrait: folkPortrait(STRAGGLER_LOOKS[0]!, { build: 'narrow', eyes: 'hollow', mouth: 'grin' }), voice: 'roots_man' },

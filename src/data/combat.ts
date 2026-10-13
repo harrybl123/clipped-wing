@@ -967,3 +967,86 @@ ENCOUNTERS.enforcer_night = {
   timing: { lunge: 950, ease: 1.2 },
   outcomes: { won: { enforcer_won: true }, lost: { enforcer_won: false } },
 };
+
+// --- Chapter 2, Day 11: the last act. Three fights, different people beside you (designer). Draft numbers. ---
+
+Object.assign(MOVES, {
+  // The scout, on your side: a staff, quick feet, and their own clan's tricks.
+  scout_staff: {
+    id: 'scout_staff', name: 'Staff', target: 'enemy', power: 6, kind: 'pierce', crit: 0.15,
+    qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'weave', time: 650, quick: 260, gap: 520 } },
+    description: 'Basic attack with their staff.',
+  },
+  trip: {
+    id: 'trip', name: 'Trip', target: 'enemy', power: 6, kind: 'shove', sp: 3, interrupts: true,
+    qte: { kind: 'side', time: 620, quick: 240, alt: { kind: 'key', time: 750, quick: 280 } },
+    description: 'The staff low, at their ankles: knocks off balance anyone weak to shoves, and stops a big swing.',
+  },
+  kick_dust: {
+    id: 'kick_dust', name: 'Dust', target: 'enemy', power: 2, kind: 'none', sp: 2, silences: 2,
+    qte: { kind: 'side', time: 650, quick: 250, alt: { kind: 'key', time: 750, quick: 280 } },
+    description: 'Dirt in their eyes: for 2 rounds, no tricks of their own.',
+  },
+  // The watcher: no weapon. He watches, and he knows where people break.
+  watcher_strike: {
+    id: 'watcher_strike', name: 'Strike', target: 'enemy', power: 6, kind: 'strike',
+    qte: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72], alt: { kind: 'key', time: 800, quick: 300 } },
+    description: 'Basic attack: a short, hard blow.',
+  },
+  read_them: {
+    id: 'read_them', name: 'Read them', target: 'self', sp: 2, reveals: true,
+    description: 'He reads them like the board: shows what every enemy will really do this round. No feints.',
+  },
+  old_wound: {
+    id: 'old_wound', name: 'Old wound', target: 'enemy', power: 3, kind: 'none', sp: 3, exposes: { turns: 3, mult: 1.5 },
+    qte: { kind: 'balance', time: 1700, zone: [0.36, 0.64], keep: 0.6, keepPerfect: 0.9, alt: { kind: 'hold', time: 1000, zone: [0.65, 0.85], sweet: [0.72, 0.78] } },
+    description: 'He knows where every one of the circle was hurt before: weakens one, who takes more damage for 3 rounds.',
+  },
+} satisfies Record<string, MoveDef>);
+
+/** The scout, beside you (from behind). */
+COMBATANTS.scout_ally = {
+  id: 'scout_ally', name: 'The scout', sprite: 'scout_back', hp: 38, sp: 10, attack: 9, defence: 8, speed: 15,
+  basic: 'scout_staff', moves: ['trip', 'kick_dust'], reactions: ['dodge'],
+};
+/** The watcher, beside you (from behind). */
+COMBATANTS.watcher_ally = {
+  id: 'watcher_ally', name: 'The watcher', sprite: 'watcher_back', hp: 48, sp: 10, attack: 10, defence: 10, speed: 10,
+  basic: 'watcher_strike', moves: ['read_them', 'old_wound'], reactions: ['dodge', 'parry'],
+};
+
+/** Chapter 2, Day 11 (save the girl): the guards on the hut past their cairn. You, the dog and the scout. Writes `hut_won`. */
+ENCOUNTERS.camp_guards = {
+  id: 'camp_guards',
+  name: 'The hut',
+  party: ['scavenger', 'dog', 'scout_ally'],
+  enemies: ['drop_guard', 'raider_lead', 'drop_guard'],
+  stage: 'yard',
+  mustWin: true,
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { hut_won: true }, lost: { hut_won: false } },
+};
+
+/** Chapter 2, Day 11 (end the conflict): his loyal circle, over the tally counter. You, the dog and the watcher. Writes `circle_won11`. */
+ENCOUNTERS.loyal_circle = {
+  id: 'loyal_circle',
+  name: 'The circle',
+  party: ['scavenger', 'dog', 'watcher_ally'],
+  enemies: ['circle_man', 'circle_man_big', 'circle_man'],
+  stage: 'den',
+  mustWin: true,
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { circle_won11: true }, lost: { circle_won11: false } },
+};
+
+/** Chapter 2, Day 11 (keep it raging): out through the riot in the yard. You, the dog and the son. Writes `riot_won`. */
+ENCOUNTERS.riot = {
+  id: 'riot',
+  name: 'The riot',
+  party: ['scavenger', 'dog', 'son_ally'],
+  enemies: ['picker_loud', 'raider', 'picker'],
+  stage: 'yard',
+  mustWin: true,
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { riot_won: true }, lost: { riot_won: false } },
+};

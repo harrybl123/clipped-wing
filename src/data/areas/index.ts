@@ -7,6 +7,7 @@ import { swapYard } from './borderland/swapYard';
 import { tallyHouse } from './borderland/tallyHouse';
 import { bar } from './borderland/bar';
 import { gamblingDen } from './borderland/gamblingDen';
+import { tallyCellar } from './borderland/tallyCellar';
 import { brothel } from './borderland/brothel';
 import { compound } from './borderland/compound';
 import { compoundHouse } from './borderland/compoundHouse';
@@ -80,8 +81,10 @@ export const HIDDEN_AREAS: Record<string, string> = {
  * Areas within an area (designer: the boss's house inside the compound): not on the map themselves; you
  * go in and out through a door in their parent, and the map shows you at the parent.
  */
-export const INSIDE_AREAS: Record<string, { name: string; of: string }> = {
+export const INSIDE_AREAS: Record<string, { name: string; of: string; storyOnly?: boolean }> = {
   'compound-house': { name: "the boss's house", of: 'compound' },
+  // (No doors: you're only ever taken down there, and you get out through the drain.)
+  'tally-cellar': { name: 'the tally house cellar', of: 'tally-house', storyOnly: true },
 };
 
 /** The place on the map an area counts as: its parent if it's an area within an area, else itself. */
@@ -119,6 +122,7 @@ export const AREAS: Record<string, AreaDefinition> = {
   [tallyHouse.id]: tallyHouse,
   [bar.id]: bar,
   [gamblingDen.id]: gamblingDen,
+  [tallyCellar.id]: tallyCellar,
   [brothel.id]: brothel,
   [compound.id]: compound,
   [compoundHouse.id]: compoundHouse,

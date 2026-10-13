@@ -1,6 +1,7 @@
 import * as P from './treesEdgeProps';
 import { dugHole } from './scrapProps';
 import type { AreaDefinition, Solid } from '../types';
+import { cast, dogFollowing } from './people';
 
 // The tree's edge (Chapter 2): where the borderland meets the tree's roots. Nobody goes close. The tree's
 // mystery, seen from outside: the waste running up to roots that come out of the ground like walls, bigger
@@ -67,8 +68,16 @@ export const treesEdge: AreaDefinition = {
     { sprite: P.FUNGUS, x: 520, y: FLOOR - 120 },
   ],
 
-  features: [],
-  people: [],
+  features: [
+    // Chapter 2, Day 11, dusk: out past the signs, where nobody goes.
+    { type: 'trigger', x: 250, y: FLOOR, reach: 50, knot: 'c2day11_edge', showIf: 'edge_ready11', hideIf: 'edge11' },
+  ],
+  people: [
+    dogFollowing(30, FLOOR),
+    // Day 11: whoever comes after you (your brother, if he lived at the compound; the old scavenger, if not).
+    cast('brother', 30, FLOOR, { id: 'brother-edge11', showIf: 'brother_edge11' }),
+    cast('old_scav', 30, FLOOR, { id: 'old-edge11', showIf: 'old_edge11' }),
+  ],
 
   interactables: [
     { id: 'warning', x: 78, y: FLOOR, reach: 12, label: 'Look', knot: 'trees_edge_warning' },

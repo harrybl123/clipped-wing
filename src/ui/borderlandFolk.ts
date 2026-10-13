@@ -335,6 +335,8 @@ export const HOSTESSES = HOSTESS_LOOKS.map(folkFrames);
 export const RIVAL_LOOKS: FolkLook[] = [
   { height: 25, width: 3, skin: 'tan', hair: S.shadow, hairStyle: 'short', head: 'wrap', scarf: S.light, top: S.light, topStyle: 'coat', legs: S.woodPale, tool: 'staff' },
   { height: 24, width: 2, skin: 'dark', hair: S.shadow, hairStyle: 'long', head: 'wrap', scarf: S.light, top: S.dim, topStyle: 'vest', legs: S.woodLight },
+  // The boss's daughter (Chapter 2, Day 11): grown up over there, in their pale cloth, her pale hair long, no wrap.
+  { height: 24, width: 2, slender: true, skin: 'tan', hair: S.light, hairStyle: 'long', top: S.light, topStyle: 'long', legs: S.woodPale },
 ];
 export const RIVALS = RIVAL_LOOKS.map(folkFrames);
 

@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './tallyHouseProps';
 import type { AreaDefinition, Solid } from '../types';
-import { AWAKE, DAY, cast, local } from './people';
+import { AWAKE, DAY, cast, dogFollowing, local, rival } from './people';
 
 // The tally house (Chapter 2): where finds are weighed and taxed each evening, this chapter's version
 // of Act 1's evening ceremony. A long, low hall inside the hull of something enormous: ribbed walls
@@ -76,16 +76,32 @@ export const tallyHouse: AreaDefinition = {
   ],
 
   features: [
+    // Chapter 2, Day 11, dusk (end the conflict): in front of both clans.
+    { type: 'trigger', x: 90, y: FLOOR, reach: 60, knot: 'c2day11_truce_tally', showIf: 'truce_watcher11', hideIf: 'truce_tally11' },
     // Chapter 2, the night of the first raid (Day 6): walking into it.
     { type: 'trigger', x: 90, y: FLOOR, reach: 40, knot: 'c2day6_tally', showIf: 'raid_night', hideIf: 'raid_told' },
   ],
   people: [
+    // Chapter 2, Day 11, first light: the brand, in front of everyone.
+    ...[4, 1, 8, 10, 2, 6, 11, 0, 3, 9, 5, 7].map((look, i) => local(`dawn-${i}`, look, 150 + i * 11, FLOOR, ['morning'], { showIf: 'brand_morning11', flipX: i % 3 === 1 })),
+    cast('boss', 330, FLOOR, { id: 'boss-dawn11', when: ['morning'], showIf: 'brand_morning11', flipX: true }),
+    cast('brother', 348, FLOOR, { id: 'brother-dawn11', when: ['morning'], showIf: 'brother_brand10', hideIf: 'in_cellar11', flipX: true }),
+    cast('scav_friend', 184, FLOOR, { id: 'friend-dawn11', when: ['morning'], showIf: 'brand_morning11' }),
+    cast('old_scav', 140, FLOOR, { id: 'old-scav-dawn11', when: ['morning'], showIf: 'brand_morning11' }),
+    // Dusk (end the conflict): your people, theirs in their pale wraps, the watcher between, the boss at the counter, his circle.
+    ...[1, 4, 10, 6, 8].map((look, i) => local(`truce-ours-${i}`, look, 140 + i * 12, FLOOR, ['evening', 'night'], { showIf: 'truce_watcher11' })),
+    ...[0, 1, 0, 1, 0].map((look, i) => rival(`truce-theirs-${i}`, look, 420 + i * 14, FLOOR, ['evening', 'night'], { showIf: 'truce_watcher11', flipX: true })),
+    cast('boss', 330, FLOOR, { id: 'boss-truce11', when: ['evening', 'night'], showIf: 'truce_watcher11', flipX: true }),
+    cast('watcher', 230, FLOOR, { id: 'watcher-truce-tally11', when: ['evening', 'night'], showIf: 'truce_watcher11' }),
+    local('loyal-1', 7, 300, FLOOR, ['evening', 'night'], { showIf: 'truce_watcher11', hideIf: 'circle_won11', flipX: true }),
+    local('loyal-2', 10, 356, FLOOR, ['evening', 'night'], { showIf: 'truce_watcher11', hideIf: 'circle_won11', flipX: true }),
+    dogFollowing(60, FLOOR),
     // The tallyman, behind the counter.
     cast('tallyman', 336, FLOOR, { knot: 'tally_house_tallyman', when: AWAKE, flipX: true }),
     // The queue.
-    local('queuer-1', 1, 192, FLOOR, DAY),
-    local('queuer-2', 10, 208, FLOOR, DAY),
-    local('queuer-3', 4, 226, FLOOR, ['morning']),
+    local('queuer-1', 1, 192, FLOOR, DAY, { hideIf: 'brand_morning11' }),
+    local('queuer-2', 10, 208, FLOOR, DAY, { hideIf: 'brand_morning11' }),
+    local('queuer-3', 4, 226, FLOOR, ['morning'], { hideIf: 'brand_morning11' }),
     local('queuer-4', 11, 240, FLOOR, ['afternoon']),
     // One of the boss's people, watching the weighing.
     cast('enforcer', 452, FLOOR, { knot: 'tally_house_enforcer', when: ['afternoon'], flipX: true }),

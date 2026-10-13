@@ -528,9 +528,9 @@ function staff(g: Grid, [ax, ay]: Pt, [bx, by]: Pt): void {
 const SCAV_W = 64;
 const SCAV_H = 62;
 
-function scavengerBack(pose: CarverPose, who: 'scavenger' | 'old' | 'fists' | 'son' = 'scavenger'): RowSprite {
-  const son = who === 'son';
-  const old = who === 'old' || son;
+function scavengerBack(pose: CarverPose, who: 'scavenger' | 'old' | 'fists' | AllyId = 'scavenger'): RowSprite {
+  const ally = who in ALLY_BACKS ? ALLY_BACKS[who as AllyId] : undefined;
+  const old = who === 'old' || !!ally;
   const fists = who === 'fists';
   const g = grid(SCAV_W, SCAV_H);
   const x = 32 + { idle: 0, breathe: 0, ready: 0, dodge: -7, attack: 3, slap: 4, palm: -4, shove: 0, grab: 0, guard: 0, hit: 4 }[pose];
@@ -572,7 +572,7 @@ function scavengerBack(pose: CarverPose, who: 'scavenger' | 'old' | 'fists' | 's
   // His hook: a plain pole with a hook at the end, where her staff would be.
   // (Fists only: her staff's left against the bar's counter.)
   // (The boss's son: a length of pipe.)
-  const tool = () => (fists ? undefined : son ? pipe(g, ...p.staff) : old ? hookPole(g, ...p.staff) : staff(g, ...p.staff));
+  const tool = () => (fists || ally?.tool === 'none' ? undefined : ally?.tool === 'pipe' ? pipe(g, ...p.staff) : ally?.tool === 'staff' ? staff(g, ...p.staff) : old ? hookPole(g, ...p.staff) : staff(g, ...p.staff));
   if (forward) {
     tool();
     drawArms();
@@ -598,7 +598,7 @@ function scavengerBack(pose: CarverPose, who: 'scavenger' | 'old' | 'fists' | 's
   const hx = x + headDx;
   const hy = top + 11 + headDy;
   disc(g, hx, hy, 7.5, 9, '4');
-  if (son) return sonBack(g, hx, hy, top);
+  if (ally) return allyBack(g, hx, hy, top, ally);
   if (old) return oldBack(g, hx, hy, x, top);
   // The ponytail, tied high, hanging down her back (swinging with her).
   const swing = { dodge: 4, palm: 4, slap: -4, hit: -5, attack: -2 }[pose as string] ?? 0;
@@ -644,11 +644,30 @@ function pipe(g: Grid, [ax, ay]: Pt, [bx, by]: Pt): void {
   limb(g, [[(ax + bx) / 2, (ay + by) / 2], [bx, by]], 1.3, '7');
 }
 
-/** The boss's son from behind: a mop of dark hair, his bright scarf, a good cyan shirt; lit and outlined. */
-function sonBack(g: Grid, hx: number, hy: number, top: number): RowSprite {
-  for (let y = Math.round(hy + 6); y < hy + 10; y++) for (let dx = -8; dx <= 8; dx++) if (g[y]?.[Math.round(hx + dx)] === '4') put(g, hx + dx, y, '1');
-  // The scarf round his neck.
-  for (let y = top + 22; y < top + 26; y++) for (let dx = -5; dx <= 5; dx++) if (g[y]?.[Math.round(hx + dx)]) put(g, hx + dx, y, '6');
+/** A friend fighting beside you, from behind: their head (hair, a wrap or a hood), a scarf, their coat, what they carry. */
+interface AllyBack {
+  skin: [number, number];
+  coat: [number, number, number];
+  /** Hair (or a wrap, or a hood): [base, lit]. */
+  head: [number, number];
+  /** A hood or a wrap covers the neck; hair is trimmed above it. */
+  covered?: boolean;
+  scarf?: [number, number];
+  tool: 'pipe' | 'staff' | 'none';
+}
+const ALLY_BACKS = {
+  // The boss's son: a mop of dark hair, his bright scarf, a good cyan shirt, a length of pipe (Day 10).
+  son: { skin: [SHADES.skinTan, SHADES.skinTanShade], coat: [SHADES.cyanMid, SHADES.cyan, SHADES.cyanDeep], head: [SHADES.deep, SHADES.dim], scarf: [SHADES.amber, SHADES.amberDeep], tool: 'pipe' },
+  // The scout: the other clan's pale wrap over the head, a dull vest, a staff (Day 11).
+  scout: { skin: [SHADES.skinDark, SHADES.skinDarkShade], coat: [SHADES.dim, SHADES.light, SHADES.deep], head: [SHADES.light, SHADES.white], covered: true, scarf: [SHADES.light, SHADES.dim], tool: 'staff' },
+  // The watcher: his hood up, his long coat, empty hands (Day 11).
+  watcher: { skin: [SHADES.skinDark, SHADES.skinDarkShade], coat: [SHADES.woodLight, SHADES.woodPale, SHADES.wood], head: [SHADES.wood, SHADES.woodLight], covered: true, tool: 'none' },
+} satisfies Record<string, AllyBack>;
+type AllyId = keyof typeof ALLY_BACKS;
+
+function allyBack(g: Grid, hx: number, hy: number, top: number, a: AllyBack): RowSprite {
+  if (!a.covered) for (let y = Math.round(hy + 6); y < hy + 10; y++) for (let dx = -8; dx <= 8; dx++) if (g[y]?.[Math.round(hx + dx)] === '4') put(g, hx + dx, y, '1');
+  if (a.scarf) for (let y = top + 22; y < top + 26; y++) for (let dx = -5; dx <= 5; dx++) if (g[y]?.[Math.round(hx + dx)]) put(g, hx + dx, y, '6');
   lightDay(g, '1', ['K', 'K', 'k']);
   lightDay(g, '2', ['C', 'Q', 'c']);
   lightDay(g, '3', ['P', 'D', 'p']);
@@ -658,8 +677,9 @@ function sonBack(g: Grid, hx: number, hy: number, top: number): RowSprite {
   return {
     rows: rows(g),
     colours: {
-      K: SHADES.skinTan, k: SHADES.skinTanShade, C: SHADES.cyanMid, Q: SHADES.cyan, c: SHADES.cyanDeep, P: SHADES.woodPale, D: SHADES.dim, p: SHADES.woodLight,
-      H: SHADES.deep, h: SHADES.dim, A: SHADES.amber, a: SHADES.amberDeep, '7': SHADES.dim, X: SHADES.shadow,
+      K: a.skin[0], k: a.skin[1], C: a.coat[0], Q: a.coat[1], c: a.coat[2], P: SHADES.woodPale, D: SHADES.dim, p: SHADES.woodLight,
+      H: a.head[0], h: a.head[1], A: a.scarf?.[0] ?? a.coat[0], a: a.scarf?.[1] ?? a.coat[2], '7': SHADES.dim, X: SHADES.shadow,
+      '8': SHADES.light, '9': SHADES.woodPale, '0': SHADES.woodLight, q: SHADES.cyanMid,
     },
   };
 }
@@ -692,6 +712,10 @@ export const OLD_SCAV_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries
 
 /** The boss's son, from behind, with a length of pipe: on your side at last (Chapter 2, Day 10). */
 export const SON_BACK_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, scavengerBack(p, 'son')])) as Record<CarverPose, RowSprite>;
+/** The scout, from behind, with a staff: on your side, over their own line (Chapter 2, Day 11). */
+export const SCOUT_BACK_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, scavengerBack(p, 'scout')])) as Record<CarverPose, RowSprite>;
+/** The watcher, from behind, hood up (Chapter 2, Day 11). */
+export const WATCHER_BACK_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, scavengerBack(p, 'watcher')])) as Record<CarverPose, RowSprite>;
 
 /** The scavenger with her fists up, her staff left on the counter (the sparring at the bar). */
 export const SCAVENGER_FISTS_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, scavengerBack(p, 'fists')])) as Record<CarverPose, RowSprite>;
