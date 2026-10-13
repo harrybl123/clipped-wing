@@ -22,6 +22,8 @@ export const SHADES = {
   greenMid: 0x3c8a74,
   green: PALETTE.rootGreen,
   amberDeep: 0x5a3f22,
+  /** Between the two: gold cloth in shadow, gold-brown cloth in the light (Chapter 3's people). */
+  amberMid: 0x9c6c34,
   amber: PALETTE.lampAmber,
   /** Reserved like offeringRed: birds and the protagonist only. */
   red: PALETTE.offeringRed,

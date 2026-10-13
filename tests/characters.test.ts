@@ -3,6 +3,7 @@ import { ARCHIVIST, ELDERS, MASTER, FRIEND, GIRL, GUARD, MUM, PREACHER, PRINCE, 
 import { SHADES } from '../src/ui/pixelArt';
 import { PORTRAIT_SIZE, SPEAKERS } from '../src/ui/portraits';
 import type { RowSprite } from '../src/ui/sprites';
+import { CAPITAL_CAST, CITIZENS, COUNCILLORS, COURTIERS, GUARDS, SERVANTS, WATCH } from '../src/ui/capitalFolk';
 
 const frames: [string, RowSprite][] = [
   ...PROTAGONIST.idle.map((f, i) => [`idle ${i}`, f] as [string, RowSprite]),
@@ -100,4 +101,27 @@ it('gives the prince same-size, grounded frames, wine on every one, and keeps wi
     expect(Object.values(f.colours)).not.toContain(SHADES.wine);
     expect(Object.values(f.colours)).not.toContain(SHADES.wineDeep);
   }
+});
+
+describe("the capital's people (Chapter 3)", () => {
+  const groups = { ...Object.fromEntries(Object.entries(CAPITAL_CAST).map(([id, f]) => [id, [f]])), GUARDS, COURTIERS, SERVANTS, COUNCILLORS, WATCH, CITIZENS };
+  const frames = Object.entries(groups).flatMap(([name, list]) => list.flatMap((f, i) => [...f.idle, ...f.walk].map((s, j): [string, RowSprite] => [`${name} ${i}.${j}`, s])));
+  const reserved = [SHADES.red, SHADES.redDark, SHADES.copper, SHADES.copperDeep, SHADES.wine, SHADES.wineDeep];
+
+  it.each(frames)('%s is well formed, stands on the ground and keeps off the reserved colours', (_name, f) => {
+    expect(new Set(f.rows.map((r) => r.length)).size).toBe(1);
+    for (const ch of new Set(f.rows.join(''))) if (ch !== '.') expect(f.colours[ch], ch).toBeDefined();
+    expect(f.rows.at(-1)).toMatch(/[^.]/);
+    const used = new Set(f.rows.join(''));
+    for (const [ch, c] of Object.entries(f.colours)) if (used.has(ch)) expect(reserved, ch).not.toContain(c);
+  });
+
+  it('gives every capital speaker a portrait free of the reserved colours', () => {
+    const ids = [...Object.keys(CAPITAL_CAST), 'citadel_guard', 'courtier', 'lady', 'servant', 'watch', 'citizen_man', 'citizen_woman', 'citizen_young'];
+    for (const id of ids) {
+      const { portrait } = SPEAKERS[id]!;
+      const used = new Set(portrait.rows.join(''));
+      for (const [ch, c] of Object.entries(portrait.colours)) if (used.has(ch)) expect(reserved, `${id} ${ch}`).not.toContain(c);
+    }
+  });
 });

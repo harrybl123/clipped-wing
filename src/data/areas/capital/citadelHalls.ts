@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition, Solid } from '../types';
+import { guard, cast, courtier, strollingCourtier, strollingServant, DAY, LATE, MORNING } from './people';
 
 // The citadel's halls (Chapter 3): the corridors joining the citadel's rooms (designer: corridors in the
 // citadel; docs/areas/capital/citadel-halls.md). Long marble halls on two floors, joined by a grand stair
@@ -136,7 +137,25 @@ export const citadelHalls: AreaDefinition = {
     // The glass lift, up and down between the floors.
     { type: 'mover', sprite: P.liftCar(28), x: LIFT + 2, y: FLOOR - 2, to: { x: LIFT + 2, y: UPPER - 2 }, speed: 40 },
   ],
-  people: [],
+  people: [
+    // The guards on the audience hall's great doors, always.
+    guard('door-guard-1', 0, 92, FLOOR),
+    guard('door-guard-2', 1, 148, FLOOR, undefined, { flipX: true }),
+    // By day: a servant about the floor, a page with letters along the gallery; courtiers passing through.
+    strollingServant('servant', 0, 200, 440, FLOOR, DAY),
+    strollingServant('page', 1, 600, 820, UPPER, DAY),
+    strollingCourtier('courtier-1', 0, 540, 820, FLOOR, ['afternoon', 'evening']),
+    courtier('courtier-2', 2, 214, FLOOR, ['afternoon']),
+    // The evening: guests on their way in to the banquet.
+    courtier('guest-1', 3, 700, FLOOR, ['evening']),
+    courtier('guest-2', 4, 716, FLOOR, ['evening'], { flipX: true }),
+    // People you know.
+    cast('physician', 286, UPPER, { knot: 'halls_physician', when: MORNING, flipX: true }), // waiting on your father
+    cast('sister', 770, UPPER, { knot: 'halls_sister', when: ['afternoon'] }), // among the portraits, where she shouldn't be
+    cast('captain', 480, FLOOR, { knot: 'halls_captain', when: LATE, flipX: true }), // at the foot of the stair
+    // At night, a guard on your father's door.
+    guard('night-guard', 2, 270, UPPER, ['night'], { flipX: true }),
+  ],
   interactables: [],
 
   exits: [

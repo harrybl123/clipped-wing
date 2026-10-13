@@ -2,6 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './cityProps';
 import { rail, scrollingScreen } from './citadelProps';
 import type { AreaDefinition, Feature, Prop, Solid } from '../types';
+import { cast, citizen, patrol, strollingCitizen, watch, AWAKE, DAY, LATE } from './people';
 
 // The promenade (Chapter 3): the mid-city market, where the city meets, between the citadel and the low
 // district (docs/areas/capital/promenade.md). The first street in the city, so it sets the look: the
@@ -126,7 +127,27 @@ export const promenade: AreaDefinition = {
     // Light running along the walkway's rail.
     { type: 'pulse', points: [{ x: WALK_FROM, y: WALK - 10 }, { x: WALK_TO, y: WALK - 10 }], speed: 90, every: 400, count: 2, colour: S.cyan },
   ],
-  people: [],
+  people: [
+    // The stalls' cooks.
+    citizen('cook-1', 1, 346, FLOOR, AWAKE),
+    citizen('cook-2', 10, 460, FLOOR, AWAKE, { flipX: true }),
+    // The square: people about their business, a kid, someone resting by the bench.
+    strollingCitizen('passer-1', 0, 60, 560, FLOOR, AWAKE),
+    strollingCitizen('passer-2', 5, 220, 580, FLOOR, DAY),
+    strollingCitizen('passer-3', 12, 80, 300, FLOOR, ['afternoon', 'evening']),
+    strollingCitizen('kid', 6, 300, 520, FLOOR, DAY),
+    citizen('resting', 3, 404, FLOOR, ['afternoon']),
+    // Shoppers along the walkway and under it.
+    citizen('shopper-1', 8, 650, WALK, AWAKE),
+    strollingCitizen('shopper-2', 11, 640, 880, WALK, DAY),
+    citizen('shopper-3', 13, 800, FLOOR, AWAKE, { flipX: true }),
+    // At night, in the rain: someone hooded, the watch on its beat.
+    strollingCitizen('hooded', 2, 100, 900, FLOOR, ['night']),
+    patrol('watch-1', 1, 200, 580, FLOOR, LATE),
+    watch('watch-2', 0, 562, FLOOR, ['afternoon', 'night'], { flipX: true }),
+    // The commander of the watch, looking the square over.
+    cast('commander', 540, FLOOR, { knot: 'promenade_commander', when: ['afternoon'] }),
+  ],
   interactables: [],
 
   exits: [

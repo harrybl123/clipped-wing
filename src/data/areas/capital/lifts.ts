@@ -2,6 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import { liftCar, liftShaft, scrollingScreen } from './citadelProps';
 import * as P from './cityProps';
 import type { AreaDefinition } from '../types';
+import { cast, citizen, watch, DAY, LATE, MORNING } from './people';
 
 // The lifts (Chapter 3): glass lifts up the face of the city, between the citadel and the streets, where
 // messages change hands (docs/areas/capital/lifts.md). Three screens high: a tower's face, and stations
@@ -99,7 +100,15 @@ export const lifts: AreaDefinition = {
     { type: 'frames', frames: scrollingScreen(48, 30), x: 360, y: 380, every: 400 },
     { type: 'frames', frames: P.signFrames(36, 12, 42), x: 40, y: PROMENADE + 30, every: 300 },
   ],
-  people: [],
+  people: [
+    cast('lift_operator', 150, CITADEL, { knot: 'lifts_operator' }), // at the top, always
+    citizen('waiting-1', 5, 264, PROMENADE, DAY),
+    citizen('waiting-2', 0, 228, PROMENADE, ['evening']),
+    citizen('clerk', 11, 404, DATA, DAY),
+    cast('engineer', 350, DATA, { knot: 'lifts_engineer', when: MORNING }),
+    citizen('street-1', 4, 330, FLOOR, LATE),
+    watch('watch', 0, 90, FLOOR, ['night']),
+  ],
   interactables: [],
 
   exits: [

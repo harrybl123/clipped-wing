@@ -49,6 +49,13 @@ export const VOICES = {
   old: { pitch: 145, spread: 1.5, wave: 'triangle', length: 0.11, speed: 0.75, every: 3, glide: -0.7, breath: 0.5, wobble: 0.6, formant: 0.9, volume: 0.95 },
   young: { pitch: 165, spread: 2.5, wave: 'triangle', length: 0.07, speed: 1.1, every: 2, glide: -1.2, breath: 0.25, wobble: 0, formant: 1, volume: 0.9 },
   upper: { pitch: 160, spread: 1.2, wave: 'sine', length: 0.095, speed: 0.9, every: 3, glide: 0.3, breath: 0.15, wobble: 0, formant: 1.1, volume: 1 },
+  // Chapter 3, the capital.
+  king: { pitch: 92, spread: 0.9, wave: 'triangle', length: 0.12, speed: 0.78, every: 3, glide: -0.9, breath: 0.45, wobble: 0.05, formant: 0.82, volume: 1 }, // your father: low, slow, worn, every line falling
+  hand: { pitch: 128, spread: 1.6, wave: 'sine', length: 0.095, speed: 0.95, every: 2, glide: 0.5, breath: 0.2, wobble: 0, formant: 0.95, volume: 1 }, // the diplomat: warm and smooth, lifting at the ends
+  sister: { pitch: 270, spread: 2.2, wave: 'triangle', length: 0.065, speed: 1.25, every: 2, glide: -0.3, breath: 0.2, wobble: 0, formant: 1.12, volume: 0.85 }, // quick, flat, unimpressed
+  captain: { pitch: 98, spread: 0.8, wave: 'triangle', length: 0.07, speed: 1.15, every: 3, glide: -1.2, breath: 0.25, wobble: 0, formant: 0.78, volume: 1 }, // clipped, hard, falling
+  lady: { pitch: 205, spread: 1.8, wave: 'sine', length: 0.09, speed: 0.95, every: 2, glide: 0.7, breath: 0.2, wobble: 0.08, formant: 1.12, volume: 0.95 }, // high society: light, musical
+  commander: { pitch: 170, spread: 1, wave: 'triangle', length: 0.08, speed: 1, every: 3, glide: -1, breath: 0.25, wobble: 0, formant: 0.95, volume: 0.95 }, // level, few words
 } satisfies Record<string, Voice>;
 
 export type VoiceId = keyof typeof VOICES;

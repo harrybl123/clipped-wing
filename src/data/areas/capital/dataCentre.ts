@@ -2,6 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import { SEALED_DOOR, doorway, scrollingScreen } from './citadelProps';
 import * as P from './cityProps';
 import type { AreaDefinition } from '../types';
+import { cast, guard, strollingCitizen, DAY } from './people';
 
 // The data centre (Chapter 3): where the capital's requests and output come and go; nobody says who's on
 // the other end (docs/areas/capital/data-centre.md). The most futuristic place in the city: bare, clean
@@ -61,7 +62,11 @@ export const dataCentre: AreaDefinition = {
     { type: 'frames', frames: scrollingScreen(40, 26), x: 72, y: 90, every: 300 },
     { type: 'pulse', points: [{ x: 16, y: TOP + 4 }, { x: 570, y: TOP + 4 }, { x: 570, y: FLOOR - 68 }], speed: 180, every: 500, count: 3, colour: S.cyan },
   ],
-  people: [],
+  people: [
+    cast('operator', 104, FLOOR, { knot: 'data_operator' }), // at the desk, every shift
+    strollingCitizen('tech', 11, 150, 520, FLOOR, DAY),
+    guard('door-guard', 2, 552, FLOOR, undefined, { flipX: true }), // your father's guard, on the door at the back
+  ],
   interactables: [],
 
   exits: [{ id: 'to-lifts', x: 34, y: FLOOR, reach: 12, to: 'lifts' }],

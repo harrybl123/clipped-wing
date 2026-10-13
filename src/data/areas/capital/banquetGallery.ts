@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition } from '../types';
+import { cast, courtier, servant, strollingServant, MORNING } from './people';
 
 // The banquet gallery (Chapter 3): dinners and balls, where you feel the tension: flat toasts, empty seats
 // (docs/areas/capital/banquet-gallery.md). A long gallery: the dance floor at one end under a screen; the
@@ -12,6 +13,8 @@ const FLOOR = 230;
 const TOP = 30;
 /** Where the gallery opens onto its balcony. */
 const BALCONY = 674;
+/** The musicians' gallery, over the dance floor (out of reach). */
+const GALLERY = FLOOR - 70;
 const TABLE = { x: 250, width: 340 };
 
 export const banquetGallery: AreaDefinition = {
@@ -35,6 +38,7 @@ export const banquetGallery: AreaDefinition = {
 
   solids: [
     { x: 0, y: FLOOR, width: W, height: 270 - FLOOR },
+    { x: 40, y: GALLERY, width: 168, height: 4, oneWay: true, invisible: true }, // the musicians' gallery
     { x: 0, y: 0, width: 16, height: 270, invisible: true },
     { x: W - 14, y: 0, width: 14, height: 270, invisible: true }, // the balcony's rail
   ],
@@ -74,7 +78,23 @@ export const banquetGallery: AreaDefinition = {
   features: [
     ...[330, 420, 510].map((x) => ({ type: 'swing' as const, sprite: P.CHANDELIER, x, y: TOP + 56, ropeTop: TOP, quiet: true, ropeColour: S.amberDeep })),
   ],
-  people: [],
+  people: [
+    // The morning: servants laying the table.
+    servant('server-1', 0, 300, FLOOR, MORNING),
+    strollingServant('server-2', 1, 240, 600, FLOOR, MORNING),
+    // The evening: music from the gallery, dancing, guests along the table (your father's chair at its head
+    // empty), servants with trays; your friend out on the balcony.
+    courtier('harpist', 5, 96, GALLERY, ['evening']),
+    courtier('drummer', 4, 150, GALLERY, ['evening'], { flipX: true }),
+    courtier('dancer-1', 0, 110, FLOOR, ['evening']),
+    courtier('dancer-2', 3, 126, FLOOR, ['evening'], { flipX: true }),
+    courtier('guest-1', 2, 300, FLOOR, ['evening']),
+    courtier('guest-2', 6, 372, FLOOR, ['evening'], { flipX: true }),
+    courtier('guest-3', 7, 480, FLOOR, ['evening']),
+    strollingServant('server-3', 0, 240, 600, FLOOR, ['evening']),
+    cast('salon_hostess', 420, FLOOR, { knot: 'banquet_hostess', when: ['evening'], flipX: true }),
+    cast('heir', 726, FLOOR, { knot: 'banquet_heir', when: ['evening'] }),
+  ],
   interactables: [],
 
   exits: [{ id: 'to-halls', x: 34, y: FLOOR, reach: 12, to: 'citadel-halls' }],

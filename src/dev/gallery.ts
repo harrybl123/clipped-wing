@@ -19,6 +19,7 @@ import { BEETLE_BATTLE, CARVER_BATTLE, GIRL_BATTLE, ZEALOT_BATTLE } from '../ui/
 import { hexString } from '../ui/pixelArt';
 import { SPEAKERS } from '../ui/portraits';
 import { CAST, DOG, HOSTESSES, RIVALS, TOWNSFOLK } from '../ui/borderlandFolk';
+import { CAPITAL_CAST, CITIZENS, COUNCILLORS, COURTIERS, GUARDS as CITADEL_GUARDS, SERVANTS, WATCH } from '../ui/capitalFolk';
 import { BIRD, FIRE_FRAMES, FUNGI, LAMP, MORE_ARROW, type RowSprite } from '../ui/sprites';
 
 type Entry = [label: string, sprite: RowSprite];
@@ -50,6 +51,9 @@ const FIGURES: Record<string, RowSprite> = {
   hostess: HOSTESSES[0]!.idle[0]!,
   ...Object.fromEntries(Object.entries(CAST).map(([id, f]) => [id, f.idle[0]!])),
   gardener: r(2), crowd_woman: v(3), crowd_man: v(4), crowd_someone: v(5), crowd_someone_else: v(1),
+  ...Object.fromEntries(Object.entries(CAPITAL_CAST).map(([id, f]) => [id, f.idle[0]!])),
+  citadel_guard: CITADEL_GUARDS[0]!.idle[0]!, courtier: COURTIERS[0]!.idle[0]!, lady: COURTIERS[1]!.idle[0]!, servant: SERVANTS[0]!.idle[0]!,
+  watch: WATCH[0]!.idle[0]!, citizen_man: CITIZENS[1]!.idle[0]!, citizen_woman: CITIZENS[5]!.idle[0]!, citizen_young: CITIZENS[0]!.idle[0]!,
 };
 
 const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: { label: string; frames: RowSprite[]; fps: number }[] }[] = [
@@ -103,6 +107,24 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       { label: 'friend idle', frames: FRIEND.idle, fps: 1.4 },
       { label: 'girl idle', frames: GIRL.idle, fps: 1.3 },
       ...VILLAGERS.slice(0, 3).map((v, i) => ({ label: `villager ${i} walk`, frames: v.walk, fps: 5.5 })),
+    ],
+  },
+  // The capital's people (Chapter 3; src/ui/capitalFolk.ts).
+  {
+    title: 'The capital',
+    scale: 6,
+    entries: [
+      ...Object.entries(CAPITAL_CAST).flatMap(([id, f]): Entry[] => [[id, f.idle[0]!], [`${id} walk`, f.walk[0]!]]),
+      ...CITADEL_GUARDS.map((f, i): Entry => [`guard ${i}`, f.idle[0]!]),
+      ...COURTIERS.map((f, i): Entry => [`courtier ${i}`, f.idle[0]!]),
+      ...SERVANTS.map((f, i): Entry => [`servant ${i}`, f.idle[0]!]),
+      ...COUNCILLORS.map((f, i): Entry => [`councillor ${i}`, f.idle[0]!]),
+      ...WATCH.map((f, i): Entry => [`watch ${i}`, f.idle[0]!]),
+      ...CITIZENS.map((f, i): Entry => [`citizen ${i}`, f.idle[0]!]),
+    ],
+    animations: [
+      ...Object.entries(CAPITAL_CAST).map(([id, f]) => ({ label: `${id} walk`, frames: f.walk, fps: 5.5 })),
+      ...Object.entries(CAPITAL_CAST).slice(0, 4).map(([id, f]) => ({ label: `${id} idle`, frames: f.idle, fps: 1.5 })),
     ],
   },
   // The combat stage's bigger figures (src/ui/battleSprites.ts): you from behind, the zealot facing you.

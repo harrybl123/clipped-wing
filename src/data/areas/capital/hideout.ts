@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './cityProps';
 import type { AreaDefinition } from '../types';
+import { cast, citizen, LATE } from './people';
 
 // The hideout (Chapter 3): under the low district, an old cellar of rough stone, the city's oldest, made
 // a bar: where citizens band together against injustice, and the capital and your father call them
@@ -68,7 +69,17 @@ export const hideout: AreaDefinition = {
   features: [
     ...[150, 250, 380].map((x) => ({ type: 'swing' as const, sprite: P.CAGE_LAMP, x, y: TOP + 56, ropeTop: TOP, quiet: true, ropeColour: S.deep })),
   ],
-  people: [],
+  people: [
+    cast('hideout_keeper', 404, FLOOR, { knot: 'hideout_keeper', flipX: true }), // behind the counter, always
+    // The evening and the night: regulars round the long table and the small ones, one at the counter.
+    citizen('regular-1', 0, 128, FLOOR, LATE),
+    citizen('regular-2', 7, 168, FLOOR, LATE, { flipX: true }),
+    citizen('regular-3', 12, 206, FLOOR, LATE),
+    citizen('regular-4', 13, 252, FLOOR, ['night'], { flipX: true }),
+    citizen('at-counter', 4, 332, FLOOR, LATE),
+    citizen('in-the-corner', 2, 76, FLOOR, ['night']),
+    citizen('regular', 5, 290, FLOOR, LATE, { knot: 'hideout_regular', flipX: true }),
+  ],
   interactables: [],
 
   exits: [{ id: 'to-low-district', x: 39, y: FLOOR, reach: 12, to: 'low-district' }],

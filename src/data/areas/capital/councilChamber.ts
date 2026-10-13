@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition, Solid } from '../types';
+import { cast, councillor, guard, strollingServant, MORNING } from './people';
 
 // The council chamber (Chapter 3): politics, and empty seats (docs/areas/capital/council-chamber.md). Black
 // marble veined with gold, lamps hanging low on long chains. Tiers
@@ -70,7 +71,19 @@ export const councilChamber: AreaDefinition = {
     ...[206, 240, 274].map((x, i) => ({ type: 'swing' as const, sprite: P.PENDANT, x, y: 120 + (i === 1 ? -10 : 0), ropeTop: TOP, quiet: true, ropeColour: S.amberDeep })),
     { type: 'frames', frames: P.scrollingScreen(70, 40), x: 205, y: TOP + 12, every: 500 },
   ],
-  people: [],
+  people: [
+    // The afternoon's session: your father at the top, the council on its tiers (some seats empty), the
+    // reformer on his feet in the well.
+    cast('father', 456, FLOOR - 48, { knot: 'council_father', when: ['afternoon'], flipX: true }),
+    cast('councillor', 91, FLOOR - 16, { knot: 'council_councillor', when: ['afternoon'] }),
+    cast('reformer', 250, FLOOR, { knot: 'council_reformer', when: ['afternoon'] }),
+    councillor('member-1', 0, 43, FLOOR - 32, ['afternoon']),
+    councillor('member-2', 1, 425, FLOOR - 32, ['afternoon'], { flipX: true }),
+    councillor('member-3', 2, 377, FLOOR - 16, ['afternoon'], { flipX: true }),
+    guard('door-guard', 2, 192, FLOOR, ['afternoon'], { flipX: true }),
+    // The morning: a page laying out the papers.
+    strollingServant('page', 1, 180, 330, FLOOR, MORNING),
+  ],
   interactables: [],
 
   exits: [{ id: 'to-halls', x: 160, y: FLOOR, reach: 12, to: 'citadel-halls' }],

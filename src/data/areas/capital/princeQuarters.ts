@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition } from '../types';
+import { cast, servant, MORNING } from './people';
 
 // Your quarters (Chapter 3): the prince's private rooms high in the citadel, and the first area of the
 // capital, so it sets the look (docs/areas/capital/prince-quarters.md): white marble with grey veins, gold,
@@ -80,7 +81,10 @@ export const princeQuarters: AreaDefinition = {
   ],
 
   features: [{ type: 'frames', frames: P.scrollingScreen(44, 28), x: 334, y: 100, every: 500 }],
-  people: [],
+  people: [
+    servant('maid', 0, 112, FLOOR, MORNING, { flipX: true }), // making the bed
+    cast('sister', 452, FLOOR, { knot: 'quarters_sister', when: ['evening'] }), // at your telescope
+  ],
   interactables: [],
 
   exits: [{ id: 'to-halls', x: 36, y: FLOOR, reach: 12, to: 'citadel-halls' }],

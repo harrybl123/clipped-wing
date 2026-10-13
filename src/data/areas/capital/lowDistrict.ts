@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './cityProps';
 import type { AreaDefinition, Solid } from '../types';
+import { cast, citizen, strollingCitizen, watch, AWAKE, DAY, LATE, MORNING } from './people';
 
 // The low district (Chapter 3): cramped, at the bottom of the city (docs/areas/capital/low-district.md).
 // Under a ceiling of cables slung between homes stacked and patched by hand; washing strung across, plants
@@ -111,7 +112,27 @@ export const lowDistrict: AreaDefinition = {
     { type: 'smoke', x: 335, y: FLOOR - 8, top: 120 },
     { type: 'frames', frames: P.signFrames(24, 10, 21), x: 120, y: LEFT_WALK + 20, every: 330 },
   ],
-  people: [],
+  people: [
+    // The street: the cook at the stall, the repairer outside his shop, the grocer's girl; people about.
+    citizen('cook', 10, 392, FLOOR, AWAKE, { flipX: true }),
+    citizen('repairer', 1, 112, FLOOR, AWAKE),
+    citizen('grocer', 13, 880, FLOOR, DAY, { flipX: true }),
+    strollingCitizen('mechanic', 7, 420, 680, FLOOR, DAY),
+    strollingCitizen('walker', 5, 260, 560, FLOOR, MORNING),
+    strollingCitizen('kids', 6, 330, 520, FLOOR, ['afternoon']),
+    // Up on the walkways: an old woman by her door, neighbours.
+    citizen('old-woman', 3, 120, LEFT_WALK, ['afternoon', 'evening']),
+    citizen('neighbour', 12, 770, RIGHT_WALK, DAY, { flipX: true }),
+    citizen('hooded-1', 9, 820, RIGHT_WALK, LATE),
+    // The evening and the night: round the fire, out in the rain; the watch, watching.
+    citizen('by-fire-1', 4, 456, FLOOR, LATE),
+    citizen('by-fire-2', 11, 486, FLOOR, ['night'], { flipX: true }),
+    strollingCitizen('young', 0, 300, 640, FLOOR, LATE),
+    strollingCitizen('hooded-2', 2, 640, 900, FLOOR, ['night']),
+    watch('watch', 1, 530, FLOOR, ['evening'], { flipX: true }),
+    // The kid who chalks the symbol.
+    cast('painter', 300, FLOOR, { knot: 'low_painter', when: ['afternoon', 'evening'] }),
+  ],
   interactables: [],
 
   exits: [

@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition, CityView } from '../types';
+import { cast, courtier, guard, servant, strollingCourtier, MORNING } from './people';
 
 // The guest wing (Chapter 3): where the heirs of families your father doubts are invited to live, as an
 // honour, and only find out once they're in that they can't leave (designer; docs/areas/capital/guest-wing.md).
@@ -71,7 +72,16 @@ export const guestWing: AreaDefinition = {
     // Empty gilded cages, hung for ornament.
     ...[194, 304, 414].map((x) => ({ type: 'swing' as const, sprite: P.CAGE, x, y: TOP + 26, ropeTop: TOP, quiet: true, ropeColour: S.amber })),
   ],
-  people: [],
+  people: [
+    // The guards' post at the way out.
+    guard('barrier-guard-1', 0, 522, FLOOR, undefined, { flipX: true }),
+    guard('barrier-guard-2', 1, 576, FLOOR, undefined, { flipX: true }),
+    cast('captain', 498, FLOOR, { knot: 'guest_captain', when: ['afternoon'], flipX: true }),
+    // The other guests.
+    courtier('guest-1', 0, 290, FLOOR, MORNING),
+    strollingCourtier('guest-2', 5, 160, 470, FLOOR, ['afternoon']),
+    servant('servant', 0, 404, FLOOR, ['evening']),
+  ],
   interactables: [],
 
   exits: [{ id: 'to-halls', x: 608, y: FLOOR, reach: 12, to: 'citadel-halls' }],

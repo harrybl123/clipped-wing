@@ -2,6 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import { scrollingScreen } from './citadelProps';
 import * as P from './cityProps';
 import type { AreaDefinition } from '../types';
+import { cast, citizen, strollingCitizen, watch, AWAKE, DAY, MORNING } from './people';
 
 // The gate (Chapter 3): the city's edge, where envoys arrive from outside (docs/areas/capital/city-gate.md).
 // Inside, on the right: the checkpoint, its booth and screens, the barrier across the road, the city's
@@ -60,7 +61,17 @@ export const cityGate: AreaDefinition = {
     { type: 'rain' },
     { type: 'frames', frames: scrollingScreen(40, 26), x: 560, y: 120, every: 420 },
   ],
-  people: [],
+  people: [
+    // The watch at the checkpoint, and its commander in the morning.
+    watch('booth-watch', 0, 532, FLOOR, undefined, { flipX: true }),
+    watch('barrier-watch', 1, 470, FLOOR, DAY, { flipX: true }),
+    cast('commander', 584, FLOOR, { knot: 'gate_commander', when: MORNING, flipX: true }),
+    // Outside the wall: the envoy arriving, people waiting to be let in.
+    cast('envoy', 230, FLOOR, { knot: 'gate_envoy', when: MORNING }),
+    citizen('traveller-1', 9, 180, FLOOR, MORNING),
+    citizen('traveller-2', 2, 150, FLOOR, ['afternoon']),
+    strollingCitizen('passer', 7, 600, 760, FLOOR, AWAKE),
+  ],
   interactables: [],
 
   exits: [{ id: 'to-promenade', x: 780, y: FLOOR, reach: 14, to: 'promenade' }],

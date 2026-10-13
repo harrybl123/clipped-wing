@@ -1,6 +1,8 @@
 import { ELDER_LOOKS, FRIEND_FATHER_LOOK, GUARD_LOOK, PREACHER_LOOK, RESIDENT_LOOKS, VILLAGER_LOOKS, type VillagerLook } from './characters';
 import type { VoiceId } from '../systems/voices';
 import { CAST_LOOKS, HOSTESS_LOOKS, RIVAL_LOOKS, STRAGGLER_LOOKS, TOWNSFOLK_LOOKS, type FolkLook } from './borderlandFolk';
+import { CAPITAL_CAST_LOOKS as C3, CITIZEN_LOOKS, COURTIER_LOOKS, GUARD_LOOKS as CITADEL_GUARD_LOOKS, SERVANT_LOOKS, WATCH_LOOKS } from './capitalFolk';
+import { capitalPortrait } from './capitalPortraits';
 import { SHADES } from './pixelArt';
 import type { RowSprite } from './sprites';
 
@@ -999,4 +1001,31 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
   crowd_someone: { name: 'Someone', portrait: npcPortrait(VILLAGER_LOOKS[5]!, { build: 'round', eyes: 'narrow' }), voice: 'young' },
   crowd_someone_else: { name: 'Someone else', portrait: npcPortrait(VILLAGER_LOOKS[1]!, { hair: 'long', eyes: 'wide', mouth: 'frown', items: ['earring'] }), voice: 'roots_woman' },
   crowd: { name: 'The crowd', portrait: CROWD_PORTRAIT , voice: 'crowd' },
+
+  // Chapter 3, the capital (looks and faces are Claude's, names placeholders; src/ui/capitalFolk.ts).
+  father: { name: 'Your father', portrait: capitalPortrait(C3.father, { build: 'plain', age: 1, brow: 'heavy', eyes: 'tired', nose: 'long', mouth: 'thin' }), voice: 'king' },
+  diplomat: { name: 'The diplomat', portrait: capitalPortrait(C3.diplomat, { jaw: 'soft', age: 1, brow: 'arched', nose: 'broad', mouth: 'smile' }), voice: 'hand' },
+  sister: { name: 'Your sister', portrait: capitalPortrait(C3.sister, { build: 'narrow', jaw: 'pointed', brow: 'raised', eyes: 'lashes', nose: 'small', mouth: 'smirk' }), voice: 'sister' },
+  captain: { name: 'The captain', portrait: capitalPortrait(C3.captain, { build: 'broad', age: 1, brow: 'knit', eyes: 'narrow', mouth: 'thin', items: ['scar'] }), voice: 'captain' },
+  councillor: { name: 'The old councillor', portrait: capitalPortrait(C3.councillor, { build: 'narrow', age: 2, brow: 'heavy', eyes: 'tired', nose: 'long', mouth: 'flat' }), voice: 'elder' },
+  salon_hostess: { name: 'The hostess', portrait: capitalPortrait(C3.salon_hostess, { build: 'narrow', jaw: 'pointed', brow: 'thin', eyes: 'lashes', mouth: 'full', items: ['earring', 'mole'] }), voice: 'lady' },
+  heir: { name: 'Your friend', portrait: capitalPortrait(C3.heir, { brow: 'straight', eyes: 'wide', mouth: 'smile', items: ['freckles'] }), voice: 'young' },
+  envoy: { name: 'The envoy', portrait: capitalPortrait(C3.envoy, { age: 1, brow: 'heavy', eyes: 'narrow', nose: 'broad', mouth: 'frown' }), voice: 'roots_man' },
+  operator: { name: 'The operator', portrait: capitalPortrait(C3.operator, { build: 'narrow', jaw: 'pointed', brow: 'thin', mouth: 'flat', items: ['piercing', 'tattoo'] }), voice: 'roots_woman' },
+  lift_operator: { name: 'The lift operator', portrait: capitalPortrait(C3.lift_operator, { build: 'broad', age: 2, brow: 'heavy', eyes: 'tired', nose: 'broad', mouth: 'smile' }), voice: 'old' },
+  painter: { name: 'The kid', portrait: capitalPortrait(C3.painter, { build: 'child', jaw: 'soft', brow: 'raised', eyes: 'wide', nose: 'small', mouth: 'smirk' }), voice: 'boy' },
+  reformer: { name: 'The reformer', portrait: capitalPortrait(C3.reformer, { build: 'narrow', brow: 'knit', eyes: 'wide', mouth: 'flat' }), voice: 'preacher' },
+  commander: { name: 'The commander', portrait: capitalPortrait(C3.commander, { jaw: 'square', age: 1, brow: 'straight', eyes: 'narrow', mouth: 'thin' }), voice: 'commander' },
+  engineer: { name: 'The engineer', portrait: capitalPortrait(C3.engineer, { jaw: 'soft', nose: 'small', mouth: 'smirk', items: ['freckles'] }), voice: 'roots_woman' },
+  hideout_keeper: { name: 'The barkeep', portrait: capitalPortrait(C3.hideout_keeper, { build: 'heavy', age: 1, brow: 'heavy', eyes: 'narrow', nose: 'broad', mouth: 'flat' }), voice: 'roots_man' },
+  physician: { name: 'The physician', portrait: capitalPortrait(C3.physician, { age: 1, brow: 'arched', eyes: 'tired', mouth: 'smile', items: ['spectacles'] }), voice: 'upper' },
+  // The capital's background people, when one of them speaks.
+  citadel_guard: { name: 'A guard', portrait: capitalPortrait(CITADEL_GUARD_LOOKS[0]!, { build: 'broad', mouth: 'thin' }), voice: 'guard' },
+  courtier: { name: 'A courtier', portrait: capitalPortrait(COURTIER_LOOKS[0]!, { brow: 'arched', eyes: 'narrow', mouth: 'smirk' }), voice: 'upper' },
+  lady: { name: 'A lady', portrait: capitalPortrait(COURTIER_LOOKS[1]!, { build: 'narrow', jaw: 'soft', brow: 'thin', eyes: 'lashes', mouth: 'full', items: ['earring'] }), voice: 'lady' },
+  servant: { name: 'A servant', portrait: capitalPortrait(SERVANT_LOOKS[0]!, { eyes: 'plain', mouth: 'flat' }), voice: 'roots_man' },
+  watch: { name: 'The watch', portrait: capitalPortrait(WATCH_LOOKS[0]!, { build: 'broad', brow: 'heavy', eyes: 'narrow', mouth: 'frown' }), voice: 'guard' },
+  citizen_man: { name: 'A man', portrait: capitalPortrait(CITIZEN_LOOKS[1]!, { build: 'broad', age: 1, brow: 'heavy', mouth: 'frown' }), voice: 'roots_man' },
+  citizen_woman: { name: 'A woman', portrait: capitalPortrait(CITIZEN_LOOKS[5]!, { jaw: 'soft', brow: 'knit', eyes: 'lashes', mouth: 'flat', items: ['earring'] }), voice: 'roots_woman' },
+  citizen_young: { name: 'Someone', portrait: capitalPortrait(CITIZEN_LOOKS[0]!, { build: 'narrow', jaw: 'pointed', brow: 'raised', mouth: 'smirk', items: ['piercing'] }), voice: 'young' },
 };

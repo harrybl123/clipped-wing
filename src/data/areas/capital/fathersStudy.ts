@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition } from '../types';
+import { cast, servant, MORNING } from './people';
 
 // Your father's study (Chapter 3): his wisdom (docs/areas/capital/fathers-study.md). The warmest room in
 // the citadel: dark wood panelling over the marble floor, shelves of books and old things from before, amber lamplight,
@@ -65,7 +66,12 @@ export const fathersStudy: AreaDefinition = {
     { type: 'fire', x: 200, y: FLOOR - 7 },
     { type: 'swing', sprite: P.PENDULUM, x: 313, y: FLOOR - 28, ropeTop: FLOOR - 45, quiet: true, ropeColour: S.amberDeep },
   ],
-  people: [],
+  people: [
+    servant('servant', 0, 204, FLOOR, MORNING), // tending the fire
+    // The evening: your father at his desk, his physician with him.
+    cast('father', 406, FLOOR, { knot: 'study_father', when: ['evening'], flipX: true }),
+    cast('physician', 318, FLOOR, { knot: 'study_physician', when: ['evening'] }),
+  ],
   interactables: [],
 
   exits: [

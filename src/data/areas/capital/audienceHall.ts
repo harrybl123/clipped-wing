@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition, Solid } from '../types';
+import { cast, citizen, courtier, guard, strollingServant, DAY, MORNING } from './people';
 
 // The audience hall (Chapter 3): where envoys and petitioners come before the throne
 // (docs/areas/capital/audience-hall.md). Huge and cold: marble columns, a gold-inlaid floor, high windows,
@@ -98,7 +99,28 @@ export const audienceHall: AreaDefinition = {
     { type: 'swing', sprite: P.CHANDELIER, x: 235, y: TOP + 62, ropeTop: TOP, quiet: true, ropeColour: S.amberDeep },
     { type: 'swing', sprite: P.CHANDELIER, x: 425, y: TOP + 62, ropeTop: TOP, quiet: true, ropeColour: S.amberDeep },
   ],
-  people: [],
+  people: [
+    // The guards: on the great doors, by the dais, behind the throne.
+    guard('door-guard', 0, 76, FLOOR),
+    guard('dais-guard-1', 1, 548, FLOOR, ['afternoon', 'evening', 'night'], { flipX: true }),
+    guard('dais-guard-2', 0, 772, DAIS, undefined, { flipX: true }),
+    // The morning's audience: petitioners in their best by the benches and at the rope, courtiers watching.
+    citizen('petitioner-1', 1, 186, FLOOR, MORNING),
+    citizen('petitioner-2', 5, 278, FLOOR, MORNING),
+    citizen('petitioner-3', 3, 380, FLOOR, MORNING),
+    citizen('petitioner-4', 2, 470, FLOOR, MORNING),
+    citizen('petitioner-5', 12, 512, FLOOR, MORNING),
+    citizen('petitioner-6', 9, 300, FLOOR, ['afternoon']),
+    courtier('courtier-1', 0, 230, FLOOR, MORNING),
+    courtier('courtier-2', 7, 430, FLOOR, DAY, { flipX: true }),
+    strollingServant('sweeper', 0, 180, 500, FLOOR, ['evening']),
+    // Your father on the throne, your hand beside your seat, the captain at the rope.
+    cast('father', 689, DAIS, { knot: 'audience_father', when: MORNING, flipX: true }),
+    cast('diplomat', 626, DAIS, { knot: 'audience_diplomat', when: MORNING, flipX: true }),
+    cast('captain', 544, FLOOR, { knot: 'audience_captain', when: MORNING, flipX: true }),
+    // The envoy, still waiting to be heard.
+    cast('envoy', 512, FLOOR, { knot: 'audience_envoy', when: ['afternoon'] }),
+  ],
   interactables: [],
 
   exits: [

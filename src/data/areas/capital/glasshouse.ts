@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition, Line, Solid } from '../types';
+import { cast, courtier, servant, MORNING } from './people';
 
 // The glasshouse (Chapter 3): the only greenery, where upper society's salons happen
 // (docs/areas/capital/glasshouse.md). A great roof of glass over the citadel, the sky through it, painted
@@ -95,7 +96,18 @@ export const glasshouse: AreaDefinition = {
     { type: 'drip', x: 342, y: GLASS + 2, floorY: FLOOR },
     { type: 'drip', x: 470, y: GLASS + 2, floorY: TERRACE },
   ],
-  people: [],
+  people: [
+    servant('gardener', 2, 222, FLOOR, MORNING),
+    // The afternoon's salon on the terrace, the hostess at the middle of it; your friend down among the plants.
+    cast('salon_hostess', 540, TERRACE, { knot: 'glasshouse_hostess', when: ['afternoon'], flipX: true }),
+    courtier('salon-1', 1, 506, TERRACE, ['afternoon']),
+    courtier('salon-2', 4, 598, TERRACE, ['afternoon'], { flipX: true }),
+    courtier('salon-3', 6, 484, TERRACE, ['afternoon']),
+    cast('heir', 330, FLOOR, { knot: 'glasshouse_heir', when: ['afternoon'] }),
+    // The evening: a few still talking.
+    courtier('late-1', 7, 520, TERRACE, ['evening']),
+    courtier('late-2', 2, 560, TERRACE, ['evening'], { flipX: true }),
+  ],
   interactables: [],
 
   exits: [{ id: 'to-halls', x: 34, y: FLOOR, reach: 12, to: 'citadel-halls' }],

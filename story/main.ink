@@ -620,6 +620,7 @@ INCLUDE borderland/dogs-hollow.ink
 INCLUDE borderland/rival-line.ink
 INCLUDE borderland/deep-ground.ink
 INCLUDE borderland/trees-edge.ink
+INCLUDE capital/cast.ink
 
 // The game starts conversations by knot name via StoryBridge, so the root
 // flow does nothing.
