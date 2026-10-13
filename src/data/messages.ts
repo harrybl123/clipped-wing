@@ -527,13 +527,6 @@ const GROUNDED: DecodeSymbol = {
   hint: 'A bird that can\'t fly stays on the ___. Like yours, with its clipped wing. He signs himself that way.',
 };
 
-/**
- * Grounded's mark, as pixels ('#'): the bird on bare ground. In Chapter 3 it's the revolution's symbol,
- * chalked across the capital's low district and painted in the hideout (designer: he's told his people his
- * plan, and about his agent in the tree; it ties back to the clipped wing).
- */
-export const GROUNDED_MARK: readonly string[] = GROUNDED.picture;
-
 /** "Many of us": a crowd of little figures. */
 const MANY: DecodeSymbol = {
   id: 'many',

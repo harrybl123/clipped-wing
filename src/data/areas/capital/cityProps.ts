@@ -1,6 +1,5 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import type { RowSprite } from '../../../ui/sprites';
-import { GROUNDED_MARK } from '../../messages';
 
 // PLACEHOLDER pixel props for the capital's city (Chapter 3; docs/chapter-3-world.md): below the citadel,
 // cyberpunk and earthy at once: shopfronts under striped awnings, signs of cyan and amber light, steam from
@@ -33,9 +32,21 @@ export const facade = (width: number, height: number, seed: number): RowSprite =
     if (y % 18 === 0) return 'n'; // each storey's ledge
     const wy = y % 18;
     const wx = x % 8;
-    if (wy > 5 && wy < 13 && wx > 2 && wx < 6 && x < width - 3) {
+    if (wy >= 4 && wy <= 15 && wx >= 1 && wx <= 7 && x < width - 3) {
+      // A window: lit or dark, curtains, a sill with a plant on some, a little balcony on a few; a screen's
+      // blue glow in one now and then (designer: people's things in view).
       const k = r(seed, Math.floor(x / 8) * 31 + Math.floor(y / 18));
-      return k > 0.7 ? (wy === 6 ? 'A' : 'a') : k > 0.6 ? 'G' : k > 0.4 ? 'A' : 's';
+      const balcony = r(seed, Math.floor(x / 8) * 7 + Math.floor(y / 18) * 3) > 0.8;
+      if (wy === 15) return balcony ? (wx % 2 ? 'm' : '.') : '.';
+      if (wy === 14) return balcony ? 'm' : wx >= 2 && wx <= 6 ? 'p' : 'w';
+      if (wx < 2 || wx > 6 || wy < 5) return wy === 4 && wx >= 2 && wx <= 6 ? 'n' : 'w';
+      if (k < 0.25) return 's'; // dark
+      const curtain = ['G', 'h', 'A', 'p'][Math.floor(k * 13) % 4]!;
+      if (wx === 2 || wx === 6) return curtain;
+      if (wy === 13 && wx === 4 && k > 0.55) return 'L'; // a plant on the sill
+      if (wy === 12 && wx === 4 && k > 0.55) return 'e';
+      if (wy === 13 && wx === 3 && balcony) return 'A'; // a pot out on the balcony
+      return wy === 5 ? 'A' : k > 0.88 ? 'G' : 'a';
     }
     return (x + y * 3) % 17 === 0 ? 'n' : x > width - 4 ? 'n' : 'w';
   }),
@@ -389,23 +400,239 @@ export const NOTICES: RowSprite = {
 };
 
 /**
- * The symbol: Grounded's mark, the bird on bare ground (designer), the one on the carver's plates in the
- * tree. Chalked on walls (rough, a pixel missing here and there), half scrubbed off (faint, broken), or
- * painted large (`scale`) in the hideout.
+ * The symbol (designer: Grounded's bird on bare ground, as on the carver's plates in the tree; then: more
+ * logo-like, more symbolic): his bird made an emblem: a solid bird, wings folded, an eye and a beak, standing
+ * on a thick bar of ground that runs through a ring, like a horizon. Bold enough to chalk in a few strokes.
  */
+export const EMBLEM: readonly string[] = [
+  '.......#######.......',
+  '.....###########.....',
+  '....###.......###....',
+  '...##...........##...',
+  '..##.............##..',
+  '.##.........##....##.',
+  '.##........####...##.',
+  '##.........###.##..##',
+  '##........######...##',
+  '##.....##.######...##',
+  '##...#####.#####...##',
+  '##..#######.###....##',
+  '##....########.....##',
+  '##......#..#.......##',
+  '.###################.',
+  '.###################.',
+  '..##.............##..',
+  '...##...........##...',
+  '....###.......###....',
+  '.....###########.....',
+  '.......#######.......',
+];
+
+/** The symbol on a wall: chalked (rough, a pixel missing here and there), half scrubbed off, or painted large (`scale`). */
 export const symbolMark = (style: 'chalk' | 'scrubbed' | 'paint', scale = 1): RowSprite => ({
-  rows: GROUNDED_MARK.flatMap((row, y) =>
+  rows: EMBLEM.flatMap((row, y) =>
     Array.from({ length: scale }, (_, sy) =>
       [...row].flatMap((c, x) =>
         Array.from({ length: scale }, (_, sx) => {
           if (c !== '#') return '.';
           const k = r(x * 7 + sx + 3, y * 5 + sy);
-          if (style === 'chalk') return k > 0.88 ? '.' : k > 0.6 ? 'm' : 'h';
-          if (style === 'scrubbed') return k > 0.55 ? '.' : 'm';
-          return k > 0.93 ? 'm' : 'h'; // paint, brushed on
+          if (style === 'chalk') return k > 0.9 ? '.' : k > 0.65 ? 'm' : 'h';
+          if (style === 'scrubbed') return k > 0.5 ? '.' : 'm';
+          return k > 0.95 ? 'm' : 'h'; // paint, brushed on
         }),
       ).join(''),
     ),
   ),
   colours: C,
 });
+
+// --- The low district's homes and shops, in detail (designer: people's things in view) ---
+
+type Grid = string[][];
+const grid = (w: number, h: number): Grid => Array.from({ length: h }, () => Array<string>(w).fill('.'));
+const plot = (g: Grid, x: number, y: number, c: string) => {
+  const [px, py] = [Math.round(x), Math.round(y)];
+  if (py >= 0 && py < g.length && px >= 0 && px < g[0]!.length) g[py]![px] = c;
+};
+const box = (g: Grid, x: number, y: number, w: number, h: number, c: string) => {
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) plot(g, x + i, y + j, c);
+};
+
+/** What's inside a home you can see into. */
+const ROOMS = ['bed', 'kitchen', 'table', 'workshop', 'plants', 'clothes', 'screen'] as const;
+
+/** Furnishes an open room (its inside x, y, w, h; the floor at y + h). */
+function furnish(g: Grid, x: number, y: number, w: number, h: number, room: (typeof ROOMS)[number], seed: number): void {
+  const floor = y + h;
+  // A lamp hanging from the ceiling, its light on the back wall.
+  const lampX = x + 3 + Math.floor(r(seed, 40) * Math.max(1, w - 6));
+  plot(g, lampX, y, 'n');
+  plot(g, lampX, y + 1, 'a');
+  for (let j = 2; j < 6; j++) for (let i = -j; i <= j; i++) if (g[y + j]?.[lampX + i] === 'd' && (i + j) % 2 === 0) plot(g, lampX + i, y + j, 'A');
+  switch (room) {
+    case 'bed': // a low bed, a blanket, a pillow; a picture on the wall
+      box(g, x + 1, floor - 4, Math.min(16, w - 2), 3, 'G');
+      box(g, x + 1, floor - 4, 4, 2, 'h');
+      box(g, x + 1, floor - 1, Math.min(16, w - 2), 1, 'w');
+      box(g, x + w - 7, y + 4, 4, 3, 'p');
+      break;
+    case 'kitchen': // a stove glowing, a pot, a shelf of jars
+      box(g, x + 1, floor - 6, 6, 6, 'n');
+      box(g, x + 2, floor - 3, 4, 1, 'a');
+      box(g, x + 2, floor - 8, 4, 2, 'm');
+      box(g, x + 9, y + 5, Math.min(12, w - 10), 1, 'p');
+      for (let i = 0; i < Math.min(12, w - 10); i += 3) plot(g, x + 9 + i, y + 4, ['A', 'g', 'E', 'h'][(i / 3 + seed) % 4]!);
+      break;
+    case 'table': // a table, two stools, a cup
+      box(g, x + 4, floor - 5, 12, 1, 'p');
+      plot(g, x + 5, floor - 4, 'w'); plot(g, x + 5, floor - 3, 'w'); plot(g, x + 5, floor - 2, 'w'); plot(g, x + 5, floor - 1, 'w');
+      plot(g, x + 14, floor - 4, 'w'); plot(g, x + 14, floor - 3, 'w'); plot(g, x + 14, floor - 2, 'w'); plot(g, x + 14, floor - 1, 'w');
+      box(g, x + 1, floor - 3, 3, 1, 'p'); box(g, x + 17, floor - 3, 3, 1, 'p');
+      plot(g, x + 9, floor - 6, 'h');
+      break;
+    case 'workshop': // a bench, tools on pegs, parts with a blue glint
+      box(g, x + 1, floor - 5, Math.min(18, w - 2), 1, 'p');
+      box(g, x + 2, floor - 4, 1, 4, 'w'); box(g, x + Math.min(17, w - 3), floor - 4, 1, 4, 'w');
+      for (let i = 0; i < Math.min(14, w - 4); i += 3) { plot(g, x + 2 + i, y + 4, 'm'); plot(g, x + 2 + i, y + 5, 'm'); }
+      plot(g, x + 6, floor - 6, 'c'); plot(g, x + 10, floor - 6, 'G'); plot(g, x + 13, floor - 7, 'm');
+      break;
+    case 'plants': // pots and tins of green on every surface
+      for (let i = 1; i < w - 3; i += 4) {
+        const ph = 2 + Math.floor(r(seed, i) * 4);
+        box(g, x + i, floor - 2, 3, 2, 'A');
+        for (let j = 1; j <= ph; j++) plot(g, x + i + (j % 2), floor - 2 - j, j % 2 ? 'L' : 'e');
+      }
+      box(g, x + 1, y + 6, w - 2, 1, 'p');
+      for (let i = 2; i < w - 2; i += 5) { plot(g, x + i, y + 5, 'E'); plot(g, x + i, y + 7, 'L'); plot(g, x + i, y + 8, 'L'); }
+      break;
+    case 'clothes': // a rail of clothes, a chest under it
+      box(g, x + 2, y + 4, w - 4, 1, 'n');
+      for (let i = 3; i < w - 3; i += 3) box(g, x + i, y + 5, 2, 5 + ((i + seed) % 3), ['G', 'A', 'h', 'p', 'm'][(i + seed) % 5]!);
+      box(g, x + 3, floor - 4, 10, 4, 'w');
+      box(g, x + 3, floor - 4, 10, 1, 'p');
+      break;
+    case 'screen': // a small screen glowing on a crate, a cushion in front of it
+      box(g, x + 4, floor - 4, 8, 4, 'w');
+      box(g, x + 5, floor - 9, 6, 5, 'g');
+      box(g, x + 6, floor - 8, 4, 3, 'c');
+      box(g, x + 14, floor - 2, 5, 2, 'A');
+      break;
+  }
+}
+
+/**
+ * Homes stacked on homes in the low district, patched by hand, in storeys: some open to the street so you
+ * see in (a bed, a stove, a table, a bench of tools, plants, clothes on a rail, a small screen glowing), some
+ * shut with a window (curtains, a plant on the sill), a door, a shutter; tanks and aerials on the top.
+ */
+export const homes = (width: number, height: number, seed: number): RowSprite => {
+  const g = grid(width, height);
+  const STOREY = 30;
+  let bottom = height;
+  for (let row = 0; bottom - STOREY >= 6; row++) {
+    const top = bottom - STOREY;
+    for (let x = 0, i = 0; x < width; i++) {
+      const w = Math.min(width - x, 30 + Math.floor(r(seed + row * 17, i) * 18));
+      const k = r(seed + row * 5, i * 3);
+      // The shell: patched panels in different tones, rivets, a dark frame.
+      const split = 6 + Math.floor(r(seed, i + row * 31) * (w - 12));
+      for (let j = 0; j < STOREY; j++) {
+        for (let q = 0; q < w; q++) {
+          const tone = q < split ? r(seed + row, i * 7) : r(seed + row, i * 7 + 1);
+          const c = j === 0 || q === 0 ? 's' : j === STOREY - 1 ? 'p' : q === split ? 'd' : (q + j * 2) % 23 === 0 ? 'n' : tone > 0.78 ? 'g' : tone > 0.6 ? 'A' : tone > 0.3 ? 'n' : 'w';
+          plot(g, x + q, top + j, c);
+        }
+      }
+      if (k < 0.42 && w >= 26) {
+        // Open: you see in.
+        box(g, x + 3, top + 3, w - 6, STOREY - 5, 'd');
+        furnish(g, x + 3, top + 3, w - 6, STOREY - 5, ROOMS[Math.floor(r(seed, i * 13 + row) * ROOMS.length)]!, seed + i + row);
+      } else if (k < 0.7) {
+        // A window: lit, curtains drawn back, a plant on the sill; a door beside it.
+        const wx = x + 4;
+        box(g, wx, top + 6, 10, 9, 'a');
+        box(g, wx, top + 6, 10, 1, 'A');
+        const cur = ['G', 'h', 'A', 'p'][Math.floor(r(seed, i + 50) * 4)]!;
+        box(g, wx, top + 6, 3, 9, cur); box(g, wx + 7, top + 6, 3, 9, cur);
+        box(g, wx - 1, top + 15, 12, 1, 'p');
+        if (r(seed, i + 60) > 0.4) { plot(g, wx + 4, top + 14, 'A'); plot(g, wx + 5, top + 14, 'A'); plot(g, wx + 4, top + 13, 'L'); plot(g, wx + 5, top + 12, 'e'); }
+        if (w > 26) {
+          box(g, x + w - 11, top + 9, 7, STOREY - 10, 's');
+          box(g, x + w - 11, top + 9, 7, 1, 'p');
+          plot(g, x + w - 6, top + 18, 'a');
+        }
+      } else if (k < 0.85) {
+        // Shuttered: slats, a lantern by them.
+        for (let j = 6; j < STOREY - 5; j++) box(g, x + 4, top + j, w - 8, 1, j % 2 ? 'n' : 'w');
+        plot(g, x + w - 3, top + 8, 'a');
+      } else {
+        // A door with steps, a mat, a number painted by it.
+        box(g, x + 6, top + 8, 8, STOREY - 9, 's');
+        box(g, x + 5, top + 7, 10, 1, 'p');
+        box(g, x + 5, top + STOREY - 2, 10, 1, 'A');
+        box(g, x + 17, top + 9, 3, 2, 'h');
+      }
+      x += w;
+    }
+    bottom = top;
+  }
+  // On the top: tanks, aerials, a dish.
+  for (let x = 4; x < width - 10; x += 22 + Math.floor(r(seed, x) * 20)) {
+    const kind = Math.floor(r(seed, x + 1) * 3);
+    if (kind === 0) box(g, x, bottom - 7, 9, 7, 'n'), box(g, x, bottom - 7, 9, 1, 'm');
+    else if (kind === 1) for (let j = 1; j < 10; j++) plot(g, x + 3, bottom - j, j === 9 || j === 6 ? 'm' : 'd'), plot(g, x + 1, bottom - 6, 'd'), plot(g, x + 5, bottom - 6, 'd');
+    else for (let q = 0; q < 7; q++) plot(g, x + q, bottom - 4 + Math.abs(q - 3) / 2, 'h');
+  }
+  return { rows: g.map((row) => row.join('')), colours: C };
+};
+
+/** What a little shop sells. */
+export type ShopKind = 'noodles' | 'repairs' | 'cloth' | 'grocer' | 'lamps';
+
+/** A small shop at street level in the low district: its own awning, its goods out front, its sign, a counter. */
+export const streetShop = (width: number, kind: ShopKind, seed: number): RowSprite => {
+  const g = grid(width, 56);
+  // The shell and the open front, a lamp inside.
+  box(g, 0, 0, width, 56, 'w');
+  box(g, 0, 0, width, 1, 's');
+  box(g, 3, 20, width - 6, 34, 'd');
+  for (let j = 0; j < 8; j++) for (let i = -j; i <= j; i++) if ((i + j) % 2 === 0) plot(g, Math.floor(width / 2) + i, 21 + j, 'A');
+  plot(g, Math.floor(width / 2), 20, 'a');
+  // The sign board, painted by hand.
+  box(g, 3, 3, width - 6, 8, 'p');
+  for (let i = 5; i < width - 6; i += 3) plot(g, i, 5 + ((i + seed) % 3), kind === 'lamps' ? 'a' : 'd');
+  // The awning.
+  const stripe = { noodles: ['a', 'A'], repairs: ['G', 'g'], cloth: ['h', 'G'], grocer: ['L', 'E'], lamps: ['a', 'n'] }[kind];
+  for (let j = 13; j < 19; j++) for (let i = 0; i < width; i++) plot(g, i, j, j === 18 && i % 4 === 3 ? '.' : Math.floor(i / 4) % 2 ? stripe[0]! : stripe[1]!);
+  // The counter.
+  box(g, 3, 42, width - 6, 2, 'p');
+  box(g, 3, 44, width - 6, 10, 'n');
+  switch (kind) {
+    case 'noodles': // pots steaming on the counter, bowls, stools out front, lanterns
+      box(g, 6, 38, 6, 4, 'm'); box(g, 14, 39, 6, 3, 'm');
+      for (let i = 22; i < width - 6; i += 4) box(g, i, 40, 3, 2, 'h');
+      for (let i = 5; i < width - 4; i += 9) { plot(g, i, 54, 'w'); plot(g, i + 1, 54, 'w'); box(g, i - 1, 51, 4, 1, 'p'); }
+      for (let i = 4; i < width - 3; i += 8) { plot(g, i, 19, 'n'); box(g, i - 1, 20, 3, 3, 'a'); }
+      break;
+    case 'repairs': // parts hung on the back wall, a screen in pieces, a lamp on a bench, things with a blue glint
+      for (let i = 6; i < width - 6; i += 4) for (let j = 23; j < 34; j += 4) plot(g, i, j, (i + j) % 3 ? 'm' : 'c');
+      box(g, 6, 36, 8, 6, 'g'); box(g, 7, 37, 6, 4, 'G');
+      plot(g, width - 9, 40, 'a'); plot(g, width - 9, 41, 'n');
+      break;
+    case 'cloth': // bolts of cloth stacked, lengths hanging
+      for (let i = 5; i < width - 5; i += 3) box(g, i, 22, 2, 10 + (i % 4) * 2, ['G', 'A', 'h', 'p', 'g'][i % 5]!);
+      for (let i = 6; i < width - 8; i += 5) box(g, i, 38, 4, 4, ['A', 'G', 'h'][i % 3]!);
+      break;
+    case 'grocer': // crates of greens and amber fruit out front, sacks behind
+      for (let i = 4; i < width - 10; i += 10) {
+        box(g, i, 34, 9, 8, 'w');
+        for (let q = 0; q < 9; q++) plot(g, i + q, 33 - (q % 2), (i / 10) % 2 ? (q % 2 ? 'e' : 'L') : q % 2 ? 'a' : 'A');
+      }
+      for (let i = 6; i < width - 6; i += 7) box(g, i, 24, 5, 7, 'p');
+      break;
+    case 'lamps': // lamps of every kind, lit, hung all over it
+      for (let i = 5; i < width - 4; i += 5) for (let j = 22 + (i % 3) * 3; j < 40; j += 9) { plot(g, i, j, 'n'); box(g, i - 1, j + 1, 3, 2, (i + j) % 4 ? 'a' : 'c'); }
+      break;
+  }
+  return { rows: g.map((row) => row.join('')), colours: C };
+};

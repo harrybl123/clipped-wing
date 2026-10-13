@@ -70,13 +70,21 @@ export const lowDistrict: AreaDefinition = {
   ],
 
   props: [
-    // The stacks: homes on homes, both sides.
-    { sprite: P.stackedHomes(250, LEFT_WALK - 20, 3), x: 16, y: 20 },
-    { sprite: P.stackedHomes(240, FLOOR - LEFT_WALK - 6, 4), x: 16, y: LEFT_WALK + 6 },
-    { sprite: P.stackedHomes(250, RIGHT_WALK - 10, 5), x: 700, y: 10 },
-    { sprite: P.stackedHomes(240, FLOOR - RIGHT_WALK - 6, 6), x: 704, y: RIGHT_WALK + 6 },
+    // The stacks, both sides: homes on homes over the walkways, shops along the street under them.
+    { sprite: P.homes(250, LEFT_WALK - 20, 3), x: 16, y: 20 },
+    { sprite: P.streetShop(62, 'noodles', 1), x: 18, y: FLOOR - 56 },
+    { sprite: P.streetShop(60, 'repairs', 2), x: 82, y: FLOOR - 56 },
+    { sprite: P.streetShop(58, 'cloth', 3), x: 144, y: FLOOR - 56 },
+    { sprite: P.homes(48, FLOOR - LEFT_WALK - 6, 8), x: 202, y: LEFT_WALK + 6 },
+    { sprite: P.homes(250, RIGHT_WALK - 10, 5), x: 700, y: 10 },
+    { sprite: P.homes(150, FLOOR - RIGHT_WALK - 6, 6), x: 704, y: RIGHT_WALK + 6 },
+    { sprite: P.streetShop(82, 'grocer', 4), x: 856, y: FLOOR - 56 },
     // Behind the street, more of them, lower, so it's cramped; the towers only over the rooftops.
-    { sprite: P.stackedHomes(440, FLOOR - 104, 7), x: 262, y: 104 },
+    { sprite: P.homes(440, FLOOR - 56 - 104, 7), x: 262, y: 104 },
+    { sprite: P.streetShop(66, 'grocer', 5), x: 418, y: FLOOR - 56 },
+    { sprite: P.streetShop(58, 'lamps', 6), x: 504, y: FLOOR - 56 },
+    { sprite: P.homes(156, 56, 9), x: 262, y: FLOOR - 56 },
+    { sprite: P.homes(58, 56, 10), x: 562, y: FLOOR - 56 },
     // Between them: the street.
     { sprite: P.washing(150), x: 270, y: 90 },
     { sprite: P.washing(120), x: 520, y: 70 },
