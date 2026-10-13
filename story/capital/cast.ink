@@ -161,8 +161,8 @@
 -> END
 
 === hideout_regular ===
-"You shouldn't be down here, Highness." #speaker:citizen_woman
-"But since you are. Look around. Remember it." #speaker:citizen_woman
+"You shouldn't be down here, Highness." #speaker:them
+"But since you are. Look around. Remember it." #speaker:them
 -> END
 
 // --- The data centre ---

@@ -117,7 +117,7 @@ describe("the capital's people (Chapter 3)", () => {
   });
 
   it('gives every capital speaker a portrait free of the reserved colours', () => {
-    const ids = [...Object.keys(CAPITAL_CAST), 'citadel_guard', 'courtier', 'lady', 'servant', 'watch', 'citizen_man', 'citizen_woman', 'citizen_young'];
+    const ids = [...Object.keys(CAPITAL_CAST), ...Object.keys(SPEAKERS).filter((id) => id.startsWith('c3_'))];
     for (const id of ids) {
       const { portrait } = SPEAKERS[id]!;
       const used = new Set(portrait.rows.join(''));

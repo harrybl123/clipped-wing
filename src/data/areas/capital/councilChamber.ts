@@ -77,12 +77,12 @@ export const councilChamber: AreaDefinition = {
     cast('father', 456, FLOOR - 48, { knot: 'council_father', when: ['afternoon'], flipX: true }),
     cast('councillor', 91, FLOOR - 16, { knot: 'council_councillor', when: ['afternoon'] }),
     cast('reformer', 250, FLOOR, { knot: 'council_reformer', when: ['afternoon'] }),
-    councillor('member-1', 0, 43, FLOOR - 32, ['afternoon']),
-    councillor('member-2', 1, 425, FLOOR - 32, ['afternoon'], { flipX: true }),
-    councillor('member-3', 2, 377, FLOOR - 16, ['afternoon'], { flipX: true }),
-    guard('door-guard', 2, 192, FLOOR, ['afternoon'], { flipX: true }),
+    councillor('member-1', 0, 43, FLOOR - 32, 'council_member', ['afternoon']),
+    councillor('member-2', 1, 425, FLOOR - 32, 'council_member', ['afternoon'], { flipX: true }),
+    councillor('member-3', 2, 377, FLOOR - 16, 'council_member', ['afternoon'], { flipX: true }),
+    guard('door-guard', 2, 192, FLOOR, 'c3_guard', ['afternoon'], { flipX: true }),
     // The morning: a page laying out the papers.
-    strollingServant('page', 1, 180, 330, FLOOR, MORNING),
+    strollingServant('page', 1, 180, 330, FLOOR, 'c3_page', MORNING),
   ],
   interactables: [],
 

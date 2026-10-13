@@ -180,6 +180,10 @@ export interface Person {
   follow?: boolean;
   /** Verb shown in the prompt instead of "Talk" (e.g. "Hide" for an object made a person so the story can show and hide it). */
   label?: string;
+  /** Their speaker id: lines tagged `#speaker:them` in their knot show this face and name (one knot shared by many people: the capital's guards, courtiers, city folk). */
+  speaker?: string;
+  /** Turns to face you while you talk, and back again after. */
+  turns?: boolean;
 }
 
 /**

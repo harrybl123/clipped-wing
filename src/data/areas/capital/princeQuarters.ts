@@ -82,7 +82,7 @@ export const princeQuarters: AreaDefinition = {
 
   features: [{ type: 'frames', frames: P.scrollingScreen(44, 28), x: 334, y: 100, every: 500 }],
   people: [
-    servant('maid', 0, 112, FLOOR, MORNING, { flipX: true }), // making the bed
+    servant('maid', 0, 112, FLOOR, 'c3_maid', MORNING, { flipX: true }), // making the bed
     cast('sister', 452, FLOOR, { knot: 'quarters_sister', when: ['evening'] }), // at your telescope
   ],
   interactables: [],

@@ -67,7 +67,7 @@ export const fathersStudy: AreaDefinition = {
     { type: 'swing', sprite: P.PENDULUM, x: 313, y: FLOOR - 28, ropeTop: FLOOR - 45, quiet: true, ropeColour: S.amberDeep },
   ],
   people: [
-    servant('servant', 0, 204, FLOOR, MORNING), // tending the fire
+    servant('servant', 0, 204, FLOOR, 'c3_fire', MORNING), // tending the fire
     // The evening: your father at his desk, his physician with him.
     cast('father', 406, FLOOR, { knot: 'study_father', when: ['evening'], flipX: true }),
     cast('physician', 318, FLOOR, { knot: 'study_physician', when: ['evening'] }),

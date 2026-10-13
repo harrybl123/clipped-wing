@@ -102,12 +102,12 @@ export const lifts: AreaDefinition = {
   ],
   people: [
     cast('lift_operator', 150, CITADEL, { knot: 'lifts_operator' }), // at the top, always
-    citizen('waiting-1', 5, 264, PROMENADE, DAY),
-    citizen('waiting-2', 0, 228, PROMENADE, ['evening']),
-    citizen('clerk', 11, 404, DATA, DAY),
+    citizen('waiting-1', 5, 264, PROMENADE, 'lifts_folk', DAY),
+    citizen('waiting-2', 0, 228, PROMENADE, 'lifts_folk', ['evening']),
+    citizen('clerk', 11, 404, DATA, 'lifts_folk', DAY),
     cast('engineer', 350, DATA, { knot: 'lifts_engineer', when: MORNING }),
-    citizen('street-1', 4, 330, FLOOR, LATE),
-    watch('watch', 0, 90, FLOOR, ['night']),
+    citizen('street-1', 4, 330, FLOOR, 'lifts_folk', LATE),
+    watch('watch', 0, 90, FLOOR, 'c3_watch', ['night']),
   ],
   interactables: [],
 

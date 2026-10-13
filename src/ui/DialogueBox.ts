@@ -48,6 +48,8 @@ export class DialogueBox {
   private mode: 'ink' | 'menu' | 'message' | 'held' = 'ink';
   private selected = 0;
   private onClose: (() => void) | null = null;
+  /** The speaker id of whoever you're talking to, for lines tagged `#speaker:them`. */
+  private them: string | undefined;
   private _isOpen = false;
   /** The line typing out: its letters' timing, how far it's got, and the voice speaking it. */
   private typing: { letters: TypedLetter[]; index: number; wait: number; voices: Voice[]; muffled: boolean } | null = null;
@@ -102,11 +104,22 @@ export class DialogueBox {
     return this._isOpen;
   }
 
-  /** Starts the ink knot and shows its first line. `onClose` runs when the conversation ends. */
-  open(knot: string, onClose?: () => void): void {
+  /**
+   * Starts the ink knot and shows its first line. `onClose` runs when the conversation ends. `them` is the
+   * speaker id of whoever you're talking to: lines tagged `#speaker:them` show their face and name, so
+   * one knot can be shared by many people (the capital's guards, courtiers, city folk).
+   */
+  open(knot: string, onClose?: () => void, them?: string): void {
     this.story.startKnot(knot);
     this.show('ink', onClose);
+    this.them = them;
     this.advance();
+  }
+
+  /** The speaker a line's `speaker:` tag names (`them` is whoever you're talking to). */
+  private speakerId(tags: string[]): string | undefined {
+    const id = tags.find((t) => t.startsWith('speaker:'))?.slice('speaker:'.length).trim();
+    return id === 'them' ? this.them : id;
   }
 
   /**
@@ -145,6 +158,7 @@ export class DialogueBox {
   }
 
   private show(mode: 'ink' | 'menu' | 'message' | 'held', onClose?: () => void): void {
+    this.them = undefined;
     this.clearChoices();
     this.typing = null;
     this.pendingChoices = null;
@@ -162,7 +176,7 @@ export class DialogueBox {
     this.fit();
     this.typing = null;
     // The dog's line is a sound: a growl, a whimper, a sniff, or a bark.
-    const id = tags.find((t) => t.startsWith('speaker:'))?.slice('speaker:'.length).trim();
+    const id = this.speakerId(tags);
     if (id && SPEAKERS[id]?.voice === 'dog') {
       const words = text.toLowerCase();
       playSound(this.scene, words.includes('gr') ? 'growl' : words.includes('whin') || words.includes('whimp') ? 'whimper' : words.includes('sniff') ? 'rub' : words.includes('yip') || words.includes('huff') || words.includes('mrr') ? 'yip' : 'bark');
@@ -177,7 +191,7 @@ export class DialogueBox {
   /** The voice a line is spoken in: the speaker's; a faceless voice's own (muffled behind a curtain or shutter); none for narration or a quote. */
   private voiceFor(tags: string[]): { voices: Voice[]; muffled: boolean } {
     if (tags.includes('quote')) return { voices: [], muffled: false };
-    const id = tags.find((t) => t.startsWith('speaker:'))?.slice('speaker:'.length).trim();
+    const id = this.speakerId(tags);
     const voice = id ? SPEAKERS[id]?.voice : undefined;
     if (voice === 'crowd') return { voices: CROWD_VOICES.map((v) => VOICES[v]), muffled: false };
     if (voice === 'dog') return { voices: [], muffled: false };
@@ -277,7 +291,7 @@ export class DialogueBox {
    * speaker's usual one ("Your escort").
    */
   private showSpeaker(tags: string[]): void {
-    const id = tags.find((t) => t.startsWith('speaker:'))?.slice('speaker:'.length).trim();
+    const id = this.speakerId(tags);
     const speaker = id ? SPEAKERS[id] : undefined;
     const name = tags.find((t) => t.startsWith('name:'))?.slice('name:'.length).trim();
     const nameOnly = speaker ? undefined : name;

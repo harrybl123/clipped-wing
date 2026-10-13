@@ -486,7 +486,16 @@ export class AreaScene extends Phaser.Scene {
           get y() { return entry.image.y; },
           reach: 14,
           label: person.label ?? 'Talk',
-          use: talk(person.knot),
+          use: () => {
+            // Some people turn to face you while you talk, and back again after (unless the story turned them).
+            const before = entry.image.flipX;
+            const toYou = this.player.sprite.x < entry.image.x;
+            if (person.turns) entry.image.setFlipX(toYou);
+            this.dialogue.open(person.knot!, () => {
+              if (person.turns && !person.wander && entry.image.flipX === toYou) entry.image.setFlipX(before);
+              closed();
+            }, person.speaker);
+          },
           enabled: () => this.isPresent(entry),
           // Someone at your heels (the dog) doesn't get in the way of everything else you walk past.
           fallback: person.follow,

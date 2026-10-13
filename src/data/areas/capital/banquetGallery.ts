@@ -80,18 +80,18 @@ export const banquetGallery: AreaDefinition = {
   ],
   people: [
     // The morning: servants laying the table.
-    servant('server-1', 0, 300, FLOOR, MORNING),
-    strollingServant('server-2', 1, 240, 600, FLOOR, MORNING),
+    servant('server-1', 0, 300, FLOOR, 'c3_servant', MORNING),
+    strollingServant('server-2', 1, 240, 600, FLOOR, 'c3_servant', MORNING),
     // The evening: music from the gallery, dancing, guests along the table (your father's chair at its head
     // empty), servants with trays; your friend out on the balcony.
-    courtier('harpist', 5, 96, GALLERY, ['evening']),
-    courtier('drummer', 4, 150, GALLERY, ['evening'], { flipX: true }),
-    courtier('dancer-1', 0, 110, FLOOR, ['evening']),
-    courtier('dancer-2', 3, 126, FLOOR, ['evening'], { flipX: true }),
-    courtier('guest-1', 2, 300, FLOOR, ['evening']),
-    courtier('guest-2', 6, 372, FLOOR, ['evening'], { flipX: true }),
-    courtier('guest-3', 7, 480, FLOOR, ['evening']),
-    strollingServant('server-3', 0, 240, 600, FLOOR, ['evening']),
+    courtier('harpist', 5, 96, GALLERY, 'banquet_musician', ['evening']),
+    courtier('drummer', 4, 150, GALLERY, 'banquet_musician', ['evening'], { flipX: true }),
+    courtier('dancer-1', 0, 110, FLOOR, 'banquet_dancer', ['evening']),
+    courtier('dancer-2', 3, 126, FLOOR, 'banquet_dancer', ['evening'], { flipX: true }),
+    courtier('guest-1', 2, 300, FLOOR, 'banquet_guest', ['evening']),
+    courtier('guest-2', 6, 372, FLOOR, 'banquet_guest', ['evening'], { flipX: true }),
+    courtier('guest-3', 7, 480, FLOOR, 'banquet_guest', ['evening']),
+    strollingServant('server-3', 0, 240, 600, FLOOR, 'c3_server', ['evening']),
     cast('salon_hostess', 420, FLOOR, { knot: 'banquet_hostess', when: ['evening'], flipX: true }),
     cast('heir', 726, FLOOR, { knot: 'banquet_heir', when: ['evening'] }),
   ],

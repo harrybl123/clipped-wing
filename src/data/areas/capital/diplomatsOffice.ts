@@ -69,7 +69,7 @@ export const diplomatsOffice: AreaDefinition = {
   ],
   people: [
     cast('diplomat', 336, FLOOR, { knot: 'office_diplomat', when: OPEN_LATE, flipX: true }), // at his desk
-    citizen('visitor', 9, 204, FLOOR, ['night']), // someone hooded, at an odd hour
+    citizen('visitor', 9, 204, FLOOR, 'office_visitor', ['night']), // someone hooded, at an odd hour
   ],
   interactables: [],
 

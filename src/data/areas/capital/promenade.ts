@@ -129,22 +129,22 @@ export const promenade: AreaDefinition = {
   ],
   people: [
     // The stalls' cooks.
-    citizen('cook-1', 1, 346, FLOOR, AWAKE),
-    citizen('cook-2', 10, 460, FLOOR, AWAKE, { flipX: true }),
+    citizen('cook-1', 1, 346, FLOOR, 'promenade_cook', AWAKE),
+    citizen('cook-2', 10, 460, FLOOR, 'promenade_cook', AWAKE, { flipX: true }),
     // The square: people about their business, a kid, someone resting by the bench.
-    strollingCitizen('passer-1', 0, 60, 560, FLOOR, AWAKE),
-    strollingCitizen('passer-2', 5, 220, 580, FLOOR, DAY),
-    strollingCitizen('passer-3', 12, 80, 300, FLOOR, ['afternoon', 'evening']),
-    strollingCitizen('kid', 6, 300, 520, FLOOR, DAY),
-    citizen('resting', 3, 404, FLOOR, ['afternoon']),
+    strollingCitizen('passer-1', 0, 60, 560, FLOOR, 'promenade_folk', AWAKE),
+    strollingCitizen('passer-2', 5, 220, 580, FLOOR, 'promenade_folk', DAY),
+    strollingCitizen('passer-3', 12, 80, 300, FLOOR, 'promenade_folk', ['afternoon', 'evening']),
+    strollingCitizen('kid', 6, 300, 520, FLOOR, 'c3_kid', DAY),
+    citizen('resting', 3, 404, FLOOR, 'c3_old', ['afternoon']),
     // Shoppers along the walkway and under it.
-    citizen('shopper-1', 8, 650, WALK, AWAKE),
-    strollingCitizen('shopper-2', 11, 640, 880, WALK, DAY),
-    citizen('shopper-3', 13, 800, FLOOR, AWAKE, { flipX: true }),
+    citizen('shopper-1', 8, 650, WALK, 'promenade_shopper', AWAKE),
+    strollingCitizen('shopper-2', 11, 640, 880, WALK, 'promenade_shopper', DAY),
+    citizen('shopper-3', 13, 800, FLOOR, 'promenade_shopper', AWAKE, { flipX: true }),
     // At night, in the rain: someone hooded, the watch on its beat.
-    strollingCitizen('hooded', 2, 100, 900, FLOOR, ['night']),
-    patrol('watch-1', 1, 200, 580, FLOOR, LATE),
-    watch('watch-2', 0, 562, FLOOR, ['afternoon', 'night'], { flipX: true }),
+    strollingCitizen('hooded', 2, 100, 900, FLOOR, 'promenade_night', ['night']),
+    patrol('watch-1', 1, 200, 580, FLOOR, 'c3_watch', LATE),
+    watch('watch-2', 0, 562, FLOOR, 'c3_watch', ['afternoon', 'night'], { flipX: true }),
     // The commander of the watch, looking the square over.
     cast('commander', 540, FLOOR, { knot: 'promenade_commander', when: ['afternoon'] }),
   ],

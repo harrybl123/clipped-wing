@@ -52,8 +52,7 @@ const FIGURES: Record<string, RowSprite> = {
   ...Object.fromEntries(Object.entries(CAST).map(([id, f]) => [id, f.idle[0]!])),
   gardener: r(2), crowd_woman: v(3), crowd_man: v(4), crowd_someone: v(5), crowd_someone_else: v(1),
   ...Object.fromEntries(Object.entries(CAPITAL_CAST).map(([id, f]) => [id, f.idle[0]!])),
-  citadel_guard: CITADEL_GUARDS[0]!.idle[0]!, courtier: COURTIERS[0]!.idle[0]!, lady: COURTIERS[1]!.idle[0]!, servant: SERVANTS[0]!.idle[0]!,
-  watch: WATCH[0]!.idle[0]!, citizen_man: CITIZENS[1]!.idle[0]!, citizen_woman: CITIZENS[5]!.idle[0]!, citizen_young: CITIZENS[0]!.idle[0]!,
+  ...Object.fromEntries(([['guard', CITADEL_GUARDS], ['courtier', COURTIERS], ['servant', SERVANTS], ['councillor', COUNCILLORS], ['watch', WATCH], ['citizen', CITIZENS]] as const).flatMap(([g, list]) => list.map((f, i) => [`c3_${g}_${i}`, f.idle[0]!]))),
 };
 
 const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: { label: string; frames: RowSprite[]; fps: number }[] }[] = [

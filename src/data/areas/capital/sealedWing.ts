@@ -64,7 +64,7 @@ export const sealedWing: AreaDefinition = {
     { type: 'pulse', points: [{ x: 140, y: FLOOR - 3 }, { x: 502, y: FLOOR - 3 }], speed: 130, every: 900, count: 2, colour: S.cyan },
   ],
   people: [
-    guard('door-guard', 0, 472, FLOOR, undefined, { flipX: true }),
+    guard('door-guard', 0, 472, FLOOR, 'c3_guard_sealed', undefined, { flipX: true }),
     // At night, your father, at the door.
     cast('father', 522, FLOOR, { knot: 'sealed_father', when: ['night'], flipX: true }),
     // In the afternoon, the engineer, seeing to the cables.

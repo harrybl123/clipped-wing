@@ -1,8 +1,8 @@
 import { ELDER_LOOKS, FRIEND_FATHER_LOOK, GUARD_LOOK, PREACHER_LOOK, RESIDENT_LOOKS, VILLAGER_LOOKS, type VillagerLook } from './characters';
 import type { VoiceId } from '../systems/voices';
 import { CAST_LOOKS, HOSTESS_LOOKS, RIVAL_LOOKS, STRAGGLER_LOOKS, TOWNSFOLK_LOOKS, type FolkLook } from './borderlandFolk';
-import { CAPITAL_CAST_LOOKS as C3, CITIZEN_LOOKS, COURTIER_LOOKS, GUARD_LOOKS as CITADEL_GUARD_LOOKS, SERVANT_LOOKS, WATCH_LOOKS } from './capitalFolk';
-import { capitalPortrait } from './capitalPortraits';
+import { CAPITAL_CAST_LOOKS as C3, CITIZEN_LOOKS, COUNCIL_LOOKS, COURTIER_LOOKS, GUARD_LOOKS as CITADEL_GUARD_LOOKS, SERVANT_LOOKS, WATCH_LOOKS, type CapitalLook } from './capitalFolk';
+import { capitalPortrait, type CourtFace } from './capitalPortraits';
 import { SHADES } from './pixelArt';
 import type { RowSprite } from './sprites';
 
@@ -923,6 +923,11 @@ export const DOG_PORTRAIT: RowSprite = (() => {
   };
 })();
 
+/** A group of the capital's background people as speakers, one per look: `c3_<group>_<look>`. */
+function capitalGroup(group: string, looks: CapitalLook[], names: string[], faces: CourtFace[], voices: VoiceId[]): Record<string, { name: string; portrait: RowSprite; voice: VoiceId }> {
+  return Object.fromEntries(looks.map((look, i) => [`c3_${group}_${i}`, { name: names[i % names.length]!, portrait: capitalPortrait(look, faces[i % faces.length]), voice: voices[i % voices.length]! }]));
+}
+
 export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice: VoiceId | 'crowd' | 'dog'; nameVar?: string }> = {
   you: { name: 'You', portrait: PROTAGONIST_PORTRAIT , voice: 'you' },
   mum: { name: 'Mum', portrait: MUM_PORTRAIT , voice: 'mum' },
@@ -1019,13 +1024,36 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
   engineer: { name: 'The engineer', portrait: capitalPortrait(C3.engineer, { jaw: 'soft', nose: 'small', mouth: 'smirk', items: ['freckles'] }), voice: 'roots_woman' },
   hideout_keeper: { name: 'The barkeep', portrait: capitalPortrait(C3.hideout_keeper, { build: 'heavy', age: 1, brow: 'heavy', eyes: 'narrow', nose: 'broad', mouth: 'flat' }), voice: 'roots_man' },
   physician: { name: 'The physician', portrait: capitalPortrait(C3.physician, { age: 1, brow: 'arched', eyes: 'tired', mouth: 'smile', items: ['spectacles'] }), voice: 'upper' },
-  // The capital's background people, when one of them speaks.
-  citadel_guard: { name: 'A guard', portrait: capitalPortrait(CITADEL_GUARD_LOOKS[0]!, { build: 'broad', mouth: 'thin' }), voice: 'guard' },
-  courtier: { name: 'A courtier', portrait: capitalPortrait(COURTIER_LOOKS[0]!, { brow: 'arched', eyes: 'narrow', mouth: 'smirk' }), voice: 'upper' },
-  lady: { name: 'A lady', portrait: capitalPortrait(COURTIER_LOOKS[1]!, { build: 'narrow', jaw: 'soft', brow: 'thin', eyes: 'lashes', mouth: 'full', items: ['earring'] }), voice: 'lady' },
-  servant: { name: 'A servant', portrait: capitalPortrait(SERVANT_LOOKS[0]!, { eyes: 'plain', mouth: 'flat' }), voice: 'roots_man' },
-  watch: { name: 'The watch', portrait: capitalPortrait(WATCH_LOOKS[0]!, { build: 'broad', brow: 'heavy', eyes: 'narrow', mouth: 'frown' }), voice: 'guard' },
-  citizen_man: { name: 'A man', portrait: capitalPortrait(CITIZEN_LOOKS[1]!, { build: 'broad', age: 1, brow: 'heavy', mouth: 'frown' }), voice: 'roots_man' },
-  citizen_woman: { name: 'A woman', portrait: capitalPortrait(CITIZEN_LOOKS[5]!, { jaw: 'soft', brow: 'knit', eyes: 'lashes', mouth: 'flat', items: ['earring'] }), voice: 'roots_woman' },
-  citizen_young: { name: 'Someone', portrait: capitalPortrait(CITIZEN_LOOKS[0]!, { build: 'narrow', jaw: 'pointed', brow: 'raised', mouth: 'smirk', items: ['piercing'] }), voice: 'young' },
+  // The capital's background people: one speaker for each look (`c3_<group>_<look>`), so whoever you talk
+  // to speaks with their own face (their shared knots say `#speaker:them`).
+  ...capitalGroup('guard', CITADEL_GUARD_LOOKS, ['A guard'], [{ build: 'broad', mouth: 'thin' }, { build: 'broad', brow: 'heavy', mouth: 'frown' }, { brow: 'knit', mouth: 'flat', items: ['scar'] }], ['guard']),
+  ...capitalGroup('courtier', COURTIER_LOOKS, ['A courtier', 'A lady', 'An old courtier', 'A lady', 'A courtier', 'A young lady', 'A courtier', 'A lady'], [
+    { brow: 'arched', eyes: 'narrow', mouth: 'smirk' },
+    { build: 'narrow', jaw: 'soft', brow: 'thin', eyes: 'lashes', mouth: 'full', items: ['earring'] },
+    { age: 2, brow: 'heavy', eyes: 'tired', nose: 'long', mouth: 'flat' },
+    { build: 'narrow', jaw: 'pointed', brow: 'arched', eyes: 'lashes', mouth: 'smile', items: ['freckles', 'earring'] },
+    { jaw: 'soft', brow: 'raised', mouth: 'smile', items: ['earring'] },
+    { build: 'narrow', jaw: 'soft', brow: 'thin', eyes: 'wide', nose: 'small', mouth: 'full' },
+    { build: 'broad', age: 1, brow: 'heavy', nose: 'broad', mouth: 'smile' },
+    { build: 'narrow', jaw: 'pointed', brow: 'thin', eyes: 'lashes', mouth: 'smirk', items: ['mole', 'earring'] },
+  ], ['upper', 'lady', 'elder', 'lady', 'upper', 'lady', 'old', 'lady']),
+  ...capitalGroup('servant', SERVANT_LOOKS, ['A servant', 'A page', 'The gardener'], [{ mouth: 'flat' }, { build: 'narrow', jaw: 'soft', eyes: 'wide', nose: 'small', mouth: 'flat' }, { build: 'broad', age: 2, eyes: 'tired', mouth: 'smile' }], ['roots_man', 'young', 'old']),
+  ...capitalGroup('councillor', COUNCIL_LOOKS, ['A councillor'], [{ age: 1, brow: 'heavy', mouth: 'thin' }, { jaw: 'soft', age: 1, brow: 'thin', eyes: 'narrow', mouth: 'flat' }, { age: 2, brow: 'raised', eyes: 'tired', nose: 'long', mouth: 'frown', items: ['spectacles'] }], ['elder', 'lady', 'old']),
+  ...capitalGroup('watch', WATCH_LOOKS, ['The watch'], [{ build: 'broad', brow: 'heavy', eyes: 'narrow', mouth: 'frown' }, { jaw: 'soft', brow: 'knit', mouth: 'thin', items: ['freckles'] }], ['guard', 'commander']),
+  ...capitalGroup('citizen', CITIZEN_LOOKS, ['Someone', 'A man', 'A woman', 'An old woman', 'A man', 'A woman', 'A kid', 'A man', 'A woman', 'A man', 'A woman', 'Someone', 'Someone', 'A girl'], [
+    { build: 'narrow', jaw: 'pointed', brow: 'raised', mouth: 'smirk', items: ['piercing', 'tattoo'] },
+    { build: 'broad', age: 1, brow: 'heavy', nose: 'broad', mouth: 'frown' },
+    { jaw: 'soft', brow: 'knit', eyes: 'lashes', mouth: 'flat' },
+    { build: 'narrow', jaw: 'soft', age: 2, eyes: 'tired', mouth: 'thin' },
+    { jaw: 'square', brow: 'straight', eyes: 'narrow', mouth: 'flat', items: ['scar'] },
+    { jaw: 'soft', brow: 'knit', eyes: 'lashes', mouth: 'flat', items: ['earring'] },
+    { build: 'child', jaw: 'soft', eyes: 'wide', nose: 'small', mouth: 'open', items: ['freckles'] },
+    { build: 'broad', brow: 'heavy', mouth: 'smirk' },
+    { build: 'narrow', jaw: 'pointed', mouth: 'smirk', items: ['tattoo'] },
+    { build: 'broad', age: 1, brow: 'heavy', eyes: 'narrow', mouth: 'flat' },
+    { jaw: 'soft', age: 1, brow: 'arched', mouth: 'smile', items: ['earring'] },
+    { build: 'narrow', brow: 'thin', mouth: 'thin', items: ['piercing'] },
+    { jaw: 'soft', brow: 'raised', eyes: 'tired', mouth: 'flat', items: ['freckles'] },
+    { build: 'child', jaw: 'soft', brow: 'arched', eyes: 'lashes', nose: 'small', mouth: 'smile' },
+  ], ['young', 'roots_man', 'roots_woman', 'old', 'roots_man', 'roots_woman', 'boy', 'roots_man', 'roots_woman', 'roots_man', 'roots_woman', 'young', 'roots_woman', 'girl']),
 };

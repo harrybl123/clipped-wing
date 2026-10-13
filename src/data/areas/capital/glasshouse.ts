@@ -97,16 +97,16 @@ export const glasshouse: AreaDefinition = {
     { type: 'drip', x: 470, y: GLASS + 2, floorY: TERRACE },
   ],
   people: [
-    servant('gardener', 2, 222, FLOOR, MORNING),
+    servant('gardener', 2, 222, FLOOR, 'c3_gardener', MORNING),
     // The afternoon's salon on the terrace, the hostess at the middle of it; your friend down among the plants.
     cast('salon_hostess', 540, TERRACE, { knot: 'glasshouse_hostess', when: ['afternoon'], flipX: true }),
-    courtier('salon-1', 1, 506, TERRACE, ['afternoon']),
-    courtier('salon-2', 4, 598, TERRACE, ['afternoon'], { flipX: true }),
-    courtier('salon-3', 6, 484, TERRACE, ['afternoon']),
+    courtier('salon-1', 1, 506, TERRACE, 'salon_guest', ['afternoon']),
+    courtier('salon-2', 4, 598, TERRACE, 'salon_guest', ['afternoon'], { flipX: true }),
+    courtier('salon-3', 6, 484, TERRACE, 'salon_guest', ['afternoon']),
     cast('heir', 330, FLOOR, { knot: 'glasshouse_heir', when: ['afternoon'] }),
     // The evening: a few still talking.
-    courtier('late-1', 7, 520, TERRACE, ['evening']),
-    courtier('late-2', 2, 560, TERRACE, ['evening'], { flipX: true }),
+    courtier('late-1', 7, 520, TERRACE, 'salon_guest', ['evening']),
+    courtier('late-2', 2, 560, TERRACE, 'salon_guest', ['evening'], { flipX: true }),
   ],
   interactables: [],
 

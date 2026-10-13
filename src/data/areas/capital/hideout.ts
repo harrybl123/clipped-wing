@@ -72,13 +72,13 @@ export const hideout: AreaDefinition = {
   people: [
     cast('hideout_keeper', 404, FLOOR, { knot: 'hideout_keeper', flipX: true }), // behind the counter, always
     // The evening and the night: regulars round the long table and the small ones, one at the counter.
-    citizen('regular-1', 0, 128, FLOOR, LATE),
-    citizen('regular-2', 7, 168, FLOOR, LATE, { flipX: true }),
-    citizen('regular-3', 12, 206, FLOOR, LATE),
-    citizen('regular-4', 13, 252, FLOOR, ['night'], { flipX: true }),
-    citizen('at-counter', 4, 332, FLOOR, LATE),
-    citizen('in-the-corner', 2, 76, FLOOR, ['night']),
-    citizen('regular', 5, 290, FLOOR, LATE, { knot: 'hideout_regular', flipX: true }),
+    citizen('regular-1', 0, 128, FLOOR, 'hideout_folk', LATE),
+    citizen('regular-2', 7, 168, FLOOR, 'hideout_folk', LATE, { flipX: true }),
+    citizen('regular-3', 12, 206, FLOOR, 'hideout_folk', LATE),
+    citizen('regular-4', 13, 252, FLOOR, 'hideout_folk', ['night'], { flipX: true }),
+    citizen('at-counter', 4, 332, FLOOR, 'hideout_folk', LATE),
+    citizen('in-the-corner', 2, 76, FLOOR, 'hideout_corner', ['night']),
+    citizen('regular', 5, 290, FLOOR, 'hideout_regular', LATE, { flipX: true }),
   ],
   interactables: [],
 

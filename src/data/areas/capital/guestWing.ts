@@ -74,13 +74,13 @@ export const guestWing: AreaDefinition = {
   ],
   people: [
     // The guards' post at the way out.
-    guard('barrier-guard-1', 0, 522, FLOOR, undefined, { flipX: true }),
-    guard('barrier-guard-2', 1, 576, FLOOR, undefined, { flipX: true }),
+    guard('barrier-guard-1', 0, 522, FLOOR, 'c3_guard_guests', undefined, { flipX: true }),
+    guard('barrier-guard-2', 1, 576, FLOOR, 'c3_guard_guests', undefined, { flipX: true }),
     cast('captain', 498, FLOOR, { knot: 'guest_captain', when: ['afternoon'], flipX: true }),
     // The other guests.
-    courtier('guest-1', 0, 290, FLOOR, MORNING),
-    strollingCourtier('guest-2', 5, 160, 470, FLOOR, ['afternoon']),
-    servant('servant', 0, 404, FLOOR, ['evening']),
+    courtier('guest-1', 0, 290, FLOOR, 'guest_wing_guest', MORNING),
+    strollingCourtier('guest-2', 5, 160, 470, FLOOR, 'guest_wing_guest', ['afternoon']),
+    servant('servant', 0, 404, FLOOR, 'c3_servant', ['evening']),
   ],
   interactables: [],
 
