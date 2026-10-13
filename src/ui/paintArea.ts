@@ -138,6 +138,13 @@ function marbleWall(x: number, y: number): RGB | number {
   if (lx === 0) return glowing ? SHADES.cyan : SHADES.dim; // the seam, lit or plain
   if (lx === 1 && glowing) return SHADES.cyanMid;
   if (ly === 0) return SHADES.dim; // the seam between slabs
+  // Now and then a slab with gold inlaid in it: a diamond in a ring.
+  const slab = Math.floor(x / PANEL) * 7 + Math.floor((y + Math.floor(x / PANEL) * 13) / 64) * 3;
+  if (slab % 13 === 4) {
+    const dx = Math.abs(lx - PANEL / 2);
+    const dy = Math.abs(ly - 32);
+    if (Math.abs(dx + dy - 6) < 0.6) return SHADES.amberDeep;
+  }
   // Veins: a few thin grey lines wandering through some of the slabs.
   const veined = noise(Math.floor(x / PANEL) * 3.7 + Math.floor((y + Math.floor(x / PANEL) * 13) / 64) * 1.9) > 0.25;
   const vein = Math.abs(noise(x / 31 + y / 53) * 40 - ((x * 0.5 + y) % 80) + 40);
@@ -164,12 +171,67 @@ function panelledWall(x: number, y: number): RGB | number {
   return base.map((v) => v * (1.1 + grain + (lx === 4 || ly === 5 ? -0.25 : 0))) as RGB;
 }
 
+/** Black marble veined with gold (the council chamber): dark, polished, secretive. */
+function darkMarbleWall(x: number, y: number): RGB | number {
+  const PANEL = 40;
+  const lx = x % PANEL;
+  const ly = (y + Math.floor(x / PANEL) * 17) % 56;
+  if (lx === 0 || ly === 0) return SHADES.shadow;
+  const vein = Math.abs(noise(x / 19 + y / 37) * 30 - ((x * 0.8 + y) % 60) + 30);
+  if (vein < 0.6) return SHADES.amberDeep;
+  const sheen = lx === 1 || ly === 1 ? 0.25 : 0.06 * Math.sin((lx / PANEL) * Math.PI);
+  return rgb(SHADES.deep).map((v) => v * (1.3 + sheen + noise(x / 11 + y / 23) * 0.08)) as RGB;
+}
+
+/** Plain white panels, all alike, nothing in them, no gold (the sealed wing): clean and cold. */
+function bareWall(x: number, y: number): RGB | number {
+  if (x % 32 === 0 || y % 48 === 0) return SHADES.light;
+  return mix3(rgb(SHADES.light), rgb(SHADES.white), 0.75);
+}
+
+/** Rough old stone in courses (the hideout's cellar): the city's oldest, each stone its own shade, dark mortar. */
+function stoneWall(x: number, y: number): RGB | number {
+  const course = Math.floor(y / 9);
+  const sx = x + (course % 2) * 7;
+  if (y % 9 === 0 || sx % 15 === 0) return SHADES.shadow;
+  const r = cellRandom(Math.floor(sx / 15), course, 81);
+  const base = rgb(r > 0.7 ? SHADES.woodPale : r > 0.35 ? SHADES.woodLight : SHADES.wood);
+  return base.map((v) => v * (1 + noise(x / 3 + y / 5) * 0.1 + ((y % 9) === 1 ? 0.15 : 0))) as RGB;
+}
+
+/** Old stone flags underfoot (the hideout). */
+function stoneSolidColour(s: Solid, x: number, y: number): number {
+  const row = y - s.y;
+  if (row === 0) return SHADES.dim;
+  if (row === 1) return SHADES.woodPale;
+  return (x - s.x) % 19 === 0 || row % 7 === 0 ? SHADES.shadow : row < 6 ? SHADES.woodLight : SHADES.wood;
+}
+
+/**
+ * Warm cream plaster over a dark wood dado (the diplomat's office): a working room, lived in, unlike the
+ * marble; the dado runs along every floor, a moulding on top of it.
+ */
+function plasterWall(x: number, y: number, solids: Solid[]): RGB | number {
+  const floor = solids.find((s) => !s.invisible && s.width >= 48 && x >= s.x && x < s.x + s.width && s.y - y > 0 && s.y - y <= 30);
+  if (floor) {
+    const up = floor.y - y;
+    if (up === 30) return SHADES.woodPale;
+    if (up === 29) return SHADES.deep;
+    if ((x - floor.x) % 30 === 0) return SHADES.deep;
+    return rgb(up < 3 ? SHADES.deep : SHADES.wood).map((v) => v * (1.15 + noise(x / 2.5 + y / 9) * 0.1)) as RGB;
+  }
+  // (Right on a palette shade, so it lies even rather than dithering in blotches.)
+  return rgb(SHADES.light).map((v) => v * (1 + noise(x / 7 + noise(y / 11) * 2) * 0.03)) as RGB;
+}
+
 const mix3 = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 
 /** Paints a room. `slot` is the time of day, for any views out over the city (default the afternoon). */
 export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon'): (x: number, y: number) => PixelColour {
   const panelled = area.walls === 'panelled';
-  const marble = area.walls === 'marble' || panelled;
+  const stoneWalls = area.walls === 'stone';
+  const plaster = area.walls === 'plaster';
+  const marble = area.walls === 'marble' || area.walls === 'darkMarble' || area.walls === 'bare' || panelled || stoneWalls || plaster;
   const scrap = area.walls === 'scrap' || area.walls === 'hull' || area.walls === 'matched' || marble;
   const views = (area.views ?? []).map((v) => cityViewPainter(v, slot));
   // A room that looks out over the city follows the light outside: dimmer from dusk, lamplit at night.
@@ -183,7 +245,7 @@ export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon'): (
 
   for (const s of area.solids) {
     if (s.invisible) continue;
-    for (let y = s.y; y < s.y + s.height; y++) for (let x = s.x; x < s.x + s.width; x++) put(x, y, marble ? marbleSolidColour(s, x, y) : scrap ? plateColour(s, x, y) : solidColour(s, x, y));
+    for (let y = s.y; y < s.y + s.height; y++) for (let x = s.x; x < s.x + s.width; x++) put(x, y, stoneWalls ? stoneSolidColour(s, x, y) : marble ? marbleSolidColour(s, x, y) : scrap ? plateColour(s, x, y) : solidColour(s, x, y));
   }
   for (const { from, to, colour } of area.lines) {
     const steps = Math.max(Math.abs(to.x - from.x), Math.abs(to.y - from.y), 1);
@@ -207,9 +269,42 @@ export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon'): (
   const halfW = (right - left) / 2;
   const halfH = (bottom - top) / 2;
 
+  // The citadel's marble rooms (not the panelled study): a moulded cornice under the ceiling, and a dado
+  // of darker marble along every floor (not the steps), a gold rail along its top, inset panels in it.
+  const dadoFloors = area.walls === 'marble' ? area.solids.filter((s) => !s.invisible && s.width >= 48 && !(s.oneWay && s.height > 8)) : [];
+  const DADO = 24;
+  const architecture = (x: number, y: number): number | RGB | null => {
+    const fromTop = y - cavity.y;
+    if (fromTop >= 0 && fromTop < 7 && x > cavity.x && x < cavity.x + cavity.width - 1) {
+      if (fromTop === 0) return SHADES.dim;
+      if (fromTop === 1 || fromTop === 5) return SHADES.amber;
+      if (fromTop === 3) return x % 4 < 2 ? SHADES.white : SHADES.dim; // dentils
+      return fromTop === 6 ? SHADES.dim : SHADES.light;
+    }
+    for (const f of dadoFloors) {
+      const up = f.y - y;
+      if (up < 1 || up > DADO || x < f.x || x >= f.x + f.width) continue;
+      if (up === DADO) return SHADES.amber; // the rail
+      if (up === DADO - 1) return SHADES.amberDeep;
+      // Inset panels, each framed by a fine line.
+      const px = (x - f.x) % 40;
+      if (up > 3 && up < DADO - 4 && px > 3 && px < 37 && (px === 4 || px === 36 || up === 4 || up === DADO - 5)) return SHADES.dim;
+      const vein = Math.abs(noise(x / 17 + y / 29) * 20 - ((x * 0.7 + y) % 40) + 20) < 0.7;
+      return mix3(rgb(SHADES.dim), rgb(SHADES.light), vein ? 0.1 : 0.45);
+    }
+    return null;
+  };
+
   return (x, y) => {
     const exact = overlay.get(y * width + x);
     if (exact !== undefined) return exact;
+    const arch = dadoFloors.length || area.walls === 'marble' ? architecture(x, y) : null;
+    if (typeof arch === 'number') return arch;
+    if (arch) {
+      let c = arch.map((v) => v * ambient) as RGB;
+      for (const l of lights) c = addLight(c, l.rgb, 0.4 * l.strength * falloff(x, y, l.x, l.y, l.radius, l.radiusY ?? l.radius));
+      return c;
+    }
     for (const view of views) {
       const v = view(x, y);
       if (v !== null) return v;
@@ -258,14 +353,14 @@ export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon'): (
     }
 
     if (scrap) {
-      const wall = panelled ? panelledWall(x, y) : marble ? marbleWall(x, y) : hull ? hullWall(x, y) : area.walls === 'matched' ? matchedWall(x, y) : scrapWall(x, y);
+      const wall = plaster ? plasterWall(x, y, area.solids) : panelled ? panelledWall(x, y) : stoneWalls ? stoneWall(x, y) : area.walls === 'darkMarble' ? darkMarbleWall(x, y) : area.walls === 'bare' ? bareWall(x, y) : marble ? marbleWall(x, y) : hull ? hullWall(x, y) : area.walls === 'matched' ? matchedWall(x, y) : scrapWall(x, y);
       if (typeof wall === 'number') return wall;
       const vignette = smoothstep(0.45, 1.1, Math.hypot((x - centreX) / halfW, (y - centreY) / halfH));
       const edgeShadow = smoothstep(-10, 0, d) * (marble ? 0.15 : 0.4);
       // (Marble stays clean and even: only a little darker towards its corners.)
       let c = wall.map((v) => v * ambient * (1 - (marble ? 0.18 : 0.55) * vignette - edgeShadow)) as RGB;
       // (Pale marble is already bright: light on it only warms or cools it, or it washes out in white blotches.)
-      const lightOnWall = marble && !panelled ? 0.4 : 1;
+      const lightOnWall = area.walls === 'marble' || area.walls === 'bare' || plaster ? 0.4 : 1;
       for (const l of lights) c = addLight(c, l.rgb, lightOnWall * l.strength * falloff(x, y, l.x, l.y, l.radius, l.radiusY ?? l.radius));
       return c;
     }

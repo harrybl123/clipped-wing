@@ -5,7 +5,8 @@ import type { AreaDefinition } from '../types';
 // Your quarters (Chapter 3): the prince's private rooms high in the citadel, and the first area of the
 // capital, so it sets the look (docs/areas/capital/prince-quarters.md): white marble with grey veins, gold,
 // blue light up the seams; calm and expensive, too quiet. The bedroom on the left, the door out to the
-// halls; a sitting room with a screen and a tall window; then the balcony, open to the sky, where you can
+// halls, a canopied bed, his practice blades and a sparring dummy; a sitting room with a game left mid-game, a
+// screen and a tall window; then the balcony, open to the sky, where you can
 // stand at the rail over the whole city, the low district in shadow at the bottom, and the tree far off on
 // the horizon. The view is painted for the time of day.
 
@@ -57,17 +58,20 @@ export const princeQuarters: AreaDefinition = {
   props: [
     // The door out to the halls.
     { sprite: P.doorway(24, 46), x: 24, y: FLOOR - 46 },
-    // The bedroom.
-    { sprite: P.rug(90), x: 62, y: FLOOR - 3 },
-    { sprite: P.BED, x: 66, y: FLOOR - 22 },
-    { sprite: P.LAMP, x: 126, y: FLOOR - 7 },
-    { sprite: P.WARDROBE, x: 146, y: FLOOR - 52 },
-    { sprite: P.MIRROR, x: 178, y: FLOOR - 48 },
-    // The sitting room.
-    { sprite: P.rug(120), x: 206, y: FLOOR - 3 },
-    { sprite: P.LAMP, x: 210, y: FLOOR - 7 },
-    { sprite: P.COUCH, x: 220, y: FLOOR - 16 },
-    { sprite: P.LOW_TABLE, x: 266, y: FLOOR - 7 },
+    // The bedroom: the canopied bed, the wardrobe and mirror, his practice blades and the dummy he spars with.
+    { sprite: P.rug(64), x: 54, y: FLOOR - 3 },
+    { sprite: P.CANOPY_BED, x: 54, y: FLOOR - 50 },
+    { sprite: P.WARDROBE, x: 124, y: FLOOR - 52 },
+    { sprite: P.MIRROR, x: 152, y: FLOOR - 48 },
+    { sprite: P.BLADE_RACK, x: 172, y: FLOOR - 40 },
+    { sprite: P.DUMMY, x: 198, y: FLOOR - 40 },
+    // The sitting room: a couch, a game of rule left mid-game.
+    { sprite: P.rug(110), x: 222, y: FLOOR - 3 },
+    { sprite: P.LAMP, x: 224, y: FLOOR - 7 },
+    { sprite: P.COUCH, x: 232, y: FLOOR - 16 },
+    { sprite: P.GAME_TABLE, x: 276, y: FLOOR - 12 },
+    // Curtains drawn back from the balcony.
+    { sprite: P.curtain(FLOOR - TOP - 8), x: BALCONY, y: TOP + 7 },
     // The columns at the balcony's opening, and the rail along it.
     { sprite: P.column(FLOOR - TOP), x: BALCONY - 10, y: TOP },
     { sprite: P.TELESCOPE, x: 470, y: FLOOR - 26 },

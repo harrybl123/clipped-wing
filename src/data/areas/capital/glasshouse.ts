@@ -74,6 +74,9 @@ export const glasshouse: AreaDefinition = {
     ...[70, 118, 236, 284, 396, 520, 580].map((x, i) => ({ sprite: P.vines(30 + ((i * 17) % 40)), x, y: GLASS + 2 })),
     { sprite: P.POTTED_TREE, x: 90, y: FLOOR - 56 },
     { sprite: P.POTTED_TREE, x: 270, y: FLOOR - 56 },
+    // Trellises on the walls, plants climbing them.
+    { sprite: P.trellis(80, 66), x: 176, y: GLASS + 6 },
+    { sprite: P.trellis(80, 66), x: 352, y: GLASS + 6 },
     { sprite: P.plantBed(70, 26), x: 60, y: FLOOR - 26 },
     { sprite: P.POTTED_TREE, x: 140, y: FLOOR - 56 },
     { sprite: P.plantBed(100, 30), x: 180, y: FLOOR - 30 },

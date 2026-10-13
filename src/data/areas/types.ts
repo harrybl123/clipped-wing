@@ -48,6 +48,7 @@ export type Feature =
   | { type: 'fire'; x: number; y: number; showIf?: string } // animated flames, bottom-centre at (x, y), with sparks (only while the ink variable showIf is true, if given)
   | { type: 'smoke'; x: number; y: number; top: number; showIf?: string } // grey smoke rising from (x, y) up to `top` (a crack in a ceiling), while showIf is true
   | { type: 'swing'; sprite: RowSprite; x: number; y: number; ropeTop: number; quiet?: boolean; ropeColour?: number } // hanging from ropeTop, sways (creaking, unless quiet: a chandelier, a pendulum); its rope or chain in ropeColour
+  | { type: 'rain'; when?: TimeSlot[]; showIf?: string } // rain falling across the area (the capital at night): only at these times of day (default night)
   | { type: 'frames'; frames: RowSprite[]; x: number; y: number; every: number; showIf?: string } // an animated prop (top-left at x, y): cycles through its frames every `every` ms (a screen scrolling, a table of light flickering, water running)
   | { type: 'pulse'; points: { x: number; y: number }[]; speed: number; every: number; count?: number; sprite?: RowSprite; colour?: number; showIf?: string } // something travelling along a line, over and over: a capsule shooting through a message tube, light running along a cable. `count` of them, spaced out; each sets off again `every` ms after it arrives (a 2×2 dot of `colour` if no sprite)
   | { type: 'drip'; x: number; y: number; floorY: number } // a drop falls from (x, y) every so often
@@ -195,10 +196,17 @@ export interface Outdoor {
   treeScale?: number;
   /** At the roots (the tree's edge): the trunk rises straight up out of sight, too close to see the canopy or the pipes (designer). */
   atRoots?: boolean;
-  /** What's between you and the tree: the open plain (default), or the settlement's rooftops (inside its walls). */
-  backdrop?: 'plain' | 'settlement';
-  /** The ground: scrapland dirt (default), or the deep ground's (harder, darker, no junk, cut with straight grooves running away to the horizon). */
-  ground?: 'scrap' | 'deep';
+  /**
+   * What's between you and the tree: the open plain (default), the settlement's rooftops (inside its walls),
+   * or the capital's towers (Chapter 3: lit cyan and amber, the citadel high above them).
+   */
+  backdrop?: 'plain' | 'settlement' | 'city';
+  /** With the city backdrop: where its towers begin in the far layer (the open plain before it: the gate, looking out). */
+  cityFrom?: number;
+  /** With the city backdrop: where the citadel stands above the towers, in the far layer's pixels. */
+  citadelX?: number;
+  /** The ground: scrapland dirt (default), the deep ground's (harder, darker, no junk, cut with straight grooves running away to the horizon), or the capital's paved streets. */
+  ground?: 'scrap' | 'deep' | 'street';
   /** Ground level, when there's earth far below it (the sunk town): dirt is darker and layered by its depth below this, unlit by the sky, with no sunlit crust on floors underground. */
   groundY?: number;
 }
@@ -234,9 +242,13 @@ export interface AreaDefinition {
    * with ribs running up and over, the tally house), or matched (whole matched panels, clean and warm:
    * the boss's house), or marble (the capital's citadel, Chapter 3: pale veined marble panels, a line of
    * blue light up some of their seams, gold-edged marble floors), or panelled (dark wood panels framed in
-   * a lighter moulding, gold along their courses, over marble floors: your father's study).
+   * a lighter moulding, gold along their courses, over marble floors: your father's study), or stone (rough
+   * old stone in courses, the castle's and the city's oldest: the hideout's cellar), or darkMarble (black
+   * marble veined with gold: the council chamber), or bare (plain white panels, nothing in them, no gold: the
+   * sealed wing), or plaster (warm cream over a dark wood dado: the diplomat's office). Only plain marble rooms
+   * get the cornice, the dado along their floors and gold inlay.
    */
-  walls?: 'heartwood' | 'scrap' | 'hull' | 'matched' | 'marble' | 'panelled';
+  walls?: 'heartwood' | 'scrap' | 'hull' | 'matched' | 'marble' | 'darkMarble' | 'bare' | 'panelled' | 'stone' | 'plaster';
   /**
    * Windows and open sides onto the city (the capital, Chapter 3): inside each rectangle, the city seen from
    * up here, painted for the time of day (the room is repainted when the time changes). Props go over them.

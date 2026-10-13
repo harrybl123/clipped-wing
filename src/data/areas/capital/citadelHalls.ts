@@ -118,7 +118,8 @@ export const citadelHalls: AreaDefinition = {
     { sprite: P.rug(300), x: 630, y: FLOOR - 3 },
     { sprite: P.liftShaft(32, FLOOR - TOP - 8), x: LIFT, y: TOP + 8 },
     { sprite: P.TUBE_MOUTH, x: TUBE_DOWN - 2, y: UPPER - 52 },
-    // Upstairs, the private floor.
+    // Upstairs, the private floor: the rulers before your father, in a gallery along it.
+    ...[205, 274, 356, 584, 676, 740, 822].map((x, i) => ({ sprite: P.portrait(i), x, y: TOP + 46 })),
     { sprite: P.doorway(24, 46), x: 88, y: UPPER - 46 },
     { sprite: P.doorway(24, 46), x: 238, y: UPPER - 46 },
     { sprite: P.rail(40, 12), x: CL - 40, y: UPPER - 12 },

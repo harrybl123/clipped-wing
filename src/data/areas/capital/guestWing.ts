@@ -53,6 +53,8 @@ export const guestWing: AreaDefinition = {
     { sprite: P.GUEST_BED, x: 24, y: FLOOR - 16 },
     { sprite: P.LAMP, x: 62, y: FLOOR - 7 },
     { sprite: P.WARDROBE, x: 94, y: FLOOR - 52 },
+    // Gold lattice over the windows, so they can't be opened.
+    ...[74, 214, 324, 434].map((x) => ({ sprite: P.lattice(40, 66), x, y: 84 })),
     // The corridor: the other guests' doors, shut.
     { sprite: P.rug(470), x: 130, y: FLOOR - 3 },
     { sprite: P.closedDoor(26, 46), x: 150, y: FLOOR - 46 },
@@ -64,7 +66,11 @@ export const guestWing: AreaDefinition = {
     { sprite: P.doorway(24, 46), x: 596, y: FLOOR - 46 },
   ],
 
-  features: [{ type: 'frames', frames: P.SURVEILLANCE_FRAMES, x: 540, y: 116, every: 700 }],
+  features: [
+    { type: 'frames', frames: P.SURVEILLANCE_FRAMES, x: 540, y: 116, every: 700 },
+    // Empty gilded cages, hung for ornament.
+    ...[194, 304, 414].map((x) => ({ type: 'swing' as const, sprite: P.CAGE, x, y: TOP + 26, ropeTop: TOP, quiet: true, ropeColour: S.amber })),
+  ],
   people: [],
   interactables: [],
 

@@ -15,7 +15,7 @@ export const sealedWing: AreaDefinition = {
   name: 'the sealed wing',
   width: W,
   height: 270,
-  walls: 'marble',
+  walls: 'bare',
   cavity: { x: 16, y: TOP, width: W - 32, height: FLOOR - TOP, radius: 2 },
   ambient: 0.7,
   playerStart: { x: 40, y: FLOOR },
@@ -53,8 +53,6 @@ export const sealedWing: AreaDefinition = {
     // The gold runs out as you go.
     { sprite: P.rug(140), x: 18, y: FLOOR - 3 },
     { sprite: P.STATUE, x: 92, y: FLOOR - 46 },
-    { sprite: P.lightStrip(80), x: 170, y: 120 },
-    { sprite: P.lightStrip(60), x: 330, y: 140 },
     // The door.
     { sprite: P.SEALED_DOOR, x: 502, y: FLOOR - 68 },
   ],

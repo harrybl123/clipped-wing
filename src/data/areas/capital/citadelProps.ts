@@ -614,3 +614,185 @@ export const surveillance = (phase: number): RowSprite => ({
   colours: C,
 });
 export const SURVEILLANCE_FRAMES = [0, 1, 2, 3].map(surveillance);
+
+// --- Each room its own (designer: lots of rooms have the same things) ---
+
+/** Your bed: a canopy on four gold posts, deep blue curtains tied back, pale linen. */
+export const CANOPY_BED: RowSprite = {
+  rows: fill(60, 50, (x, y) => {
+    if (y < 4) return y === 0 ? 'a' : 'g'; // the canopy
+    const post = x === 1 || x === 58;
+    if (post) return y > 46 ? 'A' : 'a';
+    // Curtains tied back at each end, falling in folds.
+    const tie = y > 26 && y < 30;
+    if ((x < 9 && y < 46 && x < 9 - Math.max(0, (y - 28) / 6)) || (x > 50 && y < 46 && x > 50 + Math.max(0, (y - 28) / 6))) return tie ? 'a' : (x + Math.floor(y / 3)) % 3 === 0 ? 'g' : 'G';
+    if (y < 30) return '.';
+    if (y < 34) return x < 14 && x > 3 ? (y === 30 ? 'W' : 'h') : '.'; // the pillows
+    if (y < 39) return y === 34 ? 'W' : x > 34 ? 'g' : 'h'; // linen, the cover thrown back
+    if (y < 43) return y === 39 ? 'a' : 'w'; // the frame
+    return x === 3 || x === 56 ? 'w' : '.';
+  }),
+  colours: C,
+};
+
+/** A rack of practice blades: three, blunted, on a dark wood stand. */
+export const BLADE_RACK: RowSprite = {
+  rows: fill(22, 40, (x, y) => {
+    if (y > 36) return 'w';
+    if (y === 8 || y === 30) return 'w';
+    if (x === 0 || x === 21) return 'w';
+    for (const bx of [5, 11, 17]) {
+      if (x === bx && y > 2 && y < 34) return y < 8 ? (y === 7 ? 'a' : 'A') : 'h'; // the grip, the guard, the blade
+      if (y === 8 && Math.abs(x - bx) <= 2) return 'a';
+    }
+    return '.';
+  }),
+  colours: C,
+};
+
+/** A sparring dummy: a padded post on a stand, scuffed, an arm out. */
+export const DUMMY: RowSprite = {
+  rows: fill(20, 40, (x, y) => {
+    if (y < 7) return Math.hypot(x - 10, y - 3.5) < 3.6 ? (x > 10 ? 'p' : 'n') : '.';
+    if (y < 24) {
+      if (y > 9 && y < 12 && x > 1 && x < 19) return y === 10 ? 'p' : 'w'; // the arms
+      return Math.abs(x - 10) < 4 ? ((x + y) % 5 === 0 ? 'w' : x > 11 ? 'p' : 'n') : '.';
+    }
+    if (y < 36) return x === 10 ? 'w' : '.';
+    return Math.abs(x - 10) < 6 ? 'w' : '.';
+  }),
+  colours: C,
+};
+
+/** A game board on a low table: a strategy game of rule, its pieces in gold and dark, mid-game. */
+export const GAME_TABLE: RowSprite = {
+  rows: fill(22, 12, (x, y) => {
+    if (y < 3) return [3, 7, 10, 15, 18].includes(x) ? (x % 2 ? 'a' : 'd') : '.'; // pieces
+    if (y < 5) return x < 1 || x > 20 ? '.' : (x + y) % 2 ? 'W' : 'n'; // the board
+    if (y < 7) return y === 5 ? 'p' : 'w';
+    return x === 2 || x === 19 ? 'w' : '.';
+  }),
+  colours: C,
+};
+
+/** A curtain, deep blue, gathered and falling in folds (`flip` for the other side). */
+export const curtain = (height: number, flip = false): RowSprite => ({
+  rows: fill(14, height, (x0, y) => {
+    const x = flip ? 13 - x0 : x0;
+    if (y < 2) return 'a'; // the rail
+    const width = 6 + Math.round(Math.sin((y / height) * Math.PI) * 2 + (y / height) * 5);
+    if (x >= width) return '.';
+    return (x + Math.floor(y / 4)) % 3 === 0 ? 'g' : x === width - 1 ? 'c' : 'G';
+  }),
+  colours: C,
+});
+
+/** A portrait of a ruler before your father, in a gold frame: a dark ground, a pale face, a gold circlet. */
+export const portrait = (seed: number): RowSprite => ({
+  rows: fill(22, 28, (x, y) => {
+    if (x === 0 || y === 0 || x === 21 || y === 27) return 'a';
+    if (x === 1 || y === 1 || x === 20 || y === 26) return 'A';
+    const cx = 10.5 + ((seed % 3) - 1);
+    const head = Math.hypot((x - cx) / 3.6, (y - 10) / 4.4) < 1;
+    if (head) return y < 8 && (seed % 2 === 0) ? 'a' : x > cx ? 'h' : 'm'; // some crowned
+    if (y > 14) {
+      const half = 3 + (y - 14) * 0.7;
+      if (Math.abs(x - cx) < half) return seed % 4 === 1 ? 'g' : seed % 4 === 2 ? 'A' : 'n'; // their robes
+    }
+    return (x + y) % 6 === 0 ? 'w' : 'd';
+  }),
+  colours: C,
+});
+
+/** A lamp hanging low on a long chain, its light pooled under it. */
+export const PENDANT: RowSprite = { rows: ['..aa..', '.aAAa.', 'aWWWWa', '.cccc.'], colours: C };
+
+/** A tall mirror panel in a gold frame, catching the room (the banquet gallery's hall of mirrors). */
+export const mirrorPanel = (height: number): RowSprite => ({
+  rows: fill(26, height, (x, y) => {
+    if (x < 2 || x > 23 || y < 2 || y > height - 3) return x === 0 || x === 25 || y === 0 || y === height - 1 ? 'A' : 'a';
+    if (y < 12 && Math.abs(x - 12.5) + (12 - y) > 12) return 'a'; // a gold arch at its top
+    const glint = (x - y * 0.5 + 200) % 23;
+    return glint < 1.5 ? 'W' : glint < 3 ? 'h' : (x + y) % 5 === 0 ? 'm' : 'p';
+  }),
+  colours: C,
+});
+
+/** A harp, gold, on the musicians' gallery. */
+export const HARP: RowSprite = {
+  rows: fill(14, 26, (x, y) => {
+    if (y > 23) return x > 2 && x < 12 ? 'A' : '.';
+    if (x === 2 && y > 3) return 'a'; // the pillar
+    const neck = 3 + Math.round(Math.sin((x / 13) * Math.PI) * 3);
+    if (y === neck && x > 1) return 'a';
+    if (x > 2 && x < 13 && y > neck && y < 24 - (13 - x) && (x % 2 === 0)) return 'h'; // strings
+    if (x === 12 && y > 3 && y < 24) return 'A';
+    return '.';
+  }),
+  colours: C,
+};
+
+/** A drum on a stand. */
+export const DRUM: RowSprite = { rows: ['.WWWWWW.', 'aAaAaAaa', 'wnnnnnnw', 'wnnnnnnw', 'aAaAaAaa', '.w....w.', 'w......w'], colours: C };
+
+/** Brass filing drawers, many small ones, labels on each. */
+export const DRAWERS: RowSprite = {
+  rows: fill(36, 46, (x, y) => {
+    if (x === 0 || x === 35 || y === 0 || y === 45) return 'A';
+    if (x % 7 === 0 || y % 9 === 0) return 'A';
+    if (x % 7 === 3 && y % 9 === 4) return 'W'; // the label
+    if (x % 7 === 3 && y % 9 === 6) return 'd'; // the pull
+    return (x + y) % 9 === 0 ? 'A' : 'a';
+  }),
+  colours: C,
+};
+
+/** Notes pinned up in rows, some with threads running off them. */
+export const PINNED_NOTES: RowSprite = {
+  rows: fill(44, 30, (x, y) => {
+    for (const [nx, ny] of [[0, 2], [11, 0], [22, 4], [33, 1], [5, 16], [17, 15], [29, 17]] as const) {
+      if (x >= nx && x < nx + 9 && y >= ny && y < ny + 11) {
+        if (x === nx + 4 && y === ny) return 'c'; // the pin
+        return (y - ny) % 3 === 2 && x > nx && x < nx + 8 ? 'm' : 'W';
+      }
+    }
+    return '.';
+  }),
+  colours: C,
+};
+
+/** A gold lattice over a window: a grille, ornate, so it can't be opened (the guest wing). */
+export const lattice = (width: number, height: number): RowSprite => ({
+  rows: fill(width, height, (x, y) => {
+    const d1 = (x + y) % 8;
+    const d2 = (x - y + 800) % 8;
+    if (d1 === 0 || d2 === 0) return 'a';
+    if (x === 0 || x === width - 1 || y === 0 || y === height - 1) return 'A';
+    return '.';
+  }),
+  colours: C,
+});
+
+/** An empty gilded cage, hung for ornament. */
+export const CAGE: RowSprite = {
+  rows: fill(14, 20, (x, y) => {
+    if (y < 3) return Math.abs(x - 6.5) < 1.5 ? 'a' : '.'; // the ring
+    const dome = y < 8 ? Math.round(Math.sqrt(Math.max(0, 1 - ((8 - y) / 5) ** 2)) * 6.5) : 6;
+    if (Math.abs(x - 6.5) > dome) return '.';
+    if (y === 18 || y === 19) return 'A';
+    if (y === 12) return 'a'; // a perch
+    return x % 3 === 0 || Math.abs(x - 6.5) > dome - 1 ? 'a' : '.';
+  }),
+  colours: C,
+};
+
+/** A trellis on the wall, plants climbing it. */
+export const trellis = (width: number, height: number): RowSprite => ({
+  rows: fill(width, height, (x, y) => {
+    const leaf = Math.abs(Math.sin(x * 0.9 + y * 0.4) + Math.sin(y * 0.7 - x * 0.3)) > 1.1 && y > height * 0.15 * (1 + Math.sin(x / 4));
+    if (leaf) return (x + y) % 3 === 0 ? 'E' : (x * y) % 4 === 0 ? 'e' : 'L';
+    if ((x + y) % 10 === 0 || (x - y + 1000) % 10 === 0) return 'p';
+    return '.';
+  }),
+  colours: { ...C, L: S.greenMid, e: S.green, E: S.greenDeep },
+});

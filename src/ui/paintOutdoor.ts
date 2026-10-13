@@ -63,11 +63,22 @@ export function paintFar(outdoor: Outdoor, slot: TimeSlot, height: number): (x: 
   // Distant junk heaps along the horizon.
   const heapTop = (x: number) => HY - Math.max(0, noise(x / 23) * 7 + noise(x / 7) * 2 - 2);
   const town = outdoor.backdrop === 'settlement' ? skyline(HY, sky, slot) : null;
+  const city = outdoor.backdrop === 'city' ? cityPainter(outdoor, sky, slot) : null;
+  const cityFrom = outdoor.cityFrom ?? -Infinity;
 
   return (x, y) => {
     if (town) {
       const t = town(x, y);
       if (t !== null) return t;
+    }
+    if (city) {
+      const t = city(x, y);
+      if (t !== null) return t;
+      // Below the towers, the city's street level: dark, a glow coming up off it from dusk.
+      if (y >= HY && x >= cityFrom) {
+        const c = scale(rgb(SHADES.deep), sky.ground);
+        return slot === 'evening' || slot === 'night' ? addLight(c, rgb(SHADES.amber), 0.12) : c;
+      }
     }
     if (y < HY) {
       const t = tree(x, y);
@@ -158,6 +169,91 @@ function skyline(HY: number, sky: Sky, slot: TimeSlot): (x: number, y: number) =
       }
       return mix(scale(c, sky.ground), sky.horizon, haze);
     }
+    return null;
+  };
+}
+
+/**
+ * The capital's towers (Chapter 3; docs/chapter-3-world.md), seen from its streets: two rows of them, the far
+ * row taller and hazier, rising towards the citadel, which stands above them all in marble and gold, its
+ * sealed wing the tallest tower, dark, a line of blue light up it. By day pale stone in the haze; from dusk
+ * dark, their windows lit cyan and amber, strips of blue light up their edges, signs here and there, cables
+ * slung between the near ones. Null where there's only sky.
+ */
+function cityPainter(outdoor: Outdoor, sky: Sky, slot: TimeSlot): (x: number, y: number) => PixelColour {
+  const HY = outdoor.horizon;
+  const lit = slot === 'evening' || slot === 'night';
+  const night = slot === 'night';
+  const CX = outdoor.citadelX ?? 240;
+  const from = outdoor.cityFrom ?? -Infinity;
+  /** 1 under the citadel, falling away from it: the city climbs its hill. */
+  const near = (x: number) => Math.exp(-(((x - CX) / 170) ** 2));
+  const BASE = HY - 132; // the citadel's base, on top of the city
+  const rows = [0, 1].map((r) => {
+    const out: { x: number; w: number; top: number; seed: number; strip: boolean; sign: boolean }[] = [];
+    for (let x = -24, i = 0; x < 2400; i++) {
+      const w = r ? 10 + Math.floor(cellRandom(i, 1, 71) * 14) : 6 + Math.floor(cellRandom(i, 0, 71) * 10);
+      const h = r ? 22 + cellRandom(i, 3, 71) * 46 + near(x) * 40 : 50 + cellRandom(i, 2, 71) * 70 + near(x) * 60;
+      out.push({ x, w, top: Math.max(BASE + 8, Math.round(HY - h)), seed: i * 13 + r, strip: cellRandom(i, 4, 71) > 0.7, sign: r === 1 && cellRandom(i, 5, 71) > 0.8 });
+      x += w + (cellRandom(i, 6, 71) > 0.8 ? 2 : 0);
+    }
+    return out;
+  });
+  const citadel = (x: number, y: number): PixelColour => {
+    const dx = x - CX;
+    if (Math.abs(dx) > 78 || y > BASE + 14) return null;
+    // The base: a wide marble wedge, gold along its top.
+    if (y >= BASE) {
+      const half = 60 + (y - BASE) * 1.3;
+      if (Math.abs(dx) > half) return null;
+      const c = y === BASE ? SHADES.amber : dx > half - 2 ? SHADES.white : SHADES.light;
+      return lit ? scale(rgb(c), y === BASE ? 1 : 0.7) : mix(rgb(c), sky.horizon, 0.25);
+    }
+    // The sealed wing: the tallest, dark, blue light up its middle.
+    if (Math.abs(dx + 12) <= 4 && y > BASE - 120) return dx + 12 === 0 ? (y % 4 === 0 ? SHADES.white : SHADES.cyan) : SHADES.deep;
+    if (Math.abs(dx + 12) === 0 && y > BASE - 128) return SHADES.dim;
+    // Marble towers with gold caps.
+    const towers = [[-52, 10, 46], [-34, 12, 70], [6, 14, 84], [26, 10, 62], [44, 14, 54], [-4, 30, 40]] as const;
+    for (const [ox, w, h] of towers) {
+      const lx = dx - ox;
+      const top = BASE - h;
+      if (lx < 0 || lx >= w || y < top - (lx === Math.floor(w / 2) ? 6 : 0)) continue;
+      if (y < top) return SHADES.amber; // a spire
+      if (y < top + 2) return y === top ? SHADES.amber : SHADES.amberDeep;
+      if (lit && (y - top) % 5 === 3 && lx % 3 === 1 && lx < w - 1) return cellRandom(lx + ox, y, 75) > 0.4 ? SHADES.amber : SHADES.cyan;
+      const c = rgb(lx === 0 ? SHADES.dim : lx === w - 1 ? SHADES.white : SHADES.light);
+      return lit ? scale(c, 0.75) : mix(c, sky.horizon, 0.2);
+    }
+    return null;
+  };
+
+  return (x, y) => {
+    if (x < from) return null;
+    const c = citadel(x, y);
+    if (c !== null) return c;
+    if (y >= HY) return null;
+    for (let r = 1; r >= 0; r--) {
+      const b = rows[r]!.find((k) => x >= k.x && x < k.x + k.w);
+      if (!b || y < b.top) continue;
+      const lx = x - b.x;
+      const ly = y - b.top;
+      const haze = r ? 0.15 : 0.4;
+      // Windows, lit from dusk; a strip of blue light up an edge; a sign on the near ones.
+      if (lit && b.sign && ly > 3 && ly < 9 && lx > 1 && lx < b.w - 2) return cellRandom(b.seed, 0, 74) > 0.5 ? SHADES.cyan : SHADES.amber;
+      if (b.strip && lx === 0) return lit ? SHADES.cyan : SHADES.cyanMid;
+      if (ly > 1 && lx > 0 && lx < b.w - 1 && ly % 4 === 2 && lx % 2 === 1) {
+        const w = cellRandom(b.seed, lx * 5 + ly, 73);
+        if (lit && w > (night ? 0.35 : 0.55)) return w > 0.85 ? SHADES.cyan : SHADES.amber;
+      }
+      const stone = rgb(ly === 0 ? SHADES.light : lx === b.w - 1 ? SHADES.woodLight : r ? SHADES.dim : SHADES.light);
+      const c2 = lit ? scale(rgb(ly === 0 ? SHADES.dim : lx === b.w - 1 ? SHADES.shadow : SHADES.deep), r ? 1 : 1.3) : scale(stone, sky.ground * (r ? 0.75 : 0.95));
+      return mix(c2, sky.horizon, haze * (lit ? 0.3 : 1));
+    }
+    // Cables slung between the near towers.
+    const span = 46;
+    const u = ((((x + 13) % span) + span) % span) / span;
+    const cy = HY - 58 + Math.round(Math.sin(u * Math.PI) * 6) + Math.round(noise(Math.floor((x + 13) / span)) * 10);
+    if (y === cy) return scale(rgb(SHADES.deep), 0.9);
     return null;
   };
 }
@@ -350,6 +446,17 @@ function dirt(s: Solid, x: number, y: number, sky: Sky, hard = false, groundY?: 
   return addLight(scale(base, ground * (1 + 0.2 * grit - strata)), rgb(SHADES.amber), sky.warm * (1 - deep));
 }
 
+/** A paved street (the capital): a worn kerb on top, a line of blue light set into it, dark slabs below with seams. */
+function paving(s: Solid, x: number, y: number, sky: Sky, lit: boolean): RGB | number {
+  const row = y - s.y;
+  if (row === 0) return scale(rgb(SHADES.light), sky.ground);
+  if (row === 1) return scale(rgb(SHADES.dim), sky.ground);
+  if (row === 2) return lit && (x - s.x) % 6 < 4 ? SHADES.cyan : scale(rgb(SHADES.cyanDeep), sky.ground);
+  if ((x - s.x + Math.floor(row / 8) * 9) % 22 === 0 || row % 8 === 0) return SHADES.shadow;
+  const base = rgb(row < 12 ? SHADES.woodLight : SHADES.wood);
+  return scale(base, (lit ? 0.8 : sky.ground) * (1 + 0.06 * noise(x / 5 + row)));
+}
+
 /** The near layer: dirt solids, lines and props; transparent elsewhere so the far layer shows. */
 export function paintOutdoorNear(area: AreaDefinition, slot: TimeSlot): (x: number, y: number) => PixelColour {
   const sky = skyFor(slot);
@@ -371,7 +478,9 @@ export function paintOutdoorNear(area: AreaDefinition, slot: TimeSlot): (x: numb
     if (exact !== undefined) return exact;
     const s = solids.find((o) => x >= o.x && x < o.x + o.width && y >= o.y && y < o.y + o.height);
     if (!s) return null;
-    const c = dirt(s, x, y, sky, area.outdoor?.ground === 'deep', area.outdoor?.groundY);
+    const c = area.outdoor?.ground === 'street'
+      ? paving(s, x, y, sky, slot === 'evening' || slot === 'night')
+      : dirt(s, x, y, sky, area.outdoor?.ground === 'deep', area.outdoor?.groundY);
     if (typeof c === 'number') return c;
     let lit = c;
     for (const l of lights) lit = addLight(lit, l.rgb, l.strength * falloff(x, y, l.x, l.y, l.radius, l.radiusY ?? l.radius));

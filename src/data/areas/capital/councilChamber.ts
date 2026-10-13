@@ -2,7 +2,8 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition, Solid } from '../types';
 
-// The council chamber (Chapter 3): politics, and empty seats (docs/areas/capital/council-chamber.md). Tiers
+// The council chamber (Chapter 3): politics, and empty seats (docs/areas/capital/council-chamber.md). Black
+// marble veined with gold, lamps hanging low on long chains. Tiers
 // of marble seats rising on both sides, each with a small gold light on its back, dark where nobody sits;
 // your father's seat at the top of the right-hand tiers; in the middle, the table of light, the city drawn
 // above it in blue, its districts lit or dark.
@@ -26,7 +27,7 @@ export const councilChamber: AreaDefinition = {
   name: 'the council chamber',
   width: W,
   height: 270,
-  walls: 'marble',
+  walls: 'darkMarble',
   cavity: { x: 16, y: TOP, width: W - 32, height: FLOOR - TOP, radius: 2 },
   ambient: 0.82,
   playerStart: { x: 160, y: FLOOR },
@@ -46,16 +47,13 @@ export const councilChamber: AreaDefinition = {
 
   lights: [
     { x: 240, y: 180, colour: S.cyan, radius: 90, radiusY: 50, strength: 0.25 }, // the table of light
+    { x: 240, y: 130, colour: S.amber, radius: 60, radiusY: 20, strength: 0.2 }, // the hanging lamps
     { x: 440, y: 160, colour: S.amber, radius: 50, radiusY: 30, strength: 0.12 }, // your father's seat
   ],
 
   lines: [],
 
   props: [
-    { sprite: P.banner(16, 70), x: 60, y: TOP + 8 },
-    { sprite: P.banner(16, 70), x: 400, y: TOP + 8 },
-    { sprite: P.lightStrip(90), x: 150, y: TOP + 20 },
-    { sprite: P.lightStrip(90), x: 328, y: TOP + 20 },
     { sprite: P.doorway(26, 46), x: 147, y: FLOOR - 46 },
     // The left tiers: some seats empty.
     ...seats([84, 98], FLOOR - 16, [true, false]),
@@ -68,6 +66,8 @@ export const councilChamber: AreaDefinition = {
 
   features: [
     { type: 'frames', frames: P.HOLO_FRAMES, x: 192, y: FLOOR - 66, every: 240 },
+    // Lamps hanging low over the table on long chains.
+    ...[206, 240, 274].map((x, i) => ({ type: 'swing' as const, sprite: P.PENDANT, x, y: 120 + (i === 1 ? -10 : 0), ropeTop: TOP, quiet: true, ropeColour: S.amberDeep })),
     { type: 'frames', frames: P.scrollingScreen(70, 40), x: 205, y: TOP + 12, every: 500 },
   ],
   people: [],

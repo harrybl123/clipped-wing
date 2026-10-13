@@ -44,22 +44,27 @@ export const banquetGallery: AreaDefinition = {
     { x: 110, y: 120, colour: S.cyan, radius: 90, radiusY: 60, strength: 0.16 }, // the screen over the dance floor
   ],
 
-  lines: [],
+  lines: [
+    // The musicians' gallery's ledge.
+    { from: { x: 40, y: FLOOR - 70 }, to: { x: 207, y: FLOOR - 70 }, colour: S.amber },
+    { from: { x: 40, y: FLOOR - 69 }, to: { x: 207, y: FLOOR - 69 }, colour: S.light },
+    { from: { x: 40, y: FLOOR - 68 }, to: { x: 207, y: FLOOR - 68 }, colour: S.dim },
+  ],
 
   props: [
     { sprite: P.doorway(24, 46), x: 22, y: FLOOR - 46 },
-    // The dance floor and its screen.
+    // The dance floor, and over it the musicians' gallery: a harp, a drum.
     { sprite: P.rug(160), x: 56, y: FLOOR - 3 },
+    { sprite: P.HARP, x: 74, y: FLOOR - 96 },
+    { sprite: P.DRUM, x: 132, y: FLOOR - 77 },
+    { sprite: P.rail(168, 12), x: 40, y: FLOOR - 82 },
+    // The hall of mirrors, between gold frames, all down the wall behind the table.
+    ...[250, 330, 410, 490, 570].map((x) => ({ sprite: P.mirrorPanel(118), x, y: TOP + 18 })),
     { sprite: P.column(FLOOR - TOP), x: 228, y: TOP },
     // The long table: chairs along its far side, every place empty.
     ...Array.from({ length: 8 }, (_, i) => ({ sprite: P.BANQUET_CHAIR, x: TABLE.x + 14 + i * 40, y: FLOOR - 26 })),
     { sprite: P.longTable(TABLE.width), x: TABLE.x, y: FLOOR - 20 },
     { sprite: P.HIGH_CHAIR, x: TABLE.x + TABLE.width + 4, y: FLOOR - 28 },
-    { sprite: P.screen(44, 26), x: 400, y: TOP + 34 },
-    { sprite: P.banner(18, 80), x: 290, y: TOP + 10 },
-    { sprite: P.banner(18, 80), x: 540, y: TOP + 10 },
-    { sprite: P.lightStrip(110), x: 340, y: TOP + 20 },
-    { sprite: P.lightStrip(110), x: 500, y: TOP + 20 },
     // The balcony.
     { sprite: P.column(FLOOR - TOP), x: BALCONY - 10, y: TOP },
     { sprite: P.rail(W - BALCONY - 14, 16), x: BALCONY, y: FLOOR - 16 },
@@ -67,7 +72,6 @@ export const banquetGallery: AreaDefinition = {
   ],
 
   features: [
-    { type: 'frames', frames: P.scrollingScreen(90, 50), x: 70, y: TOP + 30, every: 450 },
     ...[330, 420, 510].map((x) => ({ type: 'swing' as const, sprite: P.CHANDELIER, x, y: TOP + 56, ropeTop: TOP, quiet: true, ropeColour: S.amberDeep })),
   ],
   people: [],
