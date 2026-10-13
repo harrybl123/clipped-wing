@@ -401,24 +401,25 @@ export const NOTICES: RowSprite = {
 
 /**
  * The symbol (designer: Grounded's bird on bare ground, as on the carver's plates in the tree; then: more
- * logo-like, more symbolic): his bird made an emblem: a solid bird, wings folded, an eye and a beak, standing
- * on a thick bar of ground that runs through a ring, like a horizon. Bold enough to chalk in a few strokes.
+ * logo-like, more symbolic; then: a bird taking flight): his bird made an emblem, lifting off: wings raised
+ * in a V, their tips touching the ring as if breaking out of it, its head and beak forward, its tail fanned,
+ * its feet just off the thick bar of ground that runs through the ring like a horizon.
  */
 export const EMBLEM: readonly string[] = [
   '.......#######.......',
   '.....###########.....',
   '....###.......###....',
-  '...##...........##...',
-  '..##.............##..',
-  '.##.........##....##.',
-  '.##........####...##.',
-  '##.........###.##..##',
-  '##........######...##',
-  '##.....##.######...##',
-  '##...#####.#####...##',
-  '##..#######.###....##',
-  '##....########.....##',
-  '##......#..#.......##',
+  '...###.........###...',
+  '..##.##.......##.##..',
+  '.##...##.....###..##.',
+  '.##...###...###...##.',
+  '##.....###.###.##..##',
+  '##......##########.##',
+  '##.....#########...##',
+  '##...########......##',
+  '##..###..#.#.......##',
+  '##.......#.#.......##',
+  '##.................##',
   '.###################.',
   '.###################.',
   '..##.............##..',
@@ -525,11 +526,15 @@ function furnish(g: Grid, x: number, y: number, w: number, h: number, room: (typ
  * see in (a bed, a stove, a table, a bench of tools, plants, clothes on a rail, a small screen glowing), some
  * shut with a window (curtains, a plant on the sill), a door, a shutter; tanks and aerials on the top.
  */
-export const homes = (width: number, height: number, seed: number): RowSprite => {
+export const homes = (width: number, height: number, seed: number, options: { roof?: boolean; back?: boolean } = {}): RowSprite => {
   const g = grid(width, height);
-  const STOREY = 30;
+  const roof = options.roof ?? true;
+  // Storeys of about 30, sized so they fill the height exactly (with room left on top for the roof's things).
+  const room = roof ? Math.max(0, Math.min(12, height - 30)) : 0;
+  const count = Math.max(1, Math.round((height - room) / 30));
+  const STOREY = Math.floor((height - room) / count);
   let bottom = height;
-  for (let row = 0; bottom - STOREY >= 6; row++) {
+  for (let row = 0; row < count; row++) {
     const top = bottom - STOREY;
     for (let x = 0, i = 0; x < width; i++) {
       const w = Math.min(width - x, 30 + Math.floor(r(seed + row * 17, i) * 18));
@@ -576,22 +581,34 @@ export const homes = (width: number, height: number, seed: number): RowSprite =>
     }
     bottom = top;
   }
-  // On the top: tanks, aerials, a dish.
-  for (let x = 4; x < width - 10; x += 22 + Math.floor(r(seed, x) * 20)) {
-    const kind = Math.floor(r(seed, x + 1) * 3);
-    if (kind === 0) box(g, x, bottom - 7, 9, 7, 'n'), box(g, x, bottom - 7, 9, 1, 'm');
-    else if (kind === 1) for (let j = 1; j < 10; j++) plot(g, x + 3, bottom - j, j === 9 || j === 6 ? 'm' : 'd'), plot(g, x + 1, bottom - 6, 'd'), plot(g, x + 5, bottom - 6, 'd');
-    else for (let q = 0; q < 7; q++) plot(g, x + q, bottom - 4 + Math.abs(q - 3) / 2, 'h');
+  // The rest of any height left over, filled with wall; then on a real roof, a parapet, and tanks and aerials
+  // standing on it.
+  if (!roof) box(g, 0, 0, width, bottom, 'w');
+  else if (bottom > 0) {
+    box(g, 0, bottom - 2, width, 2, 'n');
+    for (let x = 4; x < width - 10; x += 26 + Math.floor(r(seed, x) * 24)) {
+      if (r(seed, x + 1) > 0.5 && bottom >= 9) box(g, x, bottom - 9, 9, 7, 'n'), box(g, x, bottom - 9, 9, 1, 'm');
+      else for (let j = 3; j < Math.min(12, bottom); j++) plot(g, x + 3, bottom - j, j === 8 ? 'm' : 'd');
+    }
   }
-  return { rows: g.map((row) => row.join('')), colours: C };
+  // A row further back is darker and quieter, so the near ones stand out against it.
+  return { rows: g.map((row) => row.join('')), colours: options.back ? BACK : C };
+};
+
+/** The city's colours a step darker, for things further back. */
+const BACK = {
+  ...C,
+  h: S.dim, m: S.woodPale, p: S.woodLight, n: S.wood, w: S.deep, d: S.shadow,
+  a: S.amberDeep, A: S.wood, c: S.cyanMid, G: S.cyanDeep, g: S.deep, e: S.greenMid, L: S.greenDeep, E: S.deep,
 };
 
 /** What a little shop sells. */
 export type ShopKind = 'noodles' | 'repairs' | 'cloth' | 'grocer' | 'lamps';
 
 /** A small shop at street level in the low district: its own awning, its goods out front, its sign, a counter. */
-export const streetShop = (width: number, kind: ShopKind, seed: number): RowSprite => {
-  const g = grid(width, 56);
+export const streetShop = (width: number, kind: ShopKind, seed: number, height = 56): RowSprite => {
+  const g0 = grid(width, 56);
+  const g = g0;
   // The shell and the open front, a lamp inside.
   box(g, 0, 0, width, 56, 'w');
   box(g, 0, 0, width, 1, 's');
@@ -631,8 +648,37 @@ export const streetShop = (width: number, kind: ShopKind, seed: number): RowSpri
       for (let i = 6; i < width - 6; i += 7) box(g, i, 24, 5, 7, 'p');
       break;
     case 'lamps': // lamps of every kind, lit, hung all over it
-      for (let i = 5; i < width - 4; i += 5) for (let j = 22 + (i % 3) * 3; j < 40; j += 9) { plot(g, i, j, 'n'); box(g, i - 1, j + 1, 3, 2, (i + j) % 4 ? 'a' : 'c'); }
+      for (let i = 6; i < width - 5; i += 8) { plot(g, i, 20, 'n'); plot(g, i, 21, 'n'); box(g, i - 1, 22, 3, 3, (i / 8) % 2 ? 'a' : 'c'); }
+      for (let i = 10; i < width - 5; i += 8) { plot(g, i, 28, 'n'); box(g, i - 1, 29, 3, 3, 'a'); }
       break;
   }
-  return { rows: g.map((row) => row.join('')), colours: C };
+  // Taller than a shop (up to a walkway over it): a band of wall over the sign, with a pipe along it.
+  const extra = Math.max(0, height - 56);
+  const rows = [...Array.from({ length: extra }, (_, y) => Array.from({ length: width }, (_, x) => (y === extra - 3 ? 'd' : y === extra - 2 ? 'n' : (x + y) % 19 === 0 ? 'n' : 'w')).join('')), ...g.map((row) => row.join(''))];
+  return { rows, colours: C };
+};
+
+/** A building that comes right down to the street with a passage through it: an alley, lit at its far end. */
+export const alley = (width: number, height: number, seed: number): RowSprite => {
+  const front = facade(width, height, seed).rows;
+  const PASS = 46;
+  return {
+    rows: front.map((row, y) => {
+      const up = height - y; // rows above the street
+      if (up > PASS) return row;
+      return [...row].map((c, x) => {
+        const half = (width - 12) / 2;
+        const dx = Math.abs(x - width / 2 + 0.5);
+        const archTop = PASS - 6 + Math.sqrt(Math.max(0, 1 - (dx / half) ** 2)) * 6;
+        if (dx > half || up > archTop) return c;
+        if (up > archTop - 1) return 'm'; // the arch's edge
+        // Inside: dark, the far end lit, a lamp on the wall, the floor going away.
+        if (up < 3) return 'n';
+        if (dx < 4 && up < 22) return up < 20 ? 'A' : 'a';
+        if (x === 7 && up === 30) return 'a';
+        return 's';
+      }).join('');
+    }),
+    colours: C,
+  };
 };

@@ -70,49 +70,44 @@ export const lowDistrict: AreaDefinition = {
   ],
 
   props: [
-    // The stacks, both sides: homes on homes over the walkways, shops along the street under them.
+    // The stacks, both sides: homes on homes over the walkways, shops along the street under them, right up
+    // to the walkway (nothing floating, no gaps).
     { sprite: P.homes(250, LEFT_WALK - 20, 3), x: 16, y: 20 },
-    { sprite: P.streetShop(62, 'noodles', 1), x: 18, y: FLOOR - 56 },
-    { sprite: P.streetShop(60, 'repairs', 2), x: 82, y: FLOOR - 56 },
-    { sprite: P.streetShop(58, 'cloth', 3), x: 144, y: FLOOR - 56 },
-    { sprite: P.homes(48, FLOOR - LEFT_WALK - 6, 8), x: 202, y: LEFT_WALK + 6 },
+    { sprite: P.streetShop(62, 'noodles', 1, FLOOR - LEFT_WALK - 6), x: 18, y: LEFT_WALK + 6 },
+    { sprite: P.streetShop(60, 'repairs', 2, FLOOR - LEFT_WALK - 6), x: 82, y: LEFT_WALK + 6 },
+    { sprite: P.streetShop(58, 'cloth', 3, FLOOR - LEFT_WALK - 6), x: 144, y: LEFT_WALK + 6 },
+    { sprite: P.homes(48, FLOOR - LEFT_WALK - 6, 8, { roof: false }), x: 202, y: LEFT_WALK + 6 },
     { sprite: P.homes(250, RIGHT_WALK - 10, 5), x: 700, y: 10 },
-    { sprite: P.homes(150, FLOOR - RIGHT_WALK - 6, 6), x: 704, y: RIGHT_WALK + 6 },
-    { sprite: P.streetShop(82, 'grocer', 4), x: 856, y: FLOOR - 56 },
-    // Behind the street, more of them, lower, so it's cramped; the towers only over the rooftops.
-    { sprite: P.homes(440, FLOOR - 56 - 104, 7), x: 262, y: 104 },
+    { sprite: P.homes(150, FLOOR - RIGHT_WALK - 6, 6, { roof: false }), x: 704, y: RIGHT_WALK + 6 },
+    { sprite: P.streetShop(82, 'grocer', 4, FLOOR - RIGHT_WALK - 6), x: 856, y: RIGHT_WALK + 6 },
+    // Behind the street, between the stairs: more homes, further back (darker), so it's cramped; the towers
+    // only over the rooftops. At the street, homes and two shops.
+    { sprite: P.homes(304, FLOOR - 56 - 100, 7, { back: true }), x: 316, y: 100 },
+    { sprite: P.homes(102, 56, 9, { roof: false }), x: 316, y: FLOOR - 56 },
     { sprite: P.streetShop(66, 'grocer', 5), x: 418, y: FLOOR - 56 },
     { sprite: P.streetShop(58, 'lamps', 6), x: 504, y: FLOOR - 56 },
-    { sprite: P.homes(156, 56, 9), x: 262, y: FLOOR - 56 },
-    { sprite: P.homes(58, 56, 10), x: 562, y: FLOOR - 56 },
-    // Between them: the street.
+    { sprite: P.homes(58, 56, 10, { roof: false }), x: 562, y: FLOOR - 56 },
+    // Washing strung across the street and along the left walkway; plants by a door.
     { sprite: P.washing(150), x: 270, y: 90 },
-    { sprite: P.washing(120), x: 520, y: 70 },
     { sprite: P.washing(90), x: 40, y: LEFT_WALK - 26 },
     { sprite: P.POTS, x: 200, y: LEFT_WALK - 14 },
-    { sprite: P.POTS, x: 760, y: RIGHT_WALK - 14 },
-    { sprite: P.DEAD_SCREEN, x: 340, y: 130 },
     { sprite: P.cableBundle(FLOOR - 20), x: 690, y: 20 },
-    { sprite: P.FOOD_STALL, x: 380, y: FLOOR - 40 },
-    { sprite: P.STREET_BENCH, x: 500, y: FLOOR - 5 },
+    // The cooking stall and a vent steaming.
+    { sprite: P.FOOD_STALL, x: 372, y: FLOOR - 40 },
     { sprite: P.VENT, x: 330, y: FLOOR - 8 },
-    { sprite: P.POTS, x: 540, y: FLOOR - 14 },
-    // The symbol, chalked up everywhere (one half scrubbed off).
-    { sprite: P.symbolMark('chalk'), x: 300, y: 154 },
-    { sprite: P.symbolMark('chalk'), x: 470, y: 112 },
-    { sprite: P.symbolMark('scrubbed'), x: 120, y: 196 },
-    { sprite: P.symbolMark('chalk'), x: 770, y: 186 },
-    { sprite: P.symbolMark('chalk'), x: 640, y: 120 },
+    // The symbol, chalked on the walls (one half scrubbed off).
+    { sprite: P.symbolMark('chalk'), x: 340, y: 116 },
+    { sprite: P.symbolMark('chalk'), x: 580, y: 124 },
+    { sprite: P.symbolMark('scrubbed'), x: 214, y: 192 },
     // The way down to the hideout.
     { sprite: P.CELLAR_DOOR, x: 586, y: FLOOR - 34 },
-    { sprite: P.streetLamp(60), x: 636, y: FLOOR - 60 },
   ],
 
   features: [
     { type: 'rain' },
     { type: 'fire', x: 470, y: FLOOR - 1 },
     { type: 'smoke', x: 470, y: FLOOR - 10, top: 60 },
-    { type: 'smoke', x: 394, y: FLOOR - 22, top: 90 },
+    { type: 'smoke', x: 386, y: FLOOR - 22, top: 90 },
     { type: 'smoke', x: 335, y: FLOOR - 8, top: 120 },
     { type: 'frames', frames: P.signFrames(24, 10, 21), x: 120, y: LEFT_WALK + 20, every: 330 },
   ],

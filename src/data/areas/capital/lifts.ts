@@ -56,6 +56,16 @@ export const lifts: AreaDefinition = {
   ],
 
   lines: [
+    // The stations between the shafts hang on girders from the shafts' frames: a beam under each, struts.
+    ...[PROMENADE, DATA].flatMap((y) => [
+      { from: { x: L + CAR, y: y + 8 }, to: { x: R - 1, y: y + 8 }, colour: S.deep },
+      { from: { x: L + CAR, y: y + 9 }, to: { x: R - 1, y: y + 9 }, colour: S.woodLight },
+      { from: { x: L + CAR + 1, y: y + 9 }, to: { x: L + CAR + 14, y: y + 22 }, colour: S.woodLight },
+      { from: { x: R - 2, y: y + 9 }, to: { x: R - 15, y: y + 22 }, colour: S.woodLight },
+    ]),
+    // The citadel's station on brackets out from the tower.
+    { from: { x: 156, y: CITADEL + 8 }, to: { x: 176, y: CITADEL + 8 }, colour: S.deep },
+    { from: { x: 156, y: CITADEL + 24 }, to: { x: 176, y: CITADEL + 9 }, colour: S.woodLight },
     // Cables down the tower's face.
     { from: { x: 150, y: 0 }, to: { x: 150, y: FLOOR }, colour: S.deep },
     { from: { x: 440, y: 200 }, to: { x: 440, y: FLOOR }, colour: S.deep },
@@ -66,13 +76,14 @@ export const lifts: AreaDefinition = {
     { sprite: P.facade(140, FLOOR - CITADEL - 8, 31), x: 16, y: CITADEL + 8 },
     { sprite: P.facade(150, CITADEL - 20, 32), x: 16, y: 20 },
     // The glass shafts.
-    { sprite: liftShaft(CAR + 4, FLOOR - CITADEL + 30), x: L - 2, y: CITADEL - 30 },
-    { sprite: liftShaft(CAR + 4, DATA - PROMENADE + 30), x: R - 2, y: PROMENADE - 30 },
+    // (Both run the tower's full height, from its top down to the street: nothing hangs in the air.)
+    { sprite: liftShaft(CAR + 4, FLOOR - 20), x: L - 2, y: 20 },
+    { sprite: liftShaft(CAR + 4, FLOOR - 20), x: R - 2, y: 20 },
     // The stations' signs.
     { sprite: P.neonSign(30, 10, 41), x: 40, y: CITADEL - 40 },
     // The data centre's side of its station: a building with its door.
     { sprite: P.facade(130, DATA - 300, 33), x: R + CAR + 4, y: 300 },
-    { sprite: P.facade(130, FLOOR - DATA - 60, 34), x: R + CAR + 4, y: DATA + 8 },
+    { sprite: P.facade(130, FLOOR - DATA - 8, 34), x: R + CAR + 4, y: DATA + 8 },
     // The street at the bottom: the operator's booth, a lamp.
     { sprite: P.BOOTH, x: 240, y: FLOOR - 50 },
     { sprite: P.streetLamp(60), x: 120, y: FLOOR - 60 },

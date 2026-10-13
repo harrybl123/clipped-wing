@@ -86,18 +86,20 @@ export const promenade: AreaDefinition = {
     // The left: shops along the street, the buildings over them; the alley to the gate.
     ...shop(16, 70, 1, FLOOR, 70),
     ...shop(90, 76, 2, FLOOR, 46),
-    { sprite: P.facade(40, FLOOR - 52 - 80, 9), x: 170, y: 80 },
+    { sprite: P.alley(44, FLOOR - 80, 9), x: 168, y: 80 },
     ...shop(214, 62, 3, FLOOR, 66),
     // The square: stalls, a bench, a vent, lamps.
     { sprite: P.streetLamp(70), x: 296, y: FLOOR - 70 },
     { sprite: P.FOOD_STALL, x: 326, y: FLOOR - 40 },
     { sprite: P.STREET_BENCH, x: 390, y: FLOOR - 5 },
-    { sprite: P.FOOD_STALL, x: 448, y: FLOOR - 40 },
+    { sprite: P.FOOD_STALL, x: 440, y: FLOOR - 40 },
     { sprite: P.VENT, x: 498, y: FLOOR - 8 },
     { sprite: P.streetLamp(70), x: 516, y: FLOOR - 70 },
     // The right: shops under the walkway, more along it, the buildings over them.
-    ...shop(536, 56, 4, FLOOR, 120),
-    { sprite: P.facade(300, WALK - 50 - 24, 10), x: WALK_FROM, y: 24 },
+    // (The stair up to the walkway is open behind; the building with the walkway along it comes down to the
+    // street, its upper shops on the walkway, its lower ones under it.)
+    { sprite: P.facade(300, WALK - 24, 10), x: WALK_FROM, y: 24 },
+    { sprite: P.facade(300, FLOOR - WALK - 6, 14), x: WALK_FROM, y: WALK + 6 },
     { sprite: P.shopfront(70, 5), x: 616, y: WALK - 50 },
     { sprite: P.shopfront(64, 6), x: 700, y: WALK - 50 },
     { sprite: P.shopfront(76, 7), x: 780, y: WALK - 50 },
@@ -119,7 +121,7 @@ export const promenade: AreaDefinition = {
     { type: 'frames', frames: P.signFrames(44, 12, 4), x: 660, y: 48, every: 340 },
     { type: 'frames', frames: P.signFrames(26, 12, 5), x: 820, y: 66, every: 290 },
     steam(340, FLOOR - 22),
-    steam(462, FLOOR - 22),
+    steam(454, FLOOR - 22),
     steam(503, FLOOR - 8),
     // Light running along the walkway's rail.
     { type: 'pulse', points: [{ x: WALK_FROM, y: WALK - 10 }, { x: WALK_TO, y: WALK - 10 }], speed: 90, every: 400, count: 2, colour: S.cyan },
