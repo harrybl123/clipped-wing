@@ -121,7 +121,8 @@ Labels: **(doc)** comes from the chapter design, **(designer)** was decided in c
    - the hideout (`?area=hideout`, inside the low district, `INSIDE_AREAS`): an old stone cellar (`walls: 'stone'`) made a bar: the counter, bottles, a long table with benches, barrels and crates, notices pasted up, lamps in cages; the back way out;
    - the data centre (`?area=data-centre`): bare panels in cold blue, rows of racks blinking, the operator's desk and screens, cables with light running along them into a sealed door like the citadel's;
    - the gate (`?area=city-gate`): inside, the city's buildings and the checkpoint (booth, barrier, screen); the wall, old stone and dull gold, with the passage through it; outside, the road across the waste and the tree on the horizon.
-   - **Not yet:** the symbol on the walls (what it looks like is the designer's to say), and the raid's aftermath in the hideout.
+   - **The symbol** is Grounded's mark, the bird on bare ground (designer): chalked across the low district (one half scrubbed off) and painted large in the hideout (`symbolMark` in `cityProps.ts`, drawn from `GROUNDED_MARK` in `src/data/messages.ts`, the same picture as on Act 1's plates).
+   - **Not yet:** the raid's aftermath in the hideout; the symbol spreading and being scrubbed as the story goes.
 5. The cast: the prince as the player first, then everyone else, placed in each area by time of day.
 
 ## Open questions

@@ -7,8 +7,7 @@ import type { AreaDefinition, Solid } from '../types';
 // in pots, a cooking fire, steam; less power, so more amber from lamps and fires than blue, a dead screen.
 // The towers and the citadel high above. Walkways along the stacks, stairs up to them. A low doorway at
 // street level, steps going down into the dark: the way to the hideout. Where your hand takes you to see
-// what's really going on (designer). (The symbol isn't on the walls yet: what it looks like is the
-// designer's to say.)
+// what's really going on (designer). The symbol chalked everywhere: Grounded's bird on bare ground (designer).
 
 const W = 960;
 const FLOOR = 236;
@@ -90,6 +89,12 @@ export const lowDistrict: AreaDefinition = {
     { sprite: P.STREET_BENCH, x: 500, y: FLOOR - 5 },
     { sprite: P.VENT, x: 330, y: FLOOR - 8 },
     { sprite: P.POTS, x: 540, y: FLOOR - 14 },
+    // The symbol, chalked up everywhere (one half scrubbed off).
+    { sprite: P.symbolMark('chalk'), x: 300, y: 154 },
+    { sprite: P.symbolMark('chalk'), x: 470, y: 112 },
+    { sprite: P.symbolMark('scrubbed'), x: 120, y: 196 },
+    { sprite: P.symbolMark('chalk'), x: 770, y: 186 },
+    { sprite: P.symbolMark('chalk'), x: 640, y: 120 },
     // The way down to the hideout.
     { sprite: P.CELLAR_DOOR, x: 586, y: FLOOR - 34 },
     { sprite: P.streetLamp(60), x: 636, y: FLOOR - 60 },

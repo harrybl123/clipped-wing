@@ -1,5 +1,6 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import type { RowSprite } from '../../../ui/sprites';
+import { GROUNDED_MARK } from '../../messages';
 
 // PLACEHOLDER pixel props for the capital's city (Chapter 3; docs/chapter-3-world.md): below the citadel,
 // cyberpunk and earthy at once: shopfronts under striped awnings, signs of cyan and amber light, steam from
@@ -386,3 +387,25 @@ export const NOTICES: RowSprite = {
   }),
   colours: C,
 };
+
+/**
+ * The symbol: Grounded's mark, the bird on bare ground (designer), the one on the carver's plates in the
+ * tree. Chalked on walls (rough, a pixel missing here and there), half scrubbed off (faint, broken), or
+ * painted large (`scale`) in the hideout.
+ */
+export const symbolMark = (style: 'chalk' | 'scrubbed' | 'paint', scale = 1): RowSprite => ({
+  rows: GROUNDED_MARK.flatMap((row, y) =>
+    Array.from({ length: scale }, (_, sy) =>
+      [...row].flatMap((c, x) =>
+        Array.from({ length: scale }, (_, sx) => {
+          if (c !== '#') return '.';
+          const k = r(x * 7 + sx + 3, y * 5 + sy);
+          if (style === 'chalk') return k > 0.88 ? '.' : k > 0.6 ? 'm' : 'h';
+          if (style === 'scrubbed') return k > 0.55 ? '.' : 'm';
+          return k > 0.93 ? 'm' : 'h'; // paint, brushed on
+        }),
+      ).join(''),
+    ),
+  ),
+  colours: C,
+});

@@ -6,8 +6,8 @@ import type { AreaDefinition } from '../types';
 // a bar: where citizens band together against injustice, and the capital and your father call them
 // terrorists (designer; docs/areas/capital/hideout.md). Warm, low, lamps hanging in cages; the counter,
 // bottles catching the light, small tables; the steps up to the street; a back way out into the dark.
-// Raided and ransacked while you're there (designer): after, smashed and dark (not built yet). (A wall
-// waits for the symbol, painted large: what it looks like is the designer's to say.)
+// Raided and ransacked while you're there (designer): after, smashed and dark (not built yet). The symbol
+// painted large on the wall: Grounded's bird on bare ground (designer).
 
 const W = 480;
 const FLOOR = 226;
@@ -48,7 +48,9 @@ export const hideout: AreaDefinition = {
     // The steps up to the street.
     { sprite: P.CELLAR_DOOR, x: 24, y: FLOOR - 34 },
     // Notices on the wall, the movement's and the capital's over them; barrels and crates.
-    { sprite: P.NOTICES, x: 96, y: 112 },
+    // The symbol, painted large: Grounded's bird on bare ground (designer).
+    { sprite: P.symbolMark('paint', 3), x: 150, y: 94 },
+    { sprite: P.NOTICES, x: 92, y: 112 },
     { sprite: P.NOTICES, x: 230, y: 118 },
     { sprite: P.CRATES, x: 64, y: FLOOR - 30 },
     { sprite: P.BARREL, x: 290, y: FLOOR - 18 },
