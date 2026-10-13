@@ -27,6 +27,12 @@ import { glasshouse } from './capital/glasshouse';
 import { guestWing } from './capital/guestWing';
 import { sealedWing } from './capital/sealedWing';
 import { princeQuarters } from './capital/princeQuarters';
+import { promenade } from './capital/promenade';
+import { cityGate } from './capital/cityGate';
+import { dataCentre } from './capital/dataCentre';
+import { hideout } from './capital/hideout';
+import { lifts } from './capital/lifts';
+import { lowDistrict } from './capital/lowDistrict';
 import { friendsHome } from './friendsHome';
 import { girlsHome } from './girlsHome';
 import { home } from './home';
@@ -114,6 +120,8 @@ export const INSIDE_AREAS: Record<string, { name: string; of: string; storyOnly?
   'compound-house': { name: "the boss's house", of: 'compound' },
   // (No doors: you're only ever taken down there, and you get out through the drain.)
   'tally-cellar': { name: 'the tally house cellar', of: 'tally-house', storyOnly: true },
+  // Chapter 3: the hideout, down a low doorway in the low district.
+  hideout: { name: 'the hideout', of: 'low-district' },
 };
 
 /** The place on the map an area counts as: its parent if it's an area within an area, else itself. */
@@ -172,4 +180,10 @@ export const AREAS: Record<string, AreaDefinition> = {
   [banquetGallery.id]: banquetGallery,
   [diplomatsOffice.id]: diplomatsOffice,
   [guestWing.id]: guestWing,
+  [promenade.id]: promenade,
+  [lifts.id]: lifts,
+  [lowDistrict.id]: lowDistrict,
+  [hideout.id]: hideout,
+  [dataCentre.id]: dataCentre,
+  [cityGate.id]: cityGate,
 };

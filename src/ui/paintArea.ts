@@ -360,7 +360,7 @@ export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon'): (
       // (Marble stays clean and even: only a little darker towards its corners.)
       let c = wall.map((v) => v * ambient * (1 - (marble ? 0.18 : 0.55) * vignette - edgeShadow)) as RGB;
       // (Pale marble is already bright: light on it only warms or cools it, or it washes out in white blotches.)
-      const lightOnWall = area.walls === 'marble' || area.walls === 'bare' || plaster ? 0.4 : 1;
+      const lightOnWall = area.walls === 'marble' || area.walls === 'bare' || plaster ? 0.4 : stoneWalls ? 0.55 : 1;
       for (const l of lights) c = addLight(c, l.rgb, lightOnWall * l.strength * falloff(x, y, l.x, l.y, l.radius, l.radiusY ?? l.radius));
       return c;
     }

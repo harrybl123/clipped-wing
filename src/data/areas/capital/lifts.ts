@@ -1,0 +1,100 @@
+import { SHADES as S } from '../../../ui/pixelArt';
+import { liftCar, liftShaft, scrollingScreen } from './citadelProps';
+import * as P from './cityProps';
+import type { AreaDefinition } from '../types';
+
+// The lifts (Chapter 3): glass lifts up the face of the city, between the citadel and the streets, where
+// messages change hands (docs/areas/capital/lifts.md). Three screens high: a tower's face, and stations
+// jutting out from it at each level, the citadel at the top, the promenade, the data centre, the low
+// district at the bottom; the city's towers all round, lit at night, rain. Two glass shafts: the cars take
+// you a stage at a time (the citadel to the promenade, the promenade to the data centre, the data centre
+// down to the street). The lift operator's booth at the bottom, where they see who rides where.
+
+const W = 480;
+const H = 810;
+/** The stations. */
+const CITADEL = 130;
+const PROMENADE = 330;
+const DATA = 530;
+const FLOOR = 770;
+/** The two shafts' left edges; each car is 32 wide. */
+const L = 180;
+const R = 290;
+const CAR = 32;
+
+export const lifts: AreaDefinition = {
+  id: 'lifts',
+  name: 'the lifts',
+  width: W,
+  height: H,
+  cavity: { x: 0, y: 0, width: W, height: H, radius: 0 },
+  outdoor: { horizon: 340, treeX: 420, treeScale: 0.16, backdrop: 'city', citadelX: 120, ground: 'street' },
+  ambient: 1,
+  playerStart: { x: 60, y: CITADEL },
+  surface: 'stone',
+  acoustics: 'high',
+  ambience: [
+    { sound: 'wind', volume: 0.35 },
+    { sound: 'hum', volume: 0.15 },
+  ],
+
+  solids: [
+    { x: 16, y: CITADEL, width: L - 16, height: 8, oneWay: true }, // the citadel's station
+    { x: L + CAR, y: PROMENADE, width: R - L - CAR, height: 8, oneWay: true }, // the promenade's, between the shafts
+    { x: L + CAR, y: DATA, width: R - L - CAR, height: 8, oneWay: true }, // the data centre's, between the shafts...
+    { x: R + CAR, y: DATA, width: W - 16 - R - CAR, height: 8, oneWay: true }, // ...and out to its door
+    { x: 0, y: FLOOR, width: W, height: H - FLOOR }, // the street
+    { x: 0, y: 0, width: 4, height: H, invisible: true },
+    { x: W - 4, y: 0, width: 4, height: H, invisible: true },
+  ],
+
+  lights: [
+    { x: 100, y: CITADEL, colour: S.amber, radius: 80, radiusY: 8, strength: 0.3 },
+    { x: 260, y: PROMENADE, colour: S.amber, radius: 60, radiusY: 8, strength: 0.3 },
+    { x: 380, y: DATA, colour: S.cyan, radius: 90, radiusY: 8, strength: 0.4 },
+    { x: 240, y: FLOOR, colour: S.amber, radius: 140, radiusY: 10, strength: 0.3 },
+  ],
+
+  lines: [
+    // Cables down the tower's face.
+    { from: { x: 150, y: 0 }, to: { x: 150, y: FLOOR }, colour: S.deep },
+    { from: { x: 440, y: 200 }, to: { x: 440, y: FLOOR }, colour: S.deep },
+  ],
+
+  props: [
+    // The tower the lifts climb: its face down the left.
+    { sprite: P.facade(140, FLOOR - CITADEL - 8, 31), x: 16, y: CITADEL + 8 },
+    { sprite: P.facade(150, CITADEL - 20, 32), x: 16, y: 20 },
+    // The glass shafts.
+    { sprite: liftShaft(CAR + 4, FLOOR - CITADEL + 30), x: L - 2, y: CITADEL - 30 },
+    { sprite: liftShaft(CAR + 4, DATA - PROMENADE + 30), x: R - 2, y: PROMENADE - 30 },
+    // The stations' signs.
+    { sprite: P.neonSign(30, 10, 41), x: 40, y: CITADEL - 40 },
+    // The data centre's side of its station: a building with its door.
+    { sprite: P.facade(130, DATA - 300, 33), x: R + CAR + 4, y: 300 },
+    { sprite: P.facade(130, FLOOR - DATA - 60, 34), x: R + CAR + 4, y: DATA + 8 },
+    // The street at the bottom: the operator's booth, a lamp.
+    { sprite: P.BOOTH, x: 240, y: FLOOR - 50 },
+    { sprite: P.streetLamp(60), x: 120, y: FLOOR - 60 },
+    { sprite: P.streetLamp(60), x: 420, y: FLOOR - 60 },
+  ],
+
+  features: [
+    { type: 'rain' },
+    // The cars, each a stage of the way.
+    { type: 'mover', sprite: liftCar(CAR), x: L, y: CITADEL - 2, to: { x: L, y: PROMENADE - 2 }, speed: 60 },
+    { type: 'mover', sprite: liftCar(CAR), x: R, y: PROMENADE - 2, to: { x: R, y: DATA - 2 }, speed: 60 },
+    { type: 'mover', sprite: liftCar(CAR), x: L, y: DATA - 2, to: { x: L, y: FLOOR - 2 }, speed: 60 },
+    { type: 'frames', frames: scrollingScreen(48, 30), x: 360, y: 380, every: 400 },
+    { type: 'frames', frames: P.signFrames(36, 12, 42), x: 40, y: PROMENADE + 30, every: 300 },
+  ],
+  people: [],
+  interactables: [],
+
+  exits: [
+    { id: 'to-audience-hall', x: 40, y: CITADEL, reach: 14, to: 'audience-hall' },
+    { id: 'to-promenade', x: 248, y: PROMENADE, reach: 12, to: 'promenade' },
+    { id: 'to-data-centre', x: 440, y: DATA, reach: 14, to: 'data-centre' },
+    { id: 'to-low-district', x: 40, y: FLOOR, reach: 14, to: 'low-district' },
+  ],
+};

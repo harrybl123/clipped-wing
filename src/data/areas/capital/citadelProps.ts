@@ -583,7 +583,7 @@ export const liftShaft = (width: number, height: number): RowSprite => ({
     if (x === 0 || x === width - 1) return 'G';
     if (x === 1 || x === width - 2) return y % 24 === 0 ? 'a' : (x + y) % 4 === 0 ? 'g' : '.';
     if (y % 24 === 0) return 'a';
-    return (x - y * 0.6) % 31 < 1 ? 'g' : '.'; // a glint across the glass
+    return (((x - y * 0.6) % 31) + 31) % 31 < 1 ? 'g' : '.'; // a glint across the glass
   }),
   colours: C,
 });

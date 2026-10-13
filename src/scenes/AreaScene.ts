@@ -2204,6 +2204,24 @@ export class AreaScene extends Phaser.Scene {
         });
         break;
       }
+      case 'rain': {
+        // Fine streaks falling slantwise across the whole area, over everything but the dialogue.
+        const when = feature.when ?? ['night'];
+        const drop = makeSpriteTexture(this, 'rain-drop', ['c', 'c', 'C'], { c: SHADES.cyanMid, C: SHADES.light });
+        const rain = this.add.particles(0, 0, drop, {
+          x: { min: -60, max: this.area.width + 20 },
+          y: -8,
+          speedY: { min: 290, max: 340 },
+          speedX: { min: 50, max: 60 },
+          lifespan: ((this.area.height + 20) / 290) * 1000,
+          frequency: 12,
+          quantity: Math.ceil(this.area.width / 320),
+          alpha: { min: 0.35, max: 0.7 },
+        }).setDepth(9);
+        const on = () => when.includes(getSession(this).calendar.slot) && (!feature.showIf || !!getSession(this).story.getVariable(feature.showIf));
+        this.storyShown.push({ objects: [rain], on });
+        break;
+      }
       case 'frames': {
         const keys = feature.frames.map((f, i) => makeSpriteTexture(this, `frames-${feature.x}-${feature.y}-${i}`, f.rows, f.colours));
         const image = this.add.image(feature.x, feature.y, keys[0]!).setOrigin(0).setDepth(3);

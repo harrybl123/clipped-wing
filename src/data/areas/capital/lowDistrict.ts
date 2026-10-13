@@ -1,0 +1,114 @@
+import { SHADES as S } from '../../../ui/pixelArt';
+import * as P from './cityProps';
+import type { AreaDefinition, Solid } from '../types';
+
+// The low district (Chapter 3): cramped, at the bottom of the city (docs/areas/capital/low-district.md).
+// Under a ceiling of cables slung between homes stacked and patched by hand; washing strung across, plants
+// in pots, a cooking fire, steam; less power, so more amber from lamps and fires than blue, a dead screen.
+// The towers and the citadel high above. Walkways along the stacks, stairs up to them. A low doorway at
+// street level, steps going down into the dark: the way to the hideout. Where your hand takes you to see
+// what's really going on (designer). (The symbol isn't on the walls yet: what it looks like is the
+// designer's to say.)
+
+const W = 960;
+const FLOOR = 236;
+/** The walkways along the stacks: on the left, and on the right. */
+const LEFT_WALK = 168;
+const RIGHT_WALK = 150;
+
+/** Stairs up to a walkway: from `foot` (where they start on the street), climbing towards `top` (where the walkway ends). */
+function stairs(top: number, foot: number, level: number): Solid[] {
+  const steps = (FLOOR - level) / 8;
+  const dir = Math.sign(foot - top); // +1: the walkway is to the left, the stairs climb leftwards
+  return Array.from({ length: steps - 1 }, (_, i) => {
+    const y = FLOOR - 8 * (i + 1);
+    const front = foot - dir * 8 * i; // this step's front edge
+    const x = dir > 0 ? top : front;
+    return { x, y, width: Math.abs(front - top), height: FLOOR - y, oneWay: true };
+  });
+}
+
+export const lowDistrict: AreaDefinition = {
+  id: 'low-district',
+  name: 'the low district',
+  width: W,
+  height: 270,
+  cavity: { x: 0, y: 0, width: W, height: 270, radius: 0 },
+  outdoor: { horizon: 214, treeX: 60, treeScale: 0.16, backdrop: 'city', citadelX: 300, ground: 'street' },
+  ambient: 1,
+  playerStart: { x: 60, y: FLOOR },
+  surface: 'stone',
+  acoustics: 'street',
+  ambience: [
+    { sound: 'chatter', volume: 0.2 },
+    { sound: 'hearth', volume: 0.2 },
+    { sound: 'drips', volume: 0.2 },
+  ],
+
+  solids: [
+    { x: 0, y: FLOOR, width: W, height: 270 - FLOOR },
+    { x: 20, y: LEFT_WALK, width: 230, height: 6, oneWay: true },
+    ...stairs(250, 314, LEFT_WALK),
+    { x: 700, y: RIGHT_WALK, width: 240, height: 6, oneWay: true },
+    ...stairs(700, 620, RIGHT_WALK),
+    { x: 0, y: 0, width: 4, height: 270, invisible: true },
+    { x: W - 4, y: 0, width: 4, height: 270, invisible: true },
+  ],
+
+  lights: [
+    { x: 470, y: FLOOR, colour: S.amber, radius: 90, radiusY: 12, strength: 0.5 }, // the cooking fire
+    { x: 140, y: LEFT_WALK, colour: S.amber, radius: 100, radiusY: 8, strength: 0.25 },
+    { x: 820, y: RIGHT_WALK, colour: S.amber, radius: 100, radiusY: 8, strength: 0.25 },
+  ],
+
+  lines: [
+    // The ceiling of cables, slung every way between the stacks.
+    ...[[0, 30, 320, 52], [0, 60, 480, 40], [200, 20, 700, 46], [300, 70, 640, 30], [480, 36, 960, 64], [620, 18, 960, 40], [100, 90, 300, 74], [660, 84, 900, 96]].map(([x1, y1, x2, y2]) => ({ from: { x: x1!, y: y1! }, to: { x: x2!, y: y2! }, colour: S.deep })),
+    { from: { x: 280, y: 50 }, to: { x: 680, y: 58 }, colour: S.cyanDeep },
+    // The walkways' rails.
+    { from: { x: 20, y: LEFT_WALK - 8 }, to: { x: 249, y: LEFT_WALK - 8 }, colour: S.woodPale },
+    { from: { x: 700, y: RIGHT_WALK - 8 }, to: { x: 939, y: RIGHT_WALK - 8 }, colour: S.woodPale },
+  ],
+
+  props: [
+    // The stacks: homes on homes, both sides.
+    { sprite: P.stackedHomes(250, LEFT_WALK - 20, 3), x: 16, y: 20 },
+    { sprite: P.stackedHomes(240, FLOOR - LEFT_WALK - 6, 4), x: 16, y: LEFT_WALK + 6 },
+    { sprite: P.stackedHomes(250, RIGHT_WALK - 10, 5), x: 700, y: 10 },
+    { sprite: P.stackedHomes(240, FLOOR - RIGHT_WALK - 6, 6), x: 704, y: RIGHT_WALK + 6 },
+    // Behind the street, more of them, lower, so it's cramped; the towers only over the rooftops.
+    { sprite: P.stackedHomes(440, FLOOR - 104, 7), x: 262, y: 104 },
+    // Between them: the street.
+    { sprite: P.washing(150), x: 270, y: 90 },
+    { sprite: P.washing(120), x: 520, y: 70 },
+    { sprite: P.washing(90), x: 40, y: LEFT_WALK - 26 },
+    { sprite: P.POTS, x: 200, y: LEFT_WALK - 14 },
+    { sprite: P.POTS, x: 760, y: RIGHT_WALK - 14 },
+    { sprite: P.DEAD_SCREEN, x: 340, y: 130 },
+    { sprite: P.cableBundle(FLOOR - 20), x: 690, y: 20 },
+    { sprite: P.FOOD_STALL, x: 380, y: FLOOR - 40 },
+    { sprite: P.STREET_BENCH, x: 500, y: FLOOR - 5 },
+    { sprite: P.VENT, x: 330, y: FLOOR - 8 },
+    { sprite: P.POTS, x: 540, y: FLOOR - 14 },
+    // The way down to the hideout.
+    { sprite: P.CELLAR_DOOR, x: 586, y: FLOOR - 34 },
+    { sprite: P.streetLamp(60), x: 636, y: FLOOR - 60 },
+  ],
+
+  features: [
+    { type: 'rain' },
+    { type: 'fire', x: 470, y: FLOOR - 1 },
+    { type: 'smoke', x: 470, y: FLOOR - 10, top: 60 },
+    { type: 'smoke', x: 394, y: FLOOR - 22, top: 90 },
+    { type: 'smoke', x: 335, y: FLOOR - 8, top: 120 },
+    { type: 'frames', frames: P.signFrames(24, 10, 21), x: 120, y: LEFT_WALK + 20, every: 330 },
+  ],
+  people: [],
+  interactables: [],
+
+  exits: [
+    { id: 'to-lifts', x: 24, y: FLOOR, reach: 14, to: 'lifts' },
+    { id: 'to-hideout', x: 601, y: FLOOR, reach: 12, to: 'hideout' },
+    { id: 'to-promenade', x: 940, y: FLOOR, reach: 14, to: 'promenade' },
+  ],
+};
