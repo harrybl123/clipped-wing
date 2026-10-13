@@ -805,3 +805,19 @@ describe('Chapter 2: the scavenger, the dog and the stragglers', () => {
     }
   });
 });
+
+describe('your side’s moves', () => {
+  // 'side' and 'weave' are for getting out of the way of a blow ("away from his swing"): on your own move they
+  // make no sense (designer: couldn't work out what the scout's Dust wanted).
+  it('never use a dodging QTE', () => {
+    const party = Object.values(COMBATANTS).filter((c) => c.basic);
+    for (const c of party) {
+      for (const id of [c.basic!, ...c.moves]) {
+        const q = MOVES[id]?.qte;
+        if (!q) continue;
+        expect(['side', 'weave'], `${c.id}: ${id}`).not.toContain(q.kind);
+        if (q.alt) expect(['side', 'weave'], `${c.id}: ${id} (alt)`).not.toContain(q.alt.kind);
+      }
+    }
+  });
+});

@@ -930,7 +930,7 @@ Object.assign(MOVES, {
   },
   low_blow: {
     id: 'low_blow', name: 'Low blow', target: 'enemy', power: 9, kind: 'shove', sp: 3, crit: 0.3, interrupts: true,
-    qte: { kind: 'key', time: 700, quick: 260, alt: { kind: 'weave', time: 650, quick: 260, gap: 520 } },
+    qte: { kind: 'key', time: 700, quick: 260, alt: { kind: 'bar', time: 950, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
     description: 'Something his father would be ashamed of. Knocks off balance anyone weak to shoves; interrupts a big swing.',
   },
   get_up: {
@@ -974,17 +974,18 @@ Object.assign(MOVES, {
   // The scout, on your side: a staff, quick feet, and their own clan's tricks.
   scout_staff: {
     id: 'scout_staff', name: 'Staff', target: 'enemy', power: 6, kind: 'pierce', crit: 0.15,
-    qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'weave', time: 650, quick: 260, gap: 520 } },
+    qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
     description: 'Basic attack with their staff.',
   },
   trip: {
     id: 'trip', name: 'Trip', target: 'enemy', power: 6, kind: 'shove', sp: 3, interrupts: true,
-    qte: { kind: 'side', time: 620, quick: 240, alt: { kind: 'key', time: 750, quick: 280 } },
+    // (Not 'side': that's for dodging a swing, and made no sense on your own move. Designer: couldn't tell what it wanted.)
+    qte: { kind: 'bar', time: 950, zone: [0.6, 0.8], sweet: [0.68, 0.72], alt: { kind: 'key', time: 750, quick: 280 } },
     description: 'The staff low, at their ankles: knocks off balance anyone weak to shoves, and stops a big swing.',
   },
   kick_dust: {
     id: 'kick_dust', name: 'Dust', target: 'enemy', power: 2, kind: 'none', sp: 2, silences: 2,
-    qte: { kind: 'side', time: 650, quick: 250, alt: { kind: 'key', time: 750, quick: 280 } },
+    qte: { kind: 'key', time: 750, quick: 280, alt: { kind: 'bar', time: 950, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
     description: 'Dirt in their eyes: for 2 rounds, no tricks of their own.',
   },
   // The watcher: no weapon. He watches, and he knows where people break.
