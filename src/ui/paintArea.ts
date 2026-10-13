@@ -145,15 +145,31 @@ function marbleWall(x: number, y: number): RGB | number {
   let c = veined && vein < 0.6 ? mix3(base, rgb(SHADES.dim), 0.5) : veined && vein < 1.3 ? mix3(base, rgb(SHADES.dim), 0.18) : base;
   // The seams' glow on the stone either side.
   const fromGlow = Math.min(x % (PANEL * 2), PANEL * 2 - (x % (PANEL * 2))); // to the nearest lit seam
-  c = addLight(c, rgb(SHADES.cyan), 0.22 * Math.exp(-((fromGlow / 5) ** 2)));
+  c = addLight(c, rgb(SHADES.cyan), 0.14 * Math.exp(-((fromGlow / 3.5) ** 2)));
   return c;
+}
+
+/**
+ * Dark wood panelling (your father's study, Chapter 3): tall panels framed in a lighter moulding, a thin
+ * gold line along the top of each course; warm under lamplight, the one room in the citadel that is.
+ */
+function panelledWall(x: number, y: number): RGB | number {
+  const lx = x % 36;
+  const ly = y % 52;
+  if (ly === 0) return SHADES.amberDeep; // the gold line along each course
+  if (lx === 0 || ly === 1) return SHADES.deep;
+  const frame = lx < 4 || lx > 32 || ly < 5 || ly > 48;
+  const base = rgb(frame ? SHADES.woodLight : SHADES.wood);
+  const grain = noise(x / 2.5 + noise(y / 30) * 2) * 0.08;
+  return base.map((v) => v * (1.1 + grain + (lx === 4 || ly === 5 ? -0.25 : 0))) as RGB;
 }
 
 const mix3 = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 
 /** Paints a room. `slot` is the time of day, for any views out over the city (default the afternoon). */
 export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon'): (x: number, y: number) => PixelColour {
-  const marble = area.walls === 'marble';
+  const panelled = area.walls === 'panelled';
+  const marble = area.walls === 'marble' || panelled;
   const scrap = area.walls === 'scrap' || area.walls === 'hull' || area.walls === 'matched' || marble;
   const views = (area.views ?? []).map((v) => cityViewPainter(v, slot));
   // A room that looks out over the city follows the light outside: dimmer from dusk, lamplit at night.
@@ -242,13 +258,15 @@ export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon'): (
     }
 
     if (scrap) {
-      const wall = marble ? marbleWall(x, y) : hull ? hullWall(x, y) : area.walls === 'matched' ? matchedWall(x, y) : scrapWall(x, y);
+      const wall = panelled ? panelledWall(x, y) : marble ? marbleWall(x, y) : hull ? hullWall(x, y) : area.walls === 'matched' ? matchedWall(x, y) : scrapWall(x, y);
       if (typeof wall === 'number') return wall;
       const vignette = smoothstep(0.45, 1.1, Math.hypot((x - centreX) / halfW, (y - centreY) / halfH));
       const edgeShadow = smoothstep(-10, 0, d) * (marble ? 0.15 : 0.4);
       // (Marble stays clean and even: only a little darker towards its corners.)
       let c = wall.map((v) => v * ambient * (1 - (marble ? 0.18 : 0.55) * vignette - edgeShadow)) as RGB;
-      for (const l of lights) c = addLight(c, l.rgb, l.strength * falloff(x, y, l.x, l.y, l.radius, l.radiusY ?? l.radius));
+      // (Pale marble is already bright: light on it only warms or cools it, or it washes out in white blotches.)
+      const lightOnWall = marble && !panelled ? 0.4 : 1;
+      for (const l of lights) c = addLight(c, l.rgb, lightOnWall * l.strength * falloff(x, y, l.x, l.y, l.radius, l.radiusY ?? l.radius));
       return c;
     }
     const grain = noise(x / 5 + noise(y / 90) * 0.5) * 0.6 + noise(x / 1.8 + 90) * 0.4;

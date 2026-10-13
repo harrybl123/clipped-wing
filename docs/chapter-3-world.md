@@ -100,7 +100,16 @@ Labels: **(doc)** comes from the chapter design, **(designer)** was decided in c
 
 1. The map, every place dark. **Done** (`src/data/capitalMap.ts`, `src/ui/paintCapitalMap.ts`): the city side-on at night, climbing to the citadel; halls, the lifts and streets between places.
 2. Your quarters: the first area sets the look (marble, gold, the glow; the balcony over the city and the tree on the horizon). **Built** (`src/data/areas/capital/princeQuarters.ts`; dev `?area=prince-quarters`): `walls: 'marble'`, and `views`, windows and open sides onto the city painted for the time of day (`src/ui/paintCityView.ts`; the room dims from dusk).
-3. The rest of the citadel. **The halls are built** (`citadelHalls.ts`; dev `?area=citadel-halls`): two floors and a grand stair, doors to every room.
+3. The rest of the citadel. **Built**, every room (placeholder art, no people yet; files in `src/data/areas/capital/`, props in `citadelProps.ts`):
+   - the halls (`?area=citadel-halls`): two floors and a grand stair, doors to every room, banners, statues, windows over the city;
+   - the audience hall (`?area=audience-hall`): columns, benches, the rope, the dais with the throne (gold-backed) and your seat beside it under the great screen; doors to the halls and the lifts;
+   - the council chamber (`?area=council-chamber`): tiers of seats, their lights dark where nobody sits, your father's at the top; the table of light, the city in blue with its cut districts dark;
+   - your father's study (`?area=fathers-study`): dark wood panelling (`walls: 'panelled'`), bookshelves, his desk by the window, a clock; the door to the sealed wing;
+   - the sealed wing (`?area=sealed-wing`): a corridor that gets plainer, the gold running out, to the seamless door glowing at its edge; a loud hum;
+   - the glasshouse (`?area=glasshouse`): a glass roof (sky only), a gold rib arching across it, vines, beds, small trees, the fountain, the terrace;
+   - the banquet gallery (`?area=banquet-gallery`): the dance floor and its screen, the long table with every place empty, your father's chair at its head, a balcony over the city;
+   - the diplomat's office (`?area=diplomats-office`): the wall of maps with threads between the pins, letters, his desk, a screen, his private door down to the lifts;
+   - the guest wing (`?area=guest-wing`): shut doors along a gold corridor, windows that don't open, your friend's room open at the far end, the guards' barrier by the way out.
 - The prince as the player is **done**: sprite, portrait, voice (`PRINCE`, `PRINCE_PORTRAIT`, `prince` in `VOICES`), used in every capital area.
 4. The city: the promenade first (the outdoor look), then the lifts, the low district, the hideout, the data centre, the gate.
 5. The cast: the prince as the player first, then everyone else, placed in each area by time of day.

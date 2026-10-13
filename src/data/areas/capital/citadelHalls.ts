@@ -89,6 +89,8 @@ export const citadelHalls: AreaDefinition = {
     { sprite: P.rug(300), x: 30, y: FLOOR - 3 },
     { sprite: P.greatDoors(40, 62), x: 100, y: FLOOR - 62 },
     { sprite: P.STATUE, x: 196, y: FLOOR - 46 },
+    { sprite: P.banner(14, 56), x: 168, y: UPPER + 12 },
+    { sprite: P.banner(14, 56), x: 796, y: UPPER + 12 },
     { sprite: P.screen(34, 22), x: 226, y: 168 },
     { sprite: P.doorway(26, 46), x: 287, y: FLOOR - 46 },
     { sprite: P.STATUE, x: 344, y: FLOOR - 46 },

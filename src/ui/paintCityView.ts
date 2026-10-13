@@ -50,7 +50,8 @@ export function cityViewPainter(view: CityView, slot: TimeSlot): (x: number, y: 
   const scaleOfTree = view.treeScale ?? 0.2;
   // Far off: small, its canopy low over the horizon.
   const tree = treePainter(view.treeX, HY, scaleOfTree, sky, night, false, 150 * scaleOfTree);
-  const rows = Array.from({ length: ROWS }, (_, r) => blockRow(r, HY, bottom + 10, view.x, view.x + view.width));
+  // (A view of only sky, its horizon below it (the glasshouse's roof), has no city in it.)
+  const rows = HY >= bottom ? [] : Array.from({ length: ROWS }, (_, r) => blockRow(r, HY, bottom + 10, view.x, view.x + view.width));
   const [cyan, amber, white, cyanDeep, deep] = [SHADES.cyan, SHADES.amber, SHADES.white, SHADES.cyanDeep, SHADES.deep].map(rgb) as RGB[];
 
   return (x, y) => {
@@ -59,14 +60,14 @@ export function cityViewPainter(view: CityView, slot: TimeSlot): (x: number, y: 
     if (view.mullions && (x - view.x) % view.mullions === view.mullions - 1) return SHADES.light;
 
     // Cables sagging across the bottom of the view, in front of everything.
-    for (const [k, high] of [[0, 12], [1, 24]] as const) {
+    for (const [k, high] of rows.length ? ([[0, 12], [1, 24]] as const) : []) {
       const span = 64 + k * 26;
       const u = (((x - view.x + k * 37) % span) + span) % span / span;
       if (y === bottom - high + Math.round(Math.sin(u * Math.PI) * 5)) return mix(deep!, cyanDeep!, 0.3);
     }
 
     // The city, nearest row first: a pixel belongs to the nearest block whose top it's below.
-    for (let r = ROWS - 1; r >= 0; r--) {
+    for (let r = rows.length - 1; r >= 0; r--) {
       const { blocks } = rows[r]!;
       const b = blocks.find((k) => x >= k.x && x < k.x + k.w);
       if (!b || y < b.top) continue;

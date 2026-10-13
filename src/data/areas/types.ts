@@ -231,9 +231,10 @@ export interface AreaDefinition {
    * together, with riveted plate floors), or hull (inside something enormous: smooth curved plates
    * with ribs running up and over, the tally house), or matched (whole matched panels, clean and warm:
    * the boss's house), or marble (the capital's citadel, Chapter 3: pale veined marble panels, a line of
-   * blue light up some of their seams, gold-edged marble floors).
+   * blue light up some of their seams, gold-edged marble floors), or panelled (dark wood panels framed in
+   * a lighter moulding, gold along their courses, over marble floors: your father's study).
    */
-  walls?: 'heartwood' | 'scrap' | 'hull' | 'matched' | 'marble';
+  walls?: 'heartwood' | 'scrap' | 'hull' | 'matched' | 'marble' | 'panelled';
   /**
    * Windows and open sides onto the city (the capital, Chapter 3): inside each rectangle, the city seen from
    * up here, painted for the time of day (the room is repainted when the time changes). Props go over them.

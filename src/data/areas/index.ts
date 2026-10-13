@@ -17,7 +17,15 @@ import { dogsHollow } from './borderland/dogsHollow';
 import { rivalLine } from './borderland/rivalLine';
 import { deepGround } from './borderland/deepGround';
 import { treesEdge } from './borderland/treesEdge';
+import { audienceHall } from './capital/audienceHall';
+import { banquetGallery } from './capital/banquetGallery';
 import { citadelHalls } from './capital/citadelHalls';
+import { councilChamber } from './capital/councilChamber';
+import { diplomatsOffice } from './capital/diplomatsOffice';
+import { fathersStudy } from './capital/fathersStudy';
+import { glasshouse } from './capital/glasshouse';
+import { guestWing } from './capital/guestWing';
+import { sealedWing } from './capital/sealedWing';
 import { princeQuarters } from './capital/princeQuarters';
 import { friendsHome } from './friendsHome';
 import { girlsHome } from './girlsHome';
@@ -156,4 +164,12 @@ export const AREAS: Record<string, AreaDefinition> = {
   // Chapter 3: the capital.
   [princeQuarters.id]: princeQuarters,
   [citadelHalls.id]: citadelHalls,
+  [audienceHall.id]: audienceHall,
+  [councilChamber.id]: councilChamber,
+  [fathersStudy.id]: fathersStudy,
+  [sealedWing.id]: sealedWing,
+  [glasshouse.id]: glasshouse,
+  [banquetGallery.id]: banquetGallery,
+  [diplomatsOffice.id]: diplomatsOffice,
+  [guestWing.id]: guestWing,
 };
