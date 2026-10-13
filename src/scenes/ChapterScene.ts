@@ -135,7 +135,7 @@ export function devChapter2Day(scene: Phaser.Scene, day: number): void {
     tally: { area: { areaId: 'tally-house', start: { x: 120, y: 236 }, script: 'c2day10_tally' }, slots: 3, vars: { ...after10, c2day10: 'tally', yard10: true, yard10_seen: true, night10: true, night10_seen: true, brand_night: true, dog_home: false, dog_ran10: true, friend_back10: params.get('friend') === 'reported', brother_brand10: params.get('brother') === 'compound' } },
   };
   // Day 11: &at=cellar (in the cellar after the brand), &at=hollow (out, to find the dog), &at=choice (the
-  // dog and the rubbing: big choice 3), &at=edge (dusk at the tree's edge, with &last=girl|truce|war). Day 10's
+  // dog and the rubbing: big choice 3), &at=camp (out on the deep ground behind the scout), &at=edge (dusk at the tree's edge, with &last=girl|truce|war). Day 10's
   // choices as above (&watcher=2 and &scout=let_go open every last act).
   if (day >= 11) {
     set({
@@ -150,6 +150,7 @@ export function devChapter2Day(scene: Phaser.Scene, day: number): void {
     cellar: { area: { areaId: 'tally-cellar', start: { x: 120, y: 200 }, script: 'c2day11_cellar' }, slots: 0, vars: { c2day11: 'brand' } },
     hollow: { area: { areaId: 'scrap-stacks', start: { x: 40, y: 510 }, script: 'c2day11_out_stacks' }, slots: 1, vars: { c2day11: 'out', let_out11: true } },
     choice: { area: { areaId: 'dogs-hollow', start: { x: 120, y: 206 }, script: 'c2day11_hollow' }, slots: 1, vars: { c2day11: 'hollow', let_out11: true } },
+    camp: { area: { areaId: 'deep-ground', start: { x: 60, y: 232 }, script: 'c2day11_girl_deep' }, slots: 2, vars: { c2day11: 'girl', let_out11: true, dog_with_you: true, last_act: 'girl', girl11: true, girl_dip11: true } },
     edge: { area: { areaId: 'picked-fields', start: { x: 900, y: 232 } }, slots: 2, vars: { c2day11: 'edge', let_out11: true, dog_with_you: true, last_act: last, edge_ready11: true, boss_why: true, objective: "Out past the tree's edge", objective_target: 'trees-edge:crack' } },
   };
   const mid = at ? (day === 7 ? day7[at] : day === 6 ? day6[at] : day === 8 ? day8[at] : day === 9 ? day9[at] : day === 10 ? day10[at] : day === 11 ? day11[at] : undefined) : undefined;

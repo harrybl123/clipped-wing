@@ -96,6 +96,14 @@ export const tallyHouse: AreaDefinition = {
     local('loyal-1', 7, 300, FLOOR, ['evening', 'night'], { showIf: 'truce_watcher11', hideIf: 'circle_won11', flipX: true }),
     local('loyal-2', 10, 356, FLOOR, ['evening', 'night'], { showIf: 'truce_watcher11', hideIf: 'circle_won11', flipX: true }),
     dogFollowing(60, FLOOR),
+    // Day 11, afternoon: the enforcer, his jaw strapped up, at the door as the watcher walks you out.
+    cast('enforcer', 90, FLOOR, { id: 'enforcer-door11', when: ['afternoon'], showIf: 'walkout11' }),
+    cast('boss', 330, FLOOR, { id: 'boss-counter11', when: ['afternoon'], showIf: 'walkout11', flipX: true }), // at the counter, so you don't go past it
+    // Day 11, dusk (the truce): your brother at the boss's side (compound), or held at the back (home).
+    cast('brother', 350, FLOOR, { id: 'brother-beside11', when: ['evening', 'night'], showIf: 'brother_beside11', flipX: true }),
+    cast('brother', 116, FLOOR, { id: 'brother-held11', when: ['evening', 'night'], showIf: 'brother_held11', hideIf: 'brother_saved11' }),
+    local('holder-1', 7, 102, FLOOR, ['evening', 'night'], { showIf: 'brother_held11', hideIf: 'circle_won11' }),
+    local('holder-2', 10, 130, FLOOR, ['evening', 'night'], { showIf: 'brother_held11', hideIf: 'circle_won11', flipX: true }),
     // The tallyman, behind the counter.
     cast('tallyman', 336, FLOOR, { knot: 'tally_house_tallyman', when: AWAKE, flipX: true }),
     // The queue.

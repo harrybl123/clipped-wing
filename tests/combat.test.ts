@@ -813,10 +813,10 @@ describe('your side’s moves', () => {
     const party = Object.values(COMBATANTS).filter((c) => c.basic);
     for (const c of party) {
       for (const id of [c.basic!, ...c.moves]) {
-        const q = MOVES[id]?.qte;
-        if (!q) continue;
-        expect(['side', 'weave'], `${c.id}: ${id}`).not.toContain(q.kind);
-        if (q.alt) expect(['side', 'weave'], `${c.id}: ${id} (alt)`).not.toContain(q.alt.kind);
+        for (const q of [MOVES[id]?.qte ?? []].flat()) {
+          expect(['side', 'weave'], `${c.id}: ${id}`).not.toContain(q.kind);
+          if (q.alt) expect(['side', 'weave'], `${c.id}: ${id} (alt)`).not.toContain(q.alt.kind);
+        }
       }
     }
   });

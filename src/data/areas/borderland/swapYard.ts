@@ -115,6 +115,8 @@ export const swapYard: AreaDefinition = {
     // Chapter 2, Day 11, dusk (keep it raging): the yard full to see you walked out; the boss at the tally gate; the son.
     ...[1, 4, 10, 6, 8, 2, 11, 0, 3].map((look, i) => local(`war-crowd-${i}`, look, 380 + i * 22, FLOOR, ['evening', 'night'], { showIf: 'war11', flipX: i % 2 === 0 })),
     cast('boss', 552, FLOOR, { id: 'boss-war11', when: ['evening', 'night'], showIf: 'war11', hideIf: 'riot_won', flipX: true }),
+    cast('brother', 570, FLOOR, { id: 'brother-war11', when: ['evening', 'night'], showIf: 'war11', hideIf: 'riot_won', flipX: true }),
+    cast('old_scav', 40, FLOOR, { id: 'old-scav-war11', when: ['evening', 'night'], showIf: 'brother_saved11', hideIf: 'edge11' }),
     cast('boss_son', 600, FLOOR, { id: 'son-war11', when: ['evening', 'night'], showIf: 'son_war11', hideIf: 'edge11', flipX: true }),
     dogFollowing(1040, FLOOR),
     dogLeading(1030, FLOOR),

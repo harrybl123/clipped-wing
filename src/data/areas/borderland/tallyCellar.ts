@@ -1,20 +1,15 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import type { AreaDefinition } from '../types';
-import { cast } from './people';
+import { cast, local } from './people';
 
 // The cellar under the tally house (Chapter 2, Day 11): a dirt hole under the counter where they keep you
-// to wait for the brand, and then for dusk. A hatch over your head with feet going over it all day; a drain
-// grate in the floor, bolted into the stone, that comes out behind the scrap stacks. Inside the tally house
-// (not on the map); you only come here through the story.
+// to wait for the brand, and then for dusk. A ladder up to the hatch, locked from above, with a guard sitting
+// on it. Inside the tally house (not on the map); you only come here through the story, and you only get out
+// if somebody you've helped comes for you (or the son and you take the guard's key).
 
 const FLOOR = 200;
 const TOP = 70;
 
-/** A drain grate set into the floor. */
-const GRATE = {
-  rows: ['dddddddddddddddddddd', 'dhdhdhdhdhdhdhdhdhdd', 'dXdXdXdXdXdXdXdXdXdd', 'dhdhdhdhdhdhdhdhdhdd', 'dddddddddddddddddddd'],
-  colours: { d: S.deep, h: S.woodLight, X: S.shadow },
-};
 /** The hatch, overhead: planks with light coming through the cracks. */
 const HATCH = {
   rows: ['dddddddddddddddddddddddddddd', 'dpppplpppplppppplppppplppppd', 'dpppplpppplppppplppppplppppd', 'dddddddddddddddddddddddddddd'],
@@ -54,7 +49,6 @@ export const tallyCellar: AreaDefinition = {
   props: [
     { sprite: HATCH, x: 186, y: TOP },
     { sprite: LADDER, x: 222, y: TOP + 4 },
-    { sprite: GRATE, x: 330, y: FLOOR - 3 },
   ],
 
   features: [],
@@ -62,12 +56,12 @@ export const tallyCellar: AreaDefinition = {
   people: [
     cast('boss_son', 390, FLOOR, { id: 'son-cellar11', showIf: 'in_cellar11', flipX: true }),
     cast('watcher', 236, FLOOR, { id: 'watcher-cellar11', showIf: 'watcher_cellar11' }),
-    cast('scav_friend', 340, FLOOR, { id: 'friend-cellar11', showIf: 'friend_cellar11', flipX: true }),
+    cast('scav_friend', 252, FLOOR, { id: 'friend-cellar11', showIf: 'friend_cellar11', flipX: true }),
+    local('guard-cellar11', 7, 240, FLOOR, undefined, { showIf: 'guard_down11', flipX: true }),
     cast('gambler', 250, FLOOR, { id: 'gambler-cellar11', showIf: 'gambler_cellar11' }),
   ],
 
   interactables: [
-    { id: 'drain', x: 340, y: FLOOR, reach: 14, label: 'Drain', knot: 'tally_cellar_drain' },
     { id: 'hatch', x: 226, y: FLOOR, reach: 12, label: 'Look', knot: 'tally_cellar_hatch' },
   ],
 

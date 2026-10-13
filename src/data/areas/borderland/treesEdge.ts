@@ -74,9 +74,10 @@ export const treesEdge: AreaDefinition = {
   ],
   people: [
     dogFollowing(30, FLOOR),
-    // Day 11: whoever comes after you (your brother, if he lived at the compound; the old scavenger, if not).
-    cast('brother', 30, FLOOR, { id: 'brother-edge11', showIf: 'brother_edge11' }),
+    // Day 11: the watcher, walking you out (the truce); the old scavenger pushing your brother in a cart.
+    cast('watcher', 170, FLOOR, { id: 'watcher-edge11', showIf: 'watcher_edge11', hideIf: 'old_edge11' }),
     cast('old_scav', 30, FLOOR, { id: 'old-edge11', showIf: 'old_edge11' }),
+    cast('brother', 16, FLOOR, { id: 'brother-cart11', showIf: 'old_edge11' }),
   ],
 
   interactables: [

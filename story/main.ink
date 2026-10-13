@@ -525,6 +525,11 @@ VAR in_cellar11 = false
 VAR watcher_cellar11 = false
 VAR friend_cellar11 = false
 VAR gambler_cellar11 = false
+// How you got out: the watcher walks you out (walkout11), your friend's fire (smoke11), the gambler's dice, or the guard's key (guard_down11, son_key11).
+VAR walkout11 = false
+VAR smoke11 = false
+VAR guard_down11 = false
+VAR son_key11 = false
 VAR let_out11 = false
 // Big choice 3 (design doc): "girl", "truce" or "war".
 VAR last_act = ""
@@ -534,9 +539,13 @@ VAR girl_dip11 = false
 VAR girl_hut11 = false
 VAR daughter11 = false
 VAR father11 = false
+VAR scout_leading11 = false
 // End the conflict: the watcher, the tally house with both clans (the fight), the dog shown to everyone.
 VAR truce11 = false
 VAR truce_watcher11 = false
+// Your brother at the truce: at the boss's side (compound) or held at the back (home).
+VAR brother_beside11 = false
+VAR brother_held11 = false
 VAR truce_tally11 = false
 VAR dog_revealed11 = false
 // Keep it raging: the crates in the yard, the riot (the fight), the son.
@@ -550,6 +559,10 @@ VAR edge_ready11 = false
 VAR edge11 = false
 VAR brother_edge11 = false
 VAR old_edge11 = false
+// Your brother at the end: got back (brother_saved11) or lost in the smoke (brother_lost11); the watcher walks you to the edge (truce).
+VAR brother_saved11 = false
+VAR brother_lost11 = false
+VAR watcher_edge11 = false
 // The fights write these.
 VAR hut_won = false
 VAR circle_won11 = false
