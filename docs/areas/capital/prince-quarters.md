@@ -27,7 +27,7 @@ You. Your sister sneaking in (she sneaks where she shouldn't). **(doc, suggestio
 Look out from the balcony. The screen. Change into your plain clothes before going below.
 
 ## Exits (suggestion)
-To the audience hall (the citadel's hub).
+The citadel's halls.
 
 ## Open questions
 - Does the balcony show the power going out across the city as the pushbacks spread?

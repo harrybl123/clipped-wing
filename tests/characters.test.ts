@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ARCHIVIST, ELDERS, MASTER, FRIEND, GIRL, GUARD, MUM, PREACHER, PROTAGONIST, RESIDENTS, TENDER, VILLAGERS } from '../src/ui/characters';
+import { ARCHIVIST, ELDERS, MASTER, FRIEND, GIRL, GUARD, MUM, PREACHER, PRINCE, PRINCE_CROUCH, PROTAGONIST, RESIDENTS, SCAVENGER, TENDER, VILLAGERS } from '../src/ui/characters';
 import { SHADES } from '../src/ui/pixelArt';
 import { PORTRAIT_SIZE, SPEAKERS } from '../src/ui/portraits';
 import type { RowSprite } from '../src/ui/sprites';
@@ -83,4 +83,21 @@ describe('portraits', () => {
     expect(SPEAKERS.you!.portrait.rows.join('')).toContain('r');
     for (const id of Object.keys(SPEAKERS).filter((id) => id !== 'you')) expect(SPEAKERS[id]!.portrait.rows.join(''), id).not.toContain('r');
   });
+});
+
+it('gives the prince same-size, grounded frames, wine on every one, and keeps wine off the others', () => {
+  const frames = [...PRINCE.idle, ...PRINCE.walk, PRINCE.jump, PRINCE.fall, PRINCE_CROUCH.idle, ...PRINCE_CROUCH.walk];
+  for (const f of frames) {
+    expect(f.rows).toHaveLength(26);
+    expect(new Set(f.rows.map((r) => r.length))).toEqual(new Set([12]));
+    expect(f.rows.join('')).toContain('R');
+    expect(f.colours.R).toBe(SHADES.wine);
+    expect(Object.values(f.colours)).not.toContain(SHADES.red);
+    expect(Object.values(f.colours)).not.toContain(SHADES.copper);
+  }
+  for (const f of frames.filter((f) => f !== PRINCE.jump)) expect(f.rows.at(-1)).toMatch(/[^.]/);
+  for (const f of [...PROTAGONIST.idle, ...SCAVENGER.idle, ...MUM.idle, ...FRIEND.idle, ...GIRL.idle, ...VILLAGERS.flatMap((v) => v.idle)]) {
+    expect(Object.values(f.colours)).not.toContain(SHADES.wine);
+    expect(Object.values(f.colours)).not.toContain(SHADES.wineDeep);
+  }
 });

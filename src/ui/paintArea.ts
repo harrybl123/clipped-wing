@@ -1,5 +1,7 @@
 import type { AreaDefinition, Solid } from '../data/areas/types';
+import type { TimeSlot } from '../systems/Calendar';
 import { addLight, cellRandom, falloff, noise, rgb, SHADES, smoothstep, type PixelColour, type RGB } from './pixelArt';
+import { cityViewPainter } from './paintCityView';
 import { stampRows } from './pixelTextures';
 
 // Paints an area's static backdrop from its data (see paintPixels / makePaintedTexture):
@@ -110,10 +112,52 @@ function matchedWall(x: number, y: number): RGB | number {
   return base.map((v) => v * (1.05 + sheen + noise(x / 11 + y / 37) * 0.03)) as RGB;
 }
 
+/** A polished marble floor (the citadel): a bright top edge, a gold line under it, pale slabs with fine seams. */
+function marbleSolidColour(s: Solid, x: number, y: number): number {
+  const row = y - s.y;
+  if (row === 0) return SHADES.white;
+  if (row === 1 && s.height > 2) return SHADES.amber;
+  if (row === s.height - 1 && s.height > 3 && s.height < 12) return SHADES.dim;
+  // Steps (tall one-way blocks): pale marble faces, a shadow line under each tread.
+  if (s.oneWay && s.height > 8) return row === 2 ? SHADES.dim : (x - s.x) % 32 === 31 ? SHADES.dim : SHADES.light;
+  // The floor's face: pale just under the gold, darkening into the stone below it.
+  if (row < 5) return (x - s.x) % 32 === 31 ? SHADES.dim : SHADES.light;
+  if (row < 9) return (x - s.x) % 32 === 31 ? SHADES.woodPale : SHADES.dim;
+  return (x - s.x) % 32 === 31 || row % 9 === 0 ? SHADES.deep : SHADES.woodLight;
+}
+
+/**
+ * Marble panels (the capital's citadel, Chapter 3): tall pale slabs with soft grey veins, fine seams
+ * between them, and up every other seam a line of blue light that glows on the stone either side.
+ */
+function marbleWall(x: number, y: number): RGB | number {
+  const PANEL = 48;
+  const lx = x % PANEL;
+  const ly = (y + Math.floor(x / PANEL) * 13) % 64;
+  const glowing = Math.floor(x / PANEL) % 2 === 0;
+  if (lx === 0) return glowing ? SHADES.cyan : SHADES.dim; // the seam, lit or plain
+  if (lx === 1 && glowing) return SHADES.cyanMid;
+  if (ly === 0) return SHADES.dim; // the seam between slabs
+  // Veins: a few thin grey lines wandering through some of the slabs.
+  const veined = noise(Math.floor(x / PANEL) * 3.7 + Math.floor((y + Math.floor(x / PANEL) * 13) / 64) * 1.9) > 0.25;
+  const vein = Math.abs(noise(x / 31 + y / 53) * 40 - ((x * 0.5 + y) % 80) + 40);
+  const base = mix3(rgb(SHADES.light), rgb(SHADES.white), 0.9); // near white, so it doesn't dither in blotches
+  let c = veined && vein < 0.6 ? mix3(base, rgb(SHADES.dim), 0.5) : veined && vein < 1.3 ? mix3(base, rgb(SHADES.dim), 0.18) : base;
+  // The seams' glow on the stone either side.
+  const fromGlow = Math.min(x % (PANEL * 2), PANEL * 2 - (x % (PANEL * 2))); // to the nearest lit seam
+  c = addLight(c, rgb(SHADES.cyan), 0.22 * Math.exp(-((fromGlow / 5) ** 2)));
+  return c;
+}
+
 const mix3 = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 
-export function paintArea(area: AreaDefinition): (x: number, y: number) => PixelColour {
-  const scrap = area.walls === 'scrap' || area.walls === 'hull' || area.walls === 'matched';
+/** Paints a room. `slot` is the time of day, for any views out over the city (default the afternoon). */
+export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon'): (x: number, y: number) => PixelColour {
+  const marble = area.walls === 'marble';
+  const scrap = area.walls === 'scrap' || area.walls === 'hull' || area.walls === 'matched' || marble;
+  const views = (area.views ?? []).map((v) => cityViewPainter(v, slot));
+  // A room that looks out over the city follows the light outside: dimmer from dusk, lamplit at night.
+  const ambient = area.views ? area.ambient * { morning: 1, afternoon: 1, evening: 0.82, night: 0.6 }[slot] : area.ambient;
   const hull = area.walls === 'hull';
   const { width } = area;
   const overlay = new Map<number, number>();
@@ -123,7 +167,7 @@ export function paintArea(area: AreaDefinition): (x: number, y: number) => Pixel
 
   for (const s of area.solids) {
     if (s.invisible) continue;
-    for (let y = s.y; y < s.y + s.height; y++) for (let x = s.x; x < s.x + s.width; x++) put(x, y, scrap ? plateColour(s, x, y) : solidColour(s, x, y));
+    for (let y = s.y; y < s.y + s.height; y++) for (let x = s.x; x < s.x + s.width; x++) put(x, y, marble ? marbleSolidColour(s, x, y) : scrap ? plateColour(s, x, y) : solidColour(s, x, y));
   }
   for (const { from, to, colour } of area.lines) {
     const steps = Math.max(Math.abs(to.x - from.x), Math.abs(to.y - from.y), 1);
@@ -150,6 +194,16 @@ export function paintArea(area: AreaDefinition): (x: number, y: number) => Pixel
   return (x, y) => {
     const exact = overlay.get(y * width + x);
     if (exact !== undefined) return exact;
+    for (const view of views) {
+      const v = view(x, y);
+      if (v !== null) return v;
+    }
+    // A window's frame: gold, with a pale edge outside it.
+    for (const v of area.views ?? []) {
+      if (!v.mullions) continue;
+      const out = Math.max(v.x - x, x - (v.x + v.width - 1), v.y - y, y - (v.y + v.height - 1));
+      if (out === 1 || out === 2) return out === 1 ? SHADES.amber : SHADES.light;
+    }
 
     let d = roundedRectDistance(x, y, cavity);
     for (const nook of area.nooks ?? []) d = Math.min(d, roundedRectDistance(x, y, nook));
@@ -161,6 +215,12 @@ export function paintArea(area: AreaDefinition): (x: number, y: number) => Pixel
       const r = cellRandom(Math.floor(x / 4), Math.floor(y / 3), 97);
       if (r > 0.988) return [SHADES.woodPale, SHADES.cyanDeep, SHADES.amberDeep][Math.floor(r * 300) % 3]!;
       return band % 3 === 0 ? SHADES.wood : band % 3 === 1 ? SHADES.deep : SHADES.shadow;
+    }
+    if (d >= 0 && marble) {
+      // Outside a marble room: its edge, a gold rim, then the citadel's dark stone in courses.
+      if (d < 1.5) return SHADES.light;
+      if (d < 3) return SHADES.amberDeep;
+      return y % 9 === 0 || (x + Math.floor(y / 9) * 11) % 22 === 0 ? SHADES.shadow : SHADES.deep;
     }
     if (d >= 0 && scrap) {
       // Outside a scrap room: the dark of the shack's own frame and the night beyond, faint ridges.
@@ -182,11 +242,12 @@ export function paintArea(area: AreaDefinition): (x: number, y: number) => Pixel
     }
 
     if (scrap) {
-      const wall = hull ? hullWall(x, y) : area.walls === 'matched' ? matchedWall(x, y) : scrapWall(x, y);
+      const wall = marble ? marbleWall(x, y) : hull ? hullWall(x, y) : area.walls === 'matched' ? matchedWall(x, y) : scrapWall(x, y);
       if (typeof wall === 'number') return wall;
       const vignette = smoothstep(0.45, 1.1, Math.hypot((x - centreX) / halfW, (y - centreY) / halfH));
-      const edgeShadow = smoothstep(-10, 0, d) * 0.4;
-      let c = wall.map((v) => v * area.ambient * (1 - 0.55 * vignette - edgeShadow)) as RGB;
+      const edgeShadow = smoothstep(-10, 0, d) * (marble ? 0.15 : 0.4);
+      // (Marble stays clean and even: only a little darker towards its corners.)
+      let c = wall.map((v) => v * ambient * (1 - (marble ? 0.18 : 0.55) * vignette - edgeShadow)) as RGB;
       for (const l of lights) c = addLight(c, l.rgb, l.strength * falloff(x, y, l.x, l.y, l.radius, l.radiusY ?? l.radius));
       return c;
     }

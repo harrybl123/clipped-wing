@@ -49,6 +49,12 @@ const COLOURS = {
   l: SHADES.skinFairShade, // its shadow
   v: SHADES.cyanMid, // the scavenger's crop top
   V: SHADES.cyanDeep, // its shadow
+  K: SHADES.skinTan, // tan skin (the prince)
+  U: SHADES.skinTanShade, // its shadow
+  D: SHADES.deep, // the prince's close-cropped hair
+  C: SHADES.cyanDeep, // his dark coat
+  R: SHADES.wine, // his collar: wine (reserved for him, like red)
+  X: SHADES.wineDeep, // the collar in shadow
 };
 
 function draw(pick: Pick): RowSprite {
@@ -658,6 +664,85 @@ export const CROWD_PORTRAIT: RowSprite = (() => {
   return { rows, colours: { ...npcColours(VILLAGER_LOOKS[4]!, {}), V: SHADES.greenDeep } };
 })();
 
+/**
+ * The prince, Chapter 3's protagonist (designer: young and attractive, a shaved head with dark hair cut
+ * very short; not balding, not old; tan skin, Claude's choice). Drawn by hand like the scavenger: a strong
+ * young face, a squarer jaw, straight dark brows, dark eyes; the crop a dark shadow over the crown with a
+ * clean hairline, the light catching it on his right; the high wine collar of his dark coat, gold down
+ * its front.
+ */
+export const PRINCE_PORTRAIT: RowSprite = (() => {
+  const cx = 24;
+  const cy = 21;
+  const eyeY = cy;
+  /** Half the head's width at row y: round over the crown, a squarer jaw, a firm chin. */
+  const halfWidth = (y: number) => {
+    const t = (y - cy - 0.5) / 12;
+    if (t < -1 || t > 0.95) return -1;
+    if (t <= 0) return 8.4 * Math.cbrt(1 - Math.abs(t) ** 3); // a broad, rounded crown
+    return 8.4 * (1 - Math.max(0, t - 0.45) ** 1.6 * 1.9);
+  };
+  const inHead = (x: number, y: number) => Math.abs(x - cx + 0.5) <= halfWidth(y);
+  /** Tan skin, lit from the right, shaded towards the left. */
+  const tan = (x: number, centre: number, half: number) => ((x - centre + 0.5) / Math.max(1, half) < -0.55 ? 'U' : 'K');
+  /** The hairline: straight across the forehead, squared at the temples, down to the tops of the ears. */
+  const hairline = (x: number) => (Math.abs(x - cx + 0.5) > 6 ? eyeY - 2 : cy - 5);
+  return draw((x, y) => {
+    const u = x - cx;
+    if (inHead(x, y)) {
+      // The crop: dark hair cut very short over the whole crown, a clean edge at the hairline (skin just
+      // showing through along it), the light catching it on his right.
+      if (y < hairline(x)) {
+        if (y === hairline(x) - 1 && (x + y) % 2 === 0) return 'U';
+        // Dark brown-grey so it reads against a dark background, shaded on his left, a sheen and a lit
+        // edge where the light catches the crown.
+        const edge = !inHead(x, y - 1) || !inHead(x + 1, y);
+        if (edge && u >= -2) return 'S';
+        if (u > 1 && y < cy - 7 && (x + y) % 2 === 0) return 'S';
+        return u < -4 ? 'D' : 'E';
+      }
+      // Brows: straight, dark, one row, a little apart from the eye.
+      for (const bx of [cx - 6, cx + 1]) {
+        const lx = x - bx;
+        if (y === eyeY - 3 && lx >= 0 && lx <= 4) return 'D';
+      }
+      // Eyes: an upper lid, a dark iris, a glint.
+      for (const ex of [cx - 5, cx + 1]) {
+        const lx = x - ex;
+        if (y === eyeY - 1 && lx >= 1 && lx <= 3) return 'e';
+        if (y === eyeY && lx >= 1 && lx <= 2) return lx === 2 && ex > cx ? 'w' : 'e';
+      }
+      // The nose: a shadow down its left side, the nostril.
+      if (x === cx - 1 && y >= eyeY + 1 && y <= eyeY + 4) return 'U';
+      if (y === eyeY + 5 && (x === cx - 2 || x === cx)) return 'U';
+      // The mouth: a firm line, the lower lip's shadow.
+      if (y === eyeY + 8 && x >= cx - 3 && x <= cx + 2) return 'U';
+      if (y === eyeY + 9 && x >= cx - 1 && x <= cx) return 'A';
+      // The jaw's shadow on his left, under the cheekbone.
+      if (u < -4 && y >= eyeY + 3 && y <= eyeY + 9) return 'U';
+      return tan(x, cx, halfWidth(y));
+    }
+    // Ears.
+    if ((x === cx - 9 || x === cx + 8) && y >= eyeY - 1 && y <= eyeY + 3) return x < cx ? 'U' : 'K';
+    // The neck, into the high collar.
+    if (y >= 32 && y <= 35 && x >= 20 && x <= 28) return x < 22 ? 'U' : 'K';
+    if (y >= 34 && y <= 39 && x >= 18 && x <= 30) {
+      if (y === 34 && (x === 18 || x === 30)) return '.';
+      return y === 34 ? 'a' : x < 21 ? 'X' : 'R';
+    }
+    // Shoulders and chest: the dark coat, gold down its front.
+    if (y >= 38) {
+      const spread = 8 + (y - 38) * 2.2;
+      const dx = x - 24;
+      if (Math.abs(dx) > spread) return '.';
+      if (dx === 0 || dx === 1) return 'a';
+      if (dx < -spread + 2) return 'c';
+      return dx < -4 ? 'c' : 'C';
+    }
+    return '.';
+  });
+})();
+
 /** The guards share the guard's look (cap, amber band, staff); their faces tell them apart. */
 const guardFace = (face: NpcFace) => npcPortrait(GUARD_LOOK, face);
 /** The elders share one face (designer), told apart by their robes. */
@@ -846,6 +931,7 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
   boy: { name: 'The boy', portrait: BOY_PORTRAIT , voice: 'boy' },
   // Chapter 2.
   scavenger: { name: 'You', portrait: SCAVENGER_PORTRAIT, voice: 'scavenger' },
+  prince: { name: 'You', portrait: PRINCE_PORTRAIT, voice: 'prince' },
   brother: { name: 'Your brother', portrait: folkPortrait(CAST_LOOKS.brother, { build: 'round', eyes: 'wide', mouth: 'grin' }), voice: 'young' },
   boss: { name: 'The boss', portrait: folkPortrait(CAST_LOOKS.boss, { build: 'heavy', age: 1, beard: 'moustache', brow: 'heavy', eyes: 'narrow', mouth: 'smile', items: ['earring'] }), voice: 'upper' },
   watcher: { name: 'The watcher', portrait: folkPortrait(CAST_LOOKS.watcher, { build: 'narrow', eyes: 'narrow', brow: 'heavy', items: ['scar'] }), voice: 'elder' },

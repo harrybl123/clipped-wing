@@ -141,6 +141,12 @@ function step(a: Out, dest: AudioNode, t: number, surface: Surface, v: number): 
       noise(a, dest, t, 'bandpass', 2600 * p, 1.5, 0.05, 0.07 * v, 0.006);
       noise(a, dest, toe, 'bandpass', 3200 * p, 1.5, 0.04, 0.05 * v, 0.005);
       break;
+    case 'stone':
+      // Polished stone (the citadel's marble): a firm, short heel with a bright tap of the toe on it.
+      noise(a, dest, t, 'lowpass', 900 * p, 0.8, 0.04, 0.24 * v, 0.002);
+      noise(a, dest, t, 'bandpass', 1500 * p, 3, 0.035, 0.1 * v, 0.002);
+      noise(a, dest, toe, 'bandpass', 2400 * p, 4, 0.025, 0.06 * v, 0.002);
+      break;
     case 'wet':
       noise(a, dest, t, 'lowpass', 500 * p, 1, 0.08, 0.3 * v, 0.01);
       noise(a, dest, toe, 'bandpass', 900 * p, 2, 0.07, 0.12 * v, 0.015, 600); // the squelch

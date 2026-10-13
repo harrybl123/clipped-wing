@@ -27,4 +27,4 @@ Your father. **(doc)** The physician, sometimes. **(suggestion)**
 Talk to him.
 
 ## Exits (suggestion)
-The audience hall; the sealed wing (locked to everyone but him).
+The citadel's halls; the sealed wing (locked to everyone but him).

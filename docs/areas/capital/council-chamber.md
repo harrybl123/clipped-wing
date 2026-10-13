@@ -27,4 +27,4 @@ Your father; the old councillor (his seat keeps going empty); the reformer (argu
 Sit in session; talk to councillors afterwards.
 
 ## Exits (suggestion)
-The audience hall.
+The citadel's halls.

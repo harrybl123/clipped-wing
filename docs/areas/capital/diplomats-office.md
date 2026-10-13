@@ -27,4 +27,4 @@ The diplomat; visitors at odd hours. **(doc)**
 Talk to him; look at the maps and letters.
 
 ## Exits (suggestion)
-The audience hall; a private way down to the lifts (how you slip out unseen). **(suggestion)**
+The citadel's halls; a private way down to the lifts (how you slip out unseen). **(suggestion)**

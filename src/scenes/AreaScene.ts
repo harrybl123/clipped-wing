@@ -367,6 +367,7 @@ export class AreaScene extends Phaser.Scene {
     this.script = data.script;
     this.wanderers = [];
     this.outdoorLayers = undefined;
+    this.roomImage = undefined;
     this.movers = [];
     this.people = new Map();
     this.hints = [];
@@ -420,6 +421,19 @@ export class AreaScene extends Phaser.Scene {
     };
   }
 
+  /** A room's backdrop (one image; repainted when the time changes if it has views out over the city). */
+  private roomImage?: Phaser.GameObjects.Image;
+
+  /** Paints a room, or repaints it for the time of day if it looks out over the city (the citadel's windows). */
+  private paintRoom(): void {
+    const { area } = this;
+    const slot = getSession(this).calendar.slot;
+    const key = area.views ? `area-${area.id}-${slot}` : `area-${area.id}`;
+    makePaintedTexture(this, key, area.width, area.height, paintArea(area, slot));
+    if (this.roomImage) this.roomImage.setTexture(key);
+    else this.roomImage = this.add.image(0, 0, key).setOrigin(0);
+  }
+
   /** The area's sounds (docs/audio-plan.md). */
   private soundscape!: Soundscape;
   /** For footsteps, jumps and landings: distance walked since the last step, and last frame's state. */
@@ -434,10 +448,7 @@ export class AreaScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, area.width, area.height);
 
     if (area.outdoor) this.paintOutdoor();
-    else {
-      makePaintedTexture(this, `area-${area.id}`, area.width, area.height, paintArea(area));
-      this.add.image(0, 0, `area-${area.id}`).setOrigin(0);
-    }
+    else this.paintRoom();
     this.crumbleGroup = this.physics.add.staticGroup();
 
     for (const feature of area.features) this.addFeature(feature);
@@ -489,6 +500,7 @@ export class AreaScene extends Phaser.Scene {
     // outdoor area's listener repainted the sky in a room with none, and the game froze on a black screen.)
     const calendarChanged = () => {
       if (area.outdoor) this.paintOutdoor();
+      else if (area.views) this.paintRoom();
       this.refreshPeople();
       this.refreshObjective();
     };
@@ -513,7 +525,9 @@ export class AreaScene extends Phaser.Scene {
     // Room to stand up: no solid wall or ceiling in the way (one-way platforms don't count).
     const canStand = (r: Phaser.Geom.Rectangle) => !area.solids.some((s) => !s.oneWay && r.right > s.x && r.left < s.x + s.width && r.bottom > s.y && r.top < s.y + s.height);
     this.player = new Player(this, arrival.x, arrival.y, canStand);
-    if (worldOf(placeOf(area.id)).id === 'borderland') this.player.look = 'scavenger';
+    const world = worldOf(placeOf(area.id)).id;
+    if (world === 'borderland') this.player.look = 'scavenger';
+    if (world === 'capital') this.player.look = 'prince';
     // Anyone following you comes in with you (whether or not they're showing yet: after a fight, the
     // dog comes back beside you, not where it stands when you first come into the area).
     for (const entry of this.people.values()) if (entry.person.follow) entry.image.setPosition(Math.max(this.area.cavity.x + 8, arrival.x - 16), arrival.y);

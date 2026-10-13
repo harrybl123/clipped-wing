@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { BORDERLAND_AREAS, PLANNED_AREAS, TREE_AREAS } from '../src/data/areas';
+import { BORDERLAND_AREAS, CAPITAL_AREAS, PLANNED_AREAS, TREE_AREAS } from '../src/data/areas';
 import { BORDERLAND_LINKS, BORDERLAND_PLACES, SETTLEMENT } from '../src/data/borderlandMap';
+import { CAPITAL_LINKS, CAPITAL_PLACES } from '../src/data/capitalMap';
 import { MAP_LINKS, MAP_PLACES, MAP_TUBE_X, neighbourInDirection, treeHalfWidth, WORLDS, worldOf, type MapPlace } from '../src/data/map';
 
 const place = (id: string) => MAP_PLACES.find((p) => p.id === id)!;
@@ -149,5 +150,46 @@ describe('the borderland map', () => {
       }
     }
     expect([...seen].sort()).toEqual(BORDERLAND_PLACES.map((p) => p.id).sort());
+  });
+});
+
+describe("the capital's map", () => {
+  it('has every capital area exactly once', () => {
+    expect(CAPITAL_PLACES.map((p) => p.id).sort()).toEqual(Object.keys(CAPITAL_AREAS).sort());
+    expect(worldOf('prince-quarters').id).toBe('capital');
+  });
+
+  it('keeps places on screen and apart from each other', () => {
+    for (const p of CAPITAL_PLACES) {
+      expect(p.x > 8 && p.x < 472 && p.y > 8 && p.y < 256, p.id).toBe(true);
+      for (const q of CAPITAL_PLACES) if (q !== p) expect(Math.hypot(p.x - q.x, p.y - q.y), `${p.id}–${q.id}`).toBeGreaterThan(18);
+    }
+  });
+
+  it('puts the citadel above the city (height is status)', () => {
+    const lowestCitadel = Math.max(...CAPITAL_PLACES.filter((p) => p.level === 'the citadel').map((p) => p.y));
+    for (const p of CAPITAL_PLACES.filter((q) => q.level === 'the city')) expect(p.y, p.id).toBeGreaterThan(lowestCitadel);
+  });
+
+  it('links only places that exist', () => {
+    const ids = new Set(CAPITAL_PLACES.map((p) => p.id));
+    for (const l of CAPITAL_LINKS) expect(ids.has(l.from) && ids.has(l.to), `${l.from}–${l.to}`).toBe(true);
+  });
+
+  it('can reach every place from the halls by pressing directions', () => {
+    const at = (id: string) => CAPITAL_PLACES.find((p) => p.id === id)!;
+    const seen = new Set<string>(['citadel-halls']);
+    const queue = [at('citadel-halls')];
+    while (queue.length) {
+      const p = queue.shift()!;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+        const n = neighbourInDirection(p, dx, dy, CAPITAL_PLACES);
+        if (n && !seen.has(n.id)) {
+          seen.add(n.id);
+          queue.push(n);
+        }
+      }
+    }
+    expect([...seen].sort()).toEqual(CAPITAL_PLACES.map((p) => p.id).sort());
   });
 });

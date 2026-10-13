@@ -112,7 +112,7 @@ export interface AmbienceLayer {
 }
 
 /** What the floor's made of, for footsteps. */
-export type Surface = 'wood' | 'plank' | 'metal' | 'fungus' | 'wet' | 'dirt';
+export type Surface = 'wood' | 'plank' | 'metal' | 'fungus' | 'wet' | 'dirt' | 'stone';
 
 /** Something the player can walk up to and press E on, which runs an ink knot. */
 /** Things you can dig up (a small sprite each, shown coming out of the ground). */
@@ -201,6 +201,18 @@ export interface Outdoor {
   groundY?: number;
 }
 
+/** A view out over the capital from up in the citadel (a window, a balcony's open side). */
+export interface CityView extends Rect {
+  /** Where the far plain meets the sky, in the area's pixels. */
+  horizon: number;
+  /** Where the tree stands on the horizon, small and far off, in the area's pixels. */
+  treeX: number;
+  /** How big the tree is (default 0.2: far off). */
+  treeScale?: number;
+  /** Bars across it every this many pixels (a window's mullions); none for an open side. */
+  mullions?: number;
+}
+
 export interface AreaDefinition {
   id: string;
   /** Shown in door menus and on the map, e.g. "your home". */
@@ -218,9 +230,15 @@ export interface AreaDefinition {
    * settlement: walls of mismatched panels, bare metal, painted, pale casing and dead glass, riveted
    * together, with riveted plate floors), or hull (inside something enormous: smooth curved plates
    * with ribs running up and over, the tally house), or matched (whole matched panels, clean and warm:
-   * the boss's house).
+   * the boss's house), or marble (the capital's citadel, Chapter 3: pale veined marble panels, a line of
+   * blue light up some of their seams, gold-edged marble floors).
    */
-  walls?: 'heartwood' | 'scrap' | 'hull' | 'matched';
+  walls?: 'heartwood' | 'scrap' | 'hull' | 'matched' | 'marble';
+  /**
+   * Windows and open sides onto the city (the capital, Chapter 3): inside each rectangle, the city seen from
+   * up here, painted for the time of day (the room is repainted when the time changes). Props go over them.
+   */
+  views?: CityView[];
   /** Below ground (the gambling den): around a scrap or hull room is packed earth with junk in it, not the dark. */
   underground?: boolean;
   /** How bright the bare wood is before lights (1 = normal). */

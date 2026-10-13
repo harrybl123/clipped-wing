@@ -30,12 +30,13 @@ export interface Voice {
   volume: number;
 }
 
-/** The fifteen voices (suggestion in docs/audio-plan.md, tuned by ear). Rounded tones only (sine, triangle): softer and smoother (designer). */
+/** The voices (suggestion in docs/audio-plan.md, tuned by ear). Rounded tones only (sine, triangle): softer and smoother (designer). */
 export const VOICES = {
   you: { pitch: 200, spread: 1.5, wave: 'triangle', length: 0.085, speed: 1, every: 2, glide: -0.7, breath: 0.4, wobble: 0, formant: 1, volume: 0.9 },
   mum: { pitch: 175, spread: 1.2, wave: 'sine', length: 0.1, speed: 0.85, every: 3, glide: -0.5, breath: 0.3, wobble: 0.12, formant: 0.95, volume: 1 },
   girl: { pitch: 255, spread: 2.5, wave: 'triangle', length: 0.07, speed: 1.15, every: 2, glide: 0.6, breath: 0.3, wobble: 0, formant: 1.1, volume: 0.85 },
   scavenger: { pitch: 240, spread: 2.2, wave: 'triangle', length: 0.075, speed: 1.05, every: 2, glide: 0.4, breath: 0.25, wobble: 0, formant: 1.05, volume: 0.85 }, // Chapter 2: steadier and a little lower than the girl in the roots
+  prince: { pitch: 150, spread: 1.6, wave: 'triangle', length: 0.08, speed: 1.05, every: 2, glide: -0.5, breath: 0.2, wobble: 0, formant: 1, volume: 0.9 }, // Chapter 3: young, low and even, a little clipped
   friend: { pitch: 235, spread: 2, wave: 'sine', length: 0.08, speed: 1.1, every: 2, glide: 0.8, breath: 0.2, wobble: 0, formant: 1.05, volume: 1 },
   archivist: { pitch: 225, spread: 1.5, wave: 'sine', length: 0.06, speed: 1.25, every: 2, glide: 0.3, breath: 0.15, wobble: 0.35, formant: 1.15, volume: 1 },
   boy: { pitch: 215, spread: 3.5, wave: 'triangle', length: 0.075, speed: 1.15, every: 2, glide: 1.5, breath: 0.15, wobble: 0, formant: 1.2, volume: 0.85 },

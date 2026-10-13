@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { PROTAGONIST, PROTAGONIST_CLOAKED, PROTAGONIST_CROUCH, SCAVENGER, SCAVENGER_CROUCH } from '../ui/characters';
+import { PRINCE, PRINCE_CROUCH, PROTAGONIST, PROTAGONIST_CLOAKED, PROTAGONIST_CROUCH, SCAVENGER, SCAVENGER_CROUCH } from '../ui/characters';
 import { makeSpriteTexture } from '../ui/pixelTextures';
 import type { RowSprite } from '../ui/sprites';
 
@@ -14,7 +14,8 @@ const CROUCH_HEIGHT = 14;
 
 /**
  * Makes the protagonist's frame textures and animations (once per game): the carver, plain and with the
- * cloak on (keys ending "-cloak"), and the scavenger, Chapter 2's protagonist (keys ending "-scav").
+ * cloak on (keys ending "-cloak"), the scavenger, Chapter 2's protagonist (keys ending "-scav"), and the prince,
+ * Chapter 3's (keys ending "-prince").
  */
 function createAnimations(scene: Phaser.Scene): void {
   const tex = (key: string, s: RowSprite) => makeSpriteTexture(scene, key, s.rows, s.colours);
@@ -22,6 +23,7 @@ function createAnimations(scene: Phaser.Scene): void {
     { suffix: '', idle: PROTAGONIST.idle, walk: PROTAGONIST.walk, jump: PROTAGONIST.jump, fall: PROTAGONIST.fall, crouch: PROTAGONIST_CROUCH.idle, crawl: PROTAGONIST_CROUCH.walk },
     { suffix: '-cloak', ...PROTAGONIST_CLOAKED },
     { suffix: '-scav', idle: SCAVENGER.idle, walk: SCAVENGER.walk, jump: SCAVENGER.jump, fall: SCAVENGER.fall, crouch: SCAVENGER_CROUCH.idle, crawl: SCAVENGER_CROUCH.walk },
+    { suffix: '-prince', idle: PRINCE.idle, walk: PRINCE.walk, jump: PRINCE.jump, fall: PRINCE.fall, crouch: PRINCE_CROUCH.idle, crawl: PRINCE_CROUCH.walk },
   ];
   for (const set of sets) {
     const anim = (name: string, frames: readonly RowSprite[], frameRate: number) => {
@@ -56,8 +58,8 @@ export class Player {
   kneeling = false;
   /** Wearing the cloak (Day 6 on, wherever you're not expected): set by the scene. */
   cloaked = false;
-  /** Who you are: the carver (in the tree) or the scavenger (Chapter 2, in the borderland). Set by the scene. */
-  look: 'carver' | 'scavenger' = 'carver';
+  /** Who you are: the carver (in the tree), the scavenger (Chapter 2, in the borderland) or the prince (Chapter 3, in the capital). Set by the scene. */
+  look: 'carver' | 'scavenger' | 'prince' = 'carver';
 
   constructor(
     scene: Phaser.Scene,
@@ -127,7 +129,7 @@ export class Player {
   }
 
   private animate(direction: number): void {
-    const c = this.look === 'scavenger' ? '-scav' : this.cloaked ? '-cloak' : '';
+    const c = this.look === 'scavenger' ? '-scav' : this.look === 'prince' ? '-prince' : this.cloaked ? '-cloak' : '';
     if (this.crouching || this.kneeling) {
       if (direction !== 0 && !this.kneeling) this.sprite.play(`player-crawl${c}`, true);
       else {

@@ -1,5 +1,6 @@
 import { noise } from '../ui/pixelArt';
 import { BORDERLAND_LINKS, BORDERLAND_PLACES } from './borderlandMap';
+import { CAPITAL_LINKS, CAPITAL_PLACES } from './capitalMap';
 
 // Where each area sits on the map: a cross-section of the tree (docs/design-doc.md, "The map").
 // Top to bottom: the Canopy; the upper branches with the Ascension gate on the tube; the trunk;
@@ -15,8 +16,8 @@ export interface MapPlace {
   id: string;
   x: number;
   y: number;
-  /** Which part of the world it's in, shown in the map's info bar (the tree's bands; the borderland's settlement or grounds). */
-  level: 'upper branches' | 'trunk' | 'roots' | 'beneath' | 'the settlement' | 'the grounds';
+  /** Which part of the world it's in, shown in the map's info bar (the tree's bands; the borderland's settlement or grounds; the capital's citadel or city). */
+  level: 'upper branches' | 'trunk' | 'roots' | 'beneath' | 'the settlement' | 'the grounds' | 'the citadel' | 'the city';
   /** The colour its window glows when it's reachable. */
   light: 'amber' | 'cyan' | 'green' | 'white';
   /** Only on the map while this ink variable is true (a place you don't know about yet). */
@@ -55,7 +56,7 @@ export function treeHalfWidth(y: number): number {
 export interface MapLink {
   from: string;
   to: string;
-  kind: 'ladder' | 'walkway' | 'rope' | 'track';
+  kind: 'ladder' | 'walkway' | 'rope' | 'track' | 'hall' | 'lift' | 'street';
 }
 
 /** Faint paths between places: ladders, walkways and a rope bridge (placeholder, drawn on the map only). */
@@ -105,7 +106,7 @@ export function neighbourInDirection(from: MapPlace, dx: number, dy: number, pla
 
 /** A map: the places in one world and the paths between them. The map opens on the world of the area you're in. */
 export interface MapWorld {
-  id: 'tree' | 'borderland';
+  id: 'tree' | 'borderland' | 'capital';
   /** The title in the map's corner. */
   title: string;
   places: readonly MapPlace[];
@@ -117,6 +118,7 @@ export interface MapWorld {
 export const WORLDS: readonly MapWorld[] = [
   { id: 'tree', title: 'The Tree', places: MAP_PLACES, links: MAP_LINKS, start: 'offering-floor' },
   { id: 'borderland', title: 'The borderland', places: BORDERLAND_PLACES, links: BORDERLAND_LINKS, start: 'swap-yard' },
+  { id: 'capital', title: 'The capital', places: CAPITAL_PLACES, links: CAPITAL_LINKS, start: 'citadel-halls' },
 ];
 
 /** The world an area is in (the tree for anything not on a map, e.g. hidden areas in Act 1). */

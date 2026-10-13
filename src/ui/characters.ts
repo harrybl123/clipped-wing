@@ -765,3 +765,127 @@ export const SCAVENGER_CROUCH = {
     scavengerCrouch(['..pp..PPP...', '...pp.PP....', '...bb.bb....', '..bbb.bbb...']),
   ],
 };
+
+// --- The prince (Chapter 3's protagonist) ---
+
+/**
+ * The prince (designer: young and attractive, a shaved head, dark hair cut very short; not balding, not
+ * old; tan skin, Claude's choice). Drawn in colour like the scavenger. A fitted, high-collared coat, dark
+ * so he stands out against the citadel's pale marble, with gold trim down its front and at the cuffs; his
+ * collar and sash are wine, his reserved colour (designer), as red is the carver's and copper the
+ * scavenger's. 12×26 like the others, so he uses the same body and animations.
+ */
+interface PrincePose {
+  sway: [number, number];
+  lift?: [number, number];
+  bob?: number;
+  arm?: number;
+}
+
+const PRINCE_COLOURS = {
+  H: SHADES.deep, h: SHADES.woodPale, // the dark hair, cut very short; where the light catches it
+  K: SHADES.skinTan, k: SHADES.skinTanShade, d: SHADES.shadow, // tan skin, its shadow; his eye
+  C: SHADES.cyanDeep, c: SHADES.deep, // the coat, dark, and its shadow
+  A: SHADES.amber, // gold: the trim, the clasp, the cuffs
+  R: SHADES.wine, r: SHADES.wineDeep, // the collar and sash: wine (reserved, like red)
+  P: SHADES.wood, p: SHADES.deep, b: SHADES.shadow, // trousers, their shadow; boots
+};
+
+function prince(pose: PrincePose): RowSprite {
+  const g = grid(PROTAGONIST_W, PROTAGONIST_H);
+  const b = pose.bob ?? 0;
+  // Head: a close dark crop over the crown and the back, the forehead and face bare, to the right.
+  span(g, 0 + b, 4, 7, 'H');
+  put(g, 6, 0 + b, 'h');
+  span(g, 1 + b, 3, 6, 'H');
+  put(g, 5, 1 + b, 'h');
+  span(g, 1 + b, 7, 8, 'K');
+  span(g, 2 + b, 3, 4, 'H');
+  span(g, 2 + b, 5, 8, 'K');
+  put(g, 7, 2 + b, 'd'); // his eye
+  put(g, 3, 3 + b, 'H');
+  span(g, 3 + b, 4, 8, 'K');
+  put(g, 5, 3 + b, 'k'); // his ear
+  span(g, 4 + b, 5, 7, 'K');
+  put(g, 5, 4 + b, 'k');
+  // The high collar, up to his jaw.
+  span(g, 5 + b, 4, 7, 'R');
+  put(g, 4, 5 + b, 'r');
+  // The coat: dark, gold down its front edge, the wine sash at the waist, the skirt to the knee.
+  for (let y = 6; y <= 17; y++) {
+    span(g, y + b, 4, 8, y === 12 ? 'R' : 'C');
+    put(g, 4, y + b, y === 12 ? 'r' : 'c');
+    put(g, 8, y + b, 'A');
+  }
+  put(g, 7, 6 + b, 'A'); // the clasp at his throat
+  put(g, 3, 16 + b, 'c');
+  put(g, 3, 17 + b, 'c');
+  // Back arm (in shadow), swinging opposite the front one.
+  const arm = pose.arm ?? 0;
+  for (let y = 7; y <= 13; y++) {
+    const swing = y >= 10 ? -Math.sign(arm) * Math.min(Math.abs(arm), y - 9) : 0;
+    if (g[y + b]?.[3 + swing] === '.') put(g, 3 + swing, y + b, 'c');
+  }
+  // Front arm: the sleeve, a gold cuff, his hand.
+  for (let y = 7; y <= 13; y++) {
+    const swing = y >= 10 ? Math.sign(arm) * Math.min(Math.abs(arm), y - 9) : 0;
+    put(g, 9 + swing, y + b, y === 13 ? 'A' : 'C');
+  }
+  put(g, 9 + arm, 14 + b, 'K');
+  // Legs below the coat; boots for the last two rows.
+  const [liftBack, liftFront] = pose.lift ?? [0, 0];
+  const leg = (hipX: number, sway: number, lift: number, front: boolean) => {
+    const bottom = PROTAGONIST_H - 1 - lift;
+    for (let y = 18; y <= bottom; y++) {
+      const x = hipX + Math.round((sway * (y - 18)) / Math.max(1, bottom - 18));
+      const boot = y > bottom - 2;
+      put(g, x, y, boot ? 'b' : front ? 'P' : 'p');
+      put(g, x + 1, y, boot ? 'b' : front ? 'P' : 'p');
+      if (y === bottom) put(g, x + 2, y, 'b');
+    }
+  };
+  leg(4, pose.sway[0], liftBack, false);
+  leg(6, pose.sway[1], liftFront, true);
+  return { rows: rows(g), colours: PRINCE_COLOURS };
+}
+
+export const PRINCE = {
+  idle: [prince({ sway: [0, 0] }), prince({ sway: [0, 0], bob: 1 })],
+  walk: [
+    prince({ sway: [-3, 3], arm: -1 }),
+    prince({ sway: [-1, 1], lift: [0, 2], bob: 1, arm: 0 }),
+    prince({ sway: [3, -3], arm: 1 }),
+    prince({ sway: [1, -1], lift: [2, 0], bob: 1, arm: 0 }),
+  ],
+  jump: prince({ sway: [-1, 2], lift: [3, 2], arm: 1 }),
+  fall: prince({ sway: [-1, 1], arm: -1 }),
+};
+
+/** Crouching: bent forward, head low and out in front, the coat's skirt over his legs. */
+const princeCrouch = (legs: [string, string, string, string]): RowSprite => ({
+  rows: [
+    ...Array<string>(10).fill('............'),
+    '......HHH...',
+    '.....HHHKK..',
+    '.....HKKdK..',
+    '....RRkKKK..',
+    '...CCRRKK...',
+    '..cCCCCCAK..',
+    '..cCCCCCA.K.',
+    '..cRRRRRA.k.',
+    '..cCCCCCA...',
+    '..cCCCCCA...',
+    '..cCCCCCA...',
+    '..ccCCCCA...',
+    ...legs,
+  ],
+  colours: PRINCE_COLOURS,
+});
+
+export const PRINCE_CROUCH = {
+  idle: princeCrouch(['..pp..PPP...', '..pp...PP...', '..bb...bb...', '.bbb...bbb..']),
+  walk: [
+    princeCrouch(['..pp..PPP...', '..pp...PP...', '..bb...bb...', '.bbb...bbb..']),
+    princeCrouch(['..pp..PPP...', '...pp.PP....', '...bb.bb....', '..bbb.bbb...']),
+  ],
+};

@@ -17,6 +17,8 @@ import { dogsHollow } from './borderland/dogsHollow';
 import { rivalLine } from './borderland/rivalLine';
 import { deepGround } from './borderland/deepGround';
 import { treesEdge } from './borderland/treesEdge';
+import { citadelHalls } from './capital/citadelHalls';
+import { princeQuarters } from './capital/princeQuarters';
 import { friendsHome } from './friendsHome';
 import { girlsHome } from './girlsHome';
 import { home } from './home';
@@ -67,8 +69,27 @@ export const BORDERLAND_AREAS: Record<string, string> = {
   'trees-edge': "the tree's edge",
 };
 
+/** Every area in the capital (Chapter 3; docs/chapter-3-world.md), by id, with the name used in menus. Built or not. Names are placeholders (designer). */
+export const CAPITAL_AREAS: Record<string, string> = {
+  'citadel-halls': "the citadel's halls",
+  'prince-quarters': 'your quarters',
+  'audience-hall': 'the audience hall',
+  'council-chamber': 'the council chamber',
+  'fathers-study': "your father's study",
+  'sealed-wing': 'the sealed wing',
+  glasshouse: 'the glasshouse',
+  'banquet-gallery': 'the banquet gallery',
+  'diplomats-office': "the diplomat's office",
+  'guest-wing': 'the guest wing',
+  lifts: 'the lifts',
+  'data-centre': 'the data centre',
+  promenade: 'the promenade',
+  'low-district': 'the low district',
+  'city-gate': 'the gate',
+};
+
 /** Every area on a map, in any chapter, by id, with the name used in menus. Built or not. */
-export const PLANNED_AREAS: Record<string, string> = { ...TREE_AREAS, ...BORDERLAND_AREAS };
+export const PLANNED_AREAS: Record<string, string> = { ...TREE_AREAS, ...BORDERLAND_AREAS, ...CAPITAL_AREAS };
 
 /** Places that aren't on the map: you only reach them through the story (her door, the board in her floor). */
 export const HIDDEN_AREAS: Record<string, string> = {
@@ -132,4 +153,7 @@ export const AREAS: Record<string, AreaDefinition> = {
   [rivalLine.id]: rivalLine,
   [deepGround.id]: deepGround,
   [treesEdge.id]: treesEdge,
+  // Chapter 3: the capital.
+  [princeQuarters.id]: princeQuarters,
+  [citadelHalls.id]: citadelHalls,
 };

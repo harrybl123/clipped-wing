@@ -14,7 +14,7 @@ import * as middleTiersProps from '../data/areas/middleTiersProps';
 import * as seedGroveProps from '../data/areas/seedGroveProps';
 import * as tendersShrineProps from '../data/areas/tendersShrineProps';
 import * as rootsMarketProps from '../data/areas/rootsMarketProps';
-import { ARCHIVIST, DODGER, ELDERS, FRIEND, FRIEND_FATHER, GIRL, GUARD, MUM, PREACHER, RESIDENTS, PROTAGONIST, SCAVENGER, SCAVENGER_CROUCH, TENDER, VILLAGERS } from '../ui/characters';
+import { ARCHIVIST, DODGER, ELDERS, FRIEND, FRIEND_FATHER, GIRL, GUARD, MUM, PREACHER, PRINCE, PRINCE_CROUCH, RESIDENTS, PROTAGONIST, SCAVENGER, SCAVENGER_CROUCH, TENDER, VILLAGERS } from '../ui/characters';
 import { BEETLE_BATTLE, CARVER_BATTLE, GIRL_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
 import { hexString } from '../ui/pixelArt';
 import { SPEAKERS } from '../ui/portraits';
@@ -46,6 +46,7 @@ const FIGURES: Record<string, RowSprite> = {
   zealot: v(0), old_man: v(1), mother: v(6), thin_man: v(2), stew_seller: v(3), fungus_seller: v(0), cloth_seller: v(1),
   curio_seller: v(5), local: v(5), friend_father: FRIEND_FATHER.idle[0]!, carver: r(3), lift_keeper: r(1), doorman: r(1),
   scavenger: SCAVENGER.idle[0]!,
+  prince: PRINCE.idle[0]!,
   hostess: HOSTESSES[0]!.idle[0]!,
   ...Object.fromEntries(Object.entries(CAST).map(([id, f]) => [id, f.idle[0]!])),
   gardener: r(2), crowd_woman: v(3), crowd_man: v(4), crowd_someone: v(5), crowd_someone_else: v(1),
@@ -65,6 +66,11 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       ['scavenger jump', SCAVENGER.jump],
       ['scavenger fall', SCAVENGER.fall],
       ['scavenger crouch', SCAVENGER_CROUCH.idle],
+      ...PRINCE.idle.map((f, i): Entry => [`prince idle ${i}`, f]),
+      ...PRINCE.walk.map((f, i): Entry => [`prince walk ${i}`, f]),
+      ['prince jump', PRINCE.jump],
+      ['prince fall', PRINCE.fall],
+      ['prince crouch', PRINCE_CROUCH.idle],
       ...Object.entries(CAST).map(([id, f]): Entry => [id, f.idle[0]!]),
       ...TOWNSFOLK.map((f, i): Entry => [`townsfolk ${i}`, f.idle[0]!]),
       ...HOSTESSES.map((f, i): Entry => [`hostess ${i}`, f.idle[0]!]),
@@ -86,6 +92,7 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       { label: 'protagonist walk', frames: PROTAGONIST.walk, fps: 9 },
       { label: 'protagonist idle', frames: PROTAGONIST.idle, fps: 1.6 },
       { label: 'scavenger walk', frames: SCAVENGER.walk, fps: 9 },
+      { label: 'prince walk', frames: PRINCE.walk, fps: 9 },
       { label: 'scavenger idle', frames: SCAVENGER.idle, fps: 1.6 },
       { label: 'scavenger crawl', frames: SCAVENGER_CROUCH.walk, fps: 5 },
       { label: 'dog walk', frames: DOG.walk, fps: 6 },

@@ -27,4 +27,4 @@ The salon hostess (trades in gossip); upper society; your friend. **(doc)**
 Talk to the guests.
 
 ## Exits (suggestion)
-The audience hall.
+The citadel's halls.

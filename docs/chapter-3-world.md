@@ -27,7 +27,8 @@ Labels: **(doc)** comes from the chapter design, **(designer)** was decided in c
   - Steam from vents and food stalls.
 - **The earthiness** **(suggestion)**: the marble is stone, old and worn smooth where people walk; the citadel was a castle before it was anything else. Below, people live by hand: patched homes, cooking, washing lines between the cables, plants in pots, things mended and reused. The glasshouse is the only real greenery. **(doc)** No chrome: metal is gold or dark and worn.
 - **The low district is darker** **(suggestion)**: less power, so fewer glowing seams and more amber from lamps and fires. Where the power's been cut, nothing glows at all.
-- **Red stays reserved**, and copper (the scavenger's). The prince's own reserved shade is an open question below.
+- **Red stays reserved**, and copper (the scavenger's). **The prince's reserved shade is wine** (designer): a deep, royal red, on his collar. Shades of wine follow the same rule as red.
+- **No integrated in the capital** (designer): nothing of theirs is seen here.
 - **Time of day** **(suggestion)**:
   - morning: a clear, pale sky, the marble bright
   - afternoon: hazy white, the city's glow faint
@@ -37,8 +38,10 @@ Labels: **(doc)** comes from the chapter design, **(designer)** was decided in c
 ## The prince
 
 - Young and attractive, with a shaved head: dark hair, cut very short. Not balding, not old. **(designer)**
-- **(suggestion)** Clothes: a fitted high-collared coat, marble-white with gold trim, a thin line of cyan light at the collar (the citadel's power, worn). Simpler and plainer when he goes down into the city with his hand.
+- **(suggestion)** Clothes: a fitted, high-collared coat, dark (so he stands out against the pale marble), with gold down its front and at the cuffs; the collar and a sash at the waist in wine. Simpler and plainer when he goes down into the city with his hand.
 - Drawn in colour, like the scavenger (not a rim-lit silhouette like the tree's people). **(suggestion)**
+- Tan skin (designer: Claude's choice).
+- **Wine** is his reserved colour (designer), on his collar and sash. **(suggestion: where)**
 
 ## The map
 
@@ -54,6 +57,7 @@ Labels: **(doc)** comes from the chapter design, **(designer)** was decided in c
 
 | Id | Name in menus | Where | Brief |
 | --- | --- | --- | --- |
+| `citadel-halls` | the citadel's halls | citadel | [citadel-halls.md](areas/capital/citadel-halls.md) |
 | `prince-quarters` | your quarters | citadel | [prince-quarters.md](areas/capital/prince-quarters.md) |
 | `audience-hall` | the audience hall | citadel | [audience-hall.md](areas/capital/audience-hall.md) |
 | `council-chamber` | the council chamber | citadel | [council-chamber.md](areas/capital/council-chamber.md) |
@@ -70,7 +74,7 @@ Labels: **(doc)** comes from the chapter design, **(designer)** was decided in c
 | `hideout` | the hideout | city (inside the low district) | [hideout.md](areas/capital/hideout.md) |
 | `city-gate` | the gate | city | [city-gate.md](areas/capital/city-gate.md) |
 
-The guest wing and the hideout are new: the story needs them (the guests of the citadel; the raid). **(designer's story, suggestion as areas)**
+**You walk between the citadel's rooms through its halls** (designer: corridors). The guest wing and the hideout are new: the story needs them (the guests of the citadel; the raid). **(designer's story, suggestion as areas)**
 
 ## What the world has to show (from the story)
 
@@ -94,17 +98,16 @@ The guest wing and the hideout are new: the story needs them (the guests of the 
 
 ## Build order (suggestion)
 
-1. The map, every place dark.
-2. Your quarters: the first area sets the look (marble, gold, the glow; the balcony over the city and the tree on the horizon).
-3. The rest of the citadel.
+1. The map, every place dark. **Done** (`src/data/capitalMap.ts`, `src/ui/paintCapitalMap.ts`): the city side-on at night, climbing to the citadel; halls, the lifts and streets between places.
+2. Your quarters: the first area sets the look (marble, gold, the glow; the balcony over the city and the tree on the horizon). **Built** (`src/data/areas/capital/princeQuarters.ts`; dev `?area=prince-quarters`): `walls: 'marble'`, and `views`, windows and open sides onto the city painted for the time of day (`src/ui/paintCityView.ts`; the room dims from dusk).
+3. The rest of the citadel. **The halls are built** (`citadelHalls.ts`; dev `?area=citadel-halls`): two floors and a grand stair, doors to every room.
+- The prince as the player is **done**: sprite, portrait, voice (`PRINCE`, `PRINCE_PORTRAIT`, `prince` in `VOICES`), used in every capital area.
 4. The city: the promenade first (the outdoor look), then the lifts, the low district, the hideout, the data centre, the gate.
 5. The cast: the prince as the player first, then everyone else, placed in each area by time of day.
 
 ## Open questions
 
-- **The prince's reserved colour.** Red is the carver's, copper the scavenger's. **(suggestion)** A deep wine red (a dark, royal shade of red), on his collar or a sash: reserved like the others.
-- **The prince's skin tone.**
-- **The integrated in the city:** does anything of theirs show (machines, drones, a figure at the gate), or are they never seen?
-- **How you get around the citadel:** room to room by the map, or a corridor area joining them?
 - **The sealed wing:** just the corridor to its door (you never get in), or more?
 - Names, for places and people (placeholders for now, designer).
+
+Settled: the prince's colour is wine; no integrated here; tan skin; corridors in the citadel; the broadcast is made from the audience hall, with the city watching on screens (designer).

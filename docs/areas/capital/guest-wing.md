@@ -26,7 +26,7 @@ Your friend; other guests; guards. **(designer, suggestion)**
 Talk to the guests.
 
 ## Exits (suggestion)
-The audience hall.
+The citadel's halls.
 
 ## Open questions
 - How your friend gets out.

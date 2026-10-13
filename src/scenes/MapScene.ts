@@ -5,6 +5,7 @@ import { AREAS, PLANNED_AREAS, placeOf } from '../data/areas';
 import { MAP_CANOPY_Y, MAP_PLACES, MAP_TUBE_X, neighbourInDirection, treeHalfWidth, WORLDS, worldOf, type MapPlace, type MapWorld } from '../data/map';
 import { addLight, falloff, noise, rgb, SHADES, smoothstep, type PixelColour, type RGB } from '../ui/pixelArt';
 import { paintBorderlandMap } from '../ui/paintBorderlandMap';
+import { paintCapitalMap } from '../ui/paintCapitalMap';
 import { makePaintedTexture, makeSpriteTexture } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
 import { playConfirm, playMove } from '../ui/sfx';
@@ -31,7 +32,7 @@ const WINDOW_LIGHT: Record<MapPlace['light'], number> = { amber: SHADES.amber, c
 const OFFERING_Y = MAP_PLACES.find((p) => p.id === 'offering-floor')!.y;
 
 /**
- * The map of the world you're in (the tree as a cutaway in Act 1, the borderland in Chapter 2), opened over the paused area. Arrow keys/WASD move between
+ * The map of the world you're in (the tree as a cutaway in Act 1, the borderland in Chapter 2, the capital in Chapter 3), opened over the paused area. Arrow keys/WASD move between
  * places, Enter travels, Esc (or M) goes back. Unbuilt places are dim and can't be travelled to.
  */
 export class MapScene extends Phaser.Scene {
@@ -64,7 +65,7 @@ export class MapScene extends Phaser.Scene {
     this.cameras.main.fadeIn(250);
     const { world } = this;
     // Painted once per world (built places glow, so a new build shows after a reload).
-    makePaintedTexture(this, `map-${world.id}`, W, H, world.id === 'tree' ? paintTree() : paintBorderland());
+    makePaintedTexture(this, `map-${world.id}`, W, H, world.id === 'tree' ? paintTree() : world.id === 'borderland' ? paintBorderland() : paintCapital());
     this.add.image(0, 0, `map-${world.id}`).setOrigin(0);
 
     new PixelText(this, 6, 6, world.title, { color: SHADES.light, shadow: SHADES.shadow });
@@ -76,8 +77,8 @@ export class MapScene extends Phaser.Scene {
       const built = this.canVisit(place);
       // A small window: glowing in the place's own light if you can go there, dark if it isn't built yet
       // or is closed today (some places open up as the story goes).
-      if (world.id === 'borderland') {
-        // Out here, a small lamp at the place's door (the landmark round it is painted on the map).
+      if (world.id !== 'tree') {
+        // Out of the tree, a small lamp at the place's door (the landmark round it is painted on the map).
         const frame = this.add.rectangle(place.x - 2, place.y - 2, 5, 5, SHADES.deep).setOrigin(0);
         this.add.rectangle(place.x - 1, place.y - 1, 3, 3, built ? WINDOW_LIGHT[place.light] : SHADES.shadow).setOrigin(0);
         if (built) this.add.rectangle(place.x, place.y, 1, 1, SHADES.white).setOrigin(0);
@@ -204,7 +205,10 @@ export class MapScene extends Phaser.Scene {
 
 const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-/** Faint paths between places: ladders (rails and rungs), walkways (planks), a sagging rope bridge, tracks in the dirt. */
+/**
+ * Faint paths between places: ladders (rails and rungs), walkways (planks), a sagging rope bridge, tracks in
+ * the dirt; in the capital, halls (a fine pale line), the lifts (a line of blue light) and streets (amber).
+ */
 function pathPixels(world: MapWorld): Map<number, number> {
   const out = new Map<number, number>();
   const put = (x: number, y: number, c: number) => {
@@ -232,6 +236,13 @@ function pathPixels(world: MapWorld): Map<number, number> {
         // Trodden dirt: a broken pale line with a rut beside it.
         if (Math.round(t) % 4 !== 3) put(x, y, SHADES.dim);
         put(x, y + 1, SHADES.woodLight);
+      } else if (link.kind === 'hall') {
+        if (Math.round(t) % 3 !== 2) put(x, y, SHADES.light);
+      } else if (link.kind === 'lift') {
+        put(x, y, Math.round(t) % 6 === 0 ? SHADES.white : SHADES.cyan);
+      } else if (link.kind === 'street') {
+        if (Math.round(t) % 4 !== 3) put(x, y, SHADES.amberDeep);
+        put(x, y + 1, SHADES.deep);
       } else if (link.kind === 'walkway') {
         put(x, y, SHADES.woodLight);
         put(x, y + 1, SHADES.deep);
@@ -300,4 +311,11 @@ export function paintBorderland(): (x: number, y: number) => PixelColour {
   const borderland = WORLDS.find((w) => w.id === 'borderland')!;
   const glows = borderland.places.filter((p) => p.id in AREAS && !p.showIf).map((p) => ({ x: p.x, y: p.y, rgb: rgb(WINDOW_LIGHT[p.light]) }));
   return paintBorderlandMap(pathPixels(borderland), glows);
+}
+
+/** The capital's map (src/ui/paintCapitalMap.ts), with this map's paths and the glow of built places. */
+export function paintCapital(): (x: number, y: number) => PixelColour {
+  const capital = WORLDS.find((w) => w.id === 'capital')!;
+  const glows = capital.places.filter((p) => p.id in AREAS && !p.showIf).map((p) => ({ x: p.x, y: p.y, rgb: rgb(WINDOW_LIGHT[p.light]) }));
+  return paintCapitalMap(pathPixels(capital), glows);
 }

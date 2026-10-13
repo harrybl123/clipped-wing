@@ -184,13 +184,14 @@ function toPolyline(x: number, y: number, pts: readonly (readonly [number, numbe
  * top): flared roots arching out of the ground, a trunk wider than anything out here, great branches up
  * into a canopy of green clumps that runs off the top of the view, and out of the canopy pipes and tubing,
  * a dense bundle out of the middle, bent and drooping (no glowing tube: that's only seen from inside). Hazed by distance (`s` is how near:
- * 1 from the settlement). Returns null where the tree isn't.
+ * 1 from the settlement; `rise` is how far its canopy sits above the horizon, by default as far as the horizon is
+ * from the top, so it fills the sky). Returns null where the tree isn't.
  */
-export function treePainter(TX: number, HY: number, s: number, sky: Sky, night: boolean, atRoots = false): (x: number, y: number) => PixelColour {
+export function treePainter(TX: number, HY: number, s: number, sky: Sky, night: boolean, atRoots = false, rise = HY): (x: number, y: number) => PixelColour {
   const [bark, greenDeep, greenMid, green, dim, deep, light, cyanMid, amberDeep, amber] = [
     SHADES.wood, SHADES.greenDeep, SHADES.greenMid, SHADES.green, SHADES.dim, SHADES.deep, SHADES.light, SHADES.cyanMid, SHADES.amberDeep, SHADES.amber,
   ].map(rgb) as RGB[];
-  const haze = night ? 0.05 : 0.16 / s;
+  const haze = night ? 0.05 : Math.min(0.5, 0.16 / s); // (capped, so a tree far off doesn't vanish into the sky)
   const finish = (c: RGB): RGB => mix(scale(c, sky.ground), sky.horizon, haze);
 
   const trunkHalf = (y: number) => {
@@ -209,7 +210,7 @@ export function treePainter(TX: number, HY: number, s: number, sky: Sky, night: 
     { side: 1, at: 0.48, slope: 0.7, len: 150, thick: 10 },
     { side: 1, at: 0.66, slope: 1.0, len: 90, thick: 6 },
     { side: -1, at: 0.62, slope: 1.1, len: 80, thick: 6 },
-  ].map((b) => ({ ...b, y0: HY - HY * b.at }));
+  ].map((b) => ({ ...b, y0: HY - rise * b.at }));
   const inBranch = (x: number, y: number) =>
     branches.some((b) => {
       const out = (x - TX) * b.side - trunkHalf(b.y0) + 6;
@@ -219,7 +220,7 @@ export function treePainter(TX: number, HY: number, s: number, sky: Sky, night: 
     });
 
   // The canopy: overlapping clumps of green, the biggest highest, running off the top.
-  const canopyBase = HY * 0.68;
+  const canopyBase = HY - rise * 0.32;
   const clumps = Array.from({ length: 15 }, (_, i) => {
     const u = i / 14 - 0.5; // -0.5..0.5 across
     const crown = 1 - Math.abs(u) * 2; // 1 in the middle, 0 at the ends

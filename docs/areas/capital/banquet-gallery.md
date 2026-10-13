@@ -26,4 +26,4 @@ Your father at the head; the diplomat; upper society; your friend; the old counc
 Talk along the table.
 
 ## Exits (suggestion)
-The audience hall.
+The citadel's halls.

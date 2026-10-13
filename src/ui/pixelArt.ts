@@ -30,6 +30,10 @@ export const SHADES = {
   copper: 0xd2703a,
   /** Copper in shadow. Reserved like red. */
   copperDeep: 0x8a4026,
+  /** The prince's own (Chapter 3's protagonist): a deep, royal wine red, on his collar and sash. Reserved like red. */
+  wine: 0x8a2a52,
+  /** Wine in shadow. Reserved like red. */
+  wineDeep: 0x4e1a32,
   /** Warm fair skin, out in the borderland's daylight (the tree's figures are silhouettes), and its shadow. */
   skinFair: 0xe6c9ac,
   skinFairShade: 0xbf9a7c,

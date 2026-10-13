@@ -5,10 +5,10 @@ Chapter 3. Not built yet. Names are placeholders (designer).
 **(doc)** = chapter design, **(designer)** = decided in conversation, **(suggestion)** = Claude's proposal.
 
 ## Purpose
-Where envoys and petitioners come before the throne. **(doc)** The citadel's grand hall, and its hub: the other rooms open off it. **(suggestion)**
+Where envoys and petitioners come before the throne. **(doc)** The citadel's grand hall, where its halls meet the lifts down to the city. **(suggestion)**
 
 ## When it's visited
-Your duties, most mornings. **(suggestion)** The envoy's plea (medium choice). **(doc)** Possibly the broadcast (see the open questions).
+Your duties, most mornings. **(suggestion)** The envoy's plea (medium choice). **(doc)** The broadcast, with the city watching on screens. **(designer)**
 
 ## Mood and light (suggestion)
 Huge and cold: marble columns, a gold-inlaid floor, a high ceiling with seams of blue light running up it. The throne on a dais under a great screen. Petitioners wait in a line, the way the tree's queues wait.
@@ -27,7 +27,4 @@ Your father on the throne (mornings); you beside him; the diplomat at your shoul
 Hear petitions. Talk to people waiting.
 
 ## Exits (suggestion)
-The lifts (down to the city); your quarters, the council chamber, your father's study, the glasshouse, the banquet gallery, the diplomat's office, the guest wing.
-
-## Open questions
-- Where's the broadcast made from: here, with the city watching on screens, or somewhere else?
+The lifts (down to the city); the citadel's halls.
