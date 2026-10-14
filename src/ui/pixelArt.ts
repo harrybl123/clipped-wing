@@ -125,7 +125,7 @@ export type PixelColour = number | RGB | null;
 /**
  * The capital's power, as a room is painted (Chapter 3: who goes without, big choice 1). From dusk: `views`, a
  * district seen from up in the citadel with its lights out (`low`, the low district at the bottom; `middle`,
- * the promenade's rows); `cut`, this place itself without power (its lamps out but for fires, its glow
+ * the upper city: everything above it); `cut`, this place itself without power (its lamps out but for fires, its glow
  * gone); `dim`, how far the room's light is turned down (the citadel, when it gave its power away).
  */
 export interface Power {
@@ -176,5 +176,5 @@ export function poweredLights(area: AreaDefinition, power: Power): (AreaDefiniti
   const dim = power.dim ?? 1;
   return area.lights
     .filter((l) => !power.cut || l.colour === SHADES.amber)
-    .map((l) => ({ ...l, strength: l.strength * dim * (power.cut ? 0.6 : 1), rgb: rgb(l.colour) }));
+    .map((l) => ({ ...l, strength: l.strength * dim * (power.cut ? 0.45 : 1), rgb: rgb(l.colour) }));
 }

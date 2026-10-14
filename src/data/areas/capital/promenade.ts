@@ -134,11 +134,8 @@ export const promenade: AreaDefinition = {
     // food on you; people bow as you pass.
     { type: 'frames', frames: [HALF_SCRUBBED], x: 296, y: FLOOR - 24, every: 500, showIf: 'c3day1=walk,requests' },
     { type: 'trigger', x: 346, y: FLOOR, reach: 10, knot: 'c3day1_stall', showIf: 'c3day1=walk', hideIf: 'stall1' },
-    // Day 2, below at night (if the upper city went without): the watch on its beat; doorways to hide in.
+    // Day 2, below at night (if the upper city went without): coming in.
     { type: 'trigger', x: 50, y: FLOOR, reach: 16, knot: 'c3day2_dark_promenade', showIf: 'c3day2=below', hideIf: 'dark_seen2' },
-    { type: 'watch', from: 200, to: 500, y: FLOOR, speed: 20, range: 70, pause: 1800, who: 'capital-watch-1', reset: { x: 50, y: FLOOR }, showIf: 'c3day2=below' },
-    { type: 'shadow', x: 120, y: FLOOR, width: 18, showIf: 'c3day2=below' },
-    { type: 'shadow', x: 196, y: FLOOR, width: 14, showIf: 'c3day2=below' },
     { type: 'barks', lines: [{ who: 'passer-1', text: 'Highness.', wait: 2400 }, { who: 'shopper-3', text: 'Highness!', wait: 2400 }, { who: 'passer-2', text: 'Highness.' }], loopFrom: 99, showIf: 'c3day1=walk' },
     steam(454, FLOOR - 22),
     steam(503, FLOOR - 8),

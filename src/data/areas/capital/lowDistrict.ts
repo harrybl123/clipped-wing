@@ -116,12 +116,8 @@ export const lowDistrict: AreaDefinition = {
     { type: 'frames', frames: P.STREET_LIFT_RUNNING, x: 752, y: RIGHT_WALK - 110, every: 260, showIf: 'lift_mended' },
     { type: 'frames', frames: P.STREET_LIFT_BROKEN, x: 752, y: RIGHT_WALK - 110, every: 1000, showIf: 'lift_mended', power: 'without' },
     { type: 'frames', frames: P.STREET_LIFT_BROKEN, x: 752, y: RIGHT_WALK - 110, every: 1000, showIf: 'lift_mended=false', power: 'any' },
-    // Day 2, below at night with your hand: the watch on its beat with lamps (keep out of their light; the
-    // walkways are above it, and doorways are dark).
+    // Day 2, below at night with your hand: coming in.
     { type: 'trigger', x: 60, y: FLOOR, reach: 16, knot: 'c3day2_dark_low', showIf: 'c3day2=below', hideIf: 'dark_seen2' },
-    { type: 'watch', from: 330, to: 640, y: FLOOR, speed: 20, range: 70, pause: 1800, who: 'capital-watch-0', reset: { x: 60, y: FLOOR }, showIf: 'c3day2=below' },
-    { type: 'shadow', x: 404, y: FLOOR, width: 18, showIf: 'c3day2=below' },
-    { type: 'shadow', x: 560, y: FLOOR, width: 18, showIf: 'c3day2=below' },
   ],
   people: [
     // The street: the cook at the stall, the repairer outside his shop, the grocer's girl; people about.

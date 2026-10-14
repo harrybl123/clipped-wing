@@ -81,6 +81,7 @@ The table's dark. Just glass.
 "I'm the guard: the blue." #speaker:father
 "Each light is a squad. The number is how many." #speaker:father
 "Pick one of yours, and send it along a street, a stair or a lift. Into an empty place, it takes it." #speaker:father
+"Each turn, give orders to as many of your squads as you like. Then end the turn, and mine move." #speaker:father
 -> END
 
 === c3day2_lesson_lifts ===
@@ -120,11 +121,46 @@ He looks at the table a long moment.
 
 === c3day2_table_now ===
 He stands up straight, and steps back from the table.
-"That was a lesson. This is the city as it is." #speaker:father
-He touches the table, and it sets itself again: the rising in the low district, eight of you. The guard on the lifts, the promenade, the data centre. Seven in the citadel.
+"That was a lesson. Now I'll play." #speaker:father
+He touches the table, and it sets itself again. Your rising holds the promenade and the low district: ten of you. The guard holds the lifts and the data centre, and six in the citadel.
 "Same rules. One move each. No arrows." #speaker:father
 "Take the citadel." #speaker:father
 "Now." #speaker:father
+-> END
+
+// The first time he cuts the power under your biggest squad.
+=== c3day2_table_cut ===
+He touches the table. Where your biggest squad stands, the lights go out.
+"Did you think I'd leave you the lights?" #speaker:father
+"In the dark, they can't move. And they fight at one less." #speaker:father
+-> END
+
+// What he says about what you've just done, in the lesson (designer: his speech answers your choices).
+=== c3day2_react_idle ===
+"You didn't give any orders." #speaker:father
+"Each turn, give an order to every squad you want to move. As many as you've got. Then end the turn." #speaker:father
+-> END
+
+=== c3day2_react_lost ===
+"You went at more than you had. They hold, and your squad's gone." #speaker:father
+"Count first." #speaker:father
+-> END
+
+=== c3day2_react_tie ===
+"Equal numbers. Whoever's there first holds." #speaker:father
+"You lost them for nothing." #speaker:father
+-> END
+
+=== c3day2_react_uphill ===
+"Uphill. It cost you one. It always will." #speaker:father
+-> END
+
+=== c3day2_react_hit ===
+"You didn't read my arrow." #speaker:father
+-> END
+
+=== c3day2_react_joined ===
+"Together. Good." #speaker:father
 -> END
 
 === c3day2_table_end ===
@@ -135,8 +171,9 @@ He touches the table, and it sets itself again: the rising in the low district, 
     "I could finish it. I don't need to." #speaker:father
 }
 "{sim_turns} turns." #speaker:father
-"I've played this table every night for thirty years. You won't ever be as good at it as I am. Nobody will." #speaker:father
-"That's why there won't be an uprising. It can't be done. You've just proved it." #speaker:father
+"I've played this table every night for thirty years. You won't ever be as good at it as I am." #speaker:father
+"You took your mark and sat on it. I came at you from everywhere, every turn." #speaker:father
+"Remember it from my side of the table. This is what happens if you don't quell an uprising with equal aggression, and just try to defend your mark." #speaker:father
 He switches it off, and the city goes dark under your hands.
 "I hope you never need it." #speaker:father
 -> END
@@ -231,27 +268,27 @@ The whole council, on its tiers. Your father at the top. Your hand by the door.
     -> END
 }
 "Well?" #speaker:father
-Who goes without power this season? #dim:on
+Who goes without power this season: the low district, or the upper city and the citadel? #dim:on
 - (choose)
-+ [The low district goes without]
++ [Keep the power up here. The low district goes dark.]
     The citadel, the glasshouse and the promenade stay lit, and the salons will warm to you.
     The low district goes dark in the evenings: no lights, no lifts, no heat.
-    ++ [Yes. The low district goes without.]
+    ++ [Yes. The low district goes dark.]
         ~ energy = "high"
         ~ lean -= 1
         ~ standing += 1
-        "The low district goes without." #speaker:prince #dim:off
+        "Keep it up here. The low district goes without." #speaker:prince #dim:off
         Nobody on the tiers looks surprised. The reformer sits down.
     ++ [No. Think again.]
         -> choose
-+ [The upper city goes without]
++ [Give the power to the low district. The upper city goes dark.]
     The low district keeps its lights, its lifts and its heat.
     The citadel dims, and the promenade goes dark in the evenings. Upper society will call you soft, and your father won't like it.
-    ++ [Yes. The upper city goes without.]
+    ++ [Yes. The upper city goes dark.]
         ~ energy = "people"
         ~ lean += 1
         ~ standing -= 1
-        "The upper city goes without." #speaker:prince #dim:off
+        "Give it to the low district. The upper city goes without." #speaker:prince #dim:off
         The tiers go very quiet. Your father doesn't move at all.
     ++ [No. Think again.]
         -> choose
@@ -286,15 +323,15 @@ The sun's down. Below you the city lights up, row on row, the way it does every 
 - else:
     ~ dark_district = "promenade"
     ~ dark_fade = 20
-    Then, halfway down the city, the promenade starts to go out. The shops first. #repaint #sound:thump #view
+    Then the upper city starts to go out. The towers nearest the citadel first. #repaint #sound:thump #view
     ~ dark_fade = 60
-    The street lamps along the square. #repaint #sound:thump #view
+    The promenade, its shops, its street lamps along the square. #repaint #sound:thump #view
     ~ dark_fade = 100
-    The great screen last of all: your father's face, and yours, and then nothing. #repaint #sound:boom #shake #view
+    The great screen last of all: your father's face, and yours, and then nothing. Only the low district's still lit, right down at the bottom. #repaint #sound:boom #shake #view
     ~ citadel_dimmed = true
     Then the lights in your own rooms lower round you. #repaint #sound:thump
     "That was me." #speaker:prince #view
-    Down at the bottom, the low district's lit. You can barely see it from here. All you can see is what you've put out. #view
+    The low district's lights look very small from here, under all that dark. #view
     Tomorrow the whole citadel will know whose choice it was. #view
 }
 + [Look through the telescope]
@@ -361,13 +398,13 @@ He goes down it like he's done it a hundred times. #goto:lifts:64:130:c3day2_lif
 === c3day2_lifts ===
 The lift operator looks at you a long moment, at your hood, at your face under it.
 He says nothing.
-"Keep your head down, and keep out of the watch's light. If they see you, your father hears of it by morning." #speaker:diplomat
+"Keep your hood up. Down there, they'd know you." #speaker:diplomat
 -> END
 
 // Your hand, walking with you below.
 === c3day2_hand_below ===
 { c3day2:
-- "below": "Keep out of their light." #speaker:diplomat
+- "below": "Keep your hood up." #speaker:diplomat
 - else: "Highness." #speaker:diplomat
 }
 -> END
@@ -382,6 +419,15 @@ He says nothing.
 }
 They look at you. They know who you are, hood or not. They go quiet.
 Your hand knows the way: which turning, which stair, which door to knock on. Too well.
+{ energy == "high":
+    "The woman from your audience lives up there, on the walkway. Her street. You should see it." #speaker:diplomat
+    ~ objective = "Find the woman from your audience"
+    ~ objective_target = "low-district:woman-2"
+- else:
+    "Somebody's still out, look. By the dead lamp." #speaker:diplomat
+    ~ objective = "See who's out in the dark"
+    ~ objective_target = "promenade:painter-2"
+}
 -> END
 
 // The people below: they go quiet, then they want to tell you (designer).
@@ -429,12 +475,14 @@ He doesn't know who you are. He goes back to his bird.
 - lift_mended:
     Her street's lift is running. A kid rides it up and down, up and down, for the joy of it.
     The woman from the audience is at its foot. She sees you. She knows you, hood or not.
-    "Thank you, Highness." #speaker:petitioner
+    "It runs, Highness. My mother came down to the street tonight, for the first time in a month." #speaker:petitioner
+    "Thank you." #speaker:petitioner
     She doesn't smile, but she means it.
 - else:
     Her street's lift is still broken, dark at the bottom of its shaft.
-    The woman from the audience is at its foot, with an old woman leaning on her arm. She sees you.
-    She doesn't look at you again.
+    The woman from the audience is at its foot, with an old woman leaning on her arm. She sees you. She knows you, hood or not.
+    "'It'll be seen to,' you said." #speaker:petitioner
+    She turns back to her mother, and helps her onto the first step of eleven flights.
 }
 -> c3day2_below_done
 
@@ -446,25 +494,25 @@ He doesn't know who you are. He goes back to his bird.
 }
 -> END
 
-// Once you've seen the painter and the woman's street: dawn's coming.
+// Once you've seen the painter and the woman's street: dawn's coming. Your hand points you to whichever's left.
 === c3day2_below_done ===
-{ painter2 && woman2:
+{
+- painter2 && woman2:
     "Dawn soon. Back up, before anyone's awake to see us." #speaker:diplomat
     ~ c3day2 = "home"
     ~ objective = "Go back up to your rooms"
     ~ objective_target = "prince-quarters:bed-2"
+- painter2:
+    "And the woman from your audience. She lives in the low district, up on a walkway. You should see her street." #speaker:diplomat
+    ~ objective = "Find the woman from your audience"
+    ~ objective_target = "low-district:woman-2"
 - else:
-    { painter2:
-        "Her street's in the low district. Come on." #speaker:diplomat
-        ~ objective = "Find the woman's street"
-        ~ objective_target = "low-district:woman-2"
+    "Somebody's still out, chalking. Over by the dead lamp." #speaker:diplomat
+    ~ objective = "See who's out in the dark"
+    { energy == "high":
+        ~ objective_target = "low-district:painter-2"
     - else:
-        ~ objective = "See what you decided"
-        { energy == "high":
-            ~ objective_target = "low-district:painter-2"
-        - else:
-            ~ objective_target = "promenade:painter-2"
-        }
+        ~ objective_target = "promenade:painter-2"
     }
 }
 -> END

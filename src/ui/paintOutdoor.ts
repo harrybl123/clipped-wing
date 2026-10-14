@@ -469,7 +469,8 @@ export function paintOutdoorNear(area: AreaDefinition, slot: TimeSlot, power: Po
     const steps = Math.max(Math.abs(to.x - from.x), Math.abs(to.y - from.y), 1);
     for (let i = 0; i <= steps; i++) put(Math.round(from.x + ((to.x - from.x) * i) / steps), Math.round(from.y + ((to.y - from.y) * i) / steps), colour);
   }
-  for (const prop of area.props) stampRows(put, prop.sprite.rows, prop.sprite.colours, prop.x, prop.y);
+  // (With the power cut, every lit window, sign and strip on the buildings goes dark: Chapter 3.)
+  for (const prop of area.props) stampRows(put, prop.sprite.rows, power.cut ? unlit(prop.sprite.colours) : prop.sprite.colours, prop.x, prop.y);
   const solids = area.solids.filter((s) => !s.invisible);
   const lights = poweredLights(area, power);
 
@@ -486,4 +487,10 @@ export function paintOutdoorNear(area: AreaDefinition, slot: TimeSlot, power: Po
     for (const l of lights) lit = addLight(lit, l.rgb, l.strength * falloff(x, y, l.x, l.y, l.radius, l.radiusY ?? l.radius));
     return lit;
   };
+}
+
+/** A sprite's colours with its lights out: lit amber and cyan turned to their dark, unlit shades. */
+function unlit(colours: Record<string, number>): Record<string, number> {
+  const out: Record<string, number> = { [SHADES.amber]: SHADES.woodLight, [SHADES.amberDeep]: SHADES.wood, [SHADES.cyan]: SHADES.cyanDeep, [SHADES.cyanMid]: SHADES.cyanDeep, [SHADES.white]: SHADES.dim };
+  return Object.fromEntries(Object.entries(colours).map(([k, c]) => [k, out[c] ?? c]));
 }

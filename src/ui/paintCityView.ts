@@ -76,7 +76,7 @@ export function cityViewPainter(view: CityView, slot: TimeSlot, dark?: Power['vi
       const low = smoothstep(0.6, 1, t); // the low district, at the bottom
       // (A district without power: its rows go dark from dusk.)
       // (Going out block by block: each block's turn comes at its own point in the fade.)
-      const out = lit && ((dark === 'low' && t > 0.62) || (dark === 'middle' && t > 0.3 && t <= 0.62)) && cellRandom(b.seed, 3, 57) < fade;
+      const out = lit && ((dark === 'low' && t > 0.62) || (dark === 'middle' && t <= 0.62)) && cellRandom(b.seed, 3, 57) < fade;
       const lx = x - b.x;
       const ly = y - b.top;
       const haze = (1 - t) * 0.55;

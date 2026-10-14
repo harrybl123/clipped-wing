@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { GAME_HEIGHT as H, GAME_WIDTH as W } from '../config';
 import { SCENARIOS, type WarScenario } from '../data/warTable';
 import { getSession } from '../session';
-import { attackOf, canMove, chooseOrders, defenceOf, placeInDirection, placeOf, resolveOne, squadAt, squadsOf, waysFrom, type Fought, type Order, type Squad, type WarPlace, type WarState } from '../systems/WarTable';
+import { attackOf, canMove, chooseOrders, defenceOf, placeInDirection, placeOf, powerCutFor, resolveOne, squadAt, squadsOf, waysFrom, type Fought, type Order, type Squad, type WarEvent, type WarPlace, type WarState } from '../systems/WarTable';
 import { DialogueBox } from '../ui/DialogueBox';
 import { paintCapitalMap } from '../ui/paintCapitalMap';
 import { rgb, SHADES, type PixelColour, type RGB } from '../ui/pixelArt';
@@ -47,7 +47,23 @@ interface Snapshot {
   /** The squad whose attack you went down to. */
   fighting?: string;
   taught: boolean;
+  /** What he's already said about how you're playing (each once). */
+  said: string[];
 }
+
+/**
+ * What he says about what you've just done, in the lesson (designer: his speech should answer your choices):
+ * each once, the first that fits a turn. Ink knots.
+ */
+const REACTIONS = {
+  idle: 'c3day2_react_idle',
+  lost: 'c3day2_react_lost',
+  tie: 'c3day2_react_tie',
+  uphill: 'c3day2_react_uphill',
+  hit: 'c3day2_react_hit',
+  joined: 'c3day2_react_joined',
+} as const;
+type Reaction = keyof typeof REACTIONS;
 
 const AMBER = SHADES.amber;
 const CYAN = SHADES.cyan;
@@ -65,6 +81,9 @@ export class WarTableScene extends Phaser.Scene {
   private hisOrders: Order[] = [];
   private droppedIn: string[] = [];
   private taught = false;
+  private said: string[] = [];
+  /** This turn's events, for what he says about them. */
+  private turnEvents: { side: 'you' | 'him'; event: WarEvent; strength: number }[] = [];
   private cursor!: WarPlace;
   /** Choosing where a squad goes: the squad, and the places it can go (its own first: hold). */
   private aiming: { squad: Squad; dests: WarPlace[] } | null = null;
@@ -99,6 +118,8 @@ export class WarTableScene extends Phaser.Scene {
     this.hisOrders = r?.hisOrders ?? [];
     this.droppedIn = r?.droppedIn ?? [];
     this.taught = r?.taught ?? false;
+    this.said = r?.said ?? [];
+    this.turnEvents = [];
     this.aiming = null;
     this.busy = true;
     this.labels = [];
@@ -144,11 +165,27 @@ export class WarTableScene extends Phaser.Scene {
   private startTurn(): void {
     this.orders = [];
     this.aiming = null;
-    this.state = { ...this.state, cut: [] };
+    this.turnEvents = [];
+    // When he means it, he cuts the power under your strongest stack, every turn.
+    const cut = this.phase === 'now' && this.sc.now.cutsPower ? powerCutFor(this.sc.board, this.state, 'you') : undefined;
+    this.state = { ...this.state, cut: cut ? [cut] : [] };
     // In the lesson, his orders are chosen first and shown (the tells); when he means it, after yours, unseen.
     this.hisOrders = this.phase === 'lesson' ? chooseOrders(this.sc.board, this.state, 'him', 'lesson', this.sc.keep) : [];
-    this.busy = false;
-    this.draw();
+    const go = () => {
+      this.busy = false;
+      this.draw();
+    };
+    if (cut) {
+      playSound(this, 'boom', 0.6);
+      this.cameras.main.shake(200, 0.004);
+      // The first time, he says it; after that, the table shows it.
+      if (!this.said.includes('cut')) {
+        this.said.push('cut');
+        this.talk('c3day2_table_cut', go);
+        return;
+      }
+    }
+    go();
   }
 
   private async endTurn(): Promise<void> {
@@ -176,7 +213,7 @@ export class WarTableScene extends Phaser.Scene {
   /** Down to the fight: the table waits, and picks up again with how it went. */
   private goDown(order: Order): void {
     this.droppedIn = [...this.droppedIn, order.to];
-    const resume: Snapshot = { state: this.state, phase: this.phase, goal: this.goal, nowTurn: this.nowTurn, orders: this.orders, hisOrders: this.hisOrders, droppedIn: this.droppedIn, fighting: order.squad, taught: this.taught };
+    const resume: Snapshot = { state: this.state, phase: this.phase, goal: this.goal, nowTurn: this.nowTurn, orders: this.orders, hisOrders: this.hisOrders, droppedIn: this.droppedIn, fighting: order.squad, taught: this.taught, said: this.said };
     const data: CombatSceneData = {
       encounter: this.sc.dropIn[order.to]!,
       back: this.params.back,
@@ -191,6 +228,7 @@ export class WarTableScene extends Phaser.Scene {
   private async runTurn(fought: Fought): Promise<void> {
     this.busy = true;
     this.draw();
+    const gave = this.orders.length;
     for (const o of this.orders) await this.carry(o, fought);
     this.orders = [];
     const his = this.phase === 'lesson' ? this.hisOrders : chooseOrders(this.sc.board, this.state, 'him', 'war');
@@ -198,12 +236,37 @@ export class WarTableScene extends Phaser.Scene {
     this.hisOrders = [];
     const yours = squadsOf(this.state, 'you').length;
     if (this.phase === 'lesson') {
-      if (this.state.owner[this.currentGoal()] === 'you') return this.goalDone();
-      if (this.state.turn >= this.sc.lessonTurns || !yours) return this.turnItOn();
-    } else {
-      this.nowTurn++;
-      if (this.nowTurn >= this.sc.now.turns || !yours || this.state.owner[this.sc.now.goal] === 'you') return this.switchOff();
+      const reaction = this.reactionTo(gave);
+      if (reaction) {
+        this.said.push(reaction);
+        return this.talk(REACTIONS[reaction], () => this.afterLessonTurn());
+      }
+      return this.afterLessonTurn();
     }
+    this.nowTurn++;
+    if (this.nowTurn >= this.sc.now.turns || !yours || this.state.owner[this.sc.now.goal] === 'you') return this.switchOff();
+    this.nextTurn();
+  }
+
+  /** What he says about the turn you've just played, if anything (each thing once). */
+  private reactionTo(gave: number): Reaction | null {
+    const once = (r: Reaction) => !this.said.includes(r);
+    const mine = (e: { side: string }) => e.side === 'you';
+    const battles = this.turnEvents.filter((t) => t.event.type === 'battle');
+    if (gave === 0 && once('idle')) return 'idle';
+    const lost = battles.find((t) => mine(t) && t.event.type === 'battle' && !t.event.won && !t.event.fought);
+    if (lost && lost.event.type === 'battle' && lost.event.attack === lost.event.defence && once('tie')) return 'tie';
+    if (lost && once('lost')) return 'lost';
+    if (battles.some((t) => mine(t) && t.event.type === 'battle' && t.event.attack < t.strength) && once('uphill')) return 'uphill';
+    if (battles.some((t) => !mine(t) && t.event.type === 'battle' && t.event.won) && once('hit')) return 'hit';
+    if (this.turnEvents.some((t) => mine(t) && t.event.type === 'join') && once('joined')) return 'joined';
+    return null;
+  }
+
+  /** After a turn of the lesson: the goal taken, or on to the next turn (or, if it's dragged on, he moves on). */
+  private afterLessonTurn(): void {
+    if (this.state.owner[this.currentGoal()] === 'you') return this.goalDone();
+    if (this.state.turn >= this.sc.lessonTurns || !squadsOf(this.state, 'you').length) return this.turnItOn();
     this.nextTurn();
   }
 
@@ -231,6 +294,7 @@ export class WarTableScene extends Phaser.Scene {
     if (!before) return;
     const { state, events } = resolveOne(this.sc.board, this.state, order, fought);
     if (!events.length) return;
+    for (const event of events) this.turnEvents.push({ side: before.side, event, strength: before.strength });
     const from = placeOf(this.sc.board, before.place);
     const to = placeOf(this.sc.board, order.to);
     const dot = this.add.circle(from.x, from.y, 6, before.side === 'you' ? AMBER : this.hisColour()).setDepth(4);
@@ -440,7 +504,9 @@ export class WarTableScene extends Phaser.Scene {
     g.lineStyle(1, canEnd ? AMBER : SHADES.dim, 1).strokeRect(BUTTON.x, BUTTON.y, BUTTON.w, BUTTON.h);
     this.button.setColor(canEnd ? SHADES.white : SHADES.dim);
     const goal = lower(placeOf(board, this.currentGoal()).name);
-    this.title.setText(now ? `Take ${goal}.` : `The lesson: take ${goal}.   Turn ${this.state.turn}`);
+    const movable = squadsOf(this.state, 'you').filter((q) => !this.state.cut.includes(q.place)).length;
+    const given = `Orders: ${this.orders.length} of ${movable} squads`;
+    this.title.setText(now ? `Take ${goal}.   ${given}` : `The lesson: take ${goal}.   ${given}`);
     this.info.setText(this.busy ? '' : this.describe());
     this.hint.setText(this.busy ? '' : this.aiming ? 'Arrows: where they go   E or click: send them   Esc or right-click: back' : 'E or click: choose a squad   Tab: next squad   Enter: end the turn');
   }
@@ -464,14 +530,14 @@ export class WarTableScene extends Phaser.Scene {
     const there = squadAt(this.state, p.id);
     const owner = this.state.owner[p.id];
     const whose = owner === 'you' ? 'yours' : owner === 'him' ? 'his' : "nobody's";
-    let text = `${p.name}: ${whose}${there ? `, ${there.strength} strong` : ''}${p.stronghold ? ' (held at +1)' : ''}${this.state.cut.includes(p.id) ? '. No power: nobody here can move.' : ''}`;
+    let text = `${p.name}: ${whose}${there ? `, ${there.strength} strong` : ''}${p.stronghold ? ' (held at +1; its walls lose nothing)' : ''}${this.state.cut.includes(p.id) ? '. No power: they can\u2019t move, and fight at 1 less.' : ''}`;
     const aim = this.aiming?.squad;
     if (aim && p.id !== aim.place && canMove(this.sc.board, this.state, aim, p.id)) {
       if (!there) text = `Send them to ${lower(p.name)}: they take it.`;
       else if (there.side === 'you') text = `Send them to join the squad there: ${aim.strength + there.strength} strong.`;
       else {
         const a = attackOf(this.sc.board, aim.place, p.id, aim.strength);
-        const d = defenceOf(this.sc.board, p.id, there.strength);
+        const d = defenceOf(this.sc.board, p.id, there.strength, this.state.cut);
         const uphill = a < aim.strength ? ' (uphill: 1 less)' : '';
         text = `Attack: ${a}${uphill} against ${d}. ${a > d ? `You'd take it, with ${Math.max(1, a - d)} left.` : 'They’d hold, and your squad would be lost.'}`;
         if (this.phase === 'lesson' && this.sc.dropIn[p.id] && !this.droppedIn.includes(p.id)) text += ' Or go down and fight it yourself.';

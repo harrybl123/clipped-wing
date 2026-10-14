@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CAPITAL_BOARD, LESSON, SCENARIOS } from '../src/data/warTable';
 import { ENCOUNTERS } from '../src/data/combat';
-import { attackOf, canMove, chooseOrders, defenceOf, placeInDirection, resolve, resolveOne, squadAt, squadsOf, waysFrom, type WarState } from '../src/systems/WarTable';
+import { attackOf, canMove, chooseOrders, defenceOf, placeInDirection, powerCutFor, resolve, resolveOne, squadAt, squadsOf, waysFrom, type WarState } from '../src/systems/WarTable';
 
 const start = (): WarState => ({ squads: LESSON.squads.map((s) => ({ ...s })), owner: { ...LESSON.owner }, cut: [], turn: 1 });
 
@@ -120,11 +120,40 @@ describe('the war table: him', () => {
     }
   });
 
-  it('"Now." is a fair fight you can’t win (designer): no extra troops, and the citadel out of reach', () => {
-    // Everything you have, together and uphill, is never more than the citadel holds at.
-    const yours = LESSON.now.squads.filter((q) => q.side === 'you').reduce((n, q) => n + q.strength, 0);
-    const citadel = LESSON.now.squads.find((q) => q.place === 'citadel')!;
-    expect(yours - 1).toBeLessThanOrEqual(defenceOf(CAPITAL_BOARD, 'citadel', citadel.strength));
+  it('"Now." can\u2019t be won, whatever you do (designer: and it mustn\u2019t look that way)', () => {
+    // It looks winnable: ten of yours against six in the citadel.
+    const yours = (st: WarState) => squadsOf(st, 'you').reduce((n, q) => n + q.strength, 0);
+    const start = (): WarState => ({ squads: LESSON.now.squads.map((q) => ({ ...q })), owner: { ...LESSON.now.owner }, cut: [], turn: 1 });
+    expect(yours(start())).toBeGreaterThan(squadAt(start(), 'citadel')!.strength);
+    // Thousands of games of random play (leaning towards the citadel), and his strategy as you: never taken.
+    let seed = 7;
+    const rand = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+    for (let game = 0; game < 3000; game++) {
+      let s = start();
+      for (let turn = 0; turn < LESSON.now.turns; turn++) {
+        const cut = powerCutFor(CAPITAL_BOARD, s, 'you');
+        s = { ...s, cut: cut ? [cut] : [] };
+        const mine = squadsOf(s, 'you').sort(() => rand() - 0.5);
+        const orders = game % 10 === 0
+          ? chooseOrders(CAPITAL_BOARD, s, 'you', 'war')
+          : mine.flatMap((q) => {
+              const ways = waysFrom(CAPITAL_BOARD, q.place).map((w) => w.to);
+              const at = ways.includes('citadel') && rand() < 0.7 ? 'citadel' : ways[Math.floor(rand() * (ways.length + 1))];
+              return at ? [{ squad: q.id, to: at }] : [];
+            });
+        s = resolve(CAPITAL_BOARD, s, orders).state;
+        expect(s.owner.citadel, `game ${game}, turn ${turn}`).toBe('him');
+        s = resolve(CAPITAL_BOARD, s, chooseOrders(CAPITAL_BOARD, s, 'him', 'war')).state;
+      }
+    }
+  });
+
+  it('the citadel loses nothing when it holds; in the dark, a squad fights at one less', () => {
+    const s: WarState = { squads: [{ id: 'a', side: 'you', place: 'promenade', strength: 5 }, { id: 'c', side: 'him', place: 'citadel', strength: 6 }], owner: {}, cut: [], turn: 1 };
+    const r = resolveOne(CAPITAL_BOARD, s, { squad: 'a', to: 'citadel' });
+    expect(squadAt(r.state, 'citadel')!.strength).toBe(6);
+    expect(defenceOf(CAPITAL_BOARD, 'promenade', 4, ['promenade'])).toBe(3);
+    expect(powerCutFor(CAPITAL_BOARD, { ...s, squads: [...s.squads, { id: 'b', side: 'you', place: 'gate', strength: 2 }] }, 'you')).toBe('promenade');
   });
 
   it('"Now.": played against himself as you, he grinds you down within the turns', () => {

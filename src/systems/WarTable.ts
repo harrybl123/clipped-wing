@@ -7,10 +7,10 @@
 //
 //   Moving into an empty place takes it. Moving into your own squad joins it (their strengths add up).
 //   Moving into theirs is a fight: your strength against theirs. Attacking up a stair or street costs you 1
-//   (it's uphill); a stronghold adds 1 to whoever holds it. Higher wins: the loser's squad is gone and the
+//   (it's uphill); a stronghold adds 1 to whoever holds it, and loses nothing when it holds (its walls). Higher wins: the loser's squad is gone and the
 //   winner is left with what's over (at least 1). A tie, the defenders hold.
 //   A lift carries a squad from any lift station to any other in one move.
-//   A place with its power cut: the squads there can't move this turn.
+//   A place with its power cut: the squads there can't move this turn, and fight at 1 less (in the dark).
 //
 // Into the Breach's tells (designer: the model he agreed): his squads' orders are chosen first, and in the
 // lesson they're shown as arrows before you give yours, so you learn to read him. A fight you go down to
@@ -101,9 +101,20 @@ export function attackOf(board: WarBoard, from: string, to: string, strength: nu
   return Math.max(0, strength - (uphill ? 1 : 0));
 }
 
-/** A squad's strength defending where it stands (a stronghold adds 1). */
-export function defenceOf(board: WarBoard, place: string, strength: number): number {
-  return strength + (placeOf(board, place).stronghold ? 1 : 0);
+/** A squad's strength defending where it stands (a stronghold adds 1; in the dark, with the power cut, 1 less). */
+export function defenceOf(board: WarBoard, place: string, strength: number, cut: readonly string[] = []): number {
+  return Math.max(0, strength + (placeOf(board, place).stronghold ? 1 : 0) - (cut.includes(place) ? 1 : 0));
+}
+
+/**
+ * Where he cuts the power (Chapter 3: his first pushback, on the table): under the strongest squad of theirs,
+ * so it can't move; of equals, the one nearest his stronghold.
+ */
+export function powerCutFor(board: WarBoard, state: WarState, side: WarSide): string | undefined {
+  const stronghold = board.places.find((p) => p.stronghold)?.id;
+  const near = stronghold ? distancesFrom(board, stronghold) : new Map<string, number>();
+  const theirs = [...squadsOf(state, side)].sort((a, b) => b.strength - a.strength || (near.get(a.place) ?? 99) - (near.get(b.place) ?? 99));
+  return theirs[0]?.place;
 }
 
 export const squadAt = (state: WarState, place: string): Squad | undefined => state.squads.find((s) => s.place === place);
@@ -146,7 +157,7 @@ export function resolveOne(board: WarBoard, state: WarState, order: Order, fough
     events.push({ type: 'move', squad: squad.id, from, to: order.to }, { type: 'join', squad: squad.id, into: there.id, at: order.to });
   } else {
     const attack = attackOf(board, from, order.to, squad.strength);
-    const defence = defenceOf(board, order.to, there.strength);
+    const defence = defenceOf(board, order.to, there.strength, next.cut);
     const result = fought[squad.id];
     const won = result ? result === 'won' : attack > defence;
     events.push({ type: 'battle', at: order.to, attacker: squad.id, defender: there.id, attack, defence, won, ...(result ? { fought: true } : {}) });
@@ -163,7 +174,8 @@ export function resolveOne(board: WarBoard, state: WarState, order: Order, fough
       events.push({ type: 'repelled', squad: squad.id, at: order.to });
     } else {
       next.squads = next.squads.filter((s) => s !== squad);
-      there.strength = Math.max(1, defence - attack - (placeOf(board, order.to).stronghold ? 1 : 0));
+      // (Behind a stronghold's walls, the defenders lose nothing.)
+      if (!placeOf(board, order.to).stronghold) there.strength = Math.max(1, there.strength - attack);
     }
   }
   return { state: next, events };
@@ -220,7 +232,7 @@ export function chooseOrders(board: WarBoard, state: WarState, side: WarSide, mo
       } else if (there.side === side) {
         score = -2;
       } else {
-        const margin = attackOf(board, squad.place, to, squad.strength) - defenceOf(board, to, there.strength);
+        const margin = attackOf(board, squad.place, to, squad.strength) - defenceOf(board, to, there.strength, state.cut);
         score = margin >= 2 ? 6 : -10;
       }
       // Don't leave a stronghold, or a place he's told to keep, empty behind him.
@@ -249,14 +261,14 @@ function warOrders(board: WarBoard, state: WarState, side: WarSide): Order[] {
   const stronghold = board.places.find((p) => p.stronghold)?.id;
   const nextTo = (a: string, b: string) => waysFrom(board, a).some((w) => w.to === b);
   /** Could one of theirs beat this many here? */
-  const threatened = (place: string, strength: number) => enemies.some((e) => nextTo(e.place, place) && attackOf(board, e.place, place, e.strength) > defenceOf(board, place, strength));
+  const threatened = (place: string, strength: number) => enemies.some((e) => !state.cut.includes(e.place) && nextTo(e.place, place) && attackOf(board, e.place, place, e.strength) > defenceOf(board, place, strength));
   /** How far a place is from their nearest squad. */
   const toFoe = (place: string) => {
     const d = distancesFrom(board, place);
     return Math.min(...enemies.map((e) => d.get(e.place) ?? 99));
   };
   /** Could this many, from here, beat any of theirs next to it? */
-  const couldStrike = (place: string, strength: number) => enemies.some((e) => nextTo(place, e.place) && attackOf(board, place, e.place, strength) > defenceOf(board, e.place, e.strength));
+  const couldStrike = (place: string, strength: number) => enemies.some((e) => nextTo(place, e.place) && attackOf(board, place, e.place, strength) > defenceOf(board, e.place, e.strength, state.cut));
   const orders: Order[] = [];
   const claimed = new Set<string>();
   for (const squad of mine) {
@@ -267,7 +279,7 @@ function warOrders(board: WarBoard, state: WarState, side: WarSide): Order[] {
       const there = squadAt(state, to);
       let score: number;
       if (there?.side === foe) {
-        const margin = attackOf(board, squad.place, to, squad.strength) - defenceOf(board, to, there.strength);
+        const margin = attackOf(board, squad.place, to, squad.strength) - defenceOf(board, to, there.strength, state.cut);
         if (margin <= 0) continue;
         score = 30 + there.strength * 3 + (placeOf(board, to).lift ? 6 : 0) - (threatened(to, margin) ? 8 : 0);
       } else if (there?.side === side) {
