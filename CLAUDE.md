@@ -66,7 +66,7 @@ The game is pixel art, so darker and lighter **shades** of these colours are all
 Harry is the designer and owns the game: the story, characters, world and design. Others help on branches (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 **Git and pull requests**
-- **Never commit to or push `main`** unless you're working with Harry in his own clone (his clone has `git config clippedwing.maintainer true`; in anyone else's, a pre-push hook in `.githooks/` refuses pushes to `main`). Work on a branch named `<name>/<short-topic>`, branched from the latest `main`.
+- **Never commit to or push `main`** unless you're working with Harry in his own clone (his clone has `git config clippedwing.maintainer true`; in anyone else's, a pre-push hook in `.githooks/` refuses pushes to `main`). The repo is public, and GitHub protects `main` too: changes go in by pull request, with Harry's approval and the check passing (Harry, as admin, can still push directly). Work on a branch named `<name>/<short-topic>`, branched from the latest `main`.
 - Before opening a pull request: `npm test` and `npm run build` pass. Open it with `gh pr create`, filling in the template, especially **How to try it** (the dev links that show the change). GitHub runs the same checks on every pull request (`.github/workflows/check.yml`).
 - Harry tries each pull request and merges it. To try one for him: `gh pr checkout <n>`, `npm install`, then start the dev server.
 - One thing per pull request. Record architectural decisions under Decisions below, in the same pull request.
