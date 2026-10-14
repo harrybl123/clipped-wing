@@ -107,6 +107,10 @@ export const glasshouse: AreaDefinition = {
     // The evening: a few still talking.
     courtier('late-1', 7, 520, TERRACE, 'salon_guest', ['evening']),
     courtier('late-2', 2, 560, TERRACE, 'salon_guest', ['evening'], { flipX: true }),
+    // Mornings: your sister, bored among the plants; the hostess getting ready. The physician takes the air in the afternoon.
+    cast('sister', 150, FLOOR, { id: 'sister-morning', knot: 'glasshouse_sister', when: MORNING }),
+    cast('salon_hostess', 540, TERRACE, { id: 'hostess-morning', knot: 'glasshouse_hostess_morning', when: MORNING, flipX: true }),
+    cast('physician', 400, FLOOR, { knot: 'glasshouse_physician', when: ['afternoon'], flipX: true }),
   ],
   interactables: [],
 

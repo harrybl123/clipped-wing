@@ -66,6 +66,7 @@ export const dataCentre: AreaDefinition = {
     cast('operator', 104, FLOOR, { knot: 'data_operator' }), // at the desk, every shift
     strollingCitizen('tech', 11, 150, 520, FLOOR, 'data_tech', DAY),
     guard('door-guard', 2, 552, FLOOR, 'c3_guard_data', undefined, { flipX: true }), // your father's guard, on the door at the back
+    cast('engineer', 300, FLOOR, { knot: 'data_engineer', when: ['evening'] }),
   ],
   interactables: [],
 

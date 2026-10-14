@@ -84,6 +84,7 @@ export const princeQuarters: AreaDefinition = {
   people: [
     servant('maid', 0, 112, FLOOR, 'c3_maid', MORNING, { flipX: true }), // making the bed
     cast('sister', 452, FLOOR, { knot: 'quarters_sister', when: ['evening'] }), // at your telescope
+    cast('heir', 300, FLOOR, { knot: 'quarters_heir', when: MORNING, flipX: true }), // come to fetch you
   ],
   interactables: [],
 

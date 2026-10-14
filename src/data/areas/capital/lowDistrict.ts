@@ -132,6 +132,7 @@ export const lowDistrict: AreaDefinition = {
     watch('watch', 1, 530, FLOOR, 'low_watch', ['evening'], { flipX: true }),
     // The kid who chalks the symbol.
     cast('painter', 300, FLOOR, { knot: 'low_painter', when: ['afternoon', 'evening'] }),
+    cast('painter', 566, FLOOR, { id: 'painter-night', knot: 'low_painter_night', when: ['night'] }), // out chalking
   ],
   interactables: [],
 

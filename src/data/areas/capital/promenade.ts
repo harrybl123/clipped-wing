@@ -2,7 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './cityProps';
 import { rail, scrollingScreen } from './citadelProps';
 import type { AreaDefinition, Feature, Prop, Solid } from '../types';
-import { cast, citizen, patrol, strollingCitizen, watch, AWAKE, DAY, LATE } from './people';
+import { cast, citizen, patrol, strollingCitizen, watch, AWAKE, DAY, LATE, MORNING } from './people';
 
 // The promenade (Chapter 3): the mid-city market, where the city meets, between the citadel and the low
 // district (docs/areas/capital/promenade.md). The first street in the city, so it sets the look: the
@@ -147,6 +147,10 @@ export const promenade: AreaDefinition = {
     watch('watch-2', 0, 562, FLOOR, 'c3_watch', ['afternoon', 'night'], { flipX: true }),
     // The commander of the watch, looking the square over.
     cast('commander', 540, FLOOR, { knot: 'promenade_commander', when: ['afternoon'] }),
+    // The reformer talking to people in the morning; the kid who chalks the symbol; the envoy, lost, in the evening.
+    cast('reformer', 480, FLOOR, { knot: 'promenade_reformer', when: MORNING }),
+    cast('painter', 250, FLOOR, { knot: 'promenade_painter', when: MORNING }),
+    cast('envoy', 250, FLOOR, { id: 'envoy-evening', knot: 'promenade_envoy', when: ['evening'] }),
   ],
   interactables: [],
 

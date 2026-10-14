@@ -94,6 +94,7 @@ export const banquetGallery: AreaDefinition = {
     strollingServant('server-3', 0, 240, 600, FLOOR, 'c3_server', ['evening']),
     cast('salon_hostess', 420, FLOOR, { knot: 'banquet_hostess', when: ['evening'], flipX: true }),
     cast('heir', 726, FLOOR, { knot: 'banquet_heir', when: ['evening'] }),
+    cast('councillor', 560, FLOOR, { knot: 'banquet_councillor', when: ['evening'], flipX: true }), // by your father's empty chair
   ],
   interactables: [],
 

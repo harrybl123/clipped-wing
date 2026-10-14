@@ -71,6 +71,7 @@ export const cityGate: AreaDefinition = {
     citizen('traveller-1', 9, 180, FLOOR, 'gate_traveller', MORNING),
     citizen('traveller-2', 2, 150, FLOOR, 'gate_traveller', ['afternoon']),
     strollingCitizen('passer', 7, 600, 760, FLOOR, 'gate_folk', AWAKE),
+    cast('commander', 560, FLOOR, { id: 'commander-night', knot: 'gate_commander_night', when: ['night'], flipX: true }),
   ],
   interactables: [],
 

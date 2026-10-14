@@ -130,6 +130,29 @@ Labels: **(doc)** comes from the chapter design, **(designer)** was decided in c
    - **Everyone else:** the citadel guard (crested helmets with a visor of light, pikes), courtiers (coats, gowns, glasses in hand), servants (white tunics, trays, letters; the glasshouse's gardener), the council, the city watch (separate from your father's guard), and fourteen kinds of city folk (work clothes with glowing seams, hoods for the rain, aprons, patches, a few with their hair dyed blue).
    - **Where they are** (`src/data/areas/capital/people.ts`; until Chapter 3's calendar says who is where on which day): **(suggestion)** your father holds audience in the morning (on the throne, your hand beside your seat, the captain at the rope, petitioners waiting), sits at the top of the council in the afternoon (the old councillor, the reformer on his feet in the well), is in his study in the evening with his physician (so his chair at the banquet is empty), and at the sealed wing's door at night; the diplomat at his desk from the afternoon, a hooded visitor with him at night; your sister in the portrait gallery in the afternoon and at your telescope in the evening; the hostess's salon on the glasshouse terrace in the afternoon, the banquet in the evening (music from the gallery, dancing, guests, servants with trays, your friend out on the balcony); guards always at the great doors, the sealed door, the guest wing's barrier and the data centre's door; the promenade busy by day, a few hooded in the rain at night and the watch on its beat; the low district's cook, repairer and grocer, neighbours on the walkways, people round the fire at night, the painter in the afternoon and evening; the hideout's regulars in the evening and at night; the operator at the desk every shift; the commander at the gate in the morning and on the promenade in the afternoon; the envoy arriving at the gate in the morning and still waiting in the audience hall in the afternoon. None of the integrated (designer).
 
+## Who's where **(suggestion)**
+
+Until Chapter 3's calendar decides who is where on which day, the people you know keep these hours (`src/data/areas/capital/*.ts`; change the time with backtick then T). Everyone else in the capital can be talked to as well.
+
+| Who | Morning | Afternoon | Evening | Night |
+| --- | --- | --- | --- | --- |
+| Your father | the audience hall (the throne) | the council chamber | his study | the sealed wing's door |
+| The diplomat | the audience hall | his office | his office | his office (a hooded visitor) |
+| Your sister | the glasshouse (skipping lessons) | the halls (the portraits) | your quarters (your telescope) | the halls (creeping along the gallery) |
+| The captain | the audience hall | the guest wing | the halls | the halls |
+| The old councillor | the halls (by the council's door) | the council chamber | the banquet gallery | (at home) |
+| The hostess | the glasshouse | the glasshouse (her salon) | the banquet gallery | (at home) |
+| Your friend | your quarters (to fetch you) | the glasshouse | the banquet gallery (the balcony) | (at home) |
+| The physician | the halls (upstairs) | the glasshouse | your father's study | (at home) |
+| The reformer | the promenade | the council chamber | the halls | (at home) |
+| The envoy | the gate | the audience hall | the promenade | (lodgings) |
+| The commander | the gate | the promenade | (with the watch) | the gate |
+| The engineer | the lifts (the data centre's station) | the sealed wing | the data centre | (at home) |
+| The painter | the promenade | the low district | the low district | the low district (chalking) |
+| The lift operator | the lifts (top) | the lifts | the lifts | the lifts |
+| The operator | the data centre | the data centre | the data centre | the data centre |
+| The barkeep | the hideout | the hideout | the hideout | the hideout |
+
 ## Open questions
 
 - **The sealed wing:** just the corridor to its door (you never get in), or more?

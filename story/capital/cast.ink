@@ -182,3 +182,70 @@
 === gate_envoy ===
 "Is this the way in? They said someone would meet me." #speaker:envoy
 -> END
+
+// --- More of the day (so the people you know are somewhere at every hour) ---
+
+=== glasshouse_sister ===
+"Lessons. I told them I was ill." #speaker:sister
+"I'm very ill. Don't I look ill?" #speaker:sister
+-> END
+
+=== glasshouse_hostess_morning ===
+"Highness, you're early. Nobody interesting is up yet." #speaker:salon_hostess
+"Come back this afternoon. I'll have gossip by then." #speaker:salon_hostess
+-> END
+
+=== glasshouse_physician ===
+"The only air in the citadel that hasn't been breathed by a councillor." #speaker:physician
+-> END
+
+=== halls_councillor ===
+"Highness. Going in early. Someone has to warm the seats." #speaker:councillor
+-> END
+
+=== halls_reformer ===
+"They'll vote it down. They always do." #speaker:reformer
+"Doesn't mean you stop saying it." #speaker:reformer
+-> END
+
+=== halls_sister_night ===
+"Shh." #speaker:sister
+"You didn't see me. I didn't see you. Fair?" #speaker:sister
+-> END
+
+=== banquet_councillor ===
+"His chair's empty again." #speaker:councillor
+"Raise your glass anyway, Highness. They're watching who doesn't." #speaker:councillor
+-> END
+
+=== quarters_heir ===
+"Up! Your hand sent me. Well. I sent me." #speaker:heir
+"Come on. The day won't waste itself." #speaker:heir
+-> END
+
+=== promenade_reformer ===
+"Highness. Down here, they actually answer when you ask." #speaker:reformer
+-> END
+
+=== promenade_painter ===
+"Not doing anything. Just standing." #speaker:painter
+-> END
+
+=== promenade_envoy ===
+"Your city never goes dark, does it?" #speaker:envoy
+"Where I'm from, we'd sit up all night just to look at it." #speaker:envoy
+-> END
+
+=== low_painter_night ===
+"Go away. I'm busy." #speaker:painter
+"You didn't see anything." #speaker:painter
+-> END
+
+=== gate_commander_night ===
+"Nights are mine, Highness. The gate's shut. Nobody's going anywhere." #speaker:commander
+-> END
+
+=== data_engineer ===
+"Last check of the day. Everything humming." #speaker:engineer
+"Too much humming, if you ask me. Nobody does." #speaker:engineer
+-> END

@@ -155,6 +155,11 @@ export const citadelHalls: AreaDefinition = {
     cast('captain', 480, FLOOR, { knot: 'halls_captain', when: LATE, flipX: true }), // at the foot of the stair
     // At night, a guard on your father's door.
     guard('night-guard', 2, 270, UPPER, 'c3_guard_night', ['night'], { flipX: true }),
+    // More of the people you know: the old councillor by the council's door in the morning, the reformer in
+    // the evening, your sister creeping along the gallery at night.
+    cast('councillor', 330, FLOOR, { knot: 'halls_councillor', when: MORNING }),
+    cast('reformer', 250, FLOOR, { knot: 'halls_reformer', when: ['evening'] }),
+    cast('sister', 340, UPPER, { id: 'sister-night', knot: 'halls_sister_night', when: ['night'], flipX: true }),
   ],
   interactables: [],
 
