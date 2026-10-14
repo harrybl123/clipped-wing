@@ -175,7 +175,7 @@ function skyline(HY: number, sky: Sky, slot: TimeSlot): (x: number, y: number) =
 
 /**
  * The capital's towers (Chapter 3; docs/chapter-3-world.md), seen from its streets: two rows of them, the far
- * row taller and hazier, rising towards the citadel, which stands above them all in marble and gold, its
+ * row taller and hazier, rising towards the citadel, a crown of marble and gold on a crag of old stone above them all, its
  * sealed wing the tallest tower, dark, a line of blue light up it. By day pale stone in the haze; from dusk
  * dark, their windows lit cyan and amber, strips of blue light up their edges, signs here and there, cables
  * slung between the near ones. Null where there's only sky.
@@ -194,30 +194,44 @@ function cityPainter(outdoor: Outdoor, sky: Sky, slot: TimeSlot): (x: number, y:
     for (let x = -24, i = 0; x < 2400; i++) {
       const w = r ? 10 + Math.floor(cellRandom(i, 1, 71) * 14) : 6 + Math.floor(cellRandom(i, 0, 71) * 10);
       const h = r ? 22 + cellRandom(i, 3, 71) * 46 + near(x) * 40 : 50 + cellRandom(i, 2, 71) * 70 + near(x) * 60;
-      out.push({ x, w, top: Math.max(BASE + 8, Math.round(HY - h)), seed: i * 13 + r, strip: cellRandom(i, 4, 71) > 0.7, sign: r === 1 && cellRandom(i, 5, 71) > 0.8 });
+      out.push({ x, w, top: Math.max(BASE + 4, Math.round(HY - h)), seed: i * 13 + r, strip: cellRandom(i, 4, 71) > 0.7, sign: r === 1 && cellRandom(i, 5, 71) > 0.8 });
       x += w + (cellRandom(i, 6, 71) > 0.8 ? 2 : 0);
     }
     return out;
   });
+  /**
+   * The citadel (designer: the flat slab under it was clunky): a crown of marble towers standing straight on
+   * a crag of the old castle's dark stone, the rock widening down into the city so the towers below press up
+   * against it; a gold lip along its top; lit arches in the stone; the glass lift running up its face.
+   */
+  const ROCK_TOP = BASE - 8;
+  const rockHalf = (y: number) => 46 + (y - ROCK_TOP) * 0.85 + (noise(y / 6 + 3) - 0.5) * 8;
   const citadel = (x: number, y: number): PixelColour => {
     const dx = x - CX;
-    if (Math.abs(dx) > 78 || y > BASE + 14) return null;
-    // The base: a wide marble wedge, gold along its top.
-    if (y >= BASE) {
-      const half = 60 + (y - BASE) * 1.3;
-      if (Math.abs(dx) > half) return null;
-      const c = y === BASE ? SHADES.amber : dx > half - 2 ? SHADES.white : SHADES.light;
-      return lit ? scale(rgb(c), y === BASE ? 1 : 0.7) : mix(rgb(c), sky.horizon, 0.25);
+    if (Math.abs(dx) > 120 || y > BASE + 70) return null;
+    // The glass lift up the rock's face: a line of light, and a car on it.
+    if (dx === 22 && y > ROCK_TOP && y < BASE + 70) return lit ? (Math.abs(y - (BASE + 30)) < 2 ? SHADES.white : SHADES.cyan) : SHADES.cyanMid;
+    // The crag: old dark stone in rough courses, arches lit from inside from dusk.
+    if (y >= ROCK_TOP && Math.abs(dx) <= rockHalf(y)) {
+      const edge = rockHalf(y) - Math.abs(dx);
+      if (y < ROCK_TOP + 2) return y === ROCK_TOP ? SHADES.amber : SHADES.light; // the lower terrace's lip
+      const course = Math.floor((y - ROCK_TOP) / 5);
+      const arch = (y - ROCK_TOP) % 10 > 4 && (y - ROCK_TOP) % 10 < 8 && (dx + course * 3 + 400) % 9 < 2 && edge > 4;
+      if (arch && lit) return cellRandom(dx, course, 77) > 0.35 ? SHADES.amber : SHADES.deep;
+      const stone = rgb(edge < 2 ? SHADES.woodPale : (y - ROCK_TOP) % 5 === 0 || (dx + course * 4 + 400) % 13 === 0 ? SHADES.deep : SHADES.woodLight);
+      return lit ? scale(stone, 0.8) : mix(stone, sky.horizon, 0.2 + Math.max(0, (y - BASE) / 140));
     }
+    // The towers stand straight on the crag.
+    const terrace = ROCK_TOP;
     // The sealed wing: the tallest, dark, blue light up its middle.
-    if (Math.abs(dx + 12) <= 4 && y > BASE - 120) return dx + 12 === 0 ? (y % 4 === 0 ? SHADES.white : SHADES.cyan) : SHADES.deep;
-    if (Math.abs(dx + 12) === 0 && y > BASE - 128) return SHADES.dim;
-    // Marble towers with gold caps.
-    const towers = [[-52, 10, 46], [-34, 12, 70], [6, 14, 84], [26, 10, 62], [44, 14, 54], [-4, 30, 40]] as const;
+    if (Math.abs(dx + 12) <= 4 && y > terrace - 120 && y < terrace) return dx + 12 === 0 ? (y % 4 === 0 ? SHADES.white : SHADES.cyan) : SHADES.deep;
+    if (Math.abs(dx + 12) === 0 && y > terrace - 128 && y < terrace) return SHADES.dim;
+    // Marble towers with gold caps, standing on the terrace.
+    const towers = [[-40, 10, 40], [-28, 12, 64], [6, 14, 80], [24, 10, 56], [36, 10, 44], [-4, 26, 34]] as const;
     for (const [ox, w, h] of towers) {
       const lx = dx - ox;
-      const top = BASE - h;
-      if (lx < 0 || lx >= w || y < top - (lx === Math.floor(w / 2) ? 6 : 0)) continue;
+      const top = terrace - h;
+      if (lx < 0 || lx >= w || y >= terrace || y < top - (lx === Math.floor(w / 2) ? 6 : 0)) continue;
       if (y < top) return SHADES.amber; // a spire
       if (y < top + 2) return y === top ? SHADES.amber : SHADES.amberDeep;
       if (lit && (y - top) % 5 === 3 && lx % 3 === 1 && lx < w - 1) return cellRandom(lx + ox, y, 75) > 0.4 ? SHADES.amber : SHADES.cyan;

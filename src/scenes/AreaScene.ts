@@ -448,7 +448,7 @@ export class AreaScene extends Phaser.Scene {
       views: dark === 'low' ? 'low' : dark === 'promenade' ? 'middle' : undefined,
       fade: Number(story.getVariable('dark_fade')) / 100,
       cut: (dark === 'low' && where === 'low-district') || (dark === 'promenade' && where === 'promenade'),
-      dim: citadel && story.getVariable('energy') === 'people' && story.getVariable('citadel_dimmed') ? 0.8 : undefined,
+      dim: citadel && story.getVariable('energy') === 'people' && story.getVariable('citadel_dimmed') ? 0.62 : undefined,
     };
   }
 

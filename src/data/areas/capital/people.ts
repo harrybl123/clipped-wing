@@ -66,7 +66,7 @@ const stander = (group: Frames[], name: string) => (id: string, look: number, x:
 });
 
 /** Someone from one of the background groups, strolling back and forth (they stop when you talk to them). */
-const stroller = (group: Frames[], name: string) => (id: string, look: number, from: number, to: number, y: number, knot: string, when?: TimeSlot[]): Person => ({
+const stroller = (group: Frames[], name: string) => (id: string, look: number, from: number, to: number, y: number, knot: string, when?: TimeSlot[], extra: Partial<Person> = {}): Person => ({
   id,
   sprite: group[look]!.idle[0]!,
   idleFrames: group[look]!.idle,
@@ -78,6 +78,7 @@ const stroller = (group: Frames[], name: string) => (id: string, look: number, f
   speaker: `c3_${name}_${look}`,
   turns: true,
   when,
+  ...extra,
 });
 
 /** The citadel guard (looks 0–1 with pikes, 2 with a baton). */

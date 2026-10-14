@@ -106,7 +106,7 @@ describe('the war table: him', () => {
     }
   });
 
-  it('when he means it, he only ever picks fights he can win, and never leaves the citadel empty', () => {
+  it('when he means it, he only ever picks fights he can win, and the citadel stays his', () => {
     let s: WarState = { squads: LESSON.now.squads.map((q) => ({ ...q })), owner: { ...LESSON.now.owner }, cut: [], turn: 1 };
     for (let turn = 0; turn < LESSON.now.turns; turn++) {
       const orders = chooseOrders(CAPITAL_BOARD, s, 'him', 'war');
@@ -116,12 +116,13 @@ describe('the war table: him', () => {
         if (there && there.side !== 'him') expect(attackOf(CAPITAL_BOARD, sq.place, o.to, sq.strength)).toBeGreaterThan(defenceOf(CAPITAL_BOARD, o.to, there.strength));
       }
       s = resolve(CAPITAL_BOARD, s, orders).state;
-      expect(squadAt(s, 'citadel')?.side).toBe('him');
+      // (The garrison may go out to strike, only when none of yours could walk in behind it.)
+      expect(s.owner.citadel).toBe('him');
     }
   });
 
   it('"Now." can\u2019t be won, whatever you do (designer: and it mustn\u2019t look that way)', () => {
-    // It looks winnable: ten of yours against six in the citadel.
+    // It looks winnable: ten of yours against eight in the citadel.
     const yours = (st: WarState) => squadsOf(st, 'you').reduce((n, q) => n + q.strength, 0);
     const start = (): WarState => ({ squads: LESSON.now.squads.map((q) => ({ ...q })), owner: { ...LESSON.now.owner }, cut: [], turn: 1 });
     expect(yours(start())).toBeGreaterThan(squadAt(start(), 'citadel')!.strength);
@@ -131,12 +132,15 @@ describe('the war table: him', () => {
     for (let game = 0; game < 3000; game++) {
       let s = start();
       for (let turn = 0; turn < LESSON.now.turns; turn++) {
-        const cut = powerCutFor(CAPITAL_BOARD, s, 'you');
+        const cut = turn < (LESSON.now.cutsPower ?? 0) ? powerCutFor(CAPITAL_BOARD, s, 'you') : undefined;
         s = { ...s, cut: cut ? [cut] : [] };
         const mine = squadsOf(s, 'you').sort(() => rand() - 0.5);
+        // (Every tenth game his strategy plays you; every tenth, you gather everything on the promenade and sit.)
         const orders = game % 10 === 0
           ? chooseOrders(CAPITAL_BOARD, s, 'you', 'war')
-          : mine.flatMap((q) => {
+          : game % 10 === 1
+            ? mine.filter((q) => q.place !== 'promenade').map((q) => ({ squad: q.id, to: ['low_west', 'gate', 'lift_mid'].includes(q.place) ? 'promenade' : q.place === 'lift_low' ? 'low_west' : 'lift_low' }))
+            : mine.flatMap((q) => {
               const ways = waysFrom(CAPITAL_BOARD, q.place).map((w) => w.to);
               const at = ways.includes('citadel') && rand() < 0.7 ? 'citadel' : ways[Math.floor(rand() * (ways.length + 1))];
               return at ? [{ squad: q.id, to: at }] : [];

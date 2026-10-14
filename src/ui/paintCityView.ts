@@ -90,7 +90,7 @@ export function cityViewPainter(view: CityView, slot: TimeSlot, dark?: Power['vi
       if (ly > 1 && lx > 0 && lx < b.w - 1 && ly % sy === 1 && lx % sx === 1) {
         const r2 = cellRandom(b.seed, lx * 7 + ly, 55);
         if (lit && !out && r2 > (night ? 0.4 : 0.6)) return r2 > 0.82 && low < 0.5 ? SHADES.cyan : SHADES.amber;
-        if (out && r2 > 0.97) return SHADES.amberDeep; // a candle, here and there
+        if (out && dark === 'low' && r2 > 0.97) return SHADES.amberDeep; // a candle, here and there (the upper city has none)
         c = scale(c, 0.6);
       }
       // A strip of blue light up the block's edge; a sign on its face.
@@ -99,7 +99,8 @@ export function cityViewPainter(view: CityView, slot: TimeSlot, dark?: Power['vi
         return cellRandom(b.seed, 0, 56) > 0.5 ? SHADES.cyan : SHADES.amber;
       }
       if (lit && !out) c = addLight(c, b.strip ? cyan! : amber!, 0.12 * (1 - low));
-      if (out) c = scale(c, 0.3);
+      // Gone dark: the low district warm black; the upper city's glass towers cold, dead blue-grey slabs.
+      if (out) c = dark === 'middle' ? mix(scale(c, 0.22), rgb(SHADES.cyanDeep), 0.4) : scale(c, 0.3);
       return mix(c, sky.horizon, haze * (lit ? 0.4 : 1));
     }
 

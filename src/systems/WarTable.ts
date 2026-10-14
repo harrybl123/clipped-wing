@@ -271,6 +271,8 @@ function warOrders(board: WarBoard, state: WarState, side: WarSide): Order[] {
   const couldStrike = (place: string, strength: number) => enemies.some((e) => nextTo(place, e.place) && attackOf(board, place, e.place, strength) > defenceOf(board, e.place, e.strength, state.cut));
   const orders: Order[] = [];
   const claimed = new Set<string>();
+  /** Whether the stronghold could be left empty for a turn: none of theirs could walk into it. */
+  const safeToLeave = (target?: string) => !!stronghold && !enemies.some((e) => e.place !== target && nextTo(e.place, stronghold));
   for (const squad of mine) {
     const alone = squad.place === stronghold && mine.filter((m) => m.place === stronghold).length === 1;
     let best: { to: string; score: number } | null = null;
@@ -282,12 +284,19 @@ function warOrders(board: WarBoard, state: WarState, side: WarSide): Order[] {
         const margin = attackOf(board, squad.place, to, squad.strength) - defenceOf(board, to, there.strength, state.cut);
         if (margin <= 0) continue;
         score = 30 + there.strength * 3 + (placeOf(board, to).lift ? 6 : 0) - (threatened(to, margin) ? 8 : 0);
+        // The garrison comes down like a hammer: only when none of theirs could walk in behind it, and
+        // everything they'd have left, together, couldn't beat what comes back.
+        const left = enemies.reduce((n, e) => n + e.strength, 0) - there.strength;
+        if (alone && safeToLeave(to) && left < margin) score += 70;
       } else if (there?.side === side) {
         // Joining up: worth it if together they could strike next turn, or it makes a squad that's strong
-        // enough to go looking for a fight; never to sit in the stronghold.
+        // enough to go looking for a fight. Into the stronghold only to make the garrison a hammer.
         const together = there.strength + squad.strength;
-        if (to === stronghold) score = -5;
+        if (to === stronghold) score = couldStrike(to, together) && !couldStrike(to, there.strength) ? 20 : -5;
         else score = couldStrike(to, together) && !couldStrike(to, there.strength) ? 18 : couldStrike(to, together) ? 6 : squad.strength < 4 ? 9 : 1;
+      } else if (to === stronghold && !there) {
+        // The stronghold's empty (the garrison's out): back in, first.
+        score = 90;
       } else {
         // Closing in on theirs by the shortest way; the lifts and ground worth a little; never into their reach.
         score = 3 + (toFoe(squad.place) - toFoe(to)) * 7 + (placeOf(board, to).lift ? 2 : 0) + (state.owner[to] !== side ? 2 : 0);

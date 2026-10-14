@@ -122,7 +122,7 @@ He looks at the table a long moment.
 === c3day2_table_now ===
 He stands up straight, and steps back from the table.
 "That was a lesson. Now I'll play." #speaker:father
-He touches the table, and it sets itself again. Your rising holds the promenade and the low district: ten of you. The guard holds the lifts and the data centre, and six in the citadel.
+He touches the table, and it sets itself again. Your rising holds the promenade and the low district: ten of you. The guard holds the lifts and the data centre, and eight in the citadel.
 "Same rules. One move each. No arrows." #speaker:father
 "Take the citadel." #speaker:father
 "Now." #speaker:father
@@ -131,8 +131,8 @@ He touches the table, and it sets itself again. Your rising holds the promenade 
 // The first time he cuts the power under your biggest squad.
 === c3day2_table_cut ===
 He touches the table. Where your biggest squad stands, the lights go out.
-"Did you think I'd leave you the lights?" #speaker:father
-"In the dark, they can't move. And they fight at one less." #speaker:father
+"It helps to have a city on your side." #speaker:father
+"In the dark, they can't move this turn. And they fight at one less." #speaker:father
 -> END
 
 // What he says about what you've just done, in the lesson (designer: his speech answers your choices).
@@ -323,13 +323,13 @@ The sun's down. Below you the city lights up, row on row, the way it does every 
 - else:
     ~ dark_district = "promenade"
     ~ dark_fade = 20
-    Then the upper city starts to go out. The towers nearest the citadel first. #repaint #sound:thump #view
+    Then the upper city starts to go out. The towers nearest the citadel first: their blue strips, then every window, until they're just glass, dead, giving back the last of the sky. #repaint #sound:thump #view
     ~ dark_fade = 60
     The promenade, its shops, its street lamps along the square. #repaint #sound:thump #view
     ~ dark_fade = 100
     The great screen last of all: your father's face, and yours, and then nothing. Only the low district's still lit, right down at the bottom. #repaint #sound:boom #shake #view
     ~ citadel_dimmed = true
-    Then the lights in your own rooms lower round you. #repaint #sound:thump
+    Then the lights in your own rooms flicker, and drop, and stay down. #repaint #flash:dark
     "That was me." #speaker:prince #view
     The low district's lights look very small from here, under all that dark. #view
     Tomorrow the whole citadel will know whose choice it was. #view
@@ -377,7 +377,11 @@ She puts a finger to her lips.
 // --- Night: below, with your hand ---
 
 === c3day2_office ===
-"You should see what you decided." #speaker:diplomat #time:night
+{ energy == "high":
+    "The low district went dark at dusk. You should see what you decided." #speaker:diplomat #time:night
+- else:
+    "Your father's not pleased. The low district is. The middle of the city isn't. You should see what you decided." #speaker:diplomat #time:night
+}
 He holds out a plain coat with a hood.
 "Over yours. The wine shows." #speaker:diplomat
 ~ plain_coat = true
@@ -397,7 +401,12 @@ He goes down it like he's done it a hundred times. #goto:lifts:64:130:c3day2_lif
 // At the top of the lifts.
 === c3day2_lifts ===
 The lift operator looks at you a long moment, at your hood, at your face under it.
-He says nothing.
+{ energy == "high":
+    "The low district's own lifts are off tonight, Highness. Ours still run to the bottom. After that it's stairs." #speaker:lift_operator
+- else:
+    "Half power up here tonight, Highness. She'll go slow." #speaker:lift_operator
+}
+He doesn't ask where you're going.
 "Keep your hood up. Down there, they'd know you." #speaker:diplomat
 -> END
 
@@ -430,20 +439,69 @@ Your hand knows the way: which turning, which stair, which door to knock on. Too
 }
 -> END
 
-// The people below: they go quiet, then they want to tell you (designer).
+// The people below, in the district that went without: they go quiet, then they want to tell you (designer),
+// and what they tell you is that district's own (designer: the places you visit should show your choice).
 === c3day2_cold ===
-"You're him." #speaker:them
-"It's cold in there with no heat, Highness. My kids are sleeping in their coats." #speaker:them
+{ energy == "high":
+    "You're him." #speaker:them
+    "It's cold in there with no heat, Highness. My kids are sleeping in their coats." #speaker:them
+- else:
+    "You're him. Aren't you." #speaker:them
+    "My shop's dark. Nobody buys in the dark, Highness. Three generations, that shop." #speaker:them
+}
 -> END
 
 === c3day2_stairs ===
-"The lifts stop at dusk now. Eleven flights to my door, in the dark." #speaker:them
-"My father can't do them. He's sleeping on the step." #speaker:them
+{ energy == "high":
+    "The lifts stop at dusk now. Eleven flights to my door, in the dark." #speaker:them
+    "My father can't do them. He's sleeping on the step." #speaker:them
+- else:
+    "They say it was you. That you gave our light to the low district." #speaker:them
+    "Good for them, I suppose. Funny how it's always us in the middle that pays." #speaker:them
+}
 -> END
 
 === c3day2_food ===
-"The cold stores are off. Everything in them'll spoil by morning." #speaker:them
-"A week's food. Who's paying for that, Highness?" #speaker:them
+{ energy == "high":
+    "The cold stores are off. Everything in them'll spoil by morning." #speaker:them
+    "A week's food. Who's paying for that, Highness?" #speaker:them
+- else:
+    "The great screen's off. First time in my life. It's very quiet without your father's face." #speaker:them
+    "Is that what you wanted? Quiet?" #speaker:them
+}
+-> END
+
+// The lit low district, if you gave it the power: out in the light, glad of it, and they know whose it was.
+=== c3day2_glad ===
+{ shuffle:
+- "Lights all night! Lifts running! Is it true it was you, Highness?" #speaker:them
+- "My mother's warm tonight. First time this season. Thank you." #speaker:them
+- "They're saying up top they'll make you pay for this. Don't let them." #speaker:them
+}
+-> END
+
+// The citadel that evening, talking about it.
+=== c3day2_halls_courtier ===
+{ energy == "high":
+    { shuffle:
+    - "Highness. The gala goes ahead after all. My wife will be thrilled." #speaker:them
+    - "A wise choice, Highness. Very wise. Your father must be proud." #speaker:them
+    }
+- else:
+    { shuffle:
+    - "Candles, Highness. In the citadel. Candles." #speaker:them
+    - "I do hope they're grateful down there." #speaker:them
+    }
+}
+-> END
+
+=== c3day2_halls_servant ===
+{ energy == "high":
+    "Evening, Highness. All the lamps lit, as usual." #speaker:them
+- else:
+    She's lighting candles along the gallery, one by one.
+    "Half the lamps are off, Highness. We're to light the corridors by hand tonight." #speaker:them
+}
 -> END
 
 // The painter, chalking a bird by a dead lamp: he doesn't know who you are.

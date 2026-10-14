@@ -82,6 +82,8 @@ export class WarTableScene extends Phaser.Scene {
   private droppedIn: string[] = [];
   private taught = false;
   private said: string[] = [];
+  /** Where your squads were broken once he turned it on: scorched, smouldering. */
+  private scorched = new Set<string>();
   /** This turn's events, for what he says about them. */
   private turnEvents: { side: 'you' | 'him'; event: WarEvent; strength: number }[] = [];
   private cursor!: WarPlace;
@@ -119,6 +121,7 @@ export class WarTableScene extends Phaser.Scene {
     this.droppedIn = r?.droppedIn ?? [];
     this.taught = r?.taught ?? false;
     this.said = r?.said ?? [];
+    this.scorched = new Set();
     this.turnEvents = [];
     this.aiming = null;
     this.busy = true;
@@ -166,8 +169,8 @@ export class WarTableScene extends Phaser.Scene {
     this.orders = [];
     this.aiming = null;
     this.turnEvents = [];
-    // When he means it, he cuts the power under your strongest stack, every turn.
-    const cut = this.phase === 'now' && this.sc.now.cutsPower ? powerCutFor(this.sc.board, this.state, 'you') : undefined;
+    // When he means it, he cuts the power under your strongest stack (the first turn: designer, once is enough).
+    const cut = this.phase === 'now' && this.nowTurn < (this.sc.now.cutsPower ?? 0) ? powerCutFor(this.sc.board, this.state, 'you') : undefined;
     this.state = { ...this.state, cut: cut ? [cut] : [] };
     // In the lesson, his orders are chosen first and shown (the tells); when he means it, after yours, unseen.
     this.hisOrders = this.phase === 'lesson' ? chooseOrders(this.sc.board, this.state, 'him', 'lesson', this.sc.keep) : [];
@@ -275,11 +278,13 @@ export class WarTableScene extends Phaser.Scene {
     this.startTurn();
   }
 
-  /** A goal of the lesson taken: his word on it, then the next, or "Good." and he turns it on. */
+  /** A goal of the lesson taken: his word on it, then the next you don't already hold, or "Good." and he turns it on. */
   private goalDone(): void {
     const done = this.sc.goals[this.goal]!;
     const then = () => {
       this.goal++;
+      // (Taken already, on the way: he doesn't ask you to take it again.)
+      while (this.sc.goals[this.goal] && this.state.owner[this.sc.goals[this.goal]!.place] === 'you') this.goal++;
       const next = this.sc.goals[this.goal];
       if (next) this.talk(next.start, () => this.nextTurn());
       else this.talk(this.sc.knots.good, () => this.turnItOn());
@@ -297,19 +302,46 @@ export class WarTableScene extends Phaser.Scene {
     for (const event of events) this.turnEvents.push({ side: before.side, event, strength: before.strength });
     const from = placeOf(this.sc.board, before.place);
     const to = placeOf(this.sc.board, order.to);
+    const now = this.phase === 'now';
     const dot = this.add.circle(from.x, from.y, 6, before.side === 'you' ? AMBER : this.hisColour()).setDepth(4);
-    await this.tween(dot, { x: to.x, y: to.y, duration: 280 });
+    await this.tween(dot, { x: to.x, y: to.y, duration: now ? 200 : 280, ease: 'Sine.easeInOut' });
     dot.destroy();
     const battle = events.find((e) => e.type === 'battle');
-    if (battle) {
-      playSound(this, 'hit', 0.8);
-      const flash = this.add.circle(to.x, to.y, 12, SHADES.white).setDepth(4);
-      await this.tween(flash, { alpha: 0, scale: 2, duration: 300 });
-      flash.destroy();
+    if (battle && battle.type === 'battle') {
+      // Who was broken: the defenders if the attack won, else the attackers.
+      const broken = battle.won ? squadAt(this.state, order.to) : before;
+      if (now && broken?.side === 'you') {
+        // When he means it, every blow lands hard: a burst of light, the table shudders, your squad in shards.
+        this.scorched.add(order.to);
+        void this.smash(to.x, to.y, AMBER);
+      } else {
+        playSound(this, 'hit', 0.8);
+        const flash = this.add.circle(to.x, to.y, 12, SHADES.white).setDepth(4);
+        await this.tween(flash, { alpha: 0, scale: 2, duration: 300 });
+        flash.destroy();
+      }
     } else playSound(this, 'tick', 0.5);
     this.state = state;
     this.draw();
-    await this.wait(160);
+    await this.wait(now ? 70 : 160);
+  }
+
+  /** A squad broken: a white burst, a ring going out, shards of its light flying, and the table shuddering. */
+  private async smash(x: number, y: number, colour: number): Promise<void> {
+    playSound(this, 'crash', 0.9);
+    playSound(this, 'boom', 0.5);
+    this.cameras.main.shake(260, 0.008);
+    const flash = this.add.circle(x, y, 10, SHADES.white).setDepth(6);
+    const ring = this.add.circle(x, y, 8).setStrokeStyle(2, SHADES.white).setDepth(6);
+    this.tweens.add({ targets: flash, alpha: 0, scale: 2.4, duration: 260, onComplete: () => flash.destroy() });
+    this.tweens.add({ targets: ring, scale: 4, alpha: 0, duration: 520, ease: 'Quad.easeOut', onComplete: () => ring.destroy() });
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2 + Math.random() * 0.4;
+      const d = 14 + Math.random() * 22;
+      const shard = this.add.rectangle(x, y, 2, 2, i % 3 ? colour : SHADES.white).setDepth(6);
+      this.tweens.add({ targets: shard, x: x + Math.cos(a) * d, y: y + Math.sin(a) * d + 6, alpha: 0, angle: 180, duration: 500 + Math.random() * 300, ease: 'Quad.easeOut', onComplete: () => shard.destroy() });
+    }
+    await this.wait(180);
   }
 
   // --- He turns it on ---
@@ -326,6 +358,7 @@ export class WarTableScene extends Phaser.Scene {
       this.bg.setTexture('wartable-now');
       this.state = fresh(this.sc.now.squads, this.sc.now.owner);
       this.state.turn = 1;
+      this.scorched = new Set();
       this.cursor = placeOf(this.sc.board, squadsOf(this.state, 'you')[0]!.place);
       this.startTurn();
     });
@@ -467,6 +500,14 @@ export class WarTableScene extends Phaser.Scene {
     }
     const lifts = board.places.filter((p) => p.lift).sort((a, b) => a.y - b.y);
     for (let i = 1; i < lifts.length; i++) dashed(g, lifts[i - 1]!, lifts[i]!, line, 1);
+    // Where your squads were broken: embers, smouldering.
+    for (const id of this.scorched) {
+      const p = placeOf(board, id);
+      for (let i = 0; i < 7; i++) {
+        const a = i * 0.9 + (this.blink ? 0.3 : 0);
+        g.fillStyle(i % 2 ? SHADES.amberDeep : this.blink && i % 3 === 0 ? AMBER : SHADES.woodLight, 1).fillRect(Math.round(p.x + Math.cos(a) * (9 + (i % 3) * 2)), Math.round(p.y + Math.sin(a) * 5 + 4), 1, 1);
+      }
+    }
     // The places, and who holds them; the goal ringed.
     for (const p of board.places) {
       const owner = this.state.owner[p.id];

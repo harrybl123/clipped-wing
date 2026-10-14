@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition, Solid } from '../types';
-import { guard, cast, inStory, courtier, strollingCourtier, strollingServant, DAY, LATE, MORNING } from './people';
+import { guard, cast, inStory, courtier, servant, strollingCourtier, strollingServant, DAY, LATE, MORNING } from './people';
 
 // The citadel's halls (Chapter 3): the corridors joining the citadel's rooms (designer: corridors in the
 // citadel; docs/areas/capital/citadel-halls.md). Long marble halls on two floors, joined by a grand stair
@@ -147,11 +147,16 @@ export const citadelHalls: AreaDefinition = {
     // By day: a servant about the floor, a page with letters along the gallery; courtiers passing through.
     strollingServant('servant', 0, 200, 440, FLOOR, 'c3_servant', DAY),
     strollingServant('page', 1, 600, 820, UPPER, 'c3_page', DAY),
-    strollingCourtier('courtier-1', 0, 540, 820, FLOOR, 'halls_courtier', ['afternoon', 'evening']),
+    strollingCourtier('courtier-1', 0, 540, 820, FLOOR, 'halls_courtier', ['afternoon', 'evening'], { hideIf: 'c3day2=dusk,report' }),
     courtier('courtier-2', 2, 214, FLOOR, 'halls_courtier', ['afternoon']),
     // The evening: guests on their way in to the banquet.
-    courtier('guest-1', 3, 700, FLOOR, 'halls_courtier', ['evening']),
-    courtier('guest-2', 4, 716, FLOOR, 'halls_courtier', ['evening'], { flipX: true }),
+    courtier('guest-1', 3, 700, FLOOR, 'halls_courtier', ['evening'], { hideIf: 'c3day2=dusk,report' }),
+    courtier('guest-2', 4, 716, FLOOR, 'halls_courtier', ['evening'], { flipX: true, hideIf: 'c3day2=dusk,report' }),
+    // Day 2's evening, after the council: the citadel talking about what you decided (designer: the places
+    // you visit should show your choice).
+    courtier('talk-1', 2, 560, FLOOR, 'c3day2_halls_courtier', undefined, { showIf: 'c3day2=dusk,report' }),
+    courtier('talk-2', 5, 578, FLOOR, 'c3day2_halls_courtier', undefined, { showIf: 'c3day2=dusk,report', flipX: true }),
+    servant('candles', 1, 380, UPPER, 'c3day2_halls_servant', undefined, { showIf: 'c3day2=dusk,report' }),
     // People you know.
     cast('physician', 286, UPPER, { knot: 'halls_physician', when: MORNING, flipX: true }), // waiting on your father
     cast('sister', 770, UPPER, { knot: 'halls_sister', when: ['afternoon'] }), // among the portraits, where she shouldn't be

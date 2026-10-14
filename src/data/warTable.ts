@@ -57,7 +57,7 @@ export interface WarScenario {
    * not a flood of troops; it mustn't be winnable, and that mustn't be obvious): the table set up again, the
    * same rules, one move each, no arrows; you're told to take the citadel; he plays to win.
    */
-  now: { squads: Squad[]; owner: Record<string, WarSide>; goal: string; turns: number; /** Each turn, he cuts the power under your strongest stack. */ cutsPower?: boolean };
+  now: { squads: Squad[]; owner: Record<string, WarSide>; goal: string; turns: number; /** For this many turns from the start, he cuts the power under your strongest stack (designer: once is enough). */ cutsPower?: number };
   /** The story's lines (ink knots) as it goes, and the knot played back in the area afterwards. */
   knots: { intro: string; dropIn: string; good: string; now: string; end: string; after: string };
 }
@@ -93,23 +93,24 @@ export const LESSON: WarScenario = {
   lessonTurns: 16,
   now: {
     // Your rising has the promenade, and squads all through the low district: ten, against the citadel's
-    // six. It looks winnable. It isn't: every turn he cuts the power under your biggest stack, so it can't
-    // move, and whatever you gather from the rest in one turn never beats the citadel (tested).
+    // eight. It looks winnable. It isn't: all ten together, attacking uphill, only tie with the citadel's
+    // walls, and a tie holds; the walls lose nothing; and he spends your squads long before you could gather
+    // them (tested). The first turn, he cuts the power under your biggest stack.
     squads: [
       { id: 'n1', side: 'you', place: 'promenade', strength: 2 },
       { id: 'n2', side: 'you', place: 'low_west', strength: 2 },
       { id: 'n3', side: 'you', place: 'gate', strength: 2 },
       { id: 'n4', side: 'you', place: 'low_east', strength: 2 },
       { id: 'n5', side: 'you', place: 'lift_low', strength: 2 },
-      { id: 'h1', side: 'him', place: 'citadel', strength: 6 },
+      { id: 'h1', side: 'him', place: 'citadel', strength: 8 },
       { id: 'h2', side: 'him', place: 'lift_top', strength: 3 },
       { id: 'h3', side: 'him', place: 'lift_mid', strength: 3 },
-      { id: 'h4', side: 'him', place: 'data', strength: 2 },
+      { id: 'h4', side: 'him', place: 'data', strength: 3 },
     ],
     owner: { promenade: 'you', low_west: 'you', gate: 'you', low_east: 'you', lift_low: 'you', citadel: 'him', lift_top: 'him', lift_mid: 'him', data: 'him' },
     goal: 'citadel',
     turns: 7,
-    cutsPower: true,
+    cutsPower: 1,
   },
   knots: { intro: 'c3day2_table_intro', dropIn: 'c3day2_table_dropin', good: 'c3day2_table_good', now: 'c3day2_table_now', end: 'c3day2_table_end', after: 'c3day2_after_table' },
 };

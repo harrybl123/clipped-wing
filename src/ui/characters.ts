@@ -891,13 +891,32 @@ export const PRINCE_CROUCH = {
 };
 
 /**
- * The prince in a plain coat with a hood (Chapter 3, Day 2 on: going below with your hand): his own frames,
- * the hood pulled over his dark crop, the coat a worn brown, no gold, and the wine hidden.
+ * The prince in a plain coat with a hood (Chapter 3, Day 2 on: going below with your hand): his own frames
+ * with a worn hood pulled up over his head (a pixel proud of it at the back and top) and down over the
+ * collar, the coat a pale, worn grey-brown so it reads at a glance against his dark one, no gold, and the
+ * wine hidden (designer: the hood didn't change him enough).
  */
-const plain = (s: RowSprite): RowSprite => ({
-  rows: s.rows,
-  colours: { ...s.colours, H: SHADES.woodPale, h: SHADES.dim, C: SHADES.woodLight, c: SHADES.wood, A: SHADES.woodLight, R: SHADES.woodPale, r: SHADES.wood },
-});
+const plain = (s: RowSprite): RowSprite => {
+  const g = s.rows.map((r) => [...r]);
+  const at = (x: number, y: number) => g[y]?.[x] ?? '.';
+  // The head is the hair and skin in the top rows; the hood covers the hair and wraps the back of it.
+  const headRows = 6;
+  for (let y = 0; y < headRows; y++) {
+    const row = g[y]!;
+    for (let x = 0; x < row.length; x++) if (row[x] === 'H' || row[x] === 'h') row[x] = 'O';
+    const left = row.findIndex((c) => c !== '.');
+    if (left > 0 && y < headRows - 1) row[left - 1] = 'o';
+  }
+  // A peak over the brow, and the hood's fall over the collar.
+  const top = g[0]!;
+  const first = top.findIndex((c) => c !== '.');
+  if (first >= 0) for (let x = first; x < top.length && at(x, 0) !== '.'; x++) if (at(x, 0) === 'K') top[x] = 'O';
+  for (const row of g) for (let x = 0; x < row.length; x++) if (row[x] === 'R' || row[x] === 'r') row[x] = row[x] === 'R' ? 'O' : 'o';
+  return {
+    rows: g.map((r) => r.join('')),
+    colours: { ...s.colours, O: SHADES.light, o: SHADES.dim, C: SHADES.dim, c: SHADES.woodPale, A: SHADES.woodPale },
+  };
+};
 export const PRINCE_PLAIN = {
   idle: PRINCE.idle.map(plain),
   walk: PRINCE.walk.map(plain),

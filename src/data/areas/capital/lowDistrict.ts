@@ -148,6 +148,10 @@ export const lowDistrict: AreaDefinition = {
     citizen('food-2', 10, 700, FLOOR, 'c3day2_food', undefined, { showIf: 'c3day2=below', hideIf: 'energy=people' }),
     inStory('painter-2', 'painter', 520, FLOOR, 'c3day2=below', { knot: 'c3day2_painter', hideIf: 'energy=people' }),
     inStory('woman-2', 'petitioner', 790, RIGHT_WALK, 'c3day2=below', { knot: 'c3day2_woman', flipX: true }),
+    // (If you gave them the power: the street out in the light, glad of it, and they know whose it was.)
+    citizen('glad-1', 12, 300, FLOOR, 'c3day2_glad', undefined, { showIf: 'c3day2=below', hideIf: 'energy=high' }),
+    strollingCitizen('glad-kids', 6, 330, 520, FLOOR, 'c3day2_glad', undefined, { showIf: 'c3day2=below', hideIf: 'energy=high' }),
+    citizen('glad-2', 5, 716, FLOOR, 'c3day2_glad', undefined, { showIf: 'c3day2=below', hideIf: 'energy=high', flipX: true }),
     inStory('hand', 'diplomat', 40, FLOOR, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
   ],
   interactables: [
