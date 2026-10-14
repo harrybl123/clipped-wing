@@ -1,0 +1,11 @@
+#!/bin/sh
+# Main only changes through pull requests that Harry merges. This stops a push to main by accident (from
+# you or from Claude Code). The maintainer's own clone opts out with: git config clippedwing.maintainer true
+if [ "$(git config --get clippedwing.maintainer)" = "true" ]; then exit 0; fi
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  if [ "$remote_ref" = "refs/heads/main" ]; then
+    echo "Pushing to main is blocked: push your branch and open a pull request instead (see CONTRIBUTING.md)." >&2
+    exit 1
+  fi
+done
+exit 0

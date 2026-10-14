@@ -61,6 +61,25 @@ The game is pixel art, so darker and lighter **shades** of these colours are all
 - New areas start from a brief in `docs/areas/` (copy `_template.md`); Claude's proposals stay marked **(suggestion)** until the designer confirms them.
 - Keep this file current: when an architectural decision is made, record it under "Decisions" below.
 
+## Working together
+
+Harry is the designer and owns the game: the story, characters, world and design. Others help on branches (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+
+**Git and pull requests**
+- **Never commit to or push `main`** unless you're working with Harry in his own clone (his clone has `git config clippedwing.maintainer true`; in anyone else's, a pre-push hook in `.githooks/` refuses pushes to `main`). Work on a branch named `<name>/<short-topic>`, branched from the latest `main`.
+- Before opening a pull request: `npm test` and `npm run build` pass. Open it with `gh pr create`, filling in the template, especially **How to try it** (the dev links that show the change). GitHub runs the same checks on every pull request (`.github/workflows/check.yml`).
+- Harry tries each pull request and merges it. To try one for him: `gh pr checkout <n>`, `npm install`, then start the dev server.
+- One thing per pull request. Record architectural decisions under Decisions below, in the same pull request.
+
+**Working with the designer** (learned with Harry; these apply to everyone's sessions)
+- **The designer talks first.** In story planning, summarise what the docs already say in a line or two, then ask for Harry's ideas and build on them. Don't lead with a full breakdown and a list of assumption-based questions.
+- **Don't invent story content.** Proposals are welcome, marked **(suggestion)** until Harry confirms them; draft lines are obviously drafts.
+- **Placeholder lines keep the mystery.** Characters speak from inside their world (in the tree, the Canopy is paradise and blessings are gifts from above). Never hint at the truth in temporary text; leave that to Harry.
+- **The screen matches the text.** Whatever a line says is happening is on screen: people described as there are there before you arrive, people who leave visibly walk off, crowds that look at you exist. Guide the player with the red objective marker, not hint text. Give confrontations a reason and a few beats of build-up; keep optional content short.
+- **Roots folk are kind to the lower roots** (a little scorn at most); contempt for them belongs to those in authority (the elders, the preacher).
+- **Chapter 3 is planned in full before any of it is built:** every day, in detail, agreed with Harry (`docs/sequences/chapter-3/plan.md`). No building day by day as you go.
+- British English everywhere in the game. Red, copper and wine are reserved (see the palette).
+
 ## Decisions
 
 (Record decisions here as they're made, newest first.)
