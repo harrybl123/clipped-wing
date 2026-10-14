@@ -75,7 +75,7 @@ Opens on the chapter card: "Chapter 3", **The Prince** (designer). No tutorial c
 
 **The prince's weapon** (designer): a laser-like fencing sword. **(suggestion)** A light-blade: a gold hilt and guard, the blade a line of light that hums, **wine** (his reserved colour: the only blade of its colour, so it's his wherever it's seen); turned down to a dull glow for practice, full and bright when it's real. Your hand's practice blade the same, in the city's cyan.
 
-**Combat: the prince's moves (suggestion; designer to decide).** Fencing first: a quick *Thrust* (a fast QTE), a *Parry* (a good dodge turns the blow, like her Brace), a *Feint* (tests his read: Act 1's tells, turned round), and something that's his: *Command* (a royal's trick: "Yield." a word that makes the weaker foe hesitate; useless on your hand). Your hand's moves: a fencer's, until the soldier's tricks come out (*Inside*, *Trip*, *Off hand*). A new stage: the balcony at dawn, the city below.
+**Combat: the prince's moves** (designer, 2026-10-14: "go with your suggestion"). Fencing first: a quick *Thrust* (a fast QTE), a *Parry* (a good dodge turns the blow, like her Brace), a *Feint* (tests his read: Act 1's tells, turned round), and something that's his: *Command* (a royal's trick: "Yield." a word that makes the weaker foe hesitate; useless on your hand). Your hand's moves: a fencer's, until the soldier's tricks come out (*Inside*, *Trip*, *Off hand*). A new stage: the balcony at dawn, the city below.
 
 ---
 
@@ -270,6 +270,7 @@ Your friend: *you got him out* — "Somewhere on the road, your friend. You open
 ---
 
 ## Settled so far
+- **The prince's moves** (designer): Thrust, Parry, Feint, Command, as suggested.
 - **Day 7's transfer list stays** (designer): your father allows you one name to strike.
 - **The reformer doesn't know he's being used** (designer): the decoy the real plotters let you watch (doc), connected by your hand without knowing it; your hand admits it on the balcony.
 - **The ending card's title** (designer): "The steady ship rocks."
@@ -284,7 +285,7 @@ Your friend: *you got him out* — "Somewhere on the road, your friend. You open
 - The title: **The Prince** (designer). The spar can be won or lost; the war table can only be lost, and it's obvious when he turns it on (designer). The capital is the board (designer). Day 1's areas aren't too many for one day (designer).
 
 ## Open (small; confirm while building)
-- The prince's moves (Thrust, Parry, Feint, Command: suggestion) and the light-blade's colour (wine: suggestion).
+- The light-blade's colour (wine: suggestion).
 - The district firebrand as the painter's brother (suggestion, not objected to).
 - Resolved since: the riot has a fight (the drop-in at the square, against rioters, your hand beside you); the raid has none (stand in it, or hide); your part in the escape (you get him out if you promised); where each broadcast leaves your hand (agreed: the balcony scene, coloured by it).
 
@@ -301,7 +302,7 @@ Agreed 2026-10-14; build **day by day, in order, from Day 1**, each day playable
 - The ending cards (`EndingScene`): one per broadcast (`c3_back`, `c3_defy`, `c3_middle`), the friend's line by `helped_escape`, title "The steady ship rocks.", coda "End of Chapter 3".
 
 **Mechanics and features, by the day they first appear**
-- Day 1: the prince in combat: the light-blade (designer: a laser-like fencing sword; wine, suggestion), his moves (Thrust, Parry, Feint, Command), battle sprites (the prince from behind, your hand); a balcony stage at dawn; the spar (`spar_hand`, win or lose). Your hand as a follower. Seating the banquet (cards at chairs).
+- Day 1: the prince in combat: the light-blade (designer: a laser-like fencing sword; wine, suggestion), his moves (Thrust, Parry, Feint, Command: designer), battle sprites (the prince from behind, your hand); a balcony stage at dawn; the spar (`spar_hand`, win or lose). Your hand as a follower. Seating the banquet (cards at chairs).
 - Day 2: **the war table** (a new scene: the capital's places and links as the board, squads, turns, his arrows (tells), the lifts, power cuts; drop yourself into a fight; the lesson, then "Now." and a loss you can't avoid); **the simulation room** (a new area, behind your father's study's bookshelf, which opens). The prince's plain coat (a new look). **Districts' power off** (their lights, signs, screens and people; the citadel dims on the people path; the map shows it). Act 1's watch in the capital.
 - Day 3: informants (people in doorways who report a face); the reward notice on the screens; the streets cut (pushback 1) as well as the district you chose.
 - Day 4: the spar with your friend (`spar_friend`); the war table for real (the riot spreading; your father watching); the square: a fight with your hand beside you (`riot_square`), the light-blade at full; fire, screens cutting out. The district firebrand (the painter's brother, a new character).
