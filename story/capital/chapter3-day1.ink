@@ -121,7 +121,7 @@ The merchant comes up to the rope. #walk:merchant:524
 "He's right. He's also rich." #speaker:diplomat
 Your father nods, once.
 "Granted." #speaker:father
-"Majesty." #speaker:merchant #walk:merchant:330
+"Majesty." #speaker:merchant #walk:merchant:308
 The envoy next, dust still on his coat. #walk:envoy-1:524
 "Majesty. I've come a long way." #speaker:envoy
 "I know." #speaker:father

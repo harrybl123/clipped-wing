@@ -38,35 +38,36 @@ export const CAPITAL_BOARD: WarBoard = {
 export interface WarScenario {
   id: string;
   board: WarBoard;
+  /** The lesson: where everyone starts. */
   squads: Squad[];
   owner: Record<string, WarSide>;
-  /** The lesson's goal: take this place. */
-  goal: string;
-  /** Places he never leaves in the lesson (the one you're meant to take). */
+  /**
+   * The lesson's goals, one after another (designer: make it longer): take this place; his line before it
+   * (what to do, and what it teaches) and after it, if any.
+   */
+  goals: { place: string; start: string; done?: string }[];
+  /** Places he never leaves in the lesson (the ones you're meant to take). */
   keep: string[];
   /** Fights you can go down to yourself: the place, and the fight (src/data/combat.ts). */
   dropIn: Record<string, string>;
-  /** After this many turns of the lesson, he turns it on anyway. */
+  /** After this many turns of the lesson, he moves on anyway. */
   lessonTurns: number;
-  /** When he turns it on (designer: you can only lose, and it's obvious). */
-  now: {
-    /** Turns before he switches it off. */
-    turns: number;
-    /** His moves for each of yours. */
-    movesPerTurn: number;
-    /** Added to every squad of his when he turns it on. */
-    boost: number;
-    /** A fresh squad each turn, at the citadel. */
-    reinforce: number;
-  };
+  /**
+   * When he turns it on (designer: obvious, and you can only lose, but a fair fight you're out-thought in, not
+   * a flood of troops): the table set up again as the city really is, the same rules, one move each, no
+   * arrows; you're told to take the citadel, which the numbers never allow; he plays to win.
+   */
+  now: { squads: Squad[]; owner: Record<string, WarSide>; goal: string; turns: number };
   /** The story's lines (ink knots) as it goes, and the knot played back in the area afterwards. */
   knots: { intro: string; dropIn: string; good: string; now: string; end: string; after: string };
 }
 
 /**
  * Day 2, the simulation room: "A district rises." (plan). He gives you the rising (the low district's people,
- * many and weak) and takes the guard himself. The lesson: take the promenade, with his orders shown as
- * arrows; he marks the promenade's fight for you to go down to yourself. Then he turns it on.
+ * many and weak) and takes the guard himself. The lesson, his orders shown as arrows: take the middle lifts
+ * (and read his arrow: he's going for them too; a tie, the defenders hold), then the data centre (two of his:
+ * join yours up first), then the promenade (three: he marks it for you to go down to yourself). Then "Now.":
+ * the city as it is, the guard holding the lifts and the citadel, and you told to take the citadel.
  */
 export const LESSON: WarScenario = {
   id: 'lesson',
@@ -75,18 +76,37 @@ export const LESSON: WarScenario = {
     { id: 'r1', side: 'you', place: 'low_west', strength: 2 },
     { id: 'r2', side: 'you', place: 'low_east', strength: 2 },
     { id: 'r3', side: 'you', place: 'gate', strength: 2 },
-    { id: 'r4', side: 'you', place: 'lift_low', strength: 1 },
+    { id: 'r4', side: 'you', place: 'lift_low', strength: 2 },
     { id: 'g1', side: 'him', place: 'citadel', strength: 4 },
-    { id: 'g2', side: 'him', place: 'promenade', strength: 2 },
+    { id: 'g2', side: 'him', place: 'promenade', strength: 3 },
     { id: 'g3', side: 'him', place: 'data', strength: 2 },
     { id: 'g4', side: 'him', place: 'lift_top', strength: 2 },
   ],
   owner: { low_west: 'you', low_east: 'you', gate: 'you', lift_low: 'you', citadel: 'him', promenade: 'him', data: 'him', lift_top: 'him' },
-  goal: 'promenade',
-  keep: ['promenade'],
+  goals: [
+    { place: 'lift_mid', start: 'c3day2_lesson_lifts', done: 'c3day2_lesson_lifts_done' },
+    { place: 'data', start: 'c3day2_lesson_data', done: 'c3day2_lesson_data_done' },
+    { place: 'promenade', start: 'c3day2_lesson_promenade' },
+  ],
+  keep: ['citadel', 'promenade', 'data'],
   dropIn: { promenade: 'sim_guards' },
-  lessonTurns: 8,
-  now: { turns: 3, movesPerTurn: 2, boost: 2, reinforce: 4 },
+  lessonTurns: 16,
+  now: {
+    squads: [
+      { id: 'n1', side: 'you', place: 'low_west', strength: 2 },
+      { id: 'n2', side: 'you', place: 'low_east', strength: 2 },
+      { id: 'n3', side: 'you', place: 'gate', strength: 2 },
+      { id: 'n4', side: 'you', place: 'lift_low', strength: 2 },
+      { id: 'h1', side: 'him', place: 'citadel', strength: 7 },
+      { id: 'h2', side: 'him', place: 'promenade', strength: 3 },
+      { id: 'h3', side: 'him', place: 'data', strength: 3 },
+      { id: 'h4', side: 'him', place: 'lift_top', strength: 2 },
+      { id: 'h5', side: 'him', place: 'lift_mid', strength: 2 },
+    ],
+    owner: { low_west: 'you', low_east: 'you', gate: 'you', lift_low: 'you', citadel: 'him', promenade: 'him', data: 'him', lift_top: 'him', lift_mid: 'him' },
+    goal: 'citadel',
+    turns: 8,
+  },
   knots: { intro: 'c3day2_table_intro', dropIn: 'c3day2_table_dropin', good: 'c3day2_table_good', now: 'c3day2_table_now', end: 'c3day2_table_end', after: 'c3day2_after_table' },
 };
 

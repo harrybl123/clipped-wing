@@ -251,8 +251,8 @@ export interface AreaDefinition {
    * marble veined with gold: the council chamber), or bare (plain white panels, nothing in them, no gold: the
    * sealed wing), or plaster (warm cream over a dark wood dado: the diplomat's office). Only plain marble rooms
    * get the cornice, the dado along their floors and gold inlay.
-   */
-  walls?: 'heartwood' | 'scrap' | 'hull' | 'matched' | 'marble' | 'darkMarble' | 'bare' | 'panelled' | 'stone' | 'plaster';
+   `void`: a hall of black with points of blue light dotted across it, running off into the dark (the simulation room). */
+  walls?: 'heartwood' | 'scrap' | 'hull' | 'matched' | 'marble' | 'darkMarble' | 'bare' | 'panelled' | 'stone' | 'plaster' | 'void';
   /**
    * Windows and open sides onto the city (the capital, Chapter 3): inside each rectangle, the city seen from
    * up here, painted for the time of day (the room is repainted when the time changes). Props go over them.

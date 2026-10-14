@@ -199,6 +199,27 @@ function stoneWall(x: number, y: number): RGB | number {
   return base.map((v) => v * (1 + noise(x / 3 + y / 5) * 0.1 + ((y % 9) === 1 ? 0.15 : 0))) as RGB;
 }
 
+/**
+ * The simulation room (Chapter 3; designer: walking into a hall of black with blue lights dotted around): black,
+ * and points of light in rows running off at a slant into the dark, brighter where the table's light falls.
+ */
+function voidPixel(x: number, y: number, glow: number): RGB | number {
+  const slant = y + x * 0.28;
+  if (Math.round(slant) % 9 === 0 && (x + Math.floor(slant / 9) * 3) % 6 === 0) {
+    if (cellRandom(x, y, 91) > 0.97) return SHADES.cyan;
+    return glow > 0.25 ? SHADES.cyanMid : SHADES.cyanDeep;
+  }
+  return addLight(rgb(SHADES.shadow), rgb(SHADES.cyanDeep), Math.min(0.5, glow * 0.6));
+}
+
+/** The simulation room's floor: black, a line of light along its edge, points of light across it. */
+function voidSolidColour(s: Solid, x: number, y: number): number {
+  const row = y - s.y;
+  if (row === 0) return SHADES.cyanMid;
+  if (row === 1) return SHADES.cyanDeep;
+  return row % 6 === 3 && (x + row) % 8 === 0 ? SHADES.cyanDeep : SHADES.shadow;
+}
+
 /** Old stone flags underfoot (the hideout). */
 function stoneSolidColour(s: Solid, x: number, y: number): number {
   const row = y - s.y;
@@ -233,7 +254,7 @@ export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon', po
   const plaster = area.walls === 'plaster';
   const marble = area.walls === 'marble' || area.walls === 'darkMarble' || area.walls === 'bare' || panelled || stoneWalls || plaster;
   const scrap = area.walls === 'scrap' || area.walls === 'hull' || area.walls === 'matched' || marble;
-  const views = (area.views ?? []).map((v) => cityViewPainter(v, slot, power.views));
+  const views = (area.views ?? []).map((v) => cityViewPainter(v, slot, power.views, power.fade));
   // A room that looks out over the city follows the light outside: dimmer from dusk, lamplit at night.
   const ambient = (area.views ? area.ambient * { morning: 1, afternoon: 1, evening: 0.82, night: 0.6 }[slot] : area.ambient) * (power.dim ?? 1);
   const hull = area.walls === 'hull';
@@ -245,7 +266,7 @@ export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon', po
 
   for (const s of area.solids) {
     if (s.invisible) continue;
-    for (let y = s.y; y < s.y + s.height; y++) for (let x = s.x; x < s.x + s.width; x++) put(x, y, stoneWalls ? stoneSolidColour(s, x, y) : marble ? marbleSolidColour(s, x, y) : scrap ? plateColour(s, x, y) : solidColour(s, x, y));
+    for (let y = s.y; y < s.y + s.height; y++) for (let x = s.x; x < s.x + s.width; x++) put(x, y, area.walls === 'void' ? voidSolidColour(s, x, y) : stoneWalls ? stoneSolidColour(s, x, y) : marble ? marbleSolidColour(s, x, y) : scrap ? plateColour(s, x, y) : solidColour(s, x, y));
   }
   for (const { from, to, colour } of area.lines) {
     const steps = Math.max(Math.abs(to.x - from.x), Math.abs(to.y - from.y), 1);
@@ -298,6 +319,11 @@ export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon', po
   return (x, y) => {
     const exact = overlay.get(y * width + x);
     if (exact !== undefined) return exact;
+    if (area.walls === 'void') {
+      let glow = 0;
+      for (const l of lights) glow += l.strength * falloff(x, y, l.x, l.y, l.radius, l.radiusY ?? l.radius);
+      return voidPixel(x, y, glow);
+    }
     const arch = dadoFloors.length || area.walls === 'marble' ? architecture(x, y) : null;
     if (typeof arch === 'number') return arch;
     if (arch) {

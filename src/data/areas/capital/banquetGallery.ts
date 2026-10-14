@@ -104,7 +104,7 @@ export const banquetGallery: AreaDefinition = {
     ...(['councillor', 'salon_hostess', 'merchant'] as const).flatMap((who) => {
       const seat = who === 'salon_hostess' ? 'hostess' : who;
       const knot = `c3day1_${seat}`;
-      const down = { councillor: 270, salon_hostess: 350, merchant: 430 }[who];
+      const down = { councillor: 270, salon_hostess: 352, merchant: 414 }[who];
       return [
         inStory(`${seat}-right`, who, 556, FLOOR, `seated=${seat}`, { knot, hideIf: 'c3day1=banquet,cards,night,done', flipX: false }),
         inStory(`${seat}-down`, who, down, FLOOR, 'c3day1=toast,friend', { knot, hideIf: `seated=${seat}`, flipX: who === 'merchant' }),
@@ -115,7 +115,7 @@ export const banquetGallery: AreaDefinition = {
   interactables: [
     { id: 'mirrors', x: 330, y: FLOOR, reach: 10, label: 'Look', knot: 'banquet_mirrors' },
     { id: 'table', x: 440, y: FLOOR, reach: 10, label: 'Look', knot: 'banquet_table' },
-    { id: 'chair', x: 604, y: FLOOR, reach: 10, label: 'Look', knot: 'banquet_chair' },
+    { id: 'chair', x: 604, y: FLOOR, reach: 10, label: 'Look', knot: 'banquet_chair', hideIf: 'c3day1=toast,friend' }, // (not while he's by it)
     { id: 'balcony', x: 760, y: FLOOR, reach: 14, label: 'Look', knot: 'banquet_balcony' },
     // Chapter 3, Day 1: the cards (the chair at your father's right, then two further down).
     { id: 'card-right', x: 558, y: FLOOR, reach: 10, label: 'Place card', knot: 'c3day1_card_right', showIf: 'c3day1=cards', hideIf: 'right_placed' },

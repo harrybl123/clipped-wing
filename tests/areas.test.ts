@@ -69,6 +69,18 @@ describe.each(Object.values(AREAS))('area $id', (area) => {
     }
   });
 
+  it('keeps the story\u2019s people off things to look at (designer: the Look and the Talk overlapped)', () => {
+    // People the story places (they have a showIf) mustn't stand on an interactable that's there at the same
+    // time; an interactable the story hides (hideIf) or shows (showIf) is the story's to keep apart. (The
+    // capital's, from Chapter 3 on: its people have a `speaker`.)
+    for (const p of area.people.filter((q) => q.showIf && q.speaker && !q.follow && !q.wander)) {
+      for (const it of area.interactables.filter((i) => !i.showIf && !i.hideIf)) {
+        if (Math.abs(it.y - p.y) > 4) continue;
+        expect(Math.abs(it.x - p.x), `${p.id} on ${it.id}`).toBeGreaterThanOrEqual(it.reach + 8);
+      }
+    }
+  });
+
   it('only uses ink knots and variables that exist', () => {
     const story = compileStory();
     const knots = [...area.interactables.map((it) => it.knot), ...area.people.flatMap((p) => (p.knot ? [p.knot] : []))];

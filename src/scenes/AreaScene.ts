@@ -23,6 +23,7 @@ import { VILLAGERS, WATCHMAN } from '../ui/characters';
 import { CAST, type CastId } from '../ui/borderlandFolk';
 import { SHADES, type Power } from '../ui/pixelArt';
 import { CAPITAL_PLACES } from '../data/capitalMap';
+import { cityViewPainter } from '../ui/paintCityView';
 import { WATCH } from '../ui/capitalFolk';
 import { duckScore, updateScore, type ScoreId } from '../ui/score';
 import { setMuted } from '../ui/soundSetting';
@@ -331,6 +332,8 @@ export class AreaScene extends Phaser.Scene {
   /** Things to do once the current conversation closes (e.g. travel after a #goto: tag). */
   private afterClose: (() => void)[] = [];
   private inset: Phaser.GameObjects.Container | null = null;
+  /** A close-up of the city (`#view`), kept up from line to line and repainted as the story changes it. */
+  private cityView: { container: Phaser.GameObjects.Container; image: Phaser.GameObjects.Image } | null = null;
   /** Darkens the room for a weighty moment (#dim:on / #dim:off). */
   private dimmer!: Phaser.GameObjects.Rectangle;
   private script: string | undefined;
@@ -443,14 +446,20 @@ export class AreaScene extends Phaser.Scene {
     const citadel = CAPITAL_PLACES.some((p) => p.id === where && p.level === 'the citadel');
     return {
       views: dark === 'low' ? 'low' : dark === 'promenade' ? 'middle' : undefined,
+      fade: Number(story.getVariable('dark_fade')) / 100,
       cut: (dark === 'low' && where === 'low-district') || (dark === 'promenade' && where === 'promenade'),
-      dim: citadel && story.getVariable('energy') === 'people' ? 0.8 : undefined,
+      dim: citadel && story.getVariable('energy') === 'people' && story.getVariable('citadel_dimmed') ? 0.8 : undefined,
     };
+  }
+
+  /** Whether a story condition holds: a variable that's true, or `<variable>=<value>[,<value>]`. */
+  private holds(condition: string): boolean {
+    return barksOn(condition, (v) => getSession(this).story.getVariable(v));
   }
 
   private powerKey(): string {
     const p = this.power();
-    return `${p.views ?? ''}${p.cut ? 'cut' : ''}${p.dim ?? ''}`;
+    return `${p.views ?? ''}${p.fade ?? ''}${p.cut ? 'cut' : ''}${p.dim ?? ''}`;
   }
 
   /** Paints a room, or repaints it for the time of day if it looks out over the city (the citadel's windows). */
@@ -491,7 +500,7 @@ export class AreaScene extends Phaser.Scene {
       enabled: it.showIf || it.hideIf ? () => (!it.showIf || barksOn(it.showIf, (v) => story.getVariable(v))) && ![it.hideIf ?? []].flat().some((v) => barksOn(v, (w) => story.getVariable(w))) : undefined,
     }));
     for (const exit of area.exits) {
-      const known = exit.showIf ? () => !!getSession(this).story.getVariable(exit.showIf!) : undefined;
+      const known = exit.showIf ? () => !!this.holds(exit.showIf!) : undefined;
       this.usables.push({ ...exit, label: 'Leave', use: () => this.openDoorMenu(exit), enabled: known });
     }
     const session = getSession(this);
@@ -709,10 +718,10 @@ export class AreaScene extends Phaser.Scene {
 
   /** Whether an ambience layer is playing now: its time of day and story variables. */
   private layerOn(layer: AmbienceLayer): boolean {
-    const { calendar, story } = getSession(this);
+    const { calendar } = getSession(this);
     if (layer.when && !layer.when.includes(calendar.slot)) return false;
-    if (layer.showIf && !story.getVariable(layer.showIf)) return false;
-    return ![layer.hideIf ?? []].flat().some((v) => story.getVariable(v));
+    if (layer.showIf && !this.holds(layer.showIf)) return false;
+    return ![layer.hideIf ?? []].flat().some((v) => this.holds(v));
   }
 
   /** What's underfoot: boards (one-way platforms, lifts) sound like planks; otherwise the area's floor. */
@@ -933,10 +942,9 @@ export class AreaScene extends Phaser.Scene {
   /** Collapsing tunnel: while you're in it, lumps keep coming down just ahead of you and behind. */
   private updateCollapses(delta: number): void {
     const { x, y } = this.player.feet;
-    const { story } = getSession(this);
     for (const c of this.collapses) {
       const f = c.feature;
-      if (c.done || (f.showIf && !story.getVariable(f.showIf))) continue;
+      if (c.done || (f.showIf && !this.holds(f.showIf))) continue;
       const inside = Math.abs(y - f.y) <= 6 && x >= f.from && x <= f.to;
       if (!c.active) {
         if (!inside) continue;
@@ -988,12 +996,11 @@ export class AreaScene extends Phaser.Scene {
    */
   private updateWatch(delta: number): void {
     if (!this.watchmen.length) return;
-    const { story } = getSession(this);
     const { x: px, y: py } = this.player.feet;
     const inShadow = this.inShadow();
     for (const w of this.watchmen) {
       const f = w.feature;
-      const on = !f.showIf || !!story.getVariable(f.showIf);
+      const on = !f.showIf || !!this.holds(f.showIf);
       w.image.setVisible(on);
       w.lantern.setVisible(on);
       w.cone.setVisible(on);
@@ -1095,9 +1102,8 @@ export class AreaScene extends Phaser.Scene {
 
   /** Whether you're hidden in a dark doorway or nook (a `shadow` that's active now), or crouched behind low cover (`crouch`). */
   private inShadow(): boolean {
-    const { story } = getSession(this);
     const { x, y } = this.player.feet;
-    return this.shadows.some((s) => (!s.showIf || story.getVariable(s.showIf)) && (!s.crouch || this.player.crouching) && Math.abs(y - s.y) <= 2 && x >= s.x && x <= s.x + s.width);
+    return this.shadows.some((s) => (!s.showIf || this.holds(s.showIf)) && (!s.crouch || this.player.crouching) && Math.abs(y - s.y) <= 2 && x >= s.x && x <= s.x + s.width);
   }
 
   /**
@@ -1111,10 +1117,10 @@ export class AreaScene extends Phaser.Scene {
     const expected = this.area.id === 'home' || this.area.id === 'shrine-cell' || (this.area.id === 'offering-floor' && calendar.slot === 'evening') || !!story.getVariable('interrogating') || !!story.getVariable('trial');
     // (The prince: a plain coat over his own, going below: `plain_coat`.)
     this.player.cloaked = this.player.look === 'prince' ? !!story.getVariable('plain_coat') : !!story.getVariable('has_disguise') && !expected;
-    const watched = this.watchmen.some((w) => w.image.visible) || this.quarries.some((q) => !q.done && !!story.getVariable(q.feature.showIf));
+    const watched = this.watchmen.some((w) => w.image.visible) || this.quarries.some((q) => !q.done && !!this.holds(q.feature.showIf));
     const hidden = watched && this.inShadow();
     sprite.setAlpha(hidden ? 0.45 : 1);
-    this.shadowGraphics?.setVisible(this.shadows.some((s) => !s.showIf || story.getVariable(s.showIf)));
+    this.shadowGraphics?.setVisible(this.shadows.some((s) => !s.showIf || this.holds(s.showIf)));
   }
 
   /**
@@ -1128,7 +1134,7 @@ export class AreaScene extends Phaser.Scene {
     const { x: px, y: py } = this.player.feet;
     for (const q of this.quarries) {
       const f = q.feature;
-      if (q.done || !story.getVariable(f.showIf)) continue;
+      if (q.done || !this.holds(f.showIf)) continue;
       const entries = f.people.map((id) => this.people.get(id)).filter((e): e is PersonEntry => !!e);
       const leader = entries[0];
       if (!leader) continue;
@@ -1209,10 +1215,9 @@ export class AreaScene extends Phaser.Scene {
    * lift, a gap) and they catch you: you're thrown back to where you came in, and they start again.
    */
   private updateMobs(delta: number): void {
-    const { story } = getSession(this);
     const { x: px, y: py } = this.player.feet;
     for (const m of this.mobs) {
-      const on = !!story.getVariable(m.feature.showIf);
+      const on = !!this.holds(m.feature.showIf);
       for (const member of m.members) {
         member.image.setVisible(on && m.wait <= 0);
         member.torch.setVisible(on && m.wait <= 0);
@@ -1357,6 +1362,7 @@ export class AreaScene extends Phaser.Scene {
   private conversationClosed(): void {
     this.dialogueClosedFrame = this.game.loop.frame;
     this.clearInset();
+    this.clearCityView();
     this.refreshPeople();
     this.refreshObjective();
     const queued = this.afterClose;
@@ -1440,8 +1446,7 @@ export class AreaScene extends Phaser.Scene {
   /** Tutorial hints: shown at the top of the screen while the player is in a hint's zone. */
   private updateHints(): void {
     const { x, y } = this.player.feet;
-    const { story } = getSession(this);
-    const hint = this.dialogue.isOpen ? undefined : this.hints.find((h) => Math.abs(x - h.x) <= h.reach && Math.abs(y - h.y) <= 40 && (!h.showIf || story.getVariable(h.showIf)));
+    const hint = this.dialogue.isOpen ? undefined : this.hints.find((h) => Math.abs(x - h.x) <= h.reach && Math.abs(y - h.y) <= 40 && (!h.showIf || this.holds(h.showIf)));
     if (!hint) {
       this.hintText.setVisible(false);
       this.hintPlate.setVisible(false);
@@ -1475,6 +1480,7 @@ export class AreaScene extends Phaser.Scene {
    *   #ending:<id>            after the conversation, an ending (e.g. loyal)
    *   #fight:<knot>[:<then>]  after the conversation, the fight close-up plays the knot; back here, <then> plays
    *   #combat:<encounter>[:<then>]  after the conversation, a turn-based fight (src/data/combat.ts); its outcome is written to ink, and back here, <then> plays
+   *   #view                   the city close up above the dialogue box, as through your telescope (kept up on each line tagged with it)
    *   #repaint                the room is painted again, as the story now has it (a district's power going off)
    *   #wartable:<scenario>     after the conversation, the war table (src/data/warTable.ts); back here, its `after` knot plays
    *   #walk:<id>:<x>[:<speed>]  they walk to x on their floor and stay there, facing you
@@ -1486,6 +1492,7 @@ export class AreaScene extends Phaser.Scene {
     // Who's here follows the story line by line (a variable set just before a line brings people on or takes them off).
     this.refreshPeople();
     this.clearInset();
+    if (!tags.includes('view')) this.clearCityView();
     const { calendar } = getSession(this);
     for (const tag of tags) {
       const [name, ...args] = tag.split(':').map((a) => a.trim());
@@ -1648,6 +1655,9 @@ export class AreaScene extends Phaser.Scene {
           if (encounter) this.afterClose.push(() => this.leaveFor('Combat', { encounter, back: { areaId: this.area.id, start, script: then || undefined } } satisfies CombatSceneData));
           break;
         }
+        case 'view':
+          this.showCityView();
+          break;
         case 'repaint':
           // #repaint: the room is painted again (a district's lights going out, seen from up here).
           if (this.area.outdoor) this.paintOutdoor();
@@ -1813,6 +1823,32 @@ export class AreaScene extends Phaser.Scene {
   private clearInset(): void {
     this.inset?.destroy();
     this.inset = null;
+  }
+
+  /**
+   * `#view`: the city close up, as through your telescope (Chapter 3: watching a district go dark), framed
+   * above the dialogue box. Repainted on every line it's on, so you see each change; gone when a line
+   * without it comes, or the conversation ends.
+   */
+  private showCityView(): void {
+    const { calendar } = getSession(this);
+    const power = this.power();
+    const [w, h] = [300, 96];
+    makePaintedTexture(this, 'city-view-close', w, h, cityViewPainter({ x: 0, y: 0, width: w, height: h, horizon: 10, treeX: 262, treeScale: 0.12 }, calendar.slot, power.views, power.fade));
+    if (this.cityView) {
+      this.cityView.image.setTexture('city-view-close');
+      return;
+    }
+    const frame = this.add.rectangle(0, 0, w + 6, h + 6, SHADES.shadow).setStrokeStyle(1, SHADES.amberDeep).setOrigin(0.5);
+    const image = this.add.image(0, 0, 'city-view-close');
+    const container = this.add.container(GAME_WIDTH / 2, 16 + h / 2, [frame, image]).setScrollFactor(0).setDepth(27).setAlpha(0);
+    this.tweens.add({ targets: container, alpha: 1, duration: 500 });
+    this.cityView = { container, image };
+  }
+
+  private clearCityView(): void {
+    this.cityView?.container.destroy();
+    this.cityView = null;
   }
 
   /** Lights rising one after another up the tube (the Ascension lights). */
@@ -2011,7 +2047,7 @@ export class AreaScene extends Phaser.Scene {
    */
   private addDig(f: Extract<Feature, { type: 'dig' }>): void {
     const story = getSession(this).story;
-    const on = () => !!story.getVariable(f.showIf);
+    const on = () => !!this.holds(f.showIf);
     const scene = this;
     this.usables.push({
       fallback: true,
@@ -2043,7 +2079,7 @@ export class AreaScene extends Phaser.Scene {
    */
   private addSeek(f: Extract<Feature, { type: 'seek' }>): void {
     const story = getSession(this).story;
-    const on = () => !!story.getVariable(f.showIf);
+    const on = () => !!this.holds(f.showIf);
     const state: { find: (typeof f.finds)[number] | null; ready: boolean; timer: Phaser.Time.TimerEvent | null } = { find: null, ready: false, timer: null };
     this.seeks.push(() => {
       const dog = this.people.get(f.dog);
@@ -2209,7 +2245,7 @@ export class AreaScene extends Phaser.Scene {
       case 'fire': {
         const keys = FIRE_FRAMES.map((f, i) => makeSpriteTexture(this, `fire-${i}`, f.rows, f.colours));
         const fire = this.add.image(feature.x, feature.y, keys[0]!).setOrigin(0.5, 1).setDepth(5);
-        const lit = () => !feature.showIf || !!getSession(this).story.getVariable(feature.showIf);
+        const lit = () => !feature.showIf || !!this.holds(feature.showIf);
         this.soundscape.addEmitter('fire', () => (lit() ? { x: feature.x, y: feature.y } : null), 70);
         let frame = 0;
         this.time.addEvent({ delay: 140, loop: true, callback: () => fire.setTexture(keys[(frame = (frame + 1) % keys.length)]!) });
@@ -2227,7 +2263,7 @@ export class AreaScene extends Phaser.Scene {
         break;
       }
       case 'smoke': {
-        const on = () => !feature.showIf || !!getSession(this).story.getVariable(feature.showIf);
+        const on = () => !feature.showIf || !!this.holds(feature.showIf);
         const smoke = this.add.particles(0, 0, PIXEL, {
           x: { min: feature.x - 2, max: feature.x + 2 },
           y: feature.y,
@@ -2279,7 +2315,7 @@ export class AreaScene extends Phaser.Scene {
           quantity: Math.ceil(this.area.width / 320),
           alpha: { min: 0.35, max: 0.7 },
         }).setDepth(9);
-        const on = () => when.includes(getSession(this).calendar.slot) && (!feature.showIf || !!getSession(this).story.getVariable(feature.showIf));
+        const on = () => when.includes(getSession(this).calendar.slot) && (!feature.showIf || !!this.holds(feature.showIf));
         this.storyShown.push({ objects: [rain], on });
         break;
       }
@@ -2316,7 +2352,7 @@ export class AreaScene extends Phaser.Scene {
         const key = feature.sprite
           ? makeSpriteTexture(this, `pulse-${pts[0]!.x}-${pts[0]!.y}`, feature.sprite.rows, feature.sprite.colours)
           : makeSpriteTexture(this, `pulse-dot-${feature.colour ?? SHADES.cyan}`, ['cc', 'cc'], { c: feature.colour ?? SHADES.cyan });
-        const shown = () => !feature.showIf || !!getSession(this).story.getVariable(feature.showIf);
+        const shown = () => !feature.showIf || !!this.holds(feature.showIf);
         const duration = (total / feature.speed) * 1000;
         for (let n = 0; n < (feature.count ?? 1); n++) {
           const image = this.add.image(pts[0]!.x, pts[0]!.y, key).setDepth(3).setVisible(false);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CAPITAL_BOARD, LESSON, SCENARIOS } from '../src/data/warTable';
 import { ENCOUNTERS } from '../src/data/combat';
-import { attackOf, canMove, chooseOrders, defenceOf, placeInDirection, resolve, resolveOne, squadAt, waysFrom, type WarState } from '../src/systems/WarTable';
+import { attackOf, canMove, chooseOrders, defenceOf, placeInDirection, resolve, resolveOne, squadAt, squadsOf, waysFrom, type WarState } from '../src/systems/WarTable';
 
 const start = (): WarState => ({ squads: LESSON.squads.map((s) => ({ ...s })), owner: { ...LESSON.owner }, cut: [], turn: 1 });
 
@@ -60,13 +60,18 @@ describe('the war table: the rules', () => {
   });
 
   it('a fight: higher wins and is left with what’s over; a tie, the defenders hold', () => {
-    // 4 up the stair is 3, against 2: they take it, 1 left.
-    let s = resolveOne(CAPITAL_BOARD, start(), { squad: 'r3', to: 'low_west' }).state;
-    const won = resolveOne(CAPITAL_BOARD, s, { squad: 'r1', to: 'promenade' });
-    expect(won.events).toContainEqual(expect.objectContaining({ type: 'battle', won: true, attack: 3, defence: 2 }));
-    expect(squadAt(won.state, 'promenade')).toMatchObject({ side: 'you', strength: 1 });
-    expect(won.state.owner.promenade).toBe('you');
-    // 2 up the stair is 1, against 2: beaten, the squad's gone.
+    // 4 along the street, against 2: they take it, 2 left.
+    let s = resolve(CAPITAL_BOARD, start(), [{ squad: 'r4', to: 'lift_mid' }, { squad: 'r2', to: 'lift_low' }]).state;
+    s = resolveOne(CAPITAL_BOARD, s, { squad: 'r2', to: 'lift_mid' }).state;
+    const won = resolveOne(CAPITAL_BOARD, s, { squad: 'r4', to: 'data' });
+    expect(won.events).toContainEqual(expect.objectContaining({ type: 'battle', won: true, attack: 4, defence: 2 }));
+    expect(squadAt(won.state, 'data')).toMatchObject({ side: 'you', strength: 2 });
+    expect(won.state.owner.data).toBe('you');
+    // 2 along the street against 2: a tie, and the defenders hold.
+    const tie = resolveOne(CAPITAL_BOARD, resolveOne(CAPITAL_BOARD, start(), { squad: 'r4', to: 'lift_mid' }).state, { squad: 'r4', to: 'data' });
+    expect(tie.events).toContainEqual(expect.objectContaining({ type: 'battle', won: false, attack: 2, defence: 2 }));
+    expect(squadAt(tie.state, 'data')).toMatchObject({ side: 'him' });
+    // 2 up the stair is 1, against 3: beaten, the squad's gone.
     s = start();
     const lost = resolveOne(CAPITAL_BOARD, s, { squad: 'r1', to: 'promenade' });
     expect(lost.events).toContainEqual(expect.objectContaining({ type: 'battle', won: false }));
@@ -90,29 +95,63 @@ describe('the war table: the rules', () => {
 });
 
 describe('the war table: him', () => {
-  it('in the lesson he never leaves the promenade or the citadel, and picks no even fights', () => {
+  it('in the lesson he never leaves the places he keeps, and picks no even fights', () => {
     const orders = chooseOrders(CAPITAL_BOARD, start(), 'him', 'lesson', LESSON.keep);
     const s = start();
     for (const o of orders) {
       const from = s.squads.find((q) => q.id === o.squad)!.place;
-      expect(['promenade', 'citadel']).not.toContain(from);
+      expect(LESSON.keep).not.toContain(from);
       const there = squadAt(s, o.to);
       if (there) expect(attackOf(CAPITAL_BOARD, from, o.to, s.squads.find((q) => q.id === o.squad)!.strength) - defenceOf(CAPITAL_BOARD, o.to, there.strength)).toBeGreaterThanOrEqual(2);
     }
   });
 
-  it('when he means it, he takes every fight he can win', () => {
-    const s: WarState = { ...start(), squads: start().squads.map((q) => (q.side === 'him' ? { ...q, strength: q.strength + 3 } : q)) };
-    const orders = chooseOrders(CAPITAL_BOARD, s, 'him', 'press');
-    const after = resolve(CAPITAL_BOARD, s, orders);
-    expect(after.events.some((e) => e.type === 'battle' && e.won)).toBe(true);
+  it('when he means it, he only ever picks fights he can win, and never leaves the citadel empty', () => {
+    let s: WarState = { squads: LESSON.now.squads.map((q) => ({ ...q })), owner: { ...LESSON.now.owner }, cut: [], turn: 1 };
+    for (let turn = 0; turn < LESSON.now.turns; turn++) {
+      const orders = chooseOrders(CAPITAL_BOARD, s, 'him', 'war');
+      for (const o of orders) {
+        const sq = s.squads.find((q) => q.id === o.squad)!;
+        const there = squadAt(s, o.to);
+        if (there && there.side !== 'him') expect(attackOf(CAPITAL_BOARD, sq.place, o.to, sq.strength)).toBeGreaterThan(defenceOf(CAPITAL_BOARD, o.to, there.strength));
+      }
+      s = resolve(CAPITAL_BOARD, s, orders).state;
+      expect(squadAt(s, 'citadel')?.side).toBe('him');
+    }
   });
 
-  it('the lesson can be won: join up, then take the promenade', () => {
+  it('"Now." is a fair fight you can’t win (designer): no extra troops, and the citadel out of reach', () => {
+    // Everything you have, together and uphill, is never more than the citadel holds at.
+    const yours = LESSON.now.squads.filter((q) => q.side === 'you').reduce((n, q) => n + q.strength, 0);
+    const citadel = LESSON.now.squads.find((q) => q.place === 'citadel')!;
+    expect(yours - 1).toBeLessThanOrEqual(defenceOf(CAPITAL_BOARD, 'citadel', citadel.strength));
+  });
+
+  it('"Now.": played against himself as you, he grinds you down within the turns', () => {
+    let s: WarState = { squads: LESSON.now.squads.map((q) => ({ ...q })), owner: { ...LESSON.now.owner }, cut: [], turn: 1 };
+    const total = (st: WarState) => squadsOf(st, 'you').reduce((n, q) => n + q.strength, 0);
+    const before = total(s);
+    for (let turn = 0; turn < LESSON.now.turns; turn++) {
+      s = resolve(CAPITAL_BOARD, s, chooseOrders(CAPITAL_BOARD, s, 'you', 'war')).state;
+      s = resolve(CAPITAL_BOARD, s, chooseOrders(CAPITAL_BOARD, s, 'him', 'war')).state;
+    }
+    expect(s.owner.citadel).toBe('him');
+    expect(total(s)).toBeLessThan(before);
+  });
+
+  it('the lesson’s goals can each be taken: the lifts, then join up for the data centre, then the promenade', () => {
     let s = start();
-    s = resolve(CAPITAL_BOARD, s, [{ squad: 'r3', to: 'low_west' }]).state;
-    s = resolve(CAPITAL_BOARD, s, [{ squad: 'r1', to: 'promenade' }]).state;
-    expect(s.owner[LESSON.goal]).toBe('you');
+    s = resolve(CAPITAL_BOARD, s, [{ squad: 'r4', to: 'lift_mid' }]).state;
+    expect(s.owner.lift_mid).toBe('you');
+    s = resolve(CAPITAL_BOARD, s, [{ squad: 'r2', to: 'lift_low' }]).state;
+    s = resolve(CAPITAL_BOARD, s, [{ squad: 'r2', to: 'lift_mid' }]).state;
+    expect(squadAt(s, 'lift_mid')!.strength).toBe(4);
+    s = resolve(CAPITAL_BOARD, s, [{ squad: 'r4', to: 'data' }]).state;
+    expect(s.owner.data).toBe('you');
+    s = resolve(CAPITAL_BOARD, s, [{ squad: 'r1', to: 'lift_low' }]).state;
+    s = resolve(CAPITAL_BOARD, s, [{ squad: 'r1', to: 'lift_mid' }]).state;
+    s = resolve(CAPITAL_BOARD, s, [{ squad: 'r1', to: 'promenade' }], { r1: 'won' }).state;
+    expect(LESSON.goals.map((g) => s.owner[g.place])).toEqual(['you', 'you', 'you']);
   });
 
   it('the scenarios’ fights exist', () => {

@@ -610,11 +610,18 @@ VAR sister_talked1 = false
 // "promenade"), which the areas paint dark (and the citadel's views of it).
 VAR energy = ""
 VAR dark_district = ""
+// How far it's gone dark (0–100), as you watch it happen from your balcony; and the citadel's own lights lowered.
+VAR dark_fade = 100
+VAR citadel_dimmed = false
 // Chapter 3, Day 2 (story/capital/chapter3-day2.ink). Stages: wake, study, room, table, council, dusk,
 // report, below, home, done.
 VAR c3day2 = ""
 // The bookshelf in your father's study is open (the simulation room behind it).
 VAR sim_open = false
+// The war table, when he turned it on: how many turns you lasted (never mentioned again until Chapter 7, plan),
+// and whether he took every light you had.
+VAR sim_turns = 0
+VAR sim_wiped = false
 VAR room2 = false
 // The council: you've heard each side (the reformer; the old councillor or, if you passed him over, the
 // hostess's cousin; your hand), and how many.

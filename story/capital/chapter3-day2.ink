@@ -74,15 +74,38 @@ You stand at the table. He stands across it from you. #wartable:lesson
 The table's dark. Just glass.
 -> END
 
-// The war table's lines (src/data/warTable.ts, LESSON). The lesson is his: plain, a few words each.
+// The war table's lines (src/data/warTable.ts, LESSON). The lesson is his: plain, a few words each, one
+// thing at a time (designer: make it longer), then "Now." (designer: a fair fight he out-thinks you in).
 === c3day2_table_intro ===
 "The low district has risen. You're the rising: the amber lights." #speaker:father
 "I'm the guard: the blue." #speaker:father
 "Each light is a squad. The number is how many." #speaker:father
-"Pick one of yours and send it along a street, a stair or a lift. Into an empty place, it takes it. Into one of yours, they join up." #speaker:father
-"Into one of mine, it's a fight. The bigger number wins, and keeps what's left over. Going uphill costs you one. The citadel's worth one more to whoever holds it." #speaker:father
-"A lift goes anywhere the lifts go." #speaker:father
-"My arrows show you what I'm going to do. Read them. Then take the promenade." #speaker:father
+"Pick one of yours, and send it along a street, a stair or a lift. Into an empty place, it takes it." #speaker:father
+-> END
+
+=== c3day2_lesson_lifts ===
+"First, the lifts. Whoever holds the lifts moves fastest: a lift goes anywhere the lifts go." #speaker:father
+"Take the middle lifts." #speaker:father
+"But read my arrows first. They show you what I'm going to do." #speaker:father
+-> END
+
+=== c3day2_lesson_lifts_done ===
+"Good." #speaker:father
+"Into one of mine, it's a fight. The bigger number wins, and keeps what's left over. Equal, and whoever was there first holds." #speaker:father
+-> END
+
+=== c3day2_lesson_data ===
+"The data centre. Two of mine." #speaker:father
+"Two of yours won't do it. Bring them together first: send one into another and they join up." #speaker:father
+-> END
+
+=== c3day2_lesson_data_done ===
+"Alone they're nothing. Together they're a district." #speaker:father
+-> END
+
+=== c3day2_lesson_promenade ===
+"Now the promenade. Three of mine." #speaker:father
+"Uphill, up a stair, costs you one. Go round by the streets, or go at it with more." #speaker:father
 -> END
 
 === c3day2_table_dropin ===
@@ -92,15 +115,28 @@ The table's dark. Just glass.
 
 === c3day2_table_good ===
 "Good." #speaker:father
+He looks at the table a long moment.
 -> END
 
 === c3day2_table_now ===
 He stands up straight, and steps back from the table.
+"That was a lesson. This is the city as it is." #speaker:father
+He touches the table, and it sets itself again: the rising in the low district, eight of you. The guard on the lifts, the promenade, the data centre. Seven in the citadel.
+"Same rules. One move each. No arrows." #speaker:father
+"Take the citadel." #speaker:father
 "Now." #speaker:father
 -> END
 
 === c3day2_table_end ===
-It's over. Every light on the table is his.
+{ sim_wiped:
+    It's over. Every light on the table is his.
+- else:
+    He stops. You've still got lights on the table, a few, cut off from each other, with nowhere to go.
+    "I could finish it. I don't need to." #speaker:father
+}
+"{sim_turns} turns." #speaker:father
+"I've played this table every night for thirty years. You won't ever be as good at it as I am. Nobody will." #speaker:father
+"That's why there won't be an uprising. It can't be done. You've just proved it." #speaker:father
 He switches it off, and the city goes dark under your hands.
 "I hope you never need it." #speaker:father
 -> END
@@ -127,12 +163,20 @@ The whole council, on its tiers. Your father at the top. Your hand by the door.
 "Someone goes without. You decide who. I'll watch." #speaker:father
 "Hear them out first." #speaker:father
 ~ objective = "Hear the council out"
-~ objective_target = "council-chamber:reformer-2;council-chamber:councillor-2;council-chamber:cousin-2;council-chamber:hand-4"
+~ objective_target = "council-chamber:reformer-2"
 -> END
 
+// After each side's heard: the marker moves on to whoever you haven't heard yet, then to your father.
 === c3day2_heard ===
 ~ heard2 += 1
-{ heard2 >= 3:
+{
+- not heard_reformer2:
+    ~ objective_target = "council-chamber:reformer-2"
+- not heard_councillor2:
+    ~ objective_target = "council-chamber:councillor-2;council-chamber:cousin-2"
+- not heard_hand2:
+    ~ objective_target = "council-chamber:hand-4"
+- else:
     ~ objective = "Tell your father who goes without"
     ~ objective_target = "council-chamber:father-4"
 }
@@ -221,19 +265,46 @@ The light's going outside. #time:evening
 
 // --- Evening: your balcony, then his study ---
 
-// On the balcony (a trigger): you see it happen.
+// On the balcony (a trigger): you see it happen, block by block (designer: make it dramatic; he doubts it).
 === c3day2_dusk ===
 ~ dusk2 = true
+The sun's down. Below you the city lights up, row on row, the way it does every night. #view
 { energy == "high":
     ~ dark_district = "low"
-    Down at the bottom of the city, the lights go out. Street by street, until the low district's just a darker dark. #repaint
-    Here and there, a candle.
+    ~ dark_fade = 15
+    Then, right at the bottom, a street goes dark. #repaint #sound:thump #view
+    ~ dark_fade = 45
+    Another. Then three together. #repaint #sound:thump #view
+    ~ dark_fade = 75
+    The lifts' lights, going down the stacks, go out one by one. #repaint #sound:thump #view
+    ~ dark_fade = 100
+    Then the whole low district, all at once, like a hand closing over it. #repaint #sound:boom #shake #view
+    Here and there, a candle. #view
+    "That was me." #speaker:prince #view
+    You think of eleven flights of stairs in the dark. {lift_mended: Of a lift you had mended this morning, standing dead.} #view
+    One season, you tell yourself. It sounded like nothing in the council chamber. #view
 - else:
     ~ dark_district = "promenade"
-    Halfway down the city, the promenade goes dark, its great screen and all. #repaint
-    Then the lights in your own rooms lower round you.
+    ~ dark_fade = 20
+    Then, halfway down the city, the promenade starts to go out. The shops first. #repaint #sound:thump #view
+    ~ dark_fade = 60
+    The street lamps along the square. #repaint #sound:thump #view
+    ~ dark_fade = 100
+    The great screen last of all: your father's face, and yours, and then nothing. #repaint #sound:boom #shake #view
+    ~ citadel_dimmed = true
+    Then the lights in your own rooms lower round you. #repaint #sound:thump
+    "That was me." #speaker:prince #view
+    Down at the bottom, the low district's lit. You can barely see it from here. All you can see is what you've put out. #view
+    Tomorrow the whole citadel will know whose choice it was. #view
 }
-~ c3day2 = "report"
++ [Look through the telescope]
+    { energy == "high":
+        On a stair up the side of a stack, a lamp, going up. Very slowly. It stops on every landing.
+    - else:
+        On the promenade, people standing about in the dark, looking up. At the citadel. At you.
+    }
++ [Go inside]
+- ~ c3day2 = "report"
 ~ objective = "Report to your father"
 ~ objective_target = "fathers-study:father-5"
 -> END
@@ -250,10 +321,11 @@ He's by the fire. He doesn't turn round.
     "Now you know what it costs." #speaker:father
     He sounds tired. He sounds pleased.
 - else:
-    "You gave it away." #speaker:father
-    He doesn't raise his voice. He doesn't need to.
-    "The salons will call you soft. Let them." #speaker:father
-    "Don't do it again without me." #speaker:father
+    "You gave it to the low district." #speaker:father
+    "It was yours to give. I said so." #speaker:father
+    "Tomorrow the salons will call you soft. You'll hear it everywhere you go. Don't answer them." #speaker:father
+    He looks at the fire a long time.
+    "Next time, come and tell me first. Not to ask. So I'm not the last to know." #speaker:father
 }
 In the doorway, your sister, listening. When you look again, she's gone. #leave:sister-5:16:80
 "Your hand's waiting for you. Go on." #speaker:father

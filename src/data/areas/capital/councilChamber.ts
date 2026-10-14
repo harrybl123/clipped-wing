@@ -87,7 +87,7 @@ export const councilChamber: AreaDefinition = {
     // the old councillor in his seat, or, if you passed him over at the banquet, the hostess's cousin in
     // it; your hand by the door.
     inStory('father-4', 'father', 456, FLOOR - 48, 'c3day2=council', { knot: 'c3day2_father_council', flipX: true }),
-    inStory('reformer-2', 'reformer', 250, FLOOR, 'c3day2=council', { knot: 'c3day2_reformer' }),
+    inStory('reformer-2', 'reformer', 268, FLOOR, 'c3day2=council', { knot: 'c3day2_reformer' }),
     inStory('councillor-2', 'councillor', 91, FLOOR - 16, 'c3day2=council', { knot: 'c3day2_councillor', hideIf: 'seated=hostess,merchant' }),
     inStory('cousin-2', 'cousin', 91, FLOOR - 16, 'c3day2=council', { knot: 'c3day2_cousin', hideIf: 'seated=councillor,' }),
     inStory('hand-4', 'diplomat', 182, FLOOR, 'c3day2=council', { knot: 'c3day2_hand_council', flipX: true }),
@@ -97,7 +97,7 @@ export const councilChamber: AreaDefinition = {
   interactables: [
     { id: 'table', x: 222, y: FLOOR, reach: 14, label: 'Look', knot: 'council_table' },
     { id: 'empty-seat', x: 36, y: FLOOR - 32, reach: 14, label: 'Look', knot: 'council_empty_seat' },
-    { id: 'top-seat', x: 456, y: FLOOR - 48, reach: 10, label: 'Look', knot: 'council_top_seat' },
+    { id: 'top-seat', x: 456, y: FLOOR - 48, reach: 10, label: 'Look', knot: 'council_top_seat', hideIf: 'c3day2=council' }, // (not while he's in it)
   ],
 
   exits: [{ id: 'to-halls', x: 160, y: FLOOR, reach: 12, to: 'citadel-halls' }],

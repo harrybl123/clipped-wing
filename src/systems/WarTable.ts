@@ -181,12 +181,28 @@ export function resolve(board: WarBoard, state: WarState, orders: Order[], fough
   return { state: s, events };
 }
 
+/** How many moves from a place to every other (the lifts count as one move). */
+export function distancesFrom(board: WarBoard, from: string): Map<string, number> {
+  const dist = new Map([[from, 0]]);
+  const todo = [from];
+  while (todo.length) {
+    const p = todo.shift()!;
+    for (const { to } of waysFrom(board, p)) {
+      if (dist.has(to)) continue;
+      dist.set(to, dist.get(p)! + 1);
+      todo.push(to);
+    }
+  }
+  return dist;
+}
+
 /**
  * How a side chooses (his, on the table). `lesson`: he's teaching, so he only takes empty ground and picks
- * off what's much weaker, and never leaves the place you're meant to take. `press`: he means it: every fight
- * he can win, the lifts first, and he keeps the citadel held.
+ * off what's much weaker, and never leaves the places in `keep`. `war`: he means it (designer: a fair fight
+ * you're out-thought in, not a sudden flood of troops): see `warOrders`.
  */
-export function chooseOrders(board: WarBoard, state: WarState, side: WarSide, mode: 'lesson' | 'press', keep: string[] = []): Order[] {
+export function chooseOrders(board: WarBoard, state: WarState, side: WarSide, mode: 'lesson' | 'war', keep: string[] = []): Order[] {
+  if (mode === 'war') return warOrders(board, state, side);
   const orders: Order[] = [];
   const claimed = new Set<string>();
   // Strongest first, so they get the best targets.
@@ -200,15 +216,72 @@ export function chooseOrders(board: WarBoard, state: WarState, side: WarSide, mo
       const there = squadAt(state, to);
       let score: number;
       if (!there) {
-        score = state.owner[to] === side ? -1 : 4 + (target.lift ? (mode === 'press' ? 6 : 1) : 0) + (target.stronghold ? 2 : 0);
+        score = state.owner[to] === side ? -1 : 4 + (target.lift ? 1 : 0) + (target.stronghold ? 2 : 0);
       } else if (there.side === side) {
         score = -2;
       } else {
         const margin = attackOf(board, squad.place, to, squad.strength) - defenceOf(board, to, there.strength);
-        score = mode === 'lesson' ? (margin >= 2 ? 6 : -10) : margin > 0 ? 10 + there.strength + (target.lift ? 4 : 0) : -10;
+        score = margin >= 2 ? 6 : -10;
       }
       // Don't leave a stronghold, or a place he's told to keep, empty behind him.
-      if (here.stronghold || keep.includes(squad.place)) score -= mode === 'press' && squad.strength > 3 ? 3 : 20;
+      if (here.stronghold || keep.includes(squad.place)) score -= 20;
+      if (score > 0 && (!best || score > best.score)) best = { to, score };
+    }
+    if (best) {
+      orders.push({ squad: squad.id, to: best.to });
+      claimed.add(best.to);
+    }
+  }
+  return orders;
+}
+
+/**
+ * Meaning it, one move each, the same rules as you: every fight he can win, the biggest first; squads that
+ * couldn't win alone join up beside one that could win together; the rest close in on yours by the shortest
+ * way, never stepping where you could beat them; the lifts are worth having; and the stronghold is never
+ * left empty.
+ */
+function warOrders(board: WarBoard, state: WarState, side: WarSide): Order[] {
+  const foe: WarSide = side === 'you' ? 'him' : 'you';
+  const enemies = squadsOf(state, foe);
+  if (!enemies.length) return [];
+  const mine = squadsOf(state, side).filter((s) => !state.cut.includes(s.place)).sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id));
+  const stronghold = board.places.find((p) => p.stronghold)?.id;
+  const nextTo = (a: string, b: string) => waysFrom(board, a).some((w) => w.to === b);
+  /** Could one of theirs beat this many here? */
+  const threatened = (place: string, strength: number) => enemies.some((e) => nextTo(e.place, place) && attackOf(board, e.place, place, e.strength) > defenceOf(board, place, strength));
+  /** How far a place is from their nearest squad. */
+  const toFoe = (place: string) => {
+    const d = distancesFrom(board, place);
+    return Math.min(...enemies.map((e) => d.get(e.place) ?? 99));
+  };
+  /** Could this many, from here, beat any of theirs next to it? */
+  const couldStrike = (place: string, strength: number) => enemies.some((e) => nextTo(place, e.place) && attackOf(board, place, e.place, strength) > defenceOf(board, e.place, e.strength));
+  const orders: Order[] = [];
+  const claimed = new Set<string>();
+  for (const squad of mine) {
+    const alone = squad.place === stronghold && mine.filter((m) => m.place === stronghold).length === 1;
+    let best: { to: string; score: number } | null = null;
+    for (const { to } of waysFrom(board, squad.place)) {
+      if (claimed.has(to)) continue;
+      const there = squadAt(state, to);
+      let score: number;
+      if (there?.side === foe) {
+        const margin = attackOf(board, squad.place, to, squad.strength) - defenceOf(board, to, there.strength);
+        if (margin <= 0) continue;
+        score = 30 + there.strength * 3 + (placeOf(board, to).lift ? 6 : 0) - (threatened(to, margin) ? 8 : 0);
+      } else if (there?.side === side) {
+        // Joining up: worth it if together they could strike next turn, or it makes a squad that's strong
+        // enough to go looking for a fight; never to sit in the stronghold.
+        const together = there.strength + squad.strength;
+        if (to === stronghold) score = -5;
+        else score = couldStrike(to, together) && !couldStrike(to, there.strength) ? 18 : couldStrike(to, together) ? 6 : squad.strength < 4 ? 9 : 1;
+      } else {
+        // Closing in on theirs by the shortest way; the lifts and ground worth a little; never into their reach.
+        score = 3 + (toFoe(squad.place) - toFoe(to)) * 7 + (placeOf(board, to).lift ? 2 : 0) + (state.owner[to] !== side ? 2 : 0);
+        if (threatened(to, squad.strength)) score -= 25;
+      }
+      if (alone) score -= 60;
       if (score > 0 && (!best || score > best.score)) best = { to, score };
     }
     if (best) {

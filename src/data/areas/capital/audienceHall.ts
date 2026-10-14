@@ -126,7 +126,7 @@ export const audienceHall: AreaDefinition = {
     inStory('father-1', 'father', 689, DAIS, 'c3day1=halls,audience,after,walk', { knot: 'c3day1_father', flipX: true }),
     inStory('captain-1', 'captain', 544, FLOOR, 'c3day1=halls,audience,after', { knot: 'c3day1_captain', flipX: true }),
     inStory('woman', 'petitioner', 232, FLOOR, 'c3day1=halls,audience', { knot: 'c3day1_waiting' }),
-    inStory('merchant', 'merchant', 330, FLOOR, 'c3day1=halls,audience', { knot: 'c3day1_waiting' }),
+    inStory('merchant', 'merchant', 308, FLOOR, 'c3day1=halls,audience', { knot: 'c3day1_waiting' }),
     inStory('envoy-1', 'envoy', 428, FLOOR, 'c3day1=halls,audience', { knot: 'c3day1_waiting', flipX: true }),
     inStory('hand', 'diplomat', 60, FLOOR, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
   ],
@@ -135,7 +135,7 @@ export const audienceHall: AreaDefinition = {
     { id: 'benches', x: 340, y: FLOOR, reach: 14, label: 'Look', knot: 'audience_benches' },
     { id: 'seat', x: 654, y: DAIS, reach: 10, label: 'Look', knot: 'audience_seat', hideIf: 'c3day1=halls,audience' },
     { id: 'seat-1', x: 654, y: DAIS, reach: 10, label: 'Sit', knot: 'c3day1_audience', showIf: 'c3day1=halls,audience' },
-    { id: 'throne', x: 704, y: DAIS, reach: 10, label: 'Look', knot: 'audience_throne' },
+    { id: 'throne', x: 704, y: DAIS, reach: 10, label: 'Look', knot: 'audience_throne', hideIf: 'c3day1=halls,audience,after,walk' }, // (not while he's on it)
   ],
 
   exits: [

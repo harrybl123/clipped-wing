@@ -10,6 +10,7 @@ import { makePaintedTexture } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
 import { playConfirm, playMove } from '../ui/sfx';
 import { playSound } from '../ui/soundscape';
+import { startTableMusic, type TableMusic } from '../ui/tableMusic';
 import type { AreaSceneData } from './AreaScene';
 import type { CombatSceneData } from './CombatScene';
 
@@ -17,12 +18,14 @@ import type { CombatSceneData } from './CombatScene';
 // side-on, its places joined by the ways an army can move. The rules are src/systems/WarTable.ts and the
 // scenarios src/data/warTable.ts; this scene draws and runs them, and the story (ink) speaks between turns.
 //
-// Your squads are amber (the people), his cyan. Arrows: move round the places. E on one of your squads,
-// then E on where it goes (or on its own place to hold); Esc to back out. Enter ends the turn. In the lesson
-// his orders show as cyan arrows before you give yours (Into the Breach's tells). A fight at a marked place
-// you can go down to yourself: a turn-based fight (CombatScene), and how it goes decides it on the table.
-// Then he turns it on (designer: obvious, and you can only lose): the room goes dark, the table hard white,
-// a pulse; his arrows go, he moves twice for each of your moves, and he cuts the power where you're strongest.
+// Your squads are amber (the people), his blue. Pick one of yours (E, or click it), then where it goes (the
+// arrows step through the places it can reach; E or click to send it; its own place to hold); Esc or a
+// right-click backs out; Tab goes to your next squad without orders; Enter (or the button) ends the turn.
+// The lesson has goals one after another, and his orders show as blue arrows before you give yours (Into the
+// Breach's tells). A fight at a marked place you can go down to yourself: a turn-based fight (CombatScene),
+// and how it goes decides it on the table. Then he turns it on (designer: obvious, and you can only lose,
+// but fairly: you're out-thought): the room goes dark, the table hard white, the music turns; the table is
+// set up again as the city really is; his arrows go; one move each; he plays to win.
 
 export interface WarTableSceneData {
   scenario: string;
@@ -36,6 +39,7 @@ export interface WarTableSceneData {
 interface Snapshot {
   state: WarState;
   phase: 'lesson' | 'now';
+  goal: number;
   nowTurn: number;
   orders: Order[];
   hisOrders: Order[];
@@ -47,20 +51,23 @@ interface Snapshot {
 
 const AMBER = SHADES.amber;
 const CYAN = SHADES.cyan;
+/** The End turn button, bottom right. */
+const BUTTON = { x: W - 82, y: H - 16, w: 76, h: 12 };
 
 export class WarTableScene extends Phaser.Scene {
   private params!: WarTableSceneData;
   private sc!: WarScenario;
   private state!: WarState;
   private phase: 'lesson' | 'now' = 'lesson';
+  private goal = 0;
   private nowTurn = 0;
   private orders: Order[] = [];
   private hisOrders: Order[] = [];
   private droppedIn: string[] = [];
   private taught = false;
   private cursor!: WarPlace;
-  /** Choosing where a squad goes. */
-  private aiming: Squad | null = null;
+  /** Choosing where a squad goes: the squad, and the places it can go (its own first: hold). */
+  private aiming: { squad: Squad; dests: WarPlace[] } | null = null;
   private busy = true;
   private closedAt = 0;
   private bg!: Phaser.GameObjects.Image;
@@ -69,8 +76,9 @@ export class WarTableScene extends Phaser.Scene {
   private info!: PixelText;
   private hint!: PixelText;
   private title!: PixelText;
+  private button!: PixelText;
   private dialogue!: DialogueBox;
-  private pulse?: Phaser.Time.TimerEvent;
+  private music!: TableMusic;
   private blink = true;
 
   constructor() {
@@ -83,8 +91,9 @@ export class WarTableScene extends Phaser.Scene {
     if (!sc) throw new Error(`WarTableScene: no scenario called "${data.scenario}"`);
     this.sc = sc;
     const r = data.resume;
-    this.state = r?.state ?? { squads: sc.squads.map((s) => ({ ...s })), owner: { ...sc.owner }, cut: [], turn: 1 };
+    this.state = r?.state ?? fresh(sc.squads, sc.owner);
     this.phase = r?.phase ?? 'lesson';
+    this.goal = r?.goal ?? 0;
     this.nowTurn = r?.nowTurn ?? 0;
     this.orders = r?.orders ?? [];
     this.hisOrders = r?.hisOrders ?? [];
@@ -104,11 +113,16 @@ export class WarTableScene extends Phaser.Scene {
     this.title = new PixelText(this, 8, 6, '', { color: SHADES.light, shadow: SHADES.shadow }).setDepth(5);
     this.info = new PixelText(this, 8, 18, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(5);
     this.hint = new PixelText(this, 8, H - 12, '', { color: SHADES.dim, shadow: SHADES.shadow }).setDepth(5);
-    this.cursor = placeOf(this.sc.board, squadsOf(this.state, 'you')[0]?.place ?? this.sc.goal);
+    this.button = new PixelText(this, BUTTON.x + 4, BUTTON.y + 3, 'End turn', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(6);
+    this.cursor = placeOf(this.sc.board, squadsOf(this.state, 'you')[0]?.place ?? this.currentGoal());
     this.dialogue = new DialogueBox(this, getSession(this).story);
+    this.music = startTableMusic(this, this.phase);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.music.stop());
     this.input.keyboard!.on('keydown', (e: KeyboardEvent) => this.onKey(e));
+    this.input.mouse?.disableContextMenu();
+    this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.onPointer(p, false));
+    this.input.on('pointerdown', (p: Phaser.Input.Pointer) => this.onPointer(p, true));
     this.time.addEvent({ delay: 400, loop: true, callback: () => ((this.blink = !this.blink), this.draw()) });
-    if (this.phase === 'now') this.startPulse();
     this.cameras.main.fadeIn(700);
     this.draw();
     const r = this.params.resume;
@@ -117,8 +131,12 @@ export class WarTableScene extends Phaser.Scene {
       const fought: Fought = r.fighting ? { [r.fighting]: this.params.outcome === 'won' ? 'won' : 'lost' } : {};
       this.time.delayedCall(700, () => void this.runTurn(fought));
     } else {
-      this.time.delayedCall(700, () => this.talk(this.sc.knots.intro, () => this.startTurn()));
+      this.time.delayedCall(700, () => this.talk(this.sc.knots.intro, () => this.talk(this.sc.goals[0]!.start, () => this.startTurn())));
     }
+  }
+
+  private currentGoal(): string {
+    return this.phase === 'now' ? this.sc.now.goal : this.sc.goals[this.goal]?.place ?? this.sc.now.goal;
   }
 
   // --- The turn ---
@@ -126,36 +144,23 @@ export class WarTableScene extends Phaser.Scene {
   private startTurn(): void {
     this.orders = [];
     this.aiming = null;
-    if (this.phase === 'now') {
-      // He cuts the power where you're strongest: nobody there moves this turn.
-      const strongest = [...squadsOf(this.state, 'you')].sort((a, b) => b.strength - a.strength)[0];
-      this.state = { ...this.state, cut: strongest ? [strongest.place] : [] };
-      if (strongest) playSound(this, 'boom', 0.5);
-      // And more of his guard come down from the citadel.
-      const at = squadAt(this.state, 'citadel');
-      if (at?.side === 'him') at.strength += this.sc.now.reinforce;
-      else if (!at) this.state.squads.push({ id: `g-now-${this.nowTurn}`, side: 'him', place: 'citadel', strength: this.sc.now.reinforce });
-      this.hisOrders = [];
-    } else {
-      this.state = { ...this.state, cut: [] };
-      this.hisOrders = chooseOrders(this.sc.board, this.state, 'him', 'lesson', this.sc.keep);
-    }
+    this.state = { ...this.state, cut: [] };
+    // In the lesson, his orders are chosen first and shown (the tells); when he means it, after yours, unseen.
+    this.hisOrders = this.phase === 'lesson' ? chooseOrders(this.sc.board, this.state, 'him', 'lesson', this.sc.keep) : [];
     this.busy = false;
     this.draw();
   }
 
   private async endTurn(): Promise<void> {
+    if (this.busy) return;
     this.busy = true;
     this.aiming = null;
     // A fight you could go down to yourself: ask, plainly.
-    const drop = this.orders.find((o) => {
-      const there = squadAt(this.state, o.to);
-      return this.sc.dropIn[o.to] && there?.side === 'him' && !this.droppedIn.includes(o.to);
-    });
-    if (drop) {
+    const drop = this.orders.find((o) => this.sc.dropIn[o.to] && squadAt(this.state, o.to)?.side === 'him' && !this.droppedIn.includes(o.to));
+    if (drop && this.phase === 'lesson') {
       const place = placeOf(this.sc.board, drop.to);
       const ask = () =>
-        this.dialogue.openMenu(`The fight for ${place.name.replace(/^The /, 'the ')}. Go down and fight it yourself, or leave it to the table?`, [
+        this.dialogue.openMenu(`The fight for ${lower(place.name)}. Go down and fight it yourself, or leave it to the table?`, [
           { label: 'Go down yourself (a fight)', run: () => this.goDown(drop) },
           { label: 'Leave it to the table', run: () => ((this.droppedIn = [...this.droppedIn, drop.to]), this.time.delayedCall(200, () => void this.runTurn({}))) },
         ]);
@@ -171,12 +176,13 @@ export class WarTableScene extends Phaser.Scene {
   /** Down to the fight: the table waits, and picks up again with how it went. */
   private goDown(order: Order): void {
     this.droppedIn = [...this.droppedIn, order.to];
-    const resume: Snapshot = { state: this.state, phase: this.phase, nowTurn: this.nowTurn, orders: this.orders, hisOrders: this.hisOrders, droppedIn: this.droppedIn, fighting: order.squad, taught: this.taught };
+    const resume: Snapshot = { state: this.state, phase: this.phase, goal: this.goal, nowTurn: this.nowTurn, orders: this.orders, hisOrders: this.hisOrders, droppedIn: this.droppedIn, fighting: order.squad, taught: this.taught };
     const data: CombatSceneData = {
       encounter: this.sc.dropIn[order.to]!,
       back: this.params.back,
       returnTo: { scene: 'WarTable', data: { scenario: this.sc.id, back: this.params.back, resume } satisfies WarTableSceneData },
     };
+    this.music.stop();
     this.cameras.main.fadeOut(500, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Combat', data));
   }
@@ -184,26 +190,39 @@ export class WarTableScene extends Phaser.Scene {
   /** Your orders go, then his; then whatever comes of it. */
   private async runTurn(fought: Fought): Promise<void> {
     this.busy = true;
+    this.draw();
     for (const o of this.orders) await this.carry(o, fought);
     this.orders = [];
-    if (this.phase === 'lesson') {
-      for (const o of this.hisOrders) await this.carry(o, {});
-    } else {
-      for (let i = 0; i < this.sc.now.movesPerTurn; i++) {
-        for (const o of chooseOrders(this.sc.board, this.state, 'him', 'press')) await this.carry(o, {});
-      }
-    }
+    const his = this.phase === 'lesson' ? this.hisOrders : chooseOrders(this.sc.board, this.state, 'him', 'war');
+    for (const o of his) await this.carry(o, {});
     this.hisOrders = [];
     const yours = squadsOf(this.state, 'you').length;
     if (this.phase === 'lesson') {
-      if (this.state.owner[this.sc.goal] === 'you') return this.talk(this.sc.knots.good, () => this.turnItOn());
+      if (this.state.owner[this.currentGoal()] === 'you') return this.goalDone();
       if (this.state.turn >= this.sc.lessonTurns || !yours) return this.turnItOn();
     } else {
       this.nowTurn++;
-      if (this.nowTurn >= this.sc.now.turns || !yours) return this.switchOff();
+      if (this.nowTurn >= this.sc.now.turns || !yours || this.state.owner[this.sc.now.goal] === 'you') return this.switchOff();
     }
+    this.nextTurn();
+  }
+
+  private nextTurn(): void {
     this.state = { ...this.state, turn: this.state.turn + 1 };
     this.startTurn();
+  }
+
+  /** A goal of the lesson taken: his word on it, then the next, or "Good." and he turns it on. */
+  private goalDone(): void {
+    const done = this.sc.goals[this.goal]!;
+    const then = () => {
+      this.goal++;
+      const next = this.sc.goals[this.goal];
+      if (next) this.talk(next.start, () => this.nextTurn());
+      else this.talk(this.sc.knots.good, () => this.turnItOn());
+    };
+    if (done.done) this.talk(done.done, then);
+    else then();
   }
 
   /** One order, shown: the squad's light slides along the way; a fight flashes. */
@@ -215,7 +234,7 @@ export class WarTableScene extends Phaser.Scene {
     const from = placeOf(this.sc.board, before.place);
     const to = placeOf(this.sc.board, order.to);
     const dot = this.add.circle(from.x, from.y, 6, before.side === 'you' ? AMBER : this.hisColour()).setDepth(4);
-    await this.tween(dot, { x: to.x, y: to.y, duration: 260 });
+    await this.tween(dot, { x: to.x, y: to.y, duration: 280 });
     dot.destroy();
     const battle = events.find((e) => e.type === 'battle');
     if (battle) {
@@ -226,7 +245,7 @@ export class WarTableScene extends Phaser.Scene {
     } else playSound(this, 'tick', 0.5);
     this.state = state;
     this.draw();
-    await this.wait(120);
+    await this.wait(160);
   }
 
   // --- He turns it on ---
@@ -234,28 +253,27 @@ export class WarTableScene extends Phaser.Scene {
   private turnItOn(): void {
     this.busy = true;
     this.talk(this.sc.knots.now, () => {
+      // The room's lights drop; the table goes hard white; the music turns. The table's set up again, as the
+      // city really is.
       this.phase = 'now';
       this.nowTurn = 0;
-      for (const s of squadsOf(this.state, 'him')) s.strength += this.sc.now.boost;
-      // The room's lights drop; the table goes hard white; the music cuts to a pulse.
       this.cameras.main.flash(300, 255, 255, 255);
-      playSound(this, 'boom');
+      this.music.mood('now');
       this.bg.setTexture('wartable-now');
-      this.startPulse();
-      this.state = { ...this.state, turn: this.state.turn + 1 };
+      this.state = fresh(this.sc.now.squads, this.sc.now.owner);
+      this.state.turn = 1;
+      this.cursor = placeOf(this.sc.board, squadsOf(this.state, 'you')[0]!.place);
       this.startTurn();
     });
   }
 
-  private startPulse(): void {
-    this.pulse?.remove();
-    this.pulse = this.time.addEvent({ delay: 820, loop: true, callback: () => playSound(this, 'thump', 0.35) });
-  }
-
   private switchOff(): void {
     this.busy = true;
-    this.pulse?.remove();
+    const { story } = getSession(this);
+    story.setVariable('sim_turns', this.nowTurn);
+    story.setVariable('sim_wiped', !squadsOf(this.state, 'you').length);
     this.talk(this.sc.knots.end, () => {
+      this.music.stop();
       this.cameras.main.fadeOut(900, 0, 0, 0);
       this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Area', { ...this.params.back, script: this.sc.knots.after } satisfies AreaSceneData));
     });
@@ -263,46 +281,102 @@ export class WarTableScene extends Phaser.Scene {
 
   // --- Input ---
 
+  private ready(): boolean {
+    return !this.busy && !this.dialogue.isOpen && this.time.now - this.closedAt > 200;
+  }
+
   private onKey(e: KeyboardEvent): void {
-    if (e.repeat || this.busy || this.dialogue.isOpen || this.time.now - this.closedAt < 200) return;
+    if (e.repeat || !this.ready()) return;
     const dir = { ArrowLeft: [-1, 0], a: [-1, 0], ArrowRight: [1, 0], d: [1, 0], ArrowUp: [0, -1], w: [0, -1], ArrowDown: [0, 1], s: [0, 1] }[e.key] as [number, number] | undefined;
     if (dir) {
-      const choices = this.aiming ? [placeOf(this.sc.board, this.aiming.place), ...waysFrom(this.sc.board, this.aiming.place).map((w) => placeOf(this.sc.board, w.to))] : this.sc.board.places;
-      const next = placeInDirection(choices, this.cursor, dir[0], dir[1]);
-      if (next) {
-        this.cursor = next;
-        playMove(this);
-        this.draw();
-      }
-      return;
-    }
-    if (e.key === 'e' || e.key === 'E') {
       if (this.aiming) {
-        // On its own place: it holds. Anywhere else it can reach: that's its order.
-        const squad = this.aiming;
-        this.orders = this.orders.filter((o) => o.squad !== squad.id);
-        if (this.cursor.id !== squad.place) this.orders.push({ squad: squad.id, to: this.cursor.id });
-        this.aiming = null;
-        playConfirm(this);
+        // Step round the places it can go: Right and Down to the next, Left and Up back.
+        const { dests } = this.aiming;
+        const i = dests.indexOf(this.cursor);
+        this.cursor = dests[(i + (dir[0] + dir[1] > 0 ? 1 : dests.length - 1)) % dests.length]!;
       } else {
-        const squad = squadAt(this.state, this.cursor.id);
-        if (squad?.side === 'you' && !this.state.cut.includes(squad.place)) {
-          this.aiming = squad;
-          playMove(this);
-        }
+        const next = placeInDirection(this.sc.board.places, this.cursor, dir[0], dir[1]);
+        if (!next) return;
+        this.cursor = next;
       }
+      playMove(this);
       this.draw();
       return;
     }
-    if (e.key === 'Escape' && this.aiming) {
-      this.cursor = placeOf(this.sc.board, this.aiming.place);
-      this.aiming = null;
-      this.draw();
-      return;
+    if (e.key === 'e' || e.key === 'E') return this.choose(this.cursor);
+    if (e.key === 'Escape') return this.back();
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      return this.nextSquad();
     }
     if (e.key === 'Enter' || e.key === ' ') {
       if (!this.aiming) void this.endTurn();
     }
+  }
+
+  /** The mouse: hovering moves the cursor; a click chooses; a right-click backs out; the button ends the turn. */
+  private onPointer(p: Phaser.Input.Pointer, down: boolean): void {
+    if (!this.ready()) return;
+    if (down && p.rightButtonDown()) return this.back();
+    if (down && p.x >= BUTTON.x && p.x < BUTTON.x + BUTTON.w && p.y >= BUTTON.y && p.y < BUTTON.y + BUTTON.h) {
+      if (!this.aiming) void this.endTurn();
+      return;
+    }
+    const near = (this.aiming ? this.aiming.dests : this.sc.board.places).find((q) => Math.hypot(q.x - p.x, q.y - p.y) < 13);
+    if (near && near !== this.cursor) {
+      this.cursor = near;
+      this.draw();
+    }
+    if (down) {
+      if (near) this.choose(near);
+      else if (this.aiming) this.back();
+    }
+  }
+
+  /** E or a click on a place: pick up your squad there, or send the one you've picked there. */
+  private choose(place: WarPlace): void {
+    if (this.aiming) {
+      const { squad, dests } = this.aiming;
+      if (!dests.includes(place)) return;
+      this.orders = this.orders.filter((o) => o.squad !== squad.id);
+      if (place.id !== squad.place) this.orders.push({ squad: squad.id, to: place.id });
+      this.aiming = null;
+      this.cursor = place;
+      playConfirm(this);
+    } else {
+      const squad = squadAt(this.state, place.id);
+      if (squad?.side !== 'you' || this.state.cut.includes(squad.place)) return;
+      const dests = [place, ...waysFrom(this.sc.board, place.id).map((w) => placeOf(this.sc.board, w.to))];
+      // Round the squad clockwise from straight up, so stepping through them goes round in order.
+      const angle = (q: WarPlace) => (Math.atan2(q.x - place.x, -(q.y - place.y)) + 2 * Math.PI) % (2 * Math.PI);
+      const round = dests.slice(1).sort((a, b) => angle(a) - angle(b));
+      this.aiming = { squad, dests: [place, ...round] };
+      // Start on where it's already going, or the first place it could go.
+      const going = this.orders.find((o) => o.squad === squad.id);
+      this.cursor = going ? placeOf(this.sc.board, going.to) : round[0] ?? place;
+      playMove(this);
+    }
+    this.draw();
+  }
+
+  private back(): void {
+    if (!this.aiming) return;
+    this.cursor = placeOf(this.sc.board, this.aiming.squad.place);
+    this.aiming = null;
+    this.draw();
+  }
+
+  /** Tab: on to the next of your squads without orders yet. */
+  private nextSquad(): void {
+    this.aiming = null;
+    const mine = squadsOf(this.state, 'you').filter((s) => !this.state.cut.includes(s.place));
+    if (!mine.length) return;
+    const waiting = mine.filter((s) => !this.orders.some((o) => o.squad === s.id));
+    const pool = waiting.length ? waiting : mine;
+    const i = pool.findIndex((s) => s.place === this.cursor.id);
+    this.cursor = placeOf(this.sc.board, pool[(i + 1) % pool.length]!.place);
+    playMove(this);
+    this.draw();
   }
 
   // --- Drawing ---
@@ -328,47 +402,47 @@ export class WarTableScene extends Phaser.Scene {
       else g.lineStyle(1, line, 1).lineBetween(a.x, a.y, b.x, b.y);
     }
     const lifts = board.places.filter((p) => p.lift).sort((a, b) => a.y - b.y);
-    for (let i = 1; i < lifts.length; i++) dashed(g, lifts[i - 1]!, lifts[i]!, now ? SHADES.white : CYAN, 1);
-    // The places, and who holds them.
+    for (let i = 1; i < lifts.length; i++) dashed(g, lifts[i - 1]!, lifts[i]!, line, 1);
+    // The places, and who holds them; the goal ringed.
     for (const p of board.places) {
       const owner = this.state.owner[p.id];
       const col = owner === 'you' ? AMBER : owner === 'him' ? this.hisColour() : SHADES.dim;
       g.lineStyle(1, col, 1).strokeRect(p.x - 3, p.y - 3, 7, 7);
       if (p.stronghold) g.strokeRect(p.x - 5, p.y - 5, 11, 11);
-      if (this.state.cut.includes(p.id)) {
-        // No power: dark, crossed out.
-        g.fillStyle(SHADES.shadow, 0.85).fillRect(p.x - 12, p.y - 12, 25, 25);
-        g.lineStyle(1, SHADES.dim, 1).lineBetween(p.x - 9, p.y - 9, p.x + 9, p.y + 9).lineBetween(p.x - 9, p.y + 9, p.x + 9, p.y - 9);
-      }
-      const label = new PixelText(this, 0, p.y + 11, p.name.replace(/^The /, '').toLowerCase(), { color: SHADES.light, shadow: SHADES.shadow });
+      if (p.id === this.currentGoal() && !this.busy) g.lineStyle(1, AMBER, this.blink ? 1 : 0.4).strokeCircle(p.x, p.y, 14);
+      const label = new PixelText(this, 0, p.y + 11, lower(p.name), { color: SHADES.light, shadow: SHADES.shadow });
       label.setX(Math.round(p.x - label.width / 2));
       this.labels.push(label);
     }
-    // Orders: his (in the lesson) as cyan arrows, yours amber.
+    // Orders: his (in the lesson) as blue arrows, yours amber; and, choosing, where the one you've picked would go.
     for (const o of this.hisOrders) this.arrow(g, o, this.hisColour());
-    for (const o of this.orders) this.arrow(g, o, AMBER);
+    for (const o of this.orders) if (o.squad !== this.aiming?.squad.id) this.arrow(g, o, AMBER);
+    if (this.aiming && this.cursor.id !== this.aiming.squad.place) this.arrow(g, { squad: this.aiming.squad.id, to: this.cursor.id }, this.blink ? AMBER : SHADES.white);
     // The squads: a disc of light with its strength.
     for (const s of this.state.squads) {
       const p = placeOf(board, s.place);
       const col = s.side === 'you' ? AMBER : this.hisColour();
-      g.fillStyle(SHADES.shadow, 1).fillCircle(p.x, p.y, 7);
-      g.fillStyle(col, 1).fillCircle(p.x, p.y, 6);
+      const r = s.strength > 9 ? 8 : 7;
+      g.fillStyle(SHADES.shadow, 1).fillCircle(p.x, p.y, r);
+      g.fillStyle(col, 1).fillCircle(p.x, p.y, r - 1);
+      if (this.aiming?.squad.id === s.id) g.lineStyle(1, SHADES.white, 1).strokeCircle(p.x, p.y, r + 2);
       const n = new PixelText(this, 0, p.y - 3, String(s.strength), { color: SHADES.shadow });
       n.setX(Math.round(p.x - n.width / 2 + 1));
       this.labels.push(n);
     }
     // Where you can send the one you've picked.
-    if (this.aiming) {
-      for (const w of waysFrom(board, this.aiming.place)) {
-        const p = placeOf(board, w.to);
-        g.lineStyle(1, SHADES.white, 0.9).strokeCircle(p.x, p.y, 10);
-      }
-    }
+    if (this.aiming) for (const p of this.aiming.dests.slice(1)) g.lineStyle(1, SHADES.white, 0.9).strokeCircle(p.x, p.y, 11);
     // The cursor.
-    if (!this.busy && this.blink) g.lineStyle(1, SHADES.white, 1).strokeRect(this.cursor.x - 11, this.cursor.y - 11, 23, 23);
-    this.title.setText(now ? '' : `The lesson: take the promenade. Turn ${this.state.turn}`);
+    if (!this.busy && this.blink) g.lineStyle(1, SHADES.white, 1).strokeRect(this.cursor.x - 12, this.cursor.y - 12, 25, 25);
+    // The End turn button.
+    const canEnd = !this.busy && !this.aiming;
+    g.fillStyle(canEnd ? SHADES.cyanDeep : SHADES.deep, 0.95).fillRect(BUTTON.x, BUTTON.y, BUTTON.w, BUTTON.h);
+    g.lineStyle(1, canEnd ? AMBER : SHADES.dim, 1).strokeRect(BUTTON.x, BUTTON.y, BUTTON.w, BUTTON.h);
+    this.button.setColor(canEnd ? SHADES.white : SHADES.dim);
+    const goal = lower(placeOf(board, this.currentGoal()).name);
+    this.title.setText(now ? `Take ${goal}.` : `The lesson: take ${goal}.   Turn ${this.state.turn}`);
     this.info.setText(this.busy ? '' : this.describe());
-    this.hint.setText(this.busy ? '' : this.aiming ? 'Arrows: where they go  E: send them (their own place: hold)  Esc: back' : 'Arrows: look round  E: give one of your squads orders  Enter: end the turn');
+    this.hint.setText(this.busy ? '' : this.aiming ? 'Arrows: where they go   E or click: send them   Esc or right-click: back' : 'E or click: choose a squad   Tab: next squad   Enter: end the turn');
   }
 
   private arrow(g: Phaser.GameObjects.Graphics, o: Order, col: number): void {
@@ -379,28 +453,30 @@ export class WarTableScene extends Phaser.Scene {
     const len = Math.hypot(b.x - a.x, b.y - a.y);
     const [ux, uy] = [(b.x - a.x) / len, (b.y - a.y) / len];
     const [ex, ey] = [b.x - ux * 9, b.y - uy * 9];
-    g.lineStyle(2, col, 1).lineBetween(a.x + ux * 8, a.y + uy * 8, ex, ey);
+    g.lineStyle(3, SHADES.shadow, 0.8).lineBetween(a.x + ux * 8, a.y + uy * 8, ex, ey);
+    g.lineStyle(1, col, 1).lineBetween(a.x + ux * 8, a.y + uy * 8, ex, ey);
     g.fillStyle(col, 1).fillTriangle(ex + ux * 4, ey + uy * 4, ex - uy * 4 - ux * 2, ey + ux * 4 - uy * 2, ex + uy * 4 - ux * 2, ey - ux * 4 - uy * 2);
   }
 
-  /** What's under the cursor, plainly; and, aiming, what would happen. */
+  /** What's under the cursor, plainly; and, choosing where to send a squad, what would happen. */
   private describe(): string {
     const p = this.cursor;
     const there = squadAt(this.state, p.id);
     const owner = this.state.owner[p.id];
     const whose = owner === 'you' ? 'yours' : owner === 'him' ? 'his' : "nobody's";
     let text = `${p.name}: ${whose}${there ? `, ${there.strength} strong` : ''}${p.stronghold ? ' (held at +1)' : ''}${this.state.cut.includes(p.id) ? '. No power: nobody here can move.' : ''}`;
-    if (this.aiming && p.id !== this.aiming.place && canMove(this.sc.board, this.state, this.aiming, p.id)) {
-      if (!there) text = `Send them to ${p.name.replace(/^The /, 'the ')}: they take it.`;
-      else if (there.side === 'you') text = `Send them to join the squad there: ${this.aiming.strength + there.strength} strong.`;
+    const aim = this.aiming?.squad;
+    if (aim && p.id !== aim.place && canMove(this.sc.board, this.state, aim, p.id)) {
+      if (!there) text = `Send them to ${lower(p.name)}: they take it.`;
+      else if (there.side === 'you') text = `Send them to join the squad there: ${aim.strength + there.strength} strong.`;
       else {
-        const a = attackOf(this.sc.board, this.aiming.place, p.id, this.aiming.strength);
+        const a = attackOf(this.sc.board, aim.place, p.id, aim.strength);
         const d = defenceOf(this.sc.board, p.id, there.strength);
-        const uphill = a < this.aiming.strength ? ' (uphill: 1 less)' : '';
+        const uphill = a < aim.strength ? ' (uphill: 1 less)' : '';
         text = `Attack: ${a}${uphill} against ${d}. ${a > d ? `You'd take it, with ${Math.max(1, a - d)} left.` : 'They’d hold, and your squad would be lost.'}`;
-        if (this.sc.dropIn[p.id] && !this.droppedIn.includes(p.id)) text += ' Or go down and fight it yourself.';
+        if (this.phase === 'lesson' && this.sc.dropIn[p.id] && !this.droppedIn.includes(p.id)) text += ' Or go down and fight it yourself.';
       }
-    } else if (this.aiming && p.id === this.aiming.place) text = 'They hold here.';
+    } else if (aim && p.id === aim.place) text = 'Hold: they stay where they are.';
     return text;
   }
 
@@ -424,6 +500,11 @@ export class WarTableScene extends Phaser.Scene {
     return new Promise((resolve) => this.time.delayedCall(ms, resolve));
   }
 }
+
+const fresh = (squads: Squad[], owner: WarState['owner']): WarState => ({ squads: squads.map((s) => ({ ...s })), owner: { ...owner }, cut: [], turn: 1 });
+
+/** "The data centre" → "the data centre", for the middle of a sentence. */
+const lower = (name: string) => name.replace(/^The /, 'the ');
 
 function dashed(g: Phaser.GameObjects.Graphics, a: { x: number; y: number }, b: { x: number; y: number }, col: number, gap: number): void {
   const len = Math.hypot(b.x - a.x, b.y - a.y);

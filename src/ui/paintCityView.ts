@@ -42,7 +42,7 @@ function blockRow(row: number, horizon: number, bottom: number, x0: number, x1: 
 
 /** Paints the city through a view, in the area's pixels; null outside the view. */
 /** `dark`: a district with its power cut (big choice 1): from dusk its windows, signs and strips stay dark. */
-export function cityViewPainter(view: CityView, slot: TimeSlot, dark?: Power['views']): (x: number, y: number) => PixelColour {
+export function cityViewPainter(view: CityView, slot: TimeSlot, dark?: Power['views'], fade = 1): (x: number, y: number) => PixelColour {
   const sky = skyFor(slot);
   const night = slot === 'night';
   const lit = slot === 'evening' || night;
@@ -75,7 +75,8 @@ export function cityViewPainter(view: CityView, slot: TimeSlot, dark?: Power['vi
       const t = r / (ROWS - 1);
       const low = smoothstep(0.6, 1, t); // the low district, at the bottom
       // (A district without power: its rows go dark from dusk.)
-      const out = lit && ((dark === 'low' && t > 0.62) || (dark === 'middle' && t > 0.3 && t <= 0.62));
+      // (Going out block by block: each block's turn comes at its own point in the fade.)
+      const out = lit && ((dark === 'low' && t > 0.62) || (dark === 'middle' && t > 0.3 && t <= 0.62)) && cellRandom(b.seed, 3, 57) < fade;
       const lx = x - b.x;
       const ly = y - b.top;
       const haze = (1 - t) * 0.55;
@@ -98,7 +99,7 @@ export function cityViewPainter(view: CityView, slot: TimeSlot, dark?: Power['vi
         return cellRandom(b.seed, 0, 56) > 0.5 ? SHADES.cyan : SHADES.amber;
       }
       if (lit && !out) c = addLight(c, b.strip ? cyan! : amber!, 0.12 * (1 - low));
-      if (out) c = scale(c, 0.55);
+      if (out) c = scale(c, 0.3);
       return mix(c, sky.horizon, haze * (lit ? 0.4 : 1));
     }
 

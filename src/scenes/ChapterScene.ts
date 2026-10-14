@@ -208,10 +208,10 @@ export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
   const day2: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | number | boolean> }> = {
     start: { area: { areaId: 'prince-quarters', start: { x: 120, y: 226 }, script: 'c3day2_start', card: 'Day 2' }, slots: 0, vars: {} },
     study: { area: { areaId: 'fathers-study', start: { x: 60, y: 230 }, script: 'c3day2_study' }, slots: 0, vars: { c3day2: 'study', objective: 'Go with your father', objective_target: 'fathers-study:father-2' } },
-    table: { area: { areaId: 'simulation-room', start: { x: 180, y: 230 } }, slots: 0, vars: { c3day2: 'room', sim_open: true, room2: true, objective: 'Practise the art of war', objective_target: 'simulation-room:table' } },
+    table: { area: { areaId: 'simulation-room', start: { x: 300, y: 230 } }, slots: 0, vars: { c3day2: 'room', sim_open: true, room2: true, objective: 'Practise the art of war', objective_target: 'simulation-room:table' } },
     council: { area: { areaId: 'citadel-halls', start: { x: 300, y: 232 } }, slots: 1, vars: { c3day2: 'council', sim_open: true, room2: true, objective: 'Go to the council chamber', objective_target: 'council-chamber:father-4' } },
     dusk: { area: { areaId: 'prince-quarters', start: { x: 300, y: 226 } }, slots: 2, vars: { c3day2: 'dusk', sim_open: true, room2: true, council2: true, heard2: 3, energy, objective: 'Watch from your balcony', objective_target: 'prince-quarters:telescope' } },
-    below: { area: { areaId: 'diplomats-office', start: { x: 200, y: 230 } }, slots: 2, vars: { c3day2: 'report', sim_open: true, room2: true, council2: true, energy, dark_district: dark, dusk2: true, reported2: true, objective: "Go to your hand's office", objective_target: 'diplomats-office:hand-6' } },
+    below: { area: { areaId: 'diplomats-office', start: { x: 200, y: 230 } }, slots: 2, vars: { c3day2: 'report', sim_open: true, room2: true, council2: true, energy, dark_district: dark, citadel_dimmed: energy === 'people', dusk2: true, reported2: true, objective: "Go to your hand's office", objective_target: 'diplomats-office:hand-6' } },
   };
   if (day >= 2) set({ c3day1: 'done', c3day2: 'wake', lift_mended: params.get('lift') === 'mended', seated: params.get('seated') ?? 'councillor', signed_requests: true });
   const table = day >= 2 ? day2 : day1;
