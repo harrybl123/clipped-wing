@@ -86,7 +86,13 @@ export const princeQuarters: AreaDefinition = {
     cast('sister', 452, FLOOR, { knot: 'quarters_sister', when: ['evening'] }), // at your telescope
     cast('heir', 300, FLOOR, { knot: 'quarters_heir', when: MORNING, flipX: true }), // come to fetch you
   ],
-  interactables: [],
+  interactables: [
+    { id: 'bed', x: 84, y: FLOOR, reach: 14, label: 'Look', knot: 'quarters_bed' },
+    { id: 'mirror', x: 160, y: FLOOR, reach: 10, label: 'Look', knot: 'quarters_mirror' },
+    { id: 'blades', x: 202, y: FLOOR, reach: 10, label: 'Look', knot: 'quarters_blades' },
+    { id: 'game', x: 272, y: FLOOR, reach: 10, label: 'Look', knot: 'quarters_game' },
+    { id: 'telescope', x: 480, y: FLOOR, reach: 14, label: 'Look', knot: 'quarters_telescope' },
+  ],
 
   exits: [{ id: 'to-halls', x: 36, y: FLOOR, reach: 12, to: 'citadel-halls' }],
 };

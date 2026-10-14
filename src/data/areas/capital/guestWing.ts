@@ -82,7 +82,12 @@ export const guestWing: AreaDefinition = {
     strollingCourtier('guest-2', 5, 160, 470, FLOOR, 'guest_wing_guest', ['afternoon']),
     servant('servant', 0, 404, FLOOR, 'c3_servant', ['evening']),
   ],
-  interactables: [],
+  interactables: [
+    { id: 'bed', x: 44, y: FLOOR, reach: 14, label: 'Look', knot: 'guest_bed' },
+    { id: 'door', x: 165, y: FLOOR, reach: 14, label: 'Look', knot: 'guest_door' },
+    { id: 'window', x: 234, y: FLOOR, reach: 14, label: 'Look', knot: 'guest_window' },
+    { id: 'cages', x: 310, y: FLOOR, reach: 14, label: 'Look', knot: 'guest_cages' },
+  ],
 
   exits: [{ id: 'to-halls', x: 608, y: FLOOR, reach: 12, to: 'citadel-halls' }],
 };

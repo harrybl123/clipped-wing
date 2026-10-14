@@ -109,7 +109,10 @@ export const lifts: AreaDefinition = {
     citizen('street-1', 4, 330, FLOOR, 'lifts_folk', LATE),
     watch('watch', 0, 90, FLOOR, 'c3_watch', ['night']),
   ],
-  interactables: [],
+  interactables: [
+    { id: 'glass', x: 100, y: CITADEL, reach: 14, label: 'Look', knot: 'lifts_glass' },
+    { id: 'booth', x: 258, y: FLOOR, reach: 14, label: 'Look', knot: 'lifts_booth' },
+  ],
 
   exits: [
     { id: 'to-audience-hall', x: 40, y: CITADEL, reach: 14, to: 'audience-hall' },

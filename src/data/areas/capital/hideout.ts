@@ -80,7 +80,11 @@ export const hideout: AreaDefinition = {
     citizen('in-the-corner', 2, 76, FLOOR, 'hideout_corner', ['night']),
     citizen('regular', 5, 290, FLOOR, 'hideout_regular', LATE, { flipX: true }),
   ],
-  interactables: [],
+  interactables: [
+    { id: 'emblem', x: 180, y: FLOOR, reach: 14, label: 'Look', knot: 'hideout_emblem' },
+    { id: 'notices', x: 106, y: FLOOR, reach: 10, label: 'Look', knot: 'hideout_notices' },
+    { id: 'back-way', x: 456, y: FLOOR, reach: 10, label: 'Look', knot: 'hideout_back_way' },
+  ],
 
   exits: [{ id: 'to-low-district', x: 39, y: FLOOR, reach: 12, to: 'low-district' }],
 };

@@ -121,7 +121,12 @@ export const audienceHall: AreaDefinition = {
     // The envoy, still waiting to be heard.
     cast('envoy', 512, FLOOR, { knot: 'audience_envoy', when: ['afternoon'] }),
   ],
-  interactables: [],
+  interactables: [
+    { id: 'gate', x: 64, y: FLOOR, reach: 10, label: 'Look', knot: 'audience_gate' },
+    { id: 'benches', x: 340, y: FLOOR, reach: 14, label: 'Look', knot: 'audience_benches' },
+    { id: 'seat', x: 654, y: DAIS, reach: 10, label: 'Look', knot: 'audience_seat' },
+    { id: 'throne', x: 704, y: DAIS, reach: 10, label: 'Look', knot: 'audience_throne' },
+  ],
 
   exits: [
     { id: 'to-halls', x: 40, y: FLOOR, reach: 16, to: 'citadel-halls' },

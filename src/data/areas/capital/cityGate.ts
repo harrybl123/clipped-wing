@@ -73,7 +73,11 @@ export const cityGate: AreaDefinition = {
     strollingCitizen('passer', 7, 600, 760, FLOOR, 'gate_folk', AWAKE),
     cast('commander', 560, FLOOR, { id: 'commander-night', knot: 'gate_commander_night', when: ['night'], flipX: true }),
   ],
-  interactables: [],
+  interactables: [
+    { id: 'wall', x: 365, y: FLOOR, reach: 14, label: 'Look', knot: 'gate_wall' },
+    { id: 'booth', x: 508, y: FLOOR, reach: 10, label: 'Look', knot: 'gate_booth' },
+    { id: 'road', x: 60, y: FLOOR, reach: 14, label: 'Look', knot: 'gate_road' },
+  ],
 
   exits: [{ id: 'to-promenade', x: 780, y: FLOOR, reach: 14, to: 'promenade' }],
 };

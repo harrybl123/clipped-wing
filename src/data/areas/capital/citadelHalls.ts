@@ -161,7 +161,13 @@ export const citadelHalls: AreaDefinition = {
     cast('reformer', 250, FLOOR, { knot: 'halls_reformer', when: ['evening'] }),
     cast('sister', 340, UPPER, { id: 'sister-night', knot: 'halls_sister_night', when: ['night'], flipX: true }),
   ],
-  interactables: [],
+  interactables: [
+    { id: 'statue', x: 206, y: FLOOR, reach: 14, label: 'Look', knot: 'halls_statue' },
+    { id: 'screen', x: 480, y: FLOOR, reach: 10, label: 'Look', knot: 'halls_screen' },
+    { id: 'portraits', x: 320, y: UPPER, reach: 14, label: 'Look', knot: 'halls_portraits' },
+    { id: 'tube', x: 740, y: UPPER, reach: 14, label: 'Look', knot: 'halls_tube' },
+    { id: 'lift', x: 928, y: FLOOR, reach: 14, label: 'Look', knot: 'halls_lift' },
+  ],
 
   exits: [
     // Downstairs.

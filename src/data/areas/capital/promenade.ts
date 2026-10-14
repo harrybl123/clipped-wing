@@ -152,7 +152,11 @@ export const promenade: AreaDefinition = {
     cast('painter', 250, FLOOR, { knot: 'promenade_painter', when: MORNING }),
     cast('envoy', 250, FLOOR, { id: 'envoy-evening', knot: 'promenade_envoy', when: ['evening'] }),
   ],
-  interactables: [],
+  interactables: [
+    { id: 'screen', x: 410, y: FLOOR, reach: 10, label: 'Look', knot: 'promenade_screen' },
+    { id: 'signs', x: 120, y: FLOOR, reach: 14, label: 'Look', knot: 'promenade_signs' },
+    { id: 'view', x: 780, y: WALK, reach: 14, label: 'Look', knot: 'promenade_view' },
+  ],
 
   exits: [
     { id: 'to-lifts', x: 24, y: FLOOR, reach: 14, to: 'lifts' },

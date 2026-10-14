@@ -70,7 +70,11 @@ export const sealedWing: AreaDefinition = {
     // In the afternoon, the engineer, seeing to the cables.
     cast('engineer', 300, FLOOR, { knot: 'sealed_engineer', when: ['afternoon'] }),
   ],
-  interactables: [],
+  interactables: [
+    { id: 'statue', x: 102, y: FLOOR, reach: 14, label: 'Look', knot: 'sealed_statue' },
+    { id: 'cables', x: 250, y: FLOOR, reach: 14, label: 'Look', knot: 'sealed_cables' },
+    { id: 'door', x: 506, y: FLOOR, reach: 10, label: 'Look', knot: 'sealed_door' },
+  ],
 
   exits: [{ id: 'to-study', x: 34, y: FLOOR, reach: 12, to: 'fathers-study' }],
 };

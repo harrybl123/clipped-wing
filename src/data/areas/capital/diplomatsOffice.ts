@@ -71,7 +71,12 @@ export const diplomatsOffice: AreaDefinition = {
     cast('diplomat', 336, FLOOR, { knot: 'office_diplomat', when: OPEN_LATE, flipX: true }), // at his desk
     citizen('visitor', 9, 204, FLOOR, 'office_visitor', ['night']), // someone hooded, at an odd hour
   ],
-  interactables: [],
+  interactables: [
+    { id: 'notes', x: 70, y: FLOOR, reach: 10, label: 'Look', knot: 'office_notes' },
+    { id: 'maps', x: 170, y: FLOOR, reach: 14, label: 'Look', knot: 'office_maps' },
+    { id: 'desk', x: 282, y: FLOOR, reach: 10, label: 'Look', knot: 'office_desk' },
+    { id: 'drawers', x: 392, y: FLOOR, reach: 10, label: 'Look', knot: 'office_drawers' },
+  ],
 
   exits: [
     { id: 'to-halls', x: 34, y: FLOOR, reach: 12, to: 'citadel-halls' },

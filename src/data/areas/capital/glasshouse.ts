@@ -112,7 +112,12 @@ export const glasshouse: AreaDefinition = {
     cast('salon_hostess', 540, TERRACE, { id: 'hostess-morning', knot: 'glasshouse_hostess_morning', when: MORNING, flipX: true }),
     cast('physician', 400, FLOOR, { knot: 'glasshouse_physician', when: ['afternoon'], flipX: true }),
   ],
-  interactables: [],
+  interactables: [
+    { id: 'tree', x: 98, y: FLOOR, reach: 14, label: 'Look', knot: 'glasshouse_tree' },
+    { id: 'trellis', x: 214, y: FLOOR, reach: 14, label: 'Look', knot: 'glasshouse_trellis' },
+    { id: 'fountain', x: 314, y: FLOOR, reach: 10, label: 'Look', knot: 'glasshouse_fountain' },
+    { id: 'glass', x: 420, y: FLOOR, reach: 14, label: 'Look', knot: 'glasshouse_glass' },
+  ],
 
   exits: [{ id: 'to-halls', x: 34, y: FLOOR, reach: 12, to: 'citadel-halls' }],
 };

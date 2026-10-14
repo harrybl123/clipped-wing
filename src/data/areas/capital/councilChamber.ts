@@ -84,7 +84,11 @@ export const councilChamber: AreaDefinition = {
     // The morning: a page laying out the papers.
     strollingServant('page', 1, 180, 330, FLOOR, 'c3_page', MORNING),
   ],
-  interactables: [],
+  interactables: [
+    { id: 'table', x: 222, y: FLOOR, reach: 14, label: 'Look', knot: 'council_table' },
+    { id: 'empty-seat', x: 36, y: FLOOR - 32, reach: 14, label: 'Look', knot: 'council_empty_seat' },
+    { id: 'top-seat', x: 456, y: FLOOR - 48, reach: 10, label: 'Look', knot: 'council_top_seat' },
+  ],
 
   exits: [{ id: 'to-halls', x: 160, y: FLOOR, reach: 12, to: 'citadel-halls' }],
 };

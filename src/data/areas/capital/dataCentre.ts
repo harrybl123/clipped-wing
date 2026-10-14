@@ -68,7 +68,11 @@ export const dataCentre: AreaDefinition = {
     guard('door-guard', 2, 552, FLOOR, 'c3_guard_data', undefined, { flipX: true }), // your father's guard, on the door at the back
     cast('engineer', 300, FLOOR, { knot: 'data_engineer', when: ['evening'] }),
   ],
-  interactables: [],
+  interactables: [
+    { id: 'racks', x: 240, y: FLOOR, reach: 14, label: 'Look', knot: 'data_racks' },
+    { id: 'screens', x: 72, y: FLOOR, reach: 10, label: 'Look', knot: 'data_screens' },
+    { id: 'door', x: 590, y: FLOOR, reach: 14, label: 'Look', knot: 'data_door' },
+  ],
 
   exits: [{ id: 'to-lifts', x: 34, y: FLOOR, reach: 12, to: 'lifts' }],
 };

@@ -96,7 +96,12 @@ export const banquetGallery: AreaDefinition = {
     cast('heir', 726, FLOOR, { knot: 'banquet_heir', when: ['evening'] }),
     cast('councillor', 560, FLOOR, { knot: 'banquet_councillor', when: ['evening'], flipX: true }), // by your father's empty chair
   ],
-  interactables: [],
+  interactables: [
+    { id: 'mirrors', x: 330, y: FLOOR, reach: 10, label: 'Look', knot: 'banquet_mirrors' },
+    { id: 'table', x: 440, y: FLOOR, reach: 10, label: 'Look', knot: 'banquet_table' },
+    { id: 'chair', x: 604, y: FLOOR, reach: 10, label: 'Look', knot: 'banquet_chair' },
+    { id: 'balcony', x: 760, y: FLOOR, reach: 14, label: 'Look', knot: 'banquet_balcony' },
+  ],
 
   exits: [{ id: 'to-halls', x: 34, y: FLOOR, reach: 12, to: 'citadel-halls' }],
 };

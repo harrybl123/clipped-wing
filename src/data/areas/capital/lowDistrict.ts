@@ -134,7 +134,13 @@ export const lowDistrict: AreaDefinition = {
     cast('painter', 300, FLOOR, { knot: 'low_painter', when: ['afternoon', 'evening'] }),
     cast('painter', 566, FLOOR, { id: 'painter-night', knot: 'low_painter_night', when: ['night'] }), // out chalking
   ],
-  interactables: [],
+  interactables: [
+    { id: 'mark', x: 350, y: FLOOR, reach: 10, label: 'Look', knot: 'low_mark' },
+    { id: 'scrubbed', x: 226, y: FLOOR, reach: 10, label: 'Look', knot: 'low_scrubbed' },
+    { id: 'homes', x: 660, y: FLOOR, reach: 14, label: 'Look', knot: 'low_homes' },
+    { id: 'washing', x: 140, y: LEFT_WALK, reach: 14, label: 'Look', knot: 'low_washing' },
+    { id: 'noodles', x: 48, y: FLOOR, reach: 14, label: 'Look', knot: 'low_noodles' },
+  ],
 
   exits: [
     { id: 'to-lifts', x: 24, y: FLOOR, reach: 14, to: 'lifts' },

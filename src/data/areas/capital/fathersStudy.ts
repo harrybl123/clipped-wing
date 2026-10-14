@@ -72,7 +72,13 @@ export const fathersStudy: AreaDefinition = {
     cast('father', 406, FLOOR, { knot: 'study_father', when: ['evening'], flipX: true }),
     cast('physician', 318, FLOOR, { knot: 'study_physician', when: ['evening'] }),
   ],
-  interactables: [],
+  interactables: [
+    { id: 'model', x: 72, y: FLOOR, reach: 14, label: 'Look', knot: 'study_model' },
+    { id: 'books', x: 128, y: FLOOR, reach: 14, label: 'Look', knot: 'study_books' },
+    { id: 'hearth', x: 196, y: FLOOR, reach: 14, label: 'Look', knot: 'study_hearth' },
+    { id: 'clock', x: 312, y: FLOOR, reach: 8, label: 'Look', knot: 'study_clock' },
+    { id: 'desk', x: 356, y: FLOOR, reach: 10, label: 'Look', knot: 'study_desk' },
+  ],
 
   exits: [
     { id: 'to-halls', x: 34, y: FLOOR, reach: 12, to: 'citadel-halls' },
