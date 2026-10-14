@@ -85,6 +85,8 @@ export const princeQuarters: AreaDefinition = {
     // Chapter 3, Day 1: stepping out onto the balcony at dawn; coming in at night to someone at your telescope.
     { type: 'trigger', x: BALCONY + 8, y: FLOOR, reach: 6, knot: 'c3day1_tree', showIf: 'c3day1=spar', hideIf: 'tree_seen1' },
     { type: 'trigger', x: 50, y: FLOOR, reach: 14, knot: 'c3day1_home', showIf: 'c3day1=night', hideIf: 'sister_called1' },
+    // Day 2: at dusk, from the balcony, you watch the district you chose go dark.
+    { type: 'trigger', x: BALCONY + 8, y: FLOOR, reach: 6, knot: 'c3day2_dusk', showIf: 'c3day2=dusk', hideIf: 'dusk2' },
   ],
   people: [
     servant('maid', 0, 112, FLOOR, 'c3_maid', MORNING, { flipX: true }), // making the bed
@@ -95,9 +97,13 @@ export const princeQuarters: AreaDefinition = {
     // (He waits on the balcony; the morning opens with him at the door: `c3day1_start` puts him there.)
     inStory('hand', 'diplomat', 526, FLOOR, 'c3day1=wake,spar', { knot: 'c3day1_hand', flipX: true }),
     inStory('sister-1', 'sister', 452, FLOOR, 'c3day1=night', { knot: 'c3day1_sister' }),
+    // Day 2: your hand at the door at dawn, and your father behind him (the story brings them to the door).
+    inStory('hand-2', 'diplomat', 300, FLOOR, 'c3day2=wake', { knot: 'c3day1_hand_walk' }),
+    inStory('father-2', 'father', 60, FLOOR, 'c3day2=wake', { hidden: true }),
   ],
   interactables: [
-    { id: 'bed', x: 84, y: FLOOR, reach: 14, label: 'Look', knot: 'quarters_bed', hideIf: 'c3day1=night' },
+    { id: 'bed', x: 84, y: FLOOR, reach: 14, label: 'Look', knot: 'quarters_bed', hideIf: ['c3day1=night', 'c3day2=home'] },
+    { id: 'bed-2', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day2_bed', showIf: 'c3day2=home' },
     { id: 'bed-1', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day1_bed', showIf: 'c3day1=night' },
     { id: 'mirror', x: 160, y: FLOOR, reach: 10, label: 'Look', knot: 'quarters_mirror' },
     { id: 'blades', x: 202, y: FLOOR, reach: 10, label: 'Look', knot: 'quarters_blades' },

@@ -49,7 +49,7 @@ export class PreloadScene extends Phaser.Scene {
     // ?chapter=2: Chapter 2's card, then its Day 1 on the picked fields.
     else if (params?.get('chapter') === '2') ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11'].includes(params.get('day') ?? '') ? devChapter2Day(this, Number(params.get('day'))) : beginChapter2(this);
     // ?chapter=3: Chapter 3's card, then Day 1 in the prince's quarters (&at=... part way into the day).
-    else if (params?.get('chapter') === '3') params.get('at') ? devChapter3(this, params.get('at')!) : beginChapter3(this);
+    else if (params?.get('chapter') === '3') params.get('at') || params.get('day') ? devChapter3(this, params.get('at') ?? 'start', Number(params.get('day') ?? 1)) : beginChapter3(this);
     else if (params?.get('scene') === 'chapter') {
       // The chapter card after the prologue, then Day 1.
       getSession(this).calendar.jumpTo(1);

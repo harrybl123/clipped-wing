@@ -643,6 +643,8 @@ export const CAPITAL_CAST_LOOKS = {
   /** The merchant with the glassworks on the promenade: prosperous and round, a gold-brown coat with gold trim, a pale sash, a sample of his glass in hand. */
   merchant: { height: 25, width: 3, belly: true, skin: 'fair', hair: S.woodPale, hairStyle: 'receding', beard: 'moustache', top: S.amberMid, topStyle: 'coat', collar: S.amberDeep, trim: S.amber, sash: S.light, buttons: S.amber, legs: S.wood, hold: 'glass' },
   /** The steward of the citadel's household: upright, grey, in the household's black and gold, the seating plan in hand. */
+  /** The hostess's cousin (Day 2: in the old councillor's seat, if you passed him over): cold and exact; a dark blue gown, a high gold collar, her hair pinned up. */
+  cousin: { height: 25, width: 2, slender: true, skin: 'fair', hair: S.woodLight, hairStyle: 'up', top: S.cyanDeep, topStyle: 'gown', collar: S.amber, trim: S.amber, necklace: S.amber, legs: S.cyanDeep },
   steward: { height: 26, width: 2, skin: 'tan', hair: S.light, hairStyle: 'short', top: S.deep, topStyle: 'long', collar: S.amber, trim: S.amber, buttons: S.amber, legs: S.deep, hold: 'letters' },
 } satisfies Record<string, CapitalLook>;
 

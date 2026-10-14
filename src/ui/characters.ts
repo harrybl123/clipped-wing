@@ -889,3 +889,20 @@ export const PRINCE_CROUCH = {
     princeCrouch(['..pp..PPP...', '...pp.PP....', '...bb.bb....', '..bbb.bbb...']),
   ],
 };
+
+/**
+ * The prince in a plain coat with a hood (Chapter 3, Day 2 on: going below with your hand): his own frames,
+ * the hood pulled over his dark crop, the coat a worn brown, no gold, and the wine hidden.
+ */
+const plain = (s: RowSprite): RowSprite => ({
+  rows: s.rows,
+  colours: { ...s.colours, H: SHADES.woodPale, h: SHADES.dim, C: SHADES.woodLight, c: SHADES.wood, A: SHADES.woodLight, R: SHADES.woodPale, r: SHADES.wood },
+});
+export const PRINCE_PLAIN = {
+  idle: PRINCE.idle.map(plain),
+  walk: PRINCE.walk.map(plain),
+  jump: plain(PRINCE.jump),
+  fall: plain(PRINCE.fall),
+  crouch: plain(PRINCE_CROUCH.idle),
+  crawl: PRINCE_CROUCH.walk.map(plain),
+};

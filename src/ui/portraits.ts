@@ -1020,6 +1020,7 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
   lift_operator: { name: 'The lift operator', portrait: capitalPortrait(C3.lift_operator, { build: 'broad', age: 2, brow: 'heavy', eyes: 'tired', nose: 'broad', mouth: 'smile' }), voice: 'old' },
   petitioner: { name: 'The woman', portrait: capitalPortrait(C3.petitioner, { jaw: 'soft', age: 1, brow: 'knit', eyes: 'tired', mouth: 'flat' }), voice: 'roots_woman' },
   merchant: { name: 'The merchant', portrait: capitalPortrait(C3.merchant, { build: 'broad', jaw: 'soft', age: 1, brow: 'raised', nose: 'broad', mouth: 'smile' }), voice: 'upper' },
+  cousin: { name: "The hostess's cousin", portrait: capitalPortrait(C3.cousin, { build: 'narrow', jaw: 'pointed', age: 1, brow: 'thin', eyes: 'narrow', nose: 'long', mouth: 'thin', items: ['earring'] }), voice: 'lady' },
   steward: { name: 'The steward', portrait: capitalPortrait(C3.steward, { build: 'narrow', age: 2, brow: 'straight', eyes: 'narrow', nose: 'long', mouth: 'thin' }), voice: 'elder' },
   painter: { name: 'The kid', portrait: capitalPortrait(C3.painter, { build: 'child', jaw: 'soft', brow: 'raised', eyes: 'wide', nose: 'small', mouth: 'smirk' }), voice: 'boy' },
   reformer: { name: 'The reformer', portrait: capitalPortrait(C3.reformer, { build: 'narrow', brow: 'knit', eyes: 'wide', mouth: 'flat' }), voice: 'preacher' },

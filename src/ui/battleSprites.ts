@@ -1062,3 +1062,18 @@ function princeBack(pose: CarverPose): RowSprite {
 
 /** The prince, from behind, his light-blade in hand (Chapter 3). */
 export const PRINCE_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, princeBack(p)])) as Record<CarverPose, RowSprite>;
+
+/**
+ * A figure made of light (Chapter 3, the simulation room): every colour turned to the table's cyan by how
+ * bright it is, so the shape and its shading stay readable.
+ */
+export function hologram(s: RowSprite): RowSprite {
+  const steps = [SHADES.cyanDeep, SHADES.cyanMid, SHADES.cyan, SHADES.white];
+  const lum = (c: number) => (((c >> 16) & 255) * 0.3 + ((c >> 8) & 255) * 0.59 + (c & 255) * 0.11) / 255;
+  return { rows: s.rows, colours: Object.fromEntries(Object.entries(s.colours).map(([k, c]) => [k, steps[Math.min(3, Math.floor(lum(c) * 4.2))]!])) };
+}
+
+/** The citadel guard as the simulation shows them: a pike, an armoured coat, all in light (Day 2's lesson). */
+export const SIM_GUARD_BATTLE: Record<FoePose, RowSprite> = Object.fromEntries(
+  Object.entries(stragglerPoses({ broad: 3, skin: 'tan', head: 'shaved', holds: 'staff', coat: [SHADES.dim, SHADES.light, SHADES.woodPale], patched: false })).map(([pose, sprite]) => [pose, hologram(sprite)]),
+) as Record<FoePose, RowSprite>;

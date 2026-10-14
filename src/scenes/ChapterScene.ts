@@ -183,15 +183,18 @@ export function beginChapter3(scene: Phaser.Scene): void {
  * Day 1: `&at=spar` (on the balcony, your hand waiting), `audience` (in the audience hall, your seat ahead),
  * `walk` (on the promenade, the afternoon), `requests` (at the data centre), `banquet` (the banquet gallery,
  * the steward with the plan), `night` (coming back to your quarters). With `&lift=mended`, `&seated=hostess`.
+ * Day 2 (`&day=2`): `&at=start` (dawn, your father at the door), `study` (the bookshelf), `table` (the
+ * simulation room, at the war table), `council`, `dusk` (your balcony, watching it go dark), `below` (your
+ * hand's office at night, then down); `&energy=high|people`.
  */
-export function devChapter3(scene: Phaser.Scene, at: string): void {
+export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
   const session = getSession(scene);
   const params = params0();
   const set = (vars: Record<string, string | number | boolean>) => {
     for (const [name, value] of Object.entries(vars)) session.story.setVariable(name, value);
   };
   set({ chapter: 3, c3_story: true, spar1: 'won', lift_mended: params.get('lift') === 'mended', seated: params.get('seated') ?? '' });
-  const day1: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | boolean> }> = {
+  const day1: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | number | boolean> }> = {
     spar: { area: { areaId: 'prince-quarters', start: { x: 506, y: 226 } }, slots: 0, vars: { c3day1: 'spar', spar1: '', objective: 'Meet your hand on the balcony', objective_target: 'prince-quarters:hand' } },
     audience: { area: { areaId: 'audience-hall', start: { x: 60, y: 236 } }, slots: 0, vars: { c3day1: 'audience', hand_with_you: true, brief1: true, objective: 'Take your seat in the audience hall', objective_target: 'audience-hall:seat-1' } },
     walk: { area: { areaId: 'promenade', start: { x: 40, y: 232 } }, slots: 1, vars: { c3day1: 'walk', hand_with_you: true, brief1: true, objective: 'Inspect the watch on the promenade', objective_target: 'promenade:commander-1' } },
@@ -199,9 +202,22 @@ export function devChapter3(scene: Phaser.Scene, at: string): void {
     banquet: { area: { areaId: 'banquet-gallery', start: { x: 40, y: 230 } }, slots: 2, vars: { c3day1: 'banquet', brief1: true, stall1: true, bird1: true, signed_requests: true, objective: 'Seat the banquet', objective_target: 'banquet-gallery:steward' } },
     night: { area: { areaId: 'citadel-halls', start: { x: 130, y: 136 } }, slots: 2, vars: { c3day1: 'night', brief1: true, stall1: true, bird1: true, signed_requests: true, seated: params.get('seated') ?? 'councillor', right_placed: true, cards_done: true, objective: 'Go to bed', objective_target: 'prince-quarters:bed-1' } },
   };
-  const mid = day1[at] ?? day1.spar!;
+  // Day 2 (`&day=2`, with `&at=` below; Day 1's choices as above, and `&energy=high|people` for big choice 1).
+  const energy = params.get('energy') === 'people' ? 'people' : 'high';
+  const dark = energy === 'high' ? 'low' : 'promenade';
+  const day2: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | number | boolean> }> = {
+    start: { area: { areaId: 'prince-quarters', start: { x: 120, y: 226 }, script: 'c3day2_start', card: 'Day 2' }, slots: 0, vars: {} },
+    study: { area: { areaId: 'fathers-study', start: { x: 60, y: 230 }, script: 'c3day2_study' }, slots: 0, vars: { c3day2: 'study', objective: 'Go with your father', objective_target: 'fathers-study:father-2' } },
+    table: { area: { areaId: 'simulation-room', start: { x: 180, y: 230 } }, slots: 0, vars: { c3day2: 'room', sim_open: true, room2: true, objective: 'Practise the art of war', objective_target: 'simulation-room:table' } },
+    council: { area: { areaId: 'citadel-halls', start: { x: 300, y: 232 } }, slots: 1, vars: { c3day2: 'council', sim_open: true, room2: true, objective: 'Go to the council chamber', objective_target: 'council-chamber:father-4' } },
+    dusk: { area: { areaId: 'prince-quarters', start: { x: 300, y: 226 } }, slots: 2, vars: { c3day2: 'dusk', sim_open: true, room2: true, council2: true, heard2: 3, energy, objective: 'Watch from your balcony', objective_target: 'prince-quarters:telescope' } },
+    below: { area: { areaId: 'diplomats-office', start: { x: 200, y: 230 } }, slots: 2, vars: { c3day2: 'report', sim_open: true, room2: true, council2: true, energy, dark_district: dark, dusk2: true, reported2: true, objective: "Go to your hand's office", objective_target: 'diplomats-office:hand-6' } },
+  };
+  if (day >= 2) set({ c3day1: 'done', c3day2: 'wake', lift_mended: params.get('lift') === 'mended', seated: params.get('seated') ?? 'councillor', signed_requests: true });
+  const table = day >= 2 ? day2 : day1;
+  const mid = table[at] ?? Object.values(table)[0]!;
   set(mid.vars);
-  session.calendar.jumpTo(1);
+  session.calendar.jumpTo(day as 1 | 2);
   for (let i = 0; i < mid.slots; i++) session.calendar.advance();
   scene.scene.start('Area', mid.area);
 }

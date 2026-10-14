@@ -81,6 +81,7 @@ Dressed, you go down with him. #goto:citadel-halls:110:136
 
 // Your hand, walking with you.
 === c3day1_hand_walk ===
+{ c3day2 == "below": -> c3day2_hand_below }
 { c3day1:
 - "halls": "Your seat's below your father's. The audience is waiting." #speaker:diplomat
 - "audience": "Your seat's below his. Sit." #speaker:diplomat
@@ -442,7 +443,7 @@ Your sister's still at the telescope when you lie down.
 ~ c3day2 = "wake"
 ~ objective = ""
 ~ objective_target = ""
-You lie awake a long time, listening for a hum. #wake:prince-quarters:120:226 #endday:Day 2
+You lie awake a long time, listening for a hum. #wake:prince-quarters:120:226:c3day2_start #endday:Day 2
 -> END
 
 === c3day1_sister_first ===

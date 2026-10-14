@@ -272,6 +272,43 @@ export const bookshelf = (width: number, height: number): RowSprite => ({
   colours: C,
 });
 
+/**
+ * The bookshelf swung back into the wall (Chapter 3, Day 2): the shelf turned edge-on at the left, and behind
+ * it a dark way through, cyan light from the room beyond along its edges and its floor.
+ */
+export const openShelf = (width: number, height: number): RowSprite => ({
+  rows: fill(width, height, (x, y) => {
+    if (x < 6) return x === 0 || x === 5 ? 'w' : y % 14 === 13 ? 'n' : x % 2 ? 'A' : 'd'; // the shelf, edge-on
+    if (x === width - 1 || y === 0) return 'w';
+    if (y >= height - 3) return y === height - 1 ? 'G' : 'g'; // the light along the floor
+    if (x === 6 || x === width - 2) return y > 10 ? 'G' : 'g';
+    return (x + y * 3) % 23 === 0 && y > 20 ? 'g' : 's';
+  }),
+  colours: C,
+});
+
+/**
+ * The war table (Chapter 3, the simulation room): a long low plinth, and over it the capital in light, side-on,
+ * the citadel at its top and the city stepping down to the low district, points of light moving on it.
+ */
+export const warTable = (phase: number): RowSprite => ({
+  rows: fill(160, 56, (x, y) => {
+    if (y >= 44) return y === 44 ? 'G' : y === 45 ? 'h' : x < 6 || x > 153 ? '.' : x === 6 ? 'm' : x === 153 ? 'W' : y > 52 ? 'd' : 'n';
+    if (y >= 40) return (x + y) % 2 === 0 && x > 8 && x < 151 ? 'g' : '.'; // its beam
+    const cx = 80;
+    const hill = 39 - 30 * Math.exp(-(((x - cx) / 34) ** 2)) - (Math.floor(x / 5) % 3) * 2;
+    if (y < hill) return Math.abs(x - cx) < 1 && y > hill - 9 ? 'c' : '.';
+    // Squads: points moving along the streets, and the scan sweeping across.
+    const dot = (x * 7 + y * 13 + phase * 17) % 97 === 0;
+    if (dot) return 'a';
+    if (Math.abs(x - (10 + phase * 38)) < 1) return 'W';
+    if (y < hill + 1 || x % 5 === 0) return 'c';
+    return (x * 3 + y + phase) % 6 === 0 ? 'G' : '.';
+  }),
+  colours: C,
+});
+export const WAR_TABLE_FRAMES = [0, 1, 2, 3].map(warTable);
+
 /** His desk: dark wood, a green-shaded lamp's warm light, papers, a screen kept face down. */
 export const DESK: RowSprite = {
   rows: fill(48, 26, (x, y) => {

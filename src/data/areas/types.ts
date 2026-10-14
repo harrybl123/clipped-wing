@@ -49,7 +49,7 @@ export type Feature =
   | { type: 'smoke'; x: number; y: number; top: number; showIf?: string } // grey smoke rising from (x, y) up to `top` (a crack in a ceiling), while showIf is true
   | { type: 'swing'; sprite: RowSprite; x: number; y: number; ropeTop: number; quiet?: boolean; ropeColour?: number } // hanging from ropeTop, sways (creaking, unless quiet: a chandelier, a pendulum); its rope or chain in ropeColour
   | { type: 'rain'; when?: TimeSlot[]; showIf?: string } // rain falling across the area (the capital at night): only at these times of day (default night)
-  | { type: 'frames'; frames: RowSprite[]; x: number; y: number; every: number; showIf?: string } // an animated prop (top-left at x, y): cycles through its frames every `every` ms (a screen scrolling, a table of light flickering, water running)
+  | { type: 'frames'; frames: RowSprite[]; x: number; y: number; every: number; showIf?: string; power?: 'needs' | 'without' | 'any' } // an animated prop (top-left at x, y): cycles through its frames every `every` ms (a screen scrolling, a table of light flickering, water running) `power`: with the place's power cut (Chapter 3), a screen or sign goes off (`needs`, the default); `without`: shown only then (a lift stopped dead); `any`: either way
   | { type: 'pulse'; points: { x: number; y: number }[]; speed: number; every: number; count?: number; sprite?: RowSprite; colour?: number; showIf?: string } // something travelling along a line, over and over: a capsule shooting through a message tube, light running along a cable. `count` of them, spaced out; each sets off again `every` ms after it arrives (a 2×2 dot of `colour` if no sprite)
   | { type: 'drip'; x: number; y: number; floorY: number } // a drop falls from (x, y) every so often
   | { type: 'motes'; x: number; top: number; bottom: number; halfWidth: number } // pale motes rising in a column (the tube)
@@ -70,7 +70,7 @@ export type Feature =
       face?: 1 | -1;
       /** A standing watch who glances back over his shoulder now and then: `tell` over his head first, then he looks the other way for `for` ms (with a longer reach, `range`), and someone may call him back round (`back`). */
       glance?: { every: number; for: number; range?: number; tell?: string; back?: { who: string; text: string } };
-      /** One of the borderland's cast keeping watch instead of the night watchman (a `CastId`, Chapter 2: the boss's son at dawn): no lantern, only where he's looking. */
+      /** One of the borderland's cast keeping watch instead of the night watchman (a `CastId`, Chapter 2: the boss's son at dawn): no lantern, only where he's looking. Or `capital-watch-<n>`: one of the city watch, with a lantern (Chapter 3). */
       who?: string;
       /** Caught: this knot plays (once) instead of sending you back to `reset`. */
       caught?: string;

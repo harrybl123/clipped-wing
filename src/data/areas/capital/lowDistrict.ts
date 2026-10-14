@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './cityProps';
 import type { AreaDefinition, Solid } from '../types';
-import { cast, citizen, strollingCitizen, watch, AWAKE, DAY, LATE, MORNING } from './people';
+import { cast, citizen, inStory, strollingCitizen, watch, AWAKE, DAY, LATE, MORNING } from './people';
 
 // The low district (Chapter 3): cramped, at the bottom of the city (docs/areas/capital/low-district.md).
 // Under a ceiling of cables slung between homes stacked and patched by hand; washing strung across, plants
@@ -111,6 +111,17 @@ export const lowDistrict: AreaDefinition = {
     { type: 'smoke', x: 386, y: FLOOR - 22, top: 90 },
     { type: 'smoke', x: 335, y: FLOOR - 8, top: 120 },
     { type: 'frames', frames: P.signFrames(24, 10, 21), x: 120, y: LEFT_WALK + 20, every: 330 },
+    // The woman's street's lift (Day 1's petition), up the stack from the right walkway: running if you had it
+    // mended (and stopped dead when the power's cut), broken if not.
+    { type: 'frames', frames: P.STREET_LIFT_RUNNING, x: 752, y: RIGHT_WALK - 110, every: 260, showIf: 'lift_mended' },
+    { type: 'frames', frames: P.STREET_LIFT_BROKEN, x: 752, y: RIGHT_WALK - 110, every: 1000, showIf: 'lift_mended', power: 'without' },
+    { type: 'frames', frames: P.STREET_LIFT_BROKEN, x: 752, y: RIGHT_WALK - 110, every: 1000, showIf: 'lift_mended=false', power: 'any' },
+    // Day 2, below at night with your hand: the watch on its beat with lamps (keep out of their light; the
+    // walkways are above it, and doorways are dark).
+    { type: 'trigger', x: 60, y: FLOOR, reach: 16, knot: 'c3day2_dark_low', showIf: 'c3day2=below', hideIf: 'dark_seen2' },
+    { type: 'watch', from: 330, to: 640, y: FLOOR, speed: 20, range: 70, pause: 1800, who: 'capital-watch-0', reset: { x: 60, y: FLOOR }, showIf: 'c3day2=below' },
+    { type: 'shadow', x: 404, y: FLOOR, width: 18, showIf: 'c3day2=below' },
+    { type: 'shadow', x: 560, y: FLOOR, width: 18, showIf: 'c3day2=below' },
   ],
   people: [
     // The street: the cook at the stall, the repairer outside his shop, the grocer's girl; people about.
@@ -133,6 +144,15 @@ export const lowDistrict: AreaDefinition = {
     // The kid who chalks the symbol.
     cast('painter', 300, FLOOR, { knot: 'low_painter', when: ['afternoon', 'evening'] }),
     cast('painter', 566, FLOOR, { id: 'painter-night', knot: 'low_painter_night', when: ['night'] }), // out chalking
+    // Chapter 3's story. Day 2, below at night (if the low district went without): people who know you,
+    // and want to tell you; the painter chalking by a dead lamp; and either way, the woman at her street's
+    // lift up on the right walkway. Your hand with you.
+    citizen('cold-2', 4, 430, FLOOR, 'c3day2_cold', undefined, { showIf: 'c3day2=below', hideIf: 'energy=people' }),
+    citizen('stairs-2', 3, 276, FLOOR, 'c3day2_stairs', undefined, { showIf: 'c3day2=below', hideIf: 'energy=people', flipX: true }),
+    citizen('food-2', 10, 700, FLOOR, 'c3day2_food', undefined, { showIf: 'c3day2=below', hideIf: 'energy=people' }),
+    inStory('painter-2', 'painter', 520, FLOOR, 'c3day2=below', { knot: 'c3day2_painter', hideIf: 'energy=people' }),
+    inStory('woman-2', 'petitioner', 790, RIGHT_WALK, 'c3day2=below', { knot: 'c3day2_woman', flipX: true }),
+    inStory('hand', 'diplomat', 40, FLOOR, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
   ],
   interactables: [
     { id: 'mark', x: 350, y: FLOOR, reach: 10, label: 'Look', knot: 'low_mark' },

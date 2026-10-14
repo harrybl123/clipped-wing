@@ -1,6 +1,6 @@
 import type { CityView } from '../data/areas/types';
 import type { TimeSlot } from '../systems/Calendar';
-import { addLight, cellRandom, falloff, noise, rgb, SHADES, smoothstep, type PixelColour, type RGB } from './pixelArt';
+import { addLight, cellRandom, falloff, noise, rgb, SHADES, smoothstep, type PixelColour, type Power, type RGB } from './pixelArt';
 import { skyFor, treePainter } from './paintOutdoor';
 
 // The capital seen from up in the citadel (Chapter 3; docs/chapter-3-world.md), through a window or off a
@@ -41,7 +41,8 @@ function blockRow(row: number, horizon: number, bottom: number, x0: number, x1: 
 }
 
 /** Paints the city through a view, in the area's pixels; null outside the view. */
-export function cityViewPainter(view: CityView, slot: TimeSlot): (x: number, y: number) => PixelColour {
+/** `dark`: a district with its power cut (big choice 1): from dusk its windows, signs and strips stay dark. */
+export function cityViewPainter(view: CityView, slot: TimeSlot, dark?: Power['views']): (x: number, y: number) => PixelColour {
   const sky = skyFor(slot);
   const night = slot === 'night';
   const lit = slot === 'evening' || night;
@@ -73,6 +74,8 @@ export function cityViewPainter(view: CityView, slot: TimeSlot): (x: number, y: 
       if (!b || y < b.top) continue;
       const t = r / (ROWS - 1);
       const low = smoothstep(0.6, 1, t); // the low district, at the bottom
+      // (A district without power: its rows go dark from dusk.)
+      const out = lit && ((dark === 'low' && t > 0.62) || (dark === 'middle' && t > 0.3 && t <= 0.62));
       const lx = x - b.x;
       const ly = y - b.top;
       const haze = (1 - t) * 0.55;
@@ -85,15 +88,17 @@ export function cityViewPainter(view: CityView, slot: TimeSlot): (x: number, y: 
       const sy = 3 + Math.floor(t * 3);
       if (ly > 1 && lx > 0 && lx < b.w - 1 && ly % sy === 1 && lx % sx === 1) {
         const r2 = cellRandom(b.seed, lx * 7 + ly, 55);
-        if (lit && r2 > (night ? 0.4 : 0.6)) return r2 > 0.82 && low < 0.5 ? SHADES.cyan : SHADES.amber;
+        if (lit && !out && r2 > (night ? 0.4 : 0.6)) return r2 > 0.82 && low < 0.5 ? SHADES.cyan : SHADES.amber;
+        if (out && r2 > 0.97) return SHADES.amberDeep; // a candle, here and there
         c = scale(c, 0.6);
       }
       // A strip of blue light up the block's edge; a sign on its face.
-      if (b.strip && low < 0.6 && lx === 0) return lit ? SHADES.cyan : SHADES.cyanMid;
-      if (lit && b.sign && ly > 2 && ly < 2 + Math.max(2, Math.round(t * 6)) && lx > 1 && lx < Math.min(b.w - 1, 2 + Math.round(t * 12))) {
+      if (b.strip && low < 0.6 && lx === 0) return out ? SHADES.deep : lit ? SHADES.cyan : SHADES.cyanMid;
+      if (lit && !out && b.sign && ly > 2 && ly < 2 + Math.max(2, Math.round(t * 6)) && lx > 1 && lx < Math.min(b.w - 1, 2 + Math.round(t * 12))) {
         return cellRandom(b.seed, 0, 56) > 0.5 ? SHADES.cyan : SHADES.amber;
       }
-      if (lit) c = addLight(c, b.strip ? cyan! : amber!, 0.12 * (1 - low));
+      if (lit && !out) c = addLight(c, b.strip ? cyan! : amber!, 0.12 * (1 - low));
+      if (out) c = scale(c, 0.55);
       return mix(c, sky.horizon, haze * (lit ? 0.4 : 1));
     }
 

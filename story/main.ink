@@ -605,8 +605,33 @@ VAR cards_done = false
 // Night: your sister at your telescope.
 VAR sister_called1 = false
 VAR sister_talked1 = false
-// Chapter 3, Day 2 (not built yet).
+// The capital's power (big choice 1, Day 2): who went without, "high" (the low district) or "people" (the
+// upper city: the promenade, and the citadel dims); and the district that's dark from dusk ("low" or
+// "promenade"), which the areas paint dark (and the citadel's views of it).
+VAR energy = ""
+VAR dark_district = ""
+// Chapter 3, Day 2 (story/capital/chapter3-day2.ink). Stages: wake, study, room, table, council, dusk,
+// report, below, home, done.
 VAR c3day2 = ""
+// The bookshelf in your father's study is open (the simulation room behind it).
+VAR sim_open = false
+VAR room2 = false
+// The council: you've heard each side (the reformer; the old councillor or, if you passed him over, the
+// hostess's cousin; your hand), and how many.
+VAR council2 = false
+VAR heard2 = 0
+VAR heard_reformer2 = false
+VAR heard_councillor2 = false
+VAR heard_hand2 = false
+VAR dusk2 = false
+VAR reported2 = false
+// Below with your hand at night, in a plain coat (the prince's own look, hooded: Player.cloaked).
+VAR plain_coat = false
+VAR dark_seen2 = false
+VAR painter2 = false
+VAR woman2 = false
+// Chapter 3, Day 3 (not built yet).
+VAR c3day3 = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
@@ -658,6 +683,7 @@ INCLUDE borderland/rival-line.ink
 INCLUDE borderland/deep-ground.ink
 INCLUDE borderland/trees-edge.ink
 INCLUDE capital/chapter3-day1.ink
+INCLUDE capital/chapter3-day2.ink
 INCLUDE capital/cast.ink
 INCLUDE capital/folk.ink
 INCLUDE capital/looks.ink

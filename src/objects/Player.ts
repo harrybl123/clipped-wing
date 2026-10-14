@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { PRINCE, PRINCE_CROUCH, PROTAGONIST, PROTAGONIST_CLOAKED, PROTAGONIST_CROUCH, SCAVENGER, SCAVENGER_CROUCH } from '../ui/characters';
+import { PRINCE, PRINCE_CROUCH, PRINCE_PLAIN, PROTAGONIST, PROTAGONIST_CLOAKED, PROTAGONIST_CROUCH, SCAVENGER, SCAVENGER_CROUCH } from '../ui/characters';
 import { makeSpriteTexture } from '../ui/pixelTextures';
 import type { RowSprite } from '../ui/sprites';
 
@@ -15,7 +15,7 @@ const CROUCH_HEIGHT = 14;
 /**
  * Makes the protagonist's frame textures and animations (once per game): the carver, plain and with the
  * cloak on (keys ending "-cloak"), the scavenger, Chapter 2's protagonist (keys ending "-scav"), and the prince,
- * Chapter 3's (keys ending "-prince").
+ * Chapter 3's (keys ending "-prince"; "-prince-plain" in his plain coat).
  */
 function createAnimations(scene: Phaser.Scene): void {
   const tex = (key: string, s: RowSprite) => makeSpriteTexture(scene, key, s.rows, s.colours);
@@ -24,6 +24,7 @@ function createAnimations(scene: Phaser.Scene): void {
     { suffix: '-cloak', ...PROTAGONIST_CLOAKED },
     { suffix: '-scav', idle: SCAVENGER.idle, walk: SCAVENGER.walk, jump: SCAVENGER.jump, fall: SCAVENGER.fall, crouch: SCAVENGER_CROUCH.idle, crawl: SCAVENGER_CROUCH.walk },
     { suffix: '-prince', idle: PRINCE.idle, walk: PRINCE.walk, jump: PRINCE.jump, fall: PRINCE.fall, crouch: PRINCE_CROUCH.idle, crawl: PRINCE_CROUCH.walk },
+    { suffix: '-prince-plain', ...PRINCE_PLAIN },
   ];
   for (const set of sets) {
     const anim = (name: string, frames: readonly RowSprite[], frameRate: number) => {
@@ -129,7 +130,7 @@ export class Player {
   }
 
   private animate(direction: number): void {
-    const c = this.look === 'scavenger' ? '-scav' : this.look === 'prince' ? '-prince' : this.cloaked ? '-cloak' : '';
+    const c = this.look === 'scavenger' ? '-scav' : this.look === 'prince' ? (this.cloaked ? '-prince-plain' : '-prince') : this.cloaked ? '-cloak' : '';
     if (this.crouching || this.kneeling) {
       if (direction !== 0 && !this.kneeling) this.sprite.play(`player-crawl${c}`, true);
       else {

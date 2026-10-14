@@ -104,6 +104,8 @@ Opens on the chapter card: "Chapter 3", **The Prince** (designer). No tutorial c
 
 **New for Day 2:** the simulation room (a new area, behind the study's bookshelf; the bookshelf opens); the war table (a new mechanic and scene); your plain coat (a new look for the prince); a district's power off (its lights, signs, screens and people change; the map too); the watch below (Act 1's watch in the capital).
 
+**As built (2026-10-14).** `story/capital/chapter3-day2.ink`, stages in `c3day2`; dev `?chapter=3&day=2&at=start|study|table|council|dusk|below`, `&energy=high|people`. Small changes while building (Harry to check): your father leads you down by narration and a cut (no walking behind him); the council's case is "there's less power this season than the city needs" (nobody says why); you hear all three sides before you can choose; the night trip goes through the door at the back of your hand's office (it was already there), starting at the top of the lifts; the woman's street is in the low district both ways (if you mended her lift but the low district went without, it's mended and dead: no power to run it); the painter's line: "Means the lights went out." The war table's rules, in a line each, are your father's lesson (plain, his voice).
+
 ### The war table
 
 **The simulation room** (designer): your father says "Come with me," and shows you a room where you practise the art of war. It's uneasy. **He's the opposition** (designer): a tutorial, but when he turns it on, he crushes you. The mechanic will come back in later chapters (designer). It needs a new area.

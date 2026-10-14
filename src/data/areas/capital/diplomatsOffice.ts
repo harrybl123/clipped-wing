@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition } from '../types';
-import { cast, citizen, OPEN_LATE } from './people';
+import { cast, citizen, inStory, OPEN_LATE } from './people';
 
 // The diplomat's office (Chapter 3): your hand's office: maps, letters, and visitors at odd hours
 // (docs/areas/capital/diplomats-office.md). Busy and warm, unlike the rest of the citadel: the wall of
@@ -69,7 +69,9 @@ export const diplomatsOffice: AreaDefinition = {
   ],
   people: [
     cast('diplomat', 336, FLOOR, { knot: 'office_diplomat', when: OPEN_LATE, flipX: true }), // at his desk
-    citizen('visitor', 9, 204, FLOOR, 'office_visitor', ['night']), // someone hooded, at an odd hour
+    citizen('visitor', 9, 204, FLOOR, 'office_visitor', ['night'], { hideIf: 'c3_story' }), // someone hooded, at an odd hour
+    // Chapter 3's story. Day 2: your hand, waiting for you with a plain coat.
+    inStory('hand-6', 'diplomat', 336, FLOOR, 'c3day2=report', { knot: 'c3day2_office', flipX: true }),
   ],
   interactables: [
     { id: 'notes', x: 70, y: FLOOR, reach: 10, label: 'Look', knot: 'office_notes' },

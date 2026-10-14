@@ -4,7 +4,7 @@ import { COMBATANTS, ENCOUNTERS, ITEMS, LESSONS, type Lesson, MOVES } from '../d
 import { getSession } from '../session';
 import { Battle, type Action, type BattleEvent, type Combatant, type Intent, type MoveDef, type Reaction } from '../systems/Combat';
 import type { Grade, Key, Qte, QteKind } from '../systems/qte';
-import { BEETLE_BATTLE, CARVER_BATTLE, HAND_BATTLE, PRINCE_BATTLE, COLLECTOR_BATTLE, COLLECTOR_BIG_BATTLE, TICKER_BATTLE, SCOUT_BATTLE, PICKER_BATTLE, PICKER_LOUD_BATTLE, DOG_BATTLE, ENFORCER_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, OLD_SCAV_BATTLE, RAIDER_BATTLE, RAIDER_LEAD_BATTLE, SCAVENGER_BATTLE, SCAVENGER_FISTS_BATTLE, SCOUT_BACK_BATTLE, SON_BACK_BATTLE, SON_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, WATCHER_BACK_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
+import { BEETLE_BATTLE, CARVER_BATTLE, HAND_BATTLE, PRINCE_BATTLE, SIM_GUARD_BATTLE, COLLECTOR_BATTLE, COLLECTOR_BIG_BATTLE, TICKER_BATTLE, SCOUT_BATTLE, PICKER_BATTLE, PICKER_LOUD_BATTLE, DOG_BATTLE, ENFORCER_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, OLD_SCAV_BATTLE, RAIDER_BATTLE, RAIDER_LEAD_BATTLE, SCAVENGER_BATTLE, SCAVENGER_FISTS_BATTLE, SCOUT_BACK_BATTLE, SON_BACK_BATTLE, SON_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, WATCHER_BACK_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
 import { CAST, DOG, RIVALS } from '../ui/borderlandFolk';
 import { GIRL, PRINCE, PROTAGONIST, SCAVENGER } from '../ui/characters';
 import { CAPITAL_CAST } from '../ui/capitalFolk';
@@ -48,6 +48,8 @@ export interface CombatSceneData {
   only?: string;
   /** Dev only: choose the fight first (a picker), instead of starting one. */
   pick?: boolean;
+  /** Back to another scene instead of an area (the war table, after a fight you went down to yourself): it gets this data and the `outcome`. */
+  returnTo?: { scene: string; data: object };
 }
 
 /** Where party member i of n stands (and their panel sits), along the bottom: their own place, in party order. */
@@ -100,6 +102,7 @@ const LOOKS: Record<string, Look> = {
   // Chapter 3.
   prince: { poses: PRINCE_BATTLE, scale: 2, cutIn: PRINCE.idle[0]! },
   hand: { poses: HAND_BATTLE, scale: 1, cutIn: CAPITAL_CAST.diplomat.idle[0]! },
+  sim_guard: { poses: SIM_GUARD_BATTLE, scale: 1 },
 };
 
 interface View {
@@ -168,7 +171,7 @@ export class CombatScene extends Phaser.Scene {
   init(data?: Partial<CombatSceneData>): void {
     this.params = {
       encounter: data?.encounter ?? 'market_scrap', back: data?.back ?? { areaId: 'roots-market' },
-      ...(data?.only ? { only: data.only } : {}), ...(data?.pick ? { pick: true } : {}),
+      ...(data?.only ? { only: data.only } : {}), ...(data?.pick ? { pick: true } : {}), ...(data?.returnTo ? { returnTo: data.returnTo } : {}),
     };
     this.views = new Map();
     this.menu = null;
@@ -213,7 +216,7 @@ export class CombatScene extends Phaser.Scene {
     this.lessons = [...(encounter.teaches ?? []), ...(also && !getSession(this).story.getVariable(also.unless) ? also.lessons : [])];
     // The stage: where it's fought.
     const where = encounter.stage ?? 'market';
-    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : where === 'fields' ? paintFieldsStage() : where === 'camp' ? paintCampStage() : where === 'bar' ? paintBarStage() : where === 'den' ? paintDenStage() : where === 'yard' ? paintYardStage() : where === 'balcony' ? paintBalconyStage() : paintStage());
+    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : where === 'fields' ? paintFieldsStage() : where === 'camp' ? paintCampStage() : where === 'bar' ? paintBarStage() : where === 'den' ? paintDenStage() : where === 'yard' ? paintYardStage() : where === 'balcony' ? paintBalconyStage() : where === 'sim' ? paintSimStage() : paintStage());
     stage.setTexture(`combat-stage-${where}`);
     const party = this.battle.combatants.filter((c) => c.side === 'party');
     const enemies = this.battle.combatants.filter((c) => c.side === 'enemy');
@@ -995,7 +998,8 @@ export class CombatScene extends Phaser.Scene {
     for (const cam of this.cameras.cameras) cam.fadeOut(600, 0, 0, 0);
     // A fight you have to win: lost, and it starts again.
     const again = outcome === 'lost' && this.battle.encounter.mustWin;
-    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => (again ? this.scene.restart(this.params) : this.scene.start('Area', this.params.back)));
+    const back = () => (this.params.returnTo ? this.scene.start(this.params.returnTo.scene, { ...this.params.returnTo.data, outcome }) : this.scene.start('Area', this.params.back));
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => (again ? this.scene.restart(this.params) : back()));
   }
 
   /** Whose turn it is: they come into focus (with friends), and the camera takes in the whole stage. */
@@ -1953,5 +1957,29 @@ function paintBalconyStage() {
     if (seam) return SHADES.dim;
     if (Math.abs(noise2(u / 40, y / 9) - 0.5) < 0.012) return addLight(base, vein, 0.45);
     return base;
+  };
+}
+
+/**
+ * The simulation room (Chapter 3, Day 2): a fight on the war table, gone down to yourself. Dark all round,
+ * a floor of light in a grid running away from you, the table's glow, the city in light far off.
+ */
+function paintSimStage() {
+  const deep = rgb(SHADES.shadow);
+  const cyan = rgb(SHADES.cyanMid);
+  const vx = 260;
+  return (x: number, y: number) => {
+    if (y >= HORIZON) {
+      const depth = (y - HORIZON) / (H - HORIZON);
+      const u = (x - vx) / Math.max(0.05, depth);
+      const line = Math.abs((((u / 40) % 1) + 1) % 1 - 0.5) > 0.47 || Math.abs(((1 / Math.max(0.06, depth)) * 1.5) % 1 - 0.5) > 0.46;
+      if (line) return depth > 0.15 ? SHADES.cyanMid : SHADES.cyanDeep;
+      return addLight(deep, cyan, 0.08 + (1 - depth) * 0.08);
+    }
+    // The city far off, in outline: blocks of light on the dark.
+    const col = Math.floor(x / 14);
+    const top = HORIZON - 10 - noise(col * 2.7) * 44 - (Math.abs(x - 240) < 40 ? 30 : 0);
+    if (y > top) return Math.abs(y - top) < 1 || x % 14 === 0 ? SHADES.cyanMid : (x * 7 + y * 3) % 23 === 0 ? SHADES.cyan : SHADES.cyanDeep;
+    return addLight(deep, cyan, 0.04 + (y / HORIZON) * 0.06);
   };
 }

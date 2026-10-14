@@ -23,6 +23,7 @@ import { citadelHalls } from './capital/citadelHalls';
 import { councilChamber } from './capital/councilChamber';
 import { diplomatsOffice } from './capital/diplomatsOffice';
 import { fathersStudy } from './capital/fathersStudy';
+import { simulationRoom } from './capital/simulationRoom';
 import { glasshouse } from './capital/glasshouse';
 import { guestWing } from './capital/guestWing';
 import { sealedWing } from './capital/sealedWing';
@@ -122,6 +123,8 @@ export const INSIDE_AREAS: Record<string, { name: string; of: string; storyOnly?
   'tally-cellar': { name: 'the tally house cellar', of: 'tally-house', storyOnly: true },
   // Chapter 3: the hideout, down a low doorway in the low district.
   hideout: { name: 'the hideout', of: 'low-district' },
+  // Chapter 3, Day 2: the simulation room, behind your father's bookshelf.
+  'simulation-room': { name: 'the simulation room', of: 'fathers-study' },
 };
 
 /** The place on the map an area counts as: its parent if it's an area within an area, else itself. */
@@ -175,6 +178,7 @@ export const AREAS: Record<string, AreaDefinition> = {
   [audienceHall.id]: audienceHall,
   [councilChamber.id]: councilChamber,
   [fathersStudy.id]: fathersStudy,
+  [simulationRoom.id]: simulationRoom,
   [sealedWing.id]: sealedWing,
   [glasshouse.id]: glasshouse,
   [banquetGallery.id]: banquetGallery,

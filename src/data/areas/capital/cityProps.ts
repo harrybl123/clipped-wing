@@ -682,3 +682,38 @@ export const alley = (width: number, height: number, seed: number): RowSprite =>
     colours: C,
   };
 };
+
+/**
+ * A street's own lift, up the side of the stacks (Chapter 3: the woman's street, Day 1's petition). A shaft
+ * of girders with a cage in it. Mended (`running`), the cage goes up and down the shaft, a lamp lit on it and
+ * a kid inside riding it for the joy of it (one frame per `step`); broken, it sits at the bottom, dark.
+ */
+export const streetLift = (step: number, running: boolean): RowSprite => {
+  const W = 14;
+  const H = 110;
+  const steps = 8;
+  // Up, then back down.
+  const t = running ? (step < steps / 2 ? step : steps - step) / (steps / 2) : 0;
+  const carTop = Math.round(H - 14 - t * (H - 20));
+  return {
+    rows: Array.from({ length: H }, (_, y) =>
+      Array.from({ length: W }, (_, x) => {
+        const inCar = y >= carTop && y < carTop + 12;
+        if (inCar) {
+          if (y === carTop || y === carTop + 11 || x === 1 || x === W - 2) return running ? 'm' : 'n';
+          if (running && y === carTop + 1 && x === 7) return 'a'; // its lamp
+          // The kid inside: a head and shoulders.
+          if (running && ((y >= carTop + 4 && y <= carTop + 5 && x >= 6 && x <= 7) || (y >= carTop + 6 && y <= carTop + 10 && x >= 5 && x <= 8))) return y <= carTop + 5 ? 'p' : 'G';
+          return x > 1 && x < W - 2 ? (running ? 'g' : 's') : '.';
+        }
+        // The shaft: two girders, cross-braced.
+        if (x === 0 || x === W - 1) return 'w';
+        if ((y + x * 2) % 12 === 0 || (y - x * 2 + 120) % 12 === 0) return 'n';
+        return '.';
+      }).join(''),
+    ),
+    colours: C,
+  };
+};
+export const STREET_LIFT_RUNNING = Array.from({ length: 8 }, (_, i) => streetLift(i, true));
+export const STREET_LIFT_BROKEN = [streetLift(0, false)];

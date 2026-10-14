@@ -1151,3 +1151,42 @@ ENCOUNTERS.spar_hand = {
   timing: { lunge: 950, ease: 1.2 },
   outcomes: { won: { spar1: 'won' }, lost: { spar1: 'lost' } },
 };
+
+// --- Chapter 3, Day 2: the simulation room. The citadel's guard as the war table shows them, in light. ---
+
+Object.assign(MOVES, {
+  pike_thrust: {
+    id: 'pike_thrust', name: 'Pike', target: 'enemy', power: 7, kind: 'pierce', softened: { dodge: 0.15 },
+    qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    tell: { pose: 'squared', lines: ['The pike comes level.', 'It sets its feet.'] },
+    description: 'A thrust with the pike.',
+  },
+  pike_sweep: {
+    id: 'pike_sweep', name: 'Sweep', target: 'enemy', power: 4, kind: 'strike', hits: 2, softened: { dodge: 0.15 },
+    qte: { kind: 'notes', outer: 180, perfect: 70, gap: 420, lanes: ['left', 'up', 'right'], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'cock', lines: ['The pike swings back.', 'It turns the pike flat.'] },
+    description: 'The pike swung, and back again.',
+  },
+} satisfies Record<string, MoveDef>);
+
+/** One of the citadel's guard, made of light (the simulation). */
+COMBATANTS.sim_guard = {
+  id: 'sim_guard', name: 'Guard (light)', sprite: 'sim_guard', hp: 22, attack: 8, defence: 8, speed: 11,
+  moves: ['pike_thrust', 'pike_sweep'], weights: [2, 1.5],
+  weak: ['pierce'], poise: 1, feint: 0,
+  ai: { opening: ['pike_thrust', 'pike_sweep'], maxRepeat: 2, recent: 0.5 },
+};
+
+/**
+ * Chapter 3, Day 2: a fight on the war table, gone down to yourself (designer: drop yourself in): the guard
+ * holding the promenade, in light. How it goes decides that fight on the table. Writes nothing to the story.
+ */
+ENCOUNTERS.sim_guards = {
+  id: 'sim_guards',
+  name: 'The promenade (simulation)',
+  party: ['prince'],
+  enemies: ['sim_guard', 'sim_guard'],
+  stage: 'sim',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: {}, lost: {} },
+};

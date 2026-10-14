@@ -1,6 +1,6 @@
 import type { AreaDefinition, Outdoor, Solid } from '../data/areas/types';
 import type { TimeSlot } from '../systems/Calendar';
-import { addLight, cellRandom, falloff, noise, rgb, SHADES, smoothstep, type PixelColour, type RGB } from './pixelArt';
+import { addLight, cellRandom, falloff, noise, poweredLights, rgb, SHADES, smoothstep, type PixelColour, type Power, type RGB } from './pixelArt';
 import { stampRows } from './pixelTextures';
 
 // Areas out in the open (the borderland, Chapter 2; docs/chapter-2-world.md). Two layers:
@@ -458,7 +458,7 @@ function paving(s: Solid, x: number, y: number, sky: Sky, lit: boolean): RGB | n
 }
 
 /** The near layer: dirt solids, lines and props; transparent elsewhere so the far layer shows. */
-export function paintOutdoorNear(area: AreaDefinition, slot: TimeSlot): (x: number, y: number) => PixelColour {
+export function paintOutdoorNear(area: AreaDefinition, slot: TimeSlot, power: Power = {}): (x: number, y: number) => PixelColour {
   const sky = skyFor(slot);
   const { width } = area;
   const overlay = new Map<number, number>();
@@ -471,7 +471,7 @@ export function paintOutdoorNear(area: AreaDefinition, slot: TimeSlot): (x: numb
   }
   for (const prop of area.props) stampRows(put, prop.sprite.rows, prop.sprite.colours, prop.x, prop.y);
   const solids = area.solids.filter((s) => !s.invisible);
-  const lights = area.lights.map((l) => ({ ...l, rgb: rgb(l.colour) }));
+  const lights = poweredLights(area, power);
 
   return (x, y) => {
     const exact = overlay.get(y * width + x);
