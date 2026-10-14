@@ -123,18 +123,18 @@ export const audienceHall: AreaDefinition = {
     // Chapter 3's story. Day 1: your father on the throne, the captain at the rope, the morning's three
     // petitioners waiting among the rest (the merchant, the envoy, and the woman whose lift is broken: yours);
     // your hand with you.
-    inStory('father-1', 'father', 689, DAIS, 'c3day1=audience,after,walk', { knot: 'c3day1_father', flipX: true }),
-    inStory('captain-1', 'captain', 544, FLOOR, 'c3day1=audience,after', { knot: 'c3day1_captain', flipX: true }),
-    inStory('woman', 'petitioner', 232, FLOOR, 'c3day1=audience', { knot: 'c3day1_waiting' }),
-    inStory('merchant', 'merchant', 330, FLOOR, 'c3day1=audience', { knot: 'c3day1_waiting' }),
-    inStory('envoy-1', 'envoy', 428, FLOOR, 'c3day1=audience', { knot: 'c3day1_waiting', flipX: true }),
+    inStory('father-1', 'father', 689, DAIS, 'c3day1=halls,audience,after,walk', { knot: 'c3day1_father', flipX: true }),
+    inStory('captain-1', 'captain', 544, FLOOR, 'c3day1=halls,audience,after', { knot: 'c3day1_captain', flipX: true }),
+    inStory('woman', 'petitioner', 232, FLOOR, 'c3day1=halls,audience', { knot: 'c3day1_waiting' }),
+    inStory('merchant', 'merchant', 330, FLOOR, 'c3day1=halls,audience', { knot: 'c3day1_waiting' }),
+    inStory('envoy-1', 'envoy', 428, FLOOR, 'c3day1=halls,audience', { knot: 'c3day1_waiting', flipX: true }),
     inStory('hand', 'diplomat', 60, FLOOR, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
   ],
   interactables: [
     { id: 'gate', x: 64, y: FLOOR, reach: 10, label: 'Look', knot: 'audience_gate' },
     { id: 'benches', x: 340, y: FLOOR, reach: 14, label: 'Look', knot: 'audience_benches' },
-    { id: 'seat', x: 654, y: DAIS, reach: 10, label: 'Look', knot: 'audience_seat', hideIf: 'c3day1=audience' },
-    { id: 'seat-1', x: 654, y: DAIS, reach: 10, label: 'Sit', knot: 'c3day1_audience', showIf: 'c3day1=audience' },
+    { id: 'seat', x: 654, y: DAIS, reach: 10, label: 'Look', knot: 'audience_seat', hideIf: 'c3day1=halls,audience' },
+    { id: 'seat-1', x: 654, y: DAIS, reach: 10, label: 'Sit', knot: 'c3day1_audience', showIf: 'c3day1=halls,audience' },
     { id: 'throne', x: 704, y: DAIS, reach: 10, label: 'Look', knot: 'audience_throne' },
   ],
 

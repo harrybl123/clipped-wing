@@ -72,17 +72,17 @@ Dressed, you go down with him. #goto:citadel-halls:110:136
 // Part way along the gallery (a trigger): who's at the audience, and who to watch.
 === c3day1_brief ===
 ~ brief1 = true
-"Three this morning, before yours." #speaker:diplomat
-"A merchant. Glassworks on the promenade. Half the city's windows. He wants power." #speaker:diplomat
-"An envoy, from beyond the wall. He's waited three days." #speaker:diplomat
-"Who do I watch?" #speaker:prince
-"Your father. Watch what he doesn't say." #speaker:diplomat
+"Two people will ask your father for something this morning. Then he'll give you a third to decide yourself." #speaker:diplomat
+"First, a merchant. He makes the glass for half the city's windows, and he wants more power for his furnaces." #speaker:diplomat
+"Then an envoy, from outside the city. He's waited three days to be heard." #speaker:diplomat
+"What should I watch for?" #speaker:prince
+"Your father. What he says yes to, and what he won't talk about." #speaker:diplomat
 -> END
 
 // Your hand, walking with you.
 === c3day1_hand_walk ===
 { c3day1:
-- "halls": "Your father first. Then you." #speaker:diplomat
+- "halls": "Your seat's below your father's. The audience is waiting." #speaker:diplomat
 - "audience": "Your seat's below his. Sit." #speaker:diplomat
 - "walk": "Smile. They're watching you as much as the screen." #speaker:diplomat
 - "requests": "The data centre. Down the lifts." #speaker:diplomat
@@ -110,6 +110,7 @@ Dressed, you go down with him. #goto:citadel-halls:110:136
 -> END
 
 === c3day1_audience ===
+~ c3day1 = "audience"
 You take your seat, a step below the throne. Your hand stands at your shoulder.
 Your father doesn't look at you. He lifts two fingers.
 "Begin." #speaker:father
