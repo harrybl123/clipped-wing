@@ -71,6 +71,7 @@ A small lamp marks each place's door and lights up once the place is built.
 | `brothel` | the brothel | settlement | [brothel.md](areas/borderland/brothel.md) |
 | `compound` | the boss's compound | settlement | [compound.md](areas/borderland/compound.md) |
 | `scrap-stacks` | the scrap stacks | settlement | [scrap-stacks.md](areas/borderland/scrap-stacks.md) |
+| `kennels` | the kennels | settlement | [kennels.md](areas/borderland/kennels.md) (Jack's proposal) |
 | `picked-fields` | the picked fields | grounds | [picked-fields.md](areas/borderland/picked-fields.md) |
 | `sunk-town` | the sunk town | grounds | [sunk-town.md](areas/borderland/sunk-town.md) |
 | `dogs-hollow` | the dog's hollow | grounds | [dogs-hollow.md](areas/borderland/dogs-hollow.md) |

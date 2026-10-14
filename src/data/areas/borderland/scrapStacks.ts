@@ -1,5 +1,6 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './scrapStacksProps';
+import { KENNEL_POST } from './kennelsProps';
 import type { AreaDefinition, Line, Solid } from '../types';
 import { DAY, cast, dogFollowing, local, rival, stroller } from './people';
 
@@ -67,6 +68,7 @@ export const scrapStacks: AreaDefinition = {
     { sprite: P.junkTower(80, 260, 6), x: 540, y: FLOOR - 260 },
     { sprite: P.HANGING_SHEET, x: 284, y: 300 }, // hung on the towers' faces
     { sprite: P.HANGING_SHEET, x: 470, y: 236 },
+    { sprite: KENNEL_POST, x: 506, y: FLOOR - 30 }, // the lane to the kennels
     // Ledges jammed into the stacks.
     ...LEDGES.map(([x, y, width]) => ({ sprite: P.ledge(width), x, y })),
     // The perch.
@@ -115,6 +117,7 @@ export const scrapStacks: AreaDefinition = {
     { id: 'to-shack', x: 16, y: FLOOR, reach: 12, to: 'shack' },
     { id: 'to-brothel', x: 230, y: FLOOR, reach: 10, to: 'brothel' },
     { id: 'to-swap-yard', x: 624, y: FLOOR, reach: 12, to: 'swap-yard' },
+    { id: 'to-kennels', x: 504, y: FLOOR, reach: 10, to: 'kennels' },
   ],
 
   routes: {

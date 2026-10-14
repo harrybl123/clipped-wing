@@ -181,6 +181,18 @@ function decor(): Map<number, number> {
       }
     }
   }
+  // The kennels: a fenced yard, a row of little cages, a pen at the end.
+  {
+    const p = at('kennels');
+    rect(put, p.x - 9, p.y - 1, 19, 1, S.deep); // the yard's ground
+    for (let i = 0; i < 3; i++) {
+      rect(put, p.x - 9 + i * 5, p.y - 4, 4, 3, S.deep);
+      put(p.x - 8 + i * 5, p.y - 3, S.dim); // bars
+      put(p.x - 6 + i * 5, p.y - 3, S.dim);
+    }
+    rect(put, p.x + 6, p.y - 6, 1, 5, S.dim); // the pen's tall fence
+    rect(put, p.x + 6, p.y - 6, 4, 1, S.dim);
+  }
   // The gambling den: low and half sunk, a dark ramp down, a lamp.
   {
     const p = at('gambling-den');

@@ -13,8 +13,19 @@ export interface EndingSceneData {
   ending: string;
 }
 
-/** The endings: ones that stop the game early, and Act 1's two (Day 7). Draft words, for the designer. */
-const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number; coda?: string; chapter?: 2 }> = {
+/**
+ * The endings: ones that stop the game early, game overs, and each chapter's last. Draft words, for the
+ * designer. `retryDay` is the day you can try again from: a number, or `today` for a game over (you
+ * died: back to the start of whatever day it was). A `gameOver` says so under the lines.
+ */
+const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number | 'today'; coda?: string; chapter?: 2; gameOver?: boolean }> = {
+  // Game over (Jack): the kennels' guard dogs got you (Chapter 2). Draft words, for the designer.
+  mauled: {
+    title: 'Torn apart.',
+    lines: ['Three of them, and nobody near enough to hear.'],
+    gameOver: true,
+    retryDay: 'today',
+  },
   // Ignoring Grounded's message twice (the design doc's "short, comfortable loyal ending").
   loyal: {
     title: 'You stayed loyal to the Tree.',
@@ -128,19 +139,22 @@ export class EndingScene extends Phaser.Scene {
       y += t.height + 7;
       this.tweens.add({ targets: t, alpha: 1, duration: 1200, delay: 2400 + i * 1600 });
     });
-    if (ending.coda) {
-      const coda = centre(new PixelText(this, 0, y + 10, ending.coda, { color: SHADES.amber })).setAlpha(0);
+    const codaText = ending.coda ?? (ending.gameOver ? 'Game over' : undefined);
+    if (codaText) {
+      const coda = centre(new PixelText(this, 0, y + 10, codaText, { color: SHADES.amber })).setAlpha(0);
       this.tweens.add({ targets: coda, alpha: 1, duration: 1500, delay: 2400 + ending.lines.length * 1600 + 600 });
     }
 
-    const start = getSession(this).dayStarts[ending.retryDay];
+    const { calendar, dayStarts } = getSession(this);
+    const retryDay = ending.retryDay === 'today' ? (typeof calendar.day === 'number' ? calendar.day : undefined) : ending.retryDay;
+    const start = retryDay !== undefined ? dayStarts[retryDay] : undefined;
     const choices = [
       // Finishing Chapter 1 opens the next (designer).
       ...(ending.coda && ending.chapter !== 2 ? [{ label: 'Begin Chapter 2', run: () => beginChapter2(this) }] : []),
-      ...(start ? [{ label: `Try again from Day ${ending.retryDay}`, run: () => this.retry(ending.retryDay) }] : []),
+      ...(start && retryDay !== undefined ? [{ label: `Try again from Day ${retryDay}`, run: () => this.retry(retryDay) }] : []),
       { label: 'Back to the title', run: () => this.scene.start('Title') },
     ];
-    const shownAt = 2400 + ending.lines.length * 1600 + (ending.coda ? 2400 : 800);
+    const shownAt = 2400 + ending.lines.length * 1600 + (codaText ? 2400 : 800);
     choices.forEach((c, i) => {
       const text = centre(new PixelText(this, 0, H - 60 + i * 14, c.label, { color: SHADES.dim })).setAlpha(0);
       this.tweens.add({ targets: text, alpha: 1, duration: 800, delay: shownAt });

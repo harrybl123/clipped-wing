@@ -17,6 +17,7 @@ import { dogsHollow } from './borderland/dogsHollow';
 import { rivalLine } from './borderland/rivalLine';
 import { deepGround } from './borderland/deepGround';
 import { treesEdge } from './borderland/treesEdge';
+import { kennels } from './borderland/kennels';
 import { audienceHall } from './capital/audienceHall';
 import { banquetGallery } from './capital/banquetGallery';
 import { citadelHalls } from './capital/citadelHalls';
@@ -81,6 +82,7 @@ export const BORDERLAND_AREAS: Record<string, string> = {
   'rival-line': 'the rival line',
   'deep-ground': 'the deep ground',
   'trees-edge': "the tree's edge",
+  kennels: 'the kennels',
 };
 
 /** Every area in the capital (Chapter 3; docs/chapter-3-world.md), by id, with the name used in menus. Built or not. Names are placeholders (designer). */
@@ -169,6 +171,7 @@ export const AREAS: Record<string, AreaDefinition> = {
   [rivalLine.id]: rivalLine,
   [deepGround.id]: deepGround,
   [treesEdge.id]: treesEdge,
+  [kennels.id]: kennels,
   // Chapter 3: the capital.
   [princeQuarters.id]: princeQuarters,
   [citadelHalls.id]: citadelHalls,

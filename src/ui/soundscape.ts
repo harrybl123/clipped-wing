@@ -2,7 +2,7 @@ import type Phaser from 'phaser';
 import type { AmbienceLayer, AmbienceSound, Surface } from '../data/areas/types';
 import { CROWD_VOICES, type Syllable, VOICES } from '../systems/voices';
 import { ACOUSTICS, type Acoustics, audioOut, noiseBuffer, setAcoustics } from './audioMix';
-import { playRecording } from './recordings';
+import { hasRecording, playRecording } from './recordings';
 import { playSyllable } from './voice';
 
 // The sound of the tree (docs/audio-plan.md), all synthesised with Web Audio, no files:
@@ -22,6 +22,9 @@ export const SOUND_IDS = [
   'chop', 'shave', 'skid', 'scratch', 'pop', 'rub', 'slip',
   // The dog (Chapter 2).
   'bark', 'growl', 'whimper', 'yip',
+  // The kennels' creatures (Chapter 2): rabid, diseased, so loud they distort. A hyena's cackle, a hog's
+  // squeal, the nameless thing's shriek, any of them snarling, their sick breathing, and all three at once.
+  'cackle', 'squeal', 'shriek', 'snarl', 'wheeze', 'maul',
 ] as const;
 export type SoundId = (typeof SOUND_IDS)[number];
 
@@ -72,6 +75,39 @@ function noise(a: Out, dest: AudioNode, t: number, filter: BiquadFilterType, fre
   src.connect(f).connect(envelope(a.ctx, t, peak, decay, attack)).connect(dest);
   src.start(t, Math.random() * 1.5);
   src.stop(t + attack + decay + 0.05);
+}
+
+/** A hard-clipping, crushed curve: anything pushed through it comes out torn and fuzzy. */
+const OVERDRIVE_CURVE = (() => {
+  const n = 2048;
+  const curve = new Float32Array(new ArrayBuffer(n * 4));
+  for (let i = 0; i < n; i++) {
+    const x = (i / (n - 1)) * 2 - 1;
+    const driven = (31 * x) / (1 + 30 * Math.abs(x));
+    curve[i] = Math.round(driven * 6) / 6; // crushed into a few steps: grit
+  }
+  return curve;
+})();
+
+/** A softer, rounder clipping curve, for real recordings: loud and torn, but still the animal (no crushing). */
+const SATURATE_CURVE = (() => {
+  const n = 2048;
+  const curve = new Float32Array(new ArrayBuffer(n * 4));
+  for (let i = 0; i < n; i++) curve[i] = Math.tanh(((i / (n - 1)) * 2 - 1) * 3.5) / Math.tanh(3.5);
+  return curve;
+})();
+
+/**
+ * An overdriven path to `dest` (the kennels' creatures, Jack: so loud the sound distorts): whatever goes in
+ * is clipped (and, with the default curve, crushed), and comes out at `level`. Feed it hot.
+ */
+function overdrive(a: Out, dest: AudioNode, level: number, curve = OVERDRIVE_CURVE): AudioNode {
+  const shaper = a.ctx.createWaveShaper();
+  shaper.curve = curve;
+  const post = a.ctx.createGain();
+  post.gain.value = level;
+  shaper.connect(post).connect(dest);
+  return shaper;
 }
 
 /**
@@ -192,8 +228,183 @@ function crowdOf(t: number, count: number, spread: number, make: (at: number) =>
   for (let i = 0; i < count; i++) make(t + Math.random() * spread);
 }
 
+// --- The kennels' creatures (Chapter 2; Jack) ---
+//
+// Rabid, diseased things kept in place of dogs (nobody has dogs). Nothing in them should sound like a dog,
+// or like any one animal: each cry is recordings (snarls, and a hyena's or a hog's if they've been dropped
+// in) pitched and stuttered and ring-modulated till they sound wrong, with sick wet breath and gurgling
+// under them, all pushed through a saturating overdrive (Jack: so loud it distorts).
+
+const CREATURE_SOUNDS: ReadonlySet<SoundId> = new Set(['cackle', 'squeal', 'shriek', 'snarl', 'wheeze', 'maul']);
+
+/**
+ * The sick chain: what goes in comes out partly as itself and partly ring-modulated at `ring` Hz (a
+ * metallic, inhuman edge: the more `mix`, the less like any animal), through the saturating overdrive,
+ * at `level`. Returns where to feed it.
+ */
+function sickChain(a: Out, dest: AudioNode, t: number, level: number, ring: number, mix: number): AudioNode {
+  const input = a.ctx.createGain();
+  const torn = overdrive(a, dest, level, SATURATE_CURVE);
+  const dry = a.ctx.createGain();
+  dry.gain.value = 1 - mix * 0.6;
+  input.connect(dry).connect(torn);
+  const ringed = a.ctx.createGain();
+  ringed.gain.value = 0;
+  const carrier = a.ctx.createOscillator();
+  carrier.frequency.value = ring;
+  const depth = a.ctx.createGain();
+  depth.gain.value = mix * 1.6;
+  carrier.connect(depth).connect(ringed.gain);
+  carrier.start(t);
+  carrier.stop(t + 4);
+  input.connect(ringed).connect(torn);
+  return input;
+}
+
+/** Bubbling in the throat: quick wet pops, low and thick. */
+function gurgle(a: Out, dest: AudioNode, t: number, v: number, length = 0.5): void {
+  for (let i = 0; i < 12; i++) {
+    const k = t + rand(0, length);
+    const f = rand(140, 380);
+    tone(a, dest, k, 'sine', f, f * 1.7, 0.03, rand(0.1, 0.25) * v, 0.004);
+  }
+  noise(a, dest, t, 'lowpass', 420, 2, length, 0.18 * v, 0.05);
+}
+
+/** A rattling breath: a wheeze in, a phlegmy rattle out. */
+function rattle(a: Out, dest: AudioNode, t: number, v: number): void {
+  const breath = (k: number, from: number, to: number, len: number, peak: number) => {
+    const src = a.ctx.createBufferSource();
+    src.buffer = noiseBuffer(a.ctx);
+    const band = a.ctx.createBiquadFilter();
+    band.type = 'bandpass';
+    band.Q.value = 4;
+    band.frequency.setValueAtTime(from, k);
+    band.frequency.exponentialRampToValueAtTime(to, k + len);
+    const chop = a.ctx.createGain(); // the phlegm: the breath juddering
+    chop.gain.value = 0.5;
+    const lfo = a.ctx.createOscillator();
+    lfo.frequency.value = rand(18, 30);
+    const lfoDepth = a.ctx.createGain();
+    lfoDepth.gain.value = 0.5;
+    lfo.connect(lfoDepth).connect(chop.gain);
+    src.connect(band).connect(chop).connect(envelope(a.ctx, k, peak, len, len * 0.4)).connect(dest);
+    src.start(k, Math.random());
+    src.stop(k + len * 1.5 + 0.1);
+    lfo.start(k);
+    lfo.stop(k + len * 1.5 + 0.1);
+  };
+  breath(t, 1300, 2300, 0.55, 0.5 * v); // in, a whistle at the top
+  breath(t + 0.65, 900, 420, 0.7, 0.6 * v); // out, rattling
+  gurgle(a, dest, t + 0.7, v * 0.6, 0.5);
+}
+
+/** A kennel creature's sound (see above). */
+function creature(a: Out, dest: AudioNode, t: number, id: SoundId, v: number): void {
+  const level = 0.8 * Math.min(1, v);
+  const snarls = hasRecording(a.ctx, 'snarl');
+  switch (id) {
+    case 'snarl': {
+      // Any of them: a snarl, deep and stuttering, with a metallic edge and froth in it.
+      const chain = sickChain(a, dest, t, level, rand(35, 60), 0.4);
+      if (snarls) playRecording(a.ctx, chain, t, 'snarl', 2.5, { rate: rand(0.75, 1.05), stutter: Math.random() < 0.5 ? 2 : 0 });
+      else synthSnarl(a, chain, t);
+      gurgle(a, dest, t + 0.1, v * 0.5, 0.6);
+      break;
+    }
+    case 'shriek': {
+      // The nameless thing: a snarl screamed high and stuttering, ringing like metal, over a rising wail.
+      const chain = sickChain(a, dest, t, level, rand(90, 140), 0.65);
+      if (snarls) playRecording(a.ctx, chain, t, 'snarl', 2.5, { rate: rand(1.7, 2.1), stutter: 3 });
+      const wail = a.ctx.createBiquadFilter();
+      wail.type = 'bandpass';
+      wail.frequency.value = 1500;
+      wail.Q.value = 2;
+      wail.connect(chain);
+      const o = a.ctx.createOscillator();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(rand(600, 750), t);
+      o.frequency.linearRampToValueAtTime(rand(1050, 1250), t + 0.3);
+      o.frequency.exponentialRampToValueAtTime(rand(380, 460), t + 0.8);
+      o.connect(envelope(a.ctx, t, 0.9, 0.7, 0.08)).connect(wail);
+      o.start(t);
+      o.stop(t + 0.9);
+      gurgle(a, dest, t + 0.5, v * 0.6, 0.4);
+      break;
+    }
+    case 'cackle': {
+      // The hyena: a run of whooping, gasping laughs, quickening, gone wrong.
+      const chain = sickChain(a, dest, t, level, rand(45, 70), 0.3);
+      if (playRecording(a.ctx, chain, t, 'cackle', 2.5, { rate: rand(0.8, 1), stutter: Math.random() < 0.3 ? 2 : 0 })) break;
+      let k = t;
+      const count = 6 + Math.floor(Math.random() * 4);
+      for (let i = 0; i < count; i++) {
+        const p = rand(380, 460) * (1 + i * 0.04);
+        tone(a, chain, k, 'triangle', p, p * 2.1, 0.07, 1.1, 0.008);
+        noise(a, chain, k, 'bandpass', 1300, 2.5, 0.07, 0.9, 0.006);
+        k += 0.13 - i * 0.006; // quickening
+      }
+      if (snarls) playRecording(a.ctx, chain, k, 'snarl', 1.5, { rate: 1.3 });
+      break;
+    }
+    case 'squeal': {
+      // The hog: a grunt, then a long tearing squeal, trembling.
+      const chain = sickChain(a, dest, t, level, rand(30, 50), 0.35);
+      if (playRecording(a.ctx, chain, t, 'squeal', 2.5, { rate: rand(0.8, 1) })) break;
+      if (snarls) playRecording(a.ctx, chain, t, 'snarl', 2, { rate: 0.55 }); // the grunt
+      const band = a.ctx.createBiquadFilter();
+      band.type = 'bandpass';
+      band.frequency.value = 2100;
+      band.Q.value = 2.5;
+      band.connect(chain);
+      const o = a.ctx.createOscillator();
+      o.type = 'sawtooth';
+      const k = t + 0.2;
+      o.frequency.setValueAtTime(rand(1000, 1150), k);
+      o.frequency.linearRampToValueAtTime(rand(1450, 1650), k + 0.15);
+      o.frequency.linearRampToValueAtTime(rand(850, 950), k + 0.7);
+      const shake = a.ctx.createOscillator(); // the tremble in it
+      shake.frequency.value = 17;
+      const shakeDepth = a.ctx.createGain();
+      shakeDepth.gain.value = 60;
+      shake.connect(shakeDepth).connect(o.frequency);
+      o.connect(envelope(a.ctx, k, 1, 0.65, 0.03)).connect(band);
+      o.start(k);
+      o.stop(k + 0.75);
+      shake.start(k);
+      shake.stop(k + 0.75);
+      break;
+    }
+    case 'wheeze':
+      // Any of them, between cries: sick breath, wet and rattling.
+      rattle(a, overdrive(a, dest, 0.6 * Math.min(1, v), SATURATE_CURVE), t, 1.4);
+      break;
+    case 'maul':
+      // All three at once, over you, and the thrashing under them.
+      (['shriek', 'snarl', 'squeal', 'cackle', 'snarl', 'shriek'] as const).forEach((cry, i) => creature(a, dest, t + i * rand(0.3, 0.45), cry, v));
+      for (let i = 0; i < 10; i++) {
+        const k = t + rand(0.1, 2.4);
+        noise(a, dest, k, 'lowpass', 500, 1, 0.12, 0.45 * v, 0.003); // a body hitting the dirt
+        noise(a, dest, k + 0.05, 'bandpass', 1600, 1.5, 0.15, 0.2 * v, 0.02, 900); // cloth tearing
+      }
+      break;
+  }
+}
+
+/** A snarl made from nothing (if the snarl recordings are ever taken out): a low wet rumble rising to a rip. */
+function synthSnarl(a: Out, dest: AudioNode, t: number): void {
+  for (let i = 0; i < 14; i++) {
+    const k = t + i * 0.06;
+    const swell = 0.6 + Math.sin((i / 13) * Math.PI) * 0.9;
+    tone(a, dest, k, 'sawtooth', rand(70, 95), rand(65, 90), 0.08, swell, 0.01);
+    noise(a, dest, k, 'bandpass', rand(300, 500), 2, 0.07, swell * 0.8, 0.01);
+  }
+}
+
 /** Plays a one-off sound into `dest` at time `t`. `v` scales the loudness. Built from noise where it can be: earthy, not synthy (designer). */
 function oneShot(a: Out, dest: AudioNode, t: number, id: SoundId, v: number, surface: Surface = 'wood'): void {
+  // The kennels' creatures are made their own way (below), from recordings twisted out of true.
+  if (CREATURE_SOUNDS.has(id)) return creature(a, dest, t, id, v);
   // A recording, if one's been dropped in, plays instead; the crowds are silent without one.
   if (playRecording(a.ctx, dest, t, id, v) || AWAITING_RECORDING.has(id)) return;
   switch (id) {

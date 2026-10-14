@@ -18,7 +18,7 @@ import { ARCHIVIST, DODGER, ELDERS, FRIEND, FRIEND_FATHER, GIRL, GUARD, MUM, PRE
 import { BEETLE_BATTLE, CARVER_BATTLE, GIRL_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
 import { hexString } from '../ui/pixelArt';
 import { SPEAKERS } from '../ui/portraits';
-import { CAST, DOG, HOSTESSES, RIVALS, TOWNSFOLK } from '../ui/borderlandFolk';
+import { CAGED_BEASTS, CAST, DOG, GUARD_BEASTS, HOSTESSES, RIVALS, TOWNSFOLK } from '../ui/borderlandFolk';
 import { CAPITAL_CAST, CITIZENS, COUNCILLORS, COURTIERS, GUARDS as CITADEL_GUARDS, SERVANTS, WATCH } from '../ui/capitalFolk';
 import { BIRD, FIRE_FRAMES, FUNGI, LAMP, MORE_ARROW, type RowSprite } from '../ui/sprites';
 
@@ -79,6 +79,8 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       ...HOSTESSES.map((f, i): Entry => [`hostess ${i}`, f.idle[0]!]),
       ...RIVALS.map((f, i): Entry => [`rival ${i}`, f.idle[0]!]),
       ['dog', DOG.idle[0]!],
+      ...GUARD_BEASTS.map((f, i): Entry => [`kennel guard ${i + 1} (${['hyena', 'hog', 'nameless'][i]})`, f.idle[0]!]),
+      ...CAGED_BEASTS.map((f, i): Entry => [`kennel cage ${i + 1}`, f.idle[0]!]),
       ...MUM.idle.map((f, i): Entry => [`mum idle ${i}`, f]),
       ...TENDER.idle.map((f, i): Entry => [`tender idle ${i}`, f]),
       ...FRIEND.idle.map((f, i): Entry => [`friend idle ${i}`, f]),
@@ -100,6 +102,8 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       { label: 'scavenger crawl', frames: SCAVENGER_CROUCH.walk, fps: 5 },
       { label: 'dog walk', frames: DOG.walk, fps: 6 },
       { label: 'dog idle', frames: DOG.idle, fps: 3 },
+      ...GUARD_BEASTS.map((f, i) => ({ label: `kennel guard ${i + 1} snarl`, frames: f.idle, fps: 4 })),
+      ...GUARD_BEASTS.map((f, i) => ({ label: `kennel guard ${i + 1} run`, frames: f.walk, fps: 9 })),
       { label: 'townsfolk 1 walk', frames: TOWNSFOLK[1]!.walk, fps: 5.5 },
       { label: 'mum idle', frames: MUM.idle, fps: 1.5 },
       { label: 'tender idle', frames: TENDER.idle, fps: 1.2 },

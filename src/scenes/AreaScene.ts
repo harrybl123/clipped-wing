@@ -346,6 +346,12 @@ export class AreaScene extends Phaser.Scene {
   private mobs: Mob[] = [];
   private triggers: Extract<Feature, { type: 'trigger' }>[] = [];
   private barks: Barks[] = [];
+  /** Creatures in a pen (the `guards` feature): where each one started. */
+  private guards: { feature: Extract<Feature, { type: 'guards' }>; homes: Map<string, number> }[] = [];
+  /** The kennels' creatures have you: nothing else happens until the game-over ending. */
+  private mauled = false;
+  /** Where the music grows more ominous the nearer you are (the `dread` feature), if anywhere here. */
+  private dread: Extract<Feature, { type: 'dread' }> | null = null;
   /** Lines over people's heads, by who's saying them. */
   private speech = new Map<string, { text: PixelText; left: number }>();
   /** Where you came in (the mob throws you back here). */
@@ -394,6 +400,9 @@ export class AreaScene extends Phaser.Scene {
     this.sliding = false;
     this.digBusy = false;
     this.barks = [];
+    this.guards = [];
+    this.mauled = false;
+    this.dread = null;
     this.speech = new Map();
   }
 
@@ -591,7 +600,7 @@ export class AreaScene extends Phaser.Scene {
   override update(_time: number, delta: number): void {
     const interactPressed = Phaser.Input.Keyboard.JustDown(this.interactKey);
     const caught = this.watchmen.some((w) => w.alarm !== null) || this.quarries.some((q) => q.alarm !== null) || this.mobs.some((m) => m.alarm !== null);
-    const blocked = this.leaving || caught || this.dialogue.isOpen || this.game.loop.frame === this.dialogueClosedFrame || this.digBusy;
+    const blocked = this.leaving || this.mauled || caught || this.dialogue.isOpen || this.game.loop.frame === this.dialogueClosedFrame || this.digBusy;
     this.player.update(blocked);
     this.stepUp();
     this.updateWanderers(delta);
@@ -609,7 +618,8 @@ export class AreaScene extends Phaser.Scene {
     this.updateMobs(delta);
     this.updateTriggers();
     this.updateBarks(delta);
-    updateScore(this, this.scoreForToday(), delta);
+    this.updateGuards(delta);
+    updateScore(this, this.mauled ? null : this.scoreForToday(), delta, this.dreadIntensity());
     this.updateCloak();
     this.checkHazards();
     this.updateWaiting(delta);
@@ -625,8 +635,9 @@ export class AreaScene extends Phaser.Scene {
     }
   }
 
-  /** The day's music, if it has any: Day 6 is eerie from start to finish (designer). */
+  /** The day's music, if it has any: Day 6 is eerie from start to finish (designer). A place with dread has its own. */
   private scoreForToday(): ScoreId | null {
+    if (this.dread) return 'dread';
     const { story } = getSession(this);
     return story.getVariable('day6') !== '' && story.getVariable('day7') === '' ? 'day6' : null;
   }
@@ -644,6 +655,9 @@ export class AreaScene extends Phaser.Scene {
       if (!line) continue;
       const wait = line.wait ?? 2600;
       this.say(line.who, line.text, wait - 300);
+      // A sound from where they stand (the kennels' creatures), louder the nearer you are.
+      const from = line.sound && (SOUND_IDS as readonly string[]).includes(line.sound) ? this.speakerAt(line.who) : null;
+      if (from) this.soundscape.play(line.sound as SoundId, from, line.volume ?? 1, 200);
       b.left = wait;
       b.index = b.index + 1 < f.lines.length ? b.index + 1 : (f.loopFrom ?? 0);
     }
@@ -1295,6 +1309,69 @@ export class AreaScene extends Phaser.Scene {
   }
 
   /** Knocked back by falling rubble: a jolt, and you're back at `reset` (anyone following comes too). */
+  /**
+   * Creatures in a pen, guarding something (the kennels; Jack): they stay by it until you come near the
+   * bars, then come forward to them; once you're through the gate they run at you, and if they reach you,
+   * they maul you.
+   */
+  private updateGuards(delta: number): void {
+    if (this.mauled) return;
+    const you = this.player.feet;
+    for (const g of this.guards) {
+      const f = g.feature;
+      const inside = you.x > f.gate;
+      const near = inside || f.gate - you.x < f.warn;
+      const beasts = f.beasts.map((id) => this.people.get(id)).filter((e): e is PersonEntry => !!e && e.image.visible);
+      beasts.forEach((entry, i) => {
+        const img = entry.image;
+        entry.scripted = true;
+        if (!g.homes.has(entry.person.id)) g.homes.set(entry.person.id, img.x);
+        // In the pen they come for you; near it, they line up at the bars; otherwise back to the box.
+        const target = inside ? you.x : near ? f.gate + 20 + i * 24 : g.homes.get(entry.person.id)!;
+        const speed = inside ? f.speed : near ? f.speed * 0.6 : 30;
+        const dx = target - img.x;
+        if (Math.abs(dx) > 2) {
+          img.x += Math.sign(dx) * Math.min(Math.abs(dx), (speed * delta) / 1000);
+          if (entry.walkKeys.length) {
+            entry.walking = true;
+            img.setTexture(entry.walkKeys[Math.floor(this.time.now / 110) % entry.walkKeys.length]!);
+          }
+        } else if (entry.walking) {
+          entry.walking = false;
+          img.setTexture(entry.idleKeys[0]!);
+        }
+        if (near) img.setFlipX(you.x < img.x);
+        else if (Math.abs(dx) <= 2) img.setFlipX(true); // facing out of the pen, over the box
+        if (inside && Math.abs(you.x - img.x) < 12 && Math.abs(you.y - img.y) < 30) this.maul(beasts, f.ending);
+      });
+      if (this.mauled) return;
+    }
+  }
+
+  /** How intense the dread score is: 0 out of range, rising as you near its spot, 1 there and beyond. */
+  private dreadIntensity(): number {
+    if (!this.dread) return 0;
+    return Phaser.Math.Clamp(1 - (this.dread.x - this.player.feet.x) / this.dread.range, 0, 1);
+  }
+
+  /** They have you: they pile on, the screen shakes and goes black, and it's game over. */
+  private maul(beasts: PersonEntry[], ending: string): void {
+    this.mauled = true;
+    const you = { ...this.player.feet };
+    this.player.body.setVelocity(0, 0);
+    this.cameras.main.shake(2600, 0.012);
+    this.soundscape.play('maul', undefined, 1);
+    beasts.forEach((entry, i) => {
+      entry.image.setDepth(this.player.sprite.depth + 1).setFlipX(i === 2);
+      this.tweens.add({ targets: entry.image, x: you.x + (i - 1) * 7, y: you.y, duration: 140 });
+      this.tweens.add({ targets: entry.image, y: you.y - 3, yoyo: true, repeat: 14, duration: 80, delay: 160 + i * 45 });
+    });
+    ['HRAAH!', 'SKREEE!', 'KHHAAA!'].forEach((words, i) => this.time.delayedCall(i * 260, () => this.floatText(words, you.x + (i - 1) * 14, you.y - 34 - i * 6, SHADES.white)));
+    this.time.delayedCall(260, () => this.player.sprite.setVisible(false)); // under them
+    this.time.delayedCall(900, () => this.tweens.add({ targets: this.dimmer, alpha: 1, duration: 1300 }));
+    this.time.delayedCall(2900, () => this.leaveFor('Ending', { ending } satisfies EndingSceneData, 600));
+  }
+
   private knockBack(reset: { x: number; y: number }): void {
     this.cameras.main.shake(200, 0.01).flash(250, 40, 28, 18);
     this.player.body.reset(reset.x, reset.y);
@@ -1443,6 +1520,7 @@ export class AreaScene extends Phaser.Scene {
    *   #carve:<knot>           after the conversation, the carving close-up plays the knot
    *   #when:<variable>:<knot>[:<seconds>]  once the variable reaches 0 (e.g. everything hidden), or the time runs out, the knot plays
    *   #ending:<id>            after the conversation, an ending (e.g. loyal)
+   *   #through:<x>:<y>        after the conversation, you go through a gate to (x, y) (into the kennels' pen)
    *   #fight:<knot>[:<then>]  after the conversation, the fight close-up plays the knot; back here, <then> plays
    *   #combat:<encounter>[:<then>]  after the conversation, a turn-based fight (src/data/combat.ts); its outcome is written to ink, and back here, <then> plays
    *   #turn                   the crowd turns its back on you
@@ -1565,6 +1643,12 @@ export class AreaScene extends Phaser.Scene {
         case 'endday':
           this.afterClose.push(() => this.endDay(args.join(':') || undefined));
           break;
+        case 'through': {
+          // #through:<x>:<y>: you go through a gate to (x, y), once the conversation closes (into the kennels' pen).
+          const [x, y] = args.map(Number);
+          if (x !== undefined && y !== undefined && !Number.isNaN(x) && !Number.isNaN(y)) this.afterClose.push(() => this.player.body.reset(x, y));
+          break;
+        }
         case 'wake': {
           const [areaId, x, y, knot] = args;
           if (areaId) this.wakeAt = { areaId, start: { x: Number(x), y: Number(y) }, script: knot || undefined };
@@ -2233,7 +2317,7 @@ export class AreaScene extends Phaser.Scene {
       }
       case 'frames': {
         const keys = feature.frames.map((f, i) => makeSpriteTexture(this, `frames-${feature.x}-${feature.y}-${i}`, f.rows, f.colours));
-        const image = this.add.image(feature.x, feature.y, keys[0]!).setOrigin(0).setDepth(3);
+        const image = this.add.image(feature.x, feature.y, keys[0]!).setOrigin(0).setDepth(feature.front ? 9 : 3);
         let frame = 0;
         const shown = () => !feature.showIf || !!getSession(this).story.getVariable(feature.showIf);
         image.setVisible(shown());
@@ -2496,6 +2580,12 @@ export class AreaScene extends Phaser.Scene {
         break;
       case 'slide':
         this.slides.push(feature);
+        break;
+      case 'guards':
+        this.guards.push({ feature, homes: new Map() });
+        break;
+      case 'dread':
+        this.dread = feature;
         break;
       case 'barks':
         this.barks.push({ feature, index: 0, left: 0 });

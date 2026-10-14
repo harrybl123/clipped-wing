@@ -159,6 +159,8 @@ export function devChapter2Day(scene: Phaser.Scene, day: number): void {
   if (at === 'home' && params.get('brother') !== 'compound') set({ brother_scrubbing: true });
   session.calendar.jumpTo(day as 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11);
   for (let i = 0; i < (mid?.slots ?? 0); i++) session.calendar.advance();
+  // From the day's start, a game over can bring you back here.
+  if (!mid) session.dayStarts[day] = { ink: session.story.saveState(), calendar: session.calendar.toJSON(), wake: { areaId: next.areaId, start: next.start!, script: next.script } };
   scene.scene.start('Area', { ...(mid?.area ?? next), card: day === 3 ? 'Weeks later' : day === 7 ? 'Two weeks on' : day === 10 ? 'Three nights on' : day === 11 ? 'First light' : `Day ${day}` } satisfies AreaSceneData);
 }
 

@@ -24,6 +24,7 @@ export const BORDERLAND_PLACES: readonly MapPlace[] = [
   { id: 'gambling-den', x: 312, y: 228, level: 'the settlement', light: 'amber' },
   { id: 'brothel', x: 356, y: 234, level: 'the settlement', light: 'amber' },
   { id: 'shack', x: 198, y: 234, level: 'the settlement', light: 'amber' },
+  { id: 'kennels', x: 240, y: 244, level: 'the settlement', light: 'amber' },
   // The grounds.
   { id: 'picked-fields', x: 214, y: 136, level: 'the grounds', light: 'white' },
   { id: 'trees-edge', x: BORDER_TREE_X, y: BORDER_HORIZON_Y + 12, level: 'the grounds', light: 'green' },
@@ -45,6 +46,7 @@ export const BORDERLAND_LINKS: readonly MapLink[] = [
   { from: 'bar', to: 'gambling-den', kind: 'track' },
   { from: 'bar', to: 'brothel', kind: 'track' },
   { from: 'scrap-stacks', to: 'gambling-den', kind: 'track' },
+  { from: 'scrap-stacks', to: 'kennels', kind: 'track' },
   { from: 'swap-yard', to: 'picked-fields', kind: 'track' },
   { from: 'picked-fields', to: 'trees-edge', kind: 'track' },
   { from: 'picked-fields', to: 'sunk-town', kind: 'track' },

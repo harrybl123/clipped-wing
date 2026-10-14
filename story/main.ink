@@ -620,6 +620,7 @@ INCLUDE borderland/dogs-hollow.ink
 INCLUDE borderland/rival-line.ink
 INCLUDE borderland/deep-ground.ink
 INCLUDE borderland/trees-edge.ink
+INCLUDE borderland/kennels.ink
 INCLUDE capital/cast.ink
 INCLUDE capital/folk.ink
 INCLUDE capital/looks.ink

@@ -263,6 +263,137 @@ function dog(tailUp: boolean, step: number): RowSprite {
 
 export const DOG = { idle: [dog(true, 0), dog(false, 0)], walk: [dog(true, 0), dog(true, 1)] };
 
+// --- The kennels' creatures ---
+
+// Nobody has dogs (they're all but extinct), so whoever needs something guarded keeps the next worst
+// thing: half-wild creatures, diseased and rabid, kept hungry (Jack). Three kinds: a scrap hyena, a
+// tusked hog, and a nameless hairless thing. Each is 34 wide, facing right, with `mouth` 0 snarling
+// (foam at the lips) and 1 jaws wide, and `legs` 0 standing, 1 and 2 at a run. Sores weep amber; no red
+// anywhere (no blood, no red eyes: red is reserved). Whether it's the rot that's made them sick is the
+// designer's to say, so nothing glows green.
+
+type Mouth = 0 | 1;
+type Legs = 0 | 1 | 2;
+interface BeastColours { coat: number; dark: number; pale: number }
+
+const beastSprite = (rows: string[], colours: Record<string, number>): RowSprite => ({
+  rows: rows.map((r) => r.padEnd(34, '.').slice(0, 34)),
+  colours: { x: SHADES.shadow, e: SHADES.amber, t: SHADES.white, f: SHADES.white, m: SHADES.deep, n: SHADES.shadow, o: SHADES.amberDeep, ...colours },
+});
+
+/** A scrap hyena: high hunched shoulders sloping down to the hips, round ears, a mangy spotted coat, a big jaw. */
+function hyena(c: BeastColours, mouth: Mouth, legs: Legs): RowSprite {
+  const jaw =
+    mouth === 0
+      ? ['....xxCcsccccccscccccccllcxtttfx', '...xCcccccsccccccccccclllxxxxf']
+      : ['....xxCcsccccccscccccccllcxmmmx', '...xCcccccsccccccccccclllxtttxf'];
+  const feet =
+    legs === 0
+      ? ['.....xccx...........xcx..xcx', '.....xcx............xcx..xcx', '....xcx.............xcx..xcx', '....xcx.............xcx..xcx', '....xCx.............xCx..xCx']
+      : legs === 1
+        ? ['....xccx.............xccx', '...xcx................xccx', '..xcx...................xcx', '..xcx....................xcx', '..xCx....................xCx']
+        : ['.......xccx......xccx', '........xcx.....xcx', '........xcx....xcx', '.......xcx......xcx', '.......xCx......xCx'];
+  return beastSprite(
+    [
+      '.......................x...x',
+      '......................xCx.xCx',
+      '..............xx.x.xxxxcccccx',
+      '...........xxxCCxCxCCCccccecx',
+      '........xxxCCcccCcocccccccccnx',
+      '......xxCcccccsccccsccccclcctttx',
+      ...jaw,
+      '..xCxccccccccsccccccclllllx',
+      '.xCx.xccccccccccccclllllllx',
+      '.xx...xxlllllllllllllllllx',
+      ...feet,
+    ],
+    { c: c.coat, C: c.dark, s: c.dark, l: c.pale },
+  );
+}
+
+/** A tusked hog: low and heavy, a bristled ridge down its back, small ears, sores, tusks. */
+function hog(c: BeastColours, mouth: Mouth, legs: Legs): RowSprite {
+  const jaw =
+    mouth === 0
+      ? ['..xccccccccccccccccccccccccctxnnx', '..xcccccccccccccccccccccccccxtxxf']
+      : ['..xccccccccccccccccccccccccctxmmmx', '..xcccccccccccccccccccccccccxtfffx'];
+  const feet =
+    legs === 0
+      ? ['....xcx..xcx......xcx..xcx', '....xcx..xcx......xcx..xcx', '....xCx..xCx......xCx..xCx']
+      : legs === 1
+        ? ['...xcx....xcx....xcx....xcx', '..xcx......xcx..xcx......xcx', '..xCx......xCx..xCx......xCx']
+        : ['.....xcx.xcx........xcxxcx', '.....xcx.xcx........xcxxcx', '.....xCx.xCx........xCxxCx'];
+  return beastSprite(
+    [
+      '.........x.x.x.x.x.x.x',
+      '........xCxCxCxCxCxCxCx..x',
+      '......xxCCCCCCCCCCCCCCCxxCx',
+      '....xxCccccccccccccccccccCxx',
+      '...xCcccccoccccccccccccccceccxx',
+      '..xCcccccccccccccocccccccccccccx',
+      ...jaw,
+      '..xCccccccccccccccccccccccccx',
+      '...xCCccccccccccccccccccccx',
+      '....xxlllllllllllllllllxx',
+      ...feet,
+    ],
+    { c: c.coat, C: c.dark, l: c.pale },
+  );
+}
+
+/** The nameless thing: hairless and hunched, knobs of spine and ribs showing, sores, a milky eye, a long jaw of too many teeth, spindly legs. */
+function nameless(c: BeastColours, mouth: Mouth, legs: Legs): RowSprite {
+  const jaw =
+    mouth === 0
+      ? ['....xCcccccccccccccccccccxtttttttx', '...xCx.xcccccccccccccccxxtttttttx']
+      : ['....xCcccccccccccccccccccxtttttttx', '...xCx.xcccccccccccccccxxmmmmmmmx'];
+  const feet =
+    legs === 0
+      ? ['........xcx..xcx....xcx.xcx', '........xcx..xcx....xcx.xcx', '........xcx..xcx....xcx.xcx', '.......xcx...xcx....xcx.xcx', '.......xcx...xcx....xcx.xcx', '.......xCx...xCx....xCx.xCx']
+      : legs === 1
+        ? ['.......xcx..........xcx', '......xcx.xcx........xcx.xcx', '.....xcx...xcx........xcx..xcx', '....xcx.....xcx........xcx..xcx', '...xcx.......xcx........xcx..xcx', '...xCx.......xCx........xCx..xCx']
+        : ['..........xcx.xcx..xcx', '..........xcx.xcx..xcx.xcx', '...........xcxxcx.xcx..xcx', '...........xcxxcx.xcx..xcx', '...........xcxxcxxcx..xcx', '...........xCxxCxxCx..xCx'];
+  return beastSprite(
+    [
+      '..............x.x.x.x',
+      '............xxCxCxCxCxx',
+      '..........xxCcccccccccCxx',
+      '........xxCcccrcrcrccccccxx',
+      '.......xCcccccrcrcrcccccccCxx',
+      '......xCccoccrcrcrcccccccccccxx',
+      '.....xCcccccccrcrcrcccccccccccwcx',
+      ...jaw,
+      '..xCx...xccccccccccccxxffx',
+      '..xx.....xxcccccccccx',
+      ...feet,
+    ],
+    { c: c.coat, C: c.dark, r: c.dark, w: SHADES.white },
+  );
+}
+
+type Draw = (c: BeastColours, mouth: Mouth, legs: Legs) => RowSprite;
+
+/** A creature's frames: snarling and screaming in turn, and running. */
+const beastFrames = (draw: Draw, coat: number, dark: number, pale: number) => {
+  const c = { coat, dark, pale };
+  return { idle: [draw(c, 0, 0), draw(c, 1, 0)], walk: [draw(c, 1, 1), draw(c, 0, 2)] };
+};
+
+/** The three at the far end, guarding the box: one of each, the worst of them. */
+export const GUARD_BEASTS = [
+  beastFrames(hyena, SHADES.woodPale, SHADES.wood, SHADES.light),
+  beastFrames(hog, SHADES.dim, SHADES.wood, SHADES.light),
+  beastFrames(nameless, SHADES.light, SHADES.dim, SHADES.white),
+];
+
+/** The creatures in the cages along the way in: a mix, in paler coats so they read against the cage shadows. */
+export const CAGED_BEASTS = [
+  beastFrames(hyena, SHADES.woodPale, SHADES.woodLight, SHADES.white),
+  beastFrames(hog, SHADES.woodLight, SHADES.wood, SHADES.woodPale),
+  beastFrames(nameless, SHADES.white, SHADES.light, SHADES.white),
+  beastFrames(hyena, SHADES.light, SHADES.dim, SHADES.white),
+];
+
 // --- The cast (docs/chapter-2-design.md; looks are Claude's, designer: "up to your judgement") ---
 
 const S = SHADES;
