@@ -1083,28 +1083,29 @@ Object.assign(MOVES, {
     description: '3 lunges, each stronger than the last. Land all 3 to knock him off balance.',
   },
 
-  // Your hand, sparring: practice blades. A fencer first...
+  // Your hand, sparring: practice blades. A blow you get out of the way of barely touches you (designer: a
+  // good dodge still hurt too much). A fencer first...
   hand_lunge: {
-    id: 'hand_lunge', name: 'Lunge', target: 'enemy', power: 7, kind: 'pierce',
+    id: 'hand_lunge', name: 'Lunge', target: 'enemy', power: 7, kind: 'pierce', softened: { dodge: 0.15 },
     qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
     tell: { pose: 'squared', lines: ['“Watch my point. It tells you where I’m going.”', 'He settles back on his heels, point at your chest.'] },
     description: 'A long lunge.',
   },
   hand_cut: {
-    id: 'hand_cut', name: 'Cut', target: 'enemy', power: 4, kind: 'strike', hits: 2,
+    id: 'hand_cut', name: 'Cut', target: 'enemy', power: 4, kind: 'strike', hits: 2, softened: { dodge: 0.15 },
     qte: { kind: 'notes', outer: 180, perfect: 70, gap: 400, lanes: ['left', 'up', 'right'], alt: { kind: 'key', time: 800, quick: 300 } },
     tell: { pose: 'cock', lines: ['“Two. Count them.”', 'His wrist turns over.'] },
     description: 'Two quick cuts.',
   },
   // ...then, pressed, a soldier's tricks: inside your guard, a foot behind yours, the blade in the other hand.
   hand_inside: {
-    id: 'hand_inside', name: 'Inside', target: 'enemy', power: 8, kind: 'grab',
+    id: 'hand_inside', name: 'Inside', target: 'enemy', power: 8, kind: 'grab', softened: { dodge: 0.15 },
     qte: { kind: 'mash', presses: 8, time: 1800, alt: { kind: 'key', time: 800, quick: 300 } },
     tell: { pose: 'reach', lines: ['He drops his point, and steps in close.', 'He lets his guard fall open.'] },
     description: 'Inside your guard: an elbow, and he holds you there. Break free.',
   },
   hand_trip: {
-    id: 'hand_trip', name: 'Trip', target: 'enemy', power: 5, kind: 'shove', exposes: { turns: 2, mult: 1.3 },
+    id: 'hand_trip', name: 'Trip', target: 'enemy', power: 5, kind: 'shove', exposes: { turns: 2, mult: 1.3 }, softened: { dodge: 0.15 },
     qte: { kind: 'bar', time: 1000, zone: [0.62, 0.82], sweet: [0.7, 0.74], alt: { kind: 'key', time: 800, quick: 300 } },
     tell: { pose: 'shift', lines: ['His front foot slides forward.', 'He shifts his weight onto his back foot.'] },
     description: 'A foot behind yours: off your feet, you take more for 2 rounds.',
@@ -1116,7 +1117,7 @@ Object.assign(MOVES, {
   },
   hand_off_hand: {
     id: 'hand_off_hand', name: 'Off hand', target: 'enemy', power: 14, kind: 'pierce',
-    softened: { guard: 0.25, dodge: 0.1 },
+    softened: { guard: 0.25, dodge: 0.05 },
     qte: { kind: 'bar', time: 1200, zone: [0.66, 0.84], sweet: [0.73, 0.77], alt: { kind: 'key', time: 800, quick: 300 } },
     tell: { pose: 'windup', lines: ['The blade’s in his left hand now, and he’s smiling.'] },
     description: 'From the side you weren’t watching. Guard, or Disarm him first.',

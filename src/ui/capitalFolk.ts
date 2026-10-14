@@ -90,7 +90,7 @@ export interface CapitalLook {
   bag?: number;
   hold?: 'pike' | 'baton' | 'slate' | 'cane' | 'glass' | 'letters' | 'case' | 'spanner' | 'chalk' | 'tray' | 'brush';
   /** Arms at the side (swinging), hands behind the back, or clasped in front. */
-  pose?: 'side' | 'behind' | 'front';
+  pose?: 'side' | 'behind' | 'front' | 'reach';
   slender?: boolean;
   belly?: boolean;
 }
@@ -444,6 +444,13 @@ export function courtly(look: CapitalLook, breathe = false, stride = 0): RowSpri
     for (let y = bodyTop + 1; y <= bodyTop + 4; y++) putUp(armX - (look.belly && y < bodyTop + 3 ? 1 : 0), y, sleeve);
     putUp(armX - 1, bodyTop + 5, sleeve);
     if (look.cape === undefined) putUp(x0 - 1, bodyTop + 5, 'S');
+  } else if (pose === 'reach') {
+    // Reaching out ahead, working at a wall: the hand goes up and down with each frame (scrubbing).
+    putUp(armX, bodyTop + 1, sleeve);
+    putUp(armX + 1, bodyTop + 1, sleeve);
+    putUp(armX + 2, bodyTop + (breathe ? -1 : 1), cuff);
+    hand = [armX + 3, bodyTop + (breathe ? -2 : 1)];
+    put(hand[0], hand[1], 's');
   } else if (pose === 'front') {
     for (let y = bodyTop + 1; y <= bodyTop + 4; y++) putUp(armX - (look.belly && y < bodyTop + 3 ? 1 : 0), y, sleeve);
     putUp(armX, bodyTop + 5, cuff);
@@ -510,9 +517,12 @@ export function courtly(look: CapitalLook, breathe = false, stride = 0): RowSpri
         putUp(hX + 1, hY, 'p');
         break;
       case 'brush':
-        // A scrubbing brush on a short handle, the bristles pale.
-        putUp(hX, hY + 1, 'P');
-        span(up(hY + 2), hX - 1, hX + 1, 'p');
+        // A scrubbing brush on a short handle, the bristles pale (held to a wall when reaching).
+        if (pose === 'reach') for (let y = hY - 1; y <= hY + 1; y++) put(hX + 1, y, 'p');
+        else {
+          putUp(hX, hY + 1, 'P');
+          span(up(hY + 2), hX - 1, hX + 1, 'p');
+        }
         break;
       case 'tray':
         span(up(hY - 1), hX - 1, hX + 2, 'g');
@@ -700,6 +710,6 @@ export const CITIZEN_LOOKS: CapitalLook[] = [
   { height: 24, width: 3, skin: 'tan', hair: S.woodLight, hairStyle: 'tail', top: S.dim, topStyle: 'jacket', patches: S.woodLight, belt: S.wood, legs: S.woodLight, scarf: S.cyanMid },
   { height: 22, width: 2, skin: 'dark', hair: S.shadow, hairStyle: 'curls', top: S.amber, topStyle: 'dress', legs: S.wood, boots: S.woodLight },
   // A city worker with a scrubbing brush (Day 1: scrubbing a chalk bird off a wall on the promenade).
-  { height: 24, width: 2, skin: 'tan', hair: S.deep, hairStyle: 'crop', head: 'cap', headColour: S.woodLight, top: S.woodLight, topStyle: 'overalls', sleeve: S.dim, legs: S.woodLight, boots: S.deep, hold: 'brush' },
+  { height: 24, width: 2, skin: 'tan', hair: S.deep, hairStyle: 'crop', head: 'cap', headColour: S.woodLight, top: S.woodLight, topStyle: 'overalls', sleeve: S.dim, legs: S.woodLight, boots: S.deep, hold: 'brush', pose: 'reach' },
 ];
 export const CITIZENS = CITIZEN_LOOKS.map(courtlyFrames);
