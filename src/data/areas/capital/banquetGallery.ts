@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition } from '../types';
-import { cast, courtier, servant, strollingServant, MORNING } from './people';
+import { cast, courtier, inStory, servant, strollingServant, MORNING } from './people';
 
 // The banquet gallery (Chapter 3): dinners and balls, where you feel the tension: flat toasts, empty seats
 // (docs/areas/capital/banquet-gallery.md). A long gallery: the dance floor at one end under a screen; the
@@ -84,23 +84,42 @@ export const banquetGallery: AreaDefinition = {
     strollingServant('server-2', 1, 240, 600, FLOOR, 'c3_servant', MORNING),
     // The evening: music from the gallery, dancing, guests along the table (your father's chair at its head
     // empty), servants with trays; your friend out on the balcony.
-    courtier('harpist', 5, 96, GALLERY, 'banquet_musician', ['evening']),
-    courtier('drummer', 4, 150, GALLERY, 'banquet_musician', ['evening'], { flipX: true }),
-    courtier('dancer-1', 0, 110, FLOOR, 'banquet_dancer', ['evening']),
-    courtier('dancer-2', 3, 126, FLOOR, 'banquet_dancer', ['evening'], { flipX: true }),
-    courtier('guest-1', 2, 300, FLOOR, 'banquet_guest', ['evening']),
-    courtier('guest-2', 6, 372, FLOOR, 'banquet_guest', ['evening'], { flipX: true }),
-    courtier('guest-3', 7, 480, FLOOR, 'banquet_guest', ['evening']),
+    // (Chapter 3, Day 1: not until you've seated the table, when the doors open.)
+    courtier('harpist', 5, 96, GALLERY, 'banquet_musician', ['evening'], { hideIf: 'c3day1=banquet,cards' }),
+    courtier('drummer', 4, 150, GALLERY, 'banquet_musician', ['evening'], { flipX: true, hideIf: 'c3day1=banquet,cards' }),
+    courtier('dancer-1', 0, 110, FLOOR, 'banquet_dancer', ['evening'], { hideIf: 'c3day1=banquet,cards' }),
+    courtier('dancer-2', 3, 126, FLOOR, 'banquet_dancer', ['evening'], { flipX: true, hideIf: 'c3day1=banquet,cards' }),
+    courtier('guest-1', 2, 300, FLOOR, 'banquet_guest', ['evening'], { hideIf: 'c3day1=banquet,cards' }),
+    courtier('guest-2', 6, 372, FLOOR, 'banquet_guest', ['evening'], { flipX: true, hideIf: 'c3day1=banquet,cards' }),
+    courtier('guest-3', 7, 480, FLOOR, 'banquet_guest', ['evening'], { hideIf: 'c3day1=banquet,cards' }),
     strollingServant('server-3', 0, 240, 600, FLOOR, 'c3_server', ['evening']),
     cast('salon_hostess', 420, FLOOR, { knot: 'banquet_hostess', when: ['evening'], flipX: true }),
     cast('heir', 726, FLOOR, { knot: 'banquet_heir', when: ['evening'] }),
     cast('councillor', 560, FLOOR, { knot: 'banquet_councillor', when: ['evening'], flipX: true }), // by your father's empty chair
+    // Chapter 3's story. Day 1: the steward with the seating plan before anyone comes in; then the banquet,
+    // your father at the head of the table and whoever you seated at his right, the other two further down;
+    // your friend on the balcony.
+    inStory('steward', 'steward', 120, FLOOR, 'c3day1=banquet,cards', { knot: 'c3day1_steward' }),
+    inStory('father-1', 'father', 610, FLOOR, 'c3day1=toast,friend', { knot: 'c3day1_father_banquet', flipX: true }),
+    ...(['councillor', 'salon_hostess', 'merchant'] as const).flatMap((who) => {
+      const seat = who === 'salon_hostess' ? 'hostess' : who;
+      const knot = `c3day1_${seat}`;
+      const down = { councillor: 270, salon_hostess: 350, merchant: 430 }[who];
+      return [
+        inStory(`${seat}-right`, who, 556, FLOOR, `seated=${seat}`, { knot, hideIf: 'c3day1=banquet,cards,night,done', flipX: false }),
+        inStory(`${seat}-down`, who, down, FLOOR, 'c3day1=toast,friend', { knot, hideIf: `seated=${seat}`, flipX: who === 'merchant' }),
+      ];
+    }),
+    inStory('heir-1', 'heir', 730, FLOOR, 'c3day1=toast,friend', { knot: 'c3day1_friend', flipX: true }),
   ],
   interactables: [
     { id: 'mirrors', x: 330, y: FLOOR, reach: 10, label: 'Look', knot: 'banquet_mirrors' },
     { id: 'table', x: 440, y: FLOOR, reach: 10, label: 'Look', knot: 'banquet_table' },
     { id: 'chair', x: 604, y: FLOOR, reach: 10, label: 'Look', knot: 'banquet_chair' },
     { id: 'balcony', x: 760, y: FLOOR, reach: 14, label: 'Look', knot: 'banquet_balcony' },
+    // Chapter 3, Day 1: the cards (the chair at your father's right, then two further down).
+    { id: 'card-right', x: 558, y: FLOOR, reach: 10, label: 'Place card', knot: 'c3day1_card_right', showIf: 'c3day1=cards', hideIf: 'right_placed' },
+    { id: 'card-down', x: 286, y: FLOOR, reach: 10, label: 'Place cards', knot: 'c3day1_card_down', showIf: 'right_placed', hideIf: 'cards_done' },
   ],
 
   exits: [{ id: 'to-halls', x: 34, y: FLOOR, reach: 12, to: 'citadel-halls' }],

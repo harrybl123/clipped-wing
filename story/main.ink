@@ -199,7 +199,7 @@ VAR glossary_climb = ""
 // ---- Chapter 2: the borderland (docs/chapter-2-design.md) ----
 // You've found the dog: the dog's hollow, your secret spot, is on the map from then on.
 VAR found_dog = false
-// Which chapter you're playing: 1 (the carver, in the tree) or 2 (the scavenger, in the borderland).
+// Which chapter you're playing: 1 (the carver, in the tree), 2 (the scavenger, in the borderland) or 3 (the prince, in the capital).
 VAR chapter = 1
 // Chapter 2, Day 1 (story/borderland/chapter2-day1.ink; docs/sequences/chapter-2/part-1.md).
 // Stages: dig, brother, trade, tribute, home, done.
@@ -571,6 +571,41 @@ VAR riot_won = false
 VAR friend7 = false
 VAR friend8 = false
 
+// ---- Chapter 3: the prince, in the capital (docs/sequences/chapter-3/plan.md) ----
+// Chapter 3's story is running: the day's own people are where the story has them, and Claude's placeholder
+// schedule for the capital's named cast steps aside (src/data/areas/capital/people.ts).
+VAR c3_story = false
+// What carries through the chapter (and later chapters): small decisions, counted quietly, never shown.
+// `lean`: your duties' answers, towards the people (+1) or towards order (-1). `standing`: how upper society takes you.
+VAR lean = 0
+VAR standing = 0
+// Your hand is walking with you (a follower).
+VAR hand_with_you = false
+// Chapter 3, Day 1 (story/capital/chapter3-day1.ink). Stages: wake, spar, halls, audience, after, walk,
+// requests, banquet, cards, toast, friend, night, done.
+VAR c3day1 = ""
+// The spar with your hand at dawn: "won" or "lost" (the fight writes it).
+VAR spar1 = ""
+VAR tree_seen1 = false
+VAR brief1 = false
+// The petition: you had the woman's street's lift mended today (the glassworks waited a day for its power).
+VAR lift_mended = false
+// The promenade: the stall keeper, and the chalk bird being scrubbed off a wall.
+VAR stall1 = false
+VAR bird1 = false
+// The day's requests at the data centre: you asked about the low district's line; you signed them.
+VAR queried_requests = false
+VAR signed_requests = false
+// The banquet: who sat at your father's right ("councillor", "hostess" or "merchant"), and the cards put out.
+VAR seated = ""
+VAR right_placed = false
+VAR cards_done = false
+// Night: your sister at your telescope.
+VAR sister_called1 = false
+VAR sister_talked1 = false
+// Chapter 3, Day 2 (not built yet).
+VAR c3day2 = ""
+
 INCLUDE prologue.ink
 INCLUDE day1.ink
 INCLUDE day2.ink
@@ -620,6 +655,7 @@ INCLUDE borderland/dogs-hollow.ink
 INCLUDE borderland/rival-line.ink
 INCLUDE borderland/deep-ground.ink
 INCLUDE borderland/trees-edge.ink
+INCLUDE capital/chapter3-day1.ink
 INCLUDE capital/cast.ink
 INCLUDE capital/folk.ink
 INCLUDE capital/looks.ink

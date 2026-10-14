@@ -63,10 +63,13 @@ interface PersonEntry {
   scripted?: boolean;
 }
 
-/** A `barks` condition: a variable that's true, or `<variable>=<value>`. */
+/**
+ * A story condition (people's and things' `showIf`/`hideIf`, `barks`): a variable that's true, or
+ * `<variable>=<value>` (it has that value), or `<variable>=<value>,<value>` (one of those).
+ */
 function barksOn(condition: string, get: (variable: string) => unknown): boolean {
-  const [variable, value] = condition.split('=');
-  return value === undefined ? !!get(variable!) : String(get(variable!)) === value;
+  const [variable, values] = condition.split('=');
+  return values === undefined ? !!get(variable!) : values.split(',').includes(String(get(variable!)));
 }
 
 /** How far behind you (along your path) a follower walks, in px. */
@@ -459,7 +462,7 @@ export class AreaScene extends Phaser.Scene {
     this.usables = area.interactables.map((it) => ({
       ...it,
       use: talk(it.knot),
-      enabled: it.showIf || it.hideIf ? () => (!it.showIf || !!story.getVariable(it.showIf)) && ![it.hideIf ?? []].flat().some((v) => story.getVariable(v)) : undefined,
+      enabled: it.showIf || it.hideIf ? () => (!it.showIf || barksOn(it.showIf, (v) => story.getVariable(v))) && ![it.hideIf ?? []].flat().some((v) => barksOn(v, (w) => story.getVariable(w))) : undefined,
     }));
     for (const exit of area.exits) {
       const known = exit.showIf ? () => !!getSession(this).story.getVariable(exit.showIf!) : undefined;
@@ -1245,7 +1248,7 @@ export class AreaScene extends Phaser.Scene {
     if (this.dialogue.isOpen || this.leaving || !this.player.onGround) return;
     const { story } = getSession(this);
     const { x, y } = this.player.feet;
-    const t = this.triggers.find((t) => Math.abs(x - t.x) <= t.reach && Math.abs(y - t.y) <= 4 && (!t.showIf || story.getVariable(t.showIf)) && !(t.hideIf && story.getVariable(t.hideIf)));
+    const t = this.triggers.find((t) => Math.abs(x - t.x) <= t.reach && Math.abs(y - t.y) <= 4 && (!t.showIf || barksOn(t.showIf, (v) => story.getVariable(v))) && !(t.hideIf && barksOn(t.hideIf, (v) => story.getVariable(v))));
     if (!t) return;
     this.triggers = this.triggers.filter((other) => other !== t);
     this.dialogue.open(t.knot, () => this.conversationClosed());
@@ -1310,8 +1313,8 @@ export class AreaScene extends Phaser.Scene {
     if (entry.racing) return true;
     if (entry.scriptHidden || entry.gone) return false;
     if (person.when && !person.when.includes(calendar.slot)) return false;
-    if (person.showIf && !story.getVariable(person.showIf)) return false;
-    if ([person.hideIf ?? []].flat().some((v) => story.getVariable(v))) return false;
+    if (person.showIf && !barksOn(person.showIf, (v) => story.getVariable(v))) return false;
+    if ([person.hideIf ?? []].flat().some((v) => barksOn(v, (w) => story.getVariable(w)))) return false;
     return true;
   }
 
@@ -1445,6 +1448,7 @@ export class AreaScene extends Phaser.Scene {
    *   #ending:<id>            after the conversation, an ending (e.g. loyal)
    *   #fight:<knot>[:<then>]  after the conversation, the fight close-up plays the knot; back here, <then> plays
    *   #combat:<encounter>[:<then>]  after the conversation, a turn-based fight (src/data/combat.ts); its outcome is written to ink, and back here, <then> plays
+   *   #walk:<id>:<x>[:<speed>]  they walk to x on their floor and stay there, facing you
    *   #turn                   the crowd turns its back on you
    *   #rise                   you're taken up into the tube: you lift off the floor and rise out of sight
    *   #daylight:<x>:<top>:<floor>  daylight breaks in through the wall at (x, top), a shaft down to the floor
@@ -1501,6 +1505,14 @@ export class AreaScene extends Phaser.Scene {
               entry.scriptHidden = true;
               entry.image.setVisible(false);
             });
+          }
+          break;
+        case 'walk':
+          // #walk:<id>:<x>[:<speed>]: they walk to x on their floor and stay there, turning back to face you.
+          if (entry) {
+            entry.scripted = true;
+            entry.image.setVisible(true);
+            this.walkTo(entry, Number(args[1]), Number(args[2] ?? 40), () => entry.image.setFlipX(this.player.feet.x < entry.image.x));
           }
           break;
         case 'bark': {
@@ -2235,7 +2247,7 @@ export class AreaScene extends Phaser.Scene {
         const keys = feature.frames.map((f, i) => makeSpriteTexture(this, `frames-${feature.x}-${feature.y}-${i}`, f.rows, f.colours));
         const image = this.add.image(feature.x, feature.y, keys[0]!).setOrigin(0).setDepth(3);
         let frame = 0;
-        const shown = () => !feature.showIf || !!getSession(this).story.getVariable(feature.showIf);
+        const shown = () => !feature.showIf || barksOn(feature.showIf, (v) => getSession(this).story.getVariable(v));
         image.setVisible(shown());
         this.time.addEvent({ delay: feature.every, loop: true, callback: () => image.setTexture(keys[(frame = (frame + 1) % keys.length)]!).setVisible(shown()) });
         break;

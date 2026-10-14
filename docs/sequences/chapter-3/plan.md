@@ -77,6 +77,8 @@ Opens on the chapter card: "Chapter 3", **The Prince** (designer). No tutorial c
 
 **Combat: the prince's moves** (designer, 2026-10-14: "go with your suggestion"). Fencing first: a quick *Thrust* (a fast QTE), a *Parry* (a good dodge turns the blow, like her Brace), a *Feint* (tests his read: Act 1's tells, turned round), and something that's his: *Command* (a royal's trick: "Yield." a word that makes the weaker foe hesitate; useless on your hand). Your hand's moves: a fencer's, until the soldier's tricks come out (*Inside*, *Trip*, *Off hand*). A new stage: the balcony at dawn, the city below.
 
+**As built (2026-10-14).** `story/capital/chapter3-day1.ink`, stages in `c3day1`. Small changes made while building (Harry to check): the spar is "until one of us yields" (it's fought on health, not touches); dawn reads as early light (the morning sky is daylight); your hand meets you at the door, then waits on the balcony; you walk down to the audience with him following, and he briefs you along the gallery; the petitioners wait by the benches and step up to the rope in turn, and the hall empties after; on the promenade the stall keeper and the chalk bird are things that happen as you walk (the bird on the low wall at the back of the square, under the great screen with your face on it); your hand leaves you at the data centre ("I'll see you there"); seating is the steward's question, then placing two cards (your father's right, then two further down), then the doors open; your sister speaks when you come into your dark rooms, and you talk to her before bed. Dev: `?chapter=3`, `&at=spar|audience|walk|requests|banquet|night`.
+
 ---
 
 ## Day 2: the art of war (suggestion, unless marked)

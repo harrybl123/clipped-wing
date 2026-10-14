@@ -4,9 +4,11 @@ import { COMBATANTS, ENCOUNTERS, ITEMS, LESSONS, type Lesson, MOVES } from '../d
 import { getSession } from '../session';
 import { Battle, type Action, type BattleEvent, type Combatant, type Intent, type MoveDef, type Reaction } from '../systems/Combat';
 import type { Grade, Key, Qte, QteKind } from '../systems/qte';
-import { BEETLE_BATTLE, CARVER_BATTLE, COLLECTOR_BATTLE, COLLECTOR_BIG_BATTLE, TICKER_BATTLE, SCOUT_BATTLE, PICKER_BATTLE, PICKER_LOUD_BATTLE, DOG_BATTLE, ENFORCER_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, OLD_SCAV_BATTLE, RAIDER_BATTLE, RAIDER_LEAD_BATTLE, SCAVENGER_BATTLE, SCAVENGER_FISTS_BATTLE, SCOUT_BACK_BATTLE, SON_BACK_BATTLE, SON_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, WATCHER_BACK_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
+import { BEETLE_BATTLE, CARVER_BATTLE, HAND_BATTLE, PRINCE_BATTLE, COLLECTOR_BATTLE, COLLECTOR_BIG_BATTLE, TICKER_BATTLE, SCOUT_BATTLE, PICKER_BATTLE, PICKER_LOUD_BATTLE, DOG_BATTLE, ENFORCER_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, OLD_SCAV_BATTLE, RAIDER_BATTLE, RAIDER_LEAD_BATTLE, SCAVENGER_BATTLE, SCAVENGER_FISTS_BATTLE, SCOUT_BACK_BATTLE, SON_BACK_BATTLE, SON_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, WATCHER_BACK_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
 import { CAST, DOG, RIVALS } from '../ui/borderlandFolk';
-import { GIRL, PROTAGONIST, SCAVENGER } from '../ui/characters';
+import { GIRL, PRINCE, PROTAGONIST, SCAVENGER } from '../ui/characters';
+import { CAPITAL_CAST } from '../ui/capitalFolk';
+import { cityViewPainter } from '../ui/paintCityView';
 import { paintFar } from '../ui/paintOutdoor';
 import { QteRunner } from '../ui/QteRunner';
 import { addLight, falloff, noise, rgb, SHADES } from '../ui/pixelArt';
@@ -95,6 +97,9 @@ const LOOKS: Record<string, Look> = {
   picker_loud: { poses: PICKER_LOUD_BATTLE, scale: 1 },
   ticker: { poses: TICKER_BATTLE, scale: 1 },
   scout: { poses: SCOUT_BATTLE, scale: 1 },
+  // Chapter 3.
+  prince: { poses: PRINCE_BATTLE, scale: 2, cutIn: PRINCE.idle[0]! },
+  hand: { poses: HAND_BATTLE, scale: 1, cutIn: CAPITAL_CAST.diplomat.idle[0]! },
 };
 
 interface View {
@@ -208,7 +213,7 @@ export class CombatScene extends Phaser.Scene {
     this.lessons = [...(encounter.teaches ?? []), ...(also && !getSession(this).story.getVariable(also.unless) ? also.lessons : [])];
     // The stage: where it's fought.
     const where = encounter.stage ?? 'market';
-    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : where === 'fields' ? paintFieldsStage() : where === 'camp' ? paintCampStage() : where === 'bar' ? paintBarStage() : where === 'den' ? paintDenStage() : where === 'yard' ? paintYardStage() : paintStage());
+    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : where === 'fields' ? paintFieldsStage() : where === 'camp' ? paintCampStage() : where === 'bar' ? paintBarStage() : where === 'den' ? paintDenStage() : where === 'yard' ? paintYardStage() : where === 'balcony' ? paintBalconyStage() : paintStage());
     stage.setTexture(`combat-stage-${where}`);
     const party = this.battle.combatants.filter((c) => c.side === 'party');
     const enemies = this.battle.combatants.filter((c) => c.side === 'enemy');
@@ -405,6 +410,15 @@ export class CombatScene extends Phaser.Scene {
   private async enemyTurn(actor: Combatant): Promise<void> {
     const view = this.views.get(actor.id)!;
     const intent = this.battle.intentOf(actor.id);
+    if (actor.hesitating) {
+      // Told to yield: he hesitates, and his moment goes by.
+      this.say(`${actor.def.name} hesitates.`);
+      this.setPose(view, 'wobble');
+      await this.tween(view.sprite, { x: view.home.x - 3, duration: 160, yoyo: true });
+      this.setPose(view, 'idle');
+      await this.play(this.battle.enemyTurn());
+      return;
+    }
     if (!intent) {
       // His big blow was broken: he spends the turn finding his feet.
       this.say(`${actor.def.name} stumbles.`);
@@ -751,6 +765,22 @@ export class CombatScene extends Phaser.Scene {
           playSound(this, 'tick');
           this.setPose(t, 'guard');
           this.popLabel('BRACED', t, SHADES.cyan, 18);
+          break;
+        }
+        case 'feintRead': {
+          // He didn't bite.
+          const t = this.views.get(e.target)!;
+          playSound(this, 'tick');
+          this.popLabel('READ IT', t, SHADES.light, 18);
+          break;
+        }
+        case 'commanded': {
+          // "Yield."
+          const t = this.views.get(e.target)!;
+          playSound(this, e.unmoved ? 'tick' : 'shimmer', 0.6);
+          if (!e.unmoved) this.flashWhite(t, 120);
+          this.popLabel(e.unmoved ? 'UNMOVED' : 'HESITATES', t, e.unmoved ? SHADES.light : SHADES.amber, 18);
+          this.refresh();
           break;
         }
         case 'revealed': {
@@ -1917,5 +1947,36 @@ function paintYardStage() {
     if (tree || crown) return SHADES.shadow;
     const star = noise(x * 13.1 + y * 7.3) > 0.985;
     return star ? SHADES.dim : addLight(deep, rgb(SHADES.cyanDeep), 0.15 + (1 - y / HORIZON) * 0.1);
+  };
+}
+
+/**
+ * Your balcony at dawn (Chapter 3, Day 1): the sky pale, the city falling away below with the tree far off
+ * on the horizon (the areas' own view of the city), the rail across the back, and the balcony's pale marble
+ * under your feet, veined, gold at its edge.
+ */
+function paintBalconyStage() {
+  const RAIL = HORIZON - 4;
+  const view = cityViewPainter({ x: 0, y: 0, width: W, height: RAIL, horizon: 52, treeX: 390, treeScale: 0.14 }, 'morning');
+  const marble = rgb(SHADES.light);
+  const vein = rgb(SHADES.dim);
+  const dawn = rgb(SHADES.amber);
+  const vx = 260;
+  return (x: number, y: number) => {
+    if (y < RAIL - 14) return view(x, y);
+    // The rail: a gold capping, then balusters with the city between them.
+    if (y < RAIL - 12) return SHADES.amber;
+    if (y < RAIL - 10) return SHADES.light;
+    if (y < RAIL - 2) return (x % 12) < 4 ? (x % 12 === 0 ? SHADES.dim : SHADES.light) : view(x, y);
+    if (y < RAIL) return SHADES.light;
+    if (y < HORIZON) return SHADES.amberDeep;
+    // The marble floor in perspective: big slabs, a vein through each, the dawn warm across it.
+    const depth = (y - HORIZON) / (H - HORIZON);
+    const u = (x - vx) / Math.max(0.05, depth);
+    const seam = Math.abs((((u / 60) % 1) + 1) % 1 - 0.5) > 0.485 || Math.abs(((1 / Math.max(0.06, depth)) * 1.2) % 1 - 0.5) > 0.48;
+    const base = addLight(addLight(marble, rgb(SHADES.white), 0.35), dawn, 0.04 + (1 - depth) * 0.05);
+    if (seam) return SHADES.dim;
+    if (Math.abs(noise2(u / 40, y / 9) - 0.5) < 0.012) return addLight(base, vein, 0.45);
+    return base;
   };
 }

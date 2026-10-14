@@ -2,7 +2,8 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './cityProps';
 import { rail, scrollingScreen } from './citadelProps';
 import type { AreaDefinition, Feature, Prop, Solid } from '../types';
-import { cast, citizen, patrol, strollingCitizen, watch, AWAKE, DAY, LATE, MORNING } from './people';
+import type { RowSprite } from '../../../ui/sprites';
+import { cast, citizen, guard, inStory, patrol, strollingCitizen, watch, AWAKE, DAY, LATE, MORNING } from './people';
 
 // The promenade (Chapter 3): the mid-city market, where the city meets, between the citadel and the low
 // district (docs/areas/capital/promenade.md). The first street in the city, so it sets the look: the
@@ -38,6 +39,13 @@ function shop(x: number, width: number, seed: number, floor: number, top: number
 
 /** A stall's steam, and a vent's. */
 const steam = (x: number, y: number): Feature => ({ type: 'smoke', x, y, top: y - 90 });
+
+/** Chapter 3, Day 1: the symbol in chalk, its right side already scrubbed away to a smear. */
+const HALF_SCRUBBED: RowSprite = (() => {
+  const chalk = P.symbolMark('chalk');
+  const scrubbed = P.symbolMark('scrubbed');
+  return { ...chalk, rows: chalk.rows.map((row, y) => row.slice(0, 11) + scrubbed.rows[y]!.slice(11)) };
+})();
 
 export const promenade: AreaDefinition = {
   id: 'promenade',
@@ -122,6 +130,12 @@ export const promenade: AreaDefinition = {
     { type: 'frames', frames: P.signFrames(44, 12, 4), x: 660, y: 48, every: 340 },
     { type: 'frames', frames: P.signFrames(26, 12, 5), x: 820, y: 66, every: 290 },
     steam(340, FLOOR - 22),
+    // Chapter 3, Day 1, the official walk: a chalk bird half scrubbed off a wall; the stall keeper presses
+    // food on you; people bow as you pass.
+    { type: 'frames', frames: [HALF_SCRUBBED], x: 296, y: FLOOR - 24, every: 500, showIf: 'c3day1=walk,requests' },
+    { type: 'trigger', x: 346, y: FLOOR, reach: 10, knot: 'c3day1_stall', showIf: 'c3day1=walk', hideIf: 'stall1' },
+    { type: 'trigger', x: 268, y: FLOOR, reach: 12, knot: 'c3day1_bird', showIf: 'c3day1=walk', hideIf: 'bird1' },
+    { type: 'barks', lines: [{ who: 'passer-1', text: 'Highness.', wait: 2400 }, { who: 'shopper-3', text: 'Highness!', wait: 2400 }, { who: 'passer-2', text: 'Highness.' }], loopFrom: 99, showIf: 'c3day1=walk' },
     steam(454, FLOOR - 22),
     steam(503, FLOOR - 8),
     // Light running along the walkway's rail.
@@ -144,13 +158,17 @@ export const promenade: AreaDefinition = {
     // At night, in the rain: someone hooded, the watch on its beat.
     strollingCitizen('hooded', 2, 100, 900, FLOOR, 'promenade_night', ['night']),
     patrol('watch-1', 1, 200, 580, FLOOR, 'c3_watch', LATE),
-    watch('watch-2', 0, 562, FLOOR, 'c3_watch', ['afternoon', 'night'], { flipX: true }),
+    watch('watch-2', 0, 562, FLOOR, 'c3_watch', ['afternoon', 'night'], { flipX: true, hideIf: 'c3day1=walk,requests' }),
     // The commander of the watch, looking the square over.
     cast('commander', 540, FLOOR, { knot: 'promenade_commander', when: ['afternoon'] }),
     // The reformer talking to people in the morning; the kid who chalks the symbol; the envoy, lost, in the evening.
     cast('reformer', 480, FLOOR, { knot: 'promenade_reformer', when: MORNING }),
     cast('painter', 250, FLOOR, { knot: 'promenade_painter', when: MORNING }),
     cast('envoy', 250, FLOOR, { id: 'envoy-evening', knot: 'promenade_envoy', when: ['evening'] }),
+    // Chapter 3's story. Day 1: a city worker scrubbing the chalk bird, one of your guards close by; your hand with you.
+    citizen('scrubber', 14, 324, FLOOR, 'c3day1_scrubber', undefined, { showIf: 'c3day1=walk,requests', flipX: true }),
+    guard('escort', 0, 236, FLOOR, 'c3_guard', undefined, { showIf: 'c3day1=walk' }),
+    inStory('hand', 'diplomat', 40, FLOOR, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
   ],
   interactables: [
     { id: 'screen', x: 410, y: FLOOR, reach: 10, label: 'Look', knot: 'promenade_screen' },

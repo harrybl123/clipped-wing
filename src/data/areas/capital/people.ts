@@ -15,7 +15,11 @@ export const OPEN_LATE: TimeSlot[] = ['afternoon', 'evening', 'night'];
 
 type Frames = { idle: RowSprite[]; walk: RowSprite[] };
 
-/** One of the named cast, standing (`knot` to talk). They turn to face you when you talk. */
+/**
+ * One of the named cast, standing (`knot` to talk), where Claude's placeholder schedule puts them, for
+ * wandering the capital outside the story (`?area=`). Once Chapter 3's story is running (`c3_story`), the
+ * day's own people take over (`inStory`), so the screen matches the text. They turn to face you when you talk.
+ */
 export const cast = (who: CapitalCastId, x: number, y: number, extra: Partial<Person> = {}): Person => ({
   id: who,
   sprite: CAPITAL_CAST[who].idle[0]!,
@@ -25,6 +29,20 @@ export const cast = (who: CapitalCastId, x: number, y: number, extra: Partial<Pe
   y,
   speaker: who,
   turns: true,
+  hideIf: 'c3_story',
+  ...extra,
+});
+
+/**
+ * One of the named cast where the story has them (Chapter 3's days): there while `showIf` holds (usually
+ * a day's stage: `c3day1=audience,after`), at any time of day unless `when` says otherwise. Their own `id`,
+ * so the placeholder's and the story's can share an area.
+ */
+export const inStory = (id: string, who: CapitalCastId, x: number, y: number, showIf: string, extra: Partial<Person> = {}): Person => ({
+  ...cast(who, x, y),
+  id,
+  showIf,
+  hideIf: undefined,
   ...extra,
 });
 

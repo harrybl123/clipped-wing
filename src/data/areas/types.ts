@@ -169,7 +169,7 @@ export interface Person {
   /** Walks back and forth between these x positions (with `walkFrames`), pausing now and then. Wanderers can't be talked to. */
   wander?: { from: number; to: number };
   walkFrames?: RowSprite[];
-  /** Only here while this ink variable is true / false (the story decides, e.g. someone who's moved on). */
+  /** Only here while this ink variable is true / false (the story decides, e.g. someone who's moved on), or `<variable>=<value>[,<value>]` (while it has one of those values: `c3day1=banquet`). */
   showIf?: string;
   hideIf?: string | string[];
   /** Hidden until a scripted `#show:<id>` tag brings them on (e.g. the master at the Ascension). */

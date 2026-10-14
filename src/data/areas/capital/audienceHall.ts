@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition, Solid } from '../types';
-import { cast, citizen, courtier, guard, strollingServant, DAY, MORNING } from './people';
+import { cast, citizen, courtier, guard, inStory, strollingServant, DAY, MORNING } from './people';
 
 // The audience hall (Chapter 3): where envoys and petitioners come before the throne
 // (docs/areas/capital/audience-hall.md). Huge and cold: marble columns, a gold-inlaid floor, high windows,
@@ -110,7 +110,7 @@ export const audienceHall: AreaDefinition = {
     citizen('petitioner-3', 3, 380, FLOOR, 'audience_petitioner', MORNING),
     citizen('petitioner-4', 2, 470, FLOOR, 'audience_petitioner', MORNING),
     citizen('petitioner-5', 12, 512, FLOOR, 'audience_petitioner', MORNING),
-    citizen('petitioner-6', 9, 300, FLOOR, 'audience_petitioner', ['afternoon']),
+    citizen('petitioner-6', 9, 300, FLOOR, 'audience_petitioner', ['afternoon'], { hideIf: 'c3day1=after,walk,requests' }),
     courtier('courtier-1', 0, 230, FLOOR, 'audience_courtier', MORNING),
     courtier('courtier-2', 7, 430, FLOOR, 'audience_courtier', DAY, { flipX: true }),
     strollingServant('sweeper', 0, 180, 500, FLOOR, 'c3_servant', ['evening']),
@@ -120,11 +120,21 @@ export const audienceHall: AreaDefinition = {
     cast('captain', 544, FLOOR, { knot: 'audience_captain', when: MORNING, flipX: true }),
     // The envoy, still waiting to be heard.
     cast('envoy', 512, FLOOR, { knot: 'audience_envoy', when: ['afternoon'] }),
+    // Chapter 3's story. Day 1: your father on the throne, the captain at the rope, the morning's three
+    // petitioners waiting among the rest (the merchant, the envoy, and the woman whose lift is broken: yours);
+    // your hand with you.
+    inStory('father-1', 'father', 689, DAIS, 'c3day1=audience,after,walk', { knot: 'c3day1_father', flipX: true }),
+    inStory('captain-1', 'captain', 544, FLOOR, 'c3day1=audience,after', { knot: 'c3day1_captain', flipX: true }),
+    inStory('woman', 'petitioner', 232, FLOOR, 'c3day1=audience', { knot: 'c3day1_waiting' }),
+    inStory('merchant', 'merchant', 330, FLOOR, 'c3day1=audience', { knot: 'c3day1_waiting' }),
+    inStory('envoy-1', 'envoy', 428, FLOOR, 'c3day1=audience', { knot: 'c3day1_waiting', flipX: true }),
+    inStory('hand', 'diplomat', 60, FLOOR, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
   ],
   interactables: [
     { id: 'gate', x: 64, y: FLOOR, reach: 10, label: 'Look', knot: 'audience_gate' },
     { id: 'benches', x: 340, y: FLOOR, reach: 14, label: 'Look', knot: 'audience_benches' },
-    { id: 'seat', x: 654, y: DAIS, reach: 10, label: 'Look', knot: 'audience_seat' },
+    { id: 'seat', x: 654, y: DAIS, reach: 10, label: 'Look', knot: 'audience_seat', hideIf: 'c3day1=audience' },
+    { id: 'seat-1', x: 654, y: DAIS, reach: 10, label: 'Sit', knot: 'c3day1_audience', showIf: 'c3day1=audience' },
     { id: 'throne', x: 704, y: DAIS, reach: 10, label: 'Look', knot: 'audience_throne' },
   ],
 

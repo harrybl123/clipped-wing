@@ -88,7 +88,7 @@ export interface CapitalLook {
   boots?: number;
   /** A bag over the shoulder, in this colour. */
   bag?: number;
-  hold?: 'pike' | 'baton' | 'slate' | 'cane' | 'glass' | 'letters' | 'case' | 'spanner' | 'chalk' | 'tray';
+  hold?: 'pike' | 'baton' | 'slate' | 'cane' | 'glass' | 'letters' | 'case' | 'spanner' | 'chalk' | 'tray' | 'brush';
   /** Arms at the side (swinging), hands behind the back, or clasped in front. */
   pose?: 'side' | 'behind' | 'front';
   slender?: boolean;
@@ -509,6 +509,11 @@ export function courtly(look: CapitalLook, breathe = false, stride = 0): RowSpri
       case 'chalk':
         putUp(hX + 1, hY, 'p');
         break;
+      case 'brush':
+        // A scrubbing brush on a short handle, the bristles pale.
+        putUp(hX, hY + 1, 'P');
+        span(up(hY + 2), hX - 1, hX + 1, 'p');
+        break;
       case 'tray':
         span(up(hY - 1), hX - 1, hX + 2, 'g');
         putUp(hX, hY - 2, 'w');
@@ -622,6 +627,13 @@ export const CAPITAL_CAST_LOOKS = {
   hideout_keeper: { height: 26, width: 4, skin: 'tan', hair: S.woodLight, hairStyle: 'tail', beard: 'full', top: S.deep, topStyle: 'vest', apron: S.light, belt: S.amberDeep, legs: S.wood },
   /** The physician, your father's doctor: a long white coat, a high blue collar and buttons, a case; greying hair. */
   physician: { height: 26, width: 2, skin: 'dark', hair: S.dim, hairStyle: 'short', beard: 'stubble', top: S.white, topStyle: 'coat', collar: S.cyanMid, buttons: S.cyanMid, belt: S.light, legs: S.woodLight, hold: 'case' },
+  // Day 1's people (docs/sequences/chapter-3/plan.md).
+  /** The woman from the low district whose street's lift is broken: her best, which isn't much; a worn long coat, a patched scarf, her hair tied up. */
+  petitioner: { height: 23, width: 2, skin: 'dark', hair: S.shadow, hairStyle: 'bun', top: S.dim, topStyle: 'long', patches: S.woodPale, scarf: S.woodLight, legs: S.woodLight, pose: 'front' },
+  /** The merchant with the glassworks on the promenade: prosperous and round, a gold-brown coat with gold trim, a pale sash, a sample of his glass in hand. */
+  merchant: { height: 25, width: 3, belly: true, skin: 'fair', hair: S.woodPale, hairStyle: 'receding', beard: 'moustache', top: S.amberMid, topStyle: 'coat', collar: S.amberDeep, trim: S.amber, sash: S.light, buttons: S.amber, legs: S.wood, hold: 'glass' },
+  /** The steward of the citadel's household: upright, grey, in the household's black and gold, the seating plan in hand. */
+  steward: { height: 26, width: 2, skin: 'tan', hair: S.light, hairStyle: 'short', top: S.deep, topStyle: 'long', collar: S.amber, trim: S.amber, buttons: S.amber, legs: S.deep, hold: 'letters' },
 } satisfies Record<string, CapitalLook>;
 
 export type CapitalCastId = keyof typeof CAPITAL_CAST_LOOKS;
@@ -687,5 +699,7 @@ export const CITIZEN_LOOKS: CapitalLook[] = [
   { height: 25, width: 2, skin: 'fair', hair: S.woodPale, hairStyle: 'crop', head: 'lens', top: S.cyanDeep, topStyle: 'jacket', glow: true, belt: S.shadow, legs: S.wood, hold: 'slate' },
   { height: 24, width: 3, skin: 'tan', hair: S.woodLight, hairStyle: 'tail', top: S.dim, topStyle: 'jacket', patches: S.woodLight, belt: S.wood, legs: S.woodLight, scarf: S.cyanMid },
   { height: 22, width: 2, skin: 'dark', hair: S.shadow, hairStyle: 'curls', top: S.amber, topStyle: 'dress', legs: S.wood, boots: S.woodLight },
+  // A city worker with a scrubbing brush (Day 1: scrubbing a chalk bird off a wall on the promenade).
+  { height: 24, width: 2, skin: 'tan', hair: S.deep, hairStyle: 'crop', head: 'cap', headColour: S.woodLight, top: S.woodLight, topStyle: 'overalls', sleeve: S.dim, legs: S.woodLight, boots: S.deep, hold: 'brush' },
 ];
 export const CITIZENS = CITIZEN_LOOKS.map(courtlyFrames);

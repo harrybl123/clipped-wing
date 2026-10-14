@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition } from '../types';
-import { cast, servant, MORNING } from './people';
+import { cast, inStory, servant, MORNING } from './people';
 
 // Your quarters (Chapter 3): the prince's private rooms high in the citadel, and the first area of the
 // capital, so it sets the look (docs/areas/capital/prince-quarters.md): white marble with grey veins, gold,
@@ -80,14 +80,25 @@ export const princeQuarters: AreaDefinition = {
     { sprite: P.column(30), x: W - 14, y: FLOOR - 30 },
   ],
 
-  features: [{ type: 'frames', frames: P.scrollingScreen(44, 28), x: 334, y: 100, every: 500 }],
+  features: [
+    { type: 'frames', frames: P.scrollingScreen(44, 28), x: 334, y: 100, every: 500 },
+    // Chapter 3, Day 1: stepping out onto the balcony at dawn; coming in at night to someone at your telescope.
+    { type: 'trigger', x: BALCONY + 8, y: FLOOR, reach: 6, knot: 'c3day1_tree', showIf: 'c3day1=spar', hideIf: 'tree_seen1' },
+    { type: 'trigger', x: 50, y: FLOOR, reach: 14, knot: 'c3day1_home', showIf: 'c3day1=night', hideIf: 'sister_called1' },
+  ],
   people: [
     servant('maid', 0, 112, FLOOR, 'c3_maid', MORNING, { flipX: true }), // making the bed
     cast('sister', 452, FLOOR, { knot: 'quarters_sister', when: ['evening'] }), // at your telescope
     cast('heir', 300, FLOOR, { knot: 'quarters_heir', when: MORNING, flipX: true }), // come to fetch you
+    // Chapter 3's story. Day 1: your hand at the door at dawn, then out on the balcony with the practice
+    // blades; your sister at your telescope at night.
+    // (He waits on the balcony; the morning opens with him at the door: `c3day1_start` puts him there.)
+    inStory('hand', 'diplomat', 526, FLOOR, 'c3day1=wake,spar', { knot: 'c3day1_hand', flipX: true }),
+    inStory('sister-1', 'sister', 452, FLOOR, 'c3day1=night', { knot: 'c3day1_sister' }),
   ],
   interactables: [
-    { id: 'bed', x: 84, y: FLOOR, reach: 14, label: 'Look', knot: 'quarters_bed' },
+    { id: 'bed', x: 84, y: FLOOR, reach: 14, label: 'Look', knot: 'quarters_bed', hideIf: 'c3day1=night' },
+    { id: 'bed-1', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day1_bed', showIf: 'c3day1=night' },
     { id: 'mirror', x: 160, y: FLOOR, reach: 10, label: 'Look', knot: 'quarters_mirror' },
     { id: 'blades', x: 202, y: FLOOR, reach: 10, label: 'Look', knot: 'quarters_blades' },
     { id: 'game', x: 272, y: FLOOR, reach: 10, label: 'Look', knot: 'quarters_game' },

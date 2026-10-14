@@ -1009,7 +1009,7 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
 
   // Chapter 3, the capital (looks and faces are Claude's, names placeholders; src/ui/capitalFolk.ts).
   father: { name: 'Your father', portrait: capitalPortrait(C3.father, { build: 'plain', age: 1, brow: 'heavy', eyes: 'tired', nose: 'long', mouth: 'thin' }), voice: 'king' },
-  diplomat: { name: 'The diplomat', portrait: capitalPortrait(C3.diplomat, { jaw: 'soft', age: 1, brow: 'arched', nose: 'broad', mouth: 'smile' }), voice: 'hand' },
+  diplomat: { name: 'Your hand', portrait: capitalPortrait(C3.diplomat, { jaw: 'soft', age: 1, brow: 'arched', nose: 'broad', mouth: 'smile' }), voice: 'hand' },
   sister: { name: 'Your sister', portrait: capitalPortrait(C3.sister, { build: 'narrow', jaw: 'pointed', brow: 'raised', eyes: 'lashes', nose: 'small', mouth: 'smirk' }), voice: 'sister' },
   captain: { name: 'The captain', portrait: capitalPortrait(C3.captain, { build: 'broad', age: 1, brow: 'knit', eyes: 'narrow', mouth: 'thin', items: ['scar'] }), voice: 'captain' },
   councillor: { name: 'The old councillor', portrait: capitalPortrait(C3.councillor, { build: 'narrow', age: 2, brow: 'heavy', eyes: 'tired', nose: 'long', mouth: 'flat' }), voice: 'elder' },
@@ -1018,6 +1018,9 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
   envoy: { name: 'The envoy', portrait: capitalPortrait(C3.envoy, { age: 1, brow: 'heavy', eyes: 'narrow', nose: 'broad', mouth: 'frown' }), voice: 'roots_man' },
   operator: { name: 'The operator', portrait: capitalPortrait(C3.operator, { build: 'narrow', jaw: 'pointed', brow: 'thin', mouth: 'flat', items: ['piercing', 'tattoo'] }), voice: 'roots_woman' },
   lift_operator: { name: 'The lift operator', portrait: capitalPortrait(C3.lift_operator, { build: 'broad', age: 2, brow: 'heavy', eyes: 'tired', nose: 'broad', mouth: 'smile' }), voice: 'old' },
+  petitioner: { name: 'The woman', portrait: capitalPortrait(C3.petitioner, { jaw: 'soft', age: 1, brow: 'knit', eyes: 'tired', mouth: 'flat' }), voice: 'roots_woman' },
+  merchant: { name: 'The merchant', portrait: capitalPortrait(C3.merchant, { build: 'broad', jaw: 'soft', age: 1, brow: 'raised', nose: 'broad', mouth: 'smile' }), voice: 'upper' },
+  steward: { name: 'The steward', portrait: capitalPortrait(C3.steward, { build: 'narrow', age: 2, brow: 'straight', eyes: 'narrow', nose: 'long', mouth: 'thin' }), voice: 'elder' },
   painter: { name: 'The kid', portrait: capitalPortrait(C3.painter, { build: 'child', jaw: 'soft', brow: 'raised', eyes: 'wide', nose: 'small', mouth: 'smirk' }), voice: 'boy' },
   reformer: { name: 'The reformer', portrait: capitalPortrait(C3.reformer, { build: 'narrow', brow: 'knit', eyes: 'wide', mouth: 'flat' }), voice: 'preacher' },
   commander: { name: 'The commander', portrait: capitalPortrait(C3.commander, { jaw: 'square', age: 1, brow: 'straight', eyes: 'narrow', mouth: 'thin' }), voice: 'commander' },
@@ -1040,7 +1043,7 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
   ...capitalGroup('servant', SERVANT_LOOKS, ['A servant', 'A page', 'The gardener'], [{ mouth: 'flat' }, { build: 'narrow', jaw: 'soft', eyes: 'wide', nose: 'small', mouth: 'flat' }, { build: 'broad', age: 2, eyes: 'tired', mouth: 'smile' }], ['roots_man', 'young', 'old']),
   ...capitalGroup('councillor', COUNCIL_LOOKS, ['A councillor'], [{ age: 1, brow: 'heavy', mouth: 'thin' }, { jaw: 'soft', age: 1, brow: 'thin', eyes: 'narrow', mouth: 'flat' }, { age: 2, brow: 'raised', eyes: 'tired', nose: 'long', mouth: 'frown', items: ['spectacles'] }], ['elder', 'lady', 'old']),
   ...capitalGroup('watch', WATCH_LOOKS, ['The watch'], [{ build: 'broad', brow: 'heavy', eyes: 'narrow', mouth: 'frown' }, { jaw: 'soft', brow: 'knit', mouth: 'thin', items: ['freckles'] }], ['guard', 'commander']),
-  ...capitalGroup('citizen', CITIZEN_LOOKS, ['Someone', 'A man', 'A woman', 'An old woman', 'A man', 'A woman', 'A kid', 'A man', 'A woman', 'A man', 'A woman', 'Someone', 'Someone', 'A girl'], [
+  ...capitalGroup('citizen', CITIZEN_LOOKS, ['Someone', 'A man', 'A woman', 'An old woman', 'A man', 'A woman', 'A kid', 'A man', 'A woman', 'A man', 'A woman', 'Someone', 'Someone', 'A girl', 'A worker'], [
     { build: 'narrow', jaw: 'pointed', brow: 'raised', mouth: 'smirk', items: ['piercing', 'tattoo'] },
     { build: 'broad', age: 1, brow: 'heavy', nose: 'broad', mouth: 'frown' },
     { jaw: 'soft', brow: 'knit', eyes: 'lashes', mouth: 'flat' },
@@ -1055,5 +1058,6 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
     { build: 'narrow', brow: 'thin', mouth: 'thin', items: ['piercing'] },
     { jaw: 'soft', brow: 'raised', eyes: 'tired', mouth: 'flat', items: ['freckles'] },
     { build: 'child', jaw: 'soft', brow: 'arched', eyes: 'lashes', nose: 'small', mouth: 'smile' },
-  ], ['young', 'roots_man', 'roots_woman', 'old', 'roots_man', 'roots_woman', 'boy', 'roots_man', 'roots_woman', 'roots_man', 'roots_woman', 'young', 'roots_woman', 'girl']),
+    { build: 'plain', jaw: 'square', brow: 'knit', eyes: 'narrow', nose: 'broad', mouth: 'thin', items: ['scar'] },
+  ], ['young', 'roots_man', 'roots_woman', 'old', 'roots_man', 'roots_woman', 'boy', 'roots_man', 'roots_woman', 'roots_man', 'roots_woman', 'young', 'roots_woman', 'girl', 'roots_man']),
 };

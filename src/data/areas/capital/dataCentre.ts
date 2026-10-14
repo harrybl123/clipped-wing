@@ -2,7 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import { SEALED_DOOR, doorway, scrollingScreen } from './citadelProps';
 import * as P from './cityProps';
 import type { AreaDefinition } from '../types';
-import { cast, guard, strollingCitizen, DAY } from './people';
+import { cast, guard, inStory, strollingCitizen, DAY } from './people';
 
 // The data centre (Chapter 3): where the capital's requests and output come and go; nobody says who's on
 // the other end (docs/areas/capital/data-centre.md). The most futuristic place in the city: bare, clean
@@ -67,6 +67,9 @@ export const dataCentre: AreaDefinition = {
     strollingCitizen('tech', 11, 150, 520, FLOOR, 'data_tech', DAY),
     guard('door-guard', 2, 552, FLOOR, 'c3_guard_data', undefined, { flipX: true }), // your father's guard, on the door at the back
     cast('engineer', 300, FLOOR, { knot: 'data_engineer', when: ['evening'] }),
+    // Chapter 3's story. Day 1: the operator with the day's requests; your hand with you.
+    inStory('operator-1', 'operator', 104, FLOOR, 'c3day1=requests', { knot: 'c3day1_requests' }),
+    inStory('hand', 'diplomat', 50, FLOOR, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
   ],
   interactables: [
     { id: 'racks', x: 240, y: FLOOR, reach: 14, label: 'Look', knot: 'data_racks' },

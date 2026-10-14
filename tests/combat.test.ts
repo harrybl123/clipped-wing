@@ -821,3 +821,69 @@ describe('your side’s moves', () => {
     }
   });
 });
+
+describe('Chapter 3: the prince and his hand', () => {
+  /** Plays enemies' turns until it's the party's (or the fight ends). */
+  const toParty = (b: Battle) => {
+    while (!b.outcome && b.current!.side === 'enemy') b.enemyTurn('none');
+  };
+  const against = (enemy: string, rng: () => number = half) => new Battle({ ...ENCOUNTERS.spar_hand!, enemies: [enemy] }, MOVES, COMBATANTS, ITEMS, rng);
+
+  it('the spar is his alone, on the balcony, and writes spar1 (won or lost, the day goes on)', () => {
+    const e = ENCOUNTERS.spar_hand!;
+    expect(e.party).toEqual(['prince']);
+    expect(e.enemies).toEqual(['hand']);
+    expect(e.stage).toBe('balcony');
+    expect(e.mustWin).toBeFalsy();
+    expect(e.outcomes).toEqual({ won: { spar1: 'won' }, lost: { spar1: 'lost' } });
+  });
+
+  it('his moves are Thrust, Parry, Feint and Command (designer)', () => {
+    const p = COMBATANTS.prince!;
+    expect([p.basic, ...p.moves].map((m) => MOVES[m!]!.name)).toEqual(['Thrust', 'Parry', 'Feint', 'Command']);
+  });
+
+  it('Command: a foe hesitates and loses their next turn', () => {
+    const b = against('straggler_thin');
+    toParty(b);
+    const events = b.act({ type: 'skill', move: 'command', target: 'straggler_thin' });
+    expect(events).toContainEqual({ type: 'commanded', target: 'straggler_thin', unmoved: false });
+    const hp = b.get('prince').hp;
+    const theirs: BattleEvent[] = [];
+    while (!b.outcome && b.current!.side === 'enemy') theirs.push(...b.enemyTurn('none'));
+    expect(theirs).toContainEqual({ type: 'hesitate', actor: 'straggler_thin' });
+    expect(b.get('prince').hp).toBe(hp);
+    expect(b.get('straggler_thin').hesitating).toBe(false);
+  });
+
+  it('Command does nothing to your hand', () => {
+    const b = against('hand');
+    toParty(b);
+    const events = b.act({ type: 'skill', move: 'command', target: 'hand' });
+    expect(events).toContainEqual({ type: 'commanded', target: 'hand', unmoved: true });
+    expect(b.get('hand').hesitating).toBe(false);
+  });
+
+  it('Feint: sold, they bite (off balance); missed, nothing; your hand sometimes reads it', () => {
+    const sold = against('straggler_thin');
+    toParty(sold);
+    expect(sold.act({ type: 'skill', move: 'blade_feint', target: 'straggler_thin', grades: ['good'] }).some((e) => e.type === 'offBalance' || e.type === 'knockdown')).toBe(true);
+    const missed = against('straggler_thin');
+    toParty(missed);
+    expect(missed.act({ type: 'skill', move: 'blade_feint', target: 'straggler_thin', grades: ['miss'] }).some((e) => e.type === 'offBalance' || e.type === 'knockdown')).toBe(false);
+    // (He reads it when the roll comes in under his `reads`.)
+    const read = against('hand', () => 0.1);
+    toParty(read);
+    const events = read.act({ type: 'skill', move: 'blade_feint', target: 'hand', grades: ['perfect'] });
+    expect(events).toContainEqual({ type: 'feintRead', target: 'hand' });
+    expect(read.get('hand').offBalance).toBe(0);
+  });
+
+  it('your hand keeps the soldier’s tricks back until he’s pressed', () => {
+    const h = COMBATANTS.hand!;
+    const calm = aiWeights(h, ['hand_lunge', 'hand_cut'], { hurt: false, foeHurt: false, foeGuarding: false });
+    const pressed = aiWeights(h, ['hand_lunge', 'hand_cut'], { hurt: true, foeHurt: false, foeGuarding: false });
+    const tricks = (w: number[]) => w[2]! + w[3]! + w[4]!;
+    expect(tricks(pressed) / pressed.reduce((a, b) => a + b)).toBeGreaterThan(3 * (tricks(calm) / calm.reduce((a, b) => a + b)));
+  });
+});

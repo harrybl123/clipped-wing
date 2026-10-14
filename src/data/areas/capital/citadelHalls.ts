@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition, Solid } from '../types';
-import { guard, cast, courtier, strollingCourtier, strollingServant, DAY, LATE, MORNING } from './people';
+import { guard, cast, inStory, courtier, strollingCourtier, strollingServant, DAY, LATE, MORNING } from './people';
 
 // The citadel's halls (Chapter 3): the corridors joining the citadel's rooms (designer: corridors in the
 // citadel; docs/areas/capital/citadel-halls.md). Long marble halls on two floors, joined by a grand stair
@@ -136,6 +136,9 @@ export const citadelHalls: AreaDefinition = {
     { type: 'pulse', points: [{ x: CL - 2, y: UPPER + 9 }, { x: 16, y: UPPER + 9 }], speed: 140, every: 3400, sprite: P.CAPSULE },
     // The glass lift, up and down between the floors.
     { type: 'mover', sprite: P.liftCar(28), x: LIFT + 2, y: FLOOR - 2, to: { x: LIFT + 2, y: UPPER - 2 }, speed: 40 },
+    // Chapter 3, Day 1: your hand briefs you along the gallery; courtiers bow at the foot of the stair.
+    { type: 'trigger', x: 200, y: UPPER, reach: 8, knot: 'c3day1_brief', showIf: 'c3day1=halls', hideIf: 'brief1' },
+    { type: 'barks', lines: [{ who: 'bow-1', text: 'Highness.', wait: 1600 }, { who: 'bow-2', text: 'Highness.' }], loopFrom: 99, showIf: 'brief1' },
   ],
   people: [
     // The guards on the audience hall's great doors, always.
@@ -160,6 +163,10 @@ export const citadelHalls: AreaDefinition = {
     cast('councillor', 330, FLOOR, { knot: 'halls_councillor', when: MORNING }),
     cast('reformer', 250, FLOOR, { knot: 'halls_reformer', when: ['evening'] }),
     cast('sister', 340, UPPER, { id: 'sister-night', knot: 'halls_sister_night', when: ['night'], flipX: true }),
+    // Chapter 3's story. Day 1: your hand walking you down; two courtiers at the foot of the stair, bowing.
+    inStory('hand', 'diplomat', 110, UPPER, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
+    courtier('bow-1', 1, 330, FLOOR, 'halls_courtier', undefined, { showIf: 'c3day1=halls' }),
+    courtier('bow-2', 6, 352, FLOOR, 'halls_courtier', undefined, { showIf: 'c3day1=halls', flipX: true }),
   ],
   interactables: [
     { id: 'statue', x: 206, y: FLOOR, reach: 14, label: 'Look', knot: 'halls_statue' },

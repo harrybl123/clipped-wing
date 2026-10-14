@@ -1051,3 +1051,103 @@ ENCOUNTERS.riot = {
   timing: { lunge: 950, ease: 1.2 },
   outcomes: { won: { riot_won: true }, lost: { riot_won: false } },
 };
+
+// --- Chapter 3: the prince (draft numbers, to playtest) ---
+// His weapon is a light-blade (designer: a laser-like fencing sword), so he fences: a quick Thrust, a Parry,
+// a Feint, and something that's his alone, a royal's trick: Command ("Yield."), which makes a weaker foe
+// hesitate (designer, 2026-10-14: as suggested). His hand spars with him the same way, a fencer's moves,
+// until a soldier's tricks come out when he's pressed (clue 1: where did a diplomat learn that?). His tells
+// are his lessons (designer: no tutorial cards; he teaches you between blows), until they aren't.
+
+Object.assign(MOVES, {
+  blade_thrust: {
+    id: 'blade_thrust', name: 'Thrust', target: 'enemy', power: 7, kind: 'pierce', crit: 0.15, poses: ['attack'],
+    // A fencer's lunge: wait for the opening, and go the instant it comes.
+    qte: { kind: 'draw', time: 400, quick: 160, wait: [500, 1100], alt: { kind: 'key', time: 750, quick: 280 } },
+    description: 'Basic attack with the light-blade. Fast.',
+  },
+  blade_parry: {
+    id: 'blade_parry', name: 'Parry', target: 'self', sp: 4, braces: true, poses: ['guard'],
+    description: 'The next attack on you: a good reaction parries it (no damage, and you hit back).',
+  },
+  blade_feint: {
+    id: 'blade_feint', name: 'Feint', target: 'enemy', power: 3, kind: 'strike', sp: 2, feints: true, poses: ['slap'],
+    // Sell it: show the opening, and hold it long enough for him to believe it.
+    qte: { kind: 'hold', time: 1000, zone: [0.65, 0.85], sweet: [0.72, 0.78], alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    description: 'A false opening. Hit the timing and the enemy bites: off balance. A sharp fighter may see through it.',
+  },
+  command: {
+    id: 'command', name: 'Command', target: 'enemy', sp: 4, commands: true, poses: ['palm'],
+    description: '"Yield." An enemy hesitates and loses their next turn. Doesn’t work on everyone.',
+  },
+
+  // Your hand, sparring: practice blades, first to three touches. A fencer first...
+  hand_lunge: {
+    id: 'hand_lunge', name: 'Lunge', target: 'enemy', power: 7, kind: 'pierce',
+    qte: { kind: 'side', time: 700, quick: 260, alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'squared', lines: ['“Watch my point. It tells you where I’m going.”', 'He settles back on his heels, point at your chest.'] },
+    description: 'A long lunge.',
+  },
+  hand_cut: {
+    id: 'hand_cut', name: 'Cut', target: 'enemy', power: 4, kind: 'strike', hits: 2,
+    qte: { kind: 'notes', outer: 180, perfect: 70, gap: 400, lanes: ['left', 'up', 'right'], alt: { kind: 'weave', time: 650, quick: 260, gap: 520 } },
+    tell: { pose: 'cock', lines: ['“Two. Count them.”', 'His wrist turns over.'] },
+    description: 'Two quick cuts.',
+  },
+  // ...then, pressed, a soldier's tricks: inside your guard, a foot behind yours, the blade in the other hand.
+  hand_inside: {
+    id: 'hand_inside', name: 'Inside', target: 'enemy', power: 8, kind: 'grab',
+    qte: { kind: 'grip', time: 3800, zone: [0.36, 0.64], narrow: 0.16, tug: 0.8, keep: 0.7, quick: 2600, alt: { kind: 'mash', presses: 8, time: 1800 } },
+    tell: { pose: 'reach', lines: ['He drops his point, and steps in close.', 'He lets his guard fall open.'] },
+    description: 'Inside your guard: an elbow, and he holds you there.',
+  },
+  hand_trip: {
+    id: 'hand_trip', name: 'Trip', target: 'enemy', power: 5, kind: 'shove', exposes: { turns: 2, mult: 1.3 },
+    qte: { kind: 'bar', time: 1000, zone: [0.62, 0.82], sweet: [0.7, 0.74], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'shift', lines: ['His front foot slides forward.', 'He shifts his weight onto his back foot.'] },
+    description: 'A foot behind yours: off your feet, you take more for 2 rounds.',
+  },
+  hand_switch: {
+    id: 'hand_switch', name: 'Off hand', target: 'self', windsUp: 'hand_off_hand',
+    tell: { pose: 'glance', lines: ['He tosses the blade to his other hand.'] },
+    description: 'Changes hands.',
+  },
+  hand_off_hand: {
+    id: 'hand_off_hand', name: 'Off hand', target: 'enemy', power: 14, kind: 'pierce',
+    softened: { guard: 0.25, dodge: 0.1 },
+    qte: { kind: 'draw', time: 420, quick: 160, wait: [700, 1400], alt: { kind: 'bar', time: 1300, zone: [0.72, 0.86], sweet: [0.77, 0.81] } },
+    tell: { pose: 'windup', lines: ['The blade’s in his left hand now, and he’s smiling.'] },
+    description: 'From the side you weren’t watching. Guard, or Parry it.',
+  },
+} satisfies Record<string, MoveDef>);
+
+/** The prince, Chapter 3's lead: a fencer with a light-blade. */
+COMBATANTS.prince = {
+  id: 'prince', name: 'You', sprite: 'prince', hp: 44, sp: 12, attack: 9, defence: 8, speed: 14,
+  basic: 'blade_thrust', moves: ['blade_parry', 'blade_feint', 'command'], reactions: ['dodge', 'parry'],
+};
+
+/**
+ * Your hand, sparring at dawn: easy at first, then he isn't. Quick, hard to fool (he reads a feint a third
+ * of the time), and "Yield." means nothing to him: he taught it you.
+ */
+COMBATANTS.hand = {
+  id: 'hand', name: 'Your hand', sprite: 'hand', hp: 56, attack: 9, defence: 9, speed: 13,
+  moves: ['hand_lunge', 'hand_cut', 'hand_inside', 'hand_trip', 'hand_switch'], weights: [3, 2.5, 0.3, 0.3, 0.2],
+  poise: 2, feint: 0.15, reads: 0.35, unmoved: true,
+  ai: { opening: ['hand_lunge', 'hand_cut'], maxRepeat: 2, recent: 0.5, when: { hurt: { hand_inside: 8, hand_trip: 8, hand_switch: 7 }, foeGuarding: { hand_inside: 3 } } },
+};
+
+/**
+ * Chapter 3, Day 1, the balcony at dawn: the spar with your hand (designer), practice blades, first to three
+ * touches. Win or lose, the day goes on (not `mustWin`). Writes `spar1`.
+ */
+ENCOUNTERS.spar_hand = {
+  id: 'spar_hand',
+  name: 'Your hand',
+  party: ['prince'],
+  enemies: ['hand'],
+  stage: 'balcony',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { spar1: 'won' }, lost: { spar1: 'lost' } },
+};

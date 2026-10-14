@@ -737,13 +737,15 @@ interface StragglerLook {
   skin: 'tan' | 'fair' | 'dark';
   /** A rag wound round the head (the face showing), shaved with a beard, or a mop of hair. */
   head: 'wrap' | 'shaved' | 'hair';
-  /** What's in their hand: a shard of something sharp, a lump of scrap, a staff (the other clan), or nothing (fists). */
-  holds: 'shard' | 'lump' | 'staff' | 'none';
+  /** What's in their hand: a shard of something sharp, a lump of scrap, a staff (the other clan), a light-blade (the capital), or nothing (fists). */
+  holds: 'shard' | 'lump' | 'staff' | 'blade' | 'none';
   /** The coat's colours [base, lit, shade], if not the stragglers' patched grey; `patched` false for a whole one. */
   coat?: [number, number, number];
   patched?: boolean;
   /** The head wrap's colours [base, shade], if not the stragglers' dull rag (the other clan's are pale). */
   wrap?: [number, number];
+  /** Their hair, if not dark. */
+  hair?: number;
 }
 
 /**
@@ -814,6 +816,12 @@ function straggler(pose: Exclude<FoePose, 'down'>, look: StragglerLook): RowSpri
   const hand = at(f.right[1]);
   if (look.holds === 'shard') limb(g, [[hand[0], hand[1] - 2], [hand[0] - 2, hand[1] - 9]], 0.7, 'G');
   else if (look.holds === 'staff') limb(g, [[hand[0] - 1, hand[1] + 14], [hand[0] + 1, hand[1] - 22]], 0.8, '7');
+  else if (look.holds === 'blade') {
+    // A practice light-blade: a gold hilt, and the blade a line of the city's cyan, turned down to a dull glow.
+    limb(g, [[hand[0] + 1, hand[1] + 2], [hand[0] - 1, hand[1] - 2]], 0.9, 'g');
+    limb(g, [[hand[0] - 1, hand[1] - 3], [hand[0] - 6, hand[1] - 24]], 0.9, 'n');
+    limb(g, [[hand[0] - 1, hand[1] - 3], [hand[0] - 6, hand[1] - 24]], 0.3, 'N');
+  }
   else if (look.holds === 'lump') {
     disc(g, hand[0] - 2, hand[1] - 4, 4, 3.4, '7');
     put(g, hand[0] - 4, hand[1] - 6, '8');
@@ -828,7 +836,8 @@ function straggler(pose: Exclude<FoePose, 'down'>, look: StragglerLook): RowSpri
     colours: {
       ...skin, P: SHADES.woodLight, D: SHADES.woodPale, p: SHADES.deep, M, L, m,
       W, w, b: SHADES.deep, T: SHADES.greenDeep, U: SHADES.amberDeep, y: SHADES.deep, h: SHADES.woodLight,
-      G: SHADES.white, '7': SHADES.woodPale, '8': SHADES.cyanMid, X: SHADES.shadow, H: SHADES.deep,
+      G: SHADES.white, '7': SHADES.woodPale, '8': SHADES.cyanMid, X: SHADES.shadow, H: look.hair ?? SHADES.deep,
+      g: SHADES.amber, n: SHADES.cyanMid, N: SHADES.cyan,
     },
   };
 }
@@ -941,3 +950,115 @@ export const DOG_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARV
 
 /** The enforcer: the boss's muscle, broad, a scrap plate strapped on, bare arms (Chapter 2, Day 10). */
 export const ENFORCER_BATTLE = stragglerPoses({ broad: 7, skin: 'tan', head: 'hair', holds: 'none', coat: [SHADES.woodLight, SHADES.amberDeep, SHADES.wood], patched: false });
+
+// --- Chapter 3: the prince, and the capital ---
+
+/** Your hand (Chapter 3), sparring: his gold-brown coat, dark hair, a practice light-blade in the city's cyan. */
+export const HAND_BATTLE = stragglerPoses({ broad: 0, skin: 'dark', head: 'hair', holds: 'blade', coat: [SHADES.amberDeep, SHADES.amberMid, SHADES.woodLight], patched: false });
+
+/**
+ * The prince, from behind (Chapter 3): his close-cropped dark head, the high wine collar, the dark coat with
+ * the wine sash at the waist and gold at its hem, and in his right hand the light-blade (designer: a
+ * laser-like fencing sword): a gold hilt, the blade a line of wine, his colour (suggestion), turned down to a
+ * dull glow for practice. He fences one-handed, the other hand back for balance.
+ */
+function princeBack(pose: CarverPose): RowSprite {
+  const g = grid(SCAV_W, SCAV_H);
+  const x = 32 + { idle: 0, breathe: 0, ready: 0, dodge: -7, attack: 3, slap: 4, palm: -2, shove: 2, grab: 0, guard: 0, hit: 4 }[pose];
+  const top = 2 + { idle: 0, breathe: 1, ready: 2, dodge: 2, attack: -1, slap: 0, palm: 0, shove: 2, grab: 2, guard: 2, hit: 1 }[pose];
+  const headDx = { idle: 1, breathe: 1, ready: 1, dodge: -3, attack: 2, slap: 3, palm: -1, shove: 1, grab: 1, guard: 0, hit: 6 }[pose];
+  const headDy = { idle: 0, breathe: 0, ready: 1, dodge: 0, attack: -1, slap: 0, palm: 0, shove: 1, grab: 1, guard: 2, hit: -1 }[pose];
+  const sw = 15;
+  const ls: Pt = [x - sw, top + 28];
+  const rs: Pt = [x + sw, top + 28];
+  // [left arm, right arm] each ending in the hand; the blade from the hilt (in his right hand) to its tip;
+  // `behind`: held out ahead of him, so his body is in front of it from here.
+  const down: Pt[] = [rs, [x + 19, top + 40], [x + 21, top + 50]];
+  const back: Pt[] = [ls, [x - 22, top + 26], [x - 25, top + 18]];
+  const side: Pt[] = [ls, [x - 17, top + 42], [x - 17, top + 54]];
+  const poses: Record<CarverPose, { arms: [Pt[], Pt[]]; blade: [Pt, Pt]; behind: boolean }> = {
+    // At rest: the blade down at his side, its point near the floor.
+    idle: { arms: [side, down], blade: [[x + 21, top + 50], [x + 29, top + 61]], behind: false },
+    breathe: { arms: [side, down], blade: [[x + 21, top + 50], [x + 29, top + 61]], behind: false },
+    // En garde: the point up and out at him, the other hand back.
+    ready: { arms: [back, [rs, [x + 19, top + 36], [x + 15, top + 30]]], blade: [[x + 15, top + 30], [x + 24, top + 4]], behind: false },
+    dodge: { arms: [back, [rs, [x + 18, top + 38], [x + 12, top + 34]]], blade: [[x + 12, top + 34], [x + 26, top + 12]], behind: false },
+    // The thrust: arm straight out ahead, the blade gone in towards him.
+    attack: { arms: [back, [rs, [x + 12, top + 24], [x + 6, top + 16]]], blade: [[x + 6, top + 16], [x + 2, top - 2]], behind: true },
+    // The feint: the blade swung wide, an opening shown.
+    slap: { arms: [back, [rs, [x + 24, top + 22], [x + 27, top + 14]]], blade: [[x + 27, top + 14], [x + 40, top - 1]], behind: false },
+    // Command: the blade lowered, his other hand raised, palm out. "Yield."
+    palm: { arms: [[ls, [x - 22, top + 22], [x - 24, top + 10]], down], blade: [[x + 21, top + 50], [x + 29, top + 61]], behind: false },
+    shove: { arms: [back, [rs, [x + 16, top + 30], [x + 10, top + 24]]], blade: [[x + 10, top + 24], [x + 6, top + 4]], behind: true },
+    grab: { arms: [back, [rs, [x + 19, top + 36], [x + 15, top + 30]]], blade: [[x + 15, top + 30], [x + 24, top + 4]], behind: false },
+    // The parry: the blade across him, high.
+    guard: { arms: [back, [rs, [x + 20, top + 26], [x + 15, top + 16]]], blade: [[x + 15, top + 16], [x - 22, top + 4]], behind: false },
+    hit: { arms: [[ls, [x - 22, top + 34], [x - 26, top + 26]], [rs, [x + 21, top + 40], [x + 23, top + 51]]], blade: [[x + 23, top + 51], [x + 36, top + 40]], behind: false },
+  };
+  const p = poses[pose];
+  const blade = () => {
+    const [[ax, ay], [bx, by]] = p.blade;
+    const len = Math.hypot(bx - ax, by - ay);
+    const [ux, uy] = [(bx - ax) / len, (by - ay) / len];
+    // The hilt and its guard, then the blade: a dull edge round a glowing line.
+    limb(g, [[ax - ux * 2, ay - uy * 2], [ax + ux * 3, ay + uy * 3]], 1, '8');
+    limb(g, [[ax + ux * 3 - uy * 3, ay + uy * 3 + ux * 3], [ax + ux * 3 + uy * 3, ay + uy * 3 - ux * 3]], 0.7, '8');
+    limb(g, [[ax + ux * 4, ay + uy * 4], [bx, by]], 1, '9');
+    limb(g, [[ax + ux * 4, ay + uy * 4], [bx - ux, by - uy]], 0.3, '0');
+  };
+  const arms = () => {
+    for (const arm of p.arms) {
+      limb(g, arm, 2.8, '2');
+      const [hx, hy] = arm[arm.length - 1]!;
+      disc(g, hx, hy, 2.2, 2.2, '1');
+    }
+  };
+  if (p.behind) {
+    blade();
+    arms();
+  }
+  // His back: the coat to below the frame, broad at the shoulders, narrower at the waist.
+  poly(g, [[x - sw - 1, top + 25], [x + sw + 1, top + 25], [x + sw - 4, SCAV_H + 2], [x - sw + 4, SCAV_H + 2]], '2');
+  disc(g, x - sw + 2, top + 29, 4, 4, '2');
+  disc(g, x + sw - 2, top + 29, 4, 4, '2');
+  // The wine sash at his waist, a gold edge on the coat's skirt below it.
+  g.forEach((row, y) => row.forEach((c, cx) => {
+    if (c !== '2') return;
+    if (y >= top + 44 && y <= top + 47 && Math.abs(cx - x) < sw) row[cx] = '6';
+    else if (y === top + 48 && Math.abs(cx - x) < sw - 1) row[cx] = '7';
+  }));
+  // The coat's back seam, from the collar to the sash.
+  for (let y = top + 30; y < top + 44; y++) put(g, x, y, '3');
+  // His neck, and the high collar round it, wine.
+  poly(g, [[x - 3 + headDx / 2, top + 17 + headDy], [x + 3 + headDx / 2, top + 17 + headDy], [x + 4, top + 25], [x - 4, top + 25]], '1');
+  poly(g, [[x - 6 + headDx / 3, top + 20 + headDy], [x + 6 + headDx / 3, top + 20 + headDy], [x + 7, top + 27], [x - 7, top + 27]], '6');
+  if (!p.behind) {
+    arms();
+    blade();
+  }
+  // The head: dark hair cut very close, the skin showing at the back of his neck; his ears.
+  const hx = x + headDx;
+  const hy = top + 11 + headDy;
+  disc(g, hx, hy, 7, 8.5, '4');
+  for (let y = Math.round(hy + 5); y < hy + 9; y++) for (let dx = -7; dx <= 7; dx++) if (g[y]?.[Math.round(hx + dx)] === '4') put(g, hx + dx, y, '1');
+  for (const s of [-1, 1]) for (let dy = 0; dy <= 2; dy++) put(g, hx + s * 7, hy + dy, '1');
+  lightDay(g, '1', ['K', 'K', 'k']);
+  lightDay(g, '2', ['C', 'M', 'c']);
+  lightDay(g, '4', ['H', 'H', 'H']);
+  // Where the light catches the crop, up on the crown.
+  for (const [dx, dy] of [[2, -7], [3, -7], [4, -6], [3, -6], [5, -5]] as const) put(g, hx + dx, hy + dy, 'h');
+  lightDay(g, '6', ['W', 'W', 'w']);
+  lightDay(g, '7', ['A', 'A', 'a']);
+  outline(g);
+  return {
+    rows: rows(g),
+    colours: {
+      K: SHADES.skinTan, k: SHADES.skinTanShade, C: SHADES.cyanDeep, M: SHADES.cyanMid, c: SHADES.deep, '3': SHADES.deep,
+      H: SHADES.deep, h: SHADES.woodLight, W: SHADES.wine, w: SHADES.wineDeep, A: SHADES.amber, a: SHADES.amberDeep,
+      '8': SHADES.amber, '9': SHADES.wineDeep, '0': SHADES.wine, X: SHADES.shadow,
+    },
+  };
+}
+
+/** The prince, from behind, his light-blade in hand (Chapter 3). */
+export const PRINCE_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, princeBack(p)])) as Record<CarverPose, RowSprite>;

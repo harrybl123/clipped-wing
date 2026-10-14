@@ -74,8 +74,9 @@ describe.each(Object.values(AREAS))('area $id', (area) => {
     const knots = [...area.interactables.map((it) => it.knot), ...area.people.flatMap((p) => (p.knot ? [p.knot] : []))];
     for (const knot of knots) expect(() => story.startKnot(knot), knot).not.toThrow();
     for (const f of area.features) if (f.type === 'jars') expect(story.variableNames()).toContain(f.variable);
-    const conditions = [...area.people.flatMap((p) => [p.showIf, p.hideIf].flat()), ...area.features.flatMap((f) => ('showIf' in f && f.showIf ? [f.showIf.split('=')[0]] : [])), ...(area.ambience ?? []).flatMap((l) => [l.showIf, l.hideIf].flat()), ...area.exits.map((e) => e.showIf)];
-    for (const name of conditions.filter((c): c is string => !!c)) expect(story.variableNames(), name).toContain(name);
+    const conditions = [...area.people.flatMap((p) => [p.showIf, p.hideIf].flat()), ...area.interactables.flatMap((it) => [it.showIf, it.hideIf].flat()), ...area.features.flatMap((f) => ('showIf' in f && f.showIf ? [f.showIf] : [])), ...(area.ambience ?? []).flatMap((l) => [l.showIf, l.hideIf].flat()), ...area.exits.map((e) => e.showIf)];
+    // (A condition can be `<variable>=<value>`: the variable's name is before the `=`.)
+    for (const name of conditions.filter((c): c is string => !!c).map((c) => c.split('=')[0]!)) expect(story.variableNames(), name).toContain(name);
   });
 });
 

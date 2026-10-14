@@ -162,6 +162,50 @@ export function devChapter2Day(scene: Phaser.Scene, day: number): void {
   scene.scene.start('Area', { ...(mid?.area ?? next), card: day === 3 ? 'Weeks later' : day === 7 ? 'Two weeks on' : day === 10 ? 'Three nights on' : day === 11 ? 'First light' : `Day ${day}` } satisfies AreaSceneData);
 }
 
+/**
+ * Chapter 3 begins (docs/sequences/chapter-3/plan.md): the prince, in his quarters at dawn, his hand at the
+ * door. The calendar starts again at Day 1; the story's Chapter 3 people take over the capital (`c3_story`).
+ */
+export function beginChapter3(scene: Phaser.Scene): void {
+  const session = getSession(scene);
+  session.story.setVariable('chapter', 3);
+  session.story.setVariable('c3_story', true);
+  session.story.setVariable('objective', '');
+  session.story.setVariable('objective_target', '');
+  session.calendar.jumpTo(1);
+  const next: AreaSceneData = { areaId: 'prince-quarters', start: { x: 120, y: 226 }, card: 'Day 1', script: 'c3day1_start' };
+  session.dayStarts = { 1: { ink: session.story.saveState(), calendar: session.calendar.toJSON(), wake: { areaId: next.areaId, start: next.start!, script: next.script } } };
+  scene.scene.start('Chapter', { number: 'Chapter 3', title: 'The Prince', next } satisfies ChapterSceneData);
+}
+
+/**
+ * Dev: part way into one of Chapter 3's days (`?chapter=3&at=...`), as if the day had been played to there.
+ * Day 1: `&at=spar` (on the balcony, your hand waiting), `audience` (in the audience hall, your seat ahead),
+ * `walk` (on the promenade, the afternoon), `requests` (at the data centre), `banquet` (the banquet gallery,
+ * the steward with the plan), `night` (coming back to your quarters). With `&lift=mended`, `&seated=hostess`.
+ */
+export function devChapter3(scene: Phaser.Scene, at: string): void {
+  const session = getSession(scene);
+  const params = params0();
+  const set = (vars: Record<string, string | number | boolean>) => {
+    for (const [name, value] of Object.entries(vars)) session.story.setVariable(name, value);
+  };
+  set({ chapter: 3, c3_story: true, spar1: 'won', lift_mended: params.get('lift') === 'mended', seated: params.get('seated') ?? '' });
+  const day1: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | boolean> }> = {
+    spar: { area: { areaId: 'prince-quarters', start: { x: 506, y: 226 } }, slots: 0, vars: { c3day1: 'spar', spar1: '', objective: 'Meet your hand on the balcony', objective_target: 'prince-quarters:hand' } },
+    audience: { area: { areaId: 'audience-hall', start: { x: 60, y: 236 } }, slots: 0, vars: { c3day1: 'audience', hand_with_you: true, brief1: true, objective: 'Take your seat in the audience hall', objective_target: 'audience-hall:seat-1' } },
+    walk: { area: { areaId: 'promenade', start: { x: 40, y: 232 } }, slots: 1, vars: { c3day1: 'walk', hand_with_you: true, brief1: true, objective: 'Walk the promenade', objective_target: 'promenade:scrubber' } },
+    requests: { area: { areaId: 'data-centre', start: { x: 50, y: 230 } }, slots: 1, vars: { c3day1: 'requests', hand_with_you: true, brief1: true, stall1: true, bird1: true, objective: "Sign the day's requests", objective_target: 'data-centre:operator-1' } },
+    banquet: { area: { areaId: 'banquet-gallery', start: { x: 40, y: 230 } }, slots: 2, vars: { c3day1: 'banquet', brief1: true, stall1: true, bird1: true, signed_requests: true, objective: 'Seat the banquet', objective_target: 'banquet-gallery:steward' } },
+    night: { area: { areaId: 'citadel-halls', start: { x: 130, y: 136 } }, slots: 2, vars: { c3day1: 'night', brief1: true, stall1: true, bird1: true, signed_requests: true, seated: params.get('seated') ?? 'councillor', right_placed: true, cards_done: true, objective: 'Go to bed', objective_target: 'prince-quarters:bed-1' } },
+  };
+  const mid = day1[at] ?? day1.spar!;
+  set(mid.vars);
+  session.calendar.jumpTo(1);
+  for (let i = 0; i < mid.slots; i++) session.calendar.advance();
+  scene.scene.start('Area', mid.area);
+}
+
 /** How long the card holds before fading out (ms). */
 const HOLD = 2800;
 
