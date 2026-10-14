@@ -410,15 +410,6 @@ export class CombatScene extends Phaser.Scene {
   private async enemyTurn(actor: Combatant): Promise<void> {
     const view = this.views.get(actor.id)!;
     const intent = this.battle.intentOf(actor.id);
-    if (actor.hesitating) {
-      // Told to yield: he hesitates, and his moment goes by.
-      this.say(`${actor.def.name} hesitates.`);
-      this.setPose(view, 'wobble');
-      await this.tween(view.sprite, { x: view.home.x - 3, duration: 160, yoyo: true });
-      this.setPose(view, 'idle');
-      await this.play(this.battle.enemyTurn());
-      return;
-    }
     if (!intent) {
       // His big blow was broken: he spends the turn finding his feet.
       this.say(`${actor.def.name} stumbles.`);
@@ -765,22 +756,6 @@ export class CombatScene extends Phaser.Scene {
           playSound(this, 'tick');
           this.setPose(t, 'guard');
           this.popLabel('BRACED', t, SHADES.cyan, 18);
-          break;
-        }
-        case 'feintRead': {
-          // He didn't bite.
-          const t = this.views.get(e.target)!;
-          playSound(this, 'tick');
-          this.popLabel('READ IT', t, SHADES.light, 18);
-          break;
-        }
-        case 'commanded': {
-          // "Yield."
-          const t = this.views.get(e.target)!;
-          playSound(this, e.unmoved ? 'tick' : 'shimmer', 0.6);
-          if (!e.unmoved) this.flashWhite(t, 120);
-          this.popLabel(e.unmoved ? 'UNMOVED' : 'HESITATES', t, e.unmoved ? SHADES.light : SHADES.amber, 18);
-          this.refresh();
           break;
         }
         case 'revealed': {

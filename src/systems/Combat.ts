@@ -85,10 +85,6 @@ export interface MoveDef {
   evades?: boolean;
   /** Dust in the eyes: what it hits can't use skills for `silences` rounds (the scout's Dust, on the dog's nose). */
   silences?: number;
-  /** A feint (the prince's): sell it (a good or perfect QTE) and they bite, off balance, unless they read it (`reads`). */
-  feints?: boolean;
-  /** A word of command (the prince's "Yield."): what it's said to hesitates and loses its next turn, unless it's `unmoved`. */
-  commands?: boolean;
 }
 
 export interface ItemDef {
@@ -126,10 +122,6 @@ export interface CombatantDef {
   feint?: number;
   /** Enemies: how they choose, beyond `weights` (a temperament). */
   ai?: EnemyAi;
-  /** Enemies: the chance (0–1) they see through a feint (`feints`). */
-  reads?: number;
-  /** Enemies: a word of command (`commands`) does nothing to them (your hand, who taught you it). */
-  unmoved?: boolean;
 }
 
 /**
@@ -226,8 +218,6 @@ export interface Combatant {
   silenced: number;
   /** Braced (`braces`) until their next turn. */
   braced: boolean;
-  /** Told to yield (`commands`): loses their next turn. */
-  hesitating: boolean;
 }
 
 export interface Intent {
@@ -281,9 +271,6 @@ export type BattleEvent =
   | { type: 'gnawed'; target: string; amount: number; hp: number }
   | { type: 'drained'; target: string; amount: number; sp: number }
   | { type: 'braced'; actor: string }
-  | { type: 'feintRead'; target: string }
-  | { type: 'commanded'; target: string; unmoved: boolean }
-  | { type: 'hesitate'; actor: string }
   | { type: 'revealed'; actor: string }
   | { type: 'qte'; actor: string; grade: Grade }
   | { type: 'stumble'; actor: string }
@@ -356,7 +343,7 @@ export class Battle {
       if (!def) throw new Error(`Combat: no combatant called "${defId}"`);
       for (const m of [...def.moves, ...(def.basic ? [def.basic] : [])]) if (!moves[m]) throw new Error(`Combat: ${defId} has unknown move "${m}"`);
       const n = all.slice(0, i).filter((d) => d === defId).length;
-      return { id: n ? `${defId}-${n + 1}` : defId, def, side, hp: def.hp, sp: def.sp ?? 0, down: false, guarding: false, offBalance: 0, recoverIn: 0, steady: false, exposed: 0, exposedMult: 1, blinded: 0, sapped: 0, sappedMult: 1, clinging: 0, clingPower: 0, evading: false, silenced: 0, braced: false, hesitating: false };
+      return { id: n ? `${defId}-${n + 1}` : defId, def, side, hp: def.hp, sp: def.sp ?? 0, down: false, guarding: false, offBalance: 0, recoverIn: 0, steady: false, exposed: 0, exposedMult: 1, blinded: 0, sapped: 0, sappedMult: 1, clinging: 0, clingPower: 0, evading: false, silenced: 0, braced: false };
     };
     this.combatants = [...encounter.party.map(make('party')), ...encounter.enemies.map(make('enemy'))];
     if (!this.combatants.some((c) => c.side === 'party') || !this.combatants.some((c) => c.side === 'enemy')) {
@@ -529,11 +516,6 @@ export class Battle {
           events.push({ type: 'braced', actor: actor.id });
         }
         if (move.reveals) events.push(...this.reveal(actor));
-        if (move.commands && target !== actor) {
-          const unmoved = !!target.def.unmoved;
-          if (!unmoved) target.hesitating = true;
-          events.push({ type: 'commanded', target: target.id, unmoved });
-        }
         break;
       }
       case 'guard':
@@ -598,16 +580,6 @@ export class Battle {
     const intent = this.intents.get(actor.id);
     let events: BattleEvent[];
     let move: MoveDef | null = null;
-    if (actor.hesitating) {
-      // Told to yield: they hesitate, and the moment's gone (a wind-up waits for next time).
-      actor.hesitating = false;
-      events = [{ type: 'hesitate', actor: actor.id }];
-      if (intent?.charged) this.nextIntent.set(actor.id, intent.move);
-      events.push(...this.checkEnd());
-      this.endOwnTurn(actor, events);
-      this.oneMore = false;
-      return [...events, ...this.nextTurn()];
-    }
     if (!intent) {
       // His blow was broken: he spends the turn finding his feet.
       events = [{ type: 'stumble', actor: actor.id }];
@@ -688,11 +660,6 @@ export class Battle {
       if (grade !== 'miss') landed++;
       if (grades.length) events.push({ type: 'qte', actor: actor.id, grade });
       events.push(...this.harm(actor, move, target, (r === 'dodge' ? (move.softened?.dodge ?? DODGE) : 1) * boost, true));
-    }
-    // A feint: sold (a good or perfect QTE), they bite and are off balance, unless they read it.
-    if (move.feints && actor.side !== target.side && target.hp > 0 && landed > 0) {
-      if (this.rng() < (target.def.reads ?? 0)) events.push({ type: 'feintRead', target: target.id });
-      else this.unbalance(actor, target, events);
     }
     // A combo's finisher: land every blow and the last throws him off balance.
     const hits = move.hits ?? 1;

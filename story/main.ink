@@ -590,7 +590,9 @@ VAR tree_seen1 = false
 VAR brief1 = false
 // The petition: you had the woman's street's lift mended today (the glassworks waited a day for its power).
 VAR lift_mended = false
-// The promenade: the stall keeper, and the chalk bird being scrubbed off a wall.
+// The promenade: the stall keeper; inspecting the watch, and its commander asks to clear the street sellers off
+// the square for good (you'll see the square without them from Day 3); the chalk bird behind the stalls.
+VAR stalls_cleared = false
 VAR stall1 = false
 VAR bird1 = false
 // The day's requests at the data centre: you asked about the low district's line; you signed them.

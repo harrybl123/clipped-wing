@@ -987,7 +987,7 @@ function princeBack(pose: CarverPose): RowSprite {
     attack: { arms: [back, [rs, [x + 12, top + 24], [x + 6, top + 16]]], blade: [[x + 6, top + 16], [x + 2, top - 2]], behind: true },
     // The feint: the blade swung wide, an opening shown.
     slap: { arms: [back, [rs, [x + 24, top + 22], [x + 27, top + 14]]], blade: [[x + 27, top + 14], [x + 40, top - 1]], behind: false },
-    // Command: the blade lowered, his other hand raised, palm out. "Yield."
+    // The blade lowered, his other hand raised.
     palm: { arms: [[ls, [x - 22, top + 22], [x - 24, top + 10]], down], blade: [[x + 21, top + 50], [x + 29, top + 61]], behind: false },
     shove: { arms: [back, [rs, [x + 16, top + 30], [x + 10, top + 24]]], blade: [[x + 10, top + 24], [x + 6, top + 4]], behind: true },
     grab: { arms: [back, [rs, [x + 19, top + 36], [x + 15, top + 30]]], blade: [[x + 15, top + 30], [x + 24, top + 4]], behind: false },

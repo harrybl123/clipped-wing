@@ -134,7 +134,6 @@ export const promenade: AreaDefinition = {
     // food on you; people bow as you pass.
     { type: 'frames', frames: [HALF_SCRUBBED], x: 296, y: FLOOR - 24, every: 500, showIf: 'c3day1=walk,requests' },
     { type: 'trigger', x: 346, y: FLOOR, reach: 10, knot: 'c3day1_stall', showIf: 'c3day1=walk', hideIf: 'stall1' },
-    { type: 'trigger', x: 268, y: FLOOR, reach: 12, knot: 'c3day1_bird', showIf: 'c3day1=walk', hideIf: 'bird1' },
     { type: 'barks', lines: [{ who: 'passer-1', text: 'Highness.', wait: 2400 }, { who: 'shopper-3', text: 'Highness!', wait: 2400 }, { who: 'passer-2', text: 'Highness.' }], loopFrom: 99, showIf: 'c3day1=walk' },
     steam(454, FLOOR - 22),
     steam(503, FLOOR - 8),
@@ -168,6 +167,10 @@ export const promenade: AreaDefinition = {
     // Chapter 3's story. Day 1: a city worker scrubbing the chalk bird, one of your guards close by; your hand with you.
     citizen('scrubber', 14, 324, FLOOR, 'c3day1_scrubber', undefined, { showIf: 'c3day1=walk,requests', flipX: true }),
     guard('escort', 0, 236, FLOOR, 'c3_guard', undefined, { showIf: 'c3day1=walk' }),
+    // Day 1, your duty: inspecting the watch. Its commander, and a pair of the watch at their post.
+    inStory('commander-1', 'commander', 252, FLOOR, 'c3day1=walk,requests', { knot: 'c3day1_commander', flipX: true }),
+    watch('post-1', 0, 196, FLOOR, 'c3_watch', undefined, { showIf: 'c3day1=walk,requests' }),
+    watch('post-2', 1, 210, FLOOR, 'c3_watch', undefined, { showIf: 'c3day1=walk,requests', flipX: true }),
     inStory('hand', 'diplomat', 40, FLOOR, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
   ],
   interactables: [

@@ -56,7 +56,7 @@ At the end he'd stepped inside your guard. An elbow, a foot behind yours. Not a 
 He thumbs his blade off.
 "Your duties." #speaker:diplomat
 "The audience: your father's giving you a petition to decide." #speaker:diplomat
-"The promenade: the city likes to see your face. Then the data centre: the day's requests want your mark." #speaker:diplomat
+"The promenade: you're inspecting the city watch's new posts. Then the data centre: the day's requests want your mark." #speaker:diplomat
 "And tonight you seat the banquet." #speaker:diplomat
 "Seat it?" #speaker:prince
 "Who sits where. You'll see. Get dressed. I'll walk you down." #speaker:diplomat
@@ -74,7 +74,7 @@ Dressed, you go down with him. #goto:citadel-halls:110:136
 ~ brief1 = true
 "Two people will ask your father for something this morning. Then he'll give you a third to decide yourself." #speaker:diplomat
 "First, a merchant. He makes the glass for half the city's windows, and he wants more power for his furnaces." #speaker:diplomat
-"Then an envoy, from outside the city. He's waited three days to be heard." #speaker:diplomat
+"Then an envoy, from one of the places outside the city that send us what we need. He's waited three days to be heard." #speaker:diplomat
 "What should I watch for?" #speaker:prince
 "Your father. What he says yes to, and what he won't talk about." #speaker:diplomat
 -> END
@@ -84,7 +84,7 @@ Dressed, you go down with him. #goto:citadel-halls:110:136
 { c3day1:
 - "halls": "Your seat's below your father's. The audience is waiting." #speaker:diplomat
 - "audience": "Your seat's below his. Sit." #speaker:diplomat
-- "walk": "Smile. They're watching you as much as the screen." #speaker:diplomat
+- "walk": "The commander's waiting for you, by the stalls." #speaker:diplomat
 - "requests": "The data centre. Down the lifts." #speaker:diplomat
 - else: "Highness." #speaker:diplomat
 }
@@ -125,6 +125,7 @@ The envoy next, dust still on his coat. #walk:envoy-1:524
 "Majesty. I've come a long way." #speaker:envoy
 "I know." #speaker:father
 "Then you know what I've come to ask." #speaker:envoy
+"My people can't keep sending what the capital asks of them. I've come to ask you to take less." #speaker:envoy
 "Not today." #speaker:father
 The envoy looks at him for a long moment. Then he bows, and goes. #leave:envoy-1:30:40
 "Three days, he's waited." #speaker:diplomat
@@ -165,10 +166,10 @@ For a moment your father sits with his eyes shut.
     "Then choose who it's to." #speaker:prince
     He opens his eyes, and looks at you for the first time today.
     "Yes. That's the whole of it." #speaker:father
-- "Go and be seen. The city likes your face." #speaker:father #time:afternoon
+- "The watch is waiting for you on the promenade. Let the city see your face." #speaker:father #time:afternoon
 ~ c3day1 = "walk"
-~ objective = "Walk the promenade"
-~ objective_target = "promenade:scrubber"
+~ objective = "Inspect the watch on the promenade"
+~ objective_target = "promenade:commander-1"
 -> END
 
 // --- Afternoon, the promenade ---
@@ -180,21 +181,51 @@ For a moment your father sits with his eyes shut.
 He pushes a hot bun into your hand before your guard can stop him. It's very good.
 -> END
 
-// Scrubbing a chalk bird off the wall (a trigger, as you come up to it).
+// Your duty: inspecting the city watch with its commander (designer: a job to be doing when you see the
+// chalk). He asks to clear the street sellers off the square for good; then he shows you why.
+=== c3day1_commander ===
+{ bird1: -> c3day1_commander_after }
+"Highness. The city watch, at your inspection." #speaker:commander
+"The commander of the city watch. Your father's guard keeps the citadel; the watch keeps the city." #speaker:diplomat
+"Two to a post, all along the promenade. But my men can't see across the square for the stalls." #speaker:commander
+"I want the street sellers cleared off the square. For good. Then the watch can see from one end to the other." #speaker:commander
+"Where do the sellers go?" #speaker:prince
+"Somewhere else, Highness." #speaker:commander
+"Most of them live on what they sell here." #speaker:diplomat
+Clear the street sellers off the square for good? The watch sees everything, and the sellers lose their pitches. Or they stay, and the watch keeps looking round them.
++ [Clear the square.]
+    ~ stalls_cleared = true
+    ~ lean -= 1
+    "Clear it." #speaker:prince
+    "Tomorrow, Highness." #speaker:commander
+    The cook at the nearest stall has heard you. He stops stirring.
++ [Let the sellers stay.]
+    ~ lean += 1
+    "They stay." #speaker:prince
+    "Then my men keep looking round them, Highness." #speaker:commander
+    She doesn't argue. She doesn't look pleased, either.
+- "Then you should see why I asked. Behind the stalls, at the back of the square." #speaker:commander #walk:commander-1:282
+-> c3day1_bird
+
+// The chalk bird, being scrubbed off the back wall of the square.
 === c3day1_bird ===
 ~ bird1 = true
-Up on the great screen over the square, your face, ten feet high, beside your father's. Yours is smiling.
-Under it, a man in the city's overalls is scrubbing at a wall.
+Up on the great screen over the square, your face, ten feet high, beside your father's.
+Under it, at the back wall, a man in the city's overalls is scrubbing.
 Chalk, half gone already: a bird, wings up, rising off a line of bare ground, in a ring.
-One of your guards is between you and it before you can look properly. #walk:escort:286:60
+One of your guards steps between you and it. #walk:escort:286:60
 "Don't look, Highness." #speaker:c3_guard_0
 "What is it?" #speaker:prince
-"Nothing, Highness. Kids." #speaker:c3_guard_0
+"The third this week, here. Kids, after dark, behind the stalls where my men can't see." #speaker:commander
 Your hand doesn't say anything. But he looks at it a moment too long.
 "The data centre. The day's requests." #speaker:diplomat
 ~ c3day1 = "requests"
 ~ objective = "Sign the day's requests"
 ~ objective_target = "data-centre:operator-1"
+-> END
+
+=== c3day1_commander_after ===
+"Highness." #speaker:commander
 -> END
 
 === c3day1_scrubber ===
