@@ -653,13 +653,14 @@ VAR signed3 = false
 VAR salon_truth = false
 VAR hostess3 = false
 VAR friend3 = false
-// Below: you saw the watch take the neighbour; you got into the hideout unseen; who you've heard there.
+// Below: you saw the watch take the neighbour; you got into the hideout unseen; the tables you've listened in on
+// (a woman's sister, two men, the counter), and the kid.
 VAR low3 = false
 VAR met_hideout = false
 VAR heard3 = 0
 VAR heard_sister3 = false
 VAR heard_stairs3 = false
-VAR heard_chalk3 = false
+VAR heard_counter3 = false
 VAR painter3 = false
 // Chapter 3, Day 4 (not built yet).
 VAR c3day4 = ""

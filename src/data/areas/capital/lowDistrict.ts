@@ -125,13 +125,14 @@ export const lowDistrict: AreaDefinition = {
     // Day 3, below at night: coming in, the watch take a man on the word of his neighbour; then your hand goes
     // on ahead to the hideout, openly (they know him), and you follow without being seen by anyone who'd
     // report a face (designer: informants, not your own guards): a man walking the street, and an old woman
-    // on her step who looks back up the street every so often. Dark doorways to stand in.
+    // on her step who looks back up the street every so often (seen by her, you only go back as far as the
+    // lamp shop). Dark doorways to stand in. (Designer: it was too hard; it's gentler now.)
     { type: 'trigger', x: 60, y: FLOOR, reach: 16, knot: 'c3day3_low', showIf: 'c3day3=below', hideIf: 'low3' },
-    { type: 'watch', id: 'informant-1', who: 'capital-citizen-12', from: 150, to: 420, y: FLOOR, speed: 22, range: 80, pause: 1600, reset: { x: 56, y: FLOOR }, showIf: 'c3day3=sneak', call: 'Highness...?' },
-    { type: 'watch', id: 'informant-2', who: 'capital-citizen-3', from: 664, to: 664, y: FLOOR, speed: 0, range: 50, face: 1, glance: { every: 4200, for: 2400, range: 120 }, reset: { x: 56, y: FLOOR }, showIf: 'c3day3=sneak', call: 'Highness...?' },
-    { type: 'shadow', x: 208, y: FLOOR, width: 16, showIf: 'c3day3=sneak' },
-    { type: 'shadow', x: 320, y: FLOOR, width: 16, showIf: 'c3day3=sneak' },
-    { type: 'shadow', x: 508, y: FLOOR, width: 16, showIf: 'c3day3=sneak' },
+    { type: 'watch', id: 'informant-1', who: 'capital-citizen-12', from: 150, to: 420, y: FLOOR, speed: 18, range: 64, pause: 2000, reset: { x: 56, y: FLOOR }, showIf: 'c3day3=sneak', call: 'Highness...?' },
+    { type: 'watch', id: 'informant-2', who: 'capital-citizen-3', from: 664, to: 664, y: FLOOR, speed: 0, range: 50, face: 1, glance: { every: 5200, for: 1800, range: 96 }, reset: { x: 530, y: FLOOR }, showIf: 'c3day3=sneak', call: 'Highness...?' },
+    { type: 'shadow', x: 204, y: FLOOR, width: 24, showIf: 'c3day3=sneak' },
+    { type: 'shadow', x: 316, y: FLOOR, width: 24, showIf: 'c3day3=sneak' },
+    { type: 'shadow', x: 504, y: FLOOR, width: 24, showIf: 'c3day3=sneak' },
   ],
   people: [
     // The street: the cook at the stall, the repairer outside his shop, the grocer's girl; people about.

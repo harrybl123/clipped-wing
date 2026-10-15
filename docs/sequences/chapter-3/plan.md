@@ -155,6 +155,8 @@ The card: **"Two weeks on."** The district you darkened has been dark for two we
 
 **As built (2026-10-15):** as above, with these changes. **No sneaking past the watch** (designer, Day 2); instead your hand goes on ahead openly and you get to the hideout's door unseen by informants (designer's pick): a man walking the street and an old woman on her step who looks back now and then; seen, they call "Highness...?" and you go back round. The cut streets depend on big choice 1: the Weavers' Row by the promenade (high), or the low district's streets you gave power to (people), so either way the streets below are dark but for the reward screens. The woman's neighbour is the painter's brother, walked past you to the lifts. People greet your hand familiarly rather than by name (he has none yet). The hostess's question differs by path. Your friend jokes about turning his mother in for the reward.
 
+**After playtest (2026-10-15, designer):** you listen in at the hideout rather than being told: your hand waits outside, the bar's busy, nobody knows you but the kid. The sneak is gentler. Open: whether the symbol becomes a wing (designer's thought).
+
 ---
 
 ## Day 4: the riot (suggestion, unless marked)

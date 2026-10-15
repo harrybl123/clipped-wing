@@ -39,8 +39,7 @@ Your hand, at the door. #beside:hand-3:-60
 - "audience": "Your seat. He won't be in his." #speaker:diplomat
 - "below": "Down. The lifts." #speaker:diplomat
 - "sneak": "In. Quick." #speaker:diplomat
-- "hideout": "Listen to them." #speaker:diplomat
-- "home": "Up, before it's light." #speaker:diplomat
+- "home": "Well? Now you know. Up, before it's light." #speaker:diplomat
 - else: "Highness." #speaker:diplomat
 }
 -> END
@@ -299,31 +298,30 @@ They walk him up the street towards the lifts, right past you. #leave:brother-3:
 He looks at you as he goes by. He doesn't know who you are.
 The woman stands a moment in the street with her arms round herself. Then she goes back in, and shuts her door. #leave:informer:444:30
 "That's what the screens buy." #speaker:diplomat
-"The cellar door, past the lamp shop. That's where we're going." #speaker:diplomat
-"If anyone sees your face going down there, that door's reported by morning, and everyone behind it is taken." #speaker:diplomat
-"They know me down here. They don't know you're with me. Keep out of their sight. I'll go first." #speaker:diplomat
+"The cellar door, past the lamp shop. There's a bar down there. People talk in it." #speaker:diplomat
+"I can't go in with you. They know me: they'd mind what they said." #speaker:diplomat
+"Go down with your hood up. Don't talk to anyone. Listen." #speaker:diplomat
+"And don't let anyone up here see your face going in. They'd sell it by morning, and everyone down there would be taken." #speaker:diplomat
+"I'll wait by the door." #speaker:diplomat
 ~ c3day3 = "sneak"
 He walks off down the middle of the street, in the open. #walk:hand:624:55
-People call out to him as he goes. #bark:informant-1:Evening! #bark:informant-2:Back again?
-~ objective = "Get to the hideout without being seen"
+People call out to him as he goes. They know him. #bark:informant-1:Evening! #bark:informant-2:Back again?
+~ objective = "Get to the cellar without being seen"
 ~ objective_target = "low-district:to-hideout"
 -> END
 
 // --- Night, the hideout ---
 
-// Coming in (a trigger at the foot of the steps).
+// Coming in (a trigger at the foot of the steps). It's busy and loud, and you're one more hood: nobody knows
+// you (designer: you listen in; only the kid recognises you). Your hand waits up in the street.
 === c3day3_hideout ===
 ~ met_hideout = true
 ~ c3day3 = "hideout"
-A cellar under the street. Warm, low, lamps in cages. Every table full.
+A cellar under the street, warm and low, lamps in cages. Every table's full, and loud.
 The bird's painted on the old stone, taller than a man.
-The talking stops. Every face in the room turns to you. They know you, hood or not.
+Nobody looks twice at one more hood.
 "Sit. Drink. Don't stare at anyone." #speaker:hideout_keeper
-Your hand's at the counter already, a glass in front of him, as if he drinks here.
-"They know you down here." #speaker:prince
-"I run errands." #speaker:diplomat
-"Listen to them. That's what we came for." #speaker:diplomat
-~ objective = "Hear them out"
+~ objective = "Listen"
 ~ objective_target = "hideout:rewards-1"
 -> END
 
@@ -331,7 +329,17 @@ Your hand's at the counter already, a glass in front of him, as if he drinks her
 "Sit, or go. Don't stand there looking." #speaker:hideout_keeper
 -> END
 
-// After each of them: the marker moves on to whoever you haven't heard, then your hand says it's time.
+// Anyone you try to talk to: you're a stranger.
+=== c3day3_stranger ===
+{ shuffle:
+- "Busy, friend." #speaker:them
+- "Not now." #speaker:them
+- "Do I know you?" #speaker:them
+}
+You keep your head down, and move on.
+-> END
+
+// After each table you listen in on: the marker moves on, then to the kid, then it's time to go.
 === c3day3_heard ===
 ~ heard3 += 1
 {
@@ -339,63 +347,66 @@ Your hand's at the counter already, a glass in front of him, as if he drinks her
     ~ objective_target = "hideout:rewards-1"
 - not heard_stairs3:
     ~ objective_target = "hideout:rewards-2"
-- not heard_chalk3:
-    ~ objective_target = "hideout:rewards-3"
+- not heard_counter3:
+    ~ objective_target = "hideout:counter-3"
 - not painter3:
+    ~ objective = "Talk to the kid in the corner"
     ~ objective_target = "hideout:painter-3"
 - else:
-    "Dawn soon. Up, before anyone's awake to see us." #speaker:diplomat
+    Time to go. Your hand's waiting up in the street.
     ~ c3day3 = "home"
     ~ objective = "Go back up to your rooms"
     ~ objective_target = "prince-quarters:bed-3"
 }
 -> END
 
-// What the rewards are doing, one by one.
-=== c3day3_sister ===
-{ heard_sister3:
-    "That's all there is." #speaker:them
-    -> END
-}
+// What the rewards are doing, overheard table by table (a trigger by each).
+=== c3day3_overhear_sister ===
 ~ heard_sister3 = true
-"You want to know what the screens do, Highness? I'll tell you." #speaker:them
-"My sister said one thing about the lights. At her own table." #speaker:them
-"Her husband went to the watch the next morning. For the reward." #speaker:them
-"She's gone. He's bought a new coat." #speaker:them
+You stop by a table, head down, as if you're waiting for a seat.
+"My sister said one thing about the lights. At her own table." #speaker:c3_citizen_5
+"And?" #speaker:c3_citizen_0
+"Her husband went to the watch the next morning. For the reward." #speaker:c3_citizen_5
+"She's gone. He's bought a new coat." #speaker:c3_citizen_5
+Nobody at the table says anything for a while.
 -> c3day3_heard
 
-=== c3day3_stairs ===
-{ heard_stairs3:
-    "Good night, Highness. That's all I say now." #speaker:them
-    -> END
-}
+=== c3day3_overhear_stairs ===
 ~ heard_stairs3 = true
-"Nobody talks on the stairs any more. Not to anyone." #speaker:them
-"You don't know who's behind on their rent." #speaker:them
-"Twenty years, my neighbours. I say good morning to them, and that's all I say." #speaker:them
+Two men, close together over one drink. You lean on the wall behind them.
+"You've not been home?" #speaker:c3_citizen_7
+"Four days. I chalked one bird, on my own wall, and my neighbour's boy saw me." #speaker:c3_citizen_9
+"I sleep here now. Under that table." #speaker:c3_citizen_9
+"Nobody talks on the stairs any more. You don't know who's behind on their rent." #speaker:c3_citizen_7
+"Then we talk here." #speaker:c3_citizen_9
 -> c3day3_heard
 
-=== c3day3_chalk ===
-{ heard_chalk3:
-    He doesn't look up from his drink.
-    -> END
-}
-~ heard_chalk3 = true
-"I chalked one bird. One. On my own wall." #speaker:them
-"My neighbour's boy saw me do it." #speaker:them
-"I've not been home in four days. I sleep here, under the table." #speaker:them
+=== c3day3_overhear_counter ===
+~ heard_counter3 = true
+At the counter, someone's telling the barkeep about tonight.
+"They took the kid's brother. On the old woman's word, across the street." #speaker:c3_citizen_13
+"For what?" #speaker:hideout_keeper
+"Shouting at a screen." #speaker:c3_citizen_13
+"Third this week." #speaker:hideout_keeper
+He nods at the corner, by the steps.
+"The kid won't go home. Says they'll come for him next." #speaker:hideout_keeper
 -> c3day3_heard
 
-// The painter: his brother was the man taken.
+// The painter: his brother was the man taken. He's the only one who knows you.
 === c3day3_painter ===
 { painter3:
     He doesn't look up.
+    -> END
+}
+{ heard3 < 3:
+    A kid in the corner, his knees up. He doesn't look up.
     -> END
 }
 ~ painter3 = true
 The kid you saw chalking in the dark, two weeks ago. He's in the corner with his knees up. He's been crying.
 He sees your face under the hood, and goes very still.
 "You're him. The prince." #speaker:painter
+He says it under his breath. Nobody else has looked twice at you.
 "Have you come for me too?" #speaker:painter
 "No." #speaker:prince
 "They took my brother tonight. You were there. You saw." #speaker:painter

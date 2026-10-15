@@ -70,6 +70,9 @@ export const hideout: AreaDefinition = {
     ...[150, 250, 380].map((x) => ({ type: 'swing' as const, sprite: P.CAGE_LAMP, x, y: TOP + 56, ropeTop: TOP, quiet: true, ropeColour: S.deep })),
     // Chapter 3, Day 3: coming down the steps, the first time.
     { type: 'trigger', x: 60, y: FLOOR, reach: 12, knot: 'c3day3_hideout', showIf: 'c3day3=sneak', hideIf: 'met_hideout' },
+    { type: 'trigger', x: 138, y: FLOOR, reach: 14, knot: 'c3day3_overhear_sister', showIf: 'c3day3=hideout', hideIf: 'heard_sister3' },
+    { type: 'trigger', x: 238, y: FLOOR, reach: 14, knot: 'c3day3_overhear_stairs', showIf: 'c3day3=hideout', hideIf: 'heard_stairs3' },
+    { type: 'trigger', x: 332, y: FLOOR, reach: 12, knot: 'c3day3_overhear_counter', showIf: 'c3day3=hideout', hideIf: 'heard_counter3' },
   ],
   people: [
     cast('hideout_keeper', 404, FLOOR, { knot: 'hideout_keeper', flipX: true }), // behind the counter, always
@@ -82,15 +85,16 @@ export const hideout: AreaDefinition = {
     citizen('at-counter', 4, 332, FLOOR, 'hideout_folk', LATE, { hideIf: 'c3day3=below,sneak,hideout,home' }),
     citizen('in-the-corner', 2, 76, FLOOR, 'hideout_corner', ['night'], { hideIf: 'c3day3=below,sneak,hideout,home' }),
     citizen('regular', 5, 290, FLOOR, 'hideout_regular', LATE, { flipX: true, hideIf: 'c3day3=below,sneak,hideout,home' }),
-    // Chapter 3's story. Day 3, the first time: the barkeep; your hand at the counter already; three who tell
-    // you what the rewards are doing, and the painter in the corner (his brother was the man taken).
-    inStory('keeper-3', 'hideout_keeper', 404, FLOOR, 'c3day3=below,sneak,hideout,home', { knot: 'c3day3_keeper', flipX: true }),
-    inStory('hand-3h', 'diplomat', 344, FLOOR, 'c3day3=sneak,hideout', { knot: 'c3day3_hand', flipX: true }),
-    citizen('rewards-1', 5, 128, FLOOR, 'c3day3_sister', undefined, { showIf: 'c3day3=hideout,home' }),
-    citizen('folk-3a', 0, 148, FLOOR, 'hideout_folk', undefined, { showIf: 'c3day3=hideout,home', flipX: true }),
-    citizen('rewards-2', 7, 228, FLOOR, 'c3day3_stairs', undefined, { showIf: 'c3day3=hideout,home' }),
-    citizen('rewards-3', 9, 264, FLOOR, 'c3day3_chalk', undefined, { showIf: 'c3day3=hideout,home', flipX: true }),
-    citizen('folk-3b', 13, 300, FLOOR, 'hideout_folk', undefined, { showIf: 'c3day3=hideout,home', flipX: true }),
+    // Chapter 3's story. Day 3, the first time: busy and loud, and you're one more hood (designer: you listen
+    // in; only the kid knows you). The barkeep; tables you listen in on (a trigger by each); the painter in the
+    // corner by the steps (his brother was the man taken). Your hand waits up in the street.
+    inStory('keeper-3', 'hideout_keeper', 404, FLOOR, 'c3day3=sneak,hideout,home', { knot: 'c3day3_keeper', flipX: true }),
+    citizen('rewards-1', 5, 128, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=hideout,home' }),
+    citizen('folk-3a', 0, 148, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=hideout,home', flipX: true }),
+    citizen('rewards-2', 7, 228, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=hideout,home' }),
+    citizen('rewards-3', 9, 248, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=hideout,home', flipX: true }),
+    citizen('folk-3c', 12, 290, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=hideout,home', flipX: true }),
+    citizen('counter-3', 13, 344, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=hideout,home' }),
     inStory('painter-3', 'painter', 74, FLOOR, 'c3day3=hideout,home', { knot: 'c3day3_painter' }),
   ],
   interactables: [
