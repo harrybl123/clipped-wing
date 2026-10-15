@@ -38,6 +38,14 @@ describe('the war table: the rules', () => {
     expect(at(t, 'market').strength).toBe(1);
   });
 
+  it('9 on the square’s 8: taken, though the barricades cost one more (Jack)', () => {
+    const game = g();
+    const s = game.start([{ side: 'guard', place: 'market', strength: 9 }, { side: 'rising', place: 'square', strength: 8 }]);
+    const t = game.order(s, go(s, 'market', 'square')).state;
+    expect(game.outcome(t)).toBe('guard');
+    expect(at(t, 'square').strength).toBe(1);
+  });
+
   it('the square’s barricades: +1; beaten off, it still wears them down (designer: it looked like a bug when it didn’t)', () => {
     const game = g();
     const s = game.start([{ side: 'guard', place: 'market', strength: 3 }, { side: 'rising', place: 'square', strength: 4 }]);

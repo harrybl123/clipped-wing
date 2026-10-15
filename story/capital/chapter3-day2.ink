@@ -116,7 +116,8 @@ The table's dark. Just glass.
 // The first time each thing happens: what it is.
 === c3day2_first_grow ===
 "Your square grows. People keep joining it: one a turn. Past nine, it starts sending them out." #speaker:father
-"Behind its barricades it holds at one more. And when it holds, it loses nothing." #speaker:father
+// (Jack's proposal: match the square's number and you take it, the barricades costing one more. Draft wording, for Harry; it said it holds at one more, and loses nothing when it holds.)
+"Behind its barricades it costs one more to take. But match it, and it's yours." #speaker:father
 -> END
 
 === c3day2_first_pour ===

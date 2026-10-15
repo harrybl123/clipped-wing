@@ -22,6 +22,8 @@ export const SOUND_IDS = [
   'chop', 'shave', 'skid', 'scratch', 'pop', 'rub', 'slip',
   // The dog (Chapter 2).
   'bark', 'growl', 'whimper', 'yip',
+  // The war table (Chapter 3): a rumble going off (Jack: a distorted rumble).
+  'quake',
 ] as const;
 export type SoundId = (typeof SOUND_IDS)[number];
 
@@ -229,6 +231,22 @@ function oneShot(a: Out, dest: AudioNode, t: number, id: SoundId, v: number, sur
       noise(a, dest, t, 'lowpass', 120, 1, 1.6, 0.7 * v, 0.3);
       for (let i = 0; i < 7; i++) noise(a, dest, t + rand(0.1, 1.4), 'lowpass', rand(300, 700), 1, 0.06, 0.18 * v);
       break;
+    case 'quake': {
+      // A rumble going off on the war table (Jack): a deep, rolling roar, driven till it tears.
+      const shaper = a.ctx.createWaveShaper();
+      const n = 1024;
+      const curve = new Float32Array(new ArrayBuffer(n * 4));
+      for (let i = 0; i < n; i++) curve[i] = Math.tanh(((i / (n - 1)) * 2 - 1) * 8) / Math.tanh(8);
+      shaper.curve = curve;
+      const level = a.ctx.createGain();
+      level.gain.value = 0.55 * v;
+      shaper.connect(level).connect(dest);
+      tone(a, shaper, t, 'sawtooth', 55, 32, 1.6, 1.4, 0.05);
+      tone(a, shaper, t, 'sine', 41, 28, 1.8, 1.6, 0.03);
+      noise(a, shaper, t, 'lowpass', 220, 1, 1.7, 1.8, 0.08);
+      for (let i = 0; i < 9; i++) noise(a, shaper, t + rand(0.05, 1.3), 'lowpass', rand(300, 800), 1, 0.08, 1.2); // things falling
+      break;
+    }
     case 'skitter':
       // Legs on wood: a few low, dry scratches (it rattled like maracas).
       for (let i = 0; i < 3; i++) noise(a, dest, t + i * rand(0.05, 0.09), 'lowpass', rand(500, 900), 1, 0.04, 0.12 * v, 0.01);

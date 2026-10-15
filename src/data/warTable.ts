@@ -1,4 +1,4 @@
-import type { RiotBoard, RiotPlace, RiotRules, Side } from '../systems/Riot';
+import { RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type Side } from '../systems/Riot';
 
 // The war table's maps and games (Chapter 3; the game: src/systems/Riot.ts, its design and how it was
 // tuned: docs/sequences/chapter-3/war-table.md). Day 2: the lesson in the simulation room (you're the rising,
@@ -178,6 +178,8 @@ export const LESSON: LessonScenario = {
 
 const riot = (id: string, board: RiotBoard, district: 'low' | 'promenade', squareArea: RiotScenario['squareArea']): RiotScenario => ({
   id, kind: 'riot', board, district, squads: RIOT_START, square: 'riot_square', squareArea,
+  // Rumbles in the riot (Jack), not the lesson.
+  rules: { rumble: RUMBLE },
   knots: { intro: 'c3day4_riot_intro', won: 'c3day4_table_won', dawn: 'c3day4_dawn', fatherTook: 'c3day4_father_took', square: 'c3day4_square' },
 });
 

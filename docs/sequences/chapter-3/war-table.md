@@ -77,3 +77,35 @@ Chosen (designer): in order, chains allowed, the square 14. Nobody can rush it; 
 ## Later
 
 - Other days' games (the raid, the broadcast) can be new set-ups on the same rules.
+
+## Fortify and rumbles (Jack's proposal, 2026-10-15, for the designer to confirm)
+
+Jack, playing the riot: you make a big squad in the middle and then can't defend a 2 that a 3 is coming for on turn 2, and the arrows show it coming with nothing you can do about it. Two additions:
+
+- **Buttons under the circles** (Jack: easier to play): Fortify under the squad you've picked up; Unfortify under every squad that's dug in; and, as the guard, Cut power under one of theirs you've clicked (greyed, with the turns to wait, when it isn't ready: still every 3 turns). The power button in the corner is gone (P still works).
+- **Fortify** (always there): pick up a squad, and a Fortify button sits under it (or F). Fortifying puts it down, so you can pick up the next straight away (Jack). **Once every 3 turns, like the power cut** (Jack): till then the button's greyed, "Fortify in 2"; taken back the same turn, you have it again. It digs in for the turn: nobody can attack it (their attacks on it don't happen, and the attackers stay where they are: no mistake for them to make), but it can't move, and it gets no +1 or +2 that turn (no reinforcements at the lifts, no growth in the square). It survives a round while help comes round behind. An arrow at a squad that's dug in is crossed out. **Unfortify** sits under every squad that's dug in (Jack), to change your mind straight away; giving it an order after all undoes it too. Not in "Now." (he's showing you how it's done). The computer players don't use it, so it can only make the game easier for a person.
+- **Rumbles** (the riot, not the lesson): with none on the map, each turn there's a one-in-three chance one appears on an empty street (not the square or the lifts' foot), for two turns: next to both sides if there's such a street (a race), else next to anyone (Jack never caught one: placed anywhere, most faded before anyone reached them, about 1 set off a game; now 3 to 4). Its arrival flashes, rumbles and sends out a ring. Whoever gets a squad onto it first sets it off: every squad next to it, either side, takes a dice of 1 to 3 (a squad that's dug in, nothing). The screen shakes, a distorted rumble, "Rumble!" across the table. The rising go for one when it would hurt the guard round it more than their own. The dice are a seeded sequence in the state (a new seed each game; fixed in tests).
+
+Simulated on the riot's own set-up (`RIOT_START`, the computer guard players, 40 and 12 games):
+
+| | Sensible | Careful |
+| --- | --- | --- |
+| Without rumbles | wins every time, turn 16 | wins every time, turn 10 |
+| With rumbles, placed anywhere (first try) | wins 78%, turn 16 | wins every time, turn 9.4 |
+| With rumbles, where both sides meet (now) | wins 85%, turn 15.3 | wins every time, turn 8.3 |
+
+So rumbles make it a little harder for an average player and different every time, and don't trouble a careful one. Rules in `src/systems/Riot.ts` (`fortify`, `unfortify`, `RUMBLE`, `setOff`), tests in `tests/riotFortifyRumble.test.ts`; the balance tests above are unchanged (they play without rumbles).
+
+## Match the square's number and you take it (Jack's proposal, 2026-10-15)
+
+Jack: 9 on the square's 8 didn't take it, which was confusing (he took it for the +2 coming first; it was the barricades: 9 v 9 is a tie, a tie holds, and the defenders keep at least 1, so the square's number never reaches 0). Your orders already come before the square grows and the guard arrive. The change: **match the square's number and you take it**; the barricades still cost one more, so you keep what's over after them, at least 1 (9 on 8: taken, 1 left). The card says it: "9 v 8 (+1 barricades): you take it, 1 left". Elsewhere a tie still holds.
+
+Tried for every fight first, it was too much (and the rising's ties started winning too). Simulated, 30 and 10 games:
+
+| | Sensible (rumbles) | Careful (rumbles) | Sensible (no rumbles) | "Now." takes the square on turn |
+| --- | --- | --- | --- | --- |
+| Before | 85% | turn 8.3 | always, turn 16 | 3 or more (tested) |
+| Every fight | 80% | turn 8.8 | never | 2, 8, 2 (broken: "never at once") |
+| **The square only** | 97% | turn 6.7 | always, turn 16 | 5, 9, 4 |
+
+The lesson's line on the barricades now says they cost one more to take, and that matching it takes it (draft wording; it said it holds at one more and loses nothing when it holds, from before that changed).
