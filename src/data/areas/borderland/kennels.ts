@@ -1,5 +1,5 @@
 import { SHADES as S } from '../../../ui/pixelArt';
-import { CAGED_BEASTS, GUARD_BEASTS } from '../../../ui/borderlandFolk';
+import { CAGED_BEASTS, GUARD_BEASTS, STRANGER_WRITHING } from '../../../ui/borderlandFolk';
 import * as P from './kennelsProps';
 import type { AreaDefinition, Feature, Person } from '../types';
 import { AWAKE } from './people';
@@ -15,23 +15,30 @@ import { AWAKE } from './people';
 
 const W = 640;
 const FLOOR = 236;
-/** The cages along the way in: [left x]; each CAGE wide and high. */
-const CAGES = [96, 176, 256, 336];
-const CAGE = { width: 64, height: 40 };
+/** The cages along the way in: left x, width and height. The second is a small one (the strange man lands on it). */
+const CAGES = [
+  { x: 96, width: 64, height: 40 },
+  { x: 176, width: 52, height: 28 },
+  { x: 256, width: 64, height: 40 },
+  { x: 336, width: 64, height: 40 },
+];
+type Cage = (typeof CAGES)[number];
+/** Where the strange man lands: on top of the small cage (Jack: he breaks his back on it). */
+const SMALL = CAGES[1]!;
 /** The pen's fence (and its gate) at the far end, up to the wire roof. */
 const GATE = 470;
 const ROOF = 100;
 
 /** A creature pacing its cage. */
-const caged = (n: number, look: number, cage: number, flipX = false): Person => ({
+const caged = (n: number, look: number, cage: Cage, flipX = false): Person => ({
   id: `cage-${n}`,
   sprite: CAGED_BEASTS[look]!.idle[0]!,
   idleFrames: CAGED_BEASTS[look]!.idle,
   walkFrames: CAGED_BEASTS[look]!.walk,
-  x: cage + CAGE.width / 2,
+  x: cage.x + cage.width / 2,
   y: FLOOR,
   flipX,
-  wander: { from: cage + 18, to: cage + CAGE.width - 18 },
+  wander: { from: cage.x + 18, to: cage.x + Math.max(19, cage.width - 18) },
 });
 
 /** One of the three guarding the box: 1 the hyena, 2 the hog, 3 the nameless thing. */
@@ -46,11 +53,11 @@ const guard = (n: number, x: number): Person => ({
 });
 
 /** A cage's bars, rattling now and then in front of what's in it. */
-const cageBars = (x: number, every: number): Feature => ({
+const cageBars = ({ x, width, height }: Cage, every: number): Feature => ({
   type: 'frames',
-  frames: [P.cageFront(CAGE.width, CAGE.height, false), P.cageFront(CAGE.width, CAGE.height, true)],
+  frames: [P.cageFront(width, height, false), P.cageFront(width, height, true)],
   x,
-  y: FLOOR - CAGE.height,
+  y: FLOOR - height,
   every,
   front: true,
 });
@@ -84,7 +91,7 @@ export const kennels: AreaDefinition = {
 
   props: [
     { sprite: P.DRUM, x: 40, y: FLOOR - 14 },
-    ...CAGES.map((x) => ({ sprite: P.cageBack(CAGE.width, CAGE.height), x, y: FLOOR - CAGE.height })),
+    ...CAGES.map(({ x, width, height }) => ({ sprite: P.cageBack(width, height), x, y: FLOOR - height })),
     { sprite: P.TINS, x: 420, y: FLOOR - 4 },
     { sprite: P.BONES, x: 520, y: FLOOR - 4 },
     { sprite: P.BONES, x: 580, y: FLOOR - 4 },
@@ -93,7 +100,9 @@ export const kennels: AreaDefinition = {
 
   features: [
     { type: 'fire', x: 46, y: FLOOR - 14 },
-    ...CAGES.map((x, i) => cageBars(x, 300 + i * 70)),
+    ...CAGES.map((cage, i) => cageBars(cage, 300 + i * 70)),
+    // The strange man (Jack): once you're past the first cage, he falls out of the sky onto the small one.
+    { type: 'trigger', x: 120, y: FLOOR, reach: 16, knot: 'kennels_stranger_falls', hideIf: 'stranger_fell' },
     {
       type: 'frames',
       frames: [P.penFence(FLOOR - ROOF, false), P.penFence(FLOOR - ROOF, true)],
@@ -135,10 +144,22 @@ export const kennels: AreaDefinition = {
 
   people: [
     caged(1, 0, CAGES[0]!),
-    caged(2, 1, CAGES[1]!, true),
+    caged(2, 1, SMALL, true),
     caged(3, 2, CAGES[2]!),
     caged(4, 3, CAGES[3]!, true),
     caged(5, 1, CAGES[3]!),
+    // The strange man, flat on his back in the dirt where he rolled off the small cage, writhing.
+    {
+      id: 'stranger',
+      sprite: STRANGER_WRITHING[0]!,
+      idleFrames: STRANGER_WRITHING,
+      idleEvery: 170,
+      x: SMALL.x + SMALL.width + 18,
+      y: FLOOR,
+      showIf: 'stranger_fell',
+      knot: 'kennels_stranger',
+      label: 'Talk',
+    },
     guard(1, 516),
     guard(2, 550),
     guard(3, 584),

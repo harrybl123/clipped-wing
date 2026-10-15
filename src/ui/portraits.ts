@@ -1,6 +1,6 @@
 import { ELDER_LOOKS, FRIEND_FATHER_LOOK, GUARD_LOOK, PREACHER_LOOK, RESIDENT_LOOKS, VILLAGER_LOOKS, type VillagerLook } from './characters';
 import type { VoiceId } from '../systems/voices';
-import { CAST_LOOKS, HOSTESS_LOOKS, RIVAL_LOOKS, STRAGGLER_LOOKS, TOWNSFOLK_LOOKS, type FolkLook } from './borderlandFolk';
+import { CAST_LOOKS, HOSTESS_LOOKS, RIVAL_LOOKS, STRAGGLER_LOOKS, STRANGER_LOOK, TOWNSFOLK_LOOKS, type FolkLook } from './borderlandFolk';
 import { CAPITAL_CAST_LOOKS as C3, CITIZEN_LOOKS, COUNCIL_LOOKS, COURTIER_LOOKS, GUARD_LOOKS as CITADEL_GUARD_LOOKS, SERVANT_LOOKS, WATCH_LOOKS, type CapitalLook } from './capitalFolk';
 import { capitalPortrait, type CourtFace } from './capitalPortraits';
 import { SHADES } from './pixelArt';
@@ -945,6 +945,8 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
   enforcer: { name: 'The enforcer', portrait: folkPortrait(CAST_LOOKS.enforcer, { build: 'broad', brow: 'knit', beard: 'stubble', mouth: 'sneer' }), voice: 'guard' },
   boss_son: { name: "The boss's son", portrait: folkPortrait(CAST_LOOKS.boss_son, { build: 'narrow', brow: 'raised', mouth: 'sneer', items: ['earring'] }), voice: 'boy' },
   scav_friend: { name: 'Your friend', portrait: folkPortrait(CAST_LOOKS.scav_friend, { mouth: 'smile', items: ['beads', 'earring'] }), voice: 'roots_woman' },
+  // The strange man who falls into the kennels (Jack); "Your father" once he's said so (#name).
+  stranger: { name: 'A strange man', portrait: folkPortrait(STRANGER_LOOK, { age: 2, hair: 'messy', beard: 'full', brow: 'knit', eyes: 'wide', mouth: 'open', items: ['goggles'] }), voice: 'old' },
   old_scav: { name: 'The old scavenger', portrait: folkPortrait(CAST_LOOKS.old_scav, { age: 2, brow: 'heavy', beard: 'long', mouth: 'frown', eyes: 'narrow' }), voice: 'old' },
   gambler: { name: 'The gambler', portrait: folkPortrait(CAST_LOOKS.gambler, { build: 'narrow', eyes: 'hollow', beard: 'stubble', mouth: 'grin' }), voice: 'roots_man' },
   lookout: { name: 'The kid', portrait: folkPortrait(CAST_LOOKS.lookout, { build: 'round', eyes: 'wide', mouth: 'smile' }), voice: 'young' },

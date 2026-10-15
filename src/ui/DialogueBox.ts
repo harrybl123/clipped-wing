@@ -104,6 +104,23 @@ export class DialogueBox {
     return this._isOpen;
   }
 
+  /** Until when the box has stepped aside (see stepAside). */
+  private asideUntil = 0;
+
+  /**
+   * The box steps aside for `ms` (hidden, and keys and clicks wait), so something happening at the bottom
+   * of the screen can be seen (the strange man landing on the kennels' cage), then comes back.
+   */
+  stepAside(ms: number): void {
+    this.asideUntil = this.scene.time.now + ms;
+    this.container.setVisible(false);
+    this.scene.time.delayedCall(ms, () => this.container.setVisible(this._isOpen));
+  }
+
+  private get aside(): boolean {
+    return this.scene.time.now < this.asideUntil;
+  }
+
   /**
    * Starts the ink knot and shows its first line. `onClose` runs when the conversation ends. `them` is the
    * speaker id of whoever you're talking to: lines tagged `#speaker:them` show their face and name, so
@@ -358,7 +375,7 @@ export class DialogueBox {
   }
 
   private handleKey(event: KeyboardEvent): void {
-    if (!this._isOpen || event.repeat || this.mode === 'held') return;
+    if (!this._isOpen || event.repeat || this.mode === 'held' || this.aside) return;
     const key = event.key.toLowerCase();
     const confirm = key === ' ' || key === 'enter' || key === 'e';
     if (this.typing) {
@@ -379,7 +396,7 @@ export class DialogueBox {
   }
 
   private handlePointer(): void {
-    if (!this._isOpen || this.mode === 'held') return;
+    if (!this._isOpen || this.mode === 'held' || this.aside) return;
     if (this.typing) this.finishTyping();
     else if (this.choiceTexts.length === 0) this.advance();
   }

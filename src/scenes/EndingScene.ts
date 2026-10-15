@@ -26,6 +26,12 @@ const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number
     gameOver: true,
     retryDay: 'today',
   },
+  // The strange man in the kennels (Jack). His words.
+  father: {
+    title: 'Chapter 7: Epilogue',
+    lines: ['(He was your father.)'],
+    retryDay: 'today',
+  },
   // Ignoring Grounded's message twice (the design doc's "short, comfortable loyal ending").
   loyal: {
     title: 'You stayed loyal to the Tree.',

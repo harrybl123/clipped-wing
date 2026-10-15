@@ -72,3 +72,9 @@ A general game over: an ending screen with "Game over" and **Try again from Day 
 4. **What's made them sick:** the rot, or a sickness of their own?
 5. **Game over:** is "eaten, game over" the right weight for the game? Every other loss so far sends you back or carries on. Should other deadly moments use it?
 6. **The words:** the look lines, the gate and the game-over card are drafts.
+
+## The strange man (Jack; a separate proposal)
+- Once you're past the first cage, **a strange man falls out of the sky**, lands on the small cage and breaks his back. "Oof!" Then: "Damn!" **(Jack)**
+- He rolls off into the dirt and lies there writhing. Walk up and talk to him: "What are you doing?" "Just came to check up on you. I'm your father." **(Jack)**
+- Then the screen cuts to black: **Chapter 7: Epilogue. (He was your father.)** **(Jack)**
+- His look (wild grey hair, goggles, a long patched coat) is Claude's. It's a one-off: the scene plays once a day, and the card offers "Try again from Day N" or the title.

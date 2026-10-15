@@ -17,3 +17,25 @@ The chain's hanging loose. The padlock's open.
     -> END
 * [Leave it.]
     -> END
+
+// --- The strange man (Jack): he falls out of the sky onto the small cage, and
+// breaks his back. His words are Jack's.
+
+VAR stranger_fell = false
+
+=== kennels_stranger_falls ===
+~ stranger_fell = true
+A shadow, overhead. Something big, coming down fast. #fall:stranger:202:208
+"Oof!" #speaker:stranger
+"Damn!" #speaker:stranger
+He rolls off the cage and into the dirt, and lies there writhing. #hop:stranger:246:236 #aside:1400
+-> END
+
+=== kennels_stranger ===
+He's flat on his back in the dirt, writhing.
+* [What are you doing?]
+    "Just came to check up on you." #speaker:stranger
+    "I'm your father." #speaker:stranger #name:Your father #ending:father
+    -> END
+* [Leave him.]
+    -> END

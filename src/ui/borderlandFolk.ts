@@ -394,6 +394,27 @@ export const CAGED_BEASTS = [
   beastFrames(hyena, SHADES.light, SHADES.dim, SHADES.white),
 ];
 
+// --- The strange man (Jack) ---
+
+/** A strange man who falls out of the sky into the kennels (Jack): wild grey hair, goggles, a long patched coat, a scarf, a glint of tech at his chest. */
+export const STRANGER_LOOK: FolkLook = { height: 25, width: 3, skin: 'fair', hair: SHADES.light, hairStyle: 'messy', head: 'goggles', top: SHADES.dim, topStyle: 'coat', legs: SHADES.wood, scarf: SHADES.cyanDeep, trinket: true, pack: 'bag' };
+
+/** A sprite turned a quarter clockwise: someone standing becomes someone flat on their back (head to the right). */
+function lyingDown(sprite: RowSprite): RowSprite {
+  const h = sprite.rows.length;
+  const w = sprite.rows[0]!.length;
+  const rows = Array.from({ length: w }, (_, y) => Array.from({ length: h }, (_, x) => sprite.rows[h - 1 - x]![y]!).join(''));
+  return { rows, colours: sprite.colours };
+}
+
+/** Him flat on his back with a broken back, writhing: kicking his legs and arching, frame after frame. */
+export const STRANGER_WRITHING: RowSprite[] = [
+  lyingDown(folk(STRANGER_LOOK, false, 0)),
+  lyingDown(folk(STRANGER_LOOK, false, 2)),
+  lyingDown(folk(STRANGER_LOOK, true, 0)),
+  lyingDown(folk(STRANGER_LOOK, true, -2)),
+];
+
 // --- The cast (docs/chapter-2-design.md; looks are Claude's, designer: "up to your judgement") ---
 
 const S = SHADES;

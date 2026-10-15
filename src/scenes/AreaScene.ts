@@ -484,7 +484,7 @@ export class AreaScene extends Phaser.Scene {
         this.wanderers.push({ image, entry, from: person.wander.from, to: person.wander.to, dir: person.flipX ? -1 : 1, pause: Phaser.Math.Between(0, 1500), walkKeys: walkKeys.length ? walkKeys : [frames[0]!], idleKey: frames[0]!, stepTimer: 0, frame: 0 });
       } else if (frames.length > 1) {
         let frame = 0;
-        this.time.addEvent({ delay: 650, loop: true, callback: () => !entry.walking && image.setTexture(frames[(frame = (frame + 1) % frames.length)]!) });
+        this.time.addEvent({ delay: person.idleEvery ?? 650, loop: true, callback: () => !entry.walking && image.setTexture(frames[(frame = (frame + 1) % frames.length)]!) });
       }
       this.people.set(person.id, entry);
       // (Wanderers with something to say can be talked to too, wherever they've got to: the dog.)
@@ -1521,6 +1521,8 @@ export class AreaScene extends Phaser.Scene {
    *   #when:<variable>:<knot>[:<seconds>]  once the variable reaches 0 (e.g. everything hidden), or the time runs out, the knot plays
    *   #ending:<id>            after the conversation, an ending (e.g. loyal)
    *   #through:<x>:<y>        after the conversation, you go through a gate to (x, y) (into the kennels' pen)
+   *   #fall:<id>:<x>:<y>      they drop out of the sky and land hard at (x, y)
+   *   #aside:<ms>             the dialogue box steps aside for a moment, so you see what's behind it
    *   #fight:<knot>[:<then>]  after the conversation, the fight close-up plays the knot; back here, <then> plays
    *   #combat:<encounter>[:<then>]  after the conversation, a turn-based fight (src/data/combat.ts); its outcome is written to ink, and back here, <then> plays
    *   #turn                   the crowd turns its back on you
@@ -1613,6 +1615,29 @@ export class AreaScene extends Phaser.Scene {
           }
           break;
         }
+        case 'fall':
+          // #fall:<id>:<x>:<y>: they drop out of the sky, from above the top of the screen, and land hard at
+          // (x, y). The dialogue box steps aside till they've landed, so you see it.
+          if (entry) {
+            this.dialogue.stepAside(1300);
+            const [x, y] = [Number(args[1]), Number(args[2])];
+            entry.racing = true;
+            entry.image.setVisible(true).setPosition(x, this.cameras.main.worldView.y - 10);
+            this.tweens.add({
+              targets: entry.image, y, duration: 650, ease: 'Quad.easeIn',
+              onComplete: () => {
+                entry.racing = false;
+                this.cameras.main.shake(300, 0.012);
+                this.soundscape.play('crash', { x, y }, 1);
+                this.soundscape.play('thump', { x, y }, 1);
+              },
+            });
+          }
+          break;
+        case 'aside':
+          // #aside:<ms>: the dialogue box steps aside for a moment, so you can see what's happening behind it.
+          this.dialogue.stepAside(Number(args[0]) || 1000);
+          break;
         case 'hop':
           // #hop:<id>:<x>:<y>[:<x>:<y>...]: they jump from point to point (ledge to ledge), then the scene
           // settles (so if the story has hidden them meanwhile, they go once they land).
