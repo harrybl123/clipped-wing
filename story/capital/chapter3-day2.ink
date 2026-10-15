@@ -177,8 +177,8 @@ He touches the table. Under one of your squads, the lights go out.
 }
 "{sim_turns} turns." #speaker:father
 "I've played this table every night for thirty years. You won't ever be as good at it as I am." #speaker:father
-"You held your square and sat in it. I came at you from everywhere, every turn." #speaker:father
-"Remember it from my side of the table. This is what happens if you don't quell an uprising with equal aggression, and just try to defend your mark." #speaker:father
+"You held your square and waited. I let your people come to me and break. I fed one fist from the lifts, cut your power, and struck once." #speaker:father
+"Remember it from my side of the table." #speaker:father
 He switches it off, and the city goes dark under your hands.
 "I hope you never need it." #speaker:father
 -> END
