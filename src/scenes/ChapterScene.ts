@@ -189,7 +189,7 @@ export function beginChapter3(scene: Phaser.Scene): void {
  * hand's office at night, then down); `&energy=high|people`.
  * Day 3 (`&day=3`): `start|audience|requests|salon|below|low`. Day 4 (`&day=4`): `start` (dawn, your friend on
  * the balcony), `physician`, `afternoon`, `evening` (back to your balcony as it starts), `table` (the
- * simulation room), `riot` (straight onto the war table), `square` (out of the fight; `&table=taken`);
+ * simulation room), `riot` (straight onto the war table), `square` (out of the fight; `&table=lost`);
  * `&sleeve=asked|told`, `&physician=yes|no`.
  */
 export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
@@ -241,9 +241,9 @@ export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
     physician: { area: { areaId: 'citadel-halls', start: { x: 110, y: 136 } }, slots: 0, vars: { c3day4: 'physician', spar4: 'won', sleeve, objective: 'Talk to the physician', objective_target: 'citadel-halls:physician-4' } },
     afternoon: { area: { areaId: 'citadel-halls', start: { x: 110, y: 136 } }, slots: 1, vars: { c3day4: 'afternoon', ...morning4, objective: 'Wait for the evening', objective_target: 'council-chamber:table-4,lifts:painter-4,citadel-halls:sister-4' } },
     evening: { area: { areaId: 'prince-quarters', start: { x: 300, y: 226 } }, slots: 2, vars: { c3day4: 'evening', ...morning4, afternoon4: 2, table4: true, painter4: true, objective: 'Go back to your rooms', objective_target: 'prince-quarters:telescope' } },
-    table: { area: { areaId: 'simulation-room', start: { x: 120, y: 230 } }, slots: 2, vars: { c3day4: 'table', ...evening4, room4: true, objective: 'Put down the riot', objective_target: 'simulation-room:table-4' } },
+    table: { area: { areaId: 'simulation-room', start: { x: 120, y: 230 } }, slots: 2, vars: { c3day4: 'table', ...evening4, room4: true, objective: 'Get to the war table', objective_target: 'simulation-room:table-4' } },
     riot: { area: { areaId: 'simulation-room', start: { x: 330, y: 230 } }, slots: 2, vars: { c3day4: 'table', ...evening4, room4: true } },
-    square: { area: { areaId: energy === 'high' ? 'low-district' : 'promenade', start: { x: 720, y: energy === 'high' ? 236 : 232 }, script: 'c3day4_square' }, slots: 2, vars: { c3day4: 'table', ...evening4, room4: true, riot_table: params.get('table') === 'taken' ? 'taken' : 'won', riot_fight: 'won', plain_coat: true } },
+    square: { area: { areaId: energy === 'high' ? 'low-district' : 'promenade', start: { x: 720, y: energy === 'high' ? 236 : 232 }, script: 'c3day4_square' }, slots: 2, vars: { c3day4: 'table', ...evening4, room4: true, riot_table: params.get('table') === 'lost' ? 'lost' : 'won', riot_turns: 11, riot_fight: 'won', plain_coat: true } },
   };
   if (day >= 2) set({ c3day1: 'done', c3day2: 'wake', lift_mended: params.get('lift') === 'mended', seated: params.get('seated') ?? 'councillor', signed_requests: true });
   // (Day 2 done: the energy choice made, the district dark, the war table played, below with your hand.)

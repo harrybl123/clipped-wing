@@ -146,10 +146,10 @@ Your father, at his desk. The fire's out. He's still in yesterday's clothes.
 "You should be in bed." #speaker:prince
 He looks up at that.
 "Who sent you? The physician." #speaker:father
-"I did. Let me take some of it. You taught me the table. Let me use it." #speaker:prince
+"Nobody sent me. Let me take some of it." #speaker:prince
 For a long moment he says nothing. Then he puts his pen down.
-"Then tonight's yours." #speaker:father
-"Whatever happens in this city tonight, it's yours to answer. I'll sleep." #speaker:father
+"I'll pass my business on to you. Just for today." #speaker:father
+He goes out past you, to his rooms, and doesn't look back. #leave:father-4:30:40
 -> c3day4_afternoon
 
 // --- Afternoon: a breath before it (two of three) ---
@@ -230,7 +230,8 @@ Your sister, at the gallery's rail, looking down at the great doors.
 The light's going. #time:evening
 -> END
 
-// --- Evening: it starts (a trigger on the balcony) ---
+// --- Evening: it breaks out (a trigger on the balcony). Nobody saw it coming (designer: respond to the riot,
+// don't prepare for it). Your father's asleep, as you told him to be (or shut in the sealed wing).
 
 === c3day4_riot_start ===
 ~ c3day4 = "table"
@@ -239,44 +240,36 @@ The light's going. #time:evening
 - else:
     ~ riot_leader = "reformer"
 }
-A sound comes up from the city that you've never heard from up here. Thousands of voices at once.
-Then fire.
+A sound comes up from the city that you've never heard from up here. Thousands of voices at once. #shake
 { riot_leader == "firebrand":
-    Down in the low district, in the dark streets, something's burning. Then something else.
+    You put your eye to the telescope. Down in the low district, in the dark streets, fire. Then more of it. #view:riot_low #sound:crackle
+    People, hundreds of them, pouring into the square. Something going up across the street into it: a barricade. #view:riot_low
 - else:
-    On the promenade, in the dark, the glass is breaking. Then something's burning.
+    You put your eye to the telescope. On the promenade, in the dark, the glass is breaking. Then fire. #view:riot_promenade #sound:smash
+    People, hundreds of them, pouring into the square. Something going up across the street into it: a barricade. #view:riot_promenade
 }
-The captain, behind you, out of breath. #beside:captain-4e:-40
+The door bangs open behind you. The captain, out of breath. #beside:captain-4e:-40
 { riot_leader == "firebrand":
-    "They were moving a prisoner up through the low district. The street closed round the watch, and he got free." #speaker:captain
-    "The painter's brother. He's leading them." #speaker:captain
+    "Highness. The low district's gone up. All of it. They've barricaded the square." #speaker:captain
 - else:
-    "The reformer went down to the promenade to speak to them. There was a crowd already waiting." #speaker:captain
-    "They're calling his name." #speaker:captain
+    "Highness. The promenade's gone up. They've barricaded the square." #speaker:captain
 }
-"Your father wants you. The simulation room." #speaker:captain
-~ objective = "Go to your father"
-~ objective_target = "simulation-room:father-4s"
+"Where's my father?" #speaker:prince
+{ physician == "yes":
+    "Asleep. You said nobody was to wake him, Highness." #speaker:captain
+- else:
+    "In the sealed wing. Nobody goes in there. You know that." #speaker:captain
+}
+"The guard's down there with nobody giving it orders. Somebody has to." #speaker:captain
+"Then it's me. The table." #speaker:prince
+~ objective = "Get to the war table"
+~ objective_target = "simulation-room:table-4"
 -> END
 
-// The simulation room: the table, lit with the real city.
-=== c3day4_father_room ===
-{ c3day4 != "table" || room4:
-    "The table." #speaker:father
-    -> END
-}
+// Into the simulation room: the table's lit already.
+=== c3day4_room ===
 ~ room4 = true
-The table's lit. Not the lesson's soft blue: the city as it is tonight, the district close up, burning.
-{ physician == "yes":
-    "You wanted some of it off me. Tonight's yours." #speaker:father
-    "The guard is yours. Your orders." #speaker:father
-- else:
-    "Show me what you learnt." #speaker:father
-    "The guard is yours tonight. Your orders." #speaker:father
-}
-"If you lose it, I take it back." #speaker:father
-~ objective = "Put down the riot"
-~ objective_target = "simulation-room:table-4"
+The table's lit, the length of the room. Not a lesson: the district as it is right now, close up. Every street of it moving.
 -> END
 
 === c3day4_table ===
@@ -285,81 +278,39 @@ The table's lit. Not the lesson's soft blue: the city as it is tonight, the dist
     -> END
 }
 { riot_leader == "firebrand":
-    You put your hands on the table. It knows them. #wartable:riot_low
+    You put your hands on the table. #wartable:riot_low
 - else:
-    You put your hands on the table. It knows them. #wartable:riot_promenade
+    You put your hands on the table. #wartable:riot_promenade
 }
 -> END
 
-// --- The war table, for real (src/data/warTable.ts, RIOTS; src/scenes/RiotTableScene.ts) ---
+// --- The war table, for real (src/scenes/RiotTableScene.ts; the game: docs/sequences/chapter-3/war-table.md) ---
+// Nobody tells you how to play (designer).
 
 === c3day4_riot_intro ===
-"The guard's yours: the blue." #speaker:father
-"The rising's the amber. It grows in the square, behind its barricades. Every few turns it sends a crowd out into any empty street next to it." #speaker:father
-"The crowds want the stair up, to us. If they take it, I take the table back." #speaker:father
-"Every couple of turns, more of the guard comes off the lifts. Every few, you can cut the power under a crowd." #speaker:father
-"Same rules as before. Except the guard's pikes: they hold at one more than their number." #speaker:father
+"The guard's yours, Highness. They're waiting." #speaker:captain
 -> END
 
-=== c3day4_riot_goal_market ===
-{ riot_leader == "firebrand":
-    "First, the market street. It's theirs. Take it back." #speaker:father
+// Dawn, and the square's still theirs: your father, woken at last (designer).
+=== c3day4_dawn ===
+The windows are going grey. The square's still burning on the table.
+The door crashes open.
+{ physician == "yes":
+    Your father, a coat thrown over his nightclothes.
 - else:
-    "First, the shopfronts. They're theirs. Take them back." #speaker:father
+    Your father, straight from the sealed wing, the cold of it still on him.
 }
+"Why didn't anyone wake me?" #speaker:father
+He looks at the table. At you.
+"Move." #speaker:father
+He doesn't wait for you to.
 -> END
 
-=== c3day4_riot_goal_screens ===
-{ riot_leader == "firebrand":
-    "Now the screens' street. Then the square's on its own." #speaker:father
-- else:
-    "Now the great screen. Then the square's on its own." #speaker:father
-}
--> END
-
-=== c3day4_riot_goal_seal ===
-"Seal the square. A squad on every street into it." #speaker:father
-"While a street into it's empty, it'll keep pouring out." #speaker:father
--> END
-
-=== c3day4_riot_goal_clear ===
-"Sealed. Now break whatever's still out in the streets." #speaker:father
--> END
-
-=== c3day4_riot_goal_square ===
-"It's on its own. Nothing gets in, nothing gets out." #speaker:father
-"The square. You'll go down yourself. Some fights you don't leave to the table." #speaker:father
--> END
-
-// Things going badly (each once). He only speaks when you're losing (plan).
-=== c3day4_riot_lost ===
-"You lost that one." #speaker:father
-"They're not soldiers. They don't need to be. There are more of them." #speaker:father
--> END
-
-=== c3day4_riot_spread ===
-"There. Out of the square, into the street. It'll keep doing that." #speaker:father
--> END
-
-=== c3day4_riot_stair ===
-"They're next to the stair." #speaker:father
-He doesn't say anything else. He doesn't need to.
--> END
-
-=== c3day4_riot_reinforce ===
-"More of the guard, off the lifts." #speaker:father
--> END
-
-=== c3day4_riot_power ===
-"The power. Use it. It's what it's for." #speaker:father
--> END
-
-// They took the stair: he takes command (designer).
-=== c3day4_riot_taken ===
-His hand comes down on the table over yours.
-"Enough." #speaker:father
-He moves your squads without looking at them. Every crowd outside the square, broken, one after another.
-"Go down. Bring me their leader. You can manage that." #speaker:father
+// He's taken it, with ease.
+=== c3day4_father_took ===
+It doesn't take him long. It's never taken him long.
+"That's how it's done." #speaker:father
+"Now go down, and bring me their leader. You can manage that much." #speaker:father
 -> END
 
 // Going down to the square yourself.
@@ -387,7 +338,7 @@ The square. Smoke, and the barricades burning down. The guard's line of pikes ac
 - else:
     On the ground in front of the guard, held down by two of them: the reformer, in his council robe, torn. #show:leader-4
 }
-{ riot_table == "taken":
+{ riot_table == "lost":
     The captain's here. He looks at you the way he'd look at a boy. #show:captain-4q
 - else:
     The captain's here. "Your orders held, Highness." #speaker:captain #show:captain-4q
@@ -431,9 +382,9 @@ What do you do with him?
         -> choose
 - The square empties. #leave:crowd-4a:960:50 #leave:crowd-4b:960:50 #leave:crowd-4c:960:50 #leave:crowd-4d:960:50 #leave:crowd-4e:960:50 #leave:crowd-4f:960:50
 ~ c3day4 = "night"
-~ objective = "Go to your father's study"
-~ objective_target = "fathers-study:father-4n"
-"Home, Highness. It's done." #speaker:diplomat #time:night #goto:fathers-study:60:230
+~ objective = "Go back to your rooms"
+~ objective_target = "prince-quarters:father-4n"
+"Home, Highness. It's done." #speaker:diplomat #time:night #goto:prince-quarters:60:226
 -> END
 
 // The crowd, held back behind the pikes.
@@ -448,26 +399,34 @@ What do you do with him?
 
 // --- Night ---
 
+// Your father, waiting in your rooms when you come back up.
 === c3day4_father_night ===
-{ c3day4 != "night":
-    He's asleep in his chair.
-    -> END
-}
-{ c3day4_father_night > 1:
+{ father4n:
     "Go to bed." #speaker:father
     -> END
 }
-Your father, by his fire. It's lit tonight. Smoke still over the city, out of his window.
-{ riot == "brought_in":
-    "You did what had to be done." #speaker:father
-    "He'll be dealt with. You don't need to think about it again." #speaker:father
+{ riot_table == "won":
+    Your father, in your rooms, at your window, still in the coat he threw on.
+    "Why didn't anyone wake me?" #speaker:father
+    "You told them not to. I told them not to." #speaker:prince
+    "I've been watching the table's record." #speaker:father
+    He turns round.
+    "Square taken in {riot_turns} turns. Before dawn." #speaker:father
+    "I couldn't have done it much faster." #speaker:father
+    He almost smiles.
 - else:
-    "Mercy is something you can afford once." #speaker:father
-    "You've had your once." #speaker:father
+    Your father, in your rooms, at your window. Dressed now.
+    "You had the city in your hands all night, and you let it burn until morning." #speaker:father
+    "Next time, wake me." #speaker:father
 }
-{ riot_table == "taken":
-    "And next time, keep the stair." #speaker:father
+{ riot == "brought_in":
+    "And you brought him in. Good. He'll be dealt with. You don't need to think about it again." #speaker:father
+- else:
+    "And you let him go." #speaker:father
+    "Mercy is something you can afford once. You've had your once." #speaker:father
 }
+He goes. #leave:father-4n:30:40
+~ father4n = true
 ~ objective = "Go to bed"
 ~ objective_target = "prince-quarters:bed-4"
 -> END

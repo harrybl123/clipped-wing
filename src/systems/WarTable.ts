@@ -42,8 +42,6 @@ export interface WarWay {
 export interface WarBoard {
   places: WarPlace[];
   ways: WarWay[];
-  /** A side whose squads defend at +1 anywhere (the riot: the guard's pikes and armour against a crowd). */
-  armoured?: WarSide;
 }
 
 export interface Squad {
@@ -103,9 +101,9 @@ export function attackOf(board: WarBoard, from: string, to: string, strength: nu
   return Math.max(0, strength - (uphill ? 1 : 0));
 }
 
-/** A squad's strength defending where it stands (a stronghold adds 1; armour adds 1; in the dark, with the power cut, 1 less). */
-export function defenceOf(board: WarBoard, place: string, strength: number, cut: readonly string[] = [], side?: WarSide): number {
-  return Math.max(0, strength + (placeOf(board, place).stronghold ? 1 : 0) + (side && board.armoured === side ? 1 : 0) - (cut.includes(place) ? 1 : 0));
+/** A squad's strength defending where it stands (a stronghold adds 1; in the dark, with the power cut, 1 less). */
+export function defenceOf(board: WarBoard, place: string, strength: number, cut: readonly string[] = []): number {
+  return Math.max(0, strength + (placeOf(board, place).stronghold ? 1 : 0) - (cut.includes(place) ? 1 : 0));
 }
 
 /**
@@ -159,7 +157,7 @@ export function resolveOne(board: WarBoard, state: WarState, order: Order, fough
     events.push({ type: 'move', squad: squad.id, from, to: order.to }, { type: 'join', squad: squad.id, into: there.id, at: order.to });
   } else {
     const attack = attackOf(board, from, order.to, squad.strength);
-    const defence = defenceOf(board, order.to, there.strength, next.cut, there.side);
+    const defence = defenceOf(board, order.to, there.strength, next.cut);
     const result = fought[squad.id];
     const won = result ? result === 'won' : attack > defence;
     events.push({ type: 'battle', at: order.to, attacker: squad.id, defender: there.id, attack, defence, won, ...(result ? { fought: true } : {}) });
@@ -333,139 +331,4 @@ export function placeInDirection(places: readonly WarPlace[], from: WarPlace, dx
     }
   }
   return best;
-}
-
-// --- The riot (Chapter 3, Day 4): the war table for real, close up on the district that's risen ---
-//
-// You're the guard now, and the rising is theirs. It grows at its heart (the square, barricaded: held at +1,
-// and its walls lose nothing) and spreads out of it into any empty street next to it, a crowd at a time,
-// while the crowds already out head for the way up and take on anything of yours they can beat. Seal every
-// street into the square and it can't spread; then the square's yours to go down to.
-
-export interface RiotRules {
-  /** The square: where the rising grows, and spreads from. Never left. */
-  heart: string;
-  /** How much the square grows each turn, and the most it holds. */
-  grow: number;
-  cap: number;
-  /** When the square's this strong, a crowd of `spreadSize` goes out into an empty street next to it. */
-  spreadAt: number;
-  spreadSize: number;
-  /** Where the crowds are heading: the way up, towards the citadel. */
-  upTo: string[];
-}
-
-/** The streets into the square. */
-export const streetsInto = (board: WarBoard, heart: string): string[] => waysFrom(board, heart).map((w) => w.to);
-
-/** Every street into the square held by a squad of yours: it can't spread. */
-export const sealed = (board: WarBoard, state: WarState, heart: string, side: WarSide = 'you'): boolean =>
-  streetsInto(board, heart).every((p) => squadAt(state, p)?.side === side);
-
-/** Their crowds anywhere but the square. */
-export const outsideHeart = (state: WarState, heart: string, side: WarSide = 'him'): Squad[] => squadsOf(state, side).filter((s) => s.place !== heart);
-
-/**
- * The square grows, and, if it's strong enough, a crowd goes out of it into the empty street nearest the way
- * up. Nothing grows or goes out while its power's cut. Returns the crowd that went out, if any.
- */
-export function riotGrow(board: WarBoard, state: WarState, rules: RiotRules, side: WarSide = 'him'): { state: WarState; spread?: { squad: Squad; to: string } } {
-  const next = clone(state);
-  const heart = next.squads.find((s) => s.place === rules.heart && s.side === side);
-  if (!heart || next.cut.includes(rules.heart)) return { state: next };
-  heart.strength = Math.min(rules.cap, heart.strength + rules.grow);
-  if (heart.strength < rules.spreadAt) return { state: next };
-  const up = upDistance(board, rules.upTo);
-  const empty = streetsInto(board, rules.heart).filter((p) => !squadAt(next, p)).sort((a, b) => (up.get(a) ?? 99) - (up.get(b) ?? 99) || a.localeCompare(b));
-  const to = empty[0];
-  if (!to) return { state: next };
-  heart.strength -= rules.spreadSize;
-  const squad: Squad = { id: `${side}-${next.turn}-${to}`, side, place: to, strength: rules.spreadSize };
-  next.squads.push(squad);
-  next.owner[to] = side;
-  return { state: next, spread: { squad, to } };
-}
-
-/** How far every place is from the nearest of the ways up. */
-function upDistance(board: WarBoard, upTo: string[]): Map<string, number> {
-  const out = new Map<string, number>();
-  for (const u of upTo) for (const [p, d] of distancesFrom(board, u)) out.set(p, Math.min(d, out.get(p) ?? 99));
-  return out;
-}
-
-/**
- * The crowds out in the streets (not the square, which only grows and spreads): reckless, not stupid. Any of
- * yours they can beat, they go at, the biggest first; two crowds side by side join up if together they could
- * beat something; otherwise on towards the way up, taking streets as they go.
- */
-export function riotOrders(board: WarBoard, state: WarState, rules: RiotRules, side: WarSide = 'him'): Order[] {
-  const foe: WarSide = side === 'you' ? 'him' : 'you';
-  const up = upDistance(board, rules.upTo);
-  const nextTo = (a: string, b: string) => waysFrom(board, a).some((w) => w.to === b);
-  const couldBeat = (place: string, strength: number) =>
-    squadsOf(state, foe).some((e) => nextTo(place, e.place) && attackOf(board, place, e.place, strength) > defenceOf(board, e.place, e.strength, state.cut, e.side));
-  const orders: Order[] = [];
-  const claimed = new Set<string>();
-  const crowds = squadsOf(state, side).filter((s) => s.place !== rules.heart && !state.cut.includes(s.place)).sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id));
-  for (const squad of crowds) {
-    let best: { to: string; score: number } | null = null;
-    for (const { to } of waysFrom(board, squad.place)) {
-      if (claimed.has(to) || to === rules.heart) continue;
-      const there = squadAt(state, to);
-      let score: number;
-      if (there?.side === foe) {
-        const margin = attackOf(board, squad.place, to, squad.strength) - defenceOf(board, to, there.strength, state.cut, there.side);
-        if (margin <= 0) continue;
-        score = 40 + there.strength * 2;
-      } else if (there?.side === side) {
-        const together = there.strength + squad.strength;
-        if (!couldBeat(to, together) || couldBeat(squad.place, squad.strength)) continue;
-        score = 15;
-      } else {
-        score = 6 + ((up.get(squad.place) ?? 9) - (up.get(to) ?? 9)) * 5 + (state.owner[to] !== side ? 5 : 0);
-        // Not into the arms of something much bigger.
-        const danger = squadsOf(state, foe).some((e) => nextTo(e.place, to) && attackOf(board, e.place, to, e.strength) > defenceOf(board, to, squad.strength, [], side) + 1);
-        if (danger) score -= 12;
-      }
-      if (score > 0 && (!best || score > best.score)) best = { to, score };
-    }
-    if (best) {
-      orders.push({ squad: squad.id, to: best.to });
-      claimed.add(best.to);
-    }
-  }
-  return orders;
-}
-
-/**
- * More of the guard off the lifts, as a squad of their own: at the lifts if they're empty, or, if a squad of
- * yours is there, in an empty place next to it (else they join it). If a crowd's holding the lifts, they fight
- * their way off (an attack from nowhere, no uphill), and come through with what's left, or are lost.
- */
-export function reinforced(board: WarBoard, state: WarState, place: string, strength: number, side: WarSide = 'you'): WarState {
-  const next = clone(state);
-  const here = squadAt(next, place);
-  const arrive = (at: string, n: number) => {
-    next.squads.push({ id: `${side}-r${next.turn}`, side, place: at, strength: n });
-    next.owner[at] = side;
-  };
-  if (here?.side === side) {
-    const beside = waysFrom(board, place).map((w) => w.to).find((p) => !squadAt(next, p));
-    if (beside) arrive(beside, strength);
-    else here.strength += strength;
-  } else if (here) {
-    const defence = defenceOf(board, place, here.strength, next.cut, here.side);
-    if (strength > defence) {
-      next.squads = next.squads.filter((s) => s !== here);
-      arrive(place, strength - defence);
-    } else here.strength = Math.max(1, here.strength - strength);
-  } else arrive(place, strength);
-  return next;
-}
-
-/** Whether a goal of the riot is done: a place taken, the square sealed, the streets cleared, or the square taken. */
-export function riotGoalMet(board: WarBoard, state: WarState, heart: string, goal: { kind: 'take' | 'seal' | 'clear' | 'square'; place?: string }): boolean {
-  if (goal.kind === 'take' || goal.kind === 'square') return state.owner[goal.place ?? heart] === 'you';
-  if (goal.kind === 'seal') return sealed(board, state, heart);
-  return outsideHeart(state, heart).length === 0;
 }

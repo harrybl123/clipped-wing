@@ -104,11 +104,13 @@ export const princeQuarters: AreaDefinition = {
     inStory('father-2', 'father', 60, FLOOR, 'c3day2=wake', { hidden: true }),
     // Day 3: your hand at the door at dawn (the story brings him there), and with you from here.
     inStory('hand-3', 'diplomat', 300, FLOOR, 'c3day3=wake,audience', { follow: true, knot: 'c3day3_hand' }),
-    // Day 4: your friend on the balcony at dawn, in your hand's place; the captain, come for you when it starts
-    // (the story brings him beside you); your sister at your telescope at night.
+    // Day 4: your friend on the balcony at dawn, in your hand's place; the captain, running in when it breaks
+    // out (the story brings him beside you); your sister at your telescope at night.
     inStory('heir-4', 'heir', 516, FLOOR, 'c3day4=wake,spar,sleeve', { knot: 'c3day4_heir', flipX: true }),
     inStory('captain-4e', 'captain', 300, FLOOR, 'c3day4=table'),
     inStory('sister-4n', 'sister', 452, FLOOR, 'c3day4=night', { knot: 'c3day4_sister_night' }),
+    // Day 4, after the riot: your father, waiting at your window.
+    inStory('father-4n', 'father', 300, FLOOR, 'c3day4=night', { knot: 'c3day4_father_night', hideIf: 'father4n', flipX: true }),
   ],
   interactables: [
     { id: 'bed', x: 84, y: FLOOR, reach: 14, label: 'Look', knot: 'quarters_bed', hideIf: ['c3day1=night', 'c3day2=home', 'c3day3=home', 'c3day4=night'] },

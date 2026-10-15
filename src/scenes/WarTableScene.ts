@@ -578,7 +578,7 @@ export class WarTableScene extends Phaser.Scene {
       else if (there.side === 'you') text = `Send them to join the squad there: ${aim.strength + there.strength} strong.`;
       else {
         const a = attackOf(this.sc.board, aim.place, p.id, aim.strength);
-        const d = defenceOf(this.sc.board, p.id, there.strength, this.state.cut, there.side);
+        const d = defenceOf(this.sc.board, p.id, there.strength, this.state.cut);
         const uphill = a < aim.strength ? ' (uphill: 1 less)' : '';
         text = `Attack: ${a}${uphill} against ${d}. ${a > d ? `You'd take it, with ${Math.max(1, a - d)} left.` : 'They’d hold, and your squad would be lost.'}`;
         if (this.phase === 'lesson' && this.sc.dropIn[p.id] && !this.droppedIn.includes(p.id)) text += ' Or go down and fight it yourself.';

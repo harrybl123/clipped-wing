@@ -335,7 +335,7 @@ export class AreaScene extends Phaser.Scene {
   private afterClose: (() => void)[] = [];
   private inset: Phaser.GameObjects.Container | null = null;
   /** A close-up of the city (`#view`), kept up from line to line and repainted as the story changes it. */
-  private cityView: { container: Phaser.GameObjects.Container; image: Phaser.GameObjects.Image } | null = null;
+  private cityView: { container: Phaser.GameObjects.Container; image: Phaser.GameObjects.Image; fires?: Phaser.Time.TimerEvent } | null = null;
   /** Darkens the room for a weighty moment (#dim:on / #dim:off). */
   private dimmer!: Phaser.GameObjects.Rectangle;
   private script: string | undefined;
@@ -1490,7 +1490,7 @@ export class AreaScene extends Phaser.Scene {
    *   #ending:<id>            after the conversation, an ending (e.g. loyal)
    *   #fight:<knot>[:<then>]  after the conversation, the fight close-up plays the knot; back here, <then> plays
    *   #combat:<encounter>[:<then>]  after the conversation, a turn-based fight (src/data/combat.ts); its outcome is written to ink, and back here, <then> plays
-   *   #view                   the city close up above the dialogue box, as through your telescope (kept up on each line tagged with it)
+   *   #view[:riot_low|riot_promenade]  the city close up above the dialogue box, as through your telescope (kept up on each line tagged with it); with a riot, that district burning
    *   #repaint                the room is painted again, as the story now has it (a district's power going off)
    *   #wartable:<scenario>     after the conversation, the war table (src/data/warTable.ts); back here, its `after` knot plays
    *   #walk:<id>:<x>[:<speed>]  they walk to x on their floor and stay there, facing you
@@ -1668,7 +1668,7 @@ export class AreaScene extends Phaser.Scene {
           break;
         }
         case 'view':
-          this.showCityView();
+          this.showCityView(args[0]);
           break;
         case 'repaint':
           // #repaint: the room is painted again (a district's lights going out, seen from up here).
@@ -1844,7 +1844,7 @@ export class AreaScene extends Phaser.Scene {
    * above the dialogue box. Repainted on every line it's on, so you see each change; gone when a line
    * without it comes, or the conversation ends.
    */
-  private showCityView(): void {
+  private showCityView(riot?: string): void {
     const { calendar } = getSession(this);
     const power = this.power();
     const [w, h] = [300, 96];
@@ -1858,9 +1858,48 @@ export class AreaScene extends Phaser.Scene {
     const container = this.add.container(GAME_WIDTH / 2, 16 + h / 2, [frame, image]).setScrollFactor(0).setDepth(27).setAlpha(0);
     this.tweens.add({ targets: container, alpha: 1, duration: 500 });
     this.cityView = { container, image };
+    if (riot) this.cityView.fires = this.riotFires(container, w, h, riot === 'riot_low' ? [0.72, 0.98] : [0.42, 0.66]);
+  }
+
+  /**
+   * A district burning, seen from the balcony (Chapter 3, Day 4: the riot): fires flaring and dying across its
+   * band of the view (`band`: from and to, as parts of the view's height), smoke and embers going up.
+   */
+  private riotFires(container: Phaser.GameObjects.Container, w: number, h: number, band: [number, number]): Phaser.Time.TimerEvent {
+    const g = this.add.graphics();
+    container.add(g);
+    const fires = Array.from({ length: 9 }, (_, i) => ({ x: Math.round(20 + ((i * 97) % (w - 40))), y: Math.round(h * (band[0] + ((i * 37) % 100) / 100 * (band[1] - band[0]))), size: 2 + (i % 3) }));
+    const smoke: { x: number; y: number; life: number }[] = [];
+    let t = 0;
+    return this.time.addEvent({
+      delay: 110, loop: true, callback: () => {
+        t++;
+        g.clear();
+        for (const [i, f] of fires.entries()) {
+          const x = f.x - w / 2;
+          const y = f.y - h / 2;
+          // A glow round each fire, then the flames, flickering.
+          g.fillStyle(SHADES.amberDeep, 0.35).fillCircle(x, y - 1, f.size + 3);
+          for (let k = 0; k < f.size + 2; k++) {
+            const fx = x - f.size + ((k * 3 + t + i) % (f.size * 2 + 1));
+            const fh = 1 + ((t + k * 2 + i) % (f.size + 2));
+            g.fillStyle(k % 3 === 0 ? SHADES.white : SHADES.amber, 1).fillRect(fx, y - fh, 1, fh);
+          }
+          if ((t + i) % 3 === 0) smoke.push({ x: x + ((t * 5 + i) % 5) - 2, y: y - f.size - 2, life: 26 });
+        }
+        for (const p of smoke) {
+          p.y -= 0.7;
+          p.x += Math.sin((p.y + t) / 6) * 0.3;
+          p.life--;
+          g.fillStyle(p.life > 20 ? SHADES.amberDeep : SHADES.dim, Math.min(0.7, p.life / 26)).fillRect(Math.round(p.x), Math.round(p.y), 2, 2);
+        }
+        for (let i = smoke.length - 1; i >= 0; i--) if (smoke[i]!.life <= 0 || smoke[i]!.y < -h / 2) smoke.splice(i, 1);
+      },
+    });
   }
 
   private clearCityView(): void {
+    this.cityView?.fires?.remove();
     this.cityView?.container.destroy();
     this.cityView = null;
   }

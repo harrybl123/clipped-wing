@@ -52,19 +52,17 @@ export const simulationRoom: AreaDefinition = {
   features: [
     // Coming in behind your father.
     { type: 'trigger', x: 64, y: FLOOR, reach: 12, knot: 'c3day2_room', showIf: 'c3day2=study', hideIf: 'room2' },
-    // Day 4: coming in to the riot on the table; he hands you the guard.
-    { type: 'trigger', x: 64, y: FLOOR, reach: 12, knot: 'c3day4_father_room', showIf: 'c3day4=table', hideIf: 'room4' },
+    // Day 4: coming in to the riot, already lit on the table (nobody else here: your father's asleep).
+    { type: 'trigger', x: 64, y: FLOOR, reach: 12, knot: 'c3day4_room', showIf: 'c3day4=table', hideIf: 'room4' },
     { type: 'frames', frames: P.WAR_TABLE_FRAMES, x: 250, y: FLOOR - 56, every: 380 },
   ],
   people: [
     // Day 2: your father at the head of the table.
     inStory('father-sim', 'father', 424, FLOOR, 'c3day2=room,table', { knot: 'c3day2_father_room', flipX: true }),
-    // Day 4: at the head of the table, watching you put down the riot.
-    inStory('father-4s', 'father', 424, FLOOR, 'c3day4=table', { knot: 'c3day4_father_room', flipX: true }),
   ],
   interactables: [
     { id: 'table', x: 330, y: FLOOR, reach: 30, label: 'Stand at the table', knot: 'c3day2_table', showIf: 'c3day2=room' },
-    { id: 'table-4', x: 330, y: FLOOR, reach: 30, label: 'Stand at the table', knot: 'c3day4_table', showIf: 'room4' , hideIf: 'c3day4=square,night,done' },
+    { id: 'table-4', x: 330, y: FLOOR, reach: 30, label: 'Stand at the table', knot: 'c3day4_table', showIf: 'c3day4=table' },
   ],
 
   exits: [{ id: 'to-study', x: 42, y: FLOOR, reach: 12, to: 'fathers-study' }],

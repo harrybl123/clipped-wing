@@ -679,9 +679,12 @@ VAR table4 = false
 VAR painter4 = false
 VAR sister4 = false
 // The riot: who leads it ("firebrand", the painter's brother, if the low district rose; "reformer", if the
-// promenade did); how the war table went ("won", or "taken": he took command from you), and in how many turns;
-// the fight at the square; and big choice 2 ("brought_in" / "let_go").
+// promenade did); the war table (the riot game: "won", or "lost": dawn came first, and your father took it
+// over), in how many turns, and how many times you charged a crowd; the fight at the square; big choice 2
+// ("brought_in" / "let_go"); your father in your rooms after.
 VAR room4 = false
+VAR riot_charges = 0
+VAR father4n = false
 VAR riot_leader = ""
 VAR riot_table = ""
 VAR riot_turns = 0
