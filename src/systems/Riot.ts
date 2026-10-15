@@ -8,7 +8,8 @@
 //   Squads are numbers. Each turn every squad can move one step along a street, or stay; your orders happen in
 //   the order you give them, so a squad can join another and the two go on together (designer). Into an empty place
 //   it takes it; into your own squad it joins it; into theirs it's a fight: the bigger number wins and keeps
-//   what's over, and a tie holds. The square's barricades add 1. (Gone from the old table: uphill costing 1,
+//   what's over, and a tie holds. The square's barricades add 1, but match its number and you take it, the
+//   barricades costing one more (you keep at least 1). (Jack's proposal: 9 on its 8 used to bounce off.) (Gone from the old table: uphill costing 1,
 //   which on these maps only touched the stair; and the barricades losing nothing when they hold, which made a
 //   big attack on the square vanish without a mark on it: designer, it looked like a bug.)
 //
@@ -21,6 +22,15 @@
 //   4. Every few turns you can cut the power under a place: nobody there can move, the square doesn't grow,
 //      and they fight at 1 less. (Your one trick: when, and where.)
 // One goal: take the square before dawn (with enough to win, you go down yourself). Dawn first, and it's lost.
+//
+// And two of Jack's (proposed for the designer):
+//   Fortify: instead of moving, a squad of yours digs in for the turn: nobody can attack it (their attacks on
+//   it don't happen), but it can't move, and it gets no +1 or +2 that turn (the square's growth, the guard at
+//   the lifts). (You survive a round while help comes round behind.) Like the power cut, once every 3 turns.
+//   Rumble (the riot only): now and then a rumble appears on an empty street for two turns (next to both
+//   sides, where there's such a street: a race). Whoever gets a
+//   squad onto it first sets it off: every squad next to it, on either side, takes 1 to 3 (a dice each; a
+//   fortified squad takes nothing).
 //
 // Everything else (crowds going for squads they can beat, falling back into the square when you come for it,
 // heading for the lifts) is just the rising playing by the same rules (`risingOrders`).
@@ -54,14 +64,21 @@ export interface RiotRules {
   reinforceEvery: number;
   /** The power cut, every so many turns. */
   powerEvery: number;
+  /** Fortify, every so many turns (Jack: like the power cut). */
+  fortifyEvery: number;
   /**
    * Your orders happen in the order you give them (designer): a squad can join another, and then the two go
    * on together. Otherwise (the rising's, always) they happen all at once.
    */
   ordered: boolean;
+  /** Rumbles (Jack): the chance one appears each turn when there's none, how many turns it stays, and the most a dice can take (from 1). None if absent. */
+  rumble?: { chance: number; lasts: number; max: number };
 }
 
-export const RIOT_RULES: RiotRules = { dawn: 18, reinforce: 2, reinforceEvery: 1, powerEvery: 3, ordered: true };
+export const RIOT_RULES: RiotRules = { dawn: 18, reinforce: 3, reinforceEvery: 1, powerEvery: 3, fortifyEvery: 3, ordered: true };
+
+/** Rumbles in the riot (Jack): a one-in-three chance each turn there's none, two turns to get to it, 1 to 3 to each squad round it. */
+export const RUMBLE: NonNullable<RiotRules['rumble']> = { chance: 1 / 3, lasts: 2, max: 3 };
 
 export interface RiotSquad {
   id: string;
@@ -79,6 +96,15 @@ export interface RiotState {
   cut: string | null;
   lastCut: number;
   nextId: number;
+  /** Places dug in this turn (fortify): nobody can attack them, and they don't move. */
+  fortified: string[];
+  /** The turn each side last fortified, and what it was before (so taking it back this turn gives it back). */
+  lastFortify: Record<Side, number>;
+  fortifyBefore: Record<Side, number>;
+  /** A rumble on the map: where, and for how many more turns. */
+  rumble: { place: string; left: number } | null;
+  /** The dice (a seeded sequence, so a game can be played again exactly, and tested). */
+  seed: number;
 }
 
 /** An order: a squad to a place next to it. */
@@ -93,7 +119,12 @@ export type RiotEvent =
   | { type: 'fight'; at: string; side: Side; won: boolean; attack: number; defence: number }
   | { type: 'grow'; at: string }
   | { type: 'pour'; from: string; to: string }
-  | { type: 'arrive'; at: string };
+  | { type: 'arrive'; at: string }
+  /** An attack on a fortified squad: it doesn't happen. */
+  | { type: 'blocked'; at: string; side: Side }
+  /** A rumble set off at a place: each squad next to it, and what it took. */
+  | { type: 'rumble'; at: string; side: Side; hits: { place: string; side: Side; damage: number; gone: boolean }[] }
+  | { type: 'rumbleAppears'; at: string };
 
 /** How the rising plays (being tuned: designer, the rising was too passive). */
 export interface RisingStyle {
@@ -148,14 +179,50 @@ export class RiotGame {
     }
   }
 
-  start(squads: { side: Side; place: string; strength: number }[]): RiotState {
+  /** A game set up. `seed` starts the dice (a new one each time it's played; fixed in tests). */
+  start(squads: { side: Side; place: string; strength: number }[], seed = 1): RiotState {
     const owner: Record<string, Side> = {};
     for (const s of squads) owner[s.place] = s.side;
-    return { turn: 1, squads: squads.map((s, i) => ({ id: `q${i}`, ...s })), owner, cut: null, lastCut: -99, nextId: squads.length };
+    return { turn: 1, squads: squads.map((s, i) => ({ id: `q${i}`, ...s })), owner, cut: null, lastCut: -99, nextId: squads.length, fortified: [], lastFortify: { guard: -99, rising: -99 }, fortifyBefore: { guard: -99, rising: -99 }, rumble: null, seed };
   }
 
   clone(s: RiotState): RiotState {
-    return { ...s, squads: s.squads.map((q) => ({ ...q })), owner: { ...s.owner } };
+    return { ...s, squads: s.squads.map((q) => ({ ...q })), owner: { ...s.owner }, fortified: [...s.fortified], lastFortify: { ...s.lastFortify }, fortifyBefore: { ...s.fortifyBefore }, rumble: s.rumble && { ...s.rumble } };
+  }
+
+  /** The next number from the dice, 0 to 1 (moves `s.seed` on: only ever on a clone). */
+  private roll(s: RiotState): number {
+    let t = (s.seed = (s.seed + 0x6d2b79f5) | 0);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+
+  fortified = (s: RiotState, place: string): boolean => s.fortified.includes(place);
+  /** A side can fortify now: once every so many turns (Jack: like the power cut). */
+  canFortify = (s: RiotState, side: Side): boolean => s.turn - s.lastFortify[side] >= this.rules.fortifyEvery;
+  /** Turns until a side can fortify again (0: now). */
+  fortifyIn = (s: RiotState, side: Side): number => Math.max(0, this.rules.fortifyEvery - (s.turn - s.lastFortify[side]));
+
+  /** Fortify (Jack): the squad digs in where it is for this turn (if its side can). */
+  fortify(s0: RiotState, squad: string): RiotState {
+    const q = s0.squads.find((x) => x.id === squad);
+    if (!q || this.fortified(s0, q.place) || !this.canFortify(s0, q.side)) return s0;
+    const s = this.clone(s0);
+    s.fortified.push(q.place);
+    s.fortifyBefore[q.side] = s.lastFortify[q.side];
+    s.lastFortify[q.side] = s.turn;
+    return s;
+  }
+
+  /** No longer dug in (taken back, or given an order after all): this turn, it gives the side its fortify back. */
+  unfortify(s0: RiotState, place: string): RiotState {
+    if (!this.fortified(s0, place)) return s0;
+    const s = this.clone(s0);
+    s.fortified = s.fortified.filter((p) => p !== place);
+    const side = this.squadAt(s, place)?.side;
+    if (side && s.lastFortify[side] === s.turn) s.lastFortify[side] = s.fortifyBefore[side];
+    return s;
   }
 
   place = (id: string): RiotPlace => this.board.places.find((p) => p.id === id)!;
@@ -199,7 +266,8 @@ export class RiotGame {
   order(s0: RiotState, o: Order): { state: RiotState; events: RiotEvent[] } {
     const s = this.clone(s0);
     const q = s.squads.find((x) => x.id === o.squad);
-    if (!q || o.to === q.place || !this.dests(s, q).includes(o.to)) return { state: s, events: [] };
+    // (A fortified squad stays put.)
+    if (!q || o.to === q.place || !this.dests(s, q).includes(o.to) || this.fortified(s, q.place)) return { state: s, events: [] };
     const from = q.place;
     const events: RiotEvent[] = [];
     const there = this.squadAt(s, o.to);
@@ -211,15 +279,21 @@ export class RiotGame {
       there.strength += q.strength;
       s.squads = s.squads.filter((x) => x !== q);
       events.push({ type: 'move', squad: q.id, side: q.side, from, to: o.to }, { type: 'join', squad: q.id, into: there.id, at: o.to });
+    } else if (this.fortified(s, o.to)) {
+      // Dug in: the attack doesn't happen, and they stay where they are.
+      events.push({ type: 'blocked', at: o.to, side: q.side });
     } else {
       const attack = this.attack(from, o.to, q.strength);
       const defence = this.defence(s, o.to, there.strength);
-      const won = attack > defence;
+      // The square: match its number and you've taken it (Jack: 9 on its 8 bounced off the barricades, which was
+      // confusing); the barricades still cost one more, but you keep at least 1. Elsewhere a tie holds, as ever
+      // (tried everywhere, it broke "Now." and made the rising's ties win too: docs/sequences/chapter-3/war-table.md).
+      const won = attack > defence || (o.to === this.heart && attack >= there.strength);
       events.push({ type: 'fight', at: o.to, side: q.side, won, attack, defence });
       if (won) {
         s.squads = s.squads.filter((x) => x !== there);
         q.place = o.to;
-        q.strength = attack - defence;
+        q.strength = Math.max(1, attack - defence);
         s.owner[o.to] = q.side;
       } else {
         // Beaten off: the attackers are lost, and the defenders lose as many (they keep at least 1).
@@ -227,7 +301,25 @@ export class RiotGame {
         there.strength = Math.max(1, there.strength - attack);
       }
     }
+    // Onto a rumble: it goes off.
+    if (s.rumble && q.place === s.rumble.place && s.squads.includes(q)) this.setOff(s, q.place, q.side, events);
     return { state: s, events };
+  }
+
+  /** A rumble set off (on `s`, already a clone): every squad next to it, not dug in, takes a dice of 1 to the most. */
+  private setOff(s: RiotState, at: string, side: Side, events: RiotEvent[]): void {
+    const hits: Extract<RiotEvent, { type: 'rumble' }>['hits'] = [];
+    for (const n of this.adj.get(at)!) {
+      const there = this.squadAt(s, n);
+      if (!there || this.fortified(s, n)) continue;
+      const damage = 1 + Math.floor(this.roll(s) * (this.rules.rumble?.max ?? 3));
+      there.strength -= damage;
+      const gone = there.strength <= 0;
+      if (gone) s.squads = s.squads.filter((x) => x !== there);
+      hits.push({ place: n, side: there.side, damage, gone });
+    }
+    s.rumble = null;
+    events.push({ type: 'rumble', at, side, hits });
   }
 
   /**
@@ -292,6 +384,14 @@ export class RiotGame {
           if (couldBeat(to, there.strength + q.strength)) score = 18;
           else if (st.merge) score = 8;
           else continue;
+        } else if (s.rumble?.place === to) {
+          // A rumble: set it off, if it'll hurt the guard round it more than their own.
+          const round = (side: Side) => this.adj.get(to)!.reduce((n, p) => {
+            const x = this.squadAt(s, p);
+            return n + (x && x !== q && x.side === side && !this.fortified(s, p) ? 1 : 0);
+          }, 0);
+          if (round('guard') <= round('rising')) continue;
+          score = 45 + (round('guard') - round('rising')) * 5;
         } else {
           const guardNear = (p: string) => yours.some((y) => y.place === p);
           const crowdNear = (p: string) => this.mine(s, 'rising').some((c) => c !== q && c.place === p && p !== this.heart);
@@ -359,7 +459,7 @@ export class RiotGame {
     s = this.clone(s);
     // People keep joining the square.
     const h = this.squadAt(s, this.heart);
-    if (h?.side === 'rising' && s.cut !== this.heart) {
+    if (h?.side === 'rising' && s.cut !== this.heart && !this.fortified(s, this.heart)) {
       h.strength += 1;
       events.push({ type: 'grow', at: this.heart });
       // And it pours a crowd out at the guard.
@@ -371,15 +471,35 @@ export class RiotGame {
         events.push({ type: 'pour', from: this.heart, to });
       }
     }
-    // More of the guard, if the lifts' foot is yours.
-    if (s.turn % this.rules.reinforceEvery === 0) {
+    // More of the guard, if the lifts' foot is yours (and not dug in: Jack).
+    if (s.turn % this.rules.reinforceEvery === 0 && !this.fortified(s, this.lifts)) {
       const there = this.squadAt(s, this.lifts);
       if (there?.side === 'guard') there.strength += this.rules.reinforce;
       else if (!there && s.owner[this.lifts] !== 'rising') s.squads.push({ id: `q${s.nextId++}`, side: 'guard', place: this.lifts, strength: this.rules.reinforce });
       if (there?.side === 'guard' || (!there && s.owner[this.lifts] !== 'rising')) events.push({ type: 'arrive', at: this.lifts });
     }
+    // A rumble: one there stays a turn less; with none, now and then one appears on an empty street.
+    const rumble = this.rules.rumble;
+    if (s.rumble) {
+      s.rumble.left -= 1;
+      if (s.rumble.left <= 0) s.rumble = null;
+    } else if (rumble && this.roll(s) < rumble.chance) {
+      // Where it matters (Jack: never caught one): an empty street next to both sides if there is one, so it's
+      // a race; else next to anyone; else anywhere empty.
+      const empty = this.board.places.filter((p) => !p.heart && !p.lifts && !this.squadAt(s, p.id));
+      const nextTo = (p: RiotPlace, side: Side) => this.adj.get(p.id)!.some((n) => this.squadAt(s, n)?.side === side);
+      const contested = empty.filter((p) => nextTo(p, 'guard') && nextTo(p, 'rising'));
+      const near = empty.filter((p) => nextTo(p, 'guard') || nextTo(p, 'rising'));
+      const pool = contested.length ? contested : near.length ? near : empty;
+      const at = pool[Math.floor(this.roll(s) * pool.length)];
+      if (at) {
+        s.rumble = { place: at.id, left: rumble.lasts };
+        events.push({ type: 'rumbleAppears', at: at.id });
+      }
+    }
     s.turn++;
     s.cut = null;
+    s.fortified = [];
     return { state: s, events };
   }
 

@@ -221,7 +221,7 @@ export class CombatScene extends Phaser.Scene {
     this.lessons = [...(encounter.teaches ?? []), ...(also && !getSession(this).story.getVariable(also.unless) ? also.lessons : [])];
     // The stage: where it's fought.
     const where = encounter.stage ?? 'market';
-    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : where === 'fields' ? paintFieldsStage() : where === 'camp' ? paintCampStage() : where === 'bar' ? paintBarStage() : where === 'den' ? paintDenStage() : where === 'yard' ? paintYardStage() : where === 'balcony' ? paintBalconyStage() : where === 'sim' ? paintSimStage() : where === 'square' ? paintSquareStage() : paintStage());
+    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : where === 'fields' ? paintFieldsStage() : where === 'camp' ? paintCampStage() : where === 'bar' ? paintBarStage() : where === 'den' ? paintDenStage() : where === 'yard' ? paintYardStage() : where === 'balcony' ? paintBalconyStage() : where === 'sim' ? paintSimStage() : where === 'square' ? paintSquareStage() : where === 'steps' ? paintStepsStage() : paintStage());
     stage.setTexture(`combat-stage-${where}`);
     const party = this.battle.combatants.filter((c) => c.side === 'party');
     const enemies = this.battle.combatants.filter((c) => c.side === 'enemy');
@@ -2019,5 +2019,47 @@ function paintSquareStage() {
     // Puddles of rain, catching the fire.
     if (noise2(u / 30, y / 6) > 0.78) return addLight(lit, fire, 0.12);
     return lit;
+  };
+}
+
+/**
+ * The citadel steps at night, in the riot (Chapter 3, Day 4: the ones who broke through): the citadel's own
+ * look (marble, gold, blue light), the great gate with its old stone arch and the portcullis down at the top
+ * of the steps, and the steps coming down towards you, pale marble edged in gold, lit amber from below by the
+ * fires in the city.
+ */
+function paintStepsStage() {
+  const marble = rgb(SHADES.light);
+  const fire = rgb(SHADES.amber);
+  const night = rgb(SHADES.shadow);
+  const gx = 240;
+  return (x: number, y: number) => {
+    if (y < HORIZON) {
+      // The citadel's wall: pale blocks, darker towards the top; blue light up its seams.
+      const blockRow = Math.floor(y / 9);
+      const bx = (x + (blockRow % 2) * 11) % 22;
+      let c = addLight(night, marble, 0.18 + (y / HORIZON) * 0.25);
+      if (bx === 0 || y % 9 === 0) c = addLight(c, night, 0.5);
+      if (x % 80 === 40 && y > 10) c = addLight(c, rgb(SHADES.cyan), 0.7);
+      // The gate: an old stone arch, the portcullis down behind it, dark through the bars.
+      const dx = Math.abs(x - gx);
+      const archTop = 28 + (dx < 46 ? 46 - Math.sqrt(Math.max(0, 46 * 46 - dx * dx)) : 99);
+      if (dx < 54 && y > archTop - 8) {
+        if (dx >= 46 || y < archTop) return addLight(rgb(SHADES.dim), night, 0.3 + (noise(x / 3 + y) - 0.5) * 0.2); // the old stone
+        if (x % 8 === 0 || y % 10 === 0) return addLight(rgb(SHADES.deep), fire, 0.12); // the portcullis
+        return night;
+      }
+      // Firelight up the wall from below.
+      return addLight(c, fire, falloff(x, y, gx, HORIZON, 260, 70) * 0.18);
+    }
+    // The steps: bands deeper as they come down towards you, each a pale tread with a gold edge and a shadowed riser.
+    const depth = (y - HORIZON) / (H - HORIZON);
+    const step = Math.floor(Math.pow(depth, 0.7) * 9);
+    const within = Math.pow(depth, 0.7) * 9 - step;
+    let c = addLight(addLight(marble, night, 0.25 + step * 0.03), fire, 0.06 + depth * 0.22);
+    if (within < 0.08) c = rgb(SHADES.amber); // the gold edge
+    else if (within > 0.82) c = addLight(c, night, 0.45); // the riser in shadow
+    if (Math.abs(noise2(x / 40, y / 8) - 0.5) < 0.012) c = addLight(c, rgb(SHADES.dim), 0.5); // a vein
+    return c;
   };
 }

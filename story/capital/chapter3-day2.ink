@@ -92,6 +92,8 @@ The table's dark. Just glass.
 
 === c3day2_lesson_weavers_done ===
 "Good. And if the numbers are equal, whoever's there holds. Remember that." #speaker:father
+"When you see one of my arrows coming for one of yours, pick it up and fortify it." #speaker:father
+"Dug in, nothing can touch it that turn. But it can't move, and nothing joins it. Once every three turns." #speaker:father
 -> END
 
 === c3day2_lesson_market ===
@@ -116,15 +118,22 @@ The table's dark. Just glass.
 // The first time each thing happens: what it is.
 === c3day2_first_grow ===
 "Your square grows. People keep joining it: one a turn. Past nine, it starts sending them out." #speaker:father
-"Behind its barricades it holds at one more. And when it holds, it loses nothing." #speaker:father
+// (Jack's proposal: match the square's number and you take it, the barricades costing one more. Draft wording, for Harry; it said it holds at one more, and loses nothing when it holds.)
+"Behind its barricades it costs one more to take. But match it, and it's yours." #speaker:father
 -> END
 
 === c3day2_first_pour ===
 "Your square's full. It sends people out on its own now: two at a time, into the streets." #speaker:father
 -> END
 
+=== c3day2_first_rumble ===
+He points at a flare on the table, a street nobody holds.
+"A rumble. Whoever gets there first sets it off, and every squad next to it is hurt. Mine and yours." #speaker:father
+"War's a game of chance, whatever anyone tells you. The trick is to need the dice less than the other man." #speaker:father
+-> END
+
 === c3day2_first_arrive ===
-"My guard come down the lifts. Two a turn, as long as the lifts' foot is mine." #speaker:father
+"My guard come down the lifts. Three a turn, as long as the lifts' foot is mine." #speaker:father
 -> END
 
 === c3day2_react_idle ===
@@ -154,7 +163,7 @@ He looks at the table a long moment.
 === c3day2_table_now ===
 He stands up straight, and steps back from the table.
 "That was a lesson. Now I'll play." #speaker:father
-He touches the table, and it sets itself again. Your square, twenty-four strong behind its barricades. Your crowds out through the district. His guard along the top.
+He touches the table, and it sets itself again. Your square, thirty strong behind its barricades. Your crowds out through the district. His guard along the top.
 "The guard has until dawn to take the square. The rising has to hold it." #speaker:father
 "Same rules. No arrows." #speaker:father
 "Hold it." #speaker:father

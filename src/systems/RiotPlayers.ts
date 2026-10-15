@@ -153,3 +153,28 @@ export function playOut(g: RiotGame, s0: RiotState, player: GuardPlayer, rising?
   for (let i = 0; i < limit && !g.outcome(s); i++) s = playTurn(g, s, player(g, s), rising ? rising(g, s) : g.risingOrders(s));
   return { state: s, winner: g.outcome(s) ?? 'rising' };
 }
+
+/**
+ * Naive (a person on their first go, as the designer played it): every squad heads for the square by the
+ * shortest way, attacking anything it can beat on the way, joining up with its own; at the square, it attacks
+ * only if it'd take it. No power cut, no fortify, no thought for the order.
+ */
+export function naive(): GuardPlayer {
+  return (g, s) => {
+    const orders: Order[] = [];
+    for (const q of [...g.mine(s, 'guard')].sort((a, b) => b.strength - a.strength)) {
+      const ways = g.dests(s, q);
+      const beat = ways.find((to) => {
+        const there = g.squadAt(s, to);
+        return there?.side === 'rising' && g.attack(q.place, to, q.strength) > g.defence(s, to, there.strength) - (to === g.heart ? 1 : 0);
+      });
+      if (beat) {
+        orders.push({ squad: q.id, to: beat });
+        continue;
+      }
+      const step = ways.filter((to) => g.squadAt(s, to)?.side !== 'rising').sort((a, b) => distance(g, a, g.heart) - distance(g, b, g.heart))[0];
+      if (step && distance(g, step, g.heart) < distance(g, q.place, g.heart)) orders.push({ squad: q.id, to: step });
+    }
+    return { orders };
+  };
+}

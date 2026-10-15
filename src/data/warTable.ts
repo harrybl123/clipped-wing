@@ -1,4 +1,4 @@
-import type { RiotBoard, RiotPlace, RiotRules, Side } from '../systems/Riot';
+import { RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type Side } from '../systems/Riot';
 
 // The war table's maps and games (Chapter 3; the game: src/systems/Riot.ts, its design and how it was
 // tuned: docs/sequences/chapter-3/war-table.md). Day 2: the lesson in the simulation room (you're the rising,
@@ -111,11 +111,12 @@ export interface LessonScenario {
   goals: { place: string; start: string; done?: string }[];
   /** Taking the last goal, you go down yourself: the fight (src/data/combat.ts). */
   dropIn: { encounter: string; knot: string };
+  rules?: Partial<RiotRules>;
   /** What he says the first time each thing happens (ink knots). */
-  firsts: { grow: string; pour: string; arrive: string; tie: string; lost: string; idle: string; join: string };
+  firsts: { grow: string; pour: string; arrive: string; rumble: string; tie: string; lost: string; idle: string; join: string };
   /** After so many turns of the lesson, he moves on anyway. */
   lessonTurns: number;
-  /** "Now.": where everyone stands, how long he plays (if he hasn't taken the square by then, he stops), and its lines. */
+  /** "Now.": where everyone stands, and its lines. He plays until he's taken your square (designer: he crushes you); `turns` is only a safety stop. */
   now: { squads: Setup; turns: number; knots: { now: string; cut: string; end: string } };
   knots: { intro: string; good: string; after: string };
 }
@@ -149,19 +150,22 @@ export const LESSON: LessonScenario = {
     { place: 'screens', start: 'c3day2_lesson_screens' },
   ],
   dropIn: { encounter: 'sim_guards', knot: 'c3day2_table_dropin' },
-  firsts: { grow: 'c3day2_first_grow', pour: 'c3day2_first_pour', arrive: 'c3day2_first_arrive', tie: 'c3day2_react_tie', lost: 'c3day2_react_lost', idle: 'c3day2_react_idle', join: 'c3day2_react_joined' },
+  // Rumbles in the lesson too (designer: with his word on war being a game of chance).
+  rules: { rumble: RUMBLE },
+  firsts: { grow: 'c3day2_first_grow', pour: 'c3day2_first_pour', rumble: 'c3day2_first_rumble', arrive: 'c3day2_first_arrive', tie: 'c3day2_react_tie', lost: 'c3day2_react_lost', idle: 'c3day2_react_idle', join: 'c3day2_react_joined' },
   lessonTurns: 14,
   now: {
     // The riot as he'd play it, from the guard's side: your square big enough that it looks like you could hold
-    // it (tested: whatever the rising does, he takes it in 5 to 9 turns; any smaller, and he chains everything
-    // into it on turn 2).
+    // it; and 12 on his lifts' foot, so going for his lifts can't hold him off (designer: make it impossible;
+    // tested against every way of playing the rising, including going all out for his lifts: he takes it in 2
+    // to 5 turns).
     squads: [
-      { side: 'guard', place: 'lifts', strength: 6 },
+      { side: 'guard', place: 'lifts', strength: 12 },
       { side: 'guard', place: 'stair', strength: 5 },
       { side: 'guard', place: 'arch', strength: 5 },
       { side: 'guard', place: 'lamp', strength: 4 },
       { side: 'guard', place: 'back', strength: 4 },
-      { side: 'rising', place: 'square', strength: 24 },
+      { side: 'rising', place: 'square', strength: 30 },
       { side: 'rising', place: 'screens', strength: 2 },
       { side: 'rising', place: 'market', strength: 2 },
       { side: 'rising', place: 'weavers', strength: 2 },
@@ -170,7 +174,7 @@ export const LESSON: LessonScenario = {
       { side: 'rising', place: 'bridge', strength: 2 },
       { side: 'rising', place: 'tenements', strength: 2 },
     ],
-    turns: 10,
+    turns: 30,
     knots: { now: 'c3day2_table_now', cut: 'c3day2_table_cut', end: 'c3day2_table_end' },
   },
   knots: { intro: 'c3day2_table_intro', good: 'c3day2_table_good', after: 'c3day2_after_table' },
@@ -178,6 +182,8 @@ export const LESSON: LessonScenario = {
 
 const riot = (id: string, board: RiotBoard, district: 'low' | 'promenade', squareArea: RiotScenario['squareArea']): RiotScenario => ({
   id, kind: 'riot', board, district, squads: RIOT_START, square: 'riot_square', squareArea,
+  // Rumbles in the riot (Jack), not the lesson.
+  rules: { rumble: RUMBLE },
   knots: { intro: 'c3day4_riot_intro', won: 'c3day4_table_won', dawn: 'c3day4_dawn', fatherTook: 'c3day4_father_took', square: 'c3day4_square' },
 });
 

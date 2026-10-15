@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { LESSON, LOW_DISTRICT_BOARD, PROMENADE_BOARD, RIOT_START, RIOTS } from '../src/data/warTable';
 import { ENCOUNTERS } from '../src/data/combat';
 import { RiotGame, type Order, type RiotState } from '../src/systems/Riot';
-import { careful, playOut, random, sensible, steady } from '../src/systems/RiotPlayers';
+import { careful, naive, playOut, random, sensible, steady } from '../src/systems/RiotPlayers';
 
 // The war table's game (docs/sequences/chapter-3/war-table.md): the old table's rules with four for the riot,
 // and the balance found by simulated play (designer: simple; on the easy side but not really easy).
@@ -38,6 +38,14 @@ describe('the war table: the rules', () => {
     expect(at(t, 'market').strength).toBe(1);
   });
 
+  it('9 on the square’s 8: taken, though the barricades cost one more (Jack)', () => {
+    const game = g();
+    const s = game.start([{ side: 'guard', place: 'market', strength: 9 }, { side: 'rising', place: 'square', strength: 8 }]);
+    const t = game.order(s, go(s, 'market', 'square')).state;
+    expect(game.outcome(t)).toBe('guard');
+    expect(at(t, 'square').strength).toBe(1);
+  });
+
   it('the square’s barricades: +1; beaten off, it still wears them down (designer: it looked like a bug when it didn’t)', () => {
     const game = g();
     const s = game.start([{ side: 'guard', place: 'market', strength: 3 }, { side: 'rising', place: 'square', strength: 4 }]);
@@ -68,12 +76,12 @@ describe('the war table: the rules', () => {
     expect(at(t, 'back').strength).toBe(3);
   });
 
-  it('the square grows by 1 a turn (and over 9 sends a crowd out); the guard get 2 a turn at the lifts’ foot, while it’s theirs', () => {
+  it('the square grows by 1 a turn (and over 9 sends a crowd out); the guard get 3 a turn at the lifts’ foot, while it’s theirs', () => {
     const game = g();
     const s = game.start([{ side: 'guard', place: 'lifts', strength: 4 }, { side: 'rising', place: 'square', strength: 5 }]);
     const t = game.turn(s, [], []).state;
     expect(at(t, 'square').strength).toBe(6);
-    expect(at(t, 'lifts').strength).toBe(6);
+    expect(at(t, 'lifts').strength).toBe(7);
     // Over 9, it sends a crowd of 2 out, towards the guard.
     const big = game.start([{ side: 'guard', place: 'lifts', strength: 4 }, { side: 'rising', place: 'square', strength: 9 }]);
     const u = game.turn(big, [], []).state;
@@ -119,6 +127,14 @@ describe('the war table: Day 4, the riot (simulated play)', () => {
     expect(playOut(game, start(), sensible()).winner).toBe('guard');
   }, 120000);
 
+  it('a naive player (straight at the square, no power cut, no fortify: designer, on a first go) usually wins, late', () => {
+    // (Balanced against this, not only the clever players: Jack's version had sensible play at 97%, and the naive at 0.)
+    const riot = new RiotGame(RIOTS.riot_low!.board, { ...game.rules, ...(RIOTS.riot_low as { rules?: object }).rules });
+    const results = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => playOut(riot, riot.start(RIOT_START, seed), naive()));
+    expect(results.filter((r) => r.winner === 'guard').length).toBeGreaterThanOrEqual(6);
+    for (const r of results) if (r.winner === 'guard') expect(r.state.turn).toBeGreaterThanOrEqual(8);
+  }, 120000);
+
   it('random orders, or none, lose it', () => {
     expect(playOut(game, start(), random(3)).winner).toBe('rising');
     expect(playOut(game, start(), () => ({ orders: [] })).winner).toBe('rising');
@@ -142,12 +158,20 @@ describe('the war table: Day 2, the lesson', () => {
     expect(s.owner.screens).toBe('rising');
   });
 
-  it('"Now.": whatever the rising does, he takes the square, in a few turns, never at once', () => {
+  it('"Now.": whatever the rising does, he takes the square, in a few turns (designer: make it impossible)', () => {
     const toSquare = (gm: RiotGame, s: RiotState): Order[] => gm.mine(s, 'rising').filter((q) => q.place !== gm.heart && gm.near(q.place, gm.heart)).map((q) => ({ squad: q.id, to: gm.heart }));
-    for (const rising of [(gm: RiotGame, s: RiotState) => gm.risingOrders(s), toSquare, () => []]) {
-      const r = playOut(game, game.start(LESSON.now.squads), careful(), rising, LESSON.now.turns);
-      expect(r.winner).toBe('guard');
-      expect(r.state.turn).toBeGreaterThanOrEqual(3);
+    // Everything at his lifts' foot, to cut his guard off (designer: nearly beat him that way).
+    const toLifts = (gm: RiotGame, s: RiotState): Order[] => gm.mine(s, 'rising').filter((q) => q.place !== gm.heart).map((q) => {
+      const d = (p: string) => { const seen = new Map([[p, 0]]); const todo = [p]; while (todo.length) { const x = todo.shift()!; for (const n of gm.adj.get(x)!) if (!seen.has(n)) (seen.set(n, seen.get(x)! + 1), todo.push(n)); } return seen.get(gm.lifts) ?? 99; };
+      return { squad: q.id, to: [...gm.adj.get(q.place)!].sort((a, b) => d(a) - d(b))[0]! };
+    });
+    for (const rising of [(gm: RiotGame, s: RiotState) => gm.risingOrders(s), toSquare, toLifts, () => []]) {
+      const now = new RiotGame(LESSON.board, { ...game.rules, ...LESSON.rules });
+      for (const seed of [1, 2, 3]) {
+        const r = playOut(now, now.start(LESSON.now.squads, seed), careful(), rising, LESSON.now.turns);
+        expect(r.winner).toBe('guard');
+        expect(r.state.turn).toBeLessThanOrEqual(6);
+      }
     }
   }, 120000);
 });
