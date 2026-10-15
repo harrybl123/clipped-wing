@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { LESSON, LOW_DISTRICT_BOARD, PROMENADE_BOARD, RIOT_START, RIOTS } from '../src/data/warTable';
 import { ENCOUNTERS } from '../src/data/combat';
 import { RiotGame, type Order, type RiotState } from '../src/systems/Riot';
-import { careful, playOut, random, sensible, steady } from '../src/systems/RiotPlayers';
+import { careful, naive, playOut, random, sensible, steady } from '../src/systems/RiotPlayers';
 
 // The war table's game (docs/sequences/chapter-3/war-table.md): the old table's rules with four for the riot,
 // and the balance found by simulated play (designer: simple; on the easy side but not really easy).
@@ -76,12 +76,12 @@ describe('the war table: the rules', () => {
     expect(at(t, 'back').strength).toBe(3);
   });
 
-  it('the square grows by 1 a turn (and over 9 sends a crowd out); the guard get 2 a turn at the lifts’ foot, while it’s theirs', () => {
+  it('the square grows by 1 a turn (and over 9 sends a crowd out); the guard get 3 a turn at the lifts’ foot, while it’s theirs', () => {
     const game = g();
     const s = game.start([{ side: 'guard', place: 'lifts', strength: 4 }, { side: 'rising', place: 'square', strength: 5 }]);
     const t = game.turn(s, [], []).state;
     expect(at(t, 'square').strength).toBe(6);
-    expect(at(t, 'lifts').strength).toBe(6);
+    expect(at(t, 'lifts').strength).toBe(7);
     // Over 9, it sends a crowd of 2 out, towards the guard.
     const big = game.start([{ side: 'guard', place: 'lifts', strength: 4 }, { side: 'rising', place: 'square', strength: 9 }]);
     const u = game.turn(big, [], []).state;
@@ -125,6 +125,14 @@ describe('the war table: Day 4, the riot (simulated play)', () => {
     // (Chaining squads into one strike mustn't let it rush the square.)
     expect(c.state.turn).toBeGreaterThanOrEqual(6);
     expect(playOut(game, start(), sensible()).winner).toBe('guard');
+  }, 120000);
+
+  it('a naive player (straight at the square, no power cut, no fortify: designer, on a first go) usually wins, late', () => {
+    // (Balanced against this, not only the clever players: Jack's version had sensible play at 97%, and the naive at 0.)
+    const riot = new RiotGame(RIOTS.riot_low!.board, { ...game.rules, ...(RIOTS.riot_low as { rules?: object }).rules });
+    const results = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => playOut(riot, riot.start(RIOT_START, seed), naive()));
+    expect(results.filter((r) => r.winner === 'guard').length).toBeGreaterThanOrEqual(6);
+    for (const r of results) if (r.winner === 'guard') expect(r.state.turn).toBeGreaterThanOrEqual(8);
   }, 120000);
 
   it('random orders, or none, lose it', () => {

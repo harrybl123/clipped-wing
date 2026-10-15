@@ -109,3 +109,14 @@ Tried for every fight first, it was too much (and the rising's ties started winn
 | **The square only** | 97% | turn 6.7 | always, turn 16 | 5, 9, 4 |
 
 The lesson's line on the barricades now says they cost one more to take, and that matching it takes it (draft wording; it said it holds at one more and loses nothing when it holds, from before that changed).
+
+## After Jack's changes (designer, 2026-10-15)
+
+Merged: fortify, rumbles, Cut power under their circles, and matching the square's number takes it (Jack's). Then, having played it (designer: still really hard, we're outnumbered; "remember, we're the guard"; does that look like 97%?):
+
+- **The balance was measured against players too good to be real.** The sensible computer player thinks a turn ahead and uses the power cut perfectly; on Jack's version it won 96%, but a naive one (`naive`: straight for the square, attacks what it can beat, no power cut, no fortify, as a person plays first time) won none. Balanced against the naive player now too, and a test keeps it winning (`tests/riotGame.test.ts`).
+- **The guard come faster: +3 a turn at the lifts' foot (was 2).** You start up against it and end the bigger force. Naive play wins nearly always, late (turn 14 of 18); sensible always (turn 10); careful by turn 6 (never before 4). A bigger guard at the start was tried and dropped: chaining carries people three streets in a turn, so any square smaller than your whole guard could be rushed on turn 2.
+- **"Now." crushes you** (designer): he plays until he's taken your square; your square 30 so it takes him 4 to 7 turns, whatever you do.
+- **The tutorial teaches fortify** (after the Weavers' Row) and **rumbles** (the first one, with his word: "War's a game of chance, whatever anyone tells you. The trick is to need the dice less than the other man."). Rumbles are in the lesson too now.
+- **Cut power is in the corner again** (designer: it wasn't obvious it could be done), as well as under their circles.
+- **Losing, you can play it again** (designer), or go on (your father comes in).

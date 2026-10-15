@@ -75,7 +75,7 @@ export interface RiotRules {
   rumble?: { chance: number; lasts: number; max: number };
 }
 
-export const RIOT_RULES: RiotRules = { dawn: 18, reinforce: 2, reinforceEvery: 1, powerEvery: 3, fortifyEvery: 3, ordered: true };
+export const RIOT_RULES: RiotRules = { dawn: 18, reinforce: 3, reinforceEvery: 1, powerEvery: 3, fortifyEvery: 3, ordered: true };
 
 /** Rumbles in the riot (Jack): a one-in-three chance each turn there's none, two turns to get to it, 1 to 3 to each squad round it. */
 export const RUMBLE: NonNullable<RiotRules['rumble']> = { chance: 1 / 3, lasts: 2, max: 3 };

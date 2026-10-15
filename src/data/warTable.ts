@@ -111,11 +111,12 @@ export interface LessonScenario {
   goals: { place: string; start: string; done?: string }[];
   /** Taking the last goal, you go down yourself: the fight (src/data/combat.ts). */
   dropIn: { encounter: string; knot: string };
+  rules?: Partial<RiotRules>;
   /** What he says the first time each thing happens (ink knots). */
-  firsts: { grow: string; pour: string; arrive: string; tie: string; lost: string; idle: string; join: string };
+  firsts: { grow: string; pour: string; arrive: string; rumble: string; tie: string; lost: string; idle: string; join: string };
   /** After so many turns of the lesson, he moves on anyway. */
   lessonTurns: number;
-  /** "Now.": where everyone stands, how long he plays (if he hasn't taken the square by then, he stops), and its lines. */
+  /** "Now.": where everyone stands, and its lines. He plays until he's taken your square (designer: he crushes you); `turns` is only a safety stop. */
   now: { squads: Setup; turns: number; knots: { now: string; cut: string; end: string } };
   knots: { intro: string; good: string; after: string };
 }
@@ -149,19 +150,21 @@ export const LESSON: LessonScenario = {
     { place: 'screens', start: 'c3day2_lesson_screens' },
   ],
   dropIn: { encounter: 'sim_guards', knot: 'c3day2_table_dropin' },
-  firsts: { grow: 'c3day2_first_grow', pour: 'c3day2_first_pour', arrive: 'c3day2_first_arrive', tie: 'c3day2_react_tie', lost: 'c3day2_react_lost', idle: 'c3day2_react_idle', join: 'c3day2_react_joined' },
+  // Rumbles in the lesson too (designer: with his word on war being a game of chance).
+  rules: { rumble: RUMBLE },
+  firsts: { grow: 'c3day2_first_grow', pour: 'c3day2_first_pour', rumble: 'c3day2_first_rumble', arrive: 'c3day2_first_arrive', tie: 'c3day2_react_tie', lost: 'c3day2_react_lost', idle: 'c3day2_react_idle', join: 'c3day2_react_joined' },
   lessonTurns: 14,
   now: {
     // The riot as he'd play it, from the guard's side: your square big enough that it looks like you could hold
-    // it (tested: whatever the rising does, he takes it in 5 to 9 turns; any smaller, and he chains everything
-    // into it on turn 2).
+    // it (tested, with the guard's 3 a turn and rumbles: whatever the rising does, he takes it in 4 to 7 turns;
+    // any smaller, and he chains everything into it on turn 2).
     squads: [
       { side: 'guard', place: 'lifts', strength: 6 },
       { side: 'guard', place: 'stair', strength: 5 },
       { side: 'guard', place: 'arch', strength: 5 },
       { side: 'guard', place: 'lamp', strength: 4 },
       { side: 'guard', place: 'back', strength: 4 },
-      { side: 'rising', place: 'square', strength: 24 },
+      { side: 'rising', place: 'square', strength: 30 },
       { side: 'rising', place: 'screens', strength: 2 },
       { side: 'rising', place: 'market', strength: 2 },
       { side: 'rising', place: 'weavers', strength: 2 },
@@ -170,7 +173,7 @@ export const LESSON: LessonScenario = {
       { side: 'rising', place: 'bridge', strength: 2 },
       { side: 'rising', place: 'tenements', strength: 2 },
     ],
-    turns: 10,
+    turns: 30,
     knots: { now: 'c3day2_table_now', cut: 'c3day2_table_cut', end: 'c3day2_table_end' },
   },
   knots: { intro: 'c3day2_table_intro', good: 'c3day2_table_good', after: 'c3day2_after_table' },

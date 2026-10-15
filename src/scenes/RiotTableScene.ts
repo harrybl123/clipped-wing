@@ -47,6 +47,8 @@ const AMBER = SHADES.amber;
 const CYAN = SHADES.cyan;
 const END = { x: W - 70, y: H - 15, w: 64, h: 11 };
 const UNDO = { x: W - 122, y: H - 15, w: 46, h: 11 };
+/** Cut power, in the corner too (designer: it wasn't obvious it could be done): then choose where. */
+const POWER = { x: W - 192, y: H - 15, w: 66, h: 11 };
 const COLOUR: Record<Side, number> = { guard: CYAN, rising: AMBER };
 
 export class RiotTableScene extends Phaser.Scene {
@@ -83,6 +85,7 @@ export class RiotTableScene extends Phaser.Scene {
   private cardBack!: Phaser.GameObjects.Graphics;
   private endButton!: PixelText;
   private undoButton!: PixelText;
+  private powerButton!: PixelText;
   /** One of theirs you've clicked: Cut power, under it (Jack). */
   private eyeing: RiotPlace | null = null;
   /** How wide each button's words are (measured once). */
@@ -105,7 +108,7 @@ export class RiotTableScene extends Phaser.Scene {
     this.sc = sc;
     this.you = sc.kind === 'lesson' ? 'rising' : 'guard';
     this.phase = sc.kind === 'lesson' ? (data.phase ?? 'lesson') : 'riot';
-    this.g = new RiotGame(sc.board, { ...RIOT_RULES, ...(sc.kind === 'riot' ? sc.rules : {}) });
+    this.g = new RiotGame(sc.board, { ...RIOT_RULES, ...sc.rules });
     this.state = this.g.start(this.phase === 'now' ? (sc as LessonScenario).now.squads : sc.squads, Math.floor(Math.random() * 2 ** 31));
     this.goal = 0;
     this.said = new Set();
@@ -133,6 +136,7 @@ export class RiotTableScene extends Phaser.Scene {
     this.card = new PixelText(this, 0, 0, '', { color: SHADES.white, shadow: SHADES.shadow, wrapWidth: 150 }).setDepth(8);
     this.endButton = new PixelText(this, END.x + 4, END.y + 2, 'End turn', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8);
     this.undoButton = new PixelText(this, UNDO.x + 4, UNDO.y + 2, 'Undo', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8);
+    this.powerButton = new PixelText(this, POWER.x + 4, POWER.y + 2, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8);
     this.cursor = this.place(this.g.mine(this.state, this.you)[0]!.place);
     this.dialogue = new DialogueBox(this, getSession(this).story);
     this.music = startTableMusic(this, this.phase === 'lesson' ? 'lesson' : 'now');
@@ -345,6 +349,7 @@ export class RiotTableScene extends Phaser.Scene {
     once('join', events.some((e) => e.type === 'join' && yours.has(e.squad)));
     once('grow', end.some((e) => e.type === 'grow'));
     once('pour', end.some((e) => e.type === 'pour'));
+    once('rumble', end.some((e) => e.type === 'rumbleAppears'));
     once('arrive', end.some((e) => e.type === 'arrive'));
     // Goals taken: his word on each, then the next you don't already hold.
     const goal = sc.goals[this.goal]!;
@@ -427,6 +432,14 @@ export class RiotTableScene extends Phaser.Scene {
     const { story } = getSession(this);
     story.setVariable('riot_table', 'lost');
     story.setVariable('riot_turns', this.state.turn);
+    // Lost (designer): play it again, or let the story go on (your father comes in and takes it).
+    this.dialogue.openMenu('Dawn. The square\u2019s still theirs.', [
+      { label: 'Play it again', run: () => this.leave(() => this.scene.restart({ ...this.params, phase: undefined } satisfies RiotTableSceneData)) },
+      { label: 'Go on (your father comes in)', run: () => this.time.delayedCall(150, () => this.fatherIn(sc)) },
+    ]);
+  }
+
+  private fatherIn(sc: RiotScenario): void {
     this.talk(sc.knots.dawn, () => {
       // He plays it from where it is; the night's no longer a limit.
       this.g = new RiotGame(sc.board, { ...RIOT_RULES, ...sc.rules, dawn: this.state.turn + 40 });
@@ -476,6 +489,7 @@ export class RiotTableScene extends Phaser.Scene {
     const inside = (b: typeof END) => p.x >= b.x && p.x < b.x + b.w && p.y >= b.y && p.y < b.y + b.h;
     if (down && inside(END)) return void (!this.aiming && !this.cutting && this.endTurn());
     if (down && inside(UNDO)) return this.undo();
+    if (down && inside(POWER) && this.you === 'guard' && !this.fatherPlaying) return this.startCut();
     // The buttons under the circles (a greyed one does nothing).
     if (down) for (const b of this.underButtons()) if (inside(this.buttonBox(b))) return void (b.enabled && b.run());
     const pool = this.aiming ? this.aiming.dests : this.cutting ? this.cutTargets() : this.sc.board.places;
@@ -767,6 +781,12 @@ export class RiotTableScene extends Phaser.Scene {
     g.fillStyle(canUndo ? SHADES.cyanDeep : SHADES.deep, 0.95).fillRect(UNDO.x, UNDO.y, UNDO.w, UNDO.h);
     g.lineStyle(1, canUndo ? CYAN : SHADES.dim, 1).strokeRect(UNDO.x, UNDO.y, UNDO.w, UNDO.h);
     this.undoButton.setColor(canUndo ? SHADES.white : SHADES.dim);
+    if (this.you === 'guard' && !this.fatherPlaying) {
+      const canCut = !this.busy && !this.aiming && this.g.canCut(s);
+      g.fillStyle(this.cutting ? SHADES.amberDeep : canCut ? SHADES.cyanDeep : SHADES.deep, 0.95).fillRect(POWER.x, POWER.y, POWER.w, POWER.h);
+      g.lineStyle(1, canCut || this.cutting ? CYAN : SHADES.dim, 1).strokeRect(POWER.x, POWER.y, POWER.w, POWER.h);
+      this.powerButton.setText(s.cut ? 'Power cut' : this.cutting ? 'Cut: where?' : this.g.canCut(s) ? 'Cut power' : `Power in ${this.g.cutIn(s)}`).setColor(canCut || this.cutting ? SHADES.white : SHADES.dim);
+    } else this.powerButton.setText('');
     // The words: the note in the corner, and the card by the cursor.
     this.chip.setText(this.chipText());
     this.drawCard();
