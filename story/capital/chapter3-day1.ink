@@ -207,10 +207,10 @@ Clear the street sellers off the square for good? The watch sees everything, and
     "Then my men keep looking round them, Highness." #speaker:commander
     She doesn't argue. She doesn't look pleased, either.
 - "Then you should see why I asked. Behind the stalls, at the back of the square." #speaker:commander #walk:commander-1:282
--> c3day1_bird
+-> c3day1_wing
 
 // The chalk wing, being scrubbed off the back wall of the square.
-=== c3day1_bird ===
+=== c3day1_wing ===
 ~ bird1 = true
 Up on the great screen over the square, your face, ten feet high, beside your father's.
 Under it, at the back wall, a man in the city's overalls is scrubbing.
