@@ -11,8 +11,7 @@ import type { RiotBoard, RiotPlace, RiotRules, Side } from '../systems/Riot';
  * the bottom. The same streets in either district; the names are the district's.
  */
 function district(names: Record<string, string>): RiotBoard {
-  // (Laid out from y 50 to 230, then fitted between the table's top and bottom bars.)
-  const at = (id: string, x: number, y: number, extra: Partial<RiotPlace> = {}): RiotPlace => ({ id, name: names[id]!, x, y: Math.round(36 + (y - 50) * 0.97), ...extra });
+  const at = (id: string, x: number, y: number, extra: Partial<RiotPlace> = {}): RiotPlace => ({ id, name: names[id]!, x, y, ...extra });
   return {
     places: [
       at('stair', 240, 50, { up: true }),
@@ -58,7 +57,7 @@ type Setup = { side: Side; place: string; strength: number }[];
 
 /**
  * Where the riot starts (tuned by simulation: docs/sequences/chapter-3/war-table.md): the guard along the way
- * up, 15 of them; the square, 8 behind its barricades; and crowds of 2 across the district, two of them in the
+ * up, 15 of them; the square, 10 behind its barricades; and crowds of 3 across the district, two of them in the
  * streets next to the square, one at the back stairs, close to yours.
  */
 export const RIOT_START: Setup = [
@@ -66,14 +65,14 @@ export const RIOT_START: Setup = [
   { side: 'guard', place: 'stair', strength: 4 },
   { side: 'guard', place: 'arch', strength: 4 },
   { side: 'guard', place: 'lamp', strength: 3 },
-  { side: 'rising', place: 'square', strength: 8 },
-  { side: 'rising', place: 'screens', strength: 2 },
-  { side: 'rising', place: 'market', strength: 2 },
-  { side: 'rising', place: 'back', strength: 2 },
-  { side: 'rising', place: 'yards', strength: 2 },
-  { side: 'rising', place: 'wash', strength: 2 },
-  { side: 'rising', place: 'bridge', strength: 2 },
-  { side: 'rising', place: 'tenements', strength: 2 },
+  { side: 'rising', place: 'square', strength: 10 },
+  { side: 'rising', place: 'screens', strength: 3 },
+  { side: 'rising', place: 'market', strength: 3 },
+  { side: 'rising', place: 'back', strength: 3 },
+  { side: 'rising', place: 'yards', strength: 3 },
+  { side: 'rising', place: 'wash', strength: 3 },
+  { side: 'rising', place: 'bridge', strength: 3 },
+  { side: 'rising', place: 'tenements', strength: 3 },
 ];
 
 /** Day 4: the riot, for real. You're the guard; take the square before dawn. */
@@ -112,7 +111,7 @@ export interface LessonScenario {
   /** Taking the last goal, you go down yourself: the fight (src/data/combat.ts). */
   dropIn: { encounter: string; knot: string };
   /** What he says the first time each thing happens (ink knots). */
-  firsts: { grow: string; arrive: string; tie: string; lost: string; idle: string; join: string };
+  firsts: { grow: string; pour: string; arrive: string; tie: string; lost: string; idle: string; join: string };
   /** After so many turns of the lesson, he moves on anyway. */
   lessonTurns: number;
   /** "Now.": where everyone stands, how long he plays (if he hasn't taken the square by then, he stops), and its lines. */
@@ -149,7 +148,7 @@ export const LESSON: LessonScenario = {
     { place: 'screens', start: 'c3day2_lesson_screens' },
   ],
   dropIn: { encounter: 'sim_guards', knot: 'c3day2_table_dropin' },
-  firsts: { grow: 'c3day2_first_grow', arrive: 'c3day2_first_arrive', tie: 'c3day2_react_tie', lost: 'c3day2_react_lost', idle: 'c3day2_react_idle', join: 'c3day2_react_joined' },
+  firsts: { grow: 'c3day2_first_grow', pour: 'c3day2_first_pour', arrive: 'c3day2_first_arrive', tie: 'c3day2_react_tie', lost: 'c3day2_react_lost', idle: 'c3day2_react_idle', join: 'c3day2_react_joined' },
   lessonTurns: 14,
   now: {
     // The riot as he'd play it, from the guard's side: your square big enough that it looks like you could hold

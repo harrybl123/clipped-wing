@@ -13,7 +13,8 @@
 //
 // And four rules for the riot, each one sentence, each for a reason:
 //   1. What the rising will do this turn is shown first, as arrows. (You read them and answer them.)
-//   2. People keep joining the square: it grows by 1 every turn. (The clock: the longer you wait, the harder.)
+//   2. People keep joining the square: it grows by 1 every turn, and once it's over 8 it sends a crowd of 2
+//      out at the guard. (The clock, and the riot coming at you: designer, the rising was too passive.)
 //   3. More of the guard come down the lifts: 2 every turn, if you hold the lifts' foot. (Time's on your
 //      side, against the square's 1, but only while you keep the lifts: something to protect.)
 //   4. Every few turns you can cut the power under a place: nobody there can move, the square doesn't grow,
@@ -85,9 +86,36 @@ export type RiotEvent =
   | { type: 'join'; squad: string; into: string; at: string }
   | { type: 'fight'; at: string; side: Side; won: boolean; attack: number; defence: number }
   | { type: 'grow'; at: string }
+  | { type: 'pour'; from: string; to: string }
   | { type: 'arrive'; at: string };
 
+/** How the rising plays (being tuned: designer, the rising was too passive). */
+export interface RisingStyle {
+  /** How much a crowd avoids a street where the guard could beat it. */
+  flee: number;
+  /** With nothing to attack, crowds go for the guard rather than the way up. */
+  hunt: boolean;
+  /** The square sends its people out at a squad of the guard next to it, if it can beat it and nothing else of the guard is next to the square. */
+  sally: boolean;
+  /** With nothing to attack, crowds gather into bigger crowds. */
+  merge: boolean;
+  /** Crowds throw themselves at a squad of the guard even when they'll lose, if they have at least this many (0: never). */
+  wear: number;
+  /** The square pours a crowd of this many out into an empty street next to it each turn, when it has more than `pourAbove` (0: never). */
+  pour: number;
+  pourAbove: number;
+}
+
+/**
+ * How the rising plays (designer: it was too passive, it should fight you; tested against other ways, docs/
+ * sequences/chapter-3/war-table.md): crowds go for the guard rather than keeping clear, throw themselves at a
+ * squad even when they'll lose (if they're 2 or more), and the square, once it's over 8, pours a crowd of 2 out
+ * at the guard each turn.
+ */
+export const RISING_STYLE: RisingStyle = { flee: 0, hunt: true, sally: false, merge: false, wear: 2, pour: 2, pourAbove: 8 };
+
 export class RiotGame {
+  style: RisingStyle = RISING_STYLE;
   readonly board: RiotBoard;
   readonly rules: RiotRules;
   readonly adj = new Map<string, string[]>();
@@ -214,6 +242,28 @@ export class RiotGame {
       return d <= 2 && y.strength + 2 >= this.defence(s, this.heart, sq.strength) + d;
     });
     const couldBeat = (place: string, strength: number) => yours.some((y) => this.near(place, y.place) && this.attack(place, y.place, strength) > this.defence(s, y.place, y.strength));
+    const st = this.style;
+    // The square, out at a squad of the guard next to it, if it beats it and nothing else of theirs could walk in behind.
+    if (st.sally && sq?.side === 'rising' && s.cut !== this.heart) {
+      const near = yours.filter((y) => this.near(y.place, this.heart));
+      const target = near.length === 1 ? near[0]! : undefined;
+      if (target && this.attack(this.heart, target.place, sq.strength) > this.defence(s, target.place, target.strength)) {
+        orders.push({ squad: sq.id, to: target.place });
+        claimed.add(target.place);
+      }
+    }
+    // The square left empty: back into it, first.
+    const emptySquare = !sq && s.owner[this.heart] === 'rising';
+    const distTo = (from: string, to: (p: string) => boolean): number => {
+      const seen = new Map([[from, 0]]);
+      const todo = [from];
+      while (todo.length) {
+        const p = todo.shift()!;
+        if (to(p)) return seen.get(p)!;
+        for (const n of this.adj.get(p)!) if (!seen.has(n)) (seen.set(n, seen.get(p)! + 1), todo.push(n));
+      }
+      return 99;
+    };
     const crowds = this.mine(s, 'rising').filter((q) => q.place !== this.heart && s.cut !== q.place).sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id));
     for (const q of crowds) {
       let best: { to: string; score: number } | null = null;
@@ -222,18 +272,27 @@ export class RiotGame {
         const there = this.squadAt(s, to);
         let score: number;
         if (to === this.heart) {
-          if (there?.side !== 'rising' || !threat) continue;
-          score = 30;
+          if (emptySquare && !there) score = 90;
+          else if (there?.side !== 'rising' || !threat) continue;
+          else score = 30;
         } else if (there?.side === 'guard') {
-          if (this.attack(q.place, to, q.strength) <= this.defence(s, to, there.strength)) continue;
-          score = 40 + there.strength * 2 + (to === this.lifts ? 15 : 0);
+          if (this.attack(q.place, to, q.strength) > this.defence(s, to, there.strength)) score = 40 + there.strength * 2 + (to === this.lifts ? 15 : 0);
+          // Throwing themselves at it: they'll lose, but it'll cost the guard.
+          else if (st.wear && q.strength >= st.wear) score = 25 - there.strength + (to === this.lifts ? 10 : 0);
+          else continue;
         } else if (there) {
-          // Together, they could take one of yours next turn.
-          if (!couldBeat(to, there.strength + q.strength) || couldBeat(q.place, q.strength)) continue;
-          score = 18;
+          // Together, they could take one of yours next turn (or, gathering, just to be bigger).
+          if (couldBeat(q.place, q.strength)) continue;
+          if (couldBeat(to, there.strength + q.strength)) score = 18;
+          else if (st.merge) score = 8;
+          else continue;
         } else {
-          score = 6 + ((this.upDist.get(q.place) ?? 9) - (this.upDist.get(to) ?? 9)) * 5 + (s.owner[to] !== 'rising' ? 4 : 0);
-          if (yours.some((y) => this.near(y.place, to) && this.attack(y.place, to, y.strength) > q.strength)) score -= 10;
+          const guardNear = (p: string) => yours.some((y) => y.place === p);
+          const crowdNear = (p: string) => this.mine(s, 'rising').some((c) => c !== q && c.place === p && p !== this.heart);
+          const toward = st.hunt && yours.length ? distTo(q.place, guardNear) - distTo(to, guardNear) : (this.upDist.get(q.place) ?? 9) - (this.upDist.get(to) ?? 9);
+          score = 6 + toward * 5 + (s.owner[to] !== 'rising' ? 4 : 0);
+          if (st.merge) score += (distTo(q.place, crowdNear) - distTo(to, crowdNear)) * 3;
+          if (yours.some((y) => this.near(y.place, to) && this.attack(y.place, to, y.strength) > q.strength)) score -= st.flee;
         }
         if (score > 0 && (!best || score > best.score)) best = { to, score };
       }
@@ -243,6 +302,24 @@ export class RiotGame {
       }
     }
     return orders;
+  }
+
+  /** Where the square will pour a crowd out at the end of this turn (towards the guard), if it does. */
+  pourTo(s: RiotState): string | null {
+    const h = this.squadAt(s, this.heart);
+    if (!this.style.pour || h?.side !== 'rising' || s.cut === this.heart || h.strength + 1 <= this.style.pourAbove) return null;
+    const guard = this.mine(s, 'guard').map((q) => q.place);
+    const dist = (from: string) => {
+      const seen = new Map([[from, 0]]);
+      const todo = [from];
+      while (todo.length) {
+        const p = todo.shift()!;
+        if (guard.includes(p)) return seen.get(p)!;
+        for (const n of this.adj.get(p)!) if (!seen.has(n)) (seen.set(n, seen.get(p)! + 1), todo.push(n));
+      }
+      return 99;
+    };
+    return this.adj.get(this.heart)!.filter((p) => !this.squadAt(s, p)).sort((a, b) => dist(a) - dist(b) || a.localeCompare(b))[0] ?? null;
   }
 
   /**
@@ -279,6 +356,14 @@ export class RiotGame {
     if (h?.side === 'rising' && s.cut !== this.heart) {
       h.strength += 1;
       events.push({ type: 'grow', at: this.heart });
+      // And it pours a crowd out at the guard.
+      const to = this.pourTo(s);
+      if (to) {
+        h.strength -= this.style.pour;
+        s.squads.push({ id: `q${s.nextId++}`, side: 'rising', place: to, strength: this.style.pour });
+        s.owner[to] = 'rising';
+        events.push({ type: 'pour', from: this.heart, to });
+      }
     }
     // More of the guard, if the lifts' foot is yours.
     if (s.turn % this.rules.reinforceEvery === 0) {

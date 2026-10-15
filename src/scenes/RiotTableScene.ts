@@ -68,10 +68,11 @@ export class RiotTableScene extends Phaser.Scene {
   private gfx!: Phaser.GameObjects.Graphics;
   private life!: Phaser.GameObjects.Graphics;
   private numbers: PixelText[] = [];
-  private title!: PixelText;
-  private key!: PixelText;
-  private info!: PixelText;
-  private hint!: PixelText;
+  /** A little note in the corner: dawn, or the lesson's goal. */
+  private chip!: PixelText;
+  /** The card by the cursor: the place, whose, how strong; choosing, the sum and the keys. */
+  private card!: PixelText;
+  private cardBack!: Phaser.GameObjects.Graphics;
   private endButton!: PixelText;
   private powerButton!: PixelText;
   private dialogue!: DialogueBox;
@@ -111,20 +112,10 @@ export class RiotTableScene extends Phaser.Scene {
     this.add.image(0, 0, key).setOrigin(0);
     this.life = this.add.graphics().setDepth(2);
     this.gfx = this.add.graphics().setDepth(3);
-    for (const p of this.sc.board.places) {
-      const label = new PixelText(this, 0, p.y + 11, lower(p.name), { color: SHADES.light, shadow: SHADES.shadow }).setDepth(4);
-      label.setX(Math.max(2, Math.min(W - label.width - 2, Math.round(p.x - label.width / 2))));
-    }
-    // Bars at the top (the goal; who's who) and the bottom (what's under the cursor; the keys; the buttons), so
-    // the words never sit on the map.
-    this.add.rectangle(0, 0, W, 26, SHADES.shadow, 0.9).setOrigin(0).setDepth(5);
-    this.add.rectangle(0, 26, W, 1, SHADES.cyanDeep).setOrigin(0).setDepth(5);
-    this.add.rectangle(0, H - 28, W, 28, SHADES.shadow, 0.9).setOrigin(0).setDepth(5);
-    this.add.rectangle(0, H - 28, W, 1, SHADES.cyanDeep).setOrigin(0).setDepth(5);
-    this.title = new PixelText(this, 6, 4, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(6);
-    this.key = new PixelText(this, 6, 15, '', { color: SHADES.light, shadow: SHADES.shadow }).setDepth(6);
-    this.info = new PixelText(this, 6, H - 25, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(6);
-    this.hint = new PixelText(this, 6, H - 12, '', { color: SHADES.dim, shadow: SHADES.shadow }).setDepth(6);
+    // Hardly any words on the table (designer: too cluttered): a note in the corner, and a card by the cursor.
+    this.chip = new PixelText(this, 6, 5, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(7);
+    this.cardBack = this.add.graphics().setDepth(7);
+    this.card = new PixelText(this, 0, 0, '', { color: SHADES.white, shadow: SHADES.shadow, wrapWidth: 150 }).setDepth(8);
     this.endButton = new PixelText(this, END.x + 4, END.y + 2, 'End turn', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8);
     this.powerButton = new PixelText(this, POWER.x + 4, POWER.y + 2, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8);
     this.cursor = this.place(this.g.mine(this.state, this.you)[0]!.place);
@@ -225,6 +216,7 @@ export class RiotTableScene extends Phaser.Scene {
     for (const e of end.events) {
       if (e.type === 'grow') this.pop(this.place(e.at), '+1', AMBER);
       if (e.type === 'arrive') this.pop(this.place(e.at), `+${this.g.rules.reinforce}`, CYAN);
+      if (e.type === 'pour') this.pop(this.place(e.to), `${this.g.style.pour} out`, AMBER);
     }
     this.state = end.state;
     this.draw();
@@ -291,6 +283,7 @@ export class RiotTableScene extends Phaser.Scene {
     once('lost', mineFight.some((f) => !f.won && f.attack < f.defence));
     once('join', events.some((e) => e.type === 'join' && yours.has(e.squad)));
     once('grow', end.some((e) => e.type === 'grow'));
+    once('pour', end.some((e) => e.type === 'pour'));
     once('arrive', end.some((e) => e.type === 'arrive'));
     // Goals taken: his word on each, then the next you don't already hold.
     const goal = sc.goals[this.goal]!;
@@ -529,6 +522,12 @@ export class RiotTableScene extends Phaser.Scene {
     }
     // Orders: the other side's (if shown) in their colour; yours in yours; the one you're choosing, blinking.
     if (this.phase !== 'now' || this.fatherPlaying) for (const o of this.theirs) this.arrow(g, o, COLOUR[this.g.other(this.you)], true);
+    // Where the square will send a crowd out, at the end of the turn.
+    const pour = this.g.pourTo(s);
+    if (pour) {
+      const sq = this.g.squadAt(s, this.g.heart);
+      if (sq) this.arrow(g, { squad: sq.id, to: pour }, AMBER, true);
+    }
     for (const o of this.orders) if (o.squad !== this.aiming?.squad.id) this.arrow(g, o, COLOUR[this.you], false);
     if (this.aiming && this.cursor.id !== this.aiming.squad.place) this.arrow(g, { squad: this.aiming.squad.id, to: this.cursor.id }, blink ? COLOUR[this.you] : SHADES.white, false);
     // The squads: the guard a blue shield, the rising an amber circle; the number on each.
@@ -564,49 +563,60 @@ export class RiotTableScene extends Phaser.Scene {
       g.lineStyle(1, canCut ? CYAN : SHADES.dim, 1).strokeRect(POWER.x, POWER.y, POWER.w, POWER.h);
       this.powerButton.setText(s.cut ? 'Power cut' : this.g.canCut(s) ? 'Cut power' : `Power: ${this.g.cutIn(s)}`).setColor(canCut ? SHADES.white : SHADES.dim);
     } else this.powerButton.setText('');
-    // The words: the goal, the key (who's who), what's under the cursor.
-    this.title.setText(this.titleText());
-    const youAre = this.you === 'guard' ? `You: the guard (blue).  The rising: amber.  Lifts +${this.g.rules.reinforce} a turn, square +1.` : 'You: the rising (amber).  Your father: the guard (blue shields).';
-    this.key.setText(this.fatherPlaying ? 'Your father has the table.' : youAre);
-    this.info.setText(this.busy ? '' : this.describe());
-    this.hint.setText(this.busy ? '' : this.cutting ? 'Choose where to cut the power   Esc: back' : this.aiming ? 'Arrows: where   E: send them there   Esc: back' : `E: a squad   Tab: next   ${this.you === 'guard' ? 'P: power   ' : ''}Enter: end turn`);
+    // The words: the note in the corner, and the card by the cursor.
+    this.chip.setText(this.chipText());
+    this.drawCard();
     this.drawLife();
   }
 
-  private titleText(): string {
+  private chipText(): string {
     const sc = this.sc;
-    const movable = this.g.mine(this.state, this.you).filter((q) => this.g.dests(this.state, q).length).length;
-    const turn = `Turn ${this.state.turn}   Orders: ${this.orders.length} of ${movable}`;
-    if (sc.kind === 'lesson') {
-      if (this.phase === 'lesson') return `The lesson: take ${lower(this.place(sc.goals[this.goal]?.place ?? this.g.heart).name)}.   ${turn}`;
-      return `Hold the square.   ${turn}`;
-    }
+    if (this.fatherPlaying) return 'Your father has the table.';
+    if (sc.kind === 'lesson') return this.phase === 'lesson' ? `Take ${lower(this.place(sc.goals[this.goal]?.place ?? this.g.heart).name)}.` : 'Hold the square.';
     const left = this.g.rules.dawn - this.state.turn + 1;
-    return `Take the square before dawn: ${left} ${left === 1 ? 'turn' : 'turns'} left.   ${turn}`;
+    return `Dawn in ${left} ${left === 1 ? 'turn' : 'turns'}.`;
   }
 
-  /** What's under the cursor, plainly; choosing where to send a squad, what would happen. */
-  private describe(): string {
+  /** The card by the cursor: what's there, and (choosing) what would happen, with the keys for it. */
+  private drawCard(): void {
+    const text = this.busy ? '' : this.cardText();
+    this.card.setText(text);
+    this.cardBack.clear();
+    if (!text) return;
+    const p = this.cursor;
+    const [w, h] = [this.card.width + 8, this.card.height + 6];
+    const x = p.x + 18 + w < W - 4 ? p.x + 18 : p.x - 18 - w;
+    const y = Math.max(4, Math.min(H - h - 20, p.y - 10));
+    this.cardBack.fillStyle(SHADES.shadow, 0.92).fillRect(x, y, w, h);
+    this.cardBack.lineStyle(1, SHADES.cyanDeep, 1).strokeRect(x, y, w, h);
+    this.card.setPosition(Math.round(x + 4), Math.round(y + 3));
+  }
+
+  private cardText(): string {
     const s = this.state;
     const p = this.cursor;
     const there = this.g.squadAt(s, p.id);
-    if (this.cutting) return there ? `Cut the power to ${lower(p.name)}: they can't move${p.heart ? ', the square won’t grow,' : ''} and they fight at 1 less, this turn.` : '';
+    const whose = (side: Side) => (side === this.you ? (side === 'guard' ? 'Your guard' : 'Your people') : side === 'guard' ? 'The guard' : 'The rising');
+    if (this.cutting) return `${p.name}\nCut the power: nobody here moves${p.heart ? ', the square won\u2019t grow,' : ''} and they fight at 1 less.\nE: cut   Esc: back`;
     const aim = this.aiming?.squad;
-    if (aim && p.id !== aim.place) {
-      if (!there) return `Send them to ${lower(p.name)}: they take it.`;
-      if (there.side === aim.side) return `Send them to join the squad there: ${aim.strength + there.strength} strong.`;
+    if (aim) {
+      if (p.id === aim.place) return 'Hold here.\nE: hold   Esc: back';
+      if (!there) return `${p.name}\nMove here, and take it.\nE: go   Esc: back`;
+      if (there.side === aim.side) return `${p.name}\nJoin up: ${aim.strength + there.strength} together.\nE: go   Esc: back`;
       const a = this.g.attack(aim.place, p.id, aim.strength);
       const d = this.g.defence(s, p.id, there.strength);
-      const why = p.heart ? ' (the barricades: +1)' : s.cut === p.id ? ' (no power: 1 less)' : '';
-      return `Attack: ${a} against ${d}${why}. ${a > d ? `You'd take it, with ${a - d} left.` : a === d ? 'A tie: they hold, and yours are lost.' : 'They’d hold, and yours would be lost.'}`;
+      const plus = p.heart ? ' (barricades +1)' : s.cut === p.id ? ' (no power: -1)' : '';
+      const result = a > d ? `You'd take it, with ${a - d} left.` : a === d ? 'A tie: they hold. Yours are lost.' : `They hold. Yours are lost; they lose ${a}.`;
+      return `${p.name}\nAttack: ${a} against ${d}${plus}.\n${result}\nE: attack   Esc: back`;
     }
-    if (aim) return 'Hold: they stay where they are.';
-    const whose = s.owner[p.id] === 'guard' ? 'the guard’s' : s.owner[p.id] === 'rising' ? 'the rising’s' : 'nobody’s';
-    let text = `${p.name}: ${whose}${there ? `, ${there.strength} strong` : ''}.`;
-    if (p.heart) text += ' Barricades +1. Grows by 1 a turn.';
-    if (p.lifts) text += ` The guard get +${this.g.rules.reinforce} here a turn.`;
-    if (s.cut === p.id) text += ' No power: they can’t move, and fight at 1 less.';
-    return text;
+    const lines = [p.name];
+    if (there) lines.push(`${whose(there.side)}, ${there.strength}.`);
+    else lines.push(s.owner[p.id] ? `Empty. ${s.owner[p.id] === 'guard' ? 'The guard\u2019s' : 'The rising\u2019s'}.` : 'Empty.');
+    if (p.heart) lines.push('Barricades +1. Grows by 1 a turn; over 8, it sends crowds out.');
+    if (p.lifts) lines.push(`The guard get +${this.g.rules.reinforce} here each turn.`);
+    if (s.cut === p.id) lines.push('No power this turn.');
+    if (there?.side === this.you && this.g.dests(s, there).length) lines.push(this.orders.some((o) => o.squad === there.id) ? 'E: change its orders' : 'E: give it orders');
+    return lines.join('\n');
   }
 
   private arrow(g: Phaser.GameObjects.Graphics, o: Order, col: number, dashed: boolean): void {

@@ -18,17 +18,17 @@ The old table's, as Harry knew them:
 And four for the riot, each one sentence, each for a reason:
 
 1. **What the other side will do this turn is shown first, as arrows.** You read them and answer them. (Into the Breach.)
-2. **People keep joining the square: it grows by 1 every turn.** The clock: the longer you wait, the harder.
+2. **People keep joining the square: it grows by 1 every turn, and once it's over 8 it sends a crowd of 2 out at the guard (shown as an arrow first).** The clock, and the riot coming at you: without it the rising hoarded everything in the square and never fought (designer: too passive; tested, below).
 3. **More of the guard come down the lifts: 2 every turn, while the guard hold the lifts' foot.** Time is on the guard's side, but only while they keep the lifts: something to protect, so you can't send everything at the square. (Advance Wars' factory.)
 4. **Every few turns the guard can cut the power under a place: nobody there can move, the square doesn't grow, and they fight at 1 less.** The guard's one trick: when, and where.
 
 **The goal:** the guard must take the square before dawn (16 turns); with enough to win it, you go down yourself (the fight). The rising wins if it still holds the square at dawn. Nothing else ends it.
 
-Everything else is the rising playing by the same rules (`risingOrders`): a crowd goes for a squad of the guard it can beat (the lifts' foot most of all, to cut off the guard coming down); joins another crowd if together they could beat one (designer: they should take your people too); falls back into the square when the guard come for it; otherwise heads for the way up, keeping out of reach of anything that would beat it. (A better opponent and more depth: later, designer.) Moves happen together: a squad moving out of a place goes before one moving in, so nobody's carried along.
+Everything else is the rising playing by the same rules (`risingOrders`; `RISING_STYLE`): crowds go for the guard (the lifts' foot most of all, to cut off the guard coming down); they throw themselves at a squad even when they'll lose, if there are 2 or more of them, so it costs the guard; two crowds join up when together they could take a squad; they fall back into the square when the guard come for it. Moves happen together: a squad moving out of a place goes before one moving in, so nobody's carried along.
 
 ## The screen
 
-Bars across the top (the goal, turns left, orders given; who's who) and the bottom (what's under the cursor; the keys; the buttons), so words never sit on the map. The district as a street plan in light (designer: a riot should look like one): the rising's squads amber circles, each with fire and a crowd round it, smoke going up; the guard's blue shields; the number on each; a ring round every place in the colour of whoever holds it. A key at the top says who's who, and which is you. The other side's arrows dashed, yours solid. "+1" floats off the square each turn, "+2" off the lifts. After a fight, what each side lost floats up off it. Under the cursor, plain words: whose it is, how strong, and, choosing where to send a squad, the sum ("Attack: 5 against 4. You'd take it, with 1 left.").
+Hardly any words (designer: it was too cluttered). The district as a street plan in light; the rising's squads amber circles, each with fire and a crowd round it, smoke going up; the guard's blue shields; the number on each; a ring round every place in the colour of whoever holds it. The other side's arrows dashed (and the square's next crowd), yours solid. A note in the corner: dawn, or the lesson's goal. A card by the cursor: the place's name, whose it is and how strong; choosing, the sum ("Attack: 5 against 4. You'd take it, with 1 left.") and the keys for it. "+1" floats off the square each turn, "+2" off the lifts, "2 out" where a crowd's sent; after a fight, what each side lost.
 
 Controls (the old table's): pick a squad of yours (E or click), the arrows step round where it can go, E or click to send it (its own place to hold), Esc or right-click back, Tab to the next squad, Enter or the button to end the turn; as the guard, P or the button for the power.
 
@@ -44,19 +44,19 @@ Then "Now.": the table set up again (your square 12 behind its barricades, crowd
 
 ## Day 4: the riot (you're the guard)
 
-The riot's set-up: the guard along the way up, 15 of them (4 at the lifts' foot, 4 on the stair, 4 at the arches, 3 at the lamp shop); the square 8; crowds of 2 across the district, two of them in the streets next to the square and one at the back stairs, close to yours.
+The riot's set-up: the guard along the way up, 15 of them (4 at the lifts' foot, 4 on the stair, 4 at the arches, 3 at the lamp shop); the square 10; crowds of 3 across the district, two of them in the streets next to the square and one at the back stairs, close to yours.
 
 ## What simulation showed
 
-Computer players of different skill as the guard, over 20 starting positions (the riot's, with the crowds varied):
+Computer players of different skill as the guard, over 16 starting positions (the riot's, with the crowds varied):
 
-| Player | Takes the square | When |
-| --- | --- | --- |
-| Random orders, or none | never | |
-| Sensible (one turn ahead) | about 60% | turn 10 of 16 |
-| Careful (two turns ahead; thinks about order and the power) | always | turn 7 to 9 |
+| Player | Takes the square | When | The rising attacks them |
+| --- | --- | --- | --- |
+| Random orders, or none | never | | |
+| Sensible (one turn ahead) | about half | turn 11 of 16 (the riot's own set-up: turn 14) | about 10 times a game, taking 2 or 3 squads |
+| Careful (two turns ahead; thinks about order and the power) | always | turn 10 | about 7 times, taking 1 |
 
-On the riot's own set-up, careful play takes it on turn 9, sensible on turn 13. (With the bolder rising, sensible play fell to 30%, so the guard start with 3 more.)
+The rising's way of playing, tested against the same guard (designer: it just sat in the square): as it was, crowds attacked about 3 times a game; with no fleeing and hunting the guard, 4; the square stepping out to strike, easier for the guard (it left the square empty) and dropped; gathering into bigger crowds, no better; throwing themselves at the guard even when they'd lose, 5; the square sending crowds out, 5 to 6. Both of those together, with a bigger rising so it's still a fair fight (the square 10, crowds of 3): about 10. Without the square sending crowds out, it hoarded everything again (6 attacks) and nobody sensible could win.
 
 How it got here: the first version was a different game (unrest from 0 to 3 that spread like a disease, charging and quelling, storming the barricades): tested well by the numbers, but it didn't make sense to play (designer). Back to the old table's rules, then: rushing with every squad at once took the square by turn 2, which was the old table letting a squad be joined and carried on in the same turn (now moves happen together) and the square being too small; with crowds falling back into the square, nobody could win at all, because the square grew as fast as the guard did and every fight cost what it won, so the guard now get 2 a turn to the square's 1. Risk's idea (the square growing with the places the rising holds) was tried and dropped: one more thing to count (designer: keep it simple).
 
