@@ -28,7 +28,8 @@ import type { CombatSceneData } from './CombatScene';
 // fire and a crowd round them; the guard's blue shields; a key at the top says who's who, and which is you.
 // Controls (the old table's): pick a squad of yours (E or click), the arrows step round where it can go, E or
 // click to send it (its own place to hold); Esc or right-click backs out; Tab to the next squad; Enter (or the
-// button) ends the turn. As the guard, P (or the button) cuts the power under a place.
+// button) ends the turn. As the guard, P (or the button) cuts the power under a place. Undo (or U) takes back
+// your last order, one at a time (designer).
 
 export interface RiotTableSceneData {
   scenario: string;
@@ -43,6 +44,7 @@ const AMBER = SHADES.amber;
 const CYAN = SHADES.cyan;
 const END = { x: W - 70, y: H - 15, w: 64, h: 11 };
 const POWER = { x: W - 140, y: H - 15, w: 64, h: 11 };
+const UNDO = { x: W - 192, y: H - 15, w: 46, h: 11 };
 const COLOUR: Record<Side, number> = { guard: CYAN, rising: AMBER };
 
 export class RiotTableScene extends Phaser.Scene {
@@ -79,6 +81,9 @@ export class RiotTableScene extends Phaser.Scene {
   private cardBack!: Phaser.GameObjects.Graphics;
   private endButton!: PixelText;
   private powerButton!: PixelText;
+  private undoButton!: PixelText;
+  /** This turn's changes, to undo one at a time (designer): the orders and the state before each. */
+  private history: { orders: Order[]; state: RiotState }[] = [];
   private dialogue!: DialogueBox;
   private music!: TableMusic;
   private t = 0;
@@ -122,6 +127,7 @@ export class RiotTableScene extends Phaser.Scene {
     this.card = new PixelText(this, 0, 0, '', { color: SHADES.white, shadow: SHADES.shadow, wrapWidth: 150 }).setDepth(8);
     this.endButton = new PixelText(this, END.x + 4, END.y + 2, 'End turn', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8);
     this.powerButton = new PixelText(this, POWER.x + 4, POWER.y + 2, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8);
+    this.undoButton = new PixelText(this, UNDO.x + 4, UNDO.y + 2, 'Undo', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8);
     this.cursor = this.place(this.g.mine(this.state, this.you)[0]!.place);
     this.dialogue = new DialogueBox(this, getSession(this).story);
     this.music = startTableMusic(this, this.phase === 'lesson' ? 'lesson' : 'now');
@@ -154,6 +160,7 @@ export class RiotTableScene extends Phaser.Scene {
 
   private startTurn(): void {
     this.orders = [];
+    this.history = [];
     this.aiming = null;
     this.cutting = false;
     if (this.you === 'guard' && !this.fatherPlaying) {
@@ -404,6 +411,7 @@ export class RiotTableScene extends Phaser.Scene {
     }
     if (e.key === 'e' || e.key === 'E') return this.choose(this.cursor);
     if (e.key === 'Escape') return this.back();
+    if (e.key === 'u' || e.key === 'U') return this.undo();
     if ((e.key === 'p' || e.key === 'P') && this.you === 'guard') return this.startCut();
     if (e.key === 'Tab') {
       e.preventDefault();
@@ -418,6 +426,7 @@ export class RiotTableScene extends Phaser.Scene {
     const inside = (b: typeof END) => p.x >= b.x && p.x < b.x + b.w && p.y >= b.y && p.y < b.y + b.h;
     if (down && inside(END)) return void (!this.aiming && !this.cutting && this.endTurn());
     if (down && inside(POWER) && this.you === 'guard') return this.startCut();
+    if (down && inside(UNDO)) return this.undo();
     const pool = this.aiming ? this.aiming.dests : this.cutting ? this.cutTargets() : this.sc.board.places;
     const near = pool.find((q) => Math.hypot(q.x - p.x, q.y - p.y) < 13);
     const over = this.sc.board.places.find((q) => Math.hypot(q.x - p.x, q.y - p.y) < 13) ?? null;
@@ -433,6 +442,7 @@ export class RiotTableScene extends Phaser.Scene {
   private choose(place: RiotPlace): void {
     if (this.cutting) {
       if (!this.cutTargets().includes(place)) return;
+      this.history.push({ orders: [...this.orders], state: this.state });
       this.state = this.g.cutPower(this.state, place.id);
       this.cutting = false;
       playSound(this, 'boom', 0.6);
@@ -443,6 +453,7 @@ export class RiotTableScene extends Phaser.Scene {
     if (this.aiming) {
       const { squad, dests } = this.aiming;
       if (!dests.includes(place)) return;
+      this.history.push({ orders: [...this.orders], state: this.state });
       this.orders = this.orders.filter((o) => o.squad !== squad.id);
       if (place.id !== squad.place) this.orders.push({ squad: squad.id, to: place.id });
       this.aiming = null;
@@ -459,6 +470,17 @@ export class RiotTableScene extends Phaser.Scene {
       this.cursor = going ? this.place(going.to) : round[0] ?? place;
       playMove(this);
     }
+    this.draw();
+  }
+
+  /** Undo: the last order (or the power cut) taken back. */
+  private undo(): void {
+    if (this.aiming || this.cutting) return this.back();
+    const last = this.history.pop();
+    if (!last) return;
+    this.orders = last.orders;
+    this.state = last.state;
+    playMove(this);
     this.draw();
   }
 
@@ -571,6 +593,10 @@ export class RiotTableScene extends Phaser.Scene {
     g.fillStyle(idle ? SHADES.cyanDeep : SHADES.deep, 0.95).fillRect(END.x, END.y, END.w, END.h);
     g.lineStyle(1, idle ? CYAN : SHADES.dim, 1).strokeRect(END.x, END.y, END.w, END.h);
     this.endButton.setColor(idle ? SHADES.white : SHADES.dim);
+    const canUndo = !this.busy && this.history.length > 0;
+    g.fillStyle(canUndo ? SHADES.cyanDeep : SHADES.deep, 0.95).fillRect(UNDO.x, UNDO.y, UNDO.w, UNDO.h);
+    g.lineStyle(1, canUndo ? CYAN : SHADES.dim, 1).strokeRect(UNDO.x, UNDO.y, UNDO.w, UNDO.h);
+    this.undoButton.setColor(canUndo ? SHADES.white : SHADES.dim);
     const canCut = this.you === 'guard' && this.g.canCut(s) && !this.busy;
     if (this.you === 'guard') {
       g.fillStyle(this.cutting ? SHADES.amberDeep : canCut ? SHADES.cyanDeep : SHADES.deep, 0.95).fillRect(POWER.x, POWER.y, POWER.w, POWER.h);
