@@ -13,7 +13,7 @@
 //
 // And four rules for the riot, each one sentence, each for a reason:
 //   1. What the rising will do this turn is shown first, as arrows. (You read them and answer them.)
-//   2. People keep joining the square: it grows by 1 every turn, and once it's over 8 it sends a crowd of 2
+//   2. People keep joining the square: it grows by 1 every turn, and once it's over 9 it sends a crowd of 2
 //      out at the guard. (The clock, and the riot coming at you: designer, the rising was too passive.)
 //   3. More of the guard come down the lifts: 2 every turn, if you hold the lifts' foot. (Time's on your
 //      side, against the square's 1, but only while you keep the lifts: something to protect.)
@@ -55,7 +55,7 @@ export interface RiotRules {
   powerEvery: number;
 }
 
-export const RIOT_RULES: RiotRules = { dawn: 16, reinforce: 2, reinforceEvery: 1, powerEvery: 3 };
+export const RIOT_RULES: RiotRules = { dawn: 18, reinforce: 2, reinforceEvery: 1, powerEvery: 3 };
 
 export interface RiotSquad {
   id: string;
@@ -109,10 +109,10 @@ export interface RisingStyle {
 /**
  * How the rising plays (designer: it was too passive, it should fight you; tested against other ways, docs/
  * sequences/chapter-3/war-table.md): crowds go for the guard rather than keeping clear, throw themselves at a
- * squad even when they'll lose (if they're 2 or more), and the square, once it's over 8, pours a crowd of 2 out
+ * squad even when they'll lose (if they're 2 or more), and the square, once it's over 9, pours a crowd of 2 out
  * at the guard each turn.
  */
-export const RISING_STYLE: RisingStyle = { flee: 0, hunt: true, sally: false, merge: false, wear: 2, pour: 2, pourAbove: 8 };
+export const RISING_STYLE: RisingStyle = { flee: 0, hunt: true, sally: false, merge: false, wear: 2, pour: 2, pourAbove: 9 };
 
 export class RiotGame {
   style: RisingStyle = RISING_STYLE;

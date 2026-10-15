@@ -70,8 +70,12 @@ export class RiotTableScene extends Phaser.Scene {
   private numbers: PixelText[] = [];
   /** A little note in the corner: dawn, or the lesson's goal. */
   private chip!: PixelText;
-  /** The card by the cursor: the place, whose, how strong; choosing, the sum and the keys. */
+  /**
+   * The card (designer: big text boxes are annoying): the place, whose, how strong, only when the mouse rests
+   * on it a moment; choosing where to send a squad, just the sum, small, by the place.
+   */
   private card!: PixelText;
+  private hover: { place: RiotPlace; since: number } | null = null;
   private cardBack!: Phaser.GameObjects.Graphics;
   private endButton!: PixelText;
   private powerButton!: PixelText;
@@ -415,6 +419,8 @@ export class RiotTableScene extends Phaser.Scene {
     if (down && inside(POWER) && this.you === 'guard') return this.startCut();
     const pool = this.aiming ? this.aiming.dests : this.cutting ? this.cutTargets() : this.sc.board.places;
     const near = pool.find((q) => Math.hypot(q.x - p.x, q.y - p.y) < 13);
+    const over = this.sc.board.places.find((q) => Math.hypot(q.x - p.x, q.y - p.y) < 13) ?? null;
+    if (over !== this.hover?.place) this.hover = over ? { place: over, since: this.time.now } : null;
     if (near && near !== this.cursor) (this.cursor = near), this.draw();
     if (down) {
       if (near) this.choose(near);
@@ -577,13 +583,15 @@ export class RiotTableScene extends Phaser.Scene {
     return `Dawn in ${left} ${left === 1 ? 'turn' : 'turns'}.`;
   }
 
-  /** The card by the cursor: what's there, and (choosing) what would happen, with the keys for it. */
+  /** The card: choosing, the sum by the place; otherwise what's there, once the mouse has rested on it. */
   private drawCard(): void {
-    const text = this.busy ? '' : this.cardText();
+    const choosing = this.aiming || this.cutting;
+    const rested = this.hover && this.time.now - this.hover.since > 600 ? this.hover.place : null;
+    const p = choosing ? this.cursor : rested;
+    const text = this.busy || !p ? '' : choosing ? this.sumText() : this.placeText(p);
     this.card.setText(text);
     this.cardBack.clear();
-    if (!text) return;
-    const p = this.cursor;
+    if (!text || !p) return;
     const [w, h] = [this.card.width + 8, this.card.height + 6];
     const x = p.x + 18 + w < W - 4 ? p.x + 18 : p.x - 18 - w;
     const y = Math.max(4, Math.min(H - h - 20, p.y - 10));
@@ -592,30 +600,31 @@ export class RiotTableScene extends Phaser.Scene {
     this.card.setPosition(Math.round(x + 4), Math.round(y + 3));
   }
 
-  private cardText(): string {
+  /** Choosing: what would happen there, in a line. */
+  private sumText(): string {
     const s = this.state;
     const p = this.cursor;
     const there = this.g.squadAt(s, p.id);
+    if (this.cutting) return 'Cut the power here';
+    const aim = this.aiming!.squad;
+    if (p.id === aim.place) return 'Hold';
+    if (!there) return 'Take it';
+    if (there.side === aim.side) return `Join: ${aim.strength + there.strength}`;
+    const a = this.g.attack(aim.place, p.id, aim.strength);
+    const d = this.g.defence(s, p.id, there.strength);
+    return a > d ? `${a} v ${d}: you take it, ${a - d} left` : a === d ? `${a} v ${d}: a tie, they hold` : `${a} v ${d}: they hold`;
+  }
+
+  /** What's at a place: its name, whose, how strong, and anything special about it. */
+  private placeText(p: RiotPlace): string {
+    const s = this.state;
+    const there = this.g.squadAt(s, p.id);
     const whose = (side: Side) => (side === this.you ? (side === 'guard' ? 'Your guard' : 'Your people') : side === 'guard' ? 'The guard' : 'The rising');
-    if (this.cutting) return `${p.name}\nCut the power: nobody here moves${p.heart ? ', the square won\u2019t grow,' : ''} and they fight at 1 less.\nE: cut   Esc: back`;
-    const aim = this.aiming?.squad;
-    if (aim) {
-      if (p.id === aim.place) return 'Hold here.\nE: hold   Esc: back';
-      if (!there) return `${p.name}\nMove here, and take it.\nE: go   Esc: back`;
-      if (there.side === aim.side) return `${p.name}\nJoin up: ${aim.strength + there.strength} together.\nE: go   Esc: back`;
-      const a = this.g.attack(aim.place, p.id, aim.strength);
-      const d = this.g.defence(s, p.id, there.strength);
-      const plus = p.heart ? ' (barricades +1)' : s.cut === p.id ? ' (no power: -1)' : '';
-      const result = a > d ? `You'd take it, with ${a - d} left.` : a === d ? 'A tie: they hold. Yours are lost.' : `They hold. Yours are lost; they lose ${a}.`;
-      return `${p.name}\nAttack: ${a} against ${d}${plus}.\n${result}\nE: attack   Esc: back`;
-    }
     const lines = [p.name];
-    if (there) lines.push(`${whose(there.side)}, ${there.strength}.`);
-    else lines.push(s.owner[p.id] ? `Empty. ${s.owner[p.id] === 'guard' ? 'The guard\u2019s' : 'The rising\u2019s'}.` : 'Empty.');
-    if (p.heart) lines.push('Barricades +1. Grows by 1 a turn; over 8, it sends crowds out.');
+    if (there) lines.push(`${whose(there.side)}, ${there.strength}`);
+    if (p.heart) lines.push(`Barricades +1. Grows 1 a turn; over ${this.g.style.pourAbove}, sends crowds out.`);
     if (p.lifts) lines.push(`The guard get +${this.g.rules.reinforce} here each turn.`);
     if (s.cut === p.id) lines.push('No power this turn.');
-    if (there?.side === this.you && this.g.dests(s, there).length) lines.push(this.orders.some((o) => o.squad === there.id) ? 'E: change its orders' : 'E: give it orders');
     return lines.join('\n');
   }
 

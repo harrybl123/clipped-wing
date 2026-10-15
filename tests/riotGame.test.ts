@@ -56,16 +56,16 @@ describe('the war table: the rules', () => {
     expect(at(t, 'screens').strength).toBe(3);
   });
 
-  it('the square grows by 1 a turn (and over 8 sends a crowd out); the guard get 2 a turn at the lifts’ foot, while it’s theirs', () => {
+  it('the square grows by 1 a turn (and over 9 sends a crowd out); the guard get 2 a turn at the lifts’ foot, while it’s theirs', () => {
     const game = g();
     const s = game.start([{ side: 'guard', place: 'lifts', strength: 4 }, { side: 'rising', place: 'square', strength: 5 }]);
     const t = game.turn(s, [], []).state;
     expect(at(t, 'square').strength).toBe(6);
     expect(at(t, 'lifts').strength).toBe(6);
-    // Over 8, it sends a crowd of 2 out, towards the guard.
-    const big = game.start([{ side: 'guard', place: 'lifts', strength: 4 }, { side: 'rising', place: 'square', strength: 8 }]);
+    // Over 9, it sends a crowd of 2 out, towards the guard.
+    const big = game.start([{ side: 'guard', place: 'lifts', strength: 4 }, { side: 'rising', place: 'square', strength: 9 }]);
     const u = game.turn(big, [], []).state;
-    expect(at(u, 'square').strength).toBe(7);
+    expect(at(u, 'square').strength).toBe(8);
     expect(game.mine(u, 'rising').filter((q) => q.place !== 'square').map((q) => q.strength)).toEqual([2]);
     const lost = game.start([{ side: 'rising', place: 'lifts', strength: 2 }, { side: 'rising', place: 'square', strength: 8 }]);
     expect(game.mine(game.turn(lost, [], []).state, 'guard')).toHaveLength(0);
