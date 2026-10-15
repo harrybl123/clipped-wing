@@ -139,7 +139,7 @@ export const citadelHalls: AreaDefinition = {
     // Chapter 3, Day 1: your hand briefs you along the gallery; courtiers bow at the foot of the stair.
     { type: 'trigger', x: 200, y: UPPER, reach: 8, knot: 'c3day1_brief', showIf: 'c3day1=halls', hideIf: 'brief1' },
     { type: 'barks', lines: [{ who: 'bow-1', text: 'Highness.', wait: 1600 }, { who: 'bow-2', text: 'Highness.' }], loopFrom: 99, showIf: 'brief1' },
-    // Day 3 on: every so often the great screen shows the bird for a moment, then cuts back (nobody can find
+    // Day 3 on: every so often the great screen shows the wing for a moment, then cuts back (nobody can find
     // where it comes from).
     { type: 'frames', frames: [...Array.from({ length: 10 }, (_, i) => P.screen(76, 46, i % 3)), P.birdScreen(76, 46), P.birdScreen(76, 46)], x: C - 38, y: TOP + 14, every: 450, showIf: 'c3day3' },
   ],

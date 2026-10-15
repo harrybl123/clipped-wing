@@ -8,7 +8,7 @@ import { cast, citizen, inStory, LATE } from './people';
 // terrorists (designer; docs/areas/capital/hideout.md). Warm, low, lamps hanging in cages; the counter,
 // bottles catching the light, small tables; the steps up to the street; a back way out into the dark.
 // Raided and ransacked while you're there (designer): after, smashed and dark (not built yet). The symbol
-// painted large on the wall: Grounded's bird on bare ground (designer).
+// painted large on the wall: the clipped wing over bare ground (designer).
 
 const W = 480;
 const FLOOR = 226;
@@ -49,7 +49,7 @@ export const hideout: AreaDefinition = {
     // The steps up to the street.
     { sprite: P.CELLAR_DOOR, x: 24, y: FLOOR - 34 },
     // Notices on the wall, the movement's and the capital's over them; barrels and crates.
-    // The symbol, painted large: Grounded's bird on bare ground (designer).
+    // The symbol, painted large: the clipped wing over bare ground (designer).
     { sprite: P.symbolMark('paint', 3), x: 150, y: 94 },
     { sprite: P.NOTICES, x: 92, y: 112 },
     { sprite: P.NOTICES, x: 230, y: 118 },

@@ -401,33 +401,32 @@ export const NOTICES: RowSprite = {
 };
 
 /**
- * The symbol (designer: Grounded's bird on bare ground, as on the carver's plates in the tree; then: more
- * logo-like, more symbolic; then: a bird taking flight): his bird made an emblem, lifting off: wings raised
- * in a V, their tips touching the ring as if breaking out of it, its head and beak forward, its tail fanned,
- * its feet just off the thick bar of ground that runs through the ring like a horizon.
+ * The symbol: a clipped wing (designer, 2026-10-15: the bird in its ring was too like the Hunger Games'
+ * mockingjay; make it like the wing on Grounded's plates in Chapter 1). That wing, scratched in outline, its
+ * feather tips cut off straight, over the bar of bare ground (Grounded's). 24 wide, 21 high.
  */
 export const EMBLEM: readonly string[] = [
-  '.......#######.......',
-  '.....###########.....',
-  '....###.......###....',
-  '...###.........###...',
-  '..##.##.......##.##..',
-  '.##...##.....###..##.',
-  '.##...###...###...##.',
-  '##.....###.###.##..##',
-  '##......##########.##',
-  '##.....#########...##',
-  '##...########......##',
-  '##..###..#.#.......##',
-  '##.......#.#.......##',
-  '##.................##',
-  '.###################.',
-  '.###################.',
-  '..##.............##..',
-  '...##...........##...',
-  '....###.......###....',
-  '.....###########.....',
-  '.......#######.......',
+  '........................',
+  '........................',
+  '............########....',
+  '........####....##..####',
+  '........#.........##...#',
+  '........#.......###.##.#',
+  '........#..#####......##',
+  '........###............#',
+  '........#.........##...#',
+  '........#.....####.....#',
+  '........#.####.......##.',
+  '........##.......##.#...',
+  '........#.....###.##....',
+  '........#..###...#......',
+  '........###.....#.......',
+  '........#.....##........',
+  '........######..........',
+  '........................',
+  '........................',
+  '########################',
+  '........................',
 ];
 
 /** The symbol on a wall: chalked (rough, a pixel missing here and there), half scrubbed off, scratched into glass (thin, pale, broken), or painted large (`scale`). */
@@ -457,7 +456,7 @@ const word = (text: string, c: string): string[] => {
 
 /**
  * The reward notice on the city's screens (Chapter 3, Day 3: your father's second pushback, rewards for
- * names): the bird, and REPORT above it, REWARD below, white on the screen's blue. Kept lit where the
+ * names): the wing, and REPORT above it, REWARD below, white on the screen's blue. Kept lit where the
  * power's cut, so it's the only light in the street. `phase` sweeps a scan line down it.
  */
 export const rewardScreen = (phase: number): RowSprite => {
@@ -470,7 +469,7 @@ export const rewardScreen = (phase: number): RowSprite => {
       if (x === 0 || y === 0 || x === w - 1 || y === h - 1) return 'n';
       if (y >= 3 && y < 10 && x >= 6 && x < 41) return top[y - 3]![x - 6] === 'W' ? 'W' : y === scan ? 'G' : 'g';
       if (y >= 36 && y < 43 && x >= 6 && x < 41) return bottom[y - 36]![x - 6] === 'W' ? 'W' : y === scan ? 'G' : 'g';
-      if (y >= 12 && y < 33 && x >= 13 && x < 34 && EMBLEM[y - 12]![x - 13] === '#') return 'c';
+      if (y >= 12 && y < 33 && x >= 11 && x < 35 && EMBLEM[y - 12]![x - 11] === '#') return 'c';
       return y === scan ? 'G' : 'g';
     }),
     colours: C,

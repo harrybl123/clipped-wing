@@ -19,7 +19,7 @@
 - else:
     Two weeks. The upper city's still dark every evening, and your rooms are still half-lit.
 }
-And the bird's everywhere now. On walls you can see from the lifts. Scratched into the lifts' glass.
+And the wing's everywhere now. On walls you can see from the lifts. Scratched into the lifts' glass.
 Every so often, the citadel's own screens show it for a moment, then cut out. Nobody can find where it comes from.
 Your hand, at the door. #beside:hand-3:-60
 "Your father's in the sealed wing. He's been there all night again." #speaker:diplomat
@@ -56,7 +56,7 @@ The first time you've done this alone.
     "The warden of the Weavers' Row, Highness. In the low district." #speaker:captain
 }
 A man in a worn coat comes up to the rope, with a list in his hand. #walk:warden:524
-"Highness. The bird's on every wall in my streets. Every morning there are more." #speaker:warden
+"Highness. The wing's on every wall in my streets. Every morning there are more." #speaker:warden
 "My people are frightened of it. And frightened of being seen near it." #speaker:warden
 "Give me men to scrub the walls. Twenty would do it." #speaker:warden
 "Scrub them and they're clean by tonight. And painted again by morning." #speaker:diplomat
@@ -123,7 +123,7 @@ It's past noon already. #time:afternoon
 
 // --- Afternoon, the data centre ---
 
-// Your duty, as on Day 1, but this time you read it: your father's cut the streets where the bird is
+// Your duty, as on Day 1, but this time you read it: your father's cut the streets where the wing is
 // (pushback 1), and, if you granted the envoy, put his place's line back as it was.
 === c3day3_requests ===
 { c3day3 != "requests":
@@ -143,7 +143,7 @@ Then a line you didn't write, with your father's mark on it, made last night.
 - else:
     STREETS CUT: the Weavers' Row, and five streets of the low district round it. The power you gave them, off, day and night, until the walls are clean.
 }
-"Six streets. Where the bird keeps turning up." #speaker:operator
+"Six streets. Where the wing keeps turning up." #speaker:operator
 { envoy == "granted":
     And under it, in his hand, the ink still fresh: the envoy's place. What it sends next season: the same as always.
     You granted it this morning. He's put it back.
@@ -267,10 +267,10 @@ He laughs. Nobody near the fountain does. He stops, and looks at his glass.
 He holds out the plain coat, and he's through his door before you've got your arm in the sleeve. #goto:lifts:64:130:c3day3_lifts
 -> END
 
-// At the top of the lifts: the bird, scratched into the glass.
+// At the top of the lifts: the wing, scratched into the glass.
 === c3day3_lifts ===
 The lift operator isn't looking at you tonight. He's looking at the glass.
-Someone's scratched the bird into it, at eye height. He's been rubbing at it with his sleeve.
+Someone's scratched the wing into it, at eye height. He's been rubbing at it with his sleeve.
 "Won't come off, Highness." #speaker:lift_operator
 -> END
 
@@ -285,7 +285,7 @@ Someone's scratched the bird into it, at eye height. He's been rubbing at it wit
     The low district. Dark again: your father's cut the streets you gave their light.
 }
 Only the screens are lit. Every one says the same thing, white on blue.
-REPORT IT. Anyone who speaks against the citadel. Anyone who chalks the bird. A reward, for every name.
+REPORT IT. Anyone who speaks against the citadel. Anyone who chalks the wing. A reward, for every name.
 On his step across the street, a man shouts something at the nearest screen.
 Two of the city watch come up the street, with lanterns. #show:watch-3a #show:watch-3b #walk:watch-3a:500:60 #walk:watch-3b:520:60
 A door opens. A woman steps out, and points at him. #show:informer #walk:informer:424:40
@@ -318,7 +318,7 @@ People call out to him as he goes. They know him. #bark:informant-1:Evening! #ba
 ~ met_hideout = true
 ~ c3day3 = "hideout"
 A cellar under the street, warm and low, lamps in cages. Every table's full, and loud.
-The bird's painted on the old stone, taller than a man.
+The wing's painted on the old stone, taller than a man.
 Nobody looks twice at one more hood.
 "Sit. Drink. Don't stare at anyone." #speaker:hideout_keeper
 ~ objective = "Listen"
@@ -375,7 +375,7 @@ Nobody at the table says anything for a while.
 ~ heard_stairs3 = true
 Two men, close together over one drink. You lean on the wall behind them.
 "You've not been home?" #speaker:c3_citizen_7
-"Four days. I chalked one bird, on my own wall, and my neighbour's boy saw me." #speaker:c3_citizen_9
+"Four days. I chalked one wing, on my own wall, and my neighbour's boy saw me." #speaker:c3_citizen_9
 "I sleep here now. Under that table." #speaker:c3_citizen_9
 "Nobody talks on the stairs any more. You don't know who's behind on their rent." #speaker:c3_citizen_7
 "Then we talk here." #speaker:c3_citizen_9
@@ -411,7 +411,7 @@ He says it under his breath. Nobody else has looked twice at you.
 "No." #speaker:prince
 "They took my brother tonight. You were there. You saw." #speaker:painter
 "She pointed at him. She's lived across from us my whole life. He mended her door." #speaker:painter
-"He only ever shouted at the screens. It's me that chalks the birds." #speaker:painter
+"He only ever shouted at the screens. It's me that chalks the wings." #speaker:painter
 "They took him for mine." #speaker:painter
 "Where will they take him? You'd know. You live up there." #speaker:painter
 "I don't know." #speaker:prince

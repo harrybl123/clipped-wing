@@ -8,7 +8,7 @@ import { cast, citizen, inStory, strollingCitizen, watch, AWAKE, DAY, LATE, MORN
 // in pots, a cooking fire, steam; less power, so more amber from lamps and fires than blue, a dead screen.
 // The towers and the citadel high above. Walkways along the stacks, stairs up to them. A low doorway at
 // street level, steps going down into the dark: the way to the hideout. Where your hand takes you to see
-// what's really going on (designer). The symbol chalked everywhere: Grounded's bird on bare ground (designer).
+// what's really going on (designer). The symbol chalked everywhere: the clipped wing over bare ground (designer).
 
 const W = 960;
 const FLOOR = 236;
@@ -119,7 +119,7 @@ export const lowDistrict: AreaDefinition = {
     // Day 2, below at night with your hand: coming in.
     { type: 'trigger', x: 60, y: FLOOR, reach: 16, knot: 'c3day2_dark_low', showIf: 'c3day2=below', hideIf: 'dark_seen2' },
     // Day 3 on: the reward notice on the screens (your father's: kept lit where the power's cut, the only light
-    // in the street), under the bird chalked on the wall, and along by the walkway's stairs.
+    // in the street), under the wing chalked on the wall, and along by the walkway's stairs.
     { type: 'frames', frames: P.REWARD_FRAMES, x: 328, y: 146, every: 260, showIf: 'rewards', power: 'any' },
     { type: 'frames', frames: P.REWARD_FRAMES, x: 772, y: 170, every: 260, showIf: 'rewards', power: 'any' },
     // Day 3, below at night: coming in, the watch take a man on the word of his neighbour; then your hand goes

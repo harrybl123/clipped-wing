@@ -130,7 +130,7 @@ export const promenade: AreaDefinition = {
     { type: 'frames', frames: P.signFrames(44, 12, 4), x: 660, y: 48, every: 340 },
     { type: 'frames', frames: P.signFrames(26, 12, 5), x: 820, y: 66, every: 290 },
     steam(340, FLOOR - 22),
-    // Chapter 3, Day 1, the official walk: a chalk bird half scrubbed off a wall; the stall keeper presses
+    // Chapter 3, Day 1, the official walk: a chalk wing half scrubbed off a wall; the stall keeper presses
     // food on you; people bow as you pass.
     { type: 'frames', frames: [HALF_SCRUBBED], x: 296, y: FLOOR - 24, every: 500, showIf: 'c3day1=walk,requests' },
     { type: 'trigger', x: 346, y: FLOOR, reach: 10, knot: 'c3day1_stall', showIf: 'c3day1=walk', hideIf: 'stall1' },
@@ -166,7 +166,7 @@ export const promenade: AreaDefinition = {
     cast('reformer', 480, FLOOR, { knot: 'promenade_reformer', when: MORNING }),
     cast('painter', 250, FLOOR, { knot: 'promenade_painter', when: MORNING }),
     cast('envoy', 250, FLOOR, { id: 'envoy-evening', knot: 'promenade_envoy', when: ['evening'] }),
-    // Chapter 3's story. Day 1: a city worker scrubbing the chalk bird, one of your guards close by; your hand with you.
+    // Chapter 3's story. Day 1: a city worker scrubbing the chalk wing, one of your guards close by; your hand with you.
     citizen('scrubber', 14, 324, FLOOR, 'c3day1_scrubber', undefined, { showIf: 'c3day1=walk,requests', flipX: true }),
     guard('escort', 0, 236, FLOOR, 'c3_guard', undefined, { showIf: 'c3day1=walk' }),
     // Day 1, your duty: inspecting the watch. Its commander, and a pair of the watch at their post.

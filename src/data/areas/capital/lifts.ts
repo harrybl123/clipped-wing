@@ -99,7 +99,7 @@ export const lifts: AreaDefinition = {
     { type: 'mover', sprite: liftCar(CAR), x: L, y: DATA - 2, to: { x: L, y: FLOOR - 2 }, speed: 60 },
     { type: 'frames', frames: scrollingScreen(48, 30), x: 360, y: 380, every: 400 },
     { type: 'frames', frames: P.signFrames(36, 12, 42), x: 40, y: PROMENADE + 30, every: 300 },
-    // Day 3 on: the bird scratched into the shaft's glass at the top, at eye height.
+    // Day 3 on: the wing scratched into the shaft's glass at the top, at eye height.
     { type: 'frames', frames: [P.symbolMark('scratch')], x: L + 6, y: CITADEL - 34, every: 60000, showIf: 'c3day3', power: 'any' },
     // And the reward notice on the tower's face, by the street.
     { type: 'frames', frames: P.REWARD_FRAMES, x: 74, y: FLOOR - 74, every: 260, showIf: 'rewards', power: 'any' },

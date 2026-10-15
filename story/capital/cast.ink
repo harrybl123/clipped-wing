@@ -150,7 +150,7 @@
 // --- The low district ---
 
 === low_painter ===
-"What? It's a bird. Everyone draws it." #speaker:painter
+"What? It's a wing. Everyone draws it." #speaker:painter
 "You're not from round here. Your boots are too clean." #speaker:painter
 -> END
 

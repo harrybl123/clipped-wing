@@ -65,13 +65,12 @@ export const screen = (width: number, height: number, scroll = 0): RowSprite => 
 });
 
 /**
- * A screen gone over to the symbol (Chapter 3, Day 3: the bird on the citadel's own screens for a moment,
- * and nobody can find where it comes from): the bird, as large as fits, pale on black.
+ * A screen gone over to the symbol (Chapter 3, Day 3: the wing on the citadel's own screens for a moment,
+ * and nobody can find where it comes from): the wing, as large as fits, pale on black.
  */
 export const birdScreen = (width: number, height: number): RowSprite => {
-  const scale = Math.max(1, Math.floor((height - 4) / EMBLEM.length));
-  const size = EMBLEM.length * scale;
-  const [ox, oy] = [Math.floor((width - size) / 2), Math.floor((height - size) / 2)];
+  const scale = Math.max(1, Math.min(Math.floor((height - 4) / EMBLEM.length), Math.floor((width - 4) / EMBLEM[0]!.length)));
+  const [ox, oy] = [Math.floor((width - EMBLEM[0]!.length * scale) / 2), Math.floor((height - EMBLEM.length * scale) / 2)];
   return {
     rows: fill(width, height, (x, y) => {
       if (x === 0 || y === 0 || x === width - 1 || y === height - 1) return 'a';

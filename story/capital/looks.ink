@@ -234,12 +234,12 @@ The lift operator's old booth at the street. A stool, a cup, a screen of who wen
 // --- The low district ---
 
 === low_mark ===
-Chalked on the wall: a bird, wings up, lifting off a bar of ground, inside a ring.
+Chalked on the wall: a wing over a bar of ground, the tips of its feathers cut off, straight across.
 You've seen it before. You don't know where.
 -> END
 
 === low_scrubbed ===
-The same bird, half scrubbed off. Someone worked hard at it. Not hard enough.
+The same wing, half scrubbed off. Someone worked hard at it. Not hard enough.
 -> END
 
 === low_homes ===
@@ -257,7 +257,7 @@ A noodle shop: a counter, steam, three stools. The smell follows you down the st
 // --- The hideout ---
 
 === hideout_emblem ===
-The bird again, painted big on the old stone: lifting off the ground, wings touching the ring.
+The wing again, painted big on the old stone, its feather tips cut off straight.
 Down here nobody's scrubbing it off.
 -> END
 

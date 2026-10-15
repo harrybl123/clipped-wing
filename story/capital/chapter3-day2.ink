@@ -504,20 +504,20 @@ Your hand knows the way: which turning, which stair, which door to knock on. Too
 }
 -> END
 
-// The painter, chalking a bird by a dead lamp: he doesn't know who you are.
+// The painter, chalking a wing by a dead lamp: he doesn't know who you are.
 === c3day2_painter ===
 { painter2:
     "Go away, I'm busy." #speaker:painter
     -> END
 }
 ~ painter2 = true
-A kid, chalking on the wall by a dead lamp. A bird, wings up, rising off a line of bare ground, in a ring. Quick, like he's done it a hundred times.
+A kid, chalking on the wall by a dead lamp. A wing over a line of bare ground, the tips of its feathers cut off straight. Quick, like he's done it a hundred times.
 "What are you looking at?" #speaker:painter
 "What is it?" #speaker:prince
-"A bird. What does it look like?" #speaker:painter
+"A wing. What does it look like?" #speaker:painter
 "What does it mean?" #speaker:prince
 "Means the lights went out." #speaker:painter
-He doesn't know who you are. He goes back to his bird.
+He doesn't know who you are. He goes back to his wing.
 -> c3day2_below_done
 
 // Day 1's petition: the woman's street.
