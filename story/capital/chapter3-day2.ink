@@ -74,44 +74,72 @@ You stand at the table. He stands across it from you. #wartable:lesson
 The table's dark. Just glass.
 -> END
 
-// The war table's lines (src/data/warTable.ts, LESSON). The lesson is his: plain, a few words each, one
-// thing at a time (designer: make it longer), then "Now." (designer: a fair fight he out-thinks you in).
+// The war table's lines (src/data/warTable.ts, LESSON; the game: docs/sequences/chapter-3/war-table.md). The
+// lesson is his: plain, one thing at a time, each rule said the first time it happens; then "Now." (designer: a
+// fair fight he out-thinks you in). You're the rising; he's the guard.
 === c3day2_table_intro ===
-"The low district has risen. You're the rising: the amber lights." #speaker:father
-"I'm the guard: the blue." #speaker:father
-"Each light is a squad. The number is how many." #speaker:father
-"Pick one of yours, and send it along a street, a stair or a lift. Into an empty place, it takes it." #speaker:father
-"Each turn, give orders to as many of your squads as you like. Then end the turn, and mine move." #speaker:father
+"The low district has risen. You're the rising: the amber." #speaker:father
+"I'm the guard: the blue shields." #speaker:father
+"Each one is a squad. The number is how many." #speaker:father
+"Each turn, every squad of yours can move one street, or stay. Into an empty street, it takes it." #speaker:father
+"Then you end the turn, and mine move. My arrows show you what I'll do. Read them first." #speaker:father
 -> END
 
-=== c3day2_lesson_lifts ===
-"First, the lifts. Whoever holds the lifts moves fastest: a lift goes anywhere the lifts go." #speaker:father
-"Take the middle lifts." #speaker:father
-"But read my arrows first. They show you what I'm going to do." #speaker:father
+=== c3day2_lesson_weavers ===
+"Take the Weavers' Row. Two of mine." #speaker:father
+"Into mine, it's a fight. The bigger number wins, and keeps what's left over." #speaker:father
 -> END
 
-=== c3day2_lesson_lifts_done ===
-"Good." #speaker:father
-"Into one of mine, it's a fight. The bigger number wins, and keeps what's left over. Equal, and whoever was there first holds." #speaker:father
+=== c3day2_lesson_weavers_done ===
+"Good. And if the numbers are equal, whoever's there holds. Remember that." #speaker:father
 -> END
 
-=== c3day2_lesson_data ===
-"The data centre. Two of mine." #speaker:father
-"Two of yours won't do it. Bring them together first: send one into another and they join up." #speaker:father
+=== c3day2_lesson_market ===
+"The market street. Three of mine." #speaker:father
+"Two of yours won't do it alone. Send one into another and they join up. Then go at it." #speaker:father
 -> END
 
-=== c3day2_lesson_data_done ===
+=== c3day2_lesson_market_done ===
 "Alone they're nothing. Together they're a district." #speaker:father
 -> END
 
-=== c3day2_lesson_promenade ===
-"Now the promenade. Three of mine." #speaker:father
-"Uphill, up a stair, costs you one. Go round by the streets, or go at it with more." #speaker:father
+=== c3day2_lesson_screens ===
+"Now the screens' street." #speaker:father
+"When it's real, the last of it you go down to yourself." #speaker:father
 -> END
 
 === c3day2_table_dropin ===
-"That one. Go down yourself." #speaker:father
+"That one. Go down." #speaker:father
 "Some fights you don't leave to the table." #speaker:father
+-> END
+
+// The first time each thing happens: what it is.
+=== c3day2_first_grow ===
+"Your square grows. People keep joining it: one a turn." #speaker:father
+"Behind its barricades it holds at one more. And when it holds, it loses nothing." #speaker:father
+-> END
+
+=== c3day2_first_arrive ===
+"My guard come down the lifts. Two a turn, as long as the lifts' foot is mine." #speaker:father
+-> END
+
+=== c3day2_react_idle ===
+"You didn't give any orders." #speaker:father
+"Every squad can move, every turn. As many as you've got. Then end the turn." #speaker:father
+-> END
+
+=== c3day2_react_lost ===
+"You went at more than you had. They hold, and your squad's gone." #speaker:father
+"Count first." #speaker:father
+-> END
+
+=== c3day2_react_tie ===
+"Equal numbers. Whoever's there holds." #speaker:father
+"You lost them for nothing." #speaker:father
+-> END
+
+=== c3day2_react_joined ===
+"Together. Good." #speaker:father
 -> END
 
 === c3day2_table_good ===
@@ -122,57 +150,30 @@ He looks at the table a long moment.
 === c3day2_table_now ===
 He stands up straight, and steps back from the table.
 "That was a lesson. Now I'll play." #speaker:father
-He touches the table, and it sets itself again. Your rising holds the promenade and the low district: ten of you. The guard holds the lifts and the data centre, and eight in the citadel.
-"Same rules. One move each. No arrows." #speaker:father
-"Take the citadel." #speaker:father
+He touches the table, and it sets itself again. Your square, twelve strong behind its barricades. Your crowds out through the district. His guard along the top.
+"The guard has until dawn to take the square. The rising has to hold it." #speaker:father
+"Same rules. No arrows." #speaker:father
+"Hold it." #speaker:father
 "Now." #speaker:father
 -> END
 
-// The first time he cuts the power under your biggest squad.
+// The first time he cuts the power.
 === c3day2_table_cut ===
-He touches the table. Where your biggest squad stands, the lights go out.
+He touches the table. Under one of your squads, the lights go out.
 "It helps to have a city on your side." #speaker:father
-"In the dark, they can't move this turn. And they fight at one less." #speaker:father
--> END
-
-// What he says about what you've just done, in the lesson (designer: his speech answers your choices).
-=== c3day2_react_idle ===
-"You didn't give any orders." #speaker:father
-"Each turn, give an order to every squad you want to move. As many as you've got. Then end the turn." #speaker:father
--> END
-
-=== c3day2_react_lost ===
-"You went at more than you had. They hold, and your squad's gone." #speaker:father
-"Count first." #speaker:father
--> END
-
-=== c3day2_react_tie ===
-"Equal numbers. Whoever's there first holds." #speaker:father
-"You lost them for nothing." #speaker:father
--> END
-
-=== c3day2_react_uphill ===
-"Uphill. It cost you one. It always will." #speaker:father
--> END
-
-=== c3day2_react_hit ===
-"You didn't read my arrow." #speaker:father
--> END
-
-=== c3day2_react_joined ===
-"Together. Good." #speaker:father
+"Every few turns, the guard can cut the power under a place. Nobody there can move. The square doesn't grow. And they fight at one less." #speaker:father
 -> END
 
 === c3day2_table_end ===
-{ sim_wiped:
-    It's over. Every light on the table is his.
+{ sim_taken:
+    It's over. His guard are in your square.
 - else:
-    He stops. You've still got lights on the table, a few, cut off from each other, with nowhere to go.
+    He stops. Your square's still yours, just. There's nothing left round it.
     "I could finish it. I don't need to." #speaker:father
 }
 "{sim_turns} turns." #speaker:father
 "I've played this table every night for thirty years. You won't ever be as good at it as I am." #speaker:father
-"You took your mark and sat on it. I came at you from everywhere, every turn." #speaker:father
+"You held your square and sat in it. I came at you from everywhere, every turn." #speaker:father
 "Remember it from my side of the table. This is what happens if you don't quell an uprising with equal aggression, and just try to defend your mark." #speaker:father
 He switches it off, and the city goes dark under your hands.
 "I hope you never need it." #speaker:father

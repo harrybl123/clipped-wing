@@ -1,67 +1,65 @@
-# The war table: the riot game
+# The war table
 
-Chapter 3's tactics minigame, first played for real on Day 4 (the riot) and meant to be played again (designer, 2026-10-15: "we're going to be playing this minigame more, so we may as well figure out the mechanics in more depth and make it a fun tactical game"). The designer asked for it to be worked out by simulated play, taking from other games, with thought for board design and squad numbers. This is what came out of that. **(suggestion)** throughout, until the designer has played it.
+Chapter 3's tactics game: taught on Day 2 (the lesson in the simulation room), played for real on Day 4 (the riot), and meant to be played again. Rules in `src/systems/Riot.ts`; maps and set-ups in `src/data/warTable.ts`; the screen in `src/scenes/RiotTableScene.ts`; computer players in `src/systems/RiotPlayers.ts`; the balance kept by `tests/riotGame.test.ts`.
 
-## Where it comes from
-
-- **Pandemic:** the riot spreads like a disease. Each place has unrest from 0 to 3; a place pushed past 3 boils over into every street next to it.
-- **Into the Breach:** everything the rising will do this turn is shown before you act, as arrows, so each turn is a puzzle with no hidden dice. No randomness at all.
-- **Advance Wars:** a few kinds of squad with clear jobs; one goal to capture (their HQ is the square); worn-out squads go back to base to be repaired.
-- **The chapter itself:** force against calm. Charging a crowd breaks it fast, but it scatters into the streets round it and angers the district; quelling is slow and calm. Political choices change the board.
+**What the designer asked for:** a real game you can play, fun and tactical (2026-10-15); worked out by simulated play, taking from other games; then, after playing a first version that was confusing ("I almost liked the simplicity of the old game"): the old game's simplicity with the riot's additions, a middle ground, a clean design, every rule thought about, keep it simple; and the markers for who's who made clear. You lose only by losing the game.
 
 ## The rules
 
-**The board** is the district that's risen, close up, as a street plan: 15 places, the way up (the stair to the citadel, the lifts' foot) along the top, the square in the middle with five streets into it.
+The old table's, as Harry knew them:
 
-**Unrest** in every place, 0 to 3. At 3 it's burning: held by the rising, and no squad can walk into it.
+- Squads are numbers. Each turn every squad can move one step along a street, or stay.
+- Into an empty place, it takes it. Into your own squad, they join.
+- Into theirs, it's a fight: the bigger number wins and keeps what's over. A tie holds (the attackers are lost, and the defenders lose as many).
+- The square's barricades add 1 to whoever holds it, and lose nothing when they hold.
 
-**Your squads** (the guard), each with health:
+(Gone from the old table: uphill costing 1. On these maps it only touched the stair, and it was one more thing to know. The lifts joining every station are gone too: the district has one lifts' foot.)
 
-| Squad | Health | Moves | Can |
-| --- | --- | --- | --- |
-| Pikes | 3 | 1 | quell, charge, storm |
-| Shield wall | 4 | 1 | quell, charge, storm twice as hard |
-| City watch | 2 | 2 | quell only (fast, for putting out sparks) |
+And four for the riot, each one sentence, each for a reason:
 
-**Your turn:** each squad does one thing, in any order, and you see it happen:
-- **Move** (through places that aren't burning, not through other squads).
-- **Quell** its own place or one next to it: unrest −1.
-- **Charge** a place next to it: unrest −2. The crowd scatters: +1 into every street next to it that hasn't got a squad in it. It angers the district (every 3 charges, the barricades go up 1). Charging a burning place costs the squad 1.
-- **Storm** the square's barricades, from a street next to it: −1 (shields −2). Costs the squad 1.
-- A squad that does nothing is **braced**: nothing hurts it this turn.
+1. **What the other side will do this turn is shown first, as arrows.** You read them and answer them. (Into the Breach.)
+2. **People keep joining the square: it grows by 1 every turn.** The clock: the longer you wait, the harder.
+3. **More of the guard come down the lifts: 2 every turn, while the guard hold the lifts' foot.** Time is on the guard's side, but only while they keep the lifts: something to protect, so you can't send everything at the square. (Advance Wars' factory.)
+4. **Every few turns the guard can cut the power under a place: nobody there can move, the square doesn't grow, and they fight at 1 less.** The guard's one trick: when, and where.
 
-**The power cut**, once every 3 turns: cut a place, and it can't spread or catch fire this turn.
+**The goal:** the guard must take the square before dawn (16 turns); with enough to win it, you go down yourself (the fight). The rising wins if it still holds the square at dawn. Nothing else ends it.
 
-**The rising's turn** (all of it shown at the start of yours):
-- Places at 2 next to a fire catch (unless a squad's standing in them, or their power's cut).
-- Every burning place spreads +1 into one street next to it (the arrow); the square, behind its barricades, into two. Into a squad: the squad takes 1 (unless braced). Into a burning place: it boils over into every street round it.
-- A turn nobody storms the barricades, they go back up 1.
-- A squad standing in a burning place takes 1 (unless braced).
-- A squad worn to nothing withdraws to regroup, and comes back fresh at the way up 2 turns later.
-- Every 3 turns, more of the guard arrive at the way up (if it isn't burning).
+Everything else is the rising playing by the same rules (`risingOrders`): a crowd goes for a squad of the guard it can beat; falls back into the square when the guard come for it (so a squad joins it, and it's bigger); otherwise heads for the way up, keeping out of reach of anything that would beat it. Moves happen together: a squad moving out of a place goes before one moving in, so nobody's carried along.
 
-**Winning:** bring the barricades down and get a squad into the square: you go down yourself (the fight at the square). **Losing:** dawn (16 turns), and the square's still theirs. Nothing else loses it (designer: you lose the riot if you lose the overall game, not because one thing happened).
+## The screen
 
-**The numbers** (the riot): barricades 16; you start with pikes on the stair, the arches and the back stairs, a shield wall at the lifts, the watch at the lamp shop; the square burning, three streets at 2, four at 1.
+The district as a street plan in light (designer: a riot should look like one): the rising's squads amber circles, each with fire and a crowd round it, smoke going up; the guard's blue shields; the number on each; a ring round every place in the colour of whoever holds it. A key at the top says who's who, and which is you. The other side's arrows dashed, yours solid. "+1" floats off the square each turn, "+2" off the lifts. Under the cursor, plain words: whose it is, how strong, and, choosing where to send a squad, the sum ("Attack: 5 against 4. You'd take it, with 1 left.").
+
+Controls (the old table's): pick a squad of yours (E or click), the arrows step round where it can go, E or click to send it (its own place to hold), Esc or right-click back, Tab to the next squad, Enter or the button to end the turn; as the guard, P or the button for the power.
+
+## Day 2: the lesson (you're the rising)
+
+As planned: "A district rises. You'll be the rising. I'll be the guard." On the low district's map, his moves shown, one goal at a time, his line the first time each rule comes up (the square growing, his guard arriving; a tie, a lost fight, joining, giving no orders):
+
+1. Take the Weavers' Row: 3 of yours against 2 of his (the bigger number wins, and keeps what's over).
+2. Take the market street: 3 of his; join two of yours first.
+3. Take the screens' street, and you go down yourself (the light-guards fight).
+
+Then "Now.": the table set up again (your square 12 behind its barricades, crowds round the district, his guard along the top), no arrows, and he plays the guard to win: he cuts your power ("It helps to have a city on your side."), and takes your square. Tested: whatever the rising does (as the computer plays it, piling everything into the square, or doing nothing), he takes it, never at once, in 3 to 7 turns.
+
+## Day 4: the riot (you're the guard)
+
+The riot's set-up: the guard along the way up, 12 of them (4 at the lifts' foot, 3 on the stair, 3 at the arches, 2 at the lamp shop); the square 8; crowds of 2 across the district, two of them in the streets next to the square and one at the back stairs, close to yours.
 
 ## What simulation showed
 
-Computer players of different skill (`src/systems/RiotPlayers.ts`), over 30 varied starting positions, in the game's own engine (`tests/riotGame.test.ts` keeps the balance on the riot's board):
+Computer players of different skill as the guard, over 20 starting positions (the riot's, with the crowds varied):
 
-| Player | Wins | When |
+| Player | Takes the square | When |
 | --- | --- | --- |
-| Random, or doing nothing | 0% | |
-| Sensible (one turn ahead) | about 67% | turn 12 of 16 |
-| Only quells, never charges | about 53% | turn 12 to 14 |
-| Only charges (brute force) | about 13% | |
-| Careful (two turns ahead, thinks about order) | 97% | turn 9 |
+| Random orders, or none | never | |
+| Sensible (one turn ahead) | about 60% | turn 10 of 16 |
+| Careful (two turns ahead; thinks about order and the power) | always | turn 10 or 11 |
 
-On the riot's own starting board: careful play wins on turn 9, sensible on turn 11, quelling only scrapes it on turn 14, and brute force loses. About 3 good options per squad per turn: not one obvious move, not random.
+On the riot's own set-up, sensible and careful both take it on turn 10.
 
-What changed along the way: at first there was no pressure and the square fell in 4 turns, so places on the edge of a fire now catch and the square is barricaded; then sitting tight until dawn won, so the goal became taking the square; then the barricades fell to a rush, so they go back up when nobody storms them; then the power cut did nothing (a bug), and once it worked it made the biggest difference to a sensible player; then losing squads for good made one early mistake fatal, so worn-out squads regroup (it doubled a sensible player's wins without helping the careful one); moved into the game, it played a little harder than the prototype, so the guard comes every 3 turns rather than 4 and regroups in 2 (lowering the barricades only shortened a careful game); and the brute-force player loses because the district's anger raises the barricades.
+How it got here: the first version was a different game (unrest from 0 to 3 that spread like a disease, charging and quelling, storming the barricades): tested well by the numbers, but it didn't make sense to play (designer). Back to the old table's rules, then: rushing with every squad at once took the square by turn 2, which was the old table letting a squad be joined and carried on in the same turn (now moves happen together) and the square being too small; with crowds falling back into the square, nobody could win at all, because the square grew as fast as the guard did and every fight cost what it won, so the guard now get 2 a turn to the square's 1. Risk's idea (the square growing with the places the rising holds) was tried and dropped: one more thing to count (designer: keep it simple).
 
-## Later (open)
+## Later
 
-- Day 2's lesson still teaches the old rules (squads against squads). If this is the war table from now on, the lesson could teach this game instead.
-- Other days' scenarios (the raid, the broadcast) can be new boards and starting positions with the same rules.
-- Charging is used rarely by good players (a heavy hand that pays only when the streets round a place are covered). It could count towards `lean`, so how you put the riot down is political too.
+- Other days' games (the raid, the broadcast) can be new set-ups on the same rules.

@@ -1,142 +1,133 @@
 import { describe, expect, it } from 'vitest';
-import { LOW_DISTRICT_BOARD, PROMENADE_BOARD, RIOTS } from '../src/data/warTable';
+import { LESSON, LOW_DISTRICT_BOARD, PROMENADE_BOARD, RIOT_START, RIOTS } from '../src/data/warTable';
 import { ENCOUNTERS } from '../src/data/combat';
-import { RiotGame, type RiotState } from '../src/systems/Riot';
-import { careful, playOut, playTurn, sensible } from '../src/systems/RiotPlayers';
+import { RiotGame, type Order, type RiotState } from '../src/systems/Riot';
+import { careful, playOut, random, sensible, steady } from '../src/systems/RiotPlayers';
 
-// The riot game (docs/sequences/chapter-3/war-table.md). The rules, and the balance found by simulation
-// (designer: a longer game, on the easy side but not really easy; force against calm).
+// The war table's game (docs/sequences/chapter-3/war-table.md): the old table's rules with four for the riot,
+// and the balance found by simulated play (designer: simple; on the easy side but not really easy).
 
-const sc = RIOTS.riot_low!;
-const game = () => new RiotGame(sc.board);
-const start = (g = game()) => g.start(sc.unrest, sc.squads);
-const squad = (s: RiotState, place: string) => s.squads.find((q) => q.place === place)!;
+const g = () => new RiotGame(LOW_DISTRICT_BOARD);
+const at = (s: RiotState, place: string) => s.squads.find((q) => q.place === place)!;
+const go = (s: RiotState, place: string, to: string): Order => ({ squad: at(s, place).id, to });
 
-describe('the riot game: the rules', () => {
-  it('both districts’ boards: every way joins two places, and everywhere can be reached', () => {
+describe('the war table: the rules', () => {
+  it('both districts’ maps: every street joins two places, and everywhere can be reached', () => {
     for (const board of [LOW_DISTRICT_BOARD, PROMENADE_BOARD]) {
-      const g = new RiotGame(board);
+      const game = new RiotGame(board);
       const ids = new Set(board.places.map((p) => p.id));
       for (const [a, b] of board.ways) expect(ids.has(a) && ids.has(b), `${a}-${b}`).toBe(true);
-      expect(g.upDist.size).toBe(board.places.length);
+      expect(game.upDist.size).toBe(board.places.length);
     }
   });
 
-  it('quell: one less; charge: two less, and the crowd scatters into streets nobody holds', () => {
-    const g = game();
-    let s = start(g);
-    s = g.act(s, { kind: 'move', squad: squad(s, 'arch').id, to: 'market' });
-    expect(s.squads.find((q) => q.place === 'market')).toBeDefined();
-    const t = g.act(start(g), { kind: 'charge', squad: squad(start(g), 'arch').id, at: 'market' });
-    expect(t.unrest.market).toBe(0);
-    expect(t.unrest.yards).toBe(1); // scattered
-    expect(t.unrest.lamp).toBe(0); // the watch is there
-    expect(t.anger).toBe(1);
-    const u = g.act(start(g), { kind: 'quell', squad: squad(start(g), 'arch').id, at: 'market' });
-    expect(u.unrest.market).toBe(1);
-    expect(u.unrest.yards).toBe(0);
+  it('into an empty place: taken; into your own: joined; into theirs: the bigger number wins and keeps what’s over', () => {
+    const game = g();
+    const s = game.start([{ side: 'guard', place: 'arch', strength: 5 }, { side: 'guard', place: 'lamp', strength: 2 }, { side: 'rising', place: 'market', strength: 3 }]);
+    expect(game.order(s, go(s, 'arch', 'screens')).state.owner.screens).toBe('guard');
+    expect(at(game.order(s, go(s, 'lamp', 'arch')).state, 'arch').strength).toBe(7);
+    const won = game.order(s, go(s, 'arch', 'market')).state;
+    expect(at(won, 'market')).toMatchObject({ side: 'guard', strength: 2 });
   });
 
-  it('each squad acts once a turn; the ones that don’t are braced', () => {
-    const g = game();
-    let s = start(g);
-    const id = squad(s, 'arch').id;
-    s = g.act(s, { kind: 'quell', squad: id, at: 'market' });
-    expect(g.actions(s, s.squads.find((q) => q.id === id)!)).toEqual([]);
+  it('a tie holds: the attackers are lost, and the defenders lose as many', () => {
+    const game = g();
+    const s = game.start([{ side: 'guard', place: 'arch', strength: 3 }, { side: 'rising', place: 'market', strength: 3 }]);
+    const t = game.order(s, go(s, 'arch', 'market')).state;
+    expect(game.mine(t, 'guard')).toHaveLength(0);
+    expect(at(t, 'market').strength).toBe(1);
   });
 
-  it('the square: you can’t walk in or quell it behind its barricades; storming costs the squad; nobody storming, they go back up', () => {
-    const g = game();
-    const s = start(g);
-    expect(s.barricade).toBe(16);
-    const next = g.endTurn(s, g.spreads(s));
-    expect(next.barricade).toBe(16);
-    // Put a shield wall beside it and storm.
-    const t = { ...g.clone(s), squads: [{ id: 'x', kind: 'shields' as const, place: 'well', hp: 4 }] };
-    const after = g.act(t, { kind: 'storm', squad: 'x' });
-    expect(after.barricade).toBe(14);
-    expect(after.squads[0]!.hp).toBe(3);
-    expect(g.actions(after, after.squads[0]!)).toEqual([]);
-    expect(g.endTurn(after, g.spreads(after)).barricade).toBe(14);
+  it('the square’s barricades: +1, and they lose nothing when they hold', () => {
+    const game = g();
+    const s = game.start([{ side: 'guard', place: 'market', strength: 5 }, { side: 'rising', place: 'square', strength: 4 }]);
+    const t = game.order(s, go(s, 'market', 'square')).state;
+    expect(at(t, 'square').strength).toBe(4);
+    const u = game.start([{ side: 'guard', place: 'market', strength: 6 }, { side: 'rising', place: 'square', strength: 4 }]);
+    expect(game.outcome(game.order(u, go(u, 'market', 'square')).state)).toBe('guard');
   });
 
-  it('the barricades down: the square can be taken, and that wins it', () => {
-    const g = game();
-    const s = { ...g.clone(start(g)), barricade: 1, squads: [{ id: 'x', kind: 'pikes' as const, place: 'well', hp: 3 }] };
-    const down = g.act(s, { kind: 'storm', squad: 'x' });
-    expect(down.barricade).toBe(0);
-    expect(down.unrest.square).toBe(2);
-    const t = g.endTurn(down, g.spreads(s));
-    const moved = g.act(t, { kind: 'move', squad: t.squads.find((q) => q.id === 'x')?.id ?? 'x', to: 'square' });
-    expect(g.outcome(moved)).toBe('won');
+  it('moves happen together: a squad moving out goes before one moving in, so nobody’s carried along', () => {
+    const game = g();
+    const s = game.start([{ side: 'guard', place: 'lifts', strength: 4 }, { side: 'guard', place: 'stair', strength: 3 }]);
+    const t = game.turn(s, [go(s, 'lifts', 'stair'), go(s, 'stair', 'screens')], []).state;
+    expect(at(t, 'stair').strength).toBe(4);
+    expect(at(t, 'screens').strength).toBe(3);
   });
 
-  it('dawn, and the square still theirs: lost (nothing else loses it)', () => {
-    const g = game();
-    let s = start(g);
-    for (let i = 0; i < g.rules.dawn; i++) {
-      expect(g.outcome(s)).toBeNull();
-      s = g.endTurn(s, g.spreads(s));
-    }
-    expect(g.outcome(s)).toBe('lost');
+  it('the square grows by 1 a turn; the guard get 2 a turn at the lifts’ foot, while it’s theirs', () => {
+    const game = g();
+    const s = game.start([{ side: 'guard', place: 'lifts', strength: 4 }, { side: 'rising', place: 'square', strength: 8 }]);
+    const t = game.turn(s, [], []).state;
+    expect(at(t, 'square').strength).toBe(9);
+    expect(at(t, 'lifts').strength).toBe(6);
+    const lost = game.start([{ side: 'rising', place: 'lifts', strength: 2 }, { side: 'rising', place: 'square', strength: 8 }]);
+    expect(game.mine(game.turn(lost, [], []).state, 'guard')).toHaveLength(0);
   });
 
-  it('the power cut stops a place spreading this turn, and then needs time', () => {
-    const g = game();
-    const s = start(g);
-    const spreads = g.spreads(s);
-    const cut = g.act(s, { kind: 'cut', at: 'square' });
-    const a = g.endTurn(s, spreads);
-    const b = g.endTurn(cut, spreads);
-    const fromSquare = spreads.filter((sp) => sp.from === 'square').map((sp) => sp.to);
-    for (const p of fromSquare) expect(b.unrest[p]!).toBeLessThanOrEqual(a.unrest[p]!);
-    expect(g.canCut(b)).toBe(false);
+  it('the power cut: they can’t move, the square doesn’t grow, and they fight at 1 less; then it needs time', () => {
+    const game = g();
+    const s = game.cutPower(game.start([{ side: 'guard', place: 'market', strength: 8 }, { side: 'rising', place: 'square', strength: 8 }]), 'square');
+    expect(game.defence(s, 'square', 8)).toBe(8);
+    expect(game.dests(s, at(s, 'square'))).toEqual([]);
+    const t = game.turn(s, [], []).state;
+    expect(at(t, 'square').strength).toBe(8);
+    expect(game.canCut(t)).toBe(false);
   });
 
-  it('worn-out squads withdraw and come back fresh', () => {
-    const g = game();
-    const s = { ...g.clone(start(g)), squads: [{ id: 'x', kind: 'pikes' as const, place: 'well', hp: 1 }] };
-    const t = g.act(s, { kind: 'storm', squad: 'x' });
-    expect(t.squads).toHaveLength(0);
-    expect(t.away).toHaveLength(1);
-    let u = t;
-    for (let i = 0; i <= g.rules.regroup; i++) u = g.endTurn(u, []);
-    expect(u.squads.some((q) => q.kind === 'pikes' && q.hp === 3)).toBe(true);
+  it('dawn, and the square still the rising’s: they’ve won it', () => {
+    const game = g();
+    let s = game.start(RIOT_START);
+    for (let i = 0; i < game.rules.dawn; i++) s = game.turn(s, [], []).state;
+    expect(game.outcome(s)).toBe('rising');
   });
 
-  it('the fight at the square exists', () => {
-    expect(ENCOUNTERS[sc.square]).toBeDefined();
+  it('the fights it goes down to exist', () => {
+    expect(ENCOUNTERS.riot_square).toBeDefined();
+    expect(ENCOUNTERS[LESSON.dropIn.encounter]).toBeDefined();
   });
 });
 
-describe('the riot game: the balance (simulated play)', () => {
-  const g = game();
+describe('the war table: Day 4, the riot (simulated play)', () => {
+  const game = new RiotGame(RIOTS.riot_low!.board);
+  const start = () => game.start(RIOT_START);
 
-  it('a careful player wins with turns to spare; a sensible one wins too, closer to dawn', () => {
-    const c = playOut(g, start(g), careful());
-    expect(c.outcome).toBe('won');
-    expect(c.state.turn).toBeLessThanOrEqual(11);
-    const s = playOut(g, start(g), sensible());
-    expect(s.outcome).toBe('won');
-    expect(s.state.turn).toBeGreaterThan(c.state.turn);
+  it('a careful player takes the square in good time; a sensible one does too', () => {
+    const c = playOut(game, start(), careful());
+    expect(c.winner).toBe('guard');
+    expect(c.state.turn).toBeLessThanOrEqual(12);
+    expect(playOut(game, start(), sensible()).winner).toBe('guard');
   }, 120000);
 
-  it('force alone loses it; calm alone only just wins (no single way of playing is the answer)', () => {
-    expect(playOut(g, start(g), sensible((a) => a.kind !== 'quell')).outcome).toBe('lost');
-    const calm = playOut(g, start(g), sensible((a) => a.kind !== 'charge'));
-    expect(calm.outcome).toBe('won');
-    expect(calm.state.turn).toBeGreaterThanOrEqual(13);
+  it('random orders, or none, lose it', () => {
+    expect(playOut(game, start(), random(3)).winner).toBe('rising');
+    expect(playOut(game, start(), () => ({ orders: [] })).winner).toBe('rising');
   }, 120000);
+});
 
-  it('doing nothing loses it', () => {
-    expect(playOut(g, start(g), () => []).outcome).toBe('lost');
+describe('the war table: Day 2, the lesson', () => {
+  const game = new RiotGame(LESSON.board);
+
+  it('every goal can be taken, in order, against his steady guard', () => {
+    // A plain way through: the wash house into the Weavers' Row; the tenements join the well, then the market;
+    // the square's crowd to the screens.
+    let s = game.start(LESSON.squads);
+    const turn = (orders: Order[]) => (s = game.turn(s, orders, steady()(game, s).orders).state);
+    turn([go(s, 'wash', 'weavers')]);
+    expect(s.owner.weavers).toBe('rising');
+    turn([go(s, 'tenements', 'well')]);
+    turn([go(s, 'well', 'market')]);
+    expect(s.owner.market).toBe('rising');
+    turn([go(s, 'square', 'screens')]);
+    expect(s.owner.screens).toBe('rising');
   });
 
-  it('a turn played out is the same as acting then ending the turn', () => {
-    const s = start(g);
-    const acts = sensible()(g, s);
-    let t = s;
-    for (const a of acts) t = g.act(t, a);
-    expect(playTurn(g, s, acts)).toEqual(g.endTurn(t, g.spreads(s)));
-  });
+  it('"Now.": whatever the rising does, he takes the square, in a few turns, never at once', () => {
+    const toSquare = (gm: RiotGame, s: RiotState): Order[] => gm.mine(s, 'rising').filter((q) => q.place !== gm.heart && gm.near(q.place, gm.heart)).map((q) => ({ squad: q.id, to: gm.heart }));
+    for (const rising of [(gm: RiotGame, s: RiotState) => gm.risingOrders(s), toSquare, () => []]) {
+      const r = playOut(game, game.start(LESSON.now.squads), careful(), rising, LESSON.now.turns);
+      expect(r.winner).toBe('guard');
+      expect(r.state.turn).toBeGreaterThanOrEqual(3);
+    }
+  }, 120000);
 });

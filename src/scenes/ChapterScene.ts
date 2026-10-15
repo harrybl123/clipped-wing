@@ -247,7 +247,7 @@ export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
   };
   if (day >= 2) set({ c3day1: 'done', c3day2: 'wake', lift_mended: params.get('lift') === 'mended', seated: params.get('seated') ?? 'councillor', signed_requests: true });
   // (Day 2 done: the energy choice made, the district dark, the war table played, below with your hand.)
-  if (day >= 3) set({ c3day2: 'done', sim_open: true, sim_turns: 3, sim_wiped: true, energy, dark_district: dark, dark_fade: 100, citadel_dimmed: energy === 'people', painter2: true, woman2: true, streets_cut: true, rewards: true });
+  if (day >= 3) set({ c3day2: 'done', sim_open: true, sim_turns: 5, sim_taken: true, energy, dark_district: dark, dark_fade: 100, citadel_dimmed: energy === 'people', painter2: true, woman2: true, streets_cut: true, rewards: true });
   // (Day 3 done: the audience, the requests, the salon, below to the hideout.)
   if (day >= 4) set({ c3day3: 'done', ...morning3, signed3: true, hostess3: true, friend3: true, low3: true, met_hideout: true, heard3: 4, painter3: true, outside3: true });
   const table = day >= 4 ? day4 : day >= 3 ? day3 : day >= 2 ? day2 : day1;

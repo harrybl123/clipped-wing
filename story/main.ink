@@ -619,9 +619,9 @@ VAR c3day2 = ""
 // The bookshelf in your father's study is open (the simulation room behind it).
 VAR sim_open = false
 // The war table, when he turned it on: how many turns you lasted (never mentioned again until Chapter 7, plan),
-// and whether he took every light you had.
+// and whether he took your square.
 VAR sim_turns = 0
-VAR sim_wiped = false
+VAR sim_taken = false
 VAR room2 = false
 // The council: you've heard each side (the reformer; the old councillor or, if you passed him over, the
 // hostess's cousin; your hand), and how many.
@@ -683,7 +683,6 @@ VAR sister4 = false
 // over), in how many turns, and how many times you charged a crowd; the fight at the square; big choice 2
 // ("brought_in" / "let_go"); your father in your rooms after.
 VAR room4 = false
-VAR riot_charges = 0
 VAR father4n = false
 VAR riot_leader = ""
 VAR riot_table = ""

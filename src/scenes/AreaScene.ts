@@ -11,7 +11,6 @@ import type { CarveSceneData } from './CarveScene';
 import type { DecodeResult, DecodeSceneData } from './DecodeScene';
 import type { EndingSceneData } from './EndingScene';
 import type { StepSceneData } from './StepScene';
-import type { WarTableSceneData } from './WarTableScene';
 import type { RiotTableSceneData } from './RiotTableScene';
 import { RIOTS } from '../data/warTable';
 import type { CombatSceneData } from './CombatScene';
@@ -1492,7 +1491,7 @@ export class AreaScene extends Phaser.Scene {
    *   #combat:<encounter>[:<then>]  after the conversation, a turn-based fight (src/data/combat.ts); its outcome is written to ink, and back here, <then> plays
    *   #view[:riot_low|riot_promenade]  the city close up above the dialogue box, as through your telescope (kept up on each line tagged with it); with a riot, that district burning
    *   #repaint                the room is painted again, as the story now has it (a district's power going off)
-   *   #wartable:<scenario>     after the conversation, the war table (src/data/warTable.ts); back here, its `after` knot plays
+   *   #wartable:<game>         after the conversation, the war table (src/scenes/RiotTableScene.ts; games in src/data/warTable.ts)
    *   #walk:<id>:<x>[:<speed>]  they walk to x on their floor and stay there, facing you
    *   #turn                   the crowd turns its back on you
    *   #rise                   you're taken up into the tube: you lift off the floor and rise out of sight
@@ -1676,11 +1675,9 @@ export class AreaScene extends Phaser.Scene {
           else this.paintRoom();
           break;
         case 'wartable': {
-          // #wartable:<scenario>: after the conversation, the war table (src/scenes/WarTableScene.ts); back here, the scenario's `after` knot plays.
+          // #wartable:<game>: after the conversation, the war table (src/scenes/RiotTableScene.ts): Day 2's lesson (back here after, its `after` knot plays), or Day 4's riot (it comes out in the riot's square).
           const start = { ...this.player.feet };
-          // (A riot, Day 4: the riot's own table, src/scenes/RiotTableScene.ts; it comes out in the riot's square.)
           if (args[0] && RIOTS[args[0]]) this.afterClose.push(() => this.leaveFor('RiotTable', { scenario: args[0]!, back: { areaId: this.area.id, start } } satisfies RiotTableSceneData, 900));
-          else if (args[0]) this.afterClose.push(() => this.leaveFor('WarTable', { scenario: args[0]!, back: { areaId: this.area.id, start } } satisfies WarTableSceneData, 900));
           break;
         }
         case 'turn':
