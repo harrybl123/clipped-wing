@@ -87,7 +87,7 @@ Harry is the designer and owns the game: the story, characters, world and design
 
 (Record decisions here as they're made, newest first.)
 
-- **2026-10-15 — The capital's symbol is a clipped wing** (designer: the bird in its ring was too like the Hunger Games' mockingjay). The wing from Grounded's plates in Chapter 1 (designer), its feather tips cut off straight, over the bar of bare ground; no ring (`EMBLEM` in `cityProps.ts`, used everywhere the symbol is). Chapter 3's lines say "the wing".
+- **2026-10-15 — The capital's symbol is a wing** (designer: the bird in its ring was too like the Hunger Games' mockingjay). The wing from Grounded's plates in Chapter 1, whole, not cut off (designer), over the bar of bare ground; no ring (`EMBLEM` in `cityProps.ts`, used everywhere the symbol is). Chapter 3's lines say "the wing".
 
 - **2026-10-15 — Chapter 3, Day 3 after playtest** (designer). **The hideout is listening in** (designer: why would they talk freely in front of the prince?): your hand doesn't come in ("They know me: they'd mind what they said"; he waits at the door); it's busy and loud, you're one more hood, and you overhear three tables (a trigger by each: a sister reported by her husband, a man sleeping under a table, the counter on the man taken tonight); anyone you speak to treats you as a stranger; **only the kid recognises you**, under his breath. **The sneak is gentler** (designer: annoying and hard): the man walking the street is slower and sees less far, the doorways are wider, the old woman looks back less often and less far, and if she sees you, you only go back as far as the lamp shop.
 

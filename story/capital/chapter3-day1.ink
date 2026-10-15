@@ -214,7 +214,7 @@ Clear the street sellers off the square for good? The watch sees everything, and
 ~ bird1 = true
 Up on the great screen over the square, your face, ten feet high, beside your father's.
 Under it, at the back wall, a man in the city's overalls is scrubbing.
-Chalk, half gone already: a wing over a line of bare ground, the tips of its feathers cut off straight.
+Chalk, half gone already: a wing, over a line of bare ground.
 One of your guards steps between you and it. #walk:escort:286:60
 "Don't look, Highness." #speaker:c3_guard_0
 "What is it?" #speaker:prince

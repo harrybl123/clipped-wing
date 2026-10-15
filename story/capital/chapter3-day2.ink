@@ -511,7 +511,7 @@ Your hand knows the way: which turning, which stair, which door to knock on. Too
     -> END
 }
 ~ painter2 = true
-A kid, chalking on the wall by a dead lamp. A wing over a line of bare ground, the tips of its feathers cut off straight. Quick, like he's done it a hundred times.
+A kid, chalking on the wall by a dead lamp. A wing, over a line of bare ground. Quick, like he's done it a hundred times.
 "What are you looking at?" #speaker:painter
 "What is it?" #speaker:prince
 "A wing. What does it look like?" #speaker:painter

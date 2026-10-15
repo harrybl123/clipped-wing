@@ -234,7 +234,7 @@ The lift operator's old booth at the street. A stool, a cup, a screen of who wen
 // --- The low district ---
 
 === low_mark ===
-Chalked on the wall: a wing over a bar of ground, the tips of its feathers cut off, straight across.
+Chalked on the wall: a wing over a bar of ground.
 You've seen it before. You don't know where.
 -> END
 
@@ -257,7 +257,7 @@ A noodle shop: a counter, steam, three stools. The smell follows you down the st
 // --- The hideout ---
 
 === hideout_emblem ===
-The wing again, painted big on the old stone, its feather tips cut off straight.
+The wing again, painted big on the old stone, over its bar of ground.
 Down here nobody's scrubbing it off.
 -> END
 

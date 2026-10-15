@@ -22,7 +22,7 @@ An heir in one of the last human cities spends a week performing his duties: dip
 - The whole secret of the world and the tree is not told until chapter 4.
 - Characters can allude to the problems and constraints they're under, but never actually say them. The trick is to make it seem like they're not holding anything back.
 - The prince doesn't know what the symbol means.
-- **The symbol is a clipped wing over bare ground** (Harry, 2026-10-15; it was Grounded's bird on bare ground, 2026-10-13, but the bird in its ring was too like the Hunger Games' mockingjay). Grounded's name for the carver, and the game's title; the bare ground is Grounded's. There's no reason Grounded hasn't told his people his plan, and about his agent in the tree; it ties the revolution back to the clipped wing.
+- **The symbol is a wing over bare ground: the wing from Grounded's plates in Chapter 1, whole** (Harry, 2026-10-15; it was Grounded's bird on bare ground, 2026-10-13, but the bird in its ring was too like the Hunger Games' mockingjay). Grounded's name for the carver, and the game's title; the bare ground is Grounded's. There's no reason Grounded hasn't told his people his plan, and about his agent in the tree; it ties the revolution back to the clipped wing.
 
 ## The world
 
