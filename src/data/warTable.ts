@@ -156,10 +156,11 @@ export const LESSON: LessonScenario = {
   lessonTurns: 14,
   now: {
     // The riot as he'd play it, from the guard's side: your square big enough that it looks like you could hold
-    // it (tested, with the guard's 3 a turn and rumbles: whatever the rising does, he takes it in 4 to 7 turns;
-    // any smaller, and he chains everything into it on turn 2).
+    // it; and 12 on his lifts' foot, so going for his lifts can't hold him off (designer: make it impossible;
+    // tested against every way of playing the rising, including going all out for his lifts: he takes it in 2
+    // to 5 turns).
     squads: [
-      { side: 'guard', place: 'lifts', strength: 6 },
+      { side: 'guard', place: 'lifts', strength: 12 },
       { side: 'guard', place: 'stair', strength: 5 },
       { side: 'guard', place: 'arch', strength: 5 },
       { side: 'guard', place: 'lamp', strength: 4 },

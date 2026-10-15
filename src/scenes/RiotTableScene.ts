@@ -130,6 +130,12 @@ export class RiotTableScene extends Phaser.Scene {
     this.add.image(0, 0, key).setOrigin(0);
     this.life = this.add.graphics().setDepth(2);
     this.gfx = this.add.graphics().setDepth(3);
+    // Place names, small and dim under each place (designer: the map needs them), so they're there to read
+    // without shouting.
+    for (const p of this.sc.board.places) {
+      const label = new PixelText(this, 0, p.y + 11, lower(p.name), { color: SHADES.dim, shadow: SHADES.shadow }).setDepth(4);
+      label.setX(Math.max(2, Math.min(W - label.width - 2, Math.round(p.x - label.width / 2))));
+    }
     // Hardly any words on the table (designer: too cluttered): a note in the corner, and a card by the cursor.
     this.chip = new PixelText(this, 6, 5, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(7);
     this.cardBack = this.add.graphics().setDepth(7);

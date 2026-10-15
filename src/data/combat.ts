@@ -1318,7 +1318,8 @@ ENCOUNTERS.riot_square = {
   name: 'The citadel steps',
   party: ['prince_riot', 'hand_ally'],
   enemies: ['rioter', 'rioter_big', 'rioter'],
-  stage: 'square',
+  // The citadel steps (designer: it had the low district's square).
+  stage: 'steps',
   mustWin: true,
   timing: { lunge: 950, ease: 1.2 },
   outcomes: { won: { riot_fight: 'won' }, lost: { riot_fight: 'lost' } },

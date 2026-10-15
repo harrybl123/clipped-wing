@@ -158,12 +158,20 @@ describe('the war table: Day 2, the lesson', () => {
     expect(s.owner.screens).toBe('rising');
   });
 
-  it('"Now.": whatever the rising does, he takes the square, in a few turns, never at once', () => {
+  it('"Now.": whatever the rising does, he takes the square, in a few turns (designer: make it impossible)', () => {
     const toSquare = (gm: RiotGame, s: RiotState): Order[] => gm.mine(s, 'rising').filter((q) => q.place !== gm.heart && gm.near(q.place, gm.heart)).map((q) => ({ squad: q.id, to: gm.heart }));
-    for (const rising of [(gm: RiotGame, s: RiotState) => gm.risingOrders(s), toSquare, () => []]) {
-      const r = playOut(game, game.start(LESSON.now.squads), careful(), rising, LESSON.now.turns);
-      expect(r.winner).toBe('guard');
-      expect(r.state.turn).toBeGreaterThanOrEqual(3);
+    // Everything at his lifts' foot, to cut his guard off (designer: nearly beat him that way).
+    const toLifts = (gm: RiotGame, s: RiotState): Order[] => gm.mine(s, 'rising').filter((q) => q.place !== gm.heart).map((q) => {
+      const d = (p: string) => { const seen = new Map([[p, 0]]); const todo = [p]; while (todo.length) { const x = todo.shift()!; for (const n of gm.adj.get(x)!) if (!seen.has(n)) (seen.set(n, seen.get(x)! + 1), todo.push(n)); } return seen.get(gm.lifts) ?? 99; };
+      return { squad: q.id, to: [...gm.adj.get(q.place)!].sort((a, b) => d(a) - d(b))[0]! };
+    });
+    for (const rising of [(gm: RiotGame, s: RiotState) => gm.risingOrders(s), toSquare, toLifts, () => []]) {
+      const now = new RiotGame(LESSON.board, { ...game.rules, ...LESSON.rules });
+      for (const seed of [1, 2, 3]) {
+        const r = playOut(now, now.start(LESSON.now.squads, seed), careful(), rising, LESSON.now.turns);
+        expect(r.winner).toBe('guard');
+        expect(r.state.turn).toBeLessThanOrEqual(6);
+      }
     }
   }, 120000);
 });
