@@ -29,7 +29,7 @@ import type { CombatSceneData } from './CombatScene';
 // Controls (the old table's): pick a squad of yours (E or click), the arrows step round where it can go, E or
 // click to send it (its own place to hold); Esc or right-click backs out; Tab to the next squad; Enter (or the
 // button) ends the turn. As the guard, P (or the button) cuts the power under a place. Undo (or U) takes back
-// your last order, one at a time (designer).
+// your last order, one at a time (designer); right-click with nothing picked up takes back all of them (Jack).
 
 export interface RiotTableSceneData {
   scenario: string;
@@ -422,7 +422,8 @@ export class RiotTableScene extends Phaser.Scene {
 
   private onPointer(p: Phaser.Input.Pointer, down: boolean): void {
     if (!this.ready()) return;
-    if (down && p.rightButtonDown()) return this.back();
+    // Right-click backs out; with nothing picked up, it takes back every order this turn (Jack).
+    if (down && p.rightButtonDown()) return this.aiming || this.cutting ? this.back() : this.clearOrders();
     const inside = (b: typeof END) => p.x >= b.x && p.x < b.x + b.w && p.y >= b.y && p.y < b.y + b.h;
     if (down && inside(END)) return void (!this.aiming && !this.cutting && this.endTurn());
     if (down && inside(POWER) && this.you === 'guard') return this.startCut();
@@ -480,6 +481,17 @@ export class RiotTableScene extends Phaser.Scene {
     if (!last) return;
     this.orders = last.orders;
     this.state = last.state;
+    playMove(this);
+    this.draw();
+  }
+
+  /** All of this turn's orders (and a power cut) taken back at once: the turn as it began (Jack). */
+  private clearOrders(): void {
+    const start = this.history[0];
+    if (!start) return;
+    this.orders = start.orders;
+    this.state = start.state;
+    this.history = [];
     playMove(this);
     this.draw();
   }
