@@ -1,5 +1,6 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import type { RowSprite } from '../../../ui/sprites';
+import { glyphFor } from '../../../ui/pixelFont';
 
 // PLACEHOLDER pixel props for the capital's city (Chapter 3; docs/chapter-3-world.md): below the citadel,
 // cyberpunk and earthy at once: shopfronts under striped awnings, signs of cyan and amber light, steam from
@@ -429,8 +430,8 @@ export const EMBLEM: readonly string[] = [
   '.......#######.......',
 ];
 
-/** The symbol on a wall: chalked (rough, a pixel missing here and there), half scrubbed off, or painted large (`scale`). */
-export const symbolMark = (style: 'chalk' | 'scrubbed' | 'paint', scale = 1): RowSprite => ({
+/** The symbol on a wall: chalked (rough, a pixel missing here and there), half scrubbed off, scratched into glass (thin, pale, broken), or painted large (`scale`). */
+export const symbolMark = (style: 'chalk' | 'scrubbed' | 'scratch' | 'paint', scale = 1): RowSprite => ({
   rows: EMBLEM.flatMap((row, y) =>
     Array.from({ length: scale }, (_, sy) =>
       [...row].flatMap((c, x) =>
@@ -439,6 +440,7 @@ export const symbolMark = (style: 'chalk' | 'scrubbed' | 'paint', scale = 1): Ro
           const k = r(x * 7 + sx + 3, y * 5 + sy);
           if (style === 'chalk') return k > 0.9 ? '.' : k > 0.65 ? 'm' : 'h';
           if (style === 'scrubbed') return k > 0.5 ? '.' : 'm';
+          if (style === 'scratch') return k > 0.55 ? '.' : k > 0.3 ? 'h' : 'W';
           return k > 0.95 ? 'm' : 'h'; // paint, brushed on
         }),
       ).join(''),
@@ -446,6 +448,35 @@ export const symbolMark = (style: 'chalk' | 'scrubbed' | 'paint', scale = 1): Ro
   ),
   colours: C,
 });
+
+/** A word in the pixel font as sprite rows (7 high), in colour `c`, letters a pixel apart. */
+const word = (text: string, c: string): string[] => {
+  const glyphs = [...text].map(glyphFor);
+  return Array.from({ length: 7 }, (_, y) => glyphs.map((g) => g[y]!.replace(/#/g, c)).join('.'));
+};
+
+/**
+ * The reward notice on the city's screens (Chapter 3, Day 3: your father's second pushback, rewards for
+ * names): the bird, and REPORT above it, REWARD below, white on the screen's blue. Kept lit where the
+ * power's cut, so it's the only light in the street. `phase` sweeps a scan line down it.
+ */
+export const rewardScreen = (phase: number): RowSprite => {
+  const [w, h] = [47, 46];
+  const top = word('REPORT', 'W');
+  const bottom = word('REWARD', 'W');
+  const scan = 2 + ((phase * 11) % (h - 4));
+  return {
+    rows: fill(w, h, (x, y) => {
+      if (x === 0 || y === 0 || x === w - 1 || y === h - 1) return 'n';
+      if (y >= 3 && y < 10 && x >= 6 && x < 41) return top[y - 3]![x - 6] === 'W' ? 'W' : y === scan ? 'G' : 'g';
+      if (y >= 36 && y < 43 && x >= 6 && x < 41) return bottom[y - 36]![x - 6] === 'W' ? 'W' : y === scan ? 'G' : 'g';
+      if (y >= 12 && y < 33 && x >= 13 && x < 34 && EMBLEM[y - 12]![x - 13] === '#') return 'c';
+      return y === scan ? 'G' : 'g';
+    }),
+    colours: C,
+  };
+};
+export const REWARD_FRAMES = [0, 1, 2, 3].map(rewardScreen);
 
 // --- The low district's homes and shops, in detail (designer: people's things in view) ---
 

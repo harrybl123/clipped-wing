@@ -637,8 +637,32 @@ VAR plain_coat = false
 VAR dark_seen2 = false
 VAR painter2 = false
 VAR woman2 = false
-// Chapter 3, Day 3 (not built yet).
+// Chapter 3, Day 3 (story/capital/chapter3-day3.ink): two weeks on. Stages: wake, audience, hearing,
+// requests, salon, friend, office, below, sneak, hideout, home, done.
 VAR c3day3 = ""
+// Your father's pushbacks from Day 3: the streets where the symbol keeps turning up, cut, in whichever district
+// still had its power (the areas paint them dark); and the screens paying for names (the reward notice).
+VAR streets_cut = false
+VAR rewards = false
+// The audience, alone: you sent men to scrub the warden's walls; the envoy's plea ("granted" or "refused": medium).
+VAR scrubbed = false
+VAR envoy = ""
+// The day's requests: you signed, under your father's mark.
+VAR signed3 = false
+// The salon: you told the hostess the truth about the streets (rather than covering for your father); your friend.
+VAR salon_truth = false
+VAR hostess3 = false
+VAR friend3 = false
+// Below: you saw the watch take the neighbour; you got into the hideout unseen; who you've heard there.
+VAR low3 = false
+VAR met_hideout = false
+VAR heard3 = 0
+VAR heard_sister3 = false
+VAR heard_stairs3 = false
+VAR heard_chalk3 = false
+VAR painter3 = false
+// Chapter 3, Day 4 (not built yet).
+VAR c3day4 = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
@@ -691,6 +715,7 @@ INCLUDE borderland/deep-ground.ink
 INCLUDE borderland/trees-edge.ink
 INCLUDE capital/chapter3-day1.ink
 INCLUDE capital/chapter3-day2.ink
+INCLUDE capital/chapter3-day3.ink
 INCLUDE capital/cast.ink
 INCLUDE capital/folk.ink
 INCLUDE capital/looks.ink

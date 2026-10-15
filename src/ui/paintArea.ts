@@ -254,7 +254,7 @@ export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon', po
   const plaster = area.walls === 'plaster';
   const marble = area.walls === 'marble' || area.walls === 'darkMarble' || area.walls === 'bare' || panelled || stoneWalls || plaster;
   const scrap = area.walls === 'scrap' || area.walls === 'hull' || area.walls === 'matched' || marble;
-  const views = (area.views ?? []).map((v) => cityViewPainter(v, slot, power.views, power.fade));
+  const views = (area.views ?? []).map((v) => cityViewPainter(v, slot, power.views, power.fade, power.also));
   // A room that looks out over the city follows the light outside: dimmer from dusk, lamplit at night.
   const ambient = (area.views ? area.ambient * { morning: 1, afternoon: 1, evening: 0.82, night: 0.6 }[slot] : area.ambient) * (power.dim ?? 1);
   const hull = area.walls === 'hull';

@@ -130,6 +130,8 @@ export type PixelColour = number | RGB | null;
  */
 export interface Power {
   views?: 'low' | 'middle';
+  /** The other district with streets cut too (Chapter 3, Day 3: your father's cut where the symbol is): dark in patches. */
+  also?: 'low' | 'middle';
   /** How far it's gone dark yet (0–1, default all of it): block by block, as you watch. */
   fade?: number;
   cut?: boolean;

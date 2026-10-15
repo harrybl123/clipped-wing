@@ -129,11 +129,17 @@ export const audienceHall: AreaDefinition = {
     inStory('merchant', 'merchant', 308, FLOOR, 'c3day1=halls,audience', { knot: 'c3day1_waiting' }),
     inStory('envoy-1', 'envoy', 428, FLOOR, 'c3day1=halls,audience', { knot: 'c3day1_waiting', flipX: true }),
     inStory('hand', 'diplomat', 60, FLOOR, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
+    // Day 3: you hold the audience alone (the throne empty), the captain at the rope; the warden of the
+    // Weavers' Row and the envoy, still waiting after two weeks, among the petitioners.
+    inStory('captain-3', 'captain', 544, FLOOR, 'c3day3=audience,hearing', { knot: 'c3day3_captain', flipX: true }),
+    inStory('warden', 'warden', 248, FLOOR, 'c3day3=audience,hearing', { knot: 'c3day1_waiting' }),
+    inStory('envoy-3', 'envoy', 428, FLOOR, 'c3day3=audience,hearing', { knot: 'c3day1_waiting', flipX: true }),
   ],
   interactables: [
     { id: 'gate', x: 64, y: FLOOR, reach: 10, label: 'Look', knot: 'audience_gate' },
     { id: 'benches', x: 340, y: FLOOR, reach: 14, label: 'Look', knot: 'audience_benches' },
-    { id: 'seat', x: 654, y: DAIS, reach: 10, label: 'Look', knot: 'audience_seat', hideIf: 'c3day1=halls,audience' },
+    { id: 'seat', x: 654, y: DAIS, reach: 10, label: 'Look', knot: 'audience_seat', hideIf: ['c3day1=halls,audience', 'c3day3=audience'] },
+    { id: 'seat-3', x: 654, y: DAIS, reach: 10, label: 'Sit', knot: 'c3day3_audience', showIf: 'c3day3=audience' },
     { id: 'seat-1', x: 654, y: DAIS, reach: 10, label: 'Sit', knot: 'c3day1_audience', showIf: 'c3day1=halls,audience' },
     { id: 'throne', x: 704, y: DAIS, reach: 10, label: 'Look', knot: 'audience_throne', hideIf: 'c3day1=halls,audience,after,walk' }, // (not while he's on it)
   ],

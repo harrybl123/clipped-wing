@@ -100,9 +100,12 @@ export const princeQuarters: AreaDefinition = {
     // Day 2: your hand at the door at dawn, and your father behind him (the story brings them to the door).
     inStory('hand-2', 'diplomat', 300, FLOOR, 'c3day2=wake', { knot: 'c3day1_hand_walk' }),
     inStory('father-2', 'father', 60, FLOOR, 'c3day2=wake', { hidden: true }),
+    // Day 3: your hand at the door at dawn (the story brings him there), and with you from here.
+    inStory('hand-3', 'diplomat', 300, FLOOR, 'c3day3=wake,audience', { follow: true, knot: 'c3day3_hand' }),
   ],
   interactables: [
-    { id: 'bed', x: 84, y: FLOOR, reach: 14, label: 'Look', knot: 'quarters_bed', hideIf: ['c3day1=night', 'c3day2=home'] },
+    { id: 'bed', x: 84, y: FLOOR, reach: 14, label: 'Look', knot: 'quarters_bed', hideIf: ['c3day1=night', 'c3day2=home', 'c3day3=home'] },
+    { id: 'bed-3', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day3_bed', showIf: 'c3day3=home' },
     { id: 'bed-2', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day2_bed', showIf: 'c3day2=home' },
     { id: 'bed-1', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day1_bed', showIf: 'c3day1=night' },
     { id: 'mirror', x: 160, y: FLOOR, reach: 10, label: 'Look', knot: 'quarters_mirror' },

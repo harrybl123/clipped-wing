@@ -70,6 +70,9 @@ export const dataCentre: AreaDefinition = {
     // Chapter 3's story. Day 1: the operator with the day's requests; your hand with you.
     inStory('operator-1', 'operator', 104, FLOOR, 'c3day1=requests', { knot: 'c3day1_requests' }),
     inStory('hand', 'diplomat', 50, FLOOR, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
+    // Day 3: the operator with the day's sheet; the captain in the doorway, once you've read it.
+    inStory('operator-3', 'operator', 104, FLOOR, 'c3day3=requests,signing,salon,friend', { knot: 'c3day3_requests' }),
+    inStory('captain-3d', 'captain', 52, FLOOR, 'c3day3=signing,salon,friend', { knot: 'c3day3_captain', hidden: true }),
   ],
   interactables: [
     { id: 'racks', x: 240, y: FLOOR, reach: 14, label: 'Look', knot: 'data_racks' },

@@ -40,9 +40,15 @@ function blockRow(row: number, horizon: number, bottom: number, x0: number, x1: 
   return { base, blocks };
 }
 
+/** How much of a district goes dark when only some of its streets are cut (`also`). */
+const STREETS_CUT = 0.4;
+
 /** Paints the city through a view, in the area's pixels; null outside the view. */
-/** `dark`: a district with its power cut (big choice 1): from dusk its windows, signs and strips stay dark. */
-export function cityViewPainter(view: CityView, slot: TimeSlot, dark?: Power['views'], fade = 1): (x: number, y: number) => PixelColour {
+/**
+ * `dark`: a district with its power cut (big choice 1): from dusk its windows, signs and strips stay dark.
+ * `also`: the other district, with some of its streets cut too (Day 3): dark in patches.
+ */
+export function cityViewPainter(view: CityView, slot: TimeSlot, dark?: Power['views'], fade = 1, also?: Power['also']): (x: number, y: number) => PixelColour {
   const sky = skyFor(slot);
   const night = slot === 'night';
   const lit = slot === 'evening' || night;
@@ -76,7 +82,8 @@ export function cityViewPainter(view: CityView, slot: TimeSlot, dark?: Power['vi
       const low = smoothstep(0.6, 1, t); // the low district, at the bottom
       // (A district without power: its rows go dark from dusk.)
       // (Going out block by block: each block's turn comes at its own point in the fade.)
-      const out = lit && ((dark === 'low' && t > 0.62) || (dark === 'middle' && t <= 0.62)) && cellRandom(b.seed, 3, 57) < fade;
+      const district = t > 0.62 ? 'low' : 'middle';
+      const out = lit && ((dark === district && cellRandom(b.seed, 3, 57) < fade) || (also === district && cellRandom(b.seed, 5, 58) < STREETS_CUT));
       const lx = x - b.x;
       const ly = y - b.top;
       const haze = (1 - t) * 0.55;
@@ -90,7 +97,7 @@ export function cityViewPainter(view: CityView, slot: TimeSlot, dark?: Power['vi
       if (ly > 1 && lx > 0 && lx < b.w - 1 && ly % sy === 1 && lx % sx === 1) {
         const r2 = cellRandom(b.seed, lx * 7 + ly, 55);
         if (lit && !out && r2 > (night ? 0.4 : 0.6)) return r2 > 0.82 && low < 0.5 ? SHADES.cyan : SHADES.amber;
-        if (out && dark === 'low' && r2 > 0.97) return SHADES.amberDeep; // a candle, here and there (the upper city has none)
+        if (out && district === 'low' && r2 > 0.97) return SHADES.amberDeep; // a candle, here and there (the upper city has none)
         c = scale(c, 0.6);
       }
       // A strip of blue light up the block's edge; a sign on its face.
@@ -100,7 +107,7 @@ export function cityViewPainter(view: CityView, slot: TimeSlot, dark?: Power['vi
       }
       if (lit && !out) c = addLight(c, b.strip ? cyan! : amber!, 0.12 * (1 - low));
       // Gone dark: the low district warm black; the upper city's glass towers cold, dead blue-grey slabs.
-      if (out) c = dark === 'middle' ? mix(scale(c, 0.22), rgb(SHADES.cyanDeep), 0.4) : scale(c, 0.3);
+      if (out) c = district === 'middle' ? mix(scale(c, 0.22), rgb(SHADES.cyanDeep), 0.4) : scale(c, 0.3);
       return mix(c, sky.horizon, haze * (lit ? 0.4 : 1));
     }
 

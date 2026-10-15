@@ -152,6 +152,7 @@ export const isAreaOpen = (areaId: string, day: Day, slot: TimeSlot) => closedRe
  * Journeys you make on foot, door to door, with no travelling by the map (designer: the map let you skip
  * them): while any of these ink variables is true. The girl leading you through the back routes (Day 3),
  * sneaking (Nights 4 and 5), the escort up the trunk (Day 5), going up to the archivist and the seed grove
- * or stealing (Night 5), tailing the Tender (Day 6), and the chase (Day 7).
+ * or stealing (Night 5), tailing the Tender (Day 6), and the chase (Day 7). Chapter 3: going below in the
+ * plain coat.
  */
-export const ON_FOOT = ['girl_with_you', 'sneaking', 'escorted', 'archivist_waiting', 'in_grove', 'stealing', 'tailing', 'chased', 'ambush_night', 'noon8', 'searchers_coming', 'chase9'] as const;
+export const ON_FOOT = ['plain_coat', 'girl_with_you', 'sneaking', 'escorted', 'archivist_waiting', 'in_grove', 'stealing', 'tailing', 'chased', 'ambush_night', 'noon8', 'searchers_coming', 'chase9'] as const;

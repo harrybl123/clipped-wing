@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition, Line, Solid } from '../types';
-import { cast, courtier, servant, MORNING } from './people';
+import { cast, courtier, inStory, servant, MORNING } from './people';
 
 // The glasshouse (Chapter 3): the only greenery, where upper society's salons happen
 // (docs/areas/capital/glasshouse.md). A great roof of glass over the citadel, the sky through it, painted
@@ -105,12 +105,20 @@ export const glasshouse: AreaDefinition = {
     courtier('salon-3', 6, 484, TERRACE, 'salon_guest', ['afternoon']),
     cast('heir', 330, FLOOR, { knot: 'glasshouse_heir', when: ['afternoon'] }),
     // The evening: a few still talking.
-    courtier('late-1', 7, 520, TERRACE, 'salon_guest', ['evening']),
-    courtier('late-2', 2, 560, TERRACE, 'salon_guest', ['evening'], { flipX: true }),
+    courtier('late-1', 7, 520, TERRACE, 'salon_guest', ['evening'], { hideIf: 'c3day3=salon,friend' }),
+    courtier('late-2', 2, 560, TERRACE, 'salon_guest', ['evening'], { flipX: true, hideIf: 'c3day3=salon,friend' }),
     // Mornings: your sister, bored among the plants; the hostess getting ready. The physician takes the air in the afternoon.
     cast('sister', 150, FLOOR, { id: 'sister-morning', knot: 'glasshouse_sister', when: MORNING }),
     cast('salon_hostess', 540, TERRACE, { id: 'hostess-morning', knot: 'glasshouse_hostess_morning', when: MORNING, flipX: true }),
     cast('physician', 400, FLOOR, { knot: 'glasshouse_physician', when: ['afternoon'], flipX: true }),
+    // Chapter 3's story. Day 3: the salon, thinner than it was: the hostess on her terrace and a few guests,
+    // the old councillor (or, if you passed him over, the hostess's cousin), your friend by the fountain.
+    inStory('hostess-3', 'salon_hostess', 540, TERRACE, 'c3day3=salon,friend', { knot: 'c3day3_hostess', flipX: true }),
+    courtier('salon-3a', 1, 504, TERRACE, 'c3day3_guest', undefined, { showIf: 'c3day3=salon,friend' }),
+    courtier('salon-3b', 6, 600, TERRACE, 'c3day3_guest', undefined, { showIf: 'c3day3=salon,friend', flipX: true }),
+    inStory('councillor-3', 'councillor', 168, FLOOR, 'c3day3=salon,friend', { knot: 'c3day3_councillor', hideIf: 'seated=hostess,merchant' }),
+    inStory('cousin-3', 'cousin', 168, FLOOR, 'c3day3=salon,friend', { knot: 'c3day3_cousin', hideIf: 'seated=councillor,' }),
+    inStory('heir-3', 'heir', 288, FLOOR, 'c3day3=salon,friend,office', { knot: 'c3day3_friend' }),
   ],
   interactables: [
     { id: 'tree', x: 98, y: FLOOR, reach: 14, label: 'Look', knot: 'glasshouse_tree' },

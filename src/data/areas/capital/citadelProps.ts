@@ -1,5 +1,6 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import type { RowSprite } from '../../../ui/sprites';
+import { EMBLEM } from './cityProps';
 
 // PLACEHOLDER pixel props for the capital's citadel (Chapter 3; docs/chapter-3-world.md): clean marble,
 // gold, and a blue glow (designer), obviously futuristic, more cyberpunk than anything before, and still
@@ -62,6 +63,26 @@ export const screen = (width: number, height: number, scroll = 0): RowSprite => 
   }),
   colours: C,
 });
+
+/**
+ * A screen gone over to the symbol (Chapter 3, Day 3: the bird on the citadel's own screens for a moment,
+ * and nobody can find where it comes from): the bird, as large as fits, pale on black.
+ */
+export const birdScreen = (width: number, height: number): RowSprite => {
+  const scale = Math.max(1, Math.floor((height - 4) / EMBLEM.length));
+  const size = EMBLEM.length * scale;
+  const [ox, oy] = [Math.floor((width - size) / 2), Math.floor((height - size) / 2)];
+  return {
+    rows: fill(width, height, (x, y) => {
+      if (x === 0 || y === 0 || x === width - 1 || y === height - 1) return 'a';
+      if (x === 1 || y === 1 || x === width - 2 || y === height - 2) return 'd';
+      const [ex, ey] = [Math.floor((x - ox) / scale), Math.floor((y - oy) / scale)];
+      if (x >= ox && y >= oy && EMBLEM[ey]?.[ex] === '#') return 'W';
+      return 's';
+    }),
+    colours: C,
+  };
+};
 
 /** A screen's frames, its lines scrolling up (for the `frames` feature). */
 export const scrollingScreen = (width: number, height: number): RowSprite[] => [0, 1, 2].map((i) => screen(width, height, i));

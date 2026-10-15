@@ -72,6 +72,8 @@ export const diplomatsOffice: AreaDefinition = {
     citizen('visitor', 9, 204, FLOOR, 'office_visitor', ['night'], { hideIf: 'c3_story' }), // someone hooded, at an odd hour
     // Chapter 3's story. Day 2: your hand, waiting for you with a plain coat.
     inStory('hand-6', 'diplomat', 336, FLOOR, 'c3day2=report', { knot: 'c3day2_office', flipX: true }),
+    // Day 3: the same, and faster.
+    inStory('hand-3o', 'diplomat', 336, FLOOR, 'c3day3=office', { knot: 'c3day3_office', flipX: true }),
   ],
   interactables: [
     { id: 'notes', x: 70, y: FLOOR, reach: 10, label: 'Look', knot: 'office_notes' },

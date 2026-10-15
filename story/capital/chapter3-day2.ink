@@ -585,7 +585,7 @@ You take off the plain coat. It smells of smoke.
 ~ c3day3 = "wake"
 ~ objective = ""
 ~ objective_target = ""
-It's nearly light. You lie down anyway. #wake:prince-quarters:120:226 #endday:Two weeks on.
+It's nearly light. You lie down anyway. #wake:prince-quarters:120:226:c3day3_start #endday:Two weeks on.
 -> END
 
 // Coming into the dark district (a trigger at the way in): only the one that went without.

@@ -642,10 +642,15 @@ export const CAPITAL_CAST_LOOKS = {
   petitioner: { height: 23, width: 2, skin: 'dark', hair: S.shadow, hairStyle: 'bun', top: S.dim, topStyle: 'long', patches: S.woodPale, scarf: S.woodLight, legs: S.woodLight, pose: 'front' },
   /** The merchant with the glassworks on the promenade: prosperous and round, a gold-brown coat with gold trim, a pale sash, a sample of his glass in hand. */
   merchant: { height: 25, width: 3, belly: true, skin: 'fair', hair: S.woodPale, hairStyle: 'receding', beard: 'moustache', top: S.amberMid, topStyle: 'coat', collar: S.amberDeep, trim: S.amber, sash: S.light, buttons: S.amber, legs: S.wood, hold: 'glass' },
-  /** The steward of the citadel's household: upright, grey, in the household's black and gold, the seating plan in hand. */
   /** The hostess's cousin (Day 2: in the old councillor's seat, if you passed him over): cold and exact; a dark blue gown, a high gold collar, her hair pinned up. */
   cousin: { height: 25, width: 2, slender: true, skin: 'fair', hair: S.woodLight, hairStyle: 'up', top: S.cyanDeep, topStyle: 'gown', collar: S.amber, trim: S.amber, necklace: S.amber, legs: S.cyanDeep },
+  /** The steward of the citadel's household: upright, grey, in the household's black and gold, the seating plan in hand. */
   steward: { height: 26, width: 2, skin: 'tan', hair: S.light, hairStyle: 'short', top: S.deep, topStyle: 'long', collar: S.amber, trim: S.amber, buttons: S.amber, legs: S.deep, hold: 'letters' },
+  // Day 3's people.
+  /** A district warden, up from his streets: a minor official's worn grey-brown coat, a blue warden's sash, a list of his streets; thinning hair, stubble. */
+  warden: { height: 25, width: 3, skin: 'fair', hair: S.woodLight, hairStyle: 'receding', beard: 'stubble', top: S.woodLight, topStyle: 'coat', collar: S.cyanDeep, sash: S.cyanMid, buttons: S.light, belt: S.deep, legs: S.wood, hold: 'letters' },
+  /** The painter's brother: grown, the same curls; a patched work jacket, a scarf, boots. */
+  painter_brother: { height: 25, width: 3, skin: 'tan', hair: S.shadow, hairStyle: 'curls', top: S.woodLight, topStyle: 'jacket', patches: S.dim, scarf: S.amberDeep, belt: S.deep, legs: S.wood, boots: S.deep },
 } satisfies Record<string, CapitalLook>;
 
 export type CapitalCastId = keyof typeof CAPITAL_CAST_LOOKS;

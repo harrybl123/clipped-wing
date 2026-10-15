@@ -70,8 +70,12 @@ export type Feature =
       face?: 1 | -1;
       /** A standing watch who glances back over his shoulder now and then: `tell` over his head first, then he looks the other way for `for` ms (with a longer reach, `range`), and someone may call him back round (`back`). */
       glance?: { every: number; for: number; range?: number; tell?: string; back?: { who: string; text: string } };
-      /** One of the borderland's cast keeping watch instead of the night watchman (a `CastId`, Chapter 2: the boss's son at dawn): no lantern, only where he's looking. Or `capital-watch-<n>`: one of the city watch, with a lantern (Chapter 3). */
+      /** One of the borderland's cast keeping watch instead of the night watchman (a `CastId`, Chapter 2: the boss's son at dawn): no lantern, only where he's looking. Or `capital-watch-<n>`: one of the city watch, with a lantern (Chapter 3); or `capital-citizen-<n>`: someone of the city's, no lantern, who'd report a face they know (Chapter 3's informants). */
       who?: string;
+      /** A name for them, so lines can be said over their head (`barks`, `#bark`). */
+      id?: string;
+      /** What they say when they see you (default "Who's there?", or "There you are." for one of the cast). */
+      call?: string;
       /** Caught: this knot plays (once) instead of sending you back to `reset`. */
       caught?: string;
     } // a watchman with a lantern on floor y, pacing from..to (pausing `pause` ms at each end) or, if from === to, standing and turning round every `pause` ms. He sees you if you're in his lantern's light (up to `range` px ahead, and no more than `see` px above him, default 60) and not in a shadow: you're sent back to `reset`. Only while showIf is true

@@ -24,7 +24,7 @@ import { CAST, type CastId } from '../ui/borderlandFolk';
 import { SHADES, type Power } from '../ui/pixelArt';
 import { CAPITAL_PLACES } from '../data/capitalMap';
 import { cityViewPainter } from '../ui/paintCityView';
-import { WATCH } from '../ui/capitalFolk';
+import { CITIZENS, WATCH } from '../ui/capitalFolk';
 import { duckScore, updateScore, type ScoreId } from '../ui/score';
 import { setMuted } from '../ui/soundSetting';
 import { makePaintedTexture, makeSpriteTexture, PIXEL } from '../ui/pixelTextures';
@@ -436,18 +436,24 @@ export class AreaScene extends Phaser.Scene {
   /**
    * The capital's power here, as the story has it (Chapter 3, big choice 1: `dark_district`, from dusk):
    * the district that went without is dark (from up in the citadel too); if the citadel gave its power
-   * away (`energy` "people"), its own rooms are dimmer.
+   * away (`energy` "people"), its own rooms are dimmer. From Day 3 (`streets_cut`) your father has cut the
+   * streets where the symbol keeps turning up, in the other district: those are dark too (the views show
+   * them in patches).
    */
   private power(): Power {
     const { story, calendar } = getSession(this);
     if (calendar.slot !== 'evening' && calendar.slot !== 'night') return {};
     const dark = String(story.getVariable('dark_district') ?? '');
+    const also = story.getVariable('streets_cut') ? (dark === 'low' ? 'promenade' : dark === 'promenade' ? 'low' : '') : '';
     const where = placeOf(this.area.id);
     const citadel = CAPITAL_PLACES.some((p) => p.id === where && p.level === 'the citadel');
+    const off = (district: string) => (district === 'low' && where === 'low-district') || (district === 'promenade' && where === 'promenade');
+    const view = (district: string) => (district === 'low' ? 'low' : district === 'promenade' ? 'middle' : undefined);
     return {
-      views: dark === 'low' ? 'low' : dark === 'promenade' ? 'middle' : undefined,
+      views: view(dark),
+      also: view(also),
       fade: Number(story.getVariable('dark_fade')) / 100,
-      cut: (dark === 'low' && where === 'low-district') || (dark === 'promenade' && where === 'promenade'),
+      cut: off(dark) || off(also),
       dim: citadel && story.getVariable('energy') === 'people' && story.getVariable('citadel_dimmed') ? 0.62 : undefined,
     };
   }
@@ -459,7 +465,7 @@ export class AreaScene extends Phaser.Scene {
 
   private powerKey(): string {
     const p = this.power();
-    return `${p.views ?? ''}${p.fade ?? ''}${p.cut ? 'cut' : ''}${p.dim ?? ''}`;
+    return `${p.views ?? ''}${p.also ? `+${p.also}` : ''}${p.fade ?? ''}${p.cut ? 'cut' : ''}${p.dim ?? ''}`;
   }
 
   /** Paints a room, or repaints it for the time of day if it looks out over the city (the citadel's windows). */
@@ -695,11 +701,12 @@ export class AreaScene extends Phaser.Scene {
     }
   }
 
-  /** Where someone speaking over their head is: a person, or `watch` for the area's watchman. */
+  /** Where someone speaking over their head is: a person, `watch` for the area's watchman, or a watch by its `id`. */
   private speakerAt(who: string): { x: number; y: number } | null {
-    if (who === 'watch') {
-      const w = this.watchmen.find((m) => m.image.visible);
-      return w ? { x: w.image.x, y: w.image.y } : null;
+    const named = this.watchmen.find((m) => m.feature.id === who);
+    if (who === 'watch' || named) {
+      const w = named ?? this.watchmen.find((m) => m.image.visible);
+      return w && w.image.visible ? { x: w.image.x, y: w.image.y } : null;
     }
     const entry = this.people.get(who);
     return entry && entry.image.visible ? { x: entry.image.x, y: entry.image.y } : null;
@@ -1094,7 +1101,7 @@ export class AreaScene extends Phaser.Scene {
       const seen = !inShadow && py <= f.y + 4 && f.y - py <= seeUp && ahead >= -8 && ahead <= range;
       if (seen) {
         w.alarm = 900;
-        w.callout.setText(f.who ? 'There you are.' : "Who's there?").setPosition(Math.round(w.image.x - w.callout.width / 2), f.y - 44).setVisible(true);
+        w.callout.setText(f.call ?? (f.who ? 'There you are.' : "Who's there?")).setPosition(Math.round(w.image.x - w.callout.width / 2), f.y - 44).setVisible(true);
         this.cameras.main.flash(300, 242, 180, 90);
       }
     }
@@ -1333,7 +1340,8 @@ export class AreaScene extends Phaser.Scene {
   private knockBack(reset: { x: number; y: number }): void {
     this.cameras.main.shake(200, 0.01).flash(250, 40, 28, 18);
     this.player.body.reset(reset.x, reset.y);
-    for (const entry of this.people.values()) if (entry.person.follow && entry.image.visible) entry.image.setPosition(reset.x - 16, reset.y);
+    // (Anyone following you comes back with you, unless the story's sent them on somewhere: #walk.)
+    for (const entry of this.people.values()) if (entry.person.follow && entry.image.visible && !entry.scripted) entry.image.setPosition(reset.x - 16, reset.y);
   }
 
   // --- The story: who's here, what to do next, and what ink's tags ask for ---
@@ -1553,9 +1561,11 @@ export class AreaScene extends Phaser.Scene {
           break;
         case 'bark': {
           // #bark:<id>:<words>[:<sound>]: words over their head (a dog's growl), and a sound if given.
+          // (Someone keeping watch, by the watch's `id`, too.)
           const [, words, sound] = args;
-          if (entry && words) {
-            this.floatText(words, entry.image.x, entry.image.y - entry.image.height - 12, SHADES.white);
+          const at = entry ? { x: entry.image.x, y: entry.image.y - entry.image.height } : this.speakerAt(args[0] ?? '');
+          if (at && words) {
+            this.floatText(words, at.x, entry ? at.y - 12 : at.y - 38, SHADES.white);
             if (sound && (SOUND_IDS as readonly string[]).includes(sound)) this.soundscape.play(sound as SoundId);
           }
           break;
@@ -1834,7 +1844,7 @@ export class AreaScene extends Phaser.Scene {
     const { calendar } = getSession(this);
     const power = this.power();
     const [w, h] = [300, 96];
-    makePaintedTexture(this, 'city-view-close', w, h, cityViewPainter({ x: 0, y: 0, width: w, height: h, horizon: 10, treeX: 262, treeScale: 0.12 }, calendar.slot, power.views, power.fade));
+    makePaintedTexture(this, 'city-view-close', w, h, cityViewPainter({ x: 0, y: 0, width: w, height: h, horizon: 10, treeX: 262, treeScale: 0.12 }, calendar.slot, power.views, power.fade, power.also));
     if (this.cityView) {
       this.cityView.image.setTexture('city-view-close');
       return;
@@ -2522,9 +2532,11 @@ export class AreaScene extends Phaser.Scene {
       }
       case 'watch': {
         // (Chapter 2: one of the cast keeping watch, by daylight, without a lantern.)
-        // (Chapter 3: `capital-watch-<n>`, one of the city watch, with a lantern.)
+        // (Chapter 3: `capital-watch-<n>`, one of the city watch, with a lantern; `capital-citizen-<n>`, someone
+        // of the city's who'd report you, without.)
         const capital = feature.who?.startsWith('capital-watch-');
-        const look = capital ? WATCH[Number(feature.who!.slice('capital-watch-'.length))]! : feature.who ? CAST[feature.who as CastId] : WATCHMAN;
+        const citizen = feature.who?.startsWith('capital-citizen-');
+        const look = capital ? WATCH[Number(feature.who!.slice('capital-watch-'.length))]! : citizen ? CITIZENS[Number(feature.who!.slice('capital-citizen-'.length))]! : feature.who ? CAST[feature.who as CastId] : WATCHMAN;
         const key = feature.who ? `watch-${feature.who}` : 'watchman';
         const idleKey = makeSpriteTexture(this, `${key}-0`, look.idle[0]!.rows, look.idle[0]!.colours);
         const walkKeys = (look.walk ?? look.idle).map((f, i) => makeSpriteTexture(this, `${key}-walk-${i}`, f.rows, f.colours));

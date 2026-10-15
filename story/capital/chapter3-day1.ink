@@ -82,6 +82,7 @@ Dressed, you go down with him. #goto:citadel-halls:110:136
 // Your hand, walking with you.
 === c3day1_hand_walk ===
 { c3day2 == "below": -> c3day2_hand_below }
+{ c3day3 != "" && c3day3 != "done": -> c3day3_hand }
 { c3day1:
 - "halls": "Your seat's below your father's. The audience is waiting." #speaker:diplomat
 - "audience": "Your seat's below his. Sit." #speaker:diplomat

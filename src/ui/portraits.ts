@@ -1022,6 +1022,9 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
   merchant: { name: 'The merchant', portrait: capitalPortrait(C3.merchant, { build: 'broad', jaw: 'soft', age: 1, brow: 'raised', nose: 'broad', mouth: 'smile' }), voice: 'upper' },
   cousin: { name: "The hostess's cousin", portrait: capitalPortrait(C3.cousin, { build: 'narrow', jaw: 'pointed', age: 1, brow: 'thin', eyes: 'narrow', nose: 'long', mouth: 'thin', items: ['earring'] }), voice: 'lady' },
   steward: { name: 'The steward', portrait: capitalPortrait(C3.steward, { build: 'narrow', age: 2, brow: 'straight', eyes: 'narrow', nose: 'long', mouth: 'thin' }), voice: 'elder' },
+  warden: { name: 'The warden', portrait: capitalPortrait(C3.warden, { build: 'broad', age: 1, brow: 'knit', eyes: 'tired', mouth: 'flat' }), voice: 'upper' },
+  // (Day 3: the watch take him as "Her neighbour", `#name:`; Day 4 he's the firebrand.)
+  painter_brother: { name: "The painter's brother", portrait: capitalPortrait(C3.painter_brother, { jaw: 'square', brow: 'heavy', eyes: 'wide', mouth: 'open' }), voice: 'young' },
   painter: { name: 'The kid', portrait: capitalPortrait(C3.painter, { build: 'child', jaw: 'soft', brow: 'raised', eyes: 'wide', nose: 'small', mouth: 'smirk' }), voice: 'boy' },
   reformer: { name: 'The reformer', portrait: capitalPortrait(C3.reformer, { build: 'narrow', brow: 'knit', eyes: 'wide', mouth: 'flat' }), voice: 'preacher' },
   commander: { name: 'The commander', portrait: capitalPortrait(C3.commander, { jaw: 'square', age: 1, brow: 'straight', eyes: 'narrow', mouth: 'thin' }), voice: 'commander' },

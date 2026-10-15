@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './cityProps';
 import type { AreaDefinition } from '../types';
-import { cast, citizen, LATE } from './people';
+import { cast, citizen, inStory, LATE } from './people';
 
 // The hideout (Chapter 3): under the low district, an old cellar of rough stone, the city's oldest, made
 // a bar: where citizens band together against injustice, and the capital and your father call them
@@ -68,17 +68,30 @@ export const hideout: AreaDefinition = {
 
   features: [
     ...[150, 250, 380].map((x) => ({ type: 'swing' as const, sprite: P.CAGE_LAMP, x, y: TOP + 56, ropeTop: TOP, quiet: true, ropeColour: S.deep })),
+    // Chapter 3, Day 3: coming down the steps, the first time.
+    { type: 'trigger', x: 60, y: FLOOR, reach: 12, knot: 'c3day3_hideout', showIf: 'c3day3=sneak', hideIf: 'met_hideout' },
   ],
   people: [
     cast('hideout_keeper', 404, FLOOR, { knot: 'hideout_keeper', flipX: true }), // behind the counter, always
     // The evening and the night: regulars round the long table and the small ones, one at the counter.
-    citizen('regular-1', 0, 128, FLOOR, 'hideout_folk', LATE),
-    citizen('regular-2', 7, 168, FLOOR, 'hideout_folk', LATE, { flipX: true }),
-    citizen('regular-3', 12, 206, FLOOR, 'hideout_folk', LATE),
-    citizen('regular-4', 13, 252, FLOOR, 'hideout_folk', ['night'], { flipX: true }),
-    citizen('at-counter', 4, 332, FLOOR, 'hideout_folk', LATE),
-    citizen('in-the-corner', 2, 76, FLOOR, 'hideout_corner', ['night']),
-    citizen('regular', 5, 290, FLOOR, 'hideout_regular', LATE, { flipX: true }),
+    // (Day 3's night has its own: below.)
+    citizen('regular-1', 0, 128, FLOOR, 'hideout_folk', LATE, { hideIf: 'c3day3=below,sneak,hideout,home' }),
+    citizen('regular-2', 7, 168, FLOOR, 'hideout_folk', LATE, { flipX: true, hideIf: 'c3day3=below,sneak,hideout,home' }),
+    citizen('regular-3', 12, 206, FLOOR, 'hideout_folk', LATE, { hideIf: 'c3day3=below,sneak,hideout,home' }),
+    citizen('regular-4', 13, 252, FLOOR, 'hideout_folk', ['night'], { flipX: true, hideIf: 'c3day3=below,sneak,hideout,home' }),
+    citizen('at-counter', 4, 332, FLOOR, 'hideout_folk', LATE, { hideIf: 'c3day3=below,sneak,hideout,home' }),
+    citizen('in-the-corner', 2, 76, FLOOR, 'hideout_corner', ['night'], { hideIf: 'c3day3=below,sneak,hideout,home' }),
+    citizen('regular', 5, 290, FLOOR, 'hideout_regular', LATE, { flipX: true, hideIf: 'c3day3=below,sneak,hideout,home' }),
+    // Chapter 3's story. Day 3, the first time: the barkeep; your hand at the counter already; three who tell
+    // you what the rewards are doing, and the painter in the corner (his brother was the man taken).
+    inStory('keeper-3', 'hideout_keeper', 404, FLOOR, 'c3day3=below,sneak,hideout,home', { knot: 'c3day3_keeper', flipX: true }),
+    inStory('hand-3h', 'diplomat', 344, FLOOR, 'c3day3=sneak,hideout', { knot: 'c3day3_hand', flipX: true }),
+    citizen('rewards-1', 5, 128, FLOOR, 'c3day3_sister', undefined, { showIf: 'c3day3=hideout,home' }),
+    citizen('folk-3a', 0, 148, FLOOR, 'hideout_folk', undefined, { showIf: 'c3day3=hideout,home', flipX: true }),
+    citizen('rewards-2', 7, 228, FLOOR, 'c3day3_stairs', undefined, { showIf: 'c3day3=hideout,home' }),
+    citizen('rewards-3', 9, 264, FLOOR, 'c3day3_chalk', undefined, { showIf: 'c3day3=hideout,home', flipX: true }),
+    citizen('folk-3b', 13, 300, FLOOR, 'hideout_folk', undefined, { showIf: 'c3day3=hideout,home', flipX: true }),
+    inStory('painter-3', 'painter', 74, FLOOR, 'c3day3=hideout,home', { knot: 'c3day3_painter' }),
   ],
   interactables: [
     { id: 'emblem', x: 180, y: FLOOR, reach: 14, label: 'Look', knot: 'hideout_emblem' },

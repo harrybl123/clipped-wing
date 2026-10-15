@@ -118,6 +118,20 @@ export const lowDistrict: AreaDefinition = {
     { type: 'frames', frames: P.STREET_LIFT_BROKEN, x: 752, y: RIGHT_WALK - 110, every: 1000, showIf: 'lift_mended=false', power: 'any' },
     // Day 2, below at night with your hand: coming in.
     { type: 'trigger', x: 60, y: FLOOR, reach: 16, knot: 'c3day2_dark_low', showIf: 'c3day2=below', hideIf: 'dark_seen2' },
+    // Day 3 on: the reward notice on the screens (your father's: kept lit where the power's cut, the only light
+    // in the street), under the bird chalked on the wall, and along by the walkway's stairs.
+    { type: 'frames', frames: P.REWARD_FRAMES, x: 328, y: 146, every: 260, showIf: 'rewards', power: 'any' },
+    { type: 'frames', frames: P.REWARD_FRAMES, x: 772, y: 170, every: 260, showIf: 'rewards', power: 'any' },
+    // Day 3, below at night: coming in, the watch take a man on the word of his neighbour; then your hand goes
+    // on ahead to the hideout, openly (they know him), and you follow without being seen by anyone who'd
+    // report a face (designer: informants, not your own guards): a man walking the street, and an old woman
+    // on her step who looks back up the street every so often. Dark doorways to stand in.
+    { type: 'trigger', x: 60, y: FLOOR, reach: 16, knot: 'c3day3_low', showIf: 'c3day3=below', hideIf: 'low3' },
+    { type: 'watch', id: 'informant-1', who: 'capital-citizen-12', from: 150, to: 420, y: FLOOR, speed: 22, range: 80, pause: 1600, reset: { x: 56, y: FLOOR }, showIf: 'c3day3=sneak', call: 'Highness...?' },
+    { type: 'watch', id: 'informant-2', who: 'capital-citizen-3', from: 664, to: 664, y: FLOOR, speed: 0, range: 50, face: 1, glance: { every: 4200, for: 2400, range: 120 }, reset: { x: 56, y: FLOOR }, showIf: 'c3day3=sneak', call: 'Highness...?' },
+    { type: 'shadow', x: 208, y: FLOOR, width: 16, showIf: 'c3day3=sneak' },
+    { type: 'shadow', x: 320, y: FLOOR, width: 16, showIf: 'c3day3=sneak' },
+    { type: 'shadow', x: 508, y: FLOOR, width: 16, showIf: 'c3day3=sneak' },
   ],
   people: [
     // The street: the cook at the stall, the repairer outside his shop, the grocer's girl; people about.
@@ -130,12 +144,13 @@ export const lowDistrict: AreaDefinition = {
     // Up on the walkways: an old woman by her door, neighbours.
     citizen('old-woman', 3, 120, LEFT_WALK, 'c3_old', ['afternoon', 'evening']),
     citizen('neighbour', 12, 770, RIGHT_WALK, 'low_folk', DAY, { flipX: true }),
-    citizen('hooded-1', 9, 820, RIGHT_WALK, 'low_night', LATE),
-    // The evening and the night: round the fire, out in the rain; the watch, watching.
-    citizen('by-fire-1', 4, 456, FLOOR, 'low_fire', LATE),
-    citizen('by-fire-2', 11, 486, FLOOR, 'low_fire', ['night'], { flipX: true }),
-    strollingCitizen('young', 0, 300, 640, FLOOR, 'low_night', LATE),
-    strollingCitizen('hooded-2', 2, 640, 900, FLOOR, 'low_night', ['night']),
+    citizen('hooded-1', 9, 820, RIGHT_WALK, 'low_night', LATE, { hideIf: 'c3day3=below,sneak,hideout,home' }),
+    // The evening and the night: round the fire, out in the rain; the watch, watching. (Not Day 3's night:
+    // the street's empty but for whoever's watching it.)
+    citizen('by-fire-1', 4, 456, FLOOR, 'low_fire', LATE, { hideIf: 'c3day3=below,sneak,hideout,home' }),
+    citizen('by-fire-2', 11, 486, FLOOR, 'low_fire', ['night'], { flipX: true, hideIf: 'c3day3=below,sneak,hideout,home' }),
+    strollingCitizen('young', 0, 300, 640, FLOOR, 'low_night', LATE, { hideIf: 'c3day3=below,sneak,hideout,home' }),
+    strollingCitizen('hooded-2', 2, 640, 900, FLOOR, 'low_night', ['night'], { hideIf: 'c3day3=below,sneak,hideout,home' }),
     watch('watch', 1, 530, FLOOR, 'low_watch', ['evening'], { flipX: true }),
     // The kid who chalks the symbol.
     cast('painter', 300, FLOOR, { knot: 'low_painter', when: ['afternoon', 'evening'] }),
@@ -153,6 +168,12 @@ export const lowDistrict: AreaDefinition = {
     strollingCitizen('glad-kids', 6, 330, 520, FLOOR, 'c3day2_glad', undefined, { showIf: 'c3day2=below', hideIf: 'energy=high' }),
     citizen('glad-2', 5, 716, FLOOR, 'c3day2_glad', undefined, { showIf: 'c3day2=below', hideIf: 'energy=high', flipX: true }),
     inStory('hand', 'diplomat', 40, FLOOR, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
+    // Day 3, below at night: the man on his step (the painter's brother), the neighbour who points him out,
+    // and the watch who take him (the story brings them on).
+    inStory('brother-3', 'painter_brother', 400, FLOOR, 'c3day3=below'),
+    citizen('informer', 10, 444, FLOOR, 'low_night', undefined, { showIf: 'c3day3=below', hidden: true, flipX: true }),
+    watch('watch-3a', 0, 930, FLOOR, 'low_watch', undefined, { showIf: 'c3day3=below', hidden: true, flipX: true }),
+    watch('watch-3b', 1, 950, FLOOR, 'low_watch', undefined, { showIf: 'c3day3=below', hidden: true, flipX: true }),
   ],
   interactables: [
     { id: 'mark', x: 350, y: FLOOR, reach: 10, label: 'Look', knot: 'low_mark' },
