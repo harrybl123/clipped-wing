@@ -31,7 +31,7 @@ Everything else is the rising playing by the same rules (`risingOrders`; `RISING
 
 Hardly any words (designer: it was too cluttered). The district as a street plan in light; the rising's squads amber circles, each with fire and a crowd round it, smoke going up; the guard's blue shields; the number on each; a ring round every place in the colour of whoever holds it. The other side's arrows dashed (and the square's next crowd), yours solid and numbered in the order they'll happen, joins in green. A note in the corner: dawn, or the lesson's goal. A card only when the mouse rests on a place a moment (designer: big text boxes are annoying): its name, whose it is and how strong; choosing where to send a squad, just the sum, in a line by the place ("5 v 4: you take it, 1 left"). "+1" floats off the square each turn, "+2" off the lifts, "2 out" where a crowd's sent; after a fight, what each side lost.
 
-Controls (the old table's): pick a squad of yours (E or click), the arrows step round where it can go, E or click to send it (its own place to hold), Esc or right-click back, Tab to the next squad, Enter or the button to end the turn; as the guard, P or the button for the power.
+Controls (the old table's): pick a squad of yours (E or click), the arrows step round where it can go, E or click to send it (its own place to hold), Esc or right-click back, Tab to the next squad, Enter or the button to end the turn; as the guard, P or the button for the power; Undo (or U) takes back your last order, one at a time (designer).
 
 ## Day 2: the lesson (you're the rising)
 
