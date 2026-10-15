@@ -4,7 +4,7 @@ import { COMBATANTS, ENCOUNTERS, ITEMS, LESSONS, type Lesson, MOVES } from '../d
 import { getSession } from '../session';
 import { Battle, type Action, type BattleEvent, type Combatant, type Intent, type MoveDef, type Reaction } from '../systems/Combat';
 import type { Grade, Key, Qte, QteKind } from '../systems/qte';
-import { BEETLE_BATTLE, CARVER_BATTLE, HAND_BATTLE, PRINCE_BATTLE, SIM_GUARD_BATTLE, COLLECTOR_BATTLE, COLLECTOR_BIG_BATTLE, TICKER_BATTLE, SCOUT_BATTLE, PICKER_BATTLE, PICKER_LOUD_BATTLE, DOG_BATTLE, ENFORCER_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, OLD_SCAV_BATTLE, RAIDER_BATTLE, RAIDER_LEAD_BATTLE, SCAVENGER_BATTLE, SCAVENGER_FISTS_BATTLE, SCOUT_BACK_BATTLE, SON_BACK_BATTLE, SON_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, WATCHER_BACK_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
+import { BEETLE_BATTLE, CARVER_BATTLE, HAND_BATTLE, HAND_BACK_BATTLE, HEIR_BATTLE, PRINCE_FULL_BATTLE, RIOTER_BATTLE, RIOTER_BIG_BATTLE, PRINCE_BATTLE, SIM_GUARD_BATTLE, COLLECTOR_BATTLE, COLLECTOR_BIG_BATTLE, TICKER_BATTLE, SCOUT_BATTLE, PICKER_BATTLE, PICKER_LOUD_BATTLE, DOG_BATTLE, ENFORCER_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, OLD_SCAV_BATTLE, RAIDER_BATTLE, RAIDER_LEAD_BATTLE, SCAVENGER_BATTLE, SCAVENGER_FISTS_BATTLE, SCOUT_BACK_BATTLE, SON_BACK_BATTLE, SON_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, WATCHER_BACK_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
 import { CAST, DOG, RIVALS } from '../ui/borderlandFolk';
 import { GIRL, PRINCE, PROTAGONIST, SCAVENGER } from '../ui/characters';
 import { CAPITAL_CAST } from '../ui/capitalFolk';
@@ -103,6 +103,11 @@ const LOOKS: Record<string, Look> = {
   prince: { poses: PRINCE_BATTLE, scale: 2, cutIn: PRINCE.idle[0]! },
   hand: { poses: HAND_BATTLE, scale: 1, cutIn: CAPITAL_CAST.diplomat.idle[0]! },
   sim_guard: { poses: SIM_GUARD_BATTLE, scale: 1 },
+  heir: { poses: HEIR_BATTLE, scale: 1 },
+  prince_full: { poses: PRINCE_FULL_BATTLE, scale: 2, cutIn: PRINCE.idle[0]! },
+  hand_back: { poses: HAND_BACK_BATTLE, scale: 2, cutIn: CAPITAL_CAST.diplomat.idle[0]! },
+  rioter: { poses: RIOTER_BATTLE, scale: 1 },
+  rioter_big: { poses: RIOTER_BIG_BATTLE, scale: 1 },
 };
 
 interface View {
@@ -216,7 +221,7 @@ export class CombatScene extends Phaser.Scene {
     this.lessons = [...(encounter.teaches ?? []), ...(also && !getSession(this).story.getVariable(also.unless) ? also.lessons : [])];
     // The stage: where it's fought.
     const where = encounter.stage ?? 'market';
-    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : where === 'fields' ? paintFieldsStage() : where === 'camp' ? paintCampStage() : where === 'bar' ? paintBarStage() : where === 'den' ? paintDenStage() : where === 'yard' ? paintYardStage() : where === 'balcony' ? paintBalconyStage() : where === 'sim' ? paintSimStage() : paintStage());
+    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : where === 'fields' ? paintFieldsStage() : where === 'camp' ? paintCampStage() : where === 'bar' ? paintBarStage() : where === 'den' ? paintDenStage() : where === 'yard' ? paintYardStage() : where === 'balcony' ? paintBalconyStage() : where === 'sim' ? paintSimStage() : where === 'square' ? paintSquareStage() : paintStage());
     stage.setTexture(`combat-stage-${where}`);
     const party = this.battle.combatants.filter((c) => c.side === 'party');
     const enemies = this.battle.combatants.filter((c) => c.side === 'enemy');
@@ -1981,5 +1986,38 @@ function paintSimStage() {
     const top = HORIZON - 10 - noise(col * 2.7) * 44 - (Math.abs(x - 240) < 40 ? 30 : 0);
     if (y > top) return Math.abs(y - top) < 1 || x % 14 === 0 ? SHADES.cyanMid : (x * 7 + y * 3) % 23 === 0 ? SHADES.cyan : SHADES.cyanDeep;
     return addLight(deep, cyan, 0.04 + (y / HORIZON) * 0.06);
+  };
+}
+
+/**
+ * The square at night, in the riot (Chapter 3, Day 4): the city behind, its lights out where the power's
+ * cut; a barricade burning across the far side of the square; the paving running towards you, lit amber by
+ * the fire and wet with the rain.
+ */
+function paintSquareStage() {
+  const view = cityViewPainter({ x: 0, y: 0, width: W, height: HORIZON, horizon: 70, treeX: 390, treeScale: 0.1 }, 'night');
+  const stone = rgb(SHADES.dim);
+  const fire = rgb(SHADES.amber);
+  const vx = 240;
+  return (x: number, y: number) => {
+    // The barricade: a ragged heap across the square, black against the fire behind it.
+    const heap = HORIZON - 8 - noise(x / 9) * 14 - (Math.abs(x - 300) < 60 ? 6 : 0);
+    if (y < HORIZON) {
+      if (y > heap) return (x * 5 + y * 3) % 17 === 0 ? SHADES.amberDeep : SHADES.shadow;
+      // The fire's glow up into the night over it.
+      const glow = falloff(x, y, 300, heap, 150, 60);
+      const c = view(x, y);
+      const base = c === null ? rgb(SHADES.shadow) : typeof c === 'number' ? rgb(c) : c;
+      return addLight(base, fire, glow * 0.55);
+    }
+    // The paving in perspective, setts in rows; the fire's light on it, stronger near the barricade.
+    const depth = (y - HORIZON) / (H - HORIZON);
+    const u = (x - vx) / Math.max(0.05, depth);
+    const seam = Math.abs((((u / 22) % 1) + 1) % 1 - 0.5) > 0.46 || Math.abs(((1 / Math.max(0.06, depth)) * 2.4) % 1 - 0.5) > 0.44;
+    const lit = addLight(addLight(rgb(SHADES.shadow), stone, 0.35), fire, 0.03 + (1 - depth) * 0.12 + falloff(x, 0, 300, 0, 160) * 0.06);
+    if (seam) return addLight(lit, rgb(SHADES.shadow), 0.5);
+    // Puddles of rain, catching the fire.
+    if (noise2(u / 30, y / 6) > 0.78) return addLight(lit, fire, 0.12);
+    return lit;
   };
 }

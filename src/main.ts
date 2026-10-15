@@ -8,6 +8,7 @@ import { CombatScene } from './scenes/CombatScene';
 import { DecodeScene } from './scenes/DecodeScene';
 import { ChapterScene } from './scenes/ChapterScene';
 import { WarTableScene } from './scenes/WarTableScene';
+import { RiotTableScene } from './scenes/RiotTableScene';
 import { EndingScene } from './scenes/EndingScene';
 import { MapScene } from './scenes/MapScene';
 import { PreloadScene } from './scenes/PreloadScene';
@@ -16,7 +17,7 @@ import { AreaScene } from './scenes/AreaScene';
 import { SoundButtonScene } from './scenes/SoundButtonScene';
 import { TitleScene } from './scenes/TitleScene';
 
-const game = new Phaser.Game(createGameConfig([BootScene, PreloadScene, TitleScene, PrologueScene, AreaScene, MapScene, DecodeScene, CarveScene, FightScene, CombatScene, EndingScene, ChapterScene, WarTableScene, SoundButtonScene]));
+const game = new Phaser.Game(createGameConfig([BootScene, PreloadScene, TitleScene, PrologueScene, AreaScene, MapScene, DecodeScene, CarveScene, FightScene, CombatScene, EndingScene, ChapterScene, WarTableScene, RiotTableScene, SoundButtonScene]));
 
 // Rescale to the window whenever it changes size (or goes fullscreen), by the Screen setting.
 const onResize = () => game.scale.setZoom(screenZoom());

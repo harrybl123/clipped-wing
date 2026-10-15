@@ -663,8 +663,32 @@ VAR heard_stairs3 = false
 VAR heard_counter3 = false
 VAR painter3 = false
 VAR outside3 = false
-// Chapter 3, Day 4 (not built yet).
+// Chapter 3, Day 4 (story/capital/chapter3-day4.ink): the riot. Stages: wake, spar, sleeve, captain,
+// physician, persuade, afternoon, evening, table, square, night, done.
 VAR c3day4 = ""
+// The spar with your friend ("won" / "lost"); his sleeve, the wing stitched inside it: you asked him, or told
+// the captain ("asked" / "told": medium).
+VAR spar4 = ""
+VAR sleeve = ""
+// The physician: you persuaded your father to rest and took the night on ("yes"), or wouldn't ("no": medium).
+VAR physician = ""
+// The afternoon, two of three: the table of light in the council chamber, the kid at the foot of the lifts,
+// your sister.
+VAR afternoon4 = 0
+VAR table4 = false
+VAR painter4 = false
+VAR sister4 = false
+// The riot: who leads it ("firebrand", the painter's brother, if the low district rose; "reformer", if the
+// promenade did); how the war table went ("won", or "taken": he took command from you), and in how many turns;
+// the fight at the square; and big choice 2 ("brought_in" / "let_go").
+VAR room4 = false
+VAR riot_leader = ""
+VAR riot_table = ""
+VAR riot_turns = 0
+VAR riot_fight = ""
+VAR riot = ""
+// Chapter 3, Day 5 (not built yet).
+VAR c3day5 = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
@@ -718,6 +742,7 @@ INCLUDE borderland/trees-edge.ink
 INCLUDE capital/chapter3-day1.ink
 INCLUDE capital/chapter3-day2.ink
 INCLUDE capital/chapter3-day3.ink
+INCLUDE capital/chapter3-day4.ink
 INCLUDE capital/cast.ink
 INCLUDE capital/folk.ink
 INCLUDE capital/looks.ink

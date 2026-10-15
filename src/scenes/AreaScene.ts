@@ -12,6 +12,8 @@ import type { DecodeResult, DecodeSceneData } from './DecodeScene';
 import type { EndingSceneData } from './EndingScene';
 import type { StepSceneData } from './StepScene';
 import type { WarTableSceneData } from './WarTableScene';
+import type { RiotTableSceneData } from './RiotTableScene';
+import { RIOTS } from '../data/warTable';
 import type { CombatSceneData } from './CombatScene';
 import type { MapSceneData } from './MapScene';
 import { getSession, type WakePlace } from '../session';
@@ -1676,7 +1678,9 @@ export class AreaScene extends Phaser.Scene {
         case 'wartable': {
           // #wartable:<scenario>: after the conversation, the war table (src/scenes/WarTableScene.ts); back here, the scenario's `after` knot plays.
           const start = { ...this.player.feet };
-          if (args[0]) this.afterClose.push(() => this.leaveFor('WarTable', { scenario: args[0]!, back: { areaId: this.area.id, start } } satisfies WarTableSceneData, 900));
+          // (A riot, Day 4: the riot's own table, src/scenes/RiotTableScene.ts; it comes out in the riot's square.)
+          if (args[0] && RIOTS[args[0]]) this.afterClose.push(() => this.leaveFor('RiotTable', { scenario: args[0]!, back: { areaId: this.area.id, start } } satisfies RiotTableSceneData, 900));
+          else if (args[0]) this.afterClose.push(() => this.leaveFor('WarTable', { scenario: args[0]!, back: { areaId: this.area.id, start } } satisfies WarTableSceneData, 900));
           break;
         }
         case 'turn':

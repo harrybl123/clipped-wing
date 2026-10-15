@@ -5,6 +5,7 @@ import { makeSpriteTexture } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
 import { BIRD } from '../ui/sprites';
 import type { AreaSceneData } from './AreaScene';
+import type { RiotTableSceneData } from './RiotTableScene';
 import { getSession } from '../session';
 
 export interface ChapterSceneData {
@@ -186,6 +187,10 @@ export function beginChapter3(scene: Phaser.Scene): void {
  * Day 2 (`&day=2`): `&at=start` (dawn, your father at the door), `study` (the bookshelf), `table` (the
  * simulation room, at the war table), `council`, `dusk` (your balcony, watching it go dark), `below` (your
  * hand's office at night, then down); `&energy=high|people`.
+ * Day 3 (`&day=3`): `start|audience|requests|salon|below|low`. Day 4 (`&day=4`): `start` (dawn, your friend on
+ * the balcony), `physician`, `afternoon`, `evening` (back to your balcony as it starts), `table` (the
+ * simulation room), `riot` (straight onto the war table), `square` (out of the fight; `&table=taken`);
+ * `&sleeve=asked|told`, `&physician=yes|no`.
  */
 export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
   const session = getSession(scene);
@@ -224,14 +229,36 @@ export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
     below: { area: { areaId: 'diplomats-office', start: { x: 200, y: 230 } }, slots: 2, vars: { c3day3: 'office', ...morning3, signed3: true, hostess3: true, friend3: true, objective: "Go to your hand's office", objective_target: 'diplomats-office:hand-3o' } },
     low: { area: { areaId: 'low-district', start: { x: 24, y: 236 } }, slots: 3, vars: { c3day3: 'below', ...morning3, signed3: true, hostess3: true, friend3: true, plain_coat: true, hand_with_you: true, objective: 'Go down to the low district', objective_target: 'lifts:to-low-district' } },
   };
+  // Day 4 (`&day=4`; Day 3's choices as above, and this day's: `&sleeve=asked|told`, `&physician=yes|no`).
+  // `&at=riot` goes straight to the war table; `&at=square` comes out of the fight at the square.
+  const sleeve = params.get('sleeve') === 'told' ? 'told' : 'asked';
+  const physician = params.get('physician') === 'no' ? 'no' : 'yes';
+  const leader = energy === 'high' ? 'firebrand' : 'reformer';
+  const morning4 = { spar4: 'won', sleeve, physician };
+  const evening4 = { ...morning4, afternoon4: 2, table4: true, painter4: true, riot_leader: leader };
+  const day4: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | number | boolean> }> = {
+    start: { area: { areaId: 'prince-quarters', start: { x: 120, y: 226 }, script: 'c3day4_start', card: 'Day 4' }, slots: 0, vars: {} },
+    physician: { area: { areaId: 'citadel-halls', start: { x: 110, y: 136 } }, slots: 0, vars: { c3day4: 'physician', spar4: 'won', sleeve, objective: 'Talk to the physician', objective_target: 'citadel-halls:physician-4' } },
+    afternoon: { area: { areaId: 'citadel-halls', start: { x: 110, y: 136 } }, slots: 1, vars: { c3day4: 'afternoon', ...morning4, objective: 'Wait for the evening', objective_target: 'council-chamber:table-4,lifts:painter-4,citadel-halls:sister-4' } },
+    evening: { area: { areaId: 'prince-quarters', start: { x: 300, y: 226 } }, slots: 2, vars: { c3day4: 'evening', ...morning4, afternoon4: 2, table4: true, painter4: true, objective: 'Go back to your rooms', objective_target: 'prince-quarters:telescope' } },
+    table: { area: { areaId: 'simulation-room', start: { x: 120, y: 230 } }, slots: 2, vars: { c3day4: 'table', ...evening4, room4: true, objective: 'Put down the riot', objective_target: 'simulation-room:table-4' } },
+    riot: { area: { areaId: 'simulation-room', start: { x: 330, y: 230 } }, slots: 2, vars: { c3day4: 'table', ...evening4, room4: true } },
+    square: { area: { areaId: energy === 'high' ? 'low-district' : 'promenade', start: { x: 720, y: energy === 'high' ? 236 : 232 }, script: 'c3day4_square' }, slots: 2, vars: { c3day4: 'table', ...evening4, room4: true, riot_table: params.get('table') === 'taken' ? 'taken' : 'won', riot_fight: 'won', plain_coat: true } },
+  };
   if (day >= 2) set({ c3day1: 'done', c3day2: 'wake', lift_mended: params.get('lift') === 'mended', seated: params.get('seated') ?? 'councillor', signed_requests: true });
   // (Day 2 done: the energy choice made, the district dark, the war table played, below with your hand.)
   if (day >= 3) set({ c3day2: 'done', sim_open: true, sim_turns: 3, sim_wiped: true, energy, dark_district: dark, dark_fade: 100, citadel_dimmed: energy === 'people', painter2: true, woman2: true, streets_cut: true, rewards: true });
-  const table = day >= 3 ? day3 : day >= 2 ? day2 : day1;
+  // (Day 3 done: the audience, the requests, the salon, below to the hideout.)
+  if (day >= 4) set({ c3day3: 'done', ...morning3, signed3: true, hostess3: true, friend3: true, low3: true, met_hideout: true, heard3: 4, painter3: true, outside3: true });
+  const table = day >= 4 ? day4 : day >= 3 ? day3 : day >= 2 ? day2 : day1;
   const mid = table[at] ?? Object.values(table)[0]!;
   set(mid.vars);
-  session.calendar.jumpTo(day as 1 | 2 | 3);
+  session.calendar.jumpTo(day as 1 | 2 | 3 | 4);
   for (let i = 0; i < mid.slots; i++) session.calendar.advance();
+  if (day >= 4 && at === 'riot') {
+    scene.scene.start('RiotTable', { scenario: leader === 'firebrand' ? 'riot_low' : 'riot_promenade', back: mid.area } satisfies RiotTableSceneData);
+    return;
+  }
   scene.scene.start('Area', mid.area);
 }
 

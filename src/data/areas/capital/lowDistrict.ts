@@ -1,7 +1,8 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './cityProps';
 import type { AreaDefinition, Solid } from '../types';
-import { cast, citizen, inStory, strollingCitizen, watch, AWAKE, DAY, LATE, MORNING } from './people';
+import { cast, citizen, guard, inStory, strollingCitizen, watch, AWAKE, DAY, LATE, MORNING } from './people';
+import type { Person } from '../types';
 
 // The low district (Chapter 3): cramped, at the bottom of the city (docs/areas/capital/low-district.md).
 // Under a ceiling of cables slung between homes stacked and patched by hand; washing strung across, plants
@@ -135,6 +136,10 @@ export const lowDistrict: AreaDefinition = {
     { type: 'shadow', x: 204, y: FLOOR, width: 24, showIf: 'c3day3=sneak' },
     { type: 'shadow', x: 316, y: FLOOR, width: 24, showIf: 'c3day3=sneak' },
     { type: 'shadow', x: 504, y: FLOOR, width: 24, showIf: 'c3day3=sneak' },
+    // Day 4, the riot (if the low district rose): the barricade burning across the street.
+    { type: 'fire', x: 912, y: FLOOR - 1, showIf: 'c3day4=square' },
+    { type: 'fire', x: 944, y: FLOOR - 1, showIf: 'c3day4=square' },
+    { type: 'smoke', x: 928, y: FLOOR - 12, top: 30, showIf: 'c3day4=square' },
   ],
   people: [
     // The street: the cook at the stall, the repairer outside his shop, the grocer's girl; people about.
@@ -147,14 +152,14 @@ export const lowDistrict: AreaDefinition = {
     // Up on the walkways: an old woman by her door, neighbours.
     citizen('old-woman', 3, 120, LEFT_WALK, 'c3_old', ['afternoon', 'evening']),
     citizen('neighbour', 12, 770, RIGHT_WALK, 'low_folk', DAY, { flipX: true }),
-    citizen('hooded-1', 9, 820, RIGHT_WALK, 'low_night', LATE, { hideIf: 'c3day3=below,sneak,hideout,home' }),
+    citizen('hooded-1', 9, 820, RIGHT_WALK, 'low_night', LATE, { hideIf: ['c3day3=below,sneak,hideout,home', 'c3day4=square'] }),
     // The evening and the night: round the fire, out in the rain; the watch, watching. (Not Day 3's night:
     // the street's empty but for whoever's watching it.)
-    citizen('by-fire-1', 4, 456, FLOOR, 'low_fire', LATE, { hideIf: 'c3day3=below,sneak,hideout,home' }),
-    citizen('by-fire-2', 11, 486, FLOOR, 'low_fire', ['night'], { flipX: true, hideIf: 'c3day3=below,sneak,hideout,home' }),
-    strollingCitizen('young', 0, 300, 640, FLOOR, 'low_night', LATE, { hideIf: 'c3day3=below,sneak,hideout,home' }),
-    strollingCitizen('hooded-2', 2, 640, 900, FLOOR, 'low_night', ['night'], { hideIf: 'c3day3=below,sneak,hideout,home' }),
-    watch('watch', 1, 530, FLOOR, 'low_watch', ['evening'], { flipX: true }),
+    citizen('by-fire-1', 4, 456, FLOOR, 'low_fire', LATE, { hideIf: ['c3day3=below,sneak,hideout,home', 'c3day4=square'] }),
+    citizen('by-fire-2', 11, 486, FLOOR, 'low_fire', ['night'], { flipX: true, hideIf: ['c3day3=below,sneak,hideout,home', 'c3day4=square'] }),
+    strollingCitizen('young', 0, 300, 640, FLOOR, 'low_night', LATE, { hideIf: ['c3day3=below,sneak,hideout,home', 'c3day4=square'] }),
+    strollingCitizen('hooded-2', 2, 640, 900, FLOOR, 'low_night', ['night'], { hideIf: ['c3day3=below,sneak,hideout,home', 'c3day4=square'] }),
+    watch('watch', 1, 530, FLOOR, 'low_watch', ['evening'], { flipX: true, hideIf: 'c3day4=square' }),
     // The kid who chalks the symbol.
     cast('painter', 300, FLOOR, { knot: 'low_painter', when: ['afternoon', 'evening'] }),
     cast('painter', 566, FLOOR, { id: 'painter-night', knot: 'low_painter_night', when: ['night'] }), // out chalking
@@ -177,6 +182,10 @@ export const lowDistrict: AreaDefinition = {
     citizen('informer', 10, 444, FLOOR, 'low_night', undefined, { showIf: 'c3day3=below', hidden: true, flipX: true }),
     watch('watch-3a', 0, 930, FLOOR, 'low_watch', undefined, { showIf: 'c3day3=below', hidden: true, flipX: true }),
     watch('watch-3b', 1, 950, FLOOR, 'low_watch', undefined, { showIf: 'c3day3=below', hidden: true, flipX: true }),
+    // Day 4, the square after the fight (if the low district rose): your hand beside you; the captain; the
+    // painter's brother held down by two of the guard; the guard's line of pikes across the street, the crowd
+    // held back behind it, the barricade burning (the story shows the leader and the captain).
+    ...riotSquare('painter_brother', 'riot_leader=reformer'),
   ],
   interactables: [
     { id: 'mark', x: 350, y: FLOOR, reach: 10, label: 'Look', knot: 'low_mark' },
@@ -192,3 +201,22 @@ export const lowDistrict: AreaDefinition = {
     { id: 'to-promenade', x: 940, y: FLOOR, reach: 14, to: 'promenade' },
   ],
 };
+
+/**
+ * The square at the end of the riot (Chapter 3, Day 4), in whichever district rose (`hideIf`: the other
+ * leader): you come out of the fight at x 720.
+ */
+export function riotSquare(leader: 'painter_brother' | 'reformer', hideIf: string, y = FLOOR): Person[] {
+  const at = (p: Person): Person => ({ ...p, hideIf });
+  const show = 'c3day4=square';
+  return [
+    inStory('hand-4q', 'diplomat', 700, y, show, { hideIf }),
+    inStory('captain-4q', 'captain', 744, y, show, { hidden: true, hideIf, flipX: true }),
+    inStory('leader-4', leader, 792, y, show, { hidden: true, hideIf, flipX: true }),
+    at(guard('guard-4a', 0, 776, y, 'c3_guard', undefined, { showIf: show })),
+    at(guard('guard-4b', 1, 808, y, 'c3_guard', undefined, { showIf: show, flipX: true })),
+    ...[832, 848, 864, 880].map((x, i) => at(guard(`line-4${i}`, i % 2, x, y, 'c3_guard', undefined, { showIf: show }))),
+    ...[[900, 4], [912, 9], [922, 2], [934, 11], [944, 7], [954, 0]].map(([x, look], i) =>
+      at(citizen(`crowd-4${'abcdef'[i]}`, look!, x!, y, 'c3day4_crowd', undefined, { showIf: show, flipX: true }))),
+  ];
+}

@@ -115,6 +115,8 @@ export const lifts: AreaDefinition = {
     // Chapter 3's story: the lift operator at the top, as always; your hand with you (Day 1).
     inStory('lift-operator', 'lift_operator', 150, CITADEL, 'c3_story', { knot: 'lifts_operator' }),
     inStory('hand', 'diplomat', 60, CITADEL, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
+    // Day 4, the afternoon: the kid from the cellar, at the foot of the lifts, watching them come down.
+    inStory('painter-4', 'painter', 120, FLOOR, 'c3day4=afternoon', { knot: 'c3day4_painter', hideIf: 'painter4' }),
   ],
   interactables: [
     { id: 'glass', x: 100, y: CITADEL, reach: 14, label: 'Look', knot: 'lifts_glass' },

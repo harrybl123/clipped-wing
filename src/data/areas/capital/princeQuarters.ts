@@ -87,6 +87,8 @@ export const princeQuarters: AreaDefinition = {
     { type: 'trigger', x: 50, y: FLOOR, reach: 14, knot: 'c3day1_home', showIf: 'c3day1=night', hideIf: 'sister_called1' },
     // Day 2: at dusk, from the balcony, you watch the district you chose go dark.
     { type: 'trigger', x: BALCONY + 8, y: FLOOR, reach: 6, knot: 'c3day2_dusk', showIf: 'c3day2=dusk', hideIf: 'dusk2' },
+    // Day 4: in the evening, from the balcony, the riot starts.
+    { type: 'trigger', x: BALCONY + 8, y: FLOOR, reach: 6, knot: 'c3day4_riot_start', showIf: 'c3day4=evening' },
   ],
   people: [
     servant('maid', 0, 112, FLOOR, 'c3_maid', MORNING, { flipX: true }), // making the bed
@@ -102,9 +104,15 @@ export const princeQuarters: AreaDefinition = {
     inStory('father-2', 'father', 60, FLOOR, 'c3day2=wake', { hidden: true }),
     // Day 3: your hand at the door at dawn (the story brings him there), and with you from here.
     inStory('hand-3', 'diplomat', 300, FLOOR, 'c3day3=wake,audience', { follow: true, knot: 'c3day3_hand' }),
+    // Day 4: your friend on the balcony at dawn, in your hand's place; the captain, come for you when it starts
+    // (the story brings him beside you); your sister at your telescope at night.
+    inStory('heir-4', 'heir', 516, FLOOR, 'c3day4=wake,spar,sleeve', { knot: 'c3day4_heir', flipX: true }),
+    inStory('captain-4e', 'captain', 300, FLOOR, 'c3day4=table'),
+    inStory('sister-4n', 'sister', 452, FLOOR, 'c3day4=night', { knot: 'c3day4_sister_night' }),
   ],
   interactables: [
-    { id: 'bed', x: 84, y: FLOOR, reach: 14, label: 'Look', knot: 'quarters_bed', hideIf: ['c3day1=night', 'c3day2=home', 'c3day3=home'] },
+    { id: 'bed', x: 84, y: FLOOR, reach: 14, label: 'Look', knot: 'quarters_bed', hideIf: ['c3day1=night', 'c3day2=home', 'c3day3=home', 'c3day4=night'] },
+    { id: 'bed-4', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day4_bed', showIf: 'c3day4=night' },
     { id: 'bed-3', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day3_bed', showIf: 'c3day3=home' },
     { id: 'bed-2', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day2_bed', showIf: 'c3day2=home' },
     { id: 'bed-1', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day1_bed', showIf: 'c3day1=night' },

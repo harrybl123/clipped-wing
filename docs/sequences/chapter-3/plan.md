@@ -184,6 +184,8 @@ Midweek (doc). The riot falls here, in the middle (designer). **Your hand is "on
 
 **New for Day 4:** the war table with the real city on it (the riot spreading); the riot in the square (fire; the screens cutting out); the prince's light-blade at full; your hand as a party member in a fight; the firebrand (a new character, if he's the painter's brother).
 
+**As built (2026-10-15):** as above, with these changes. **The riot on the war table** (designer): your father hands you command of the guard, whether or not you took the night from him (the physician only changes what he says), and if a crowd takes the stair up to the citadel he takes command from you, finishes it, and sends you down to the square anyway (`riot_table`: won / taken). It has its own map (designer: larger than the lesson's): the district that rose, close up, as a street plan of 15 places round a barricaded square. A longer game, on the easy side but not really easy (designer): the square grows and pours crowds into any empty street next to it; you take back two streets, seal every street into the square, clear what's left, then go down. More of the guard every 2 turns; the power cut every 3; the guard's pikes hold at +1. Afternoon: the kid at the foot of the lifts rather than the barkeep (only the kid knows you now, after Day 3's playtest). Telling the captain about the sleeve is done in the halls, straight after the spar.
+
 **Settled (designer):** the riot is on the war table: you put it down with the capital's guard (designer), then drop into the square for the fight. Choosing a side (the people or the capital) waits for Chapter 7. Your hand away all day is the clue (designer).
 
 ---

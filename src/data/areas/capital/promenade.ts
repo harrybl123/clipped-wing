@@ -4,6 +4,7 @@ import { rail, scrollingScreen } from './citadelProps';
 import type { AreaDefinition, Feature, Prop, Solid } from '../types';
 import type { RowSprite } from '../../../ui/sprites';
 import { cast, citizen, guard, inStory, patrol, strollingCitizen, watch, AWAKE, DAY, LATE, MORNING } from './people';
+import { riotSquare } from './lowDistrict';
 
 // The promenade (Chapter 3): the mid-city market, where the city meets, between the citadel and the low
 // district (docs/areas/capital/promenade.md). The first street in the city, so it sets the look: the
@@ -141,25 +142,29 @@ export const promenade: AreaDefinition = {
     steam(503, FLOOR - 8),
     // Light running along the walkway's rail.
     { type: 'pulse', points: [{ x: WALK_FROM, y: WALK - 10 }, { x: WALK_TO, y: WALK - 10 }], speed: 90, every: 400, count: 2, colour: S.cyan },
+    // Day 4, the riot (if the promenade rose): the barricade burning across the square.
+    { type: 'fire', x: 912, y: FLOOR - 1, showIf: 'c3day4=square' },
+    { type: 'fire', x: 944, y: FLOOR - 1, showIf: 'c3day4=square' },
+    { type: 'smoke', x: 928, y: FLOOR - 12, top: 30, showIf: 'c3day4=square' },
   ],
   people: [
     // The stalls' cooks.
-    citizen('cook-1', 1, 346, FLOOR, 'promenade_cook', AWAKE),
-    citizen('cook-2', 10, 460, FLOOR, 'promenade_cook', AWAKE, { flipX: true }),
+    citizen('cook-1', 1, 346, FLOOR, 'promenade_cook', AWAKE, { hideIf: 'c3day4=square' }),
+    citizen('cook-2', 10, 460, FLOOR, 'promenade_cook', AWAKE, { flipX: true, hideIf: 'c3day4=square' }),
     // The square: people about their business, a kid, someone resting by the bench.
-    strollingCitizen('passer-1', 0, 60, 560, FLOOR, 'promenade_folk', AWAKE),
+    strollingCitizen('passer-1', 0, 60, 560, FLOOR, 'promenade_folk', AWAKE, { hideIf: 'c3day4=square' }),
     strollingCitizen('passer-2', 5, 220, 580, FLOOR, 'promenade_folk', DAY),
-    strollingCitizen('passer-3', 12, 80, 300, FLOOR, 'promenade_folk', ['afternoon', 'evening']),
+    strollingCitizen('passer-3', 12, 80, 300, FLOOR, 'promenade_folk', ['afternoon', 'evening'], { hideIf: 'c3day4=square' }),
     strollingCitizen('kid', 6, 300, 520, FLOOR, 'c3_kid', DAY),
     citizen('resting', 3, 404, FLOOR, 'c3_old', ['afternoon']),
     // Shoppers along the walkway and under it.
-    citizen('shopper-1', 8, 650, WALK, 'promenade_shopper', AWAKE),
+    citizen('shopper-1', 8, 650, WALK, 'promenade_shopper', AWAKE, { hideIf: 'c3day4=square' }),
     strollingCitizen('shopper-2', 11, 640, 880, WALK, 'promenade_shopper', DAY),
-    citizen('shopper-3', 13, 800, FLOOR, 'promenade_shopper', AWAKE, { flipX: true }),
+    citizen('shopper-3', 13, 800, FLOOR, 'promenade_shopper', AWAKE, { flipX: true , hideIf: 'c3day4=square' }),
     // At night, in the rain: someone hooded, the watch on its beat.
-    strollingCitizen('hooded', 2, 100, 900, FLOOR, 'promenade_night', ['night']),
-    patrol('watch-1', 1, 200, 580, FLOOR, 'c3_watch', LATE),
-    watch('watch-2', 0, 562, FLOOR, 'c3_watch', ['afternoon', 'night'], { flipX: true, hideIf: 'c3day1=walk,requests' }),
+    strollingCitizen('hooded', 2, 100, 900, FLOOR, 'promenade_night', ['night'], { hideIf: 'c3day4=square' }),
+    patrol('watch-1', 1, 200, 580, FLOOR, 'c3_watch', LATE, { hideIf: 'c3day4=square' }),
+    watch('watch-2', 0, 562, FLOOR, 'c3_watch', ['afternoon', 'night'], { flipX: true, hideIf: ['c3day1=walk,requests', 'c3day4=square'] }),
     // The commander of the watch, looking the square over.
     cast('commander', 540, FLOOR, { knot: 'promenade_commander', when: ['afternoon'] }),
     // The reformer talking to people in the morning; the kid who chalks the symbol; the envoy, lost, in the evening.
@@ -179,6 +184,8 @@ export const promenade: AreaDefinition = {
     citizen('stairs-2', 3, 360, FLOOR, 'c3day2_stairs', undefined, { showIf: 'c3day2=below', hideIf: 'energy=high', flipX: true }),
     citizen('food-2', 1, 446, FLOOR, 'c3day2_food', undefined, { showIf: 'c3day2=below', hideIf: 'energy=high' }),
     inStory('painter-2', 'painter', 506, FLOOR, 'c3day2=below', { knot: 'c3day2_painter', hideIf: 'energy=high' }),
+    // Day 4, the square after the fight (if the promenade rose): as in the low district, with the reformer.
+    ...riotSquare('reformer', 'riot_leader=firebrand', FLOOR),
   ],
   interactables: [
     { id: 'screen', x: 410, y: FLOOR, reach: 10, label: 'Look', knot: 'promenade_screen' },

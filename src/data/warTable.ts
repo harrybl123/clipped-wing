@@ -1,4 +1,4 @@
-import type { Squad, WarBoard, WarSide } from '../systems/WarTable';
+import type { RiotRules, Squad, WarBoard, WarPlace, WarSide, WarWay } from '../systems/WarTable';
 
 // The war table's boards and scenarios (Chapter 3; docs/sequences/chapter-3/plan.md, "The war table"). The
 // rules are src/systems/WarTable.ts; WarTableScene runs them. Numbers are a first pass, to playtest.
@@ -116,3 +116,141 @@ export const LESSON: WarScenario = {
 };
 
 export const SCENARIOS: Record<string, WarScenario> = { [LESSON.id]: LESSON };
+
+// --- Day 4: the riot (designer: its own map, not the whole city; a decently long battle) ---
+
+/**
+ * The district that's risen, close up, as a street plan seen from above (designer: its own map, larger than
+ * the lesson's): the way up along the top (the stair up to the citadel, the lifts' foot), the square in the
+ * middle with five streets into it, the rest of the district round it to the edges, and a back stair down the
+ * west side. The same streets either way; their names are the district's. All streets but the stair up.
+ */
+function district(names: Record<string, string>): WarBoard {
+  const at = (id: string, x: number, y: number, extra: Partial<WarPlace> = {}): WarPlace => ({ id, name: names[id]!, x, y, level: 0, ...extra });
+  const ways: WarWay[] = [
+    ['stair_up', 'lifts'], ['stair_up', 'arch'], ['stair_up', 'back'], ['lifts', 'arch'], ['lifts', 'lamp'],
+    ['back', 'screens'], ['back', 'weavers'], ['arch', 'screens'], ['arch', 'market'], ['arch', 'lamp'], ['lamp', 'market'], ['lamp', 'yards'],
+    ['screens', 'square'], ['weavers', 'square'], ['market', 'square'], ['cellar', 'square'], ['well', 'square'],
+    ['weavers', 'cellar'], ['weavers', 'wash'], ['market', 'well'], ['market', 'yards'], ['cellar', 'wash'], ['cellar', 'bridge'],
+    ['well', 'bridge'], ['well', 'tenements'], ['yards', 'tenements'], ['bridge', 'tenements'], ['wash', 'bridge'],
+  ].map(([a, b]) => ({ a: a!, b: b!, kind: 'street' as const }));
+  ways.push({ a: 'stair_up', b: 'screens', kind: 'stair' });
+  return {
+    places: [
+      at('stair_up', 240, 44, { level: 1 }),
+      at('lifts', 412, 50),
+      at('back', 52, 82),
+      at('screens', 150, 92),
+      at('arch', 318, 86),
+      at('lamp', 432, 112),
+      at('weavers', 58, 140),
+      // The square: barricaded. Held at +1, and its barricades lose nothing when they hold.
+      at('square', 204, 150, { stronghold: true }),
+      at('market', 330, 140),
+      at('yards', 424, 176),
+      at('cellar', 104, 192),
+      at('well', 272, 196),
+      at('wash', 34, 226),
+      at('bridge', 184, 230),
+      at('tenements', 368, 228),
+    ],
+    ways,
+    // The guard's pikes and armour: a crowd needs more than their number to break them.
+    armoured: 'you',
+  };
+}
+
+/** The low district (energy high: the district you darkened rises, led by the painter's brother). */
+export const LOW_DISTRICT_BOARD = district({
+  stair_up: 'The stair up', lifts: 'The lifts\u2019 foot', back: 'The back stairs', screens: 'The screens\u2019 street', arch: 'The arches',
+  lamp: 'The lamp shop', weavers: 'The Weavers\u2019 Row', square: 'The square', market: 'The market street', yards: 'The dye yards',
+  cellar: 'The cellar lane', well: 'The old well', wash: 'The wash house', bridge: 'The drain bridge', tenements: 'The tenements',
+});
+/** The promenade (energy to the people: the promenade, dark since, rises, and the reformer speaks to it). */
+export const PROMENADE_BOARD = district({
+  stair_up: 'The citadel stair', lifts: 'The middle lifts', back: 'The servants\u2019 stair', screens: 'The great screen', arch: 'The colonnade',
+  lamp: 'The arcade', weavers: 'The watch post', square: 'The square', market: 'The shopfronts', yards: 'The glass terraces',
+  cellar: 'The stair down', well: 'The fountain', wash: 'The bathhouse', bridge: 'The footbridge', tenements: 'The apartments',
+});
+
+export interface RiotGoal {
+  kind: 'take' | 'seal' | 'clear' | 'square';
+  place?: string;
+  start: string;
+}
+
+export interface RiotScenario {
+  id: string;
+  board: WarBoard;
+  /** Which district it is, for how the table's drawn (the low district's warm, the promenade's glass). */
+  district: 'low' | 'promenade';
+  squads: Squad[];
+  owner: Record<string, WarSide>;
+  rules: RiotRules;
+  /**
+   * One goal after another (as the lesson): take a place; seal the square (a squad on every street into it);
+   * clear the streets (no crowd left outside it); then the square, which you go down to yourself.
+   */
+  goals: RiotGoal[];
+  /** More of the guard off the lifts every so often (fighting their way off, if a crowd's got there). */
+  reinforce: { place: string; every: number; strength: number };
+  /** The power: you can cut it under one of their crowds, once every so many turns. */
+  powerEvery: number;
+  /** The fight at the square (src/data/combat.ts), and the area its square is in, where you come out after. */
+  square: string;
+  squareArea: { areaId: string; start: { x: number; y: number } };
+  /** The story's lines (ink knots): before, things that go badly (each once), the guard arriving, the power, going down, and the square (played back in the area). */
+  knots: { intro: string; lost: string; spread: string; stair: string; reinforce: string; power: string; dropIn: string; taken: string; after: string };
+  /** If a crowd takes this place (the stair up to the citadel), you've lost it: he takes command from you (designer). */
+  lostIf: string;
+}
+
+const riotSquads = (): Pick<RiotScenario, 'squads' | 'owner'> => {
+  // The guard (yours, now) comes down at the way up; the rising has the square and most of the district.
+  const squads: Squad[] = [
+    { id: 'g1', side: 'you', place: 'lifts', strength: 6 },
+    { id: 'g2', side: 'you', place: 'stair_up', strength: 4 },
+    { id: 'g3', side: 'you', place: 'arch', strength: 4 },
+    { id: 'g4', side: 'you', place: 'lamp', strength: 3 },
+    { id: 'r0', side: 'him', place: 'square', strength: 4 },
+    { id: 'r1', side: 'him', place: 'screens', strength: 2 },
+    { id: 'r2', side: 'him', place: 'market', strength: 2 },
+    { id: 'r3', side: 'him', place: 'weavers', strength: 2 },
+    { id: 'r4', side: 'him', place: 'cellar', strength: 1 },
+    { id: 'r5', side: 'him', place: 'well', strength: 2 },
+    { id: 'r6', side: 'him', place: 'wash', strength: 1 },
+    { id: 'r7', side: 'him', place: 'bridge', strength: 2 },
+    { id: 'r8', side: 'him', place: 'tenements', strength: 2 },
+    { id: 'r9', side: 'him', place: 'yards', strength: 1 },
+  ];
+  return { squads, owner: Object.fromEntries(squads.map((q) => [q.place, q.side])) };
+};
+
+const riot = (id: string, board: WarBoard, district: 'low' | 'promenade', squareArea: RiotScenario['squareArea']): RiotScenario => ({
+  squareArea,
+  id,
+  board,
+  district,
+  ...riotSquads(),
+  rules: { heart: 'square', grow: 1, cap: 8, spreadAt: 5, spreadSize: 2, upTo: ['stair_up', 'lifts'] },
+  goals: [
+    { kind: 'take', place: 'market', start: 'c3day4_riot_goal_market' },
+    { kind: 'take', place: 'screens', start: 'c3day4_riot_goal_screens' },
+    { kind: 'seal', start: 'c3day4_riot_goal_seal' },
+    { kind: 'clear', start: 'c3day4_riot_goal_clear' },
+    { kind: 'square', place: 'square', start: 'c3day4_riot_goal_square' },
+  ],
+  reinforce: { place: 'lifts', every: 2, strength: 3 },
+  powerEvery: 3,
+  square: 'riot_square',
+  lostIf: 'stair_up',
+  knots: {
+    intro: 'c3day4_riot_intro', lost: 'c3day4_riot_lost', spread: 'c3day4_riot_spread', stair: 'c3day4_riot_stair',
+    reinforce: 'c3day4_riot_reinforce', power: 'c3day4_riot_power', dropIn: 'c3day4_riot_dropin', taken: 'c3day4_riot_taken', after: 'c3day4_square',
+  },
+});
+
+export const RIOTS: Record<string, RiotScenario> = {
+  riot_low: riot('riot_low', LOW_DISTRICT_BOARD, 'low', { areaId: 'low-district', start: { x: 720, y: 236 } }),
+  riot_promenade: riot('riot_promenade', PROMENADE_BOARD, 'promenade', { areaId: 'promenade', start: { x: 720, y: 232 } }),
+};

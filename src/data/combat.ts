@@ -1190,3 +1190,135 @@ ENCOUNTERS.sim_guards = {
   timing: { lunge: 950, ease: 1.2 },
   outcomes: { won: {}, lost: {} },
 };
+
+// --- Chapter 3, Day 4: your friend on the balcony; the square, with your hand beside you (draft numbers) ---
+
+Object.assign(MOVES, {
+  // Your friend, sparring in your hand's place, with your hand's practice blade: quick, laughing, showing off.
+  heir_flick: {
+    id: 'heir_flick', name: 'Flick', target: 'enemy', power: 5, kind: 'pierce', softened: { dodge: 0.15 },
+    qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    tell: { pose: 'squared', lines: ['"Keep up!"', 'He bounces on his toes, point flicking.'] },
+    description: 'A quick flick of the point.',
+  },
+  heir_flurry: {
+    id: 'heir_flurry', name: 'Flurry', target: 'enemy', power: 3, kind: 'strike', hits: 3, softened: { dodge: 0.15 },
+    qte: { kind: 'notes', outer: 190, perfect: 75, gap: 420, lanes: ['left', 'up', 'right'], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'cock', lines: ['"One, two, three!"', 'He grins, and his wrist starts to turn.'] },
+    description: 'Three cuts, fast and showy.',
+  },
+  // Showing off: the blade twirled, then a big lunge (the one where his cuff turns back).
+  heir_twirl: {
+    id: 'heir_twirl', name: 'Twirl', target: 'self', windsUp: 'heir_grand',
+    tell: { pose: 'glance', lines: ['He spins the blade round his hand, for the city.'] },
+    description: 'Showing off.',
+  },
+  heir_grand: {
+    id: 'heir_grand', name: 'Grand lunge', target: 'enemy', power: 11, kind: 'pierce', softened: { guard: 0.3, dodge: 0.1 },
+    qte: { kind: 'bar', time: 1100, zone: [0.64, 0.84], sweet: [0.72, 0.76], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'windup', lines: ['"Watch this."', 'He throws his arm back, all flourish.'] },
+    description: 'A huge lunge, all flourish. Guard, or Disarm him first.',
+  },
+
+  // The rioters at the square: pipes, stones, and all of them at once.
+  pipe_swing: {
+    id: 'pipe_swing', name: 'Pipe', target: 'enemy', power: 7, kind: 'strike',
+    qte: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'cockR', lines: ['The pipe goes up.', '"For the Row!"'] },
+    description: 'A length of pipe, swung.',
+  },
+  stone_throw: {
+    id: 'stone_throw', name: 'Stone', target: 'enemy', power: 5, kind: 'pierce',
+    qte: { kind: 'key', time: 750, quick: 280, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    tell: { pose: 'glance', lines: ['A hand goes down for a cobble.', '"Prince!"'] },
+    description: 'A cobble from the street.',
+  },
+  crowd_rush: {
+    id: 'crowd_rush', name: 'Rush', target: 'enemy', power: 4, kind: 'strike', mob: 0.35,
+    qte: { kind: 'notes', outer: 190, perfect: 75, gap: 440, lanes: ['left', 'up', 'right'], alt: { kind: 'mash', presses: 7, time: 1700 } },
+    tell: { pose: 'jeer', lines: ['The crowd behind them roars them on.', '"All of us!"'] },
+    description: 'They come on together: harder for every one of them still standing.',
+  },
+  brick_smash: {
+    id: 'brick_smash', name: 'Smash', target: 'enemy', power: 9, kind: 'strike',
+    qte: { kind: 'bar', time: 1100, zone: [0.62, 0.82], sweet: [0.7, 0.74], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'windup', lines: ['He lifts a lump of the barricade over his head.'] },
+    description: 'A lump of the barricade, brought down.',
+  },
+
+  // Your hand beside you: a real blade now, and a soldier's way with it (clue: you've seen it before).
+  hand_blade: {
+    id: 'hand_blade', name: 'Cut', target: 'enemy', power: 7, kind: 'strike', crit: 0.15,
+    qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    description: 'Basic attack with his blade.',
+  },
+  hand_sweep: {
+    id: 'hand_sweep', name: 'Sweep', target: 'enemy', power: 5, kind: 'shove', sp: 3, interrupts: true, exposes: { turns: 2, mult: 1.3 },
+    qte: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72], alt: { kind: 'key', time: 800, quick: 300 } },
+    description: 'A foot behind theirs: down, and they take more for 2 rounds. Stops a big swing.',
+  },
+  hand_cover: {
+    id: 'hand_cover', name: 'Cover', target: 'self', sp: 2, taunts: true,
+    description: 'Steps in front of you: draws every one of them that hasn’t moved yet onto him, and braces.',
+  },
+} satisfies Record<string, MoveDef>);
+
+/** Your friend, sparring at dawn: quick and showy, never as good as he thinks. */
+COMBATANTS.heir_spar = {
+  id: 'heir_spar', name: 'Your friend', sprite: 'heir', hp: 40, attack: 8, defence: 7, speed: 15,
+  moves: ['heir_flick', 'heir_flurry', 'heir_twirl'], weights: [3, 2, 1],
+  poise: 2, feint: 0.1,
+  ai: { opening: ['heir_flick', 'heir_twirl'], maxRepeat: 2, recent: 0.5, when: { hurt: { heir_twirl: 2 } } },
+};
+
+/**
+ * Chapter 3, Day 4, the balcony at dawn: your friend in your hand's place (designer, plan). Lighter than
+ * Day 1's: win or lose, the day goes on. Writes `spar4`.
+ */
+ENCOUNTERS.spar_friend = {
+  id: 'spar_friend',
+  name: 'Your friend',
+  party: ['prince'],
+  enemies: ['heir_spar'],
+  stage: 'balcony',
+  timing: { lunge: 950, ease: 1.25 },
+  outcomes: { won: { spar4: 'won' }, lost: { spar4: 'lost' } },
+};
+
+/** The prince at the square: the light-blade at full for the first time (plan). */
+COMBATANTS.prince_riot = { ...COMBATANTS.prince!, id: 'prince_riot', sprite: 'prince_full', attack: 11 };
+
+/** Your hand, beside you, from behind. */
+COMBATANTS.hand_ally = {
+  id: 'hand_ally', name: 'Your hand', sprite: 'hand_back', hp: 50, sp: 10, attack: 10, defence: 9, speed: 14,
+  basic: 'hand_blade', moves: ['hand_sweep', 'hand_cover'], reactions: ['dodge', 'parry'],
+};
+
+/** The rioters who break through the guard towards you. */
+COMBATANTS.rioter = {
+  id: 'rioter', name: 'Rioter', sprite: 'rioter', hp: 24, attack: 8, defence: 7, speed: 11,
+  moves: ['pipe_swing', 'stone_throw', 'crowd_rush'], weights: [2, 1.5, 1.5],
+  weak: ['pierce'], poise: 1, feint: 0.05,
+  ai: { maxRepeat: 2, recent: 0.5 },
+};
+COMBATANTS.rioter_big = {
+  id: 'rioter_big', name: 'The big one', sprite: 'rioter_big', hp: 38, attack: 10, defence: 8, speed: 9,
+  moves: ['brick_smash', 'crowd_rush', 'stone_throw'], weights: [2, 1.5, 1],
+  weak: ['shove'], poise: 2, feint: 0,
+  ai: { opening: ['crowd_rush', 'brick_smash'], maxRepeat: 2, recent: 0.5 },
+};
+
+/**
+ * Chapter 3, Day 4, the square (the riot's drop-in): rioters break through the guard towards you, and your
+ * hand fights beside you, like a soldier (plan). Must be won: the leader's on the steps. Writes `riot_fight`.
+ */
+ENCOUNTERS.riot_square = {
+  id: 'riot_square',
+  name: 'The square',
+  party: ['prince_riot', 'hand_ally'],
+  enemies: ['rioter', 'rioter_big', 'rioter'],
+  stage: 'square',
+  mustWin: true,
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { riot_fight: 'won' }, lost: { riot_fight: 'lost' } },
+};

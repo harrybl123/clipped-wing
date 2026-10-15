@@ -843,8 +843,8 @@ describe('Chapter 3: the prince and his hand', () => {
     expect([p.basic, ...p.moves].map((m) => MOVES[m!]!.name)).toEqual(['Lunge', 'Riposte', 'Disarm', 'Press']);
   });
 
-  it('only the simple QTEs in his fights (designer: no ring, side, grip or balance)', () => {
-    const ids = [COMBATANTS.prince!.basic!, ...COMBATANTS.prince!.moves, ...COMBATANTS.hand!.moves];
+  it('only the simple QTEs in his fights, Day 4\'s too (designer: no ring, side, grip or balance)', () => {
+    const ids = [COMBATANTS.prince!.basic!, ...COMBATANTS.prince!.moves, ...['hand', 'heir_spar', 'rioter', 'rioter_big', 'hand_ally'].flatMap((c) => [...(COMBATANTS[c]!.basic ? [COMBATANTS[c]!.basic!] : []), ...COMBATANTS[c]!.moves])];
     const kinds = (q: unknown): string[] => (Array.isArray(q) ? q.flatMap(kinds) : q && typeof q === 'object' ? [(q as { kind: string }).kind, ...kinds((q as { alt?: unknown }).alt)] : []);
     for (const id of ids) for (const k of kinds(MOVES[id]!.qte)) expect(['key', 'bar', 'notes', 'mash'], `${id}: ${k}`).toContain(k);
   });

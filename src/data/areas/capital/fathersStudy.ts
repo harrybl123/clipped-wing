@@ -78,6 +78,9 @@ export const fathersStudy: AreaDefinition = {
     inStory('father-2', 'father', 160, FLOOR, 'c3day2=study', { knot: 'c3day2_father_study', flipX: true }),
     inStory('father-5', 'father', 226, FLOOR, 'c3day2=report', { knot: 'c3day2_report', flipX: true }),
     inStory('sister-5', 'sister', 30, FLOOR, 'c3day2=report', { knot: 'c3day2_sister_door' }),
+    // Day 4: at his desk, in yesterday's clothes (if the physician sent you); by his fire at night.
+    inStory('father-4', 'father', 226, FLOOR, 'c3day4=persuade', { knot: 'c3day4_father', flipX: true }),
+    inStory('father-4n', 'father', 226, FLOOR, 'c3day4=night', { knot: 'c3day4_father_night', flipX: true }),
   ],
   interactables: [
     { id: 'model', x: 72, y: FLOOR, reach: 14, label: 'Look', knot: 'study_model' },

@@ -572,7 +572,7 @@ function scavengerBack(pose: CarverPose, who: 'scavenger' | 'old' | 'fists' | Al
   // His hook: a plain pole with a hook at the end, where her staff would be.
   // (Fists only: her staff's left against the bar's counter.)
   // (The boss's son: a length of pipe.)
-  const tool = () => (fists || ally?.tool === 'none' ? undefined : ally?.tool === 'pipe' ? pipe(g, ...p.staff) : ally?.tool === 'staff' ? staff(g, ...p.staff) : old ? hookPole(g, ...p.staff) : staff(g, ...p.staff));
+  const tool = () => (fists || ally?.tool === 'none' ? undefined : ally?.tool === 'pipe' ? pipe(g, ...p.staff) : ally?.tool === 'blade' ? lightBlade(g, ...p.staff) : ally?.tool === 'staff' ? staff(g, ...p.staff) : old ? hookPole(g, ...p.staff) : staff(g, ...p.staff));
   if (forward) {
     tool();
     drawArms();
@@ -639,6 +639,14 @@ function hookPole(g: Grid, [ax, ay]: Pt, [bx, by]: Pt): void {
   limb(g, [[bx, by], [bx + uy * 4, by - ux * 4], [bx + uy * 4 - ux * 4, by - ux * 4 - uy * 4]], 0.8, '7');
 }
 
+/** A light-blade held where a staff would be: a gold hilt in the hand, a line of cyan light from it. */
+function lightBlade(g: Grid, [ax, ay]: Pt, [bx, by]: Pt): void {
+  const [mx, my] = [(ax + bx) / 2, (ay + by) / 2];
+  limb(g, [[mx, my], [mx + (bx - mx) * 0.12, my + (by - my) * 0.12]], 1, 'g');
+  limb(g, [[mx + (bx - mx) * 0.12, my + (by - my) * 0.12], [bx, by]], 1, 'q');
+  limb(g, [[mx + (bx - mx) * 0.12, my + (by - my) * 0.12], [bx, by]], 0.3, 'N');
+}
+
 /** A length of pipe: the near half of the staff's line, thick and dull. */
 function pipe(g: Grid, [ax, ay]: Pt, [bx, by]: Pt): void {
   limb(g, [[(ax + bx) / 2, (ay + by) / 2], [bx, by]], 1.3, '7');
@@ -653,7 +661,7 @@ interface AllyBack {
   /** A hood or a wrap covers the neck; hair is trimmed above it. */
   covered?: boolean;
   scarf?: [number, number];
-  tool: 'pipe' | 'staff' | 'none';
+  tool: 'pipe' | 'staff' | 'blade' | 'none';
 }
 const ALLY_BACKS = {
   // The boss's son: a mop of dark hair, his bright scarf, a good cyan shirt, a length of pipe (Day 10).
@@ -662,6 +670,8 @@ const ALLY_BACKS = {
   scout: { skin: [SHADES.skinDark, SHADES.skinDarkShade], coat: [SHADES.dim, SHADES.light, SHADES.deep], head: [SHADES.light, SHADES.white], covered: true, scarf: [SHADES.light, SHADES.dim], tool: 'staff' },
   // The watcher: his hood up, his long coat, empty hands (Day 11).
   watcher: { skin: [SHADES.skinDark, SHADES.skinDarkShade], coat: [SHADES.woodLight, SHADES.woodPale, SHADES.wood], head: [SHADES.wood, SHADES.woodLight], covered: true, tool: 'none' },
+  // Your hand (Chapter 3, Day 4): dark hair, his gold-brown coat, a light-blade in the city's cyan, at full.
+  hand: { skin: [SHADES.skinDark, SHADES.skinDarkShade], coat: [SHADES.amberDeep, SHADES.amberMid, SHADES.wood], head: [SHADES.deep, SHADES.dim], tool: 'blade' },
 } satisfies Record<string, AllyBack>;
 type AllyId = keyof typeof ALLY_BACKS;
 
@@ -679,7 +689,7 @@ function allyBack(g: Grid, hx: number, hy: number, top: number, a: AllyBack): Ro
     colours: {
       K: a.skin[0], k: a.skin[1], C: a.coat[0], Q: a.coat[1], c: a.coat[2], P: SHADES.woodPale, D: SHADES.dim, p: SHADES.woodLight,
       H: a.head[0], h: a.head[1], A: a.scarf?.[0] ?? a.coat[0], a: a.scarf?.[1] ?? a.coat[2], '7': SHADES.dim, X: SHADES.shadow,
-      '8': SHADES.light, '9': SHADES.woodPale, '0': SHADES.woodLight, q: SHADES.cyanMid,
+      '8': SHADES.light, '9': SHADES.woodPale, '0': SHADES.woodLight, q: SHADES.cyanMid, N: SHADES.cyan, g: SHADES.amber,
     },
   };
 }
@@ -1077,3 +1087,18 @@ export function hologram(s: RowSprite): RowSprite {
 export const SIM_GUARD_BATTLE: Record<FoePose, RowSprite> = Object.fromEntries(
   Object.entries(stragglerPoses({ broad: 3, skin: 'tan', head: 'shaved', holds: 'staff', coat: [SHADES.dim, SHADES.light, SHADES.woodPale], patched: false })).map(([pose, sprite]) => [pose, hologram(sprite)]),
 ) as Record<FoePose, RowSprite>;
+
+// --- Chapter 3, Day 4 ---
+
+/** Your friend (the heir): his blue-green coat with gold, his swept fair-red hair, your hand's practice blade. */
+export const HEIR_BATTLE = stragglerPoses({ broad: -1, skin: 'fair', head: 'hair', hair: SHADES.amberDeep, holds: 'blade', coat: [SHADES.cyanMid, SHADES.cyan, SHADES.cyanDeep], patched: false });
+/** Your hand, from behind, beside you at the square, his light-blade at full. */
+export const HAND_BACK_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(CARVER_POSES.map((p) => [p, scavengerBack(p, 'hand')])) as Record<CarverPose, RowSprite>;
+/** A rioter: a low-district coat, a scarf wound over the face, a length of pipe. */
+export const RIOTER_BATTLE = stragglerPoses({ broad: 1, skin: 'tan', head: 'wrap', holds: 'staff', coat: [SHADES.woodLight, SHADES.woodPale, SHADES.wood], wrap: [SHADES.amberDeep, SHADES.wood] });
+/** The big one: broad, shaved, a lump of the barricade in his fist. */
+export const RIOTER_BIG_BATTLE = stragglerPoses({ broad: 5, skin: 'dark', head: 'shaved', holds: 'lump', coat: [SHADES.dim, SHADES.light, SHADES.deep] });
+/** The prince with his light-blade at full (the square): the blade's wine bright, not dulled for practice. */
+export const PRINCE_FULL_BATTLE: Record<CarverPose, RowSprite> = Object.fromEntries(
+  Object.entries(PRINCE_BATTLE).map(([pose, s]): [string, RowSprite] => [pose, { rows: s.rows, colours: { ...s.colours, '9': SHADES.wine, '0': SHADES.white } }]),
+) as Record<CarverPose, RowSprite>;

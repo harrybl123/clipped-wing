@@ -95,7 +95,9 @@ export const councilChamber: AreaDefinition = {
     strollingServant('page', 1, 180, 330, FLOOR, 'c3_page', MORNING),
   ],
   interactables: [
-    { id: 'table', x: 222, y: FLOOR, reach: 14, label: 'Look', knot: 'council_table' },
+    { id: 'table', x: 222, y: FLOOR, reach: 14, label: 'Look', knot: 'council_table', hideIf: 'c3day4=afternoon' },
+    // Day 4, the afternoon: the city on the table, and a crowd gathering on it.
+    { id: 'table-4', x: 222, y: FLOOR, reach: 14, label: 'Look', knot: 'c3day4_table_light', showIf: 'c3day4=afternoon', hideIf: 'table4' },
     { id: 'empty-seat', x: 36, y: FLOOR - 32, reach: 14, label: 'Look', knot: 'council_empty_seat' },
     { id: 'top-seat', x: 456, y: FLOOR - 48, reach: 10, label: 'Look', knot: 'council_top_seat', hideIf: 'c3day2=council' }, // (not while he's in it)
   ],

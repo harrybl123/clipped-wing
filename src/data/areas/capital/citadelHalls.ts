@@ -175,6 +175,11 @@ export const citadelHalls: AreaDefinition = {
     inStory('hand', 'diplomat', 110, UPPER, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
     courtier('bow-1', 1, 330, FLOOR, 'halls_courtier', undefined, { showIf: 'c3day1=halls' }),
     courtier('bow-2', 6, 352, FLOOR, 'halls_courtier', undefined, { showIf: 'c3day1=halls', flipX: true }),
+    // Day 4: the captain by your door (if you tell him about your friend's sleeve); the physician, waiting on
+    // your father; in the afternoon, your sister at the gallery's rail.
+    inStory('captain-4', 'captain', 170, UPPER, 'c3day4=captain', { knot: 'c3day4_captain' }),
+    inStory('physician-4', 'physician', 286, UPPER, 'c3day4=captain,physician', { knot: 'c3day4_physician', flipX: true }),
+    inStory('sister-4', 'sister', 770, UPPER, 'c3day4=afternoon', { knot: 'c3day4_sister' }),
   ],
   interactables: [
     { id: 'statue', x: 206, y: FLOOR, reach: 14, label: 'Look', knot: 'halls_statue' },

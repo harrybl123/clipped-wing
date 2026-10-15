@@ -441,5 +441,5 @@ You hang up the plain coat. It smells of the cellar's smoke.
 ~ c3day4 = "wake"
 ~ objective = ""
 ~ objective_target = ""
-You lie awake, thinking of a man walked past you to the lifts, looking at you, not knowing who you were. #wake:prince-quarters:120:226 #endday:Day 4
+You lie awake, thinking of a man walked past you to the lifts, looking at you, not knowing who you were. #wake:prince-quarters:120:226:c3day4_start #endday:Day 4
 -> END
