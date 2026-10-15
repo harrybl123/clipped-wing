@@ -130,6 +130,8 @@ export const lowDistrict: AreaDefinition = {
     { type: 'trigger', x: 60, y: FLOOR, reach: 16, knot: 'c3day3_low', showIf: 'c3day3=below', hideIf: 'low3' },
     { type: 'watch', id: 'informant-1', who: 'capital-citizen-12', from: 150, to: 420, y: FLOOR, speed: 18, range: 64, pause: 2000, reset: { x: 56, y: FLOOR }, showIf: 'c3day3=sneak', call: 'Highness...?' },
     { type: 'watch', id: 'informant-2', who: 'capital-citizen-3', from: 664, to: 664, y: FLOOR, speed: 0, range: 50, face: 1, glance: { every: 5200, for: 1800, range: 96 }, reset: { x: 530, y: FLOOR }, showIf: 'c3day3=sneak', call: 'Highness...?' },
+    // Back up out of the hideout: your hand, waiting by the door, has something to say.
+    { type: 'trigger', x: 601, y: FLOOR, reach: 16, knot: 'c3day3_outside', showIf: 'c3day3=home', hideIf: 'outside3' },
     { type: 'shadow', x: 204, y: FLOOR, width: 24, showIf: 'c3day3=sneak' },
     { type: 'shadow', x: 316, y: FLOOR, width: 24, showIf: 'c3day3=sneak' },
     { type: 'shadow', x: 504, y: FLOOR, width: 24, showIf: 'c3day3=sneak' },

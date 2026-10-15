@@ -662,6 +662,7 @@ VAR heard_sister3 = false
 VAR heard_stairs3 = false
 VAR heard_counter3 = false
 VAR painter3 = false
+VAR outside3 = false
 // Chapter 3, Day 4 (not built yet).
 VAR c3day4 = ""
 

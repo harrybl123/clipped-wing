@@ -89,12 +89,16 @@ export const hideout: AreaDefinition = {
     // in; only the kid knows you). The barkeep; tables you listen in on (a trigger by each); the painter in the
     // corner by the steps (his brother was the man taken). Your hand waits up in the street.
     inStory('keeper-3', 'hideout_keeper', 404, FLOOR, 'c3day3=sneak,hideout,home', { knot: 'c3day3_keeper', flipX: true }),
-    citizen('rewards-1', 5, 128, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=hideout,home' }),
-    citizen('folk-3a', 0, 148, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=hideout,home', flipX: true }),
-    citizen('rewards-2', 7, 228, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=hideout,home' }),
-    citizen('rewards-3', 9, 248, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=hideout,home', flipX: true }),
-    citizen('folk-3c', 12, 290, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=hideout,home', flipX: true }),
-    citizen('counter-3', 13, 344, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=hideout,home' }),
+    citizen('rewards-1', 5, 128, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=sneak,hideout,home' }),
+    citizen('folk-3a', 0, 148, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=sneak,hideout,home', flipX: true }),
+    citizen('rewards-2', 7, 228, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=sneak,hideout,home' }),
+    citizen('rewards-3', 9, 248, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=sneak,hideout,home', flipX: true }),
+    citizen('folk-3c', 12, 290, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=sneak,hideout,home', flipX: true }),
+    citizen('counter-3', 13, 344, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=sneak,hideout,home' }),
+    // (Busier than any other night: every table, and people standing.)
+    ...([[60, 2], [138, 11], [206, 4], [272, 1], [314, 10], [366, 3], [384, 8], [424, 14]] as const).map(([x, look], i) =>
+      citizen(`crowd-3${i}`, look, x, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=sneak,hideout,home', flipX: i % 2 === 1 }),
+    ),
     inStory('painter-3', 'painter', 74, FLOOR, 'c3day3=hideout,home', { knot: 'c3day3_painter' }),
   ],
   interactables: [

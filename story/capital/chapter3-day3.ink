@@ -418,6 +418,19 @@ He says it under his breath. Nobody else has looked twice at you.
 "Then find out." #speaker:painter
 -> c3day3_heard
 
+// Back up the steps: your hand, waiting by the door.
+=== c3day3_outside ===
+~ outside3 = true
+Your hand's by the door, where he said he'd be. #beside:hand:24
+"Well?" #speaker:diplomat
+"They're turning on each other. For a reward." #speaker:prince
+"For your father's reward." #speaker:diplomat
+"The kid's brother. Where will they take him?" #speaker:prince
+He looks up the street, at the citadel's lights over the rooftops.
+"Up. Where they all go." #speaker:diplomat
+"Come on. It's nearly light." #speaker:diplomat
+-> END
+
 // --- Back up, before dawn ---
 
 === c3day3_bed ===
