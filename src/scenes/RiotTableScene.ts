@@ -115,9 +115,15 @@ export class RiotTableScene extends Phaser.Scene {
       const label = new PixelText(this, 0, p.y + 11, lower(p.name), { color: SHADES.light, shadow: SHADES.shadow }).setDepth(4);
       label.setX(Math.max(2, Math.min(W - label.width - 2, Math.round(p.x - label.width / 2))));
     }
+    // Bars at the top (the goal; who's who) and the bottom (what's under the cursor; the keys; the buttons), so
+    // the words never sit on the map.
+    this.add.rectangle(0, 0, W, 26, SHADES.shadow, 0.9).setOrigin(0).setDepth(5);
+    this.add.rectangle(0, 26, W, 1, SHADES.cyanDeep).setOrigin(0).setDepth(5);
+    this.add.rectangle(0, H - 28, W, 28, SHADES.shadow, 0.9).setOrigin(0).setDepth(5);
+    this.add.rectangle(0, H - 28, W, 1, SHADES.cyanDeep).setOrigin(0).setDepth(5);
     this.title = new PixelText(this, 6, 4, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(6);
     this.key = new PixelText(this, 6, 15, '', { color: SHADES.light, shadow: SHADES.shadow }).setDepth(6);
-    this.info = new PixelText(this, 6, H - 24, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(6);
+    this.info = new PixelText(this, 6, H - 25, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(6);
     this.hint = new PixelText(this, 6, H - 12, '', { color: SHADES.dim, shadow: SHADES.shadow }).setDepth(6);
     this.endButton = new PixelText(this, END.x + 4, END.y + 2, 'End turn', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8);
     this.powerButton = new PixelText(this, POWER.x + 4, POWER.y + 2, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8);
@@ -246,6 +252,15 @@ export class RiotTableScene extends Phaser.Scene {
       const flash = this.add.circle(to.x, to.y, 10, SHADES.white).setDepth(6);
       this.tweens.add({ targets: flash, alpha: 0, scale: 2, duration: 260, onComplete: () => flash.destroy() });
       const loser = fight.won ? this.g.other(fight.side) : fight.side;
+      // What each side lost, floating up.
+      const defender = s.squads.find((x) => x.place === o.to)!;
+      if (fight.won) {
+        this.pop(to, `-${fight.defence}`, COLOUR[fight.side], -10);
+        this.pop(to, `all ${defender.strength}`, COLOUR[defender.side], 10);
+      } else {
+        this.pop(to, `all ${q.strength}`, COLOUR[fight.side], -10);
+        this.pop(to, `-${Math.min(fight.attack, defender.strength - 1)}`, COLOUR[defender.side], 10);
+      }
       for (let i = 0; i < 8; i++) {
         const a = (i / 8) * Math.PI * 2;
         const d = this.add.rectangle(to.x, to.y, 2, 2, COLOUR[loser]).setDepth(6);
@@ -256,9 +271,10 @@ export class RiotTableScene extends Phaser.Scene {
   }
 
   /** Words floating up off a place: the square growing, the guard arriving. */
-  private pop(p: RiotPlace, text: string, colour: number): void {
-    const t = new PixelText(this, p.x + 9, p.y - 14, text, { color: colour, shadow: SHADES.shadow }).setDepth(9);
-    this.tweens.add({ targets: t, y: p.y - 26, alpha: 0, duration: 1200, delay: 200, onComplete: () => t.destroy() });
+  private pop(p: RiotPlace, text: string, colour: number, dx = 9): void {
+    const t = new PixelText(this, 0, p.y - 14, text, { color: colour, shadow: SHADES.shadow }).setDepth(9);
+    t.setX(Math.round(p.x + dx - (dx < 0 ? t.width : 0)));
+    this.tweens.add({ targets: t, y: p.y - 28, alpha: 0, duration: 1600, delay: 300, onComplete: () => t.destroy() });
   }
 
   // --- The lesson ---
@@ -342,13 +358,12 @@ export class RiotTableScene extends Phaser.Scene {
     const { story } = getSession(this);
     if (!this.fatherPlaying) story.setVariable('riot_table', 'won');
     story.setVariable('riot_turns', this.state.turn);
-    const go = () =>
-      this.talk(sc.knots.dropIn, () => {
-        const data: CombatSceneData = { encounter: sc.square, back: { ...sc.squareArea, script: sc.knots.square } };
-        this.leave(() => this.scene.start('Combat', data));
-      });
-    if (this.fatherPlaying) this.talk(sc.knots.fatherTook, go);
-    else go();
+    // Your father comes in, win or lose (designer), with news: some of them have broken through. You go down
+    // to stop them (the fight, your hand beside you), and then to the square.
+    this.talk(this.fatherPlaying ? sc.knots.fatherTook : sc.knots.won, () => {
+      const data: CombatSceneData = { encounter: sc.square, back: { ...sc.squareArea, script: sc.knots.square } };
+      this.leave(() => this.scene.start('Combat', data));
+    });
   }
 
   /** Dawn, and the square's still theirs: your father comes in, and takes the table from you (designer). */
@@ -551,7 +566,7 @@ export class RiotTableScene extends Phaser.Scene {
     } else this.powerButton.setText('');
     // The words: the goal, the key (who's who), what's under the cursor.
     this.title.setText(this.titleText());
-    const youAre = this.you === 'guard' ? 'You: the guard (blue shields).  The rising: amber.' : 'You: the rising (amber).  Your father: the guard (blue shields).';
+    const youAre = this.you === 'guard' ? `You: the guard (blue).  The rising: amber.  Lifts +${this.g.rules.reinforce} a turn, square +1.` : 'You: the rising (amber).  Your father: the guard (blue shields).';
     this.key.setText(this.fatherPlaying ? 'Your father has the table.' : youAre);
     this.info.setText(this.busy ? '' : this.describe());
     this.hint.setText(this.busy ? '' : this.cutting ? 'Choose where to cut the power   Esc: back' : this.aiming ? 'Arrows: where   E: send them there   Esc: back' : `E: a squad   Tab: next   ${this.you === 'guard' ? 'P: power   ' : ''}Enter: end turn`);
@@ -560,13 +575,14 @@ export class RiotTableScene extends Phaser.Scene {
 
   private titleText(): string {
     const sc = this.sc;
-    const turn = `Turn ${this.state.turn}`;
+    const movable = this.g.mine(this.state, this.you).filter((q) => this.g.dests(this.state, q).length).length;
+    const turn = `Turn ${this.state.turn}   Orders: ${this.orders.length} of ${movable}`;
     if (sc.kind === 'lesson') {
       if (this.phase === 'lesson') return `The lesson: take ${lower(this.place(sc.goals[this.goal]?.place ?? this.g.heart).name)}.   ${turn}`;
       return `Hold the square.   ${turn}`;
     }
     const left = this.g.rules.dawn - this.state.turn + 1;
-    return `Take the square before dawn.   Dawn in ${left} ${left === 1 ? 'turn' : 'turns'}.   Square +1 a turn.   Guard +${this.g.rules.reinforce} a turn at the lifts.`;
+    return `Take the square before dawn: ${left} ${left === 1 ? 'turn' : 'turns'} left.   ${turn}`;
   }
 
   /** What's under the cursor, plainly; choosing where to send a squad, what would happen. */
@@ -587,8 +603,8 @@ export class RiotTableScene extends Phaser.Scene {
     if (aim) return 'Hold: they stay where they are.';
     const whose = s.owner[p.id] === 'guard' ? 'the guard’s' : s.owner[p.id] === 'rising' ? 'the rising’s' : 'nobody’s';
     let text = `${p.name}: ${whose}${there ? `, ${there.strength} strong` : ''}.`;
-    if (p.heart) text += ' Barricaded: +1 holding it. Grows by 1 a turn.';
-    if (p.lifts) text += ` More of the guard come here, ${this.g.rules.reinforce} a turn, while it's the guard's.`;
+    if (p.heart) text += ' Barricades +1. Grows by 1 a turn.';
+    if (p.lifts) text += ` The guard get +${this.g.rules.reinforce} here a turn.`;
     if (s.cut === p.id) text += ' No power: they can’t move, and fight at 1 less.';
     return text;
   }

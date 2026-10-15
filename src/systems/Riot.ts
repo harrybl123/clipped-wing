@@ -7,8 +7,9 @@
 //
 //   Squads are numbers. Each turn every squad can move one step along a street, or stay. Into an empty place
 //   it takes it; into your own squad it joins it; into theirs it's a fight: the bigger number wins and keeps
-//   what's over, and a tie holds. The square's barricades add 1, and lose nothing when they hold. (The old
-//   table's uphill rule is gone: on these maps it only touched the stair, and it was one more thing to know.)
+//   what's over, and a tie holds. The square's barricades add 1. (Gone from the old table: uphill costing 1,
+//   which on these maps only touched the stair; and the barricades losing nothing when they hold, which made a
+//   big attack on the square vanish without a mark on it: designer, it looked like a bug.)
 //
 // And four rules for the riot, each one sentence, each for a reason:
 //   1. What the rising will do this turn is shown first, as arrows. (You read them and answer them.)
@@ -187,9 +188,9 @@ export class RiotGame {
         q.strength = attack - defence;
         s.owner[o.to] = q.side;
       } else {
+        // Beaten off: the attackers are lost, and the defenders lose as many (they keep at least 1).
         s.squads = s.squads.filter((x) => x !== q);
-        // The barricades lose nothing when they hold.
-        if (o.to !== this.heart) there.strength = Math.max(1, there.strength - attack);
+        there.strength = Math.max(1, there.strength - attack);
       }
     }
     return { state: s, events };
@@ -197,9 +198,10 @@ export class RiotGame {
 
   /**
    * What the rising will do this turn, decided at the start of it and shown (the arrows). The square stays
-   * put. Each crowd out in the streets: goes for a squad of yours it can beat (the biggest it can); or, if
-   * you're coming for the square, falls back into it; or heads for the way up, keeping out of reach of
-   * anything of yours that would beat it.
+   * put. Each crowd out in the streets: goes for a squad of the guard it can beat (the biggest it can; the
+   * lifts' foot most of all, to cut off the guard coming down); or joins another crowd so that together they
+   * could; or, if the guard are coming for the square, falls back into it; or heads for the way up, keeping out
+   * of reach of anything that would beat it.
    */
   risingOrders(s: RiotState): Order[] {
     const orders: Order[] = [];
@@ -211,6 +213,7 @@ export class RiotGame {
       const d = this.near(y.place, this.heart) ? 1 : this.adj.get(y.place)!.some((n) => this.near(n, this.heart)) ? 2 : 9;
       return d <= 2 && y.strength + 2 >= this.defence(s, this.heart, sq.strength) + d;
     });
+    const couldBeat = (place: string, strength: number) => yours.some((y) => this.near(place, y.place) && this.attack(place, y.place, strength) > this.defence(s, y.place, y.strength));
     const crowds = this.mine(s, 'rising').filter((q) => q.place !== this.heart && s.cut !== q.place).sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id));
     for (const q of crowds) {
       let best: { to: string; score: number } | null = null;
@@ -223,12 +226,14 @@ export class RiotGame {
           score = 30;
         } else if (there?.side === 'guard') {
           if (this.attack(q.place, to, q.strength) <= this.defence(s, to, there.strength)) continue;
-          score = 40 + there.strength * 2;
+          score = 40 + there.strength * 2 + (to === this.lifts ? 15 : 0);
         } else if (there) {
-          continue;
+          // Together, they could take one of yours next turn.
+          if (!couldBeat(to, there.strength + q.strength) || couldBeat(q.place, q.strength)) continue;
+          score = 18;
         } else {
           score = 6 + ((this.upDist.get(q.place) ?? 9) - (this.upDist.get(to) ?? 9)) * 5 + (s.owner[to] !== 'rising' ? 4 : 0);
-          if (yours.some((y) => this.near(y.place, to) && this.attack(y.place, to, y.strength) > q.strength)) score -= 20;
+          if (yours.some((y) => this.near(y.place, to) && this.attack(y.place, to, y.strength) > q.strength)) score -= 10;
         }
         if (score > 0 && (!best || score > best.score)) best = { to, score };
       }

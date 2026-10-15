@@ -306,17 +306,36 @@ He looks at the table. At you.
 He doesn't wait for you to.
 -> END
 
+// You took the square: your father comes in (designer: win or lose, before the fight), and the news comes.
+=== c3day4_table_won ===
+The last of the barricades goes down on the table. The square's yours.
+The door crashes open.
+{ physician == "yes":
+    Your father, a coat thrown over his nightclothes.
+- else:
+    Your father, straight from the sealed wing, the cold of it still on him.
+}
+"Why didn't anyone wake me?" #speaker:father
+He looks at the table. At the square, in your colour. He doesn't say anything for a long moment.
+-> c3day4_breakout
+
 // He's taken it, with ease.
 === c3day4_father_took ===
 It doesn't take him long. It's never taken him long.
 "That's how it's done." #speaker:father
-"Now go down, and bring me their leader. You can manage that much." #speaker:father
--> END
+-> c3day4_breakout
 
-// Going down to the square yourself.
-=== c3day4_riot_dropin ===
+// Despite the table (designer): some of them have got through, into the upper city. You go down to stop them.
+=== c3day4_breakout ===
+The captain, in the doorway, out of breath.
+"Highness. Some of them got past us while we were at the square. Up the back stairs. They're at the citadel steps." #speaker:captain
+{ riot_table == "won":
+    "Then go and stop them. Take your hand." #speaker:father
+- else:
+    "Then go and stop them. You can manage that much." #speaker:father
+}
 Down. In the plain coat, open: the wine at your collar showing, for once.
-Your hand's at your side before you reach the lifts. From nowhere.
+Your hand's at your side before you reach the steps. From nowhere.
 "Where have you been?" #speaker:prince
 "Below. Errands. Blade on. All the way." #speaker:diplomat
 Your blade hums into wine, bright, for the first time not dulled. #sound:shimmer
@@ -327,7 +346,7 @@ Your blade hums into wine, bright, for the first time not dulled. #sound:shimmer
 === c3day4_square ===
 ~ c3day4 = "square"
 ~ hand_with_you = false
-The square. Smoke, and the barricades burning down. The guard's line of pikes across it, the crowd held back behind.
+Then down to the square. By the time you reach it, it's over: smoke, the barricades burning down, the guard's line of pikes across it, the crowd held back behind.
 { scrubbed:
     The walls the warden's men scrubbed are painted again. Fresh: wings, top to bottom, the paint still running.
 - else:
@@ -339,10 +358,11 @@ The square. Smoke, and the barricades burning down. The guard's line of pikes ac
     On the ground in front of the guard, held down by two of them: the reformer, in his council robe, torn. #show:leader-4
 }
 { riot_table == "lost":
-    The captain's here. He looks at you the way he'd look at a boy. #show:captain-4q
+    The captain's waiting for you. He looks at you the way he'd look at a boy. #show:captain-4q
 - else:
-    The captain's here. "Your orders held, Highness." #speaker:captain #show:captain-4q
+    The captain's waiting for you. "Your orders held, Highness." #speaker:captain #show:captain-4q
 }
+"We've got the one who led it. Your father says he's yours to decide." #speaker:captain
 The crowd sees your face. The screens over the square show it too, a moment, then cut out.
 Your hand, close, quiet.
 "Make an example of him. They'll remember what you do now." #speaker:diplomat
@@ -407,12 +427,9 @@ What do you do with him?
 }
 { riot_table == "won":
     Your father, in your rooms, at your window, still in the coat he threw on.
-    "Why didn't anyone wake me?" #speaker:father
-    "You told them not to. I told them not to." #speaker:prince
-    "I've been watching the table's record." #speaker:father
+    "I watched your commands. Every one, on the table's record." #speaker:father
     He turns round.
-    "Square taken in {riot_turns} turns. Before dawn." #speaker:father
-    "I couldn't have done it much faster." #speaker:father
+    "The square in {riot_turns} turns, before dawn. I couldn't have done it much faster." #speaker:father
     He almost smiles.
 - else:
     Your father, in your rooms, at your window. Dressed now.

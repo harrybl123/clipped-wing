@@ -1309,12 +1309,13 @@ COMBATANTS.rioter_big = {
 };
 
 /**
- * Chapter 3, Day 4, the square (the riot's drop-in): rioters break through the guard towards you, and your
- * hand fights beside you, like a soldier (plan). Must be won: the leader's on the steps. Writes `riot_fight`.
+ * Chapter 3, Day 4, after the table: some of the rioters have broken through to the citadel steps (designer:
+ * despite the win on the table), and you go down to stop them, your hand fighting beside you, like a soldier
+ * (plan). Must be won. Writes `riot_fight`.
  */
 ENCOUNTERS.riot_square = {
   id: 'riot_square',
-  name: 'The square',
+  name: 'The citadel steps',
   party: ['prince_riot', 'hand_ally'],
   enemies: ['rioter', 'rioter_big', 'rioter'],
   stage: 'square',

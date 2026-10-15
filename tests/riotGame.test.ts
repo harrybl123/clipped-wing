@@ -38,11 +38,12 @@ describe('the war table: the rules', () => {
     expect(at(t, 'market').strength).toBe(1);
   });
 
-  it('the square’s barricades: +1, and they lose nothing when they hold', () => {
+  it('the square’s barricades: +1; beaten off, it still wears them down (designer: it looked like a bug when it didn’t)', () => {
     const game = g();
-    const s = game.start([{ side: 'guard', place: 'market', strength: 5 }, { side: 'rising', place: 'square', strength: 4 }]);
+    const s = game.start([{ side: 'guard', place: 'market', strength: 3 }, { side: 'rising', place: 'square', strength: 4 }]);
     const t = game.order(s, go(s, 'market', 'square')).state;
-    expect(at(t, 'square').strength).toBe(4);
+    expect(game.mine(t, 'guard')).toHaveLength(0);
+    expect(at(t, 'square').strength).toBe(1);
     const u = game.start([{ side: 'guard', place: 'market', strength: 6 }, { side: 'rising', place: 'square', strength: 4 }]);
     expect(game.outcome(game.order(u, go(u, 'market', 'square')).state)).toBe('guard');
   });

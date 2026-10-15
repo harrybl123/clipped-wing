@@ -11,7 +11,8 @@ import type { RiotBoard, RiotPlace, RiotRules, Side } from '../systems/Riot';
  * the bottom. The same streets in either district; the names are the district's.
  */
 function district(names: Record<string, string>): RiotBoard {
-  const at = (id: string, x: number, y: number, extra: Partial<RiotPlace> = {}): RiotPlace => ({ id, name: names[id]!, x, y, ...extra });
+  // (Laid out from y 50 to 230, then fitted between the table's top and bottom bars.)
+  const at = (id: string, x: number, y: number, extra: Partial<RiotPlace> = {}): RiotPlace => ({ id, name: names[id]!, x, y: Math.round(36 + (y - 50) * 0.97), ...extra });
   return {
     places: [
       at('stair', 240, 50, { up: true }),
@@ -57,14 +58,14 @@ type Setup = { side: Side; place: string; strength: number }[];
 
 /**
  * Where the riot starts (tuned by simulation: docs/sequences/chapter-3/war-table.md): the guard along the way
- * up, 12 of them; the square, 8 behind its barricades; and crowds of 2 across the district, two of them in the
+ * up, 15 of them; the square, 8 behind its barricades; and crowds of 2 across the district, two of them in the
  * streets next to the square, one at the back stairs, close to yours.
  */
 export const RIOT_START: Setup = [
   { side: 'guard', place: 'lifts', strength: 4 },
-  { side: 'guard', place: 'stair', strength: 3 },
-  { side: 'guard', place: 'arch', strength: 3 },
-  { side: 'guard', place: 'lamp', strength: 2 },
+  { side: 'guard', place: 'stair', strength: 4 },
+  { side: 'guard', place: 'arch', strength: 4 },
+  { side: 'guard', place: 'lamp', strength: 3 },
   { side: 'rising', place: 'square', strength: 8 },
   { side: 'rising', place: 'screens', strength: 2 },
   { side: 'rising', place: 'market', strength: 2 },
@@ -87,8 +88,12 @@ export interface RiotScenario {
   /** The fight when you take the square (src/data/combat.ts), and the area its square is in, where you come out after. */
   square: string;
   squareArea: { areaId: string; start: { x: number; y: number } };
-  /** Ink knots: before; going down to the square; dawn first (your father); him taking it; then at the square. */
-  knots: { intro: string; dropIn: string; dawn: string; fatherTook: string; square: string };
+  /**
+   * Ink knots: before; you took the square (your father comes in; some of them have broken through, and you
+   * go down to stop them: the fight); dawn first (your father comes in); him taking it (and the same news);
+   * then, after the fight, at the square.
+   */
+  knots: { intro: string; won: string; dawn: string; fatherTook: string; square: string };
 }
 
 /**
@@ -172,7 +177,7 @@ export const LESSON: LessonScenario = {
 
 const riot = (id: string, board: RiotBoard, district: 'low' | 'promenade', squareArea: RiotScenario['squareArea']): RiotScenario => ({
   id, kind: 'riot', board, district, squads: RIOT_START, square: 'riot_square', squareArea,
-  knots: { intro: 'c3day4_riot_intro', dropIn: 'c3day4_riot_dropin', dawn: 'c3day4_dawn', fatherTook: 'c3day4_father_took', square: 'c3day4_square' },
+  knots: { intro: 'c3day4_riot_intro', won: 'c3day4_table_won', dawn: 'c3day4_dawn', fatherTook: 'c3day4_father_took', square: 'c3day4_square' },
 });
 
 export const RIOTS: Record<string, RiotScenario | LessonScenario> = {
