@@ -57,7 +57,8 @@ type Setup = { side: Side; place: string; strength: number }[];
 
 /**
  * Where the riot starts (tuned by simulation: docs/sequences/chapter-3/war-table.md): the guard along the way
- * up, 15 of them; the square, 10 behind its barricades; and crowds of 3 across the district, two of them in the
+ * up, 15 of them; the square, 14 behind its barricades (orders in sequence let you chain squads into one
+ * strike: any less, and a careful player rushes it on turn 2); and crowds of 3 across the district, two of them in the
  * streets next to the square, one at the back stairs, close to yours.
  */
 export const RIOT_START: Setup = [
@@ -65,7 +66,7 @@ export const RIOT_START: Setup = [
   { side: 'guard', place: 'stair', strength: 4 },
   { side: 'guard', place: 'arch', strength: 4 },
   { side: 'guard', place: 'lamp', strength: 3 },
-  { side: 'rising', place: 'square', strength: 10 },
+  { side: 'rising', place: 'square', strength: 14 },
   { side: 'rising', place: 'screens', strength: 3 },
   { side: 'rising', place: 'market', strength: 3 },
   { side: 'rising', place: 'back', strength: 3 },
@@ -152,14 +153,15 @@ export const LESSON: LessonScenario = {
   lessonTurns: 14,
   now: {
     // The riot as he'd play it, from the guard's side: your square big enough that it looks like you could hold
-    // it (tested: whatever the rising does, he takes it in 3 to 7 turns).
+    // it (tested: whatever the rising does, he takes it in 5 to 9 turns; any smaller, and he chains everything
+    // into it on turn 2).
     squads: [
       { side: 'guard', place: 'lifts', strength: 6 },
       { side: 'guard', place: 'stair', strength: 5 },
       { side: 'guard', place: 'arch', strength: 5 },
       { side: 'guard', place: 'lamp', strength: 4 },
       { side: 'guard', place: 'back', strength: 4 },
-      { side: 'rising', place: 'square', strength: 12 },
+      { side: 'rising', place: 'square', strength: 24 },
       { side: 'rising', place: 'screens', strength: 2 },
       { side: 'rising', place: 'market', strength: 2 },
       { side: 'rising', place: 'weavers', strength: 2 },

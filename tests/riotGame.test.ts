@@ -48,12 +48,24 @@ describe('the war table: the rules', () => {
     expect(game.outcome(game.order(u, go(u, 'market', 'square')).state)).toBe('guard');
   });
 
-  it('moves happen together: a squad moving out goes before one moving in, so nobody’s carried along', () => {
+  it('your orders happen in the order you give them: join up, then the two go on together (designer)', () => {
     const game = g();
-    const s = game.start([{ side: 'guard', place: 'lifts', strength: 4 }, { side: 'guard', place: 'stair', strength: 3 }]);
-    const t = game.turn(s, [go(s, 'lifts', 'stair'), go(s, 'stair', 'screens')], []).state;
-    expect(at(t, 'stair').strength).toBe(4);
-    expect(at(t, 'screens').strength).toBe(3);
+    const s = game.start([{ side: 'guard', place: 'lifts', strength: 4 }, { side: 'guard', place: 'stair', strength: 5 }, { side: 'rising', place: 'screens', strength: 7 }]);
+    // The 4 into the 5, then the 9 at the screens' street's 7: taken, 2 left.
+    const combo = game.turn(s, [go(s, 'lifts', 'stair'), go(s, 'stair', 'screens')], []).state;
+    expect(at(combo, 'screens')).toMatchObject({ side: 'guard', strength: 2 });
+    // The other way round: the 5 goes alone (and is beaten off), and the 4 just takes the stair.
+    const apart = game.turn(s, [go(s, 'stair', 'screens'), go(s, 'lifts', 'stair')], []).state;
+    expect(at(apart, 'screens').side).toBe('rising');
+    expect(at(apart, 'stair')).toMatchObject({ side: 'guard', strength: 4 });
+  });
+
+  it('the rising\u2019s moves happen all at once', () => {
+    const game = g();
+    const s = game.start([{ side: 'rising', place: 'wash', strength: 4 }, { side: 'rising', place: 'weavers', strength: 3 }]);
+    const t = game.turn(s, [], [go(s, 'wash', 'weavers'), go(s, 'weavers', 'back')]).state;
+    expect(at(t, 'weavers').strength).toBe(4);
+    expect(at(t, 'back').strength).toBe(3);
   });
 
   it('the square grows by 1 a turn (and over 9 sends a crowd out); the guard get 2 a turn at the lifts’ foot, while it’s theirs', () => {
@@ -102,6 +114,8 @@ describe('the war table: Day 4, the riot (simulated play)', () => {
     const c = playOut(game, start(), careful());
     expect(c.winner).toBe('guard');
     expect(c.state.turn).toBeLessThanOrEqual(12);
+    // (Chaining squads into one strike mustn't let it rush the square.)
+    expect(c.state.turn).toBeGreaterThanOrEqual(6);
     expect(playOut(game, start(), sensible()).winner).toBe('guard');
   }, 120000);
 

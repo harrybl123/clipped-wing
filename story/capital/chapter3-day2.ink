@@ -96,7 +96,7 @@ The table's dark. Just glass.
 
 === c3day2_lesson_market ===
 "The market street. Three of mine." #speaker:father
-"Two of yours won't do it alone. Send one into another and they join up. Then go at it." #speaker:father
+"Two of yours won't do it alone. Send one into the other first, then send them on, together. Your orders happen in the order you give them." #speaker:father
 -> END
 
 === c3day2_lesson_market_done ===
@@ -154,7 +154,7 @@ He looks at the table a long moment.
 === c3day2_table_now ===
 He stands up straight, and steps back from the table.
 "That was a lesson. Now I'll play." #speaker:father
-He touches the table, and it sets itself again. Your square, twelve strong behind its barricades. Your crowds out through the district. His guard along the top.
+He touches the table, and it sets itself again. Your square, twenty-four strong behind its barricades. Your crowds out through the district. His guard along the top.
 "The guard has until dawn to take the square. The rising has to hold it." #speaker:father
 "Same rules. No arrows." #speaker:father
 "Hold it." #speaker:father

@@ -196,7 +196,8 @@ export class RiotTableScene extends Phaser.Scene {
     this.cutting = false;
     this.draw();
     const before = this.state;
-    const mine = this.g.together(before, this.orders);
+    // Yours in the order you gave them (designer), so a join then a move goes together; otherwise all at once.
+    const mine = this.g.rules.ordered ? this.orders : this.g.together(before, this.orders);
     const yours = new Set(this.g.mine(before, this.you).map((q) => q.id));
     const events: RiotEvent[] = [];
     let s = before;
@@ -534,7 +535,14 @@ export class RiotTableScene extends Phaser.Scene {
       const sq = this.g.squadAt(s, this.g.heart);
       if (sq) this.arrow(g, { squad: sq.id, to: pour }, AMBER, true);
     }
-    for (const o of this.orders) if (o.squad !== this.aiming?.squad.id) this.arrow(g, o, COLOUR[this.you], false);
+    // Yours, numbered in the order they'll happen; a join (into a squad of yours, as it'll be by then) in green.
+    let plan = this.state;
+    this.orders.forEach((o, i) => {
+      const q = plan.squads.find((x) => x.id === o.squad);
+      const join = this.g.squadAt(plan, o.to)?.side === this.you;
+      if (q && o.squad !== this.aiming?.squad.id) this.arrow(g, o, join ? SHADES.green : COLOUR[this.you], false, i + 1, q.place);
+      plan = this.g.order(plan, o).state;
+    });
     if (this.aiming && this.cursor.id !== this.aiming.squad.place) this.arrow(g, { squad: this.aiming.squad.id, to: this.cursor.id }, blink ? COLOUR[this.you] : SHADES.white, false);
     // The squads: the guard a blue shield, the rising an amber circle; the number on each.
     for (const q of s.squads) {
@@ -602,14 +610,16 @@ export class RiotTableScene extends Phaser.Scene {
 
   /** Choosing: what would happen there, in a line. */
   private sumText(): string {
-    const s = this.state;
+    // As things will be by the time this order comes: your earlier orders this turn carried out (a squad joined
+    // into this one goes with it).
+    const s = this.orders.filter((o) => o.squad !== this.aiming?.squad.id).reduce((t, o) => this.g.order(t, o).state, this.state);
     const p = this.cursor;
     const there = this.g.squadAt(s, p.id);
     if (this.cutting) return 'Cut the power here';
-    const aim = this.aiming!.squad;
+    const aim = s.squads.find((q) => q.id === this.aiming!.squad.id) ?? this.aiming!.squad;
     if (p.id === aim.place) return 'Hold';
     if (!there) return 'Take it';
-    if (there.side === aim.side) return `Join: ${aim.strength + there.strength}`;
+    if (there.side === aim.side) return `Join: ${aim.strength + there.strength}, then send them on`;
     const a = this.g.attack(aim.place, p.id, aim.strength);
     const d = this.g.defence(s, p.id, there.strength);
     return a > d ? `${a} v ${d}: you take it, ${a - d} left` : a === d ? `${a} v ${d}: a tie, they hold` : `${a} v ${d}: they hold`;
@@ -628,10 +638,10 @@ export class RiotTableScene extends Phaser.Scene {
     return lines.join('\n');
   }
 
-  private arrow(g: Phaser.GameObjects.Graphics, o: Order, col: number, dashed: boolean): void {
+  private arrow(g: Phaser.GameObjects.Graphics, o: Order, col: number, dashed: boolean, n?: number, from?: string): void {
     const q = this.state.squads.find((x) => x.id === o.squad);
     if (!q || q.place === o.to) return;
-    const a = this.place(q.place);
+    const a = this.place(from ?? q.place);
     const b = this.place(o.to);
     const len = Math.hypot(b.x - a.x, b.y - a.y);
     const [ux, uy] = [(b.x - a.x) / len, (b.y - a.y) / len];
@@ -643,6 +653,15 @@ export class RiotTableScene extends Phaser.Scene {
       for (let i = 0; i < n; i += 2) g.lineStyle(1, col, 1).lineBetween(sx + (ex - sx) * (i / n), sy + (ey - sy) * (i / n), sx + (ex - sx) * ((i + 1) / n), sy + (ey - sy) * ((i + 1) / n));
     } else g.lineStyle(1, col, 1).lineBetween(sx, sy, ex, ey);
     g.fillStyle(col, 1).fillTriangle(ex + ux * 4, ey + uy * 4, ex - uy * 3 - ux * 2, ey + ux * 3 - uy * 2, ex + uy * 3 - ux * 2, ey - ux * 3 - uy * 2);
+    // Its number in the order, on a dark disc halfway along.
+    if (n) {
+      const [mx, my] = [(sx + ex) / 2, (sy + ey) / 2];
+      g.fillStyle(SHADES.shadow, 1).fillCircle(mx, my, 5);
+      g.lineStyle(1, col, 1).strokeCircle(mx, my, 5);
+      const t = new PixelText(this, 0, Math.round(my - 3), String(n), { color: col }).setDepth(5);
+      t.setX(Math.round(mx - t.width / 2 + 1));
+      this.numbers.push(t);
+    }
   }
 
   /** The riot, alive (designer: make it look like one): fire and a crowd round every squad of the rising, smoke going up. */

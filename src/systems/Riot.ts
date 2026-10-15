@@ -5,7 +5,8 @@
 // The war table's game, the one from the lesson (designer: its simplicity, with the riot in it; every rule
 // thought about, each earning its place):
 //
-//   Squads are numbers. Each turn every squad can move one step along a street, or stay. Into an empty place
+//   Squads are numbers. Each turn every squad can move one step along a street, or stay; your orders happen in
+//   the order you give them, so a squad can join another and the two go on together (designer). Into an empty place
 //   it takes it; into your own squad it joins it; into theirs it's a fight: the bigger number wins and keeps
 //   what's over, and a tie holds. The square's barricades add 1. (Gone from the old table: uphill costing 1,
 //   which on these maps only touched the stair; and the barricades losing nothing when they hold, which made a
@@ -53,9 +54,14 @@ export interface RiotRules {
   reinforceEvery: number;
   /** The power cut, every so many turns. */
   powerEvery: number;
+  /**
+   * Your orders happen in the order you give them (designer): a squad can join another, and then the two go
+   * on together. Otherwise (the rising's, always) they happen all at once.
+   */
+  ordered: boolean;
 }
 
-export const RIOT_RULES: RiotRules = { dawn: 18, reinforce: 2, reinforceEvery: 1, powerEvery: 3 };
+export const RIOT_RULES: RiotRules = { dawn: 18, reinforce: 2, reinforceEvery: 1, powerEvery: 3, ordered: true };
 
 export interface RiotSquad {
   id: string;
@@ -195,8 +201,8 @@ export class RiotGame {
     const q = s.squads.find((x) => x.id === o.squad);
     if (!q || o.to === q.place || !this.dests(s, q).includes(o.to)) return { state: s, events: [] };
     const from = q.place;
-    const there = this.squadAt(s, o.to);
     const events: RiotEvent[] = [];
+    const there = this.squadAt(s, o.to);
     if (!there) {
       q.place = o.to;
       s.owner[o.to] = q.side;
@@ -344,7 +350,7 @@ export class RiotGame {
   turn(s0: RiotState, yours: Order[], theirs: Order[]): { state: RiotState; events: RiotEvent[] } {
     let s = s0;
     const events: RiotEvent[] = [];
-    for (const o of [...this.together(s0, yours), ...this.together(s0, theirs)]) {
+    for (const o of [...(this.rules.ordered ? yours.filter((o, i) => yours.findIndex((x) => x.squad === o.squad) === i) : this.together(s0, yours)), ...this.together(s0, theirs)]) {
       const r = this.order(s, o);
       s = r.state;
       events.push(...r.events);

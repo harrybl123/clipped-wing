@@ -9,6 +9,7 @@ Chapter 3's tactics game: taught on Day 2 (the lesson in the simulation room), p
 The old table's, as Harry knew them:
 
 - Squads are numbers. Each turn every squad can move one step along a street, or stay.
+- Your orders happen in the order you give them (designer): send a squad into another, then send that one on, and they go together. (The rising's happen all at once.)
 - Into an empty place, it takes it. Into your own squad, they join.
 - Into theirs, it's a fight: the bigger number wins and keeps what's over. A tie holds (the attackers are lost, and the defenders lose as many).
 - The square's barricades add 1 to whoever holds it.
@@ -24,11 +25,11 @@ And four for the riot, each one sentence, each for a reason:
 
 **The goal:** the guard must take the square before dawn (18 turns); with enough to win it, you go down yourself (the fight). The rising wins if it still holds the square at dawn. Nothing else ends it.
 
-Everything else is the rising playing by the same rules (`risingOrders`; `RISING_STYLE`): crowds go for the guard (the lifts' foot most of all, to cut off the guard coming down); they throw themselves at a squad even when they'll lose, if there are 2 or more of them, so it costs the guard; two crowds join up when together they could take a squad; they fall back into the square when the guard come for it. Moves happen together: a squad moving out of a place goes before one moving in, so nobody's carried along.
+Everything else is the rising playing by the same rules (`risingOrders`; `RISING_STYLE`): crowds go for the guard (the lifts' foot most of all, to cut off the guard coming down); they throw themselves at a squad even when they'll lose, if there are 2 or more of them, so it costs the guard; two crowds join up when together they could take a squad; they fall back into the square when the guard come for it. The rising's moves happen together: a squad moving out of a place goes before one moving in, so nobody's carried along.
 
 ## The screen
 
-Hardly any words (designer: it was too cluttered). The district as a street plan in light; the rising's squads amber circles, each with fire and a crowd round it, smoke going up; the guard's blue shields; the number on each; a ring round every place in the colour of whoever holds it. The other side's arrows dashed (and the square's next crowd), yours solid. A note in the corner: dawn, or the lesson's goal. A card only when the mouse rests on a place a moment (designer: big text boxes are annoying): its name, whose it is and how strong; choosing where to send a squad, just the sum, in a line by the place ("5 v 4: you take it, 1 left"). "+1" floats off the square each turn, "+2" off the lifts, "2 out" where a crowd's sent; after a fight, what each side lost.
+Hardly any words (designer: it was too cluttered). The district as a street plan in light; the rising's squads amber circles, each with fire and a crowd round it, smoke going up; the guard's blue shields; the number on each; a ring round every place in the colour of whoever holds it. The other side's arrows dashed (and the square's next crowd), yours solid and numbered in the order they'll happen, joins in green. A note in the corner: dawn, or the lesson's goal. A card only when the mouse rests on a place a moment (designer: big text boxes are annoying): its name, whose it is and how strong; choosing where to send a squad, just the sum, in a line by the place ("5 v 4: you take it, 1 left"). "+1" floats off the square each turn, "+2" off the lifts, "2 out" where a crowd's sent; after a fight, what each side lost.
 
 Controls (the old table's): pick a squad of yours (E or click), the arrows step round where it can go, E or click to send it (its own place to hold), Esc or right-click back, Tab to the next squad, Enter or the button to end the turn; as the guard, P or the button for the power.
 
@@ -40,11 +41,11 @@ As planned: "A district rises. You'll be the rising. I'll be the guard." On the 
 2. Take the market street: 3 of his; join two of yours first.
 3. Take the screens' street, and you go down yourself (the light-guards fight).
 
-Then "Now.": the table set up again (your square 12 behind its barricades, crowds round the district, his guard along the top), no arrows, and he plays the guard to win: he cuts your power ("It helps to have a city on your side."), and takes your square. Tested: whatever the rising does (as the computer plays it, piling everything into the square, or doing nothing), he takes it, never at once, in 3 to 7 turns.
+Then "Now.": the table set up again (your square 24 behind its barricades, crowds round the district, his guard along the top), no arrows, and he plays the guard to win: he cuts your power ("It helps to have a city on your side."), and takes your square. Tested: whatever the rising does (as the computer plays it, piling everything into the square, or doing nothing), he takes it, never at once, in 5 to 9 turns.
 
 ## Day 4: the riot (you're the guard)
 
-The riot's set-up: the guard along the way up, 15 of them (4 at the lifts' foot, 4 on the stair, 4 at the arches, 3 at the lamp shop); the square 10; crowds of 3 across the district, two of them in the streets next to the square and one at the back stairs, close to yours.
+The riot's set-up: the guard along the way up, 15 of them (4 at the lifts' foot, 4 on the stair, 4 at the arches, 3 at the lamp shop); the square 14; crowds of 3 across the district, two of them in the streets next to the square and one at the back stairs, close to yours.
 
 ## What simulation showed
 
@@ -59,6 +60,19 @@ Computer players of different skill as the guard, over 16 starting positions (th
 The rising's way of playing, tested against the same guard (designer: it just sat in the square): as it was, crowds attacked about 3 times a game; with no fleeing and hunting the guard, 4; the square stepping out to strike, easier for the guard (it left the square empty) and dropped; gathering into bigger crowds, no better; throwing themselves at the guard even when they'd lose, 5; the square sending crowds out, 5 to 6. Both of those together, with a bigger rising so it's still a fair fight (the square 10, crowds of 3): about 10. Without the square sending crowds out, it hoarded everything again (6 attacks) and nobody sensible could win. Then (designer, having played it: about 20% too hard) dawn comes 2 turns later (18) and the square sends crowds out from over 9 rather than 8: sensible play from half to two in three. (One more in each of the guard's squads made it as easy, but let a careful player rush the square on turn 3.)
 
 How it got here: the first version was a different game (unrest from 0 to 3 that spread like a disease, charging and quelling, storming the barricades): tested well by the numbers, but it didn't make sense to play (designer). Back to the old table's rules, then: rushing with every squad at once took the square by turn 2, which was the old table letting a squad be joined and carried on in the same turn (now moves happen together) and the square being too small; with crowds falling back into the square, nobody could win at all, because the square grew as fast as the guard did and every fight cost what it won, so the guard now get 2 a turn to the square's 1. Risk's idea (the square growing with the places the rising holds) was tried and dropped: one more thing to count (designer: keep it simple).
+
+## Orders in sequence (designer, 2026-10-15)
+
+The designer asked to choose the order things happen in (a 4 joins a 5, then the 9 moves on), rather than the game deciding it. Simulated, 24 starting positions:
+
+| | Sensible | Careful | Earliest win |
+| --- | --- | --- | --- |
+| All at once (before) | 63%, turn 13.5 | always, turn 10 | turn 3 |
+| In order, chains allowed (square 10) | 58% | always, turn 4 (the riot's own board: turn 2) | turn 2: chain everything into one strike |
+| In order, but people march only once a turn | 63% | always, turn 10 | turn 3 (the combo barely works) |
+| **In order, chains allowed, square 14** | 50%, turn 15 | always, turn 11 | turn 7 |
+
+Chosen (designer): in order, chains allowed, the square 14. Nobody can rush it; what separates players is planning combos (the sensible computer player doesn't, a person would, taught by the lesson). "Now." needed its square at 24 (at 22, he chained everything in on turn 2).
 
 ## Later
 
