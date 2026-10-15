@@ -114,7 +114,8 @@ export const princeQuarters: AreaDefinition = {
   ],
   interactables: [
     { id: 'bed', x: 84, y: FLOOR, reach: 14, label: 'Look', knot: 'quarters_bed', hideIf: ['c3day1=night', 'c3day2=home', 'c3day3=home', 'c3day4=night'] },
-    { id: 'bed-4', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day4_bed', showIf: 'c3day4=night' },
+    // (Only once your father's had his word: designer, you could go to bed before he spoke to you.)
+    { id: 'bed-4', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day4_bed', showIf: 'father4n', hideIf: 'c3day4=done' },
     { id: 'bed-3', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day3_bed', showIf: 'c3day3=home' },
     { id: 'bed-2', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day2_bed', showIf: 'c3day2=home' },
     { id: 'bed-1', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day1_bed', showIf: 'c3day1=night' },
