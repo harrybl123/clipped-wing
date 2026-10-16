@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT as H, GAME_WIDTH as W } from '../config';
-import { RIOTS, type DuelScenario, type LessonScenario, type RiotScenario } from '../data/warTable';
+import { RIOTS, type DuelScenario, type FatherScenario, type LessonScenario, type RiotScenario } from '../data/warTable';
 import { getSession } from '../session';
 import { RIOT_RULES, RISING_STYLE, RiotGame, type Order, type RiotBoard, type RiotEvent, type RiotPlace, type RiotSquad, type RiotState, type Side } from '../systems/Riot';
 import { besieger, careful, steady, type GuardPlayer } from '../systems/RiotPlayers';
@@ -26,6 +26,8 @@ import type { CombatSceneData } from './CombatScene';
 //   Day 6, the duel (`duel`): the old castle's siege, with your friend, for fun. You hold the keep (the rising's
 //   side of the rules), he has the bigger army (the guard's), played sensibly, his moves shown; take his camp,
 //   keeping your keep, and you've won (designer; no turn limit for now). Either way, back in the room after.
+//   Day 8, your father (`father8`, then `father8_list`): he plays the rising, you the guard, the riot's rules
+//   (designer: a game against him, to make a point); then again, the transfer list taken off the table first.
 //
 // The table shows a riot (designer): the district's streets in light; the rising's squads amber circles, with
 // fire and a crowd round them; the guard's blue shields; a key at the top says who's who, and which is you.
@@ -56,7 +58,7 @@ const COLOUR: Record<Side, number> = { guard: CYAN, rising: AMBER };
 
 export class RiotTableScene extends Phaser.Scene {
   private params!: RiotTableSceneData;
-  private sc!: RiotScenario | LessonScenario | DuelScenario;
+  private sc!: RiotScenario | LessonScenario | DuelScenario | FatherScenario;
   private g!: RiotGame;
   private state!: RiotState;
   /** Which side is yours, and the computer's. */
@@ -119,7 +121,7 @@ export class RiotTableScene extends Phaser.Scene {
     const sc = RIOTS[data.scenario];
     if (!sc) throw new Error(`RiotTableScene: no game called "${data.scenario}"`);
     this.sc = sc;
-    this.you = sc.kind === 'riot' ? 'guard' : 'rising';
+    this.you = sc.kind === 'riot' || sc.kind === 'father' ? 'guard' : 'rising';
     this.phase = sc.kind === 'lesson' ? (data.phase ?? 'lesson') : sc.kind === 'duel' ? 'duel' : 'riot';
     this.g = new RiotGame(sc.board, { ...RIOT_RULES, ...sc.rules });
     if (sc.kind === 'duel') this.g.style = { ...RISING_STYLE, ...sc.style };
@@ -182,7 +184,8 @@ export class RiotTableScene extends Phaser.Scene {
     this.draw();
     const sc = this.sc;
     this.time.delayedCall(600, () => {
-      if (sc.kind === 'riot' || sc.kind === 'duel') this.talk(sc.knots.intro, () => this.startTurn());
+      if (sc.kind === 'father') this.talk(sc.knots.intro, () => void this.sendAway(sc).then(() => this.startTurn()));
+      else if (sc.kind === 'riot' || sc.kind === 'duel') this.talk(sc.knots.intro, () => this.startTurn());
       else if (this.phase === 'now') this.talk(sc.knots.good, () => this.turnItOn());
       else this.talk(sc.knots.intro, () => this.talk(sc.goals[0]!.start, () => this.startTurn()));
     });
@@ -519,6 +522,7 @@ export class RiotTableScene extends Phaser.Scene {
     const sc = this.sc;
     if (sc.kind === 'lesson') return this.switchOff();
     if (sc.kind === 'duel') return this.duelOver(sc, false);
+    if (sc.kind === 'father') return this.fatherOver(sc, true);
     this.busy = true;
     const { story } = getSession(this);
     if (!this.fatherPlaying) story.setVariable('riot_table', 'won');
@@ -534,6 +538,7 @@ export class RiotTableScene extends Phaser.Scene {
   /** Dawn, and the square's still theirs: your father comes in, and takes the table from you (designer). */
   private dawn(): void {
     if (this.sc.kind === 'duel') return this.duelOver(this.sc, true);
+    if (this.sc.kind === 'father') return this.fatherOver(this.sc, false);
     const sc = this.sc as RiotScenario;
     this.busy = true;
     const { story } = getSession(this);
@@ -558,6 +563,53 @@ export class RiotTableScene extends Phaser.Scene {
     const out = () => this.talk(won ? sc.knots.won : sc.knots.lost, () => this.leave(() => this.scene.start('Area', { ...this.params.back, script: sc.knots.after } satisfies AreaSceneData)));
     if (won) return out();
     this.dialogue.openMenu(keepTaken ? 'He\u2019s taken the keep.' : 'Dawn, and his camp\u2019s still standing.', [
+      { label: 'Play it again', run: () => this.leave(() => this.scene.restart({ ...this.params, phase: undefined } satisfies RiotTableSceneData)) },
+      { label: 'Go on', run: () => this.time.delayedCall(150, out) },
+    ]);
+  }
+
+  /**
+   * Day 8, the second game: the transfer list comes off the table before it starts (designer: his point), one
+   * crowd at a time, all but the one you struck off it, which stays, and grows.
+   */
+  private async sendAway(sc: FatherScenario): Promise<void> {
+    if (!sc.list) return;
+    const struck = String(getSession(this).story.getVariable('struck') ?? '');
+    await this.wait(300);
+    for (const { place, name, left } of sc.list) {
+      const p = this.place(place);
+      const q = this.g.squadAt(this.state, place);
+      if (!q) continue;
+      if (name && name === struck) continue;
+      playSound(this, 'boots', 0.4);
+      this.pop(p, 'Sent away', SHADES.white);
+      const squads = left ? this.state.squads.map((x) => (x.id === q.id ? { ...x, strength: left } : x)) : this.state.squads.filter((x) => x.id !== q.id);
+      this.state = { ...this.state, squads };
+      this.draw();
+      await this.wait(650);
+    }
+    const kept = sc.list.find((l) => l.name && l.name === struck);
+    if (kept) {
+      const p = this.place(kept.place);
+      this.state = { ...this.state, squads: this.state.squads.map((x) => (x.place === kept.place ? { ...x, strength: sc.kept ?? x.strength } : x)) };
+      this.pop(p, 'Kept', AMBER);
+      this.draw();
+      await this.wait(900);
+    }
+  }
+
+  /** Day 8: a game against your father over (the square yours, or dawn first); then the next, or back in the room. */
+  private fatherOver(sc: FatherScenario, won: boolean): void {
+    this.busy = true;
+    this.draw();
+    getSession(this).story.setVariable(sc.result, won ? 'won' : 'lost');
+    const after = () => {
+      if (sc.next) return this.leave(() => this.scene.restart({ ...this.params, scenario: sc.next!, phase: undefined } satisfies RiotTableSceneData));
+      this.leave(() => this.scene.start('Area', { ...this.params.back, script: sc.knots.after } satisfies AreaSceneData));
+    };
+    const out = () => this.talk(won ? sc.knots.won : sc.knots.lost, after);
+    if (won) return out();
+    this.dialogue.openMenu('Dawn. The square\u2019s still theirs.', [
       { label: 'Play it again', run: () => this.leave(() => this.scene.restart({ ...this.params, phase: undefined } satisfies RiotTableSceneData)) },
       { label: 'Go on', run: () => this.time.delayedCall(150, out) },
     ]);

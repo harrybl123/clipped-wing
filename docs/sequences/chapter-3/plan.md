@@ -286,6 +286,8 @@ The last day. **The broadcast** (doc: made overt), then **the reveal, on the bal
 
 Your friend: *you got him out* — "Somewhere on the road, your friend. You opened the door." / *he went without you* — "Somewhere on the road, your friend. He didn't say goodbye."
 
+**As built (2026-10-16):** as above, with the table against your father at the start (`father8`, `father8_list` in `src/data/warTable.ts`; the list includes everyone on the square, which drops to 6, so the second game's over in a few turns). The friend's squad on the road isn't on the table (the district map has no road out): your father's line only. The hideout isn't one of the broadcast's cutaways (after the raid there's nobody to show); the low district and the promenade are, before and after the choice. The ending cards' titles change with the broadcast (designer, replacing the one title "The steady ship rocks."; draft titles in `EndingScene`).
+
 **Who's where on Day 8:** dawn, your hand; early morning, your father at the war table; morning, the hall full (your father, the court, the guards, the guests, the captain), the city in insets; evening, your balcony: your hand (and, if you backed your father, the captain's men in the halls behind).
 
 **What Day 8 sets:** `table8` (won / lost), `broadcast` (backed / defied / middle: big choice 3), and with it, where your hand ends up (doc): out in the city against you; still your hand, only you knowing; at a distance, your father's confidence yours. **What it shows from earlier:** nearly everything: who's in the hall (the guests; the old councillor or his grandson), who's on the screens below (the painter, struck from the list or gone; the hideout), your friend gone, your sister.

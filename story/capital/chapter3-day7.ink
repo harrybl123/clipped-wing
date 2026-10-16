@@ -358,5 +358,5 @@ Knocking. It isn't light yet. #sleep:off
 ~ c3day8 = "wake"
 ~ objective = ""
 ~ objective_target = ""
-Tomorrow, the city hears it from you. #wake:prince-quarters:120:226 #endday:Day 8
+Tomorrow, the city hears it from you. #wake:prince-quarters:120:226:c3day8_start #endday:Day 8
 -> END

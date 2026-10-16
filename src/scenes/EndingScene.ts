@@ -14,7 +14,7 @@ export interface EndingSceneData {
 }
 
 /** The endings: ones that stop the game early, and Act 1's two (Day 7). Draft words, for the designer. */
-const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number; coda?: string; chapter?: 2 }> = {
+const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number; coda?: string; chapter?: 2 | 3 }> = {
   // Ignoring Grounded's message twice (the design doc's "short, comfortable loyal ending").
   loyal: {
     title: 'You stayed loyal to the Tree.',
@@ -85,6 +85,7 @@ const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number
     chapter: 2,
     retryDay: 11,
   },
+  ...chapter3Endings(),
   // The same, with the girl you blamed beside you.
   fall_together: {
     title: 'Fall if you must.',
@@ -97,6 +98,49 @@ const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number
     retryDay: 7,
   },
 };
+
+/**
+ * Chapter 3's endings (Day 8): on your balcony after "Join me." (no answer: designer). A title by the broadcast
+ * (designer: defying him makes you a thorn in his side; backing him, something about your loyalty; draft
+ * titles), the city, your hand and your father by the broadcast, and your friend by the escape (plan). Draft
+ * text. Ids `c3_<backed|defied|middle>_<out|alone>`.
+ */
+function chapter3Endings(): Record<string, { title: string; lines: string[]; retryDay: number; coda: string; chapter: 3 }> {
+  const broadcasts = {
+    backed: {
+      title: 'Your father\u2019s son.',
+      lines: [
+        'Below you, a city gone quiet. Quiet isn\u2019t the same as over.',
+        'Your hand is out there now, somewhere in it, and he knows every way up.',
+        'Your father trusts you. You\u2019ll have to decide, every morning, whether you deserve it.',
+      ],
+    },
+    defied: {
+      title: 'A thorn in his side.',
+      lines: [
+        'Below you, a city chanting a name. Yours.',
+        'Your hand is at your side, smiling at everyone. Only you know why.',
+        'Your father hasn\u2019t spoken to you since. He will.',
+      ],
+    },
+    middle: {
+      title: 'The weight of the crown.',
+      lines: [
+        'Below you, a city waiting to find out what you meant.',
+        'Your hand keeps his distance now. Polite. Watching.',
+        'Your father has started telling you things. Not everything. Not yet.',
+      ],
+    },
+  };
+  const friend = {
+    out: 'Somewhere on the road, your friend. You opened the door.',
+    alone: 'Somewhere on the road, your friend. He didn\u2019t say goodbye.',
+  };
+  const endings: Record<string, { title: string; lines: string[]; retryDay: number; coda: string; chapter: 3 }> = {};
+  for (const [b, e] of Object.entries(broadcasts))
+    for (const [f, line] of Object.entries(friend)) endings[`c3_${b}_${f}`] = { title: e.title, lines: [...e.lines, line], coda: 'End of Chapter 3', chapter: 3, retryDay: 8 };
+  return endings;
+}
 
 /**
  * An ending that stops the game early: words on black, then a choice to try again from the start of a
@@ -136,7 +180,7 @@ export class EndingScene extends Phaser.Scene {
     const start = getSession(this).dayStarts[ending.retryDay];
     const choices = [
       // Finishing Chapter 1 opens the next (designer).
-      ...(ending.coda && ending.chapter !== 2 ? [{ label: 'Begin Chapter 2', run: () => beginChapter2(this) }] : []),
+      ...(ending.coda && !ending.chapter ? [{ label: 'Begin Chapter 2', run: () => beginChapter2(this) }] : []),
       ...(start ? [{ label: `Try again from Day ${ending.retryDay}`, run: () => this.retry(ending.retryDay) }] : []),
       { label: 'Back to the title', run: () => this.scene.start('Title') },
     ];

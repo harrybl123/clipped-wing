@@ -144,12 +144,22 @@ export const audienceHall: AreaDefinition = {
     inStory('captain-5a', 'captain', 544, FLOOR, 'c3day5=address,speech', { knot: 'c3day5_father_wait', flipX: true }),
     ...([[200, 0], [222, 3], [262, 5], [296, 1], [384, 6], [406, 2], [430, 4], [452, 7], [486, 3], [512, 0]] as const).map(([x, look], i) =>
       courtier(`hall-5${i}`, look, x, FLOOR, 'c3day5_courtier', undefined, { showIf: 'c3day5=address,speech', flipX: i % 3 !== 0 })),
+    // Day 8: the broadcast. Your father beside the throne, behind you; the captain at the rope; the hall full;
+    // at the back, the guests, the heirs who can't go home.
+    inStory('father-8', 'father', 689, DAIS, 'c3day8=hall,speech,answer', { knot: 'c3day8_father_wait', flipX: true }),
+    inStory('captain-8', 'captain', 544, FLOOR, 'c3day8=hall,speech,answer', { knot: 'c3day8_father_wait', flipX: true }),
+    ...([[222, 3], [262, 5], [296, 1], [384, 6], [406, 2], [430, 4], [452, 7], [486, 0]] as const).map(([x, look], i) =>
+      courtier(`hall-8${i}`, look, x, FLOOR, 'c3day8_courtier', undefined, { showIf: 'c3day8=hall,speech,answer', flipX: i % 3 !== 0 })),
+    ...([[150, 2], [170, 6], [190, 4]] as const).map(([x, look], i) =>
+      courtier(`guest-8${i}`, look, x, FLOOR, 'c3day8_guest', undefined, { showIf: 'c3day8=hall,speech,answer', flipX: true })),
   ],
   interactables: [
     { id: 'gate', x: 64, y: FLOOR, reach: 10, label: 'Look', knot: 'audience_gate' },
     { id: 'benches', x: 340, y: FLOOR, reach: 14, label: 'Look', knot: 'audience_benches' },
     { id: 'seat', x: 654, y: DAIS, reach: 10, label: 'Look', knot: 'audience_seat', hideIf: ['c3day1=halls,audience', 'c3day3=audience', 'c3day5=address'] },
     { id: 'mark-5', x: 654, y: DAIS, reach: 10, label: 'Stand', knot: 'c3day5_address', showIf: 'c3day5=address' },
+    // Day 8: your place at the front of the dais, in front of him.
+    { id: 'mark-8', x: 610, y: DAIS, reach: 10, label: 'Stand', knot: 'c3day8_broadcast', showIf: 'c3day8=hall' },
     { id: 'seat-3', x: 654, y: DAIS, reach: 10, label: 'Sit', knot: 'c3day3_audience', showIf: 'c3day3=audience' },
     { id: 'seat-1', x: 654, y: DAIS, reach: 10, label: 'Sit', knot: 'c3day1_audience', showIf: 'c3day1=halls,audience' },
     { id: 'throne', x: 704, y: DAIS, reach: 10, label: 'Look', knot: 'audience_throne', hideIf: 'c3day1=halls,audience,after,walk' }, // (not while he's on it)

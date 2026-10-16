@@ -220,6 +220,9 @@ export const citadelHalls: AreaDefinition = {
     // foot of the stair by you, waiting for him.
     inStory('captain-7', 'captain', 450, FLOOR, 'c3day7=list,friend', { knot: 'c3day7_list', flipX: true }),
     guard('guard-7c', 0, 458, FLOOR, 'c3_guard_night', undefined, { showIf: 'c3day7=halls' }),
+    // Day 8's evening, if you backed your father: the captain's men on the gallery, on their way to your hand's office.
+    guard('guard-8a', 1, 150, UPPER, 'c3day8_guards', undefined, { showIf: 'c3day8=evening,balcony', hideIf: 'broadcast=defied,middle' }),
+    guard('guard-8b', 0, 180, UPPER, 'c3day8_guards', undefined, { showIf: 'c3day8=evening,balcony', hideIf: 'broadcast=defied,middle', flipX: true }),
     guard('guard-7d', 1, 502, FLOOR, 'c3_guard_night', undefined, { showIf: 'c3day7=halls', flipX: true }),
   ],
   interactables: [

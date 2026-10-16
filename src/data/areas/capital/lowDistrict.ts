@@ -161,11 +161,14 @@ export const lowDistrict: AreaDefinition = {
     citizen('cook', 10, 392, FLOOR, 'low_cook', AWAKE, { flipX: true }),
     citizen('repairer', 1, 112, FLOOR, 'low_repairer', AWAKE),
     citizen('grocer', 13, 880, FLOOR, 'low_grocer', DAY, { flipX: true }),
-    strollingCitizen('mechanic', 7, 420, 680, FLOOR, 'low_folk', DAY, { hideIf: 'c3day5=speech' }),
-    strollingCitizen('walker', 5, 260, 560, FLOOR, 'low_folk', MORNING, { hideIf: 'c3day5=speech' }),
+    strollingCitizen('mechanic', 7, 420, 680, FLOOR, 'low_folk', DAY, { hideIf: ['c3day5=speech', 'c3day8=speech,answer'] }),
+    strollingCitizen('walker', 5, 260, 560, FLOOR, 'low_folk', MORNING, { hideIf: ['c3day5=speech', 'c3day8=speech,answer'] }),
     // Day 5, the address (a cutaway): the whole street stopped under its screen.
     ...([[306, 2], [322, 12], [338, 4], [362, 9], [378, 0], [400, 11]] as const).map(([x, look], i) =>
       citizen(`low-5${'abcdef'[i]}`, look, x, FLOOR, 'c3day5_watching', undefined, { showIf: 'c3day5=speech', flipX: x > 351 })),
+    // Day 8, the broadcast (cutaways): more of them than came out for your father, and you on the screen.
+    ...([[290, 3], [306, 12], [322, 7], [338, 4], [366, 9], [382, 1], [398, 11], [414, 5]] as const).map(([x, look], i) =>
+      citizen(`low-8${'abcdefgh'[i]}`, look, x, FLOOR, 'c3day8_watching', undefined, { showIf: 'c3day8=speech,answer', flipX: x > 351 })),
     strollingCitizen('kids', 6, 330, 520, FLOOR, 'c3_kid', ['afternoon']),
     // Up on the walkways: an old woman by her door, neighbours.
     citizen('old-woman', 3, 120, LEFT_WALK, 'c3_old', ['afternoon', 'evening']),

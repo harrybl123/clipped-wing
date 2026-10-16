@@ -773,6 +773,11 @@ VAR helped_escape = false
 VAR friend_gone = false
 // Chapter 3, Day 8 (not built yet).
 VAR c3day8 = ""
+// Day 8: the war table against your father (won / lost), then again with the list.
+VAR table8 = ""
+VAR list8 = ""
+// Big choice 3: the broadcast (backed / defied / middle).
+VAR broadcast = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
@@ -830,6 +835,7 @@ INCLUDE capital/chapter3-day4.ink
 INCLUDE capital/chapter3-day5.ink
 INCLUDE capital/chapter3-day6.ink
 INCLUDE capital/chapter3-day7.ink
+INCLUDE capital/chapter3-day8.ink
 INCLUDE capital/cast.ink
 INCLUDE capital/folk.ink
 INCLUDE capital/looks.ink
