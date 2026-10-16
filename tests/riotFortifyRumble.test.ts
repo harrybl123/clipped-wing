@@ -920,29 +920,26 @@ describe('the war table: even, the home squares, the rebels’ move, heroes (Jac
     expect(rebels.rebelIn(r.state)).toBe(3);
   });
 
-  it('Sabotage: the street one of yours would take their base by, blocked for the turn', () => {
+  it('Sabotage: the street one of yours would take their base by, closed for 3 turns (Jack), counting down', () => {
     const s = rebels.start([...both, { side: 'guard', place: 'crossroads', strength: 9 }]);
-    const r = rebels.risingActs(s);
-    expect(r.events[0]).toMatchObject({ type: 'sabotage' });
-    expect(rebels.dests(r.state, at(r.state, 'crossroads')!)).not.toContain('camp');
-    expect(rebels.closedFor(r.state, 'crossroads', 'camp')).toBe(1);
-    // (Just the turn, as it is; longer, it counts down.)
-    expect(rebels.turn(r.state, [], []).state.blocked).toBeNull();
-    const longer = new RiotGame(board, { ...RIOT_RULES, rebel: { ...REBEL, closed: 3 } });
-    let t = longer.risingActs(s).state;
-    expect(longer.closedFor(t, 'crossroads', 'camp')).toBe(3);
-    t = longer.turn(t, [], []).state;
-    expect(longer.closedFor(t, 'crossroads', 'camp')).toBe(2);
-    expect(longer.dests(t, at(t, 'crossroads')!)).not.toContain('camp');
+    let t = rebels.risingActs(s).state;
+    expect(rebels.risingActs(s).events[0]).toMatchObject({ type: 'sabotage' });
+    for (const left of [3, 2, 1]) {
+      expect(rebels.closedFor(t, 'crossroads', 'camp')).toBe(left);
+      expect(rebels.dests(t, at(t, 'crossroads')!)).not.toContain('camp');
+      t = rebels.turn(t, [], []).state;
+    }
+    expect(t.blocked).toBeNull();
+    expect(rebels.dests(t, at(t, 'crossroads')!)).toContain('camp');
+    // (Once in 9 turns, Jack: their move's back, but not sabotage yet.)
+    expect(rebels.canRebel(t)).toBe(true);
+    expect(rebels.canSabotage(t)).toBe(false);
+    expect(rebels.risingActs(t).events.some((e) => e.type === 'sabotage')).toBe(false);
+    expect(rebels.canSabotage({ ...t, turn: t.turn + 6 })).toBe(true);
   });
 
-  it('Riot: a fire next to yours, everyone round it hit, and nobody can go there this turn', () => {
+  it('no riot (Jack took it out): with only fire-worthy ground about, they wait', () => {
     const s = rebels.start([...both, { side: 'guard', place: 'wwall', strength: 6 }, { side: 'guard', place: 'oldtown', strength: 6 }]);
-    const r = rebels.risingActs(s);
-    const riot = r.events.find((e) => e.type === 'riot');
-    if (riot?.type !== 'riot') throw new Error('no riot');
-    expect(riot.hits.length).toBeGreaterThan(0);
-    for (const h of riot.hits) expect(h.damage).toBeGreaterThanOrEqual(1), expect(h.damage).toBeLessThanOrEqual(2);
-    expect(rebels.dests(r.state, at(r.state, 'wwall')!)).not.toContain(riot.at);
+    expect(rebels.risingActs(s).events).toEqual([]);
   });
 });

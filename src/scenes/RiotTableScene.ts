@@ -569,29 +569,18 @@ export class RiotTableScene extends Phaser.Scene {
     for (const e of events) {
       if (e.type === 'deploy') void this.eliteArrives(e.side, e.elite, e.at.map((p) => this.place(p)));
       if (e.type === 'seduce') this.seduced(this.place(e.at), e.side);
-      if (e.type === 'rally' || e.type === 'sabotage' || e.type === 'riot') void this.rebelMove(e);
+      if (e.type === 'rally' || e.type === 'sabotage') void this.rebelMove(e);
     }
   }
 
-  /** The rebels' move (Jack): Rally, Sabotage or Riot, said across the screen, and shown where it happens. */
-  private async rebelMove(e: Extract<RiotEvent, { type: 'rally' | 'sabotage' | 'riot' }>): Promise<void> {
+  /** The rebels' move (Jack): Rally or Sabotage, said across the screen, and shown where it happens. */
+  private async rebelMove(e: Extract<RiotEvent, { type: 'rally' | 'sabotage' }>): Promise<void> {
     const them = this.you === 'guard' ? 'theirs' : 'yours';
     if (e.type === 'rally') {
       await this.banner('Rally!', { colour: COLOUR.rising, sub: `+${e.by} to one of ${them}.`, hold: 1800, then: () => (playSound(this, 'warcry', 0.8), this.lookAt(this.place(e.at)), this.pop(this.place(e.at), `+${e.by}`, COLOUR.rising)) });
-    } else if (e.type === 'sabotage') {
+    } else {
       const [a, b] = e.ways.map((p) => this.place(p));
       await this.banner('Sabotage!', { colour: COLOUR.rising, sub: `A route is closed (${this.turnsText(this.g.closedFor(this.state, ...e.ways))}): nobody can use it.`, hold: 1800, then: () => (playSound(this, 'crash', 0.8), this.lookAt({ x: (a!.x + b!.x) / 2, y: (a!.y + b!.y) / 2 })) });
-    } else {
-      await this.banner('Riot!', {
-        colour: COLOUR.rising, sub: `A fire breaks out: every squad round it takes 1 to ${this.g.rules.rebel?.fire ?? 2}, either side. Nobody can go there this turn.`, hold: 2000, jitter: true,
-        then: () => {
-          playSound(this, 'boom', 0.8);
-          playSound(this, 'warcryLow', 0.6);
-          this.lookAt(this.place(e.at));
-          for (const h of e.hits) this.pop(this.place(h.place), h.gone ? 'all' : `-${h.damage}`, COLOUR[h.side]);
-          this.draw();
-        },
-      });
     }
     this.draw();
   }
@@ -2151,7 +2140,6 @@ export class RiotTableScene extends Phaser.Scene {
     if (p.heart && !homes) lines.push(duel ? `Your keep. Walls +1. Each turn ${this.g.rules.muster} new men come out onto a road next to it, unless he holds them all. Lose it and you've lost.` : `Barricades +1. Grows 1 a turn; over ${this.g.style.pourAbove}, sends crowds out.`);
     if (p.lifts && !homes) lines.push(duel ? `His camp. Each turn ${this.g.rules.muster} new men come out of it, unless you hold every road round it. Take it and you've won.` : `The guard get +${this.g.rules.reinforce} here each turn.`);
     if (s.cut === p.id) lines.push('No power this turn.');
-    if (s.fire === p.id) lines.push('On fire (a riot): nobody can go here this turn.');
     if (s.blocked?.ways.includes(p.id) && this.g.closedFor(s, ...s.blocked.ways)) lines.push(`Sabotaged: the route to ${lower(this.place(s.blocked.ways.find((x) => x !== p.id)!).name)} is closed (${this.turnsText(this.g.closedFor(s, ...s.blocked.ways))}).`);
     if (this.g.fortified(s, p.id)) lines.push('Dug in: nobody can attack it this turn.');
     if (s.rumble?.place === p.id) lines.push(`A rumble: whoever gets here first sets it off. Everyone next to it takes 1 to 3. (${s.rumble.left} ${s.rumble.left === 1 ? 'turn' : 'turns'} left)`);
@@ -2246,18 +2234,6 @@ export class RiotTableScene extends Phaser.Scene {
   /** The riot, alive (designer: make it look like one): fire and a crowd round every squad of the rising, smoke going up. */
   private drawLife(): void {
     const g = this.life.clear();
-    // A riot's fire (Jack): flames licking up off the place, for the turn.
-    if (this.state.fire) {
-      const p = this.place(this.state.fire);
-      g.fillStyle(SHADES.amber, 0.18).fillCircle(p.x, p.y, 14);
-      for (let i = 0; i < 7; i++) {
-        const k = (this.t * 3 + i * 5) % 12;
-        const x = p.x - 7 + i * 2.3 + Math.sin(this.t / 2 + i) * 1.5;
-        const h = 6 + ((i * 7) % 5) - k * 0.3;
-        g.fillStyle(i % 2 ? SHADES.amber : SHADES.white, 0.8).fillTriangle(x - 2, p.y + 5, x + 2, p.y + 5, x, p.y + 5 - h - (this.t + i) % 3);
-      }
-      g.fillStyle(SHADES.white, 0.5).fillCircle(p.x - 2 + ((this.t % 5) - 2), p.y - 4 - (this.t % 6), 1);
-    }
     // The Lord's judgement (Jack), round every squad of the judged side for as long as it lasts: the blessed in a
     // slow-pulsing golden light with motes rising off it; the cursed in a looming darkness, wisps creeping round it,
     // ash drifting away.
