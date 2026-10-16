@@ -121,6 +121,9 @@ async function open(scene: Phaser.Scene, at: { x: number; y: number }, word: str
   cam.fadeOut(140, 0, 0, 0);
   await wait(160);
   big.destroy();
+  // (Skipped, the dive's still going: stop it, or it zooms the fight in on its corner.)
+  cam.zoomEffect.reset();
+  cam.panEffect.reset();
   cam.setZoom(1).setScroll(0, 0);
 
   // (Fixed to the screen: on a table that pans, the camera's free to wander underneath.)
@@ -164,6 +167,8 @@ async function open(scene: Phaser.Scene, at: { x: number; y: number }, word: str
     await new Promise<void>((r) => scene.time.delayedCall(160, r));
     flicker.remove();
     layer.destroy();
+    cam.zoomEffect.reset();
+    cam.panEffect.reset();
     cam.setZoom(before.zoom).setScroll(before.x, before.y);
     cam.fadeIn(200);
     scene.input.keyboard?.off('keydown', onSkip);
