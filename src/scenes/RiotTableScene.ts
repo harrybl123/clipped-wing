@@ -32,7 +32,9 @@ import type { CombatSceneData } from './CombatScene';
 // circles (Jack: easier to play): with a squad picked up, Fortify (or F) digs it in for the turn and puts it
 // down, so you can pick up the next (once every 3 turns, like the power cut); Unfortify sits under every
 // squad that's dug in. As the guard, click one
-// of theirs for Cut power under it (every 3 turns; P still works from the keyboard). A rumble on the map flares; set off, the screen shakes and "Rumble!" (Jack).
+// of theirs for Cut power under it (every 3 turns; P still works from the keyboard). Split, beside Fortify (Jack,
+// a trial): pick where the bigger half goes; the rest stays, to send on too. A hero (Jack, a trial), a helmet:
+// always 7, two streets a turn; its arrival, "Hero!" and a sword drawn. A rumble on the map flares; set off, the screen shakes and "Rumble!" (Jack).
 
 export interface RiotTableSceneData {
   scenario: string;
@@ -70,6 +72,8 @@ export class RiotTableScene extends Phaser.Scene {
   /** Your father has the table (the riot, after dawn). */
   private fatherPlaying = false;
   private gfx!: Phaser.GameObjects.Graphics;
+  /** The buttons under the circles, drawn over everything else on the table (and the card). */
+  private buttonGfx!: Phaser.GameObjects.Graphics;
   private life!: Phaser.GameObjects.Graphics;
   private numbers: PixelText[] = [];
   /** A little note in the corner: dawn, or the lesson's goal. */
@@ -85,6 +89,8 @@ export class RiotTableScene extends Phaser.Scene {
   private undoButton!: PixelText;
   /** One of theirs you've clicked: Cut power, under it (Jack). */
   private eyeing: RiotPlace | null = null;
+  /** Splitting the squad you've picked up (Jack): where you send it next, only the bigger half goes. */
+  private splitting = false;
   /** How wide each button's words are (measured once). */
   private labelWidths = new Map<string, number>();
   /** This turn's changes, to undo one at a time (designer): the orders and the state before each. */
@@ -127,6 +133,7 @@ export class RiotTableScene extends Phaser.Scene {
     this.add.image(0, 0, key).setOrigin(0);
     this.life = this.add.graphics().setDepth(2);
     this.gfx = this.add.graphics().setDepth(3);
+    this.buttonGfx = this.add.graphics().setDepth(9);
     // Hardly any words on the table (designer: too cluttered): a note in the corner, and a card by the cursor.
     this.chip = new PixelText(this, 6, 5, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(7);
     this.cardBack = this.add.graphics().setDepth(7);
@@ -237,6 +244,7 @@ export class RiotTableScene extends Phaser.Scene {
       if (e.type === 'arrive') this.pop(this.place(e.at), `+${this.g.rules.reinforce}`, CYAN);
       if (e.type === 'pour') this.pop(this.place(e.to), `${this.g.style.pour} out`, AMBER);
       if (e.type === 'rumbleAppears') this.rumbleAppears(this.place(e.at));
+      if (e.type === 'heroArrives') await this.heroArrives(this.place(e.at), e.side);
     }
     this.state = end.state;
     this.draw();
@@ -291,6 +299,27 @@ export class RiotTableScene extends Phaser.Scene {
     await this.wait(80);
     const rumble = events.find((e) => e.type === 'rumble');
     if (rumble?.type === 'rumble') await this.rumbleGoesOff(rumble);
+  }
+
+  /**
+   * A hero arrives (Jack): a sword drawn ("shing!"), someone calling "Hero!", and "Hero!" across the table. The
+   * rising's: "Bastard!", the sword pitched down, the light dimming rather than flashing.
+   */
+  private async heroArrives(at: RiotPlace, side: Side): Promise<void> {
+    const ours = side === 'guard';
+    playSound(this, ours ? 'shing' : 'shingLow', 1);
+    if (ours) playSound(this, 'hero', 1);
+    if (ours) this.cameras.main.flash(200, 230, 250, 255);
+    else (this.cameras.main.flash(350, 20, 14, 10), this.cameras.main.shake(300, 0.004));
+    const glint = this.add.circle(at.x, at.y, 6, ours ? SHADES.white : SHADES.amber).setDepth(6);
+    this.tweens.add({ targets: glint, scale: 4, alpha: 0, duration: 500, onComplete: () => glint.destroy() });
+    const word = new PixelText(this, 0, 0, ours ? 'Hero!' : 'Bastard!', { color: COLOUR[side], shadow: SHADES.shadow, scale: 3 }).setDepth(20);
+    word.setPosition(Math.round((W - word.width) / 2), Math.round(H / 2 - word.height / 2 - 20));
+    word.setScale(0.6);
+    this.tweens.add({ targets: word, scale: 1, duration: 180, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: word, alpha: 0, delay: 1000, duration: 500, onComplete: () => word.destroy() });
+    this.draw();
+    await this.wait(900);
   }
 
   /** A rumble appears (Jack: hard to miss): a flash, a low rumble, a ring going out from it, and its name. */
@@ -504,12 +533,17 @@ export class RiotTableScene extends Phaser.Scene {
     if (this.aiming) {
       const { squad, dests } = this.aiming;
       if (!dests.includes(place)) return;
+      const split = this.splitting;
+      this.splitting = false;
+      // (Splitting, onto its own place: no split after all.)
+      if (split && place.id === squad.place) return void ((this.aiming = null), this.draw());
       this.history.push({ orders: [...this.orders], state: this.state });
-      this.orders = this.orders.filter((o) => o.squad !== squad.id);
+      // A squad's split and its own move are separate orders (the half that stays can go its own way).
+      this.orders = this.orders.filter((o) => o.squad !== squad.id || !!o.split !== split);
       if (place.id !== squad.place) {
         // Sent somewhere after all: no longer dug in.
         this.state = this.g.unfortify(this.state, squad.place);
-        this.orders.push({ squad: squad.id, to: place.id });
+        this.orders.push(split ? { squad: squad.id, to: place.id, split } : { squad: squad.id, to: place.id });
       }
       this.aiming = null;
       this.cursor = place;
@@ -529,7 +563,8 @@ export class RiotTableScene extends Phaser.Scene {
       const angle = (q: RiotPlace) => (Math.atan2(q.x - place.x, -(q.y - place.y)) + 2 * Math.PI) % (2 * Math.PI);
       round.sort((a, b) => angle(a) - angle(b));
       this.aiming = { squad, dests: [place, ...round] };
-      const going = this.orders.find((o) => o.squad === squad.id);
+      this.splitting = false;
+      const going = this.orders.find((o) => o.squad === squad.id && !o.split);
       this.cursor = going ? this.place(going.to) : round[0] ?? place;
       playMove(this);
     }
@@ -549,6 +584,11 @@ export class RiotTableScene extends Phaser.Scene {
         // Once every 3 turns, like the power cut (Jack): greyed, with the turns to wait, till then.
         const ready = this.g.canFortify(s, this.you);
         out.push({ place: this.place(q.place), label: dug ? 'Unfortify' : ready ? 'Fortify' : `Fortify in ${this.g.fortifyIn(s, this.you)}`, enabled: dug || ready, hot: dug, run: () => this.toggleFortify(q) });
+        // Split (Jack): not a hero, not a 1, not dug in.
+        if (!q.hero && q.strength >= 2 && !dug) {
+          const half = Math.ceil(q.strength / 2);
+          out.push({ place: this.place(q.place), label: this.splitting ? `${half} | ${q.strength - half}` : 'Split', enabled: true, hot: this.splitting, run: () => ((this.splitting = !this.splitting), playMove(this), this.draw()) });
+        }
       }
       for (const q of this.g.mine(s, this.you)) {
         if (q.id !== this.aiming?.squad.id && this.g.fortified(s, q.place)) out.push({ place: this.place(q.place), label: 'Unfortify', enabled: true, hot: true, run: () => this.toggleFortify(q) });
@@ -563,18 +603,32 @@ export class RiotTableScene extends Phaser.Scene {
     return out;
   }
 
-  /** Where a button sits: under its circle (over it, near the bottom, clear of End turn and Undo). */
-  private buttonBox(b: { place: RiotPlace; label: string }): { x: number; y: number; w: number; h: number } {
-    let w = this.labelWidths.get(b.label);
+  /** How wide a button is, for its words (measured once). */
+  private buttonWidth(label: string): number {
+    let w = this.labelWidths.get(label);
     if (w === undefined) {
-      const t = new PixelText(this, 0, 0, b.label, { color: SHADES.white });
+      const t = new PixelText(this, 0, 0, label, { color: SHADES.white });
       w = t.width;
       t.destroy();
-      this.labelWidths.set(b.label, w);
+      this.labelWidths.set(label, w);
     }
+    return w + 8;
+  }
+
+  /**
+   * Where a button sits: under its circle (over it, near the bottom, clear of End turn and Undo); several under
+   * one circle (Fortify and Split) side by side.
+   */
+  private buttonBox(b: { place: RiotPlace; label: string }): { x: number; y: number; w: number; h: number } {
+    const row = this.underButtons().filter((x) => x.place === b.place);
+    const widths = row.map((x) => this.buttonWidth(x.label));
+    const total = widths.reduce((a, w) => a + w, 0) + 2 * (row.length - 1);
+    const i = Math.max(0, row.findIndex((x) => x.label === b.label));
     const p = b.place;
+    const left = Math.round(Math.max(2, Math.min(W - total - 2, p.x - total / 2)));
+    const x = left + widths.slice(0, i).reduce((a, w) => a + w + 2, 0);
     const below = p.y + 14;
-    return { x: Math.round(Math.max(2, Math.min(W - w - 10, p.x - (w + 8) / 2))), y: Math.round(below + 11 > H - 17 ? p.y - 25 : below), w: w + 8, h: 11 };
+    return { x, y: Math.round(below + 11 > H - 17 ? p.y - 25 : below), w: widths[i] ?? this.buttonWidth(b.label), h: 11 };
   }
 
   /**
@@ -717,16 +771,37 @@ export class RiotTableScene extends Phaser.Scene {
     this.orders.forEach((o, i) => {
       const q = plan.squads.find((x) => x.id === o.squad);
       const join = this.g.squadAt(plan, o.to)?.side === this.you;
-      if (q && o.squad !== this.aiming?.squad.id) this.arrow(g, o, join ? SHADES.green : COLOUR[this.you], false, i + 1, q.place);
+      if (q && o.squad !== this.aiming?.squad.id) {
+        const via = q.hero ? this.g.via(plan, q, o.to) : null;
+        if (via) this.arrow(g, { squad: o.squad, to: via }, COLOUR[this.you], false, undefined, q.place);
+        this.arrow(g, o, join ? SHADES.green : COLOUR[this.you], false, i + 1, via ?? q.place);
+      }
       plan = this.g.order(plan, o).state;
     });
-    if (this.aiming && this.cursor.id !== this.aiming.squad.place) this.arrow(g, { squad: this.aiming.squad.id, to: this.cursor.id }, blink ? COLOUR[this.you] : SHADES.white, false);
+    if (this.aiming && this.cursor.id !== this.aiming.squad.place) {
+      const via = this.aiming.squad.hero ? this.g.via(this.state, this.aiming.squad, this.cursor.id) : null;
+      if (via) this.arrow(g, { squad: this.aiming.squad.id, to: via }, blink ? COLOUR[this.you] : SHADES.white, false);
+      this.arrow(g, { squad: this.aiming.squad.id, to: this.cursor.id }, blink ? COLOUR[this.you] : SHADES.white, false, undefined, via ?? undefined);
+    }
     // The squads: the guard a blue shield, the rising an amber circle; the number on each.
     for (const q of s.squads) {
       const p = this.place(q.place);
       const col = COLOUR[q.side];
       const dark = s.cut === q.place;
-      if (q.side === 'guard') {
+      if (q.hero) {
+        // A hero (Jack): a warrior's helmet from the front: a plume arching over the dome, cheek guards down both
+        // sides, and a T-shaped opening for the face (its number in it, in white).
+        const body = dark ? (q.side === 'guard' ? SHADES.cyanDeep : SHADES.amberDeep) : col;
+        const plume = q.side === 'guard' ? [SHADES.white, SHADES.amber] : [SHADES.wood, SHADES.deep]; // theirs: a dark plume
+        g.fillStyle(SHADES.shadow, 1).fillCircle(p.x, p.y - 3, 10).fillRect(p.x - 10, p.y - 3, 21, 14);
+        for (let i = -9; i <= 9; i++) {
+          const top = p.y - 12 - Math.round(Math.sqrt(Math.max(0, 81 - i * i)) * 0.45);
+          g.fillStyle(i % 3 === 0 ? plume[1]! : plume[0]!, 1).fillRect(p.x + i, top, 1, 3); // the plume
+        }
+        g.fillStyle(body, 1).fillCircle(p.x, p.y - 3, 9).fillRect(p.x - 9, p.y - 3, 19, 13);
+        g.fillStyle(SHADES.light, 1).fillRect(p.x - 9, p.y - 7, 19, 1); // the brow
+        g.fillStyle(SHADES.shadow, 1).fillRect(p.x - 7, p.y - 5, 15, 3).fillRect(p.x - 3, p.y - 2, 7, 12); // the T
+      } else if (q.side === 'guard') {
         g.fillStyle(SHADES.shadow, 1).fillRoundedRect(p.x - 8, p.y - 8, 17, 17, 3);
         g.fillStyle(dark ? SHADES.cyanDeep : col, 1).fillRoundedRect(p.x - 7, p.y - 7, 15, 13, 2);
         g.fillTriangle(p.x - 7, p.y + 5, p.x + 8, p.y + 5, p.x + 0.5, p.y + 9);
@@ -741,7 +816,7 @@ export class RiotTableScene extends Phaser.Scene {
         g.fillStyle(SHADES.shadow, 1).fillRect(Math.round(p.x + Math.cos(ang) * 12) - 2, Math.round(p.y + Math.sin(ang) * 12) - 2, 4, 4);
         g.fillStyle(SHADES.light, 1).fillRect(Math.round(p.x + Math.cos(ang) * 12) - 1, Math.round(p.y + Math.sin(ang) * 12) - 1, 3, 3);
       }
-      const n = new PixelText(this, 0, p.y - 4, String(q.strength), { color: SHADES.shadow }).setDepth(5);
+      const n = new PixelText(this, 0, q.hero ? p.y - 1 : p.y - 4, String(q.strength), { color: q.hero ? SHADES.white : SHADES.shadow }).setDepth(5);
       n.setX(Math.round(p.x - n.width / 2 + 1));
       this.numbers.push(n);
     }
@@ -752,11 +827,12 @@ export class RiotTableScene extends Phaser.Scene {
     // One of theirs you've clicked (Cut power, under it).
     if (this.eyeing && !this.busy) g.lineStyle(1, SHADES.white, blink ? 1 : 0.5).strokeCircle(this.eyeing.x, this.eyeing.y, 12);
     // The buttons under the circles (Jack): Fortify, Unfortify, Cut power.
+    const bg = this.buttonGfx.clear();
     for (const b of this.underButtons()) {
       const box = this.buttonBox(b);
-      g.fillStyle(!b.enabled ? SHADES.deep : b.hot ? SHADES.amberDeep : SHADES.cyanDeep, 0.95).fillRect(box.x, box.y, box.w, box.h);
-      g.lineStyle(1, b.enabled ? SHADES.light : SHADES.dim, 1).strokeRect(box.x, box.y, box.w, box.h);
-      this.numbers.push(new PixelText(this, box.x + 4, box.y + 2, b.label, { color: b.enabled ? SHADES.white : SHADES.dim, shadow: SHADES.shadow }).setDepth(8));
+      bg.fillStyle(!b.enabled ? SHADES.deep : b.hot ? SHADES.amberDeep : SHADES.cyanDeep, 1).fillRect(box.x, box.y, box.w, box.h);
+      bg.lineStyle(1, b.enabled ? SHADES.light : SHADES.dim, 1).strokeRect(box.x, box.y, box.w, box.h);
+      this.numbers.push(new PixelText(this, box.x + 4, box.y + 2, b.label, { color: b.enabled ? SHADES.white : SHADES.dim, shadow: SHADES.shadow }).setDepth(10));
     }
     // The buttons.
     const idle = !this.busy && !this.aiming && !this.cutting;
@@ -792,7 +868,16 @@ export class RiotTableScene extends Phaser.Scene {
     if (!text || !p) return;
     const [w, h] = [this.card.width + 8, this.card.height + 6];
     const x = p.x + 18 + w < W - 4 ? p.x + 18 : p.x - 18 - w;
-    const y = Math.max(4, Math.min(H - h - 20, p.y - 10));
+    let y = Math.max(4, Math.min(H - h - 20, p.y - 10));
+    // Out of the way of the buttons under the circles: above them, or below.
+    const hits = (yy: number) => this.underButtons().some((b) => {
+      const r = this.buttonBox(b);
+      return x < r.x + r.w && x + w > r.x && yy < r.y + r.h && yy + h > r.y;
+    });
+    if (hits(y)) {
+      const above = Math.max(4, Math.min(...this.underButtons().map((b) => this.buttonBox(b).y)) - h - 2);
+      y = !hits(above) ? above : Math.min(H - h - 20, Math.max(...this.underButtons().map((b) => this.buttonBox(b).y + 13)));
+    }
     this.cardBack.fillStyle(SHADES.shadow, 0.92).fillRect(x, y, w, h);
     this.cardBack.lineStyle(1, SHADES.cyanDeep, 1).strokeRect(x, y, w, h);
     this.card.setPosition(Math.round(x + 4), Math.round(y + 3));
@@ -806,11 +891,15 @@ export class RiotTableScene extends Phaser.Scene {
     const p = this.cursor;
     const there = this.g.squadAt(s, p.id);
     if (this.cutting) return 'Cut the power here';
-    const aim = s.squads.find((q) => q.id === this.aiming!.squad.id) ?? this.aiming!.squad;
-    if (p.id === aim.place) return this.g.fortified(s, p.id) ? 'Hold, dug in' : 'Hold';
+    const whole = s.squads.find((q) => q.id === this.aiming!.squad.id) ?? this.aiming!.squad;
+    // Splitting (Jack): only the bigger half goes.
+    const half = this.splitting ? Math.ceil(whole.strength / 2) : whole.strength;
+    const aim = { ...whole, strength: half };
+    const lead = this.splitting ? `Split: ${half} go, ${whole.strength - half} stay. ` : '';
+    if (p.id === aim.place) return this.splitting ? 'Split: pick where half goes' : this.g.fortified(s, p.id) ? 'Hold, dug in' : 'Hold';
     const rumble = s.rumble?.place === p.id ? ', and set off the rumble' : '';
-    if (!there) return `Take it${rumble}`;
-    if (there.side === aim.side) return `Join: ${aim.strength + there.strength}, then send them on`;
+    if (!there) return `${lead}Take it${rumble}`;
+    if (there.side === aim.side) return `${lead}Join: ${aim.strength + there.strength}, then send them on`;
     const a = this.g.attack(aim.place, p.id, aim.strength);
     const d = this.g.defence(s, p.id, there.strength);
     if (this.g.fortified(s, p.id)) return "They're dug in: no attack this turn";
@@ -818,8 +907,8 @@ export class RiotTableScene extends Phaser.Scene {
     // number and you take it (Jack), keeping what's over after the barricades, at least 1.
     const n = there.strength;
     const vs = `${a} v ${n}${d > n ? ' (+1 barricades)' : d < n ? ' (no power: -1)' : ''}`;
-    if (a > d || (p.id === this.g.heart && a >= n)) return `${vs}: you take it, ${Math.max(1, a - d)} left${rumble}`;
-    return a === d ? `${vs}: a tie, they hold` : `${vs}: they hold`;
+    if (a > d || (p.id === this.g.heart && a >= n)) return `${lead}${vs}: you take it, ${aim.hero ? `${a} still` : `${Math.max(1, a - d)} left`}${rumble}`;
+    return lead + (a === d ? `${vs}: a tie, they hold` : `${vs}: they hold`);
   }
 
   /** What's at a place: its name, whose, how strong, and anything special about it. */
@@ -829,6 +918,7 @@ export class RiotTableScene extends Phaser.Scene {
     const whose = (side: Side) => (side === this.you ? (side === 'guard' ? 'Your guard' : 'Your people') : side === 'guard' ? 'The guard' : 'The rising');
     const lines = [p.name];
     if (there) lines.push(`${whose(there.side)}, ${there.strength}`);
+    if (there?.hero) lines.push(`${there.side === 'guard' ? 'A hero' : 'Their bastard'}: always ${there.strength}. Goes two streets a turn. Joins nobody.`);
     if (p.heart) lines.push(`Barricades +1. Grows 1 a turn; over ${this.g.style.pourAbove}, sends crowds out.`);
     if (p.lifts) lines.push(`The guard get +${this.g.rules.reinforce} here each turn.`);
     if (s.cut === p.id) lines.push('No power this turn.');

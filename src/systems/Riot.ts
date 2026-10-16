@@ -25,8 +25,13 @@
 //
 // And two of Jack's (proposed for the designer):
 //   Fortify: instead of moving, a squad of yours digs in for the turn: nobody can attack it (their attacks on
-//   it don't happen), but it can't move, and it gets no +1 or +2 that turn (the square's growth, the guard at
-//   the lifts). (You survive a round while help comes round behind.) Like the power cut, once every 3 turns.
+//   it don't happen), but it can't move. It still gets its +1 or +2 (Jack: it needed more benefit). (You survive
+//   a round while help comes round behind.) Like the power cut, once every 3 turns.
+//   Split (Jack, a trial): half a squad (the bigger half) goes to a street next to it; the rest stays, and can
+//   be sent on its own way too.
+//   The hero (Jack, a trial; the riot only): now and then the guard's reinforcements come as a hero instead of
+//   +2. Always 7, never more or less, and never joined with anyone; it goes up to two streets a turn. And the
+//   rising have one too (Jack: "Bastard!"): now and then, instead of growing, the square sends one out.
 //   Rumble (the riot only): now and then a rumble appears on an empty street for two turns (next to both
 //   sides, where there's such a street: a race). Whoever gets a
 //   squad onto it first sets it off: every squad next to it, on either side, takes 1 to 3 (a dice each; a
@@ -73,6 +78,8 @@ export interface RiotRules {
   ordered: boolean;
   /** Rumbles (Jack): the chance one appears each turn when there's none, how many turns it stays, and the most a dice can take (from 1). None if absent. */
   rumble?: { chance: number; lasts: number; max: number };
+  /** Heroes (Jack): the chance the guard's reinforcements come as one (when there's none), and its strength. None if absent. */
+  hero?: { chance: number; strength: number };
 }
 
 export const RIOT_RULES: RiotRules = { dawn: 18, reinforce: 2, reinforceEvery: 1, powerEvery: 3, fortifyEvery: 3, ordered: true };
@@ -80,11 +87,16 @@ export const RIOT_RULES: RiotRules = { dawn: 18, reinforce: 2, reinforceEvery: 1
 /** Rumbles in the riot (Jack): a one-in-three chance each turn there's none, two turns to get to it, 1 to 3 to each squad round it. */
 export const RUMBLE: NonNullable<RiotRules['rumble']> = { chance: 1 / 3, lasts: 2, max: 3 };
 
+/** Heroes in the riot (Jack): now and then (one in six turns, with none about), a 7. */
+export const HERO: NonNullable<RiotRules['hero']> = { chance: 1 / 6, strength: 7 };
+
 export interface RiotSquad {
   id: string;
   side: Side;
   place: string;
   strength: number;
+  /** A hero (Jack): always `strength` (7), never joined with anyone, two streets a turn. */
+  hero?: boolean;
 }
 
 export interface RiotState {
@@ -107,10 +119,11 @@ export interface RiotState {
   seed: number;
 }
 
-/** An order: a squad to a place next to it. */
+/** An order: a squad to a place next to it (a hero: up to two streets away). With `split`, only half goes (the bigger half). */
 export interface Order {
   squad: string;
   to: string;
+  split?: boolean;
 }
 
 export type RiotEvent =
@@ -124,7 +137,10 @@ export type RiotEvent =
   | { type: 'blocked'; at: string; side: Side }
   /** A rumble set off at a place: each squad next to it, and what it took. */
   | { type: 'rumble'; at: string; side: Side; hits: { place: string; side: Side; damage: number; gone: boolean }[] }
-  | { type: 'rumbleAppears'; at: string };
+  | { type: 'rumbleAppears'; at: string }
+  /** Half a squad split off (`squad`, the half that went) from `from`. */
+  | { type: 'split'; squad: string; from: string; strength: number }
+  | { type: 'heroArrives'; at: string; side: Side };
 
 /** How the rising plays (being tuned: designer, the rising was too passive). */
 export interface RisingStyle {
@@ -250,7 +266,28 @@ export class RiotGame {
 
   /** Where a squad can go this turn: the streets next to it (nowhere, with its power cut). */
   dests(s: RiotState, q: RiotSquad): string[] {
-    return s.cut === q.place ? [] : this.adj.get(q.place)!;
+    if (s.cut === q.place) return [];
+    // Nobody joins a hero, and a hero joins nobody (Jack).
+    const joinable = (p: string) => {
+      const there = this.squadAt(s, p);
+      return !there || there.side !== q.side || (!there.hero && !q.hero);
+    };
+    if (!q.hero) return this.adj.get(q.place)!.filter(joinable);
+    // A hero: up to two streets, through an empty place or one of its own (never through theirs).
+    const out = new Set<string>();
+    for (const n of this.adj.get(q.place)!) {
+      const there = this.squadAt(s, n);
+      if (joinable(n) && there?.side !== q.side) out.add(n);
+      if (there && there.side !== q.side) continue;
+      for (const m of this.adj.get(n)!) if (m !== q.place && joinable(m) && this.squadAt(s, m)?.side !== q.side) out.add(m);
+    }
+    return [...out];
+  }
+
+  /** Where a hero stops on the way to `to`, two streets off (an empty place or one of its own next to both), or null if it's next door. */
+  via(s: RiotState, q: RiotSquad, to: string): string | null {
+    if (this.near(q.place, to)) return null;
+    return this.adj.get(q.place)!.find((n) => this.near(n, to) && this.squadAt(s, n)?.side !== this.other(q.side)) ?? null;
   }
 
   /** The power cut, under a place, for this turn. */
@@ -265,11 +302,25 @@ export class RiotGame {
   /** One order carried out (orders that can't happen now do nothing). */
   order(s0: RiotState, o: Order): { state: RiotState; events: RiotEvent[] } {
     const s = this.clone(s0);
-    const q = s.squads.find((x) => x.id === o.squad);
+    const q0 = s.squads.find((x) => x.id === o.squad);
     // (A fortified squad stays put.)
-    if (!q || o.to === q.place || !this.dests(s, q).includes(o.to) || this.fortified(s, q.place)) return { state: s, events: [] };
-    const from = q.place;
+    if (!q0 || o.to === q0.place || !this.dests(s, q0).includes(o.to) || this.fortified(s, q0.place)) return { state: s, events: [] };
+    let q = q0;
     const events: RiotEvent[] = [];
+    // Split (Jack): the bigger half goes; the rest stays (a hero can't be split; nor can a squad of 1).
+    if (o.split) {
+      if (q.hero || q.strength < 2) return { state: s, events: [] };
+      const half: RiotSquad = { id: `q${s.nextId++}`, side: q.side, place: q.place, strength: Math.ceil(q.strength / 2) };
+      q.strength -= half.strength;
+      s.squads.push(half);
+      events.push({ type: 'split', squad: half.id, from: q.place, strength: half.strength });
+      q = half;
+    }
+    // A hero two streets off: through the place between.
+    const via = q.hero ? this.via(s, q, o.to) : null;
+    if (q.hero && !this.near(q.place, o.to) && !via) return { state: this.clone(s0), events: [] };
+    const from = q.place;
+    if (via) q.place = via;
     const there = this.squadAt(s, o.to);
     if (!there) {
       q.place = o.to;
@@ -293,12 +344,13 @@ export class RiotGame {
       if (won) {
         s.squads = s.squads.filter((x) => x !== there);
         q.place = o.to;
-        q.strength = Math.max(1, attack - defence);
+        // (A hero stays as it is, win or hold: Jack.)
+        if (!q.hero) q.strength = Math.max(1, attack - defence);
         s.owner[o.to] = q.side;
       } else {
         // Beaten off: the attackers are lost, and the defenders lose as many (they keep at least 1).
         s.squads = s.squads.filter((x) => x !== q);
-        there.strength = Math.max(1, there.strength - attack);
+        if (!there.hero) there.strength = Math.max(1, there.strength - attack);
       }
     }
     // Onto a rumble: it goes off.
@@ -311,7 +363,7 @@ export class RiotGame {
     const hits: Extract<RiotEvent, { type: 'rumble' }>['hits'] = [];
     for (const n of this.adj.get(at)!) {
       const there = this.squadAt(s, n);
-      if (!there || this.fortified(s, n)) continue;
+      if (!there || this.fortified(s, n) || there.hero) continue;
       const damage = 1 + Math.floor(this.roll(s) * (this.rules.rumble?.max ?? 3));
       there.strength -= damage;
       const gone = there.strength <= 0;
@@ -365,6 +417,24 @@ export class RiotGame {
     const crowds = this.mine(s, 'rising').filter((q) => q.place !== this.heart && s.cut !== q.place).sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id));
     for (const q of crowds) {
       let best: { to: string; score: number } | null = null;
+      // Their hero (Jack): up to two streets, for a squad of the guard it beats (the lifts' foot most of all), or
+      // towards the nearest.
+      if (q.hero) {
+        const guardAt = (p: string) => yours.some((y) => y.place === p);
+        for (const to of this.dests(s, q)) {
+          if (claimed.has(to)) continue;
+          const there = this.squadAt(s, to);
+          let score: number;
+          if (there?.side === 'guard') {
+            if (this.fortified(s, to) || this.attack(q.place, to, q.strength) <= this.defence(s, to, there.strength)) continue;
+            score = 60 + there.strength * 2 + (to === this.lifts ? 15 : 0);
+          } else if (!there) score = 6 + (distTo(q.place, guardAt) - distTo(to, guardAt)) * 5;
+          else continue;
+          if (score > 0 && (!best || score > best.score)) best = { to, score };
+        }
+        if (best) (orders.push({ squad: q.id, to: best.to }), claimed.add(best.to));
+        continue;
+      }
       for (const to of this.adj.get(q.place)!) {
         if (claimed.has(to) && to !== this.heart) continue;
         const there = this.squadAt(s, to);
@@ -379,6 +449,7 @@ export class RiotGame {
           else if (st.wear && q.strength >= st.wear) score = 25 - there.strength + (to === this.lifts ? 10 : 0);
           else continue;
         } else if (there) {
+          if (there.hero) continue; // (nobody joins a hero)
           // Together, they could take one of yours next turn (or, gathering, just to be bigger).
           if (couldBeat(q.place, q.strength)) continue;
           if (couldBeat(to, there.strength + q.strength)) score = 18;
@@ -450,16 +521,25 @@ export class RiotGame {
   turn(s0: RiotState, yours: Order[], theirs: Order[]): { state: RiotState; events: RiotEvent[] } {
     let s = s0;
     const events: RiotEvent[] = [];
-    for (const o of [...(this.rules.ordered ? yours.filter((o, i) => yours.findIndex((x) => x.squad === o.squad) === i) : this.together(s0, yours)), ...this.together(s0, theirs)]) {
+    for (const o of [...(this.rules.ordered ? yours.filter((o, i) => yours.findIndex((x) => x.squad === o.squad && !!x.split === !!o.split) === i) : this.together(s0, yours)), ...this.together(s0, theirs)]) {
       const r = this.order(s, o);
       s = r.state;
       events.push(...r.events);
       if (this.outcome(s) === 'guard') return { state: s, events };
     }
     s = this.clone(s);
-    // People keep joining the square.
+    // People keep joining the square; now and then (Jack), instead, it sends out a hero of its own, onto a street
+    // next to it (towards the guard, where it would pour a crowd).
     const h = this.squadAt(s, this.heart);
-    if (h?.side === 'rising' && s.cut !== this.heart && !this.fortified(s, this.heart)) {
+    const heroRule = this.rules.hero;
+    const bastard = h?.side === 'rising' && s.cut !== this.heart && heroRule && !s.squads.some((x) => x.hero && x.side === 'rising') && this.roll(s) < heroRule.chance
+      ? (this.pourTo(s) ?? this.adj.get(this.heart)!.find((n) => !this.squadAt(s, n)) ?? null)
+      : null;
+    if (bastard) {
+      s.squads.push({ id: `q${s.nextId++}`, side: 'rising', place: bastard, strength: heroRule!.strength, hero: true });
+      s.owner[bastard] = 'rising';
+      events.push({ type: 'heroArrives', at: bastard, side: 'rising' });
+    } else if (h?.side === 'rising' && s.cut !== this.heart) {
       h.strength += 1;
       events.push({ type: 'grow', at: this.heart });
       // And it pours a crowd out at the guard.
@@ -471,8 +551,20 @@ export class RiotGame {
         events.push({ type: 'pour', from: this.heart, to });
       }
     }
-    // More of the guard, if the lifts' foot is yours (and not dug in: Jack).
-    if (s.turn % this.rules.reinforceEvery === 0 && !this.fortified(s, this.lifts)) {
+    // More of the guard, if the lifts' foot is yours (dug in or not: Jack). Now and then, a hero instead (Jack):
+    // at the lifts' foot if it's empty, else on an empty street next to it.
+    const heroAt = (): string | null => {
+      const h = this.rules.hero;
+      if (!h || s.squads.some((x) => x.hero && x.side === 'guard') || this.roll(s) >= h.chance) return null;
+      if (!this.squadAt(s, this.lifts) && s.owner[this.lifts] !== 'rising') return this.lifts;
+      return this.adj.get(this.lifts)!.find((n) => !this.squadAt(s, n)) ?? null;
+    };
+    const hero = s.turn % this.rules.reinforceEvery === 0 && (this.squadAt(s, this.lifts)?.side === 'guard' || (!this.squadAt(s, this.lifts) && s.owner[this.lifts] !== 'rising')) ? heroAt() : null;
+    if (hero) {
+      s.squads.push({ id: `q${s.nextId++}`, side: 'guard', place: hero, strength: this.rules.hero!.strength, hero: true });
+      s.owner[hero] = 'guard';
+      events.push({ type: 'heroArrives', at: hero, side: 'guard' });
+    } else if (s.turn % this.rules.reinforceEvery === 0) {
       const there = this.squadAt(s, this.lifts);
       if (there?.side === 'guard') there.strength += this.rules.reinforce;
       else if (!there && s.owner[this.lifts] !== 'rising') s.squads.push({ id: `q${s.nextId++}`, side: 'guard', place: this.lifts, strength: this.rules.reinforce });

@@ -109,3 +109,19 @@ Tried for every fight first, it was too much (and the rising's ties started winn
 | **The square only** | 97% | turn 6.7 | always, turn 16 | 5, 9, 4 |
 
 The lesson's line on the barricades now says they cost one more to take, and that matching it takes it (draft wording; it said it holds at one more and loses nothing when it holds, from before that changed).
+
+## Split, fortify's bonus, and the hero (Jack's trial, 2026-10-16)
+
+- **Split:** with a squad picked up, Split sits beside Fortify. Pick where the bigger half goes (7: "4 | 3"); the rest stays, and can be given its own order the same turn, so a squad can go two ways. A split half fights like any squad. Not a hero, a 1, or a squad dug in. (The computer players don't split.)
+- **Fortify keeps its bonus:** dug in, the lifts still get their +2 and the square its +1 (Jack: it didn't feel like it had enough benefit).
+- **The hero** (the riot only): with none about, one in six turns the guard's reinforcements come as a hero instead of +2, at the lifts' foot (or a street next to it). A warrior's helmet. Always 7: it wins without losing any, a rumble or a beaten-off attack doesn't touch it, and nobody joins it. It goes up to two streets a turn, through an empty place or its own, never through theirs. Beaten, it's gone. Its arrival: "Hero!" across the table, a sword drawn (`shing`), and someone calling "Hero!" (`hero`, silent until a recording's dropped in).
+
+Simulated on the riot's set-up, with rumbles (30 and 10 games):
+
+| | Sensible | Careful |
+| --- | --- | --- |
+| Before (rumbles, the square rule) | 97%, turn 14.0 | turn 6.7 |
+| With heroes (about 0.7 a game) | 100%, turn 8.6 | turn 5.8 |
+
+The hero makes the riot a good deal easier: rarer heroes, or a smaller one, if it's too much.
+- **Their hero, the bastard** (Jack): the rising have one too. With none about, one in six turns the square sends one out instead of growing, onto a street next to it (where it would pour a crowd). The same as yours, in amber with a dark plume: always 7, two streets a turn, joins nobody. It goes for a squad of the guard it beats, the lifts' foot first, or towards the nearest. Its arrival: "Bastard!" in amber, the light dimming and a shake, and the sword pitched down (`shingLow`). With heroes on both sides (rumbles too): sensible wins 90% by turn 7.7, careful by 5.3; about 0.5 heroes and 0.9 bastards a game.

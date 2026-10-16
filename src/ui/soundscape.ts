@@ -22,8 +22,11 @@ export const SOUND_IDS = [
   'chop', 'shave', 'skid', 'scratch', 'pop', 'rub', 'slip',
   // The dog (Chapter 2).
   'bark', 'growl', 'whimper', 'yip',
-  // The war table (Chapter 3): a rumble going off (Jack: a distorted rumble).
-  'quake',
+  // The war table (Chapter 3): a rumble going off (Jack: a distorted rumble); a hero arriving: a sword drawn,
+  // and someone calling "Hero!" (silent until a recording's dropped in).
+  'quake', 'shing', 'hero',
+  // Their hero arriving (Jack: "Bastard!"): the sword drawn, pitched down, more menacing.
+  'shingLow',
 ] as const;
 export type SoundId = (typeof SOUND_IDS)[number];
 
@@ -32,7 +35,7 @@ export type SoundId = (typeof SOUND_IDS)[number];
  * (designer: the synthesised ones didn't sound real; get recordings later). Their synthesised versions
  * are kept below in case they're wanted again.
  */
-export const AWAITING_RECORDING: ReadonlySet<SoundId> = new Set(['murmur', 'gasp', 'roar', 'jeer', 'chant', 'whispers', 'scream', 'sob']);
+export const AWAITING_RECORDING: ReadonlySet<SoundId> = new Set(['murmur', 'gasp', 'roar', 'jeer', 'chant', 'whispers', 'scream', 'sob', 'hero']);
 
 /** Things that make sound where they are. */
 export type EmitterSound = 'tube' | 'fire' | 'creak' | 'skitter' | 'footsteps' | 'mob' | 'bubbles' | 'rope';
@@ -245,6 +248,26 @@ function oneShot(a: Out, dest: AudioNode, t: number, id: SoundId, v: number, sur
       tone(a, shaper, t, 'sine', 41, 28, 1.8, 1.6, 0.03);
       noise(a, shaper, t, 'lowpass', 220, 1, 1.7, 1.8, 0.08);
       for (let i = 0; i < 9; i++) noise(a, shaper, t + rand(0.05, 1.3), 'lowpass', rand(300, 800), 1, 0.08, 1.2); // things falling
+      break;
+    }
+    case 'shingLow':
+      // Their hero's sword (Jack): the same draw, pitched down and darker, a growl of steel under it. (A recording
+      // of the sword, if there is one, slowed down.)
+      if (playRecording(a.ctx, dest, t, 'shing', v, 0.6)) break;
+      noise(a, dest, t, 'bandpass', 1200, 4, 0.3, 0.5 * v, 0.03, 3600);
+      for (const [f, level, decay] of [[1480, 0.24, 1.4], [2210, 0.17, 1.1], [3050, 0.12, 0.9], [990, 0.12, 1.6]] as const) {
+        tone(a, dest, t + 0.28, 'sine', f, f * 0.98, decay, level * v, 0.004);
+        tone(a, dest, t + 0.28, 'sine', f * 1.006, f, decay * 0.8, level * 0.6 * v, 0.004);
+      }
+      tone(a, dest, t + 0.28, 'sawtooth', 110, 70, 0.9, 0.08 * v, 0.02);
+      break;
+    case 'shing': {
+      // A sword drawn (Jack: a high "shing!"): steel scraping out of the scabbard, rising, then ringing.
+      noise(a, dest, t, 'bandpass', 2500, 4, 0.22, 0.5 * v, 0.02, 7500);
+      for (const [f, level, decay] of [[2730, 0.22, 1.1], [4120, 0.16, 0.9], [5650, 0.12, 0.7], [7380, 0.08, 0.5]] as const) {
+        tone(a, dest, t + 0.2, 'sine', f, f * 0.995, decay, level * v, 0.004);
+        tone(a, dest, t + 0.2, 'sine', f * 1.003, f, decay * 0.8, level * 0.6 * v, 0.004); // beating against it: a shimmer
+      }
       break;
     }
     case 'skitter':

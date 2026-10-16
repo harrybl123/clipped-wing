@@ -26,13 +26,13 @@ export function loadRecordings(ctx: AudioContext): void {
   }
 }
 
-/** Plays the recording for `id` into `dest` at `t`, a little varied in pitch each time. False if there isn't one (yet). */
-export function playRecording(ctx: AudioContext, dest: AudioNode, t: number, id: string, volume: number): boolean {
+/** Plays the recording for `id` into `dest` at `t`, a little varied in pitch each time, and `rate` times as fast (and high). False if there isn't one (yet). */
+export function playRecording(ctx: AudioContext, dest: AudioNode, t: number, id: string, volume: number, rate = 1): boolean {
   const buffer = decoded.get(ctx)?.get(id);
   if (!buffer) return false;
   const src = ctx.createBufferSource();
   src.buffer = buffer;
-  src.playbackRate.value = 0.95 + Math.random() * 0.1;
+  src.playbackRate.value = (0.95 + Math.random() * 0.1) * rate;
   const gain = ctx.createGain();
   gain.gain.value = volume;
   src.connect(gain).connect(dest);
