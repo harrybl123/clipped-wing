@@ -207,6 +207,8 @@ The morning after the riot. **Your father hardens** (doc), in the open now: the 
 
 **What Day 5 sets:** `warrants` (sealed / struck); `raid` (stepped in / stayed out: medium); `seen_below` (if you stepped in). **What it shows from earlier:** `riot` (executed at dawn, or wanted on the screens); `sleeve` (the captain on your friend); the painter's brother; `met_hideout`.
 
+**As built (2026-10-16):** as above, with: the captain brings the day at dawn, and your hand's note; the hideout's three are the barkeep, a woman whose husband was on the square, and the kid; staying out is played (suggestion): out the back way into the street beyond the cellar, past one of the guard with his lamp, to a dark doorway to watch from; the raid's warrant shows your seal, or your father's beside your line. See CLAUDE.md, Decisions.
+
 **New for Day 5:** the address (your father on every screen; the city's screens all showing it); the raid (the hideout smashed; the guard inside; people taken); the hideout after (ransacked, dark: the world doc's "raid's aftermath").
 
 ---

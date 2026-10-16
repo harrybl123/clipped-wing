@@ -103,6 +103,9 @@ export const lifts: AreaDefinition = {
     { type: 'frames', frames: [P.symbolMark('scratch')], x: L + 6, y: CITADEL - 34, every: 60000, showIf: 'c3day3', power: 'any' },
     // And the reward notice on the tower's face, by the street.
     { type: 'frames', frames: P.REWARD_FRAMES, x: 74, y: FLOOR - 74, every: 260, showIf: 'rewards', power: 'any' },
+    // (Day 5 on: the word, and your father's hand on your shoulder; the face of the man you let go.)
+    { type: 'frames', frames: P.terrorFrames(false), x: 74, y: FLOOR - 74, every: 400, showIf: 'screens5=terror,terror_hand', power: 'any' },
+    { type: 'frames', frames: P.terrorFrames(true), x: 74, y: FLOOR - 74, every: 400, showIf: 'screens5=wanted,wanted_hand', power: 'any' },
   ],
   people: [
     cast('lift_operator', 150, CITADEL, { knot: 'lifts_operator' }), // at the top, always

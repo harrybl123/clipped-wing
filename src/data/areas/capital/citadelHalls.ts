@@ -142,6 +142,9 @@ export const citadelHalls: AreaDefinition = {
     // Day 3 on: every so often the great screen shows the wing for a moment, then cuts back (nobody can find
     // where it comes from).
     { type: 'frames', frames: [...Array.from({ length: 10 }, (_, i) => P.screen(76, 46, i % 3)), P.birdScreen(76, 46), P.birdScreen(76, 46)], x: C - 38, y: TOP + 14, every: 450, showIf: 'c3day3' },
+    // Day 5 on: your father's address on it (the word, him and you, his hand on your shoulder).
+    ...([['terror', false, false], ['wanted', false, true], ['terror_hand', true, false], ['wanted_hand', true, true]] as const).map(([state, arm, wanted]) =>
+      ({ type: 'frames' as const, frames: P.addressFrames(76, 46, arm, wanted), x: C - 38, y: TOP + 14, every: 700, showIf: `screens5=${state}` })),
   ],
   people: [
     // The guards on the audience hall's great doors, always.
@@ -180,6 +183,8 @@ export const citadelHalls: AreaDefinition = {
     inStory('captain-4', 'captain', 170, UPPER, 'c3day4=captain', { knot: 'c3day4_captain' }),
     inStory('physician-4', 'physician', 286, UPPER, 'c3day4=captain,physician', { knot: 'c3day4_physician', flipX: true }),
     inStory('sister-4', 'sister', 770, UPPER, 'c3day4=afternoon', { knot: 'c3day4_sister' }),
+    // Day 5: the captain at his post at the foot of the stair, with his warrants.
+    inStory('captain-5h', 'captain', 450, FLOOR, 'c3day5=warrants', { knot: 'c3day5_warrants', flipX: true }),
   ],
   interactables: [
     { id: 'statue', x: 206, y: FLOOR, reach: 14, label: 'Look', knot: 'halls_statue' },

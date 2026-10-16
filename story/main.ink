@@ -689,8 +689,29 @@ VAR riot_table = ""
 VAR riot_turns = 0
 VAR riot_fight = ""
 VAR riot = ""
-// Chapter 3, Day 5 (not built yet).
+// Chapter 3, Day 5 (story/capital/chapter3-day5.ink): terrorists. Stages: wake, address, speech, warrants,
+// evening, office, below, hideout, raid, hide, watched, out, home, done.
 VAR c3day5 = ""
+// The address: what the screens show from now on: "terror", or "wanted" (the face of the man you let go), then
+// "terror_hand" / "wanted_hand" (your father's hand on your shoulder, on every screen in the city).
+VAR screens5 = ""
+// The captain's warrants: you sealed all four ("sealed"), or struck the hideout's cellar off ("struck"; your
+// father sealed it instead). The list sent back to your desk.
+VAR warrants = ""
+VAR list5 = false
+// Below: the screens; the hideout, where they want to talk to you (the barkeep, the woman whose husband was on
+// the square, the kid); the raid ("stepped_in" / "stayed_out": medium); your face seen below (you stepped in);
+// your hand, after.
+VAR low5 = false
+VAR heard5 = 0
+VAR keeper5 = false
+VAR angry5 = false
+VAR painter5 = false
+VAR raid = ""
+VAR seen_below = false
+VAR after5 = false
+// Chapter 3, Day 6 (not built yet).
+VAR c3day6 = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
@@ -745,6 +766,7 @@ INCLUDE capital/chapter3-day1.ink
 INCLUDE capital/chapter3-day2.ink
 INCLUDE capital/chapter3-day3.ink
 INCLUDE capital/chapter3-day4.ink
+INCLUDE capital/chapter3-day5.ink
 INCLUDE capital/cast.ink
 INCLUDE capital/folk.ink
 INCLUDE capital/looks.ink

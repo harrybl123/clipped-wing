@@ -25,7 +25,7 @@ import { CAST, type CastId } from '../ui/borderlandFolk';
 import { SHADES, type Power } from '../ui/pixelArt';
 import { CAPITAL_PLACES } from '../data/capitalMap';
 import { cityViewPainter } from '../ui/paintCityView';
-import { CITIZENS, WATCH } from '../ui/capitalFolk';
+import { CITIZENS, GUARDS, WATCH } from '../ui/capitalFolk';
 import { duckScore, updateScore, type ScoreId } from '../ui/score';
 import { setMuted } from '../ui/soundSetting';
 import { makePaintedTexture, makeSpriteTexture, PIXEL } from '../ui/pixelTextures';
@@ -2574,9 +2574,11 @@ export class AreaScene extends Phaser.Scene {
         // (Chapter 2: one of the cast keeping watch, by daylight, without a lantern.)
         // (Chapter 3: `capital-watch-<n>`, one of the city watch, with a lantern; `capital-citizen-<n>`, someone
         // of the city's who'd report you, without.)
-        const capital = feature.who?.startsWith('capital-watch-');
+        // (`capital-guard-<n>`: one of the citadel guard, with a lantern: Day 5's raid.)
+        const guardsman = feature.who?.startsWith('capital-guard-');
+        const capital = feature.who?.startsWith('capital-watch-') || guardsman;
         const citizen = feature.who?.startsWith('capital-citizen-');
-        const look = capital ? WATCH[Number(feature.who!.slice('capital-watch-'.length))]! : citizen ? CITIZENS[Number(feature.who!.slice('capital-citizen-'.length))]! : feature.who ? CAST[feature.who as CastId] : WATCHMAN;
+        const look = guardsman ? GUARDS[Number(feature.who!.slice('capital-guard-'.length))]! : capital ? WATCH[Number(feature.who!.slice('capital-watch-'.length))]! : citizen ? CITIZENS[Number(feature.who!.slice('capital-citizen-'.length))]! : feature.who ? CAST[feature.who as CastId] : WATCHMAN;
         const key = feature.who ? `watch-${feature.who}` : 'watchman';
         const idleKey = makeSpriteTexture(this, `${key}-0`, look.idle[0]!.rows, look.idle[0]!.colours);
         const walkKeys = (look.walk ?? look.idle).map((f, i) => makeSpriteTexture(this, `${key}-walk-${i}`, f.rows, f.colours));

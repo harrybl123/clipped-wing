@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './cityProps';
 import type { AreaDefinition } from '../types';
-import { cast, citizen, inStory, LATE } from './people';
+import { cast, citizen, guard, inStory, LATE } from './people';
 
 // The hideout (Chapter 3): under the low district, an old cellar of rough stone, the city's oldest, made
 // a bar: where citizens band together against injustice, and the capital and your father call them
@@ -13,6 +13,8 @@ import { cast, citizen, inStory, LATE } from './people';
 const W = 480;
 const FLOOR = 226;
 const TOP = 80;
+/** Chapter 3, Day 5's night: they're waiting for you (and then the raid). */
+const NIGHT5 = 'c3day5=below,hideout,raid,out';
 
 export const hideout: AreaDefinition = {
   id: 'hideout',
@@ -73,18 +75,20 @@ export const hideout: AreaDefinition = {
     { type: 'trigger', x: 138, y: FLOOR, reach: 14, knot: 'c3day3_overhear_sister', showIf: 'c3day3=hideout', hideIf: 'heard_sister3' },
     { type: 'trigger', x: 238, y: FLOOR, reach: 14, knot: 'c3day3_overhear_stairs', showIf: 'c3day3=hideout', hideIf: 'heard_stairs3' },
     { type: 'trigger', x: 332, y: FLOOR, reach: 12, knot: 'c3day3_overhear_counter', showIf: 'c3day3=hideout', hideIf: 'heard_counter3' },
+    // Day 5: coming down the steps, and every head turns.
+    { type: 'trigger', x: 60, y: FLOOR, reach: 12, knot: 'c3day5_hideout', showIf: 'c3day5=below' },
   ],
   people: [
     cast('hideout_keeper', 404, FLOOR, { knot: 'hideout_keeper', flipX: true }), // behind the counter, always
     // The evening and the night: regulars round the long table and the small ones, one at the counter.
     // (Day 3's night has its own: below.)
-    citizen('regular-1', 0, 128, FLOOR, 'hideout_folk', LATE, { hideIf: 'c3day3=below,sneak,hideout,home' }),
-    citizen('regular-2', 7, 168, FLOOR, 'hideout_folk', LATE, { flipX: true, hideIf: 'c3day3=below,sneak,hideout,home' }),
-    citizen('regular-3', 12, 206, FLOOR, 'hideout_folk', LATE, { hideIf: 'c3day3=below,sneak,hideout,home' }),
-    citizen('regular-4', 13, 252, FLOOR, 'hideout_folk', ['night'], { flipX: true, hideIf: 'c3day3=below,sneak,hideout,home' }),
-    citizen('at-counter', 4, 332, FLOOR, 'hideout_folk', LATE, { hideIf: 'c3day3=below,sneak,hideout,home' }),
-    citizen('in-the-corner', 2, 76, FLOOR, 'hideout_corner', ['night'], { hideIf: 'c3day3=below,sneak,hideout,home' }),
-    citizen('regular', 5, 290, FLOOR, 'hideout_regular', LATE, { flipX: true, hideIf: 'c3day3=below,sneak,hideout,home' }),
+    citizen('regular-1', 0, 128, FLOOR, 'hideout_folk', LATE, { hideIf: ['c3day3=below,sneak,hideout,home', NIGHT5] }),
+    citizen('regular-2', 7, 168, FLOOR, 'hideout_folk', LATE, { flipX: true, hideIf: ['c3day3=below,sneak,hideout,home', NIGHT5] }),
+    citizen('regular-3', 12, 206, FLOOR, 'hideout_folk', LATE, { hideIf: ['c3day3=below,sneak,hideout,home', NIGHT5] }),
+    citizen('regular-4', 13, 252, FLOOR, 'hideout_folk', ['night'], { flipX: true, hideIf: ['c3day3=below,sneak,hideout,home', NIGHT5] }),
+    citizen('at-counter', 4, 332, FLOOR, 'hideout_folk', LATE, { hideIf: ['c3day3=below,sneak,hideout,home', NIGHT5] }),
+    citizen('in-the-corner', 2, 76, FLOOR, 'hideout_corner', ['night'], { hideIf: ['c3day3=below,sneak,hideout,home', NIGHT5] }),
+    citizen('regular', 5, 290, FLOOR, 'hideout_regular', LATE, { flipX: true, hideIf: ['c3day3=below,sneak,hideout,home', NIGHT5] }),
     // Chapter 3's story. Day 3, the first time: busy and loud, and you're one more hood (designer: you listen
     // in; only the kid knows you). The barkeep; tables you listen in on (a trigger by each); the painter in the
     // corner by the steps (his brother was the man taken). Your hand waits up in the street.
@@ -100,6 +104,17 @@ export const hideout: AreaDefinition = {
       citizen(`crowd-3${i}`, look, x, FLOOR, 'c3day3_stranger', undefined, { showIf: 'c3day3=sneak,hideout,home', flipX: i % 2 === 1 }),
     ),
     inStory('painter-3', 'painter', 74, FLOOR, 'c3day3=hideout,home', { knot: 'c3day3_painter' }),
+    // Day 5: they want to talk to you (designer: the plan), after last night: the barkeep, a woman whose
+    // husband was on the square, the kid; everyone else watching you. Your hand by the steps, until he goes up
+    // for air. Then the raid: the guard down the steps, and the captain.
+    inStory('keeper-5', 'hideout_keeper', 404, FLOOR, NIGHT5, { knot: 'c3day5_keeper', flipX: true }),
+    citizen('angry-5', 5, 140, FLOOR, 'c3day5_angry', undefined, { showIf: NIGHT5 }),
+    inStory('painter-5', 'painter', 270, FLOOR, NIGHT5, { knot: 'c3day5_painter', flipX: true }),
+    ...([[216, 0], [240, 11], [318, 7], [350, 2], [372, 13]] as const).map(([x, look], i) =>
+      citizen(`folk-5${i}`, look, x, FLOOR, 'c3day5_crowd', undefined, { showIf: NIGHT5, flipX: i % 2 === 0 })),
+    inStory('hand-5', 'diplomat', 52, FLOOR, 'c3day5=hideout,raid', { knot: 'c3day5_hand' }),
+    ...[46, 60, 74, 128].map((x, i) => guard(`raid-${i + 1}`, i % 2, x, FLOOR, 'c3_guard', undefined, { showIf: 'c3day5=raid,out', hidden: true, knot: undefined })),
+    inStory('captain-5r', 'captain', 36, FLOOR, 'c3day5=raid,out', { hidden: true }),
   ],
   interactables: [
     { id: 'emblem', x: 180, y: FLOOR, reach: 14, label: 'Look', knot: 'hideout_emblem' },

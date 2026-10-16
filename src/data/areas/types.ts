@@ -70,7 +70,7 @@ export type Feature =
       face?: 1 | -1;
       /** A standing watch who glances back over his shoulder now and then: `tell` over his head first, then he looks the other way for `for` ms (with a longer reach, `range`), and someone may call him back round (`back`). */
       glance?: { every: number; for: number; range?: number; tell?: string; back?: { who: string; text: string } };
-      /** One of the borderland's cast keeping watch instead of the night watchman (a `CastId`, Chapter 2: the boss's son at dawn): no lantern, only where he's looking. Or `capital-watch-<n>`: one of the city watch, with a lantern (Chapter 3); or `capital-citizen-<n>`: someone of the city's, no lantern, who'd report a face they know (Chapter 3's informants). */
+      /** One of the borderland's cast keeping watch instead of the night watchman (a `CastId`, Chapter 2: the boss's son at dawn): no lantern, only where he's looking. Or `capital-watch-<n>`: one of the city watch, with a lantern (Chapter 3); or `capital-citizen-<n>`: someone of the city's, no lantern, who'd report a face they know (Chapter 3's informants); or `capital-guard-<n>`: one of the citadel guard, with a lantern (Day 5's raid). */
       who?: string;
       /** A name for them, so lines can be said over their head (`barks`, `#bark`). */
       id?: string;

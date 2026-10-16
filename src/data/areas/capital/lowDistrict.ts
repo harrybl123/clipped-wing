@@ -12,6 +12,8 @@ import type { Person } from '../types';
 // what's really going on (designer). The symbol chalked everywhere: the clipped wing over bare ground (designer).
 
 const W = 960;
+/** Chapter 3, Day 5's night below: the street's empty after the riot (and then raided). */
+const NIGHT5 = 'c3day5=below,hideout,raid,hide,out,home';
 const FLOOR = 236;
 /** The walkways along the stacks: on the left, and on the right. */
 const LEFT_WALK = 168;
@@ -140,6 +142,21 @@ export const lowDistrict: AreaDefinition = {
     { type: 'fire', x: 912, y: FLOOR - 1, showIf: 'c3day4=square' },
     { type: 'fire', x: 944, y: FLOOR - 1, showIf: 'c3day4=square' },
     { type: 'smoke', x: 928, y: FLOOR - 12, top: 30, showIf: 'c3day4=square' },
+    // Day 5 on: the word on the screens, and your father's hand on your shoulder (the face of the man you let go).
+    ...[[328, 146], [772, 170]].flatMap(([x, y]) => [
+      { type: 'frames' as const, frames: P.terrorFrames(false), x: x!, y: y!, every: 400, showIf: 'screens5=terror,terror_hand', power: 'any' as const },
+      { type: 'frames' as const, frames: P.terrorFrames(true), x: x!, y: y!, every: 400, showIf: 'screens5=wanted,wanted_hand', power: 'any' as const },
+    ]),
+    // Day 5, below at night: coming in, nobody out; then the raid. If you went out the back way, you come out
+    // at the far end of the street: one of the guard walks it with his lamp up, another on the cellar door
+    // (looking up the street, the way they'll take them), and you get to a dark doorway across from it to
+    // watch, unseen. Back up out of the cellar (if you stepped in), your hand.
+    { type: 'trigger', x: 60, y: FLOOR, reach: 16, knot: 'c3day5_low', showIf: 'c3day5=below', hideIf: 'low5' },
+    { type: 'watch', id: 'watch-5', who: 'capital-guard-0', from: 700, to: 880, y: FLOOR, speed: 20, range: 60, pause: 1800, reset: { x: 910, y: FLOOR }, showIf: 'c3day5=hide', call: 'Who\'s there?' },
+    { type: 'shadow', x: 754, y: FLOOR, width: 22, showIf: 'c3day5=hide' },
+    { type: 'shadow', x: 836, y: FLOOR, width: 22, showIf: 'c3day5=hide' },
+    { type: 'shadow', x: 660, y: FLOOR, width: 26, showIf: 'c3day5=hide' },
+    { type: 'trigger', x: 601, y: FLOOR, reach: 16, knot: 'c3day5_after', showIf: 'c3day5=out', hideIf: 'after5' },
   ],
   people: [
     // The street: the cook at the stall, the repairer outside his shop, the grocer's girl; people about.
@@ -152,13 +169,13 @@ export const lowDistrict: AreaDefinition = {
     // Up on the walkways: an old woman by her door, neighbours.
     citizen('old-woman', 3, 120, LEFT_WALK, 'c3_old', ['afternoon', 'evening']),
     citizen('neighbour', 12, 770, RIGHT_WALK, 'low_folk', DAY, { flipX: true }),
-    citizen('hooded-1', 9, 820, RIGHT_WALK, 'low_night', LATE, { hideIf: ['c3day3=below,sneak,hideout,home', 'c3day4=square'] }),
+    citizen('hooded-1', 9, 820, RIGHT_WALK, 'low_night', LATE, { hideIf: ['c3day3=below,sneak,hideout,home', 'c3day4=square', NIGHT5] }),
     // The evening and the night: round the fire, out in the rain; the watch, watching. (Not Day 3's night:
     // the street's empty but for whoever's watching it.)
-    citizen('by-fire-1', 4, 456, FLOOR, 'low_fire', LATE, { hideIf: ['c3day3=below,sneak,hideout,home', 'c3day4=square'] }),
-    citizen('by-fire-2', 11, 486, FLOOR, 'low_fire', ['night'], { flipX: true, hideIf: ['c3day3=below,sneak,hideout,home', 'c3day4=square'] }),
-    strollingCitizen('young', 0, 300, 640, FLOOR, 'low_night', LATE, { hideIf: ['c3day3=below,sneak,hideout,home', 'c3day4=square'] }),
-    strollingCitizen('hooded-2', 2, 640, 900, FLOOR, 'low_night', ['night'], { hideIf: ['c3day3=below,sneak,hideout,home', 'c3day4=square'] }),
+    citizen('by-fire-1', 4, 456, FLOOR, 'low_fire', LATE, { hideIf: ['c3day3=below,sneak,hideout,home', 'c3day4=square', NIGHT5] }),
+    citizen('by-fire-2', 11, 486, FLOOR, 'low_fire', ['night'], { flipX: true, hideIf: ['c3day3=below,sneak,hideout,home', 'c3day4=square', NIGHT5] }),
+    strollingCitizen('young', 0, 300, 640, FLOOR, 'low_night', LATE, { hideIf: ['c3day3=below,sneak,hideout,home', 'c3day4=square', NIGHT5] }),
+    strollingCitizen('hooded-2', 2, 640, 900, FLOOR, 'low_night', ['night'], { hideIf: ['c3day3=below,sneak,hideout,home', 'c3day4=square', NIGHT5] }),
     watch('watch', 1, 530, FLOOR, 'low_watch', ['evening'], { flipX: true, hideIf: 'c3day4=square' }),
     // The kid who chalks the symbol.
     cast('painter', 300, FLOOR, { knot: 'low_painter', when: ['afternoon', 'evening'] }),
@@ -186,6 +203,16 @@ export const lowDistrict: AreaDefinition = {
     // painter's brother held down by two of the guard; the guard's line of pikes across the street, the crowd
     // held back behind it, the barricade burning (the story shows the leader and the captain).
     ...riotSquare('painter_brother', 'riot_leader=reformer'),
+    // Day 5, the raid, from the dark: the guard on the cellar door; the people they bring up, each with one of
+    // the guard, the kid last, between two (the story brings them up and walks them off towards the lifts);
+    // your hand, after.
+    guard('door-5', 1, 610, FLOOR, 'c3_guard', undefined, { showIf: 'c3day5=hide,out', flipX: true, knot: undefined }),
+    citizen('taken-1', 12, 594, FLOOR, 'c3day5_crowd', undefined, { showIf: 'c3day5=hide', hidden: true, flipX: true, knot: undefined }),
+    citizen('taken-2', 5, 594, FLOOR, 'c3day5_crowd', undefined, { showIf: 'c3day5=hide', hidden: true, flipX: true, knot: undefined }),
+    inStory('painter-5t', 'painter', 594, FLOOR, 'c3day5=hide', { hidden: true, flipX: true, knot: undefined }),
+    guard('escort-5a', 0, 580, FLOOR, 'c3_guard', undefined, { showIf: 'c3day5=hide', hidden: true, flipX: true, knot: undefined }),
+    guard('escort-5b', 0, 608, FLOOR, 'c3_guard', undefined, { showIf: 'c3day5=hide', hidden: true, flipX: true, knot: undefined }),
+    inStory('hand-5w', 'diplomat', 620, FLOOR, 'c3day5=out,home', { hidden: true }),
   ],
   interactables: [
     { id: 'mark', x: 350, y: FLOOR, reach: 10, label: 'Look', knot: 'low_mark' },
@@ -193,6 +220,8 @@ export const lowDistrict: AreaDefinition = {
     { id: 'homes', x: 660, y: FLOOR, reach: 14, label: 'Look', knot: 'low_homes' },
     { id: 'washing', x: 140, y: LEFT_WALK, reach: 14, label: 'Look', knot: 'low_washing' },
     { id: 'noodles', x: 48, y: FLOOR, reach: 14, label: 'Look', knot: 'low_noodles' },
+    // Day 5, out the back way: the dark doorway across from the cellar, to watch from.
+    { id: 'doorway-5', x: 673, y: FLOOR, reach: 10, label: 'Hide', knot: 'c3day5_watch', showIf: 'c3day5=hide' },
   ],
 
   exits: [

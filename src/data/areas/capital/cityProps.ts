@@ -477,6 +477,58 @@ export const rewardScreen = (phase: number): RowSprite => {
 };
 export const REWARD_FRAMES = [0, 1, 2, 3].map(rewardScreen);
 
+/**
+ * Your father and you on the screens (Chapter 3, Day 5: his address): two figures, him on the left, taller,
+ * and you; with `arm`, his hand on your shoulder, as at the end of it. 24 wide, 21 high, like the wing.
+ */
+export const addressFigures = (arm: boolean): string[] =>
+  Array.from({ length: 21 }, (_, y) =>
+    Array.from({ length: 24 }, (_, x) => {
+      const father = (x - 5) ** 2 + (y - 3) ** 2 <= 7 || (y >= 7 && x >= 1 && x <= 9 && !(y === 7 && (x === 1 || x === 9)));
+      const you = (x - 17) ** 2 + (y - 6) ** 2 <= 5 || (y >= 10 && x >= 13 && x <= 21 && !(y === 10 && (x === 13 || x === 21)));
+      const hand = arm && y >= 8 && y <= 9 && x >= 9 && x <= 16;
+      return father || you || hand ? '#' : '.';
+    }).join(''),
+  );
+
+/** A face on the screens, wanted (Day 5, if you let the man who led the riot go): head and shoulders. 24 by 21. */
+export const WANTED_FACE: readonly string[] = Array.from({ length: 21 }, (_, y) =>
+  Array.from({ length: 24 }, (_, x) => {
+    const head = (x - 12) ** 2 + ((y - 7) * 0.85) ** 2 <= 20 && !(y === 7 && (x === 10 || x === 14));
+    const shoulders = y >= 14 && Math.abs(x - 12) <= Math.min(9, y - 9);
+    return head || shoulders ? '#' : '.';
+  }).join(''),
+);
+
+/** A notice on the city's screens: `top` and `bottom` in white, a picture (24 by 21) between, as `rewardScreen`. */
+const noticeScreen = (topText: string, picture: readonly string[], bottomText: string, phase: number): RowSprite => {
+  const [w, h] = [47, 46];
+  const top = word(topText, 'W');
+  const bottom = word(bottomText, 'W');
+  const [tx, bx] = [Math.floor((w - top[0]!.length) / 2), Math.floor((w - bottom[0]!.length) / 2)];
+  const scan = 2 + ((phase * 11) % (h - 4));
+  return {
+    rows: fill(w, h, (x, y) => {
+      if (x === 0 || y === 0 || x === w - 1 || y === h - 1) return 'n';
+      if (y >= 3 && y < 10 && top[y - 3]![x - tx] === 'W') return 'W';
+      if (y >= 36 && y < 43 && bottom[y - 36]![x - bx] === 'W') return 'W';
+      if (y >= 12 && y < 33 && x >= 11 && x < 35 && picture[y - 12]![x - 11] === '#') return 'h';
+      return y === scan ? 'G' : 'g';
+    }),
+    colours: C,
+  };
+};
+
+/**
+ * The city's screens from Day 5 (Chapter 3, your father's third pushback: the word): TERROR, and your father
+ * with his hand on your shoulder, then the old reward notice; with `wanted`, the face of the man you let go too.
+ */
+export const terrorFrames = (wanted: boolean): RowSprite[] => [
+  ...[0, 1, 2, 3].map((i) => noticeScreen('TERROR', addressFigures(true), 'REPORT', i)),
+  ...(wanted ? [0, 1, 2, 3].map((i) => noticeScreen('WANTED', WANTED_FACE, 'REWARD', i)) : []),
+  ...REWARD_FRAMES,
+];
+
 // --- The low district's homes and shops, in detail (designer: people's things in view) ---
 
 type Grid = string[][];
