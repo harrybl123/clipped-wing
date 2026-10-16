@@ -1071,7 +1071,7 @@ describe('the war table: towers, and more on the map (Jack)', () => {
   });
 
   it('the rebels go for your base first (Jack): an empty keep next to them, they walk in', () => {
-    const s = game.start([{ side: 'rising', place: 'camp', strength: 5 }, { side: 'rising', place: 'gate', strength: 3 }, { side: 'rising', place: 'market', strength: 9 }]);
+    const s = game.start([{ side: 'rising', place: 'camp', strength: 5 }, { side: 'rising', place: 'gate', strength: 3 }, { side: 'rising', place: 'market', strength: 9 }, { side: 'guard', place: 'woods', strength: 2 }]);
     s.owner.keep = 'guard';
     const o = game.risingOrders(s);
     expect(o).toContainEqual(expect.objectContaining({ squad: at(s, 'gate')!.id, to: 'keep' }));

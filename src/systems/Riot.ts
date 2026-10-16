@@ -1879,7 +1879,9 @@ export class RiotGame {
     const far = (p: string, side: Side) => Math.min(99, ...this.mine(s, side).map((q) => this.distance(p, q.place)));
     // (A street nearer the guard when even: the rising have more crowds out, so they'd win most races otherwise.)
     const lead = tilt ? Math.sign(this.crestsTaken(s, 'guard') - this.crestsTaken(s, 'rising')) - (this.crestsTaken(s, 'guard') <= this.crestsTaken(s, 'rising') ? 1 : 0) : -1;
-    const score = (p: string) => Math.abs(far(p, 'guard') - far(p, 'rising') - lead) * 10 + Math.abs(Math.min(far(p, 'guard'), far(p, 'rising')) - 2) * 3;
+    // (The skirmish, Jack: random, anywhere both sides are as near, so each has the same chance of getting there.)
+    const even = !!this.rules.homeGrowth;
+    const score = (p: string) => even ? Math.abs(far(p, 'guard') - far(p, 'rising')) : Math.abs(far(p, 'guard') - far(p, 'rising') - lead) * 10 + Math.abs(Math.min(far(p, 'guard'), far(p, 'rising')) - 2) * 3;
     // (Only where both sides could get to it before it goes, if there's anywhere: Jack, some were out of reach.)
     const lasts = Math.min(this.rules.elites?.crest.lasts ?? 3, this.rules.mystery?.lasts ?? 3);
     const reach = empty.filter((p) => far(p.id, 'guard') <= lasts && far(p.id, 'rising') <= lasts);
@@ -1919,6 +1921,107 @@ export class RiotGame {
    */
   risingOrders(s: RiotState): Order[] {
     this.use(s);
+    // (The even skirmish: they think it through, Jack: below.)
+    if (this.rules.homeGrowth) return this.tacticalOrders(s);
+    return this.plainOrders(s);
+  }
+
+  /**
+   * The rebels thinking it through (Jack, the skirmish: not rushing home on the first turn; holding where that's
+   * strongest; splitting when that's best, once in 3 turns like you): their elite as before; then each of the rest
+   * (the base too), biggest first, tries holding, every street it can take, and (once a split's due) sending half
+   * each way, plays out everything ordered so far with it, and keeps whatever leaves them best placed (`placed`);
+   * twice over, so a crowd that's been joined can go on together.
+   */
+  private tacticalOrders(s: RiotState): Order[] {
+    const plain = this.plainOrders(s);
+    const fixed = plain.filter((o) => s.squads.find((q) => q.id === o.squad)?.elite);
+    const movers = this.mine(s, 'rising')
+      .filter((q) => !q.elite && !q.hired && !q.built && !q.crusted && (q.stuck ?? -1) < s.turn && s.cut !== q.place)
+      .sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id));
+    const run = (orders: Order[]) => {
+      let t = s;
+      let found = 0;
+      for (const o of [...orders, ...fixed]) {
+        const r = this.order(t, o, []);
+        for (const e of r.events) if ((/Found$/.test(e.type) || e.type === 'crestTaken' || e.type === 'mystery' || e.type === 'rumble') && 'side' in e && e.side === 'rising') found++;
+        t = r.state;
+      }
+      return this.placed(t, found);
+    };
+    let orders: Order[] = [];
+    let best = run(orders);
+    for (let pass = 0; pass < 2; pass++) {
+      for (const q of movers) {
+        const others = orders.filter((o) => o.squad !== q.id);
+        const ways = this.dests(s, q).filter((p) => p !== q.place);
+        const splitOk = this.canSplit(s, 'rising') && q.strength >= 2 && !others.some((o) => o.split);
+        const options: (Order | null)[] = [null, ...ways.map((to) => ({ squad: q.id, to, side: 'rising' as const, chain: true })), ...(splitOk ? ways.map((to) => ({ squad: q.id, to, side: 'rising' as const, chain: true, split: true })) : [])];
+        let pick: Order | null = orders.find((o) => o.squad === q.id) ?? null;
+        let pv = pass === 0 ? -Infinity : best;
+        for (const o of options) {
+          const v = run(o ? [...others, o] : others);
+          if (v > pv + 1e-9) (pv = v), (pick = o);
+        }
+        orders = pick ? [...others, pick] : others;
+        best = pv;
+      }
+    }
+    return [...orders, ...fixed];
+  }
+
+  /** How well placed the rebels are after their moves (the skirmish's planning, `tacticalOrders`). */
+  private placed(s: RiotState, found: number): number {
+    const o = this.outcome(s);
+    if (o === 'rising') return 1e6;
+    if (o === 'guard') return -1e6;
+    const rising = this.mine(s, 'rising');
+    const guard = this.mine(s, 'guard');
+    let v = found * 15;
+    for (const q of rising) v += q.strength * 3;
+    for (const q of guard) v -= q.strength * 3;
+    // What they hold: the towers most, then the home squares (each makes their base 1 a turn), then anywhere.
+    for (const t of this.towerList()) v += s.owner[t.place] === 'rising' ? 12 : s.owner[t.place] === 'guard' ? -12 : 0;
+    for (const p of this.homeSquares('rising')) if (s.owner[p] === 'guard') v -= 8;
+    for (const p of this.homeSquares('guard')) if (s.owner[p] === 'rising') v += 8;
+    for (const p of this.board.places) v += s.owner[p.id] === 'rising' ? 0.5 : 0;
+    // Their base: could you take it next turn?
+    const h = this.squadAt(s, this.heart);
+    const hold = h?.side === 'rising' ? this.defence(s, this.heart, this.heldBy(s, this.heart)) : 0;
+    // (By how much it'd fall short: the less, the better, so they come home to it when it's in danger.)
+    const short = this.strike(s) + this.heroNear(s) - (hold + (h ? 0 : this.production(s, 'rising')));
+    if (short >= 0) v -= 150 + short * 15;
+    // And in two turns' time, what's gathering within two streets: crowds nearer home, as much as it needs.
+    const later = this.looming(s) + this.heroNear(s) - (hold + 2 * this.production(s, 'rising'));
+    if (later > 0) for (const q of rising) if (q.place !== this.heart && !q.hired && !q.built) v -= this.distance(q.place, this.heart) * Math.min(q.strength, later) * 1.5;
+    // Next turn: each of theirs one of yours next to it could beat is at risk (a tower or home square more so);
+    // each of yours one of theirs next to it could beat is a chance (your keep most of all).
+    const beats = (from: RiotSquad, p: string) => !this.fortified(s, from.place) && from.elite !== 'guard3' && !from.built && s.cut !== from.place && this.attack(from.place, p, from.strength) > this.defence(s, p, this.heldBy(s, p));
+    for (const q of rising) {
+      if (q.place === this.heart || q.beside || this.fortified(s, q.place)) continue;
+      if (guard.some((y) => this.near(y.place, q.place) && y.place !== this.lifts && beats(y, q.place))) v -= q.strength * 2.5 + (this.isTower(q.place) ? 12 : 0) + (this.homeSquares('rising').includes(q.place) ? 4 : 0);
+    }
+    for (const y of guard) {
+      if (y.beside || y.elite === 'hero' || this.fortified(s, y.place)) continue;
+      if (!rising.some((q) => this.near(q.place, y.place) && !q.hired && !q.built && beats(q, y.place))) continue;
+      v += y.place === this.lifts ? 80 : y.strength + (this.isTower(y.place) ? 8 : 0) + (this.homeSquares('guard').includes(y.place) ? 4 : 0);
+    }
+    const keep = this.squadAt(s, this.lifts);
+    if (!keep && s.owner[this.lifts] === 'guard' && rising.some((q) => this.near(q.place, this.lifts) && !q.built)) v += 80;
+    // Getting somewhere: each crowd out nearer something of yours worth taking (a tower, a home square, the keep).
+    const goals = [this.lifts, ...this.towerList().map((t) => t.place), ...this.homeSquares('guard')].filter((p) => s.owner[p] !== 'rising');
+    // (Every man of theirs counts, in the base too: going home is no way to get nearer.)
+    for (const q of rising) if (!q.hired && !q.built && !(this.isTower(q.place) && q.place !== this.heart) && goals.length) v -= Math.min(...goals.map((p) => this.distance(q.place, p))) * (1 + q.strength * 0.3);
+    // A bonus on the map: the nearest of theirs that can get there in time, nearer.
+    for (const t of [s.crest, s.mystery, s.audience, s.church, s.barracks, s.architect]) {
+      if (!t) continue;
+      const d = Math.min(99, ...rising.filter((q) => q.place !== this.heart && !q.hired && !q.built).map((q) => this.distance(q.place, t.place)));
+      if (d <= t.left) v -= d * 4;
+    }
+    return v;
+  }
+
+  private plainOrders(s: RiotState): Order[] {
     const orders: Order[] = [];
     const claimed = new Set<string>();
     const yours = this.mine(s, 'guard');
@@ -1977,10 +2080,28 @@ export class RiotGame {
     const chained = homes ? this.chains(s, claimed) : [];
     orders.push(...chained);
     const busy = new Set(chained.map((o) => o.squad));
-    // (A small crowd on a tower holds it while one of yours is next to it, Jack; otherwise it goes home.)
-    const holding = (q: RiotSquad) => homes && !threat && this.isTower(q.place) && this.adj.get(q.place)!.some((p) => this.squadAt(s, p)?.side === 'guard');
-    const crowds = this.mine(s, 'rising').filter((q) => q.place !== this.heart && s.cut !== q.place && !busy.has(q.id) && !q.hired && !q.built && !holding(q)).sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id));
+    // (A crowd on one of their towers holds it, Jack: never leaves it empty to go home; it only goes out to beat one
+    // of yours next to it, with nothing else of yours next to the tower to walk in behind, or for a bonus right
+    // next to it with none of yours about: below.)
+    const crowds = this.mine(s, 'rising').filter((q) => q.place !== this.heart && s.cut !== q.place && !busy.has(q.id) && !q.hired && !q.built).sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id));
+    // (Bonuses on the map, Jack: each one, the nearest crowd that could get there before it goes heads for it.)
+    const chase = new Map<string, string>();
+    if (homes) for (const t of [s.crest, s.mystery, s.audience, s.church, s.barracks, s.architect]) {
+      if (!t) continue;
+      const free = crowds.filter((q) => !q.elite && !chase.has(q.id) && !(this.isTower(q.place)) && distTo(q.place, (p) => p === t.place) <= t.left);
+      const near = free.sort((a, b) => distTo(a.place, (p) => p === t.place) - distTo(b.place, (p) => p === t.place) || b.strength - a.strength)[0];
+      if (near) chase.set(near.id, t.place);
+    }
     for (const q of crowds) {
+      // (Holding a tower: out only to beat the one of yours next to it, Jack.)
+      if (homes && this.isTower(q.place) && !q.elite) {
+        // (Or a bonus right next to the tower, with nothing of yours within two streets of it.)
+        const calm = !this.mine(s, 'guard').some((y) => distTo(y.place, (p) => p === q.place) <= 2);
+        const prize = calm ? this.adj.get(q.place)!.find((p) => !this.squadAt(s, p) && this.tokenAt(s, p) && this.tokenAt(s, p) !== 'rumble' && this.open(s, q.place, p)) : undefined;
+        const to = this.towerSally(s, q) ?? prize;
+        if (to && !claimed.has(to)) (orders.push({ squad: q.id, to, side: 'rising' }), claimed.add(to));
+        continue;
+      }
       let best: { to: string; score: number } | null = null;
       // Their elite squad (Jack). The bastard: up to two streets (fighting through one on the way), for one of
       // yours it wipes out (the lifts' foot most of all), or towards the nearest. The witch: towards one of yours
@@ -2020,7 +2141,7 @@ export class RiotGame {
         let score: number;
         // (Even: nothing of yours it could beat within 3 streets: back home, to go out again bigger.)
         // (And a small crowd, under 6, always: they gather, and go out as waves.)
-        const idle = homes && !siege && (q.strength < WAVE.least || !yours.some((y) => !y.beside && y.elite !== 'hero' && (y.elite !== 'guard3' || !!this.rules.guardsOpen) && distTo(q.place, (p) => p === y.place) <= 3 && q.strength > this.defence(s, y.place, this.heldBy(s, y.place))) && !this.homeSquares('guard').some((p) => s.owner[p] !== 'rising' && distTo(q.place, (x) => x === p) <= 3 && !yours.some((y) => y.place === p)));
+        const idle = homes && !siege && !chase.has(q.id) && (q.strength < WAVE.least || !yours.some((y) => !y.beside && y.elite !== 'hero' && (y.elite !== 'guard3' || !!this.rules.guardsOpen) && distTo(q.place, (p) => p === y.place) <= 3 && q.strength > this.defence(s, y.place, this.heldBy(s, y.place))) && !this.homeSquares('guard').some((p) => s.owner[p] !== 'rising' && distTo(q.place, (x) => x === p) <= 3 && !yours.some((y) => y.place === p)));
         if (to === this.lifts && !there && homes) score = 200; // (your base left empty: walk in, Jack)
         else if (to === this.heart) {
           if (emptySquare && !there) score = 90;
@@ -2071,7 +2192,12 @@ export class RiotGame {
           if (homes && (threat || idle)) score += (distTo(q.place, (p) => p === this.heart) - distTo(to, (p) => p === this.heart)) * (threat ? 25 : 8);
           if (st.merge || homes) score += (distTo(q.place, crowdNear) - distTo(to, crowdNear)) * (homes && distTo(q.place, guardNear) >= 99 ? 6 : 3);
           if (yours.some((y) => this.near(y.place, to) && this.attack(y.place, to, y.strength) > q.strength)) score -= homes ? 25 : st.flee;
+          // (One of their towers left empty with yours next to it: they step in and hold it, Jack.)
+          if (homes && this.isTower(to) && s.owner[to] === 'rising' && yours.some((y) => this.near(y.place, to))) score = Math.max(score, 45);
         }
+        // A bonus it's going for (Jack: they should get there as often as you).
+        const goal = chase.get(q.id);
+        if (goal && to !== this.heart && !(there && there.side === 'guard')) score += (distTo(q.place, (p) => p === goal) - distTo(to, (p) => p === goal)) * 30;
         // Your base, their main aim (Jack): with the field theirs, everyone closes in on it.
         if (siege && to !== this.heart) score += (distTo(q.place, (p) => p === this.lifts) - distTo(to, (p) => p === this.lifts)) * 12;
         if (score > 0 && (!best || score > best.score)) best = { to, score };
@@ -2108,7 +2234,7 @@ export class RiotGame {
     const worth = (y: RiotSquad) => y.strength * 2 + (y.place === this.lifts ? 30 : 0) + (this.homeSquares('guard').includes(y.place) || this.isTower(y.place) ? 15 : 0);
     const crowd = (p: string) => {
       const q = this.squadAt(s, p);
-      return q && q.side === 'rising' && !q.elite && !q.hired && !q.built && p !== this.heart && s.cut !== p && !used.has(q.id) && !q.crusted && (q.stuck ?? -1) < s.turn && !s.held?.includes(q.id) ? q : null;
+      return q && q.side === 'rising' && !q.elite && !q.hired && !q.built && p !== this.heart && !this.isTower(p) && s.cut !== p && !used.has(q.id) && !q.crusted && (q.stuck ?? -1) < s.turn && !s.held?.includes(q.id) ? q : null;
     };
     for (const y of [...yours].sort((a, b) => worth(b) - worth(a))) {
       if (claimed.has(y.place)) continue;
@@ -2169,7 +2295,9 @@ export class RiotGame {
     // (Even: what you could strike it with next turn, chaining your orders, or what's gathering round it.)
     if (this.rules.homeGrowth) {
       const left = this.defence(s, this.heart, sq.strength - without);
-      return this.strike(s) + 2 >= left || this.looming(s) >= left + this.production(s, 'rising');
+      // (What could hit it next turn; or what's gathering within two streets, which takes two turns to come, while
+      // the base makes its men twice over. Jack: they called everyone home whenever the base was small.)
+      return this.strike(s) + this.heroNear(s) + 2 >= left || this.looming(s) >= left + 2 * this.production(s, 'rising') + 2;
     }
     return this.mine(s, 'guard').some((y) => {
       const d = far(y.place);
@@ -2241,6 +2369,16 @@ export class RiotGame {
       return ways.sort((a, b) => Number(safe(b)) - Number(safe(a)) || Number(!!this.squadAt(s, a)) - Number(!!this.squadAt(s, b)) || dist(a) - dist(b) || a.localeCompare(b))[0] ?? null;
     }
     return this.adj.get(this.heart)!.filter((p) => !this.squadAt(s, p) && this.open(s, this.heart, p)).sort((a, b) => dist(a) - dist(b) || a.localeCompare(b))[0] ?? null;
+  }
+
+  /** Where a crowd holding a tower of the rebels' can go out to (a squad of yours next to it that it beats, with nothing else of yours next to the tower), or null. */
+  private towerSally(s: RiotState, q: RiotSquad): string | null {
+    const foes = this.adj.get(q.place)!.filter((p) => this.squadAt(s, p)?.side === 'guard');
+    if (foes.length !== 1) return null;
+    const p = foes[0]!;
+    const y = this.squadAt(s, p)!;
+    if (this.fortified(s, p) || y.elite === 'hero' || (y.elite === 'guard3' && !this.rules.guardsOpen) || !this.open(s, q.place, p)) return null;
+    return this.attack(q.place, p, q.strength) > this.defence(s, p, this.heldBy(s, p)) ? p : null;
   }
 
   /** Their hero (the bastard's opposite: yours) within two streets of the rebels' base, able to hit it next turn: its number. */
