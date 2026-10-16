@@ -646,7 +646,7 @@ export class RiotTableScene extends Phaser.Scene {
         picture: (g, c, x, y) => this.cardPicture(g, c, p.side, x, y),
         pick: ours ? undefined : Math.floor(Math.random() * p.cards.length),
       });
-    } else if (ours) choice = await this.pickPlace(this.g.thiefTargets(s, p.side), 'Pick one of theirs to rob');
+    } else if (ours) choice = await this.pickPlace(this.g.thiefTargets(s, p.side), `Thief! Pick one enemy squad to steal -${this.g.rules.mystery?.steal ?? 3} points`);
     const d = this.g.resolve(s, choice);
     s = d.state;
     this.state = s;
@@ -673,7 +673,9 @@ export class RiotTableScene extends Phaser.Scene {
   private async mysteryRevealed(what: Mystery, side: Side): Promise<void> {
     if (what === 'plague' || what === 'trickster') return; // (the skull, and the streets themselves, say it)
     if (what === 'thief') playSound(this, 'thief', 1);
-    await this.banner(what === 'diviner' ? 'The Diviner!' : 'Thief!', { colour: what === 'thief' ? COLOUR[side] : SHADES.white, hold: 800 });
+    const steal = this.g.rules.mystery?.steal ?? 3;
+    const sub = what === 'thief' ? (side === this.you ? `Pick one enemy squad to steal -${steal} points` : `They steal -${steal} points from one of yours`) : undefined;
+    await this.banner(what === 'diviner' ? 'The Diviner!' : 'Thief!', { colour: what === 'thief' ? COLOUR[side] : SHADES.white, hold: what === 'thief' ? 1600 : 800, sub });
   }
 
   /** Choosing a place (the thief's target): rings round them; click one, or the arrows and E. */
