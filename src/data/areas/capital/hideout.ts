@@ -1,5 +1,6 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './cityProps';
+import { addressScreens, deadScreen } from './citadelProps';
 import type { AreaDefinition } from '../types';
 import { cast, citizen, guard, inStory, LATE } from './people';
 
@@ -75,6 +76,10 @@ export const hideout: AreaDefinition = {
     { type: 'trigger', x: 138, y: FLOOR, reach: 14, knot: 'c3day3_overhear_sister', showIf: 'c3day3=hideout', hideIf: 'heard_sister3' },
     { type: 'trigger', x: 238, y: FLOOR, reach: 14, knot: 'c3day3_overhear_stairs', showIf: 'c3day3=hideout', hideIf: 'heard_stairs3' },
     { type: 'trigger', x: 332, y: FLOOR, reach: 12, knot: 'c3day3_overhear_counter', showIf: 'c3day3=hideout', hideIf: 'heard_counter3' },
+    // Day 5: a small screen up behind the bar, that nobody ever watches, until the address (a cutaway): the
+    // barkeep turns it off at the end (`off5`), and it stays off.
+    ...addressScreens(48, 36, 276, 96, 'off5'),
+    { type: 'frames', frames: [deadScreen(48, 36)], x: 276, y: 96, every: 60000, showIf: 'off5' },
     // Day 5: coming down the steps, and every head turns.
     { type: 'trigger', x: 60, y: FLOOR, reach: 12, knot: 'c3day5_hideout', showIf: 'c3day5=below' },
   ],
@@ -107,9 +112,10 @@ export const hideout: AreaDefinition = {
     // Day 5: they want to talk to you (designer: the plan), after last night: the barkeep, a woman whose
     // husband was on the square, the kid; everyone else watching you. Your hand by the steps, until he goes up
     // for air. Then the raid: the guard down the steps, and the captain.
-    inStory('keeper-5', 'hideout_keeper', 404, FLOOR, NIGHT5, { knot: 'c3day5_keeper', flipX: true }),
+    inStory('keeper-5', 'hideout_keeper', 404, FLOOR, 'c3day5=speech,below,hideout,raid,out', { knot: 'c3day5_keeper', flipX: true }),
     citizen('angry-5', 5, 140, FLOOR, 'c3day5_angry', undefined, { showIf: NIGHT5 }),
-    inStory('painter-5', 'painter', 270, FLOOR, NIGHT5, { knot: 'c3day5_painter', flipX: true }),
+    inStory('painter-5', 'painter', 84, FLOOR, NIGHT5, { knot: 'c3day5_painter' }),
+    inStory('painter-5s', 'painter', 300, FLOOR, 'c3day5=speech'),
     ...([[216, 0], [240, 11], [318, 7], [350, 2], [372, 13]] as const).map(([x, look], i) =>
       citizen(`folk-5${i}`, look, x, FLOOR, 'c3day5_crowd', undefined, { showIf: NIGHT5, flipX: i % 2 === 0 })),
     inStory('hand-5', 'diplomat', 52, FLOOR, 'c3day5=hideout,raid', { knot: 'c3day5_hand' }),
@@ -118,7 +124,9 @@ export const hideout: AreaDefinition = {
   ],
   interactables: [
     { id: 'emblem', x: 180, y: FLOOR, reach: 14, label: 'Look', knot: 'hideout_emblem' },
-    { id: 'notices', x: 106, y: FLOOR, reach: 10, label: 'Look', knot: 'hideout_notices' },
+    { id: 'notices', x: 106, y: FLOOR, reach: 10, label: 'Look', knot: 'hideout_notices', hideIf: NIGHT5 },
+    // Day 5: where the notices were, the names of the ones who went to the square and haven't come home.
+    { id: 'names-5', x: 106, y: FLOOR, reach: 10, label: 'Look', knot: 'c3day5_names', showIf: NIGHT5 },
     { id: 'back-way', x: 456, y: FLOOR, reach: 10, label: 'Look', knot: 'hideout_back_way' },
   ],
 

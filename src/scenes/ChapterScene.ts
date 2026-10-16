@@ -251,7 +251,7 @@ export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
   };
   // Day 5 (`&day=5`; Day 4's as `&table=lost`, `&riot=let_go`; this day's `&warrants=struck`).
   const riot = params.get('riot') === 'let_go' ? 'let_go' : 'brought_in';
-  const screens = riot === 'let_go' ? 'wanted_hand' : 'terror_hand';
+  const screens = `${leader === 'firebrand' ? 'brother' : 'reformer'}_${riot === 'let_go' ? 'wanted' : 'executed'}_hand`;
   const warrants = params.get('warrants') === 'struck' ? 'struck' : 'sealed';
   const morning5 = { screens5: screens, warrants, list5: true };
   const night5 = { ...morning5, plain_coat: true, hand_with_you: true, low5: true };

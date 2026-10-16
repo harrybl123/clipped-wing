@@ -710,6 +710,12 @@ VAR painter5 = false
 VAR raid = ""
 VAR seen_below = false
 VAR after5 = false
+// The address cut to the hideout: the barkeep turned the screen off. You promised the woman to find her husband.
+// Stepping in: how well you calmed it (each answer), and how it ended ("held": they went; "taken": with the kid).
+VAR off5 = false
+VAR promised5 = false
+VAR calm5 = 0
+VAR standoff5 = ""
 // Chapter 3, Day 6 (not built yet).
 VAR c3day6 = ""
 

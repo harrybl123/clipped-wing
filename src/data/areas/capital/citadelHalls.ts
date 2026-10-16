@@ -143,8 +143,7 @@ export const citadelHalls: AreaDefinition = {
     // where it comes from).
     { type: 'frames', frames: [...Array.from({ length: 10 }, (_, i) => P.screen(76, 46, i % 3)), P.birdScreen(76, 46), P.birdScreen(76, 46)], x: C - 38, y: TOP + 14, every: 450, showIf: 'c3day3' },
     // Day 5 on: your father's address on it (the word, him and you, his hand on your shoulder).
-    ...([['terror', false, false], ['wanted', false, true], ['terror_hand', true, false], ['wanted_hand', true, true]] as const).map(([state, arm, wanted]) =>
-      ({ type: 'frames' as const, frames: P.addressFrames(76, 46, arm, wanted), x: C - 38, y: TOP + 14, every: 700, showIf: `screens5=${state}` })),
+    ...P.addressScreens(76, 46, C - 38, TOP + 14),
   ],
   people: [
     // The guards on the audience hall's great doors, always.

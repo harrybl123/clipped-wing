@@ -104,8 +104,7 @@ export const lifts: AreaDefinition = {
     // And the reward notice on the tower's face, by the street.
     { type: 'frames', frames: P.REWARD_FRAMES, x: 74, y: FLOOR - 74, every: 260, showIf: 'rewards', power: 'any' },
     // (Day 5 on: the word, and your father's hand on your shoulder; the face of the man you let go.)
-    { type: 'frames', frames: P.terrorFrames(false), x: 74, y: FLOOR - 74, every: 400, showIf: 'screens5=terror,terror_hand', power: 'any' },
-    { type: 'frames', frames: P.terrorFrames(true), x: 74, y: FLOOR - 74, every: 400, showIf: 'screens5=wanted,wanted_hand', power: 'any' },
+    ...P.terrorScreens(66, FLOOR - 74),
   ],
   people: [
     cast('lift_operator', 150, CITADEL, { knot: 'lifts_operator' }), // at the top, always
@@ -120,6 +119,9 @@ export const lifts: AreaDefinition = {
     inStory('hand', 'diplomat', 60, CITADEL, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
     // Day 4, the afternoon: the kid from the cellar, at the foot of the lifts, watching them come down.
     inStory('painter-4', 'painter', 120, FLOOR, 'c3day4=afternoon', { knot: 'c3day4_painter', hideIf: 'painter4' }),
+    // Day 5, the address (a cutaway): the queue for the first car up, stopped under the screen on the tower.
+    ...([[84, 7], [100, 3], [118, 10], [140, 5], [158, 14]] as const).map(([x, look], i) =>
+      citizen(`lift-5${'abcde'[i]}`, look, x, FLOOR, 'c3day5_watching', undefined, { showIf: 'c3day5=speech', flipX: x > 97 })),
   ],
   interactables: [
     { id: 'glass', x: 100, y: CITADEL, reach: 14, label: 'Look', knot: 'lifts_glass' },

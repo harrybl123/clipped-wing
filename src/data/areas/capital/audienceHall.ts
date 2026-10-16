@@ -100,8 +100,7 @@ export const audienceHall: AreaDefinition = {
     { type: 'swing', sprite: P.CHANDELIER, x: 425, y: TOP + 62, ropeTop: TOP, quiet: true, ropeColour: S.amberDeep },
     // Chapter 3, Day 5 on: your father's address on the great screen (the word, him and you; the face of the
     // man you let go; then his hand on your shoulder), and there from then on.
-    ...([['terror', false, false], ['wanted', false, true], ['terror_hand', true, false], ['wanted_hand', true, true]] as const).map(([state, arm, wanted]) =>
-      ({ type: 'frames' as const, frames: P.addressFrames(120, 64, arm, wanted), x: 620, y: TOP + 26, every: 700, showIf: `screens5=${state}` })),
+    ...P.addressScreens(120, 64, 620, TOP + 26),
   ],
   people: [
     // The guards: on the great doors, by the dais, behind the throne.

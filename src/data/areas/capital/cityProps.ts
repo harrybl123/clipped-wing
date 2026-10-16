@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import type { RowSprite } from '../../../ui/sprites';
 import { glyphFor } from '../../../ui/pixelFont';
+import { SPEAKERS } from '../../../ui/portraits';
 
 // PLACEHOLDER pixel props for the capital's city (Chapter 3; docs/chapter-3-world.md): below the citadel,
 // cyberpunk and earthy at once: shopfronts under striped awnings, signs of cyan and amber light, steam from
@@ -487,32 +488,49 @@ export const addressFigures = (arm: boolean): string[] =>
       const father = (x - 5) ** 2 + (y - 3) ** 2 <= 7 || (y >= 7 && x >= 1 && x <= 9 && !(y === 7 && (x === 1 || x === 9)));
       const you = (x - 17) ** 2 + (y - 6) ** 2 <= 5 || (y >= 10 && x >= 13 && x <= 21 && !(y === 10 && (x === 13 || x === 21)));
       const hand = arm && y >= 8 && y <= 9 && x >= 9 && x <= 16;
-      return father || you || hand ? '#' : '.';
+      return father || you || hand ? 'h' : '.';
     }).join(''),
   );
 
-/** A face on the screens, wanted (Day 5, if you let the man who led the riot go): head and shoulders. 24 by 21. */
-export const WANTED_FACE: readonly string[] = Array.from({ length: 21 }, (_, y) =>
-  Array.from({ length: 24 }, (_, x) => {
-    const head = (x - 12) ** 2 + ((y - 7) * 0.85) ** 2 <= 20 && !(y === 7 && (x === 10 || x === 14));
-    const shoulders = y >= 14 && Math.abs(x - 12) <= Math.min(9, y - 9);
-    return head || shoulders ? '#' : '.';
-  }).join(''),
-);
+/** Who led the riot, as the screens show him (Day 4's `riot_leader`: the painter's brother, or the reformer). */
+export type Leader = 'brother' | 'reformer';
 
-/** A notice on the city's screens: `top` and `bottom` in white, a picture (24 by 21) between, as `rewardScreen`. */
+/**
+ * The face of the man who led the riot, on the screens (designer: the word, and his face): his own portrait,
+ * in the screens' blues and white; `half`, every other pixel (24 by 24, for the small screens).
+ */
+export const leaderFace = (leader: Leader, half = false): string[] => {
+  const portrait = SPEAKERS[leader === 'brother' ? 'painter_brother' : 'reformer']!.portrait;
+  const step = half ? 2 : 1;
+  const bands = ['s', 'g', 'G', 'c', 'h', 'W'];
+  return Array.from({ length: portrait.rows.length / step }, (_, y) =>
+    Array.from({ length: portrait.rows[0]!.length / step }, (_, x) => {
+      const colour = portrait.colours[portrait.rows[y * step]![x * step]!];
+      if (colour === undefined) return '.';
+      const light = (((colour >> 16) & 255) * 0.3 + ((colour >> 8) & 255) * 0.59 + (colour & 255) * 0.11) / 255;
+      return bands[Math.min(bands.length - 1, Math.floor(light * 1.1 * bands.length))]!;
+    }).join(''),
+  );
+};
+
+/** What became of him, as the screens say it (big choice 2: brought in, or let go). */
+export type Fate = 'executed' | 'wanted';
+
+/** A notice on the city's screens (63 by 46): `top` and `bottom` in white, a picture (24 wide, up to 24 high) between. */
 const noticeScreen = (topText: string, picture: readonly string[], bottomText: string, phase: number): RowSprite => {
-  const [w, h] = [47, 46];
+  const [w, h] = [63, 46];
   const top = word(topText, 'W');
   const bottom = word(bottomText, 'W');
   const [tx, bx] = [Math.floor((w - top[0]!.length) / 2), Math.floor((w - bottom[0]!.length) / 2)];
+  const [px, py] = [Math.floor((w - 24) / 2), 11 + Math.floor((24 - picture.length) / 2)];
   const scan = 2 + ((phase * 11) % (h - 4));
   return {
     rows: fill(w, h, (x, y) => {
       if (x === 0 || y === 0 || x === w - 1 || y === h - 1) return 'n';
       if (y >= 3 && y < 10 && top[y - 3]![x - tx] === 'W') return 'W';
       if (y >= 36 && y < 43 && bottom[y - 36]![x - bx] === 'W') return 'W';
-      if (y >= 12 && y < 33 && x >= 11 && x < 35 && picture[y - 12]![x - 11] === '#') return 'h';
+      const c = picture[y - py]?.[x - px];
+      if (c && c !== '.') return c === '#' ? 'c' : c;
       return y === scan ? 'G' : 'g';
     }),
     colours: C,
@@ -520,14 +538,28 @@ const noticeScreen = (topText: string, picture: readonly string[], bottomText: s
 };
 
 /**
- * The city's screens from Day 5 (Chapter 3, your father's third pushback: the word): TERROR, and your father
- * with his hand on your shoulder, then the old reward notice; with `wanted`, the face of the man you let go too.
+ * The city's screens from Day 5 (Chapter 3, your father's third pushback: the word): TERRORISTS, and the
+ * face of the man who led the riot, EXECUTED or WANTED; with `hand`, your father with his hand on your
+ * shoulder (from the end of the address); then the old reward notice.
  */
-export const terrorFrames = (wanted: boolean): RowSprite[] => [
-  ...[0, 1, 2, 3].map((i) => noticeScreen('TERROR', addressFigures(true), 'REPORT', i)),
-  ...(wanted ? [0, 1, 2, 3].map((i) => noticeScreen('WANTED', WANTED_FACE, 'REWARD', i)) : []),
-  ...REWARD_FRAMES,
-];
+export const terrorFrames = (leader: Leader, fate: Fate, hand: boolean): RowSprite[] => {
+  const face = leaderFace(leader, true);
+  return [
+    ...[0, 1, 2].map((i) => noticeScreen('TERRORISTS', face, fate.toUpperCase(), i)),
+    ...(hand ? [0, 1, 2].map((i) => noticeScreen('TERRORISTS', addressFigures(true), 'REPORT', i)) : []),
+    ...[0, 1, 2].map((i) => noticeScreen('REPORT', EMBLEM, 'REWARD', i)),
+  ];
+};
+
+/**
+ * Where the city's screens show the address (Day 5 on): one `frames` feature per thing the screens can be
+ * saying (`screens5`: `<leader>_<fate>`, and `_hand` once his hand's on your shoulder), at x, y (63 by 46).
+ */
+export const terrorScreens = (x: number, y: number) =>
+  (['brother', 'reformer'] as const).flatMap((leader) => (['executed', 'wanted'] as const).flatMap((fate) => [false, true].map((hand) => ({
+    type: 'frames' as const, frames: terrorFrames(leader, fate, hand), x, y, every: 450, power: 'any' as const,
+    showIf: `screens5=${leader}_${fate}${hand ? '_hand' : ''}`,
+  }))));
 
 // --- The low district's homes and shops, in detail (designer: people's things in view) ---
 
