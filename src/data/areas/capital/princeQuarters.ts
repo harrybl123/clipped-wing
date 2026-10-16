@@ -128,6 +128,8 @@ export const princeQuarters: AreaDefinition = {
     // rail, where he waited with the blades the first morning.
     inStory('hand-8', 'diplomat', 40, FLOOR, 'c3day8=wake', { hidden: true }),
     inStory('hand-8b', 'diplomat', 516, FLOOR, 'c3day8=evening,balcony', { knot: 'c3day8_hand', flipX: true }),
+    // Day 8, after the broadcast: your sister on the end of your bed.
+    inStory('sister-8', 'sister', 112, FLOOR, 'c3day8=city,home', { flipX: true }),
   ],
   interactables: [
     { id: 'bed', x: 84, y: FLOOR, reach: 14, label: 'Look', knot: 'quarters_bed', hideIf: ['c3day1=night', 'c3day2=home', 'c3day3=home', 'c3day4=night', 'c3day5=home', 'c3day6=home', 'c3day7=night', 'c3day7=bed'] },

@@ -125,6 +125,9 @@ export const lifts: AreaDefinition = {
     // Day 5, the address (a cutaway): the queue for the first car up, stopped under the screen on the tower.
     ...([[84, 7], [100, 3], [118, 10], [140, 5], [158, 14]] as const).map(([x, look], i) =>
       citizen(`lift-5${'abcde'[i]}`, look, x, FLOOR, 'c3day5_watching', undefined, { showIf: 'c3day5=speech', flipX: x > 97 })),
+    // Day 8, the broadcast (a cutaway): the queue again, waiting for you to speak.
+    ...([[84, 3], [100, 10], [118, 7], [140, 14], [158, 5]] as const).map(([x, look], i) =>
+      citizen(`lift-8${'abcde'[i]}`, look, x, FLOOR, 'c3day8_watching', undefined, { showIf: 'c3day8=speech', flipX: x > 97 })),
   ],
   interactables: [
     { id: 'glass', x: 100, y: CITADEL, reach: 14, label: 'Look', knot: 'lifts_glass' },
