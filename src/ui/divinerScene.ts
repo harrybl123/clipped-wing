@@ -35,7 +35,8 @@ const DIVINER = capitalPortrait(
 );
 
 export async function dealCards(scene: Phaser.Scene, deal: DivinerDeal): Promise<number> {
-  const layer = scene.add.container(0, 0).setDepth(110);
+  // (Fixed to the screen, so it's there however the table's panned.)
+  const layer = scene.add.container(0, 0).setDepth(110).setScrollFactor(0);
   const shade = scene.add.rectangle(0, 0, W, H, 0x000000, 0.8).setOrigin(0);
   layer.add(shade);
   shade.setAlpha(0);

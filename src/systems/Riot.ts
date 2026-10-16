@@ -70,6 +70,8 @@ export interface RiotBoard {
   /** How big the table is, if bigger than the screen (it pans with the cursor): Day 6's castle. */
   width?: number;
   height?: number;
+  /** Places drawn close together (the skirmish, on one screen: Jack): their names shorter, without "the". */
+  compact?: boolean;
 }
 
 export interface RiotRules {
@@ -116,6 +118,62 @@ export interface RiotRules {
    * they join the base. Replaces the square's growth, its crowds, and the guard's arrivals.
    */
   muster?: number;
+  /** The brothel (Jack): see `BROTHEL`. */
+  brothel?: BrothelRules;
+  /** The audience (Jack): see `AUDIENCE`. */
+  audience?: AudienceRules;
+}
+
+/**
+ * The brothel (Jack): now and then one appears on an empty street, for a few turns; a squad onto it (either
+ * side's) is stuck there the next turn (and can be attacked there), and after that it's in fine spirits: this
+ * much better odds in its next clash.
+ */
+export interface BrothelRules {
+  from: number;
+  chance: number;
+  lasts: number;
+  boost: number;
+}
+export const BROTHEL: BrothelRules = { from: 5, chance: 0.2, lasts: 3, boost: 0.15 };
+
+/** Who you hear at an audience (Jack): the accountant, the townsfolk, the commander. */
+export type Adviser = 'accountant' | 'townsfolk' | 'commander';
+
+/**
+ * The audience (Jack: a "community square"): now and then one appears on an empty street; first there chooses
+ * who to hear, the accountant, the townsfolk or the commander, and it goes well or badly, half and half
+ * (the townsfolk: four things to say, two that go down well). Or a crier comes, once in a while, and calls you to
+ * one wherever you are (`call`: a chance in each so many turns).
+ */
+export interface AudienceRules {
+  from: number;
+  chance: number;
+  lasts: number;
+  /** Morale (better or worse odds in a clash), for so many turns. */
+  morale: number;
+  moraleTurns: number;
+  /** The townsfolk: every base making more (or less) a turn, for so many turns. */
+  output: number;
+  outputTurns: number;
+  slump: number;
+  slumpTurns: number;
+  /** The commander: seeing two turns of theirs ahead, or none (clouded judgement), for so many turns. */
+  advice: number;
+  call: { every: number; chance: number };
+}
+export const AUDIENCE: AudienceRules = {
+  from: 5, chance: 0.2, lasts: 3, morale: 0.1, moraleTurns: 5, output: 1, outputTurns: 5, slump: 1, slumpTurns: 2, advice: 5,
+  call: { every: 7, chance: 0.5 },
+};
+
+/** Something lasting on a side (Jack): morale up or down, its bases making more or less, the commander's advice. */
+export interface Mood {
+  side: Side;
+  kind: 'morale' | 'output' | 'foresight' | 'cloud';
+  by: number;
+  /** The last turn it lasts. */
+  until: number;
 }
 
 /** What a mystery square turns out to be (Jack). */
@@ -220,6 +278,10 @@ export interface RiotSquad {
    * passing through. Attacks there hit the king's guard first, then these.
    */
   beside?: boolean;
+  /** Been to the brothel (Jack): stuck there through this turn. */
+  stuck?: number;
+  /** In fine spirits after the brothel (Jack): better odds in its next clash. */
+  cheer?: boolean;
 }
 
 export interface RiotState {
@@ -251,11 +313,21 @@ export interface RiotState {
   /** A mystery square on the map (Jack): where, for how many more turns, and whether it's the diviner's own mark. */
   mystery?: { place: string; left: number; mark?: 'diviner' | 'trickster' } | null;
   /** Waiting on a choice (Jack): the diviner's three cards, face down, or where the thief goes. */
-  pending?: { kind: 'diviner'; side: Side; at: string; cards: Card[] } | { kind: 'thief'; side: Side; at: string } | null;
+  pending?: { kind: 'diviner'; side: Side; at: string; cards: Card[] } | { kind: 'thief'; side: Side; at: string } | { kind: 'audience'; side: Side; at: string | null; good: number[] } | null;
   /** Turns of plague left for each side (Jack). */
   plague?: Record<Side, number>;
   /** The streets, once the trickster's changed them (Jack); the board's until then. */
   ways?: [string, string][];
+  /** A brothel on the map (Jack). */
+  brothel?: { place: string; left: number } | null;
+  /** An audience on the map (Jack). */
+  audience?: { place: string; left: number } | null;
+  /** What's lasting on each side (Jack): morale, output, the commander's advice. */
+  moods?: Mood[];
+  /** When the crier comes to each side, in this stretch of turns (Jack), or not at all. */
+  calls?: Record<Side, number | null>;
+  /** Squads that stay where they are this turn whatever they were ordered (a race for a token lost: Jack). */
+  held?: string[];
 }
 
 /**
@@ -267,6 +339,8 @@ export interface Order {
   to: string;
   split?: boolean;
   side?: Side;
+  /** A hero two streets off: the place it goes by (Jack: you choose it, one step at a time). */
+  via?: string;
 }
 
 export type RiotEvent =
@@ -291,7 +365,22 @@ export type RiotEvent =
   /** A squad seduced by a maiden (witch) at `from`: it's `side`'s now. */
   | { type: 'seduce'; at: string; from: string; side: Side }
   /** A clash (Jack): `side` struck at `at` from `from` as they came for it; `won` by `side` or not, at these odds. */
-  | { type: 'clash'; at: string; from: string; side: Side; won: boolean; chance: number; strength: number; left: number }
+  | { type: 'clash'; at: string; from: string; side: Side; won: boolean; chance: number; strength: number; left: number; meet?: string; base?: boolean }
+  /**
+   * A race for something on the map (Jack): `side` and theirs (from `rival`) both went for it; `won` by `side` or
+   * not, at these odds. The winner takes it; the loser stays where it was, untouched.
+   */
+  | { type: 'race'; at: string; from: string; rival: string; side: Side; won: boolean; chance: number; what: Token }
+  | { type: 'brothelAppears'; at: string }
+  | { type: 'brothel'; at: string; side: Side }
+  | { type: 'brothelGone'; at: string }
+  | { type: 'audienceAppears'; at: string }
+  | { type: 'audienceGone'; at: string }
+  | { type: 'audienceFound'; at: string; side: Side }
+  /** The crier (Jack): "Lord, your people require attention!" (`side`'s audience waits: `pending`). */
+  | { type: 'call'; side: Side }
+  /** An audience heard (Jack): who, and whether it went well; for the townsfolk, which line was said. */
+  | { type: 'audience'; side: Side; who: Adviser; good: boolean; line?: number }
   /** A mystery square appearing (the diviner's mark, or a "?"), found, or gone untaken (Jack). */
   | { type: 'mysteryAppears'; at: string; mark?: 'diviner' | 'trickster' }
   /** A shake-up (Jack, the skirmish): the elite each side got. */
@@ -315,6 +404,9 @@ export type RiotEvent =
   | { type: 'poison'; at: string; side: Side }
   /** An elite's time up (or a hero spent). */
   | { type: 'eliteGone'; at: string; side: Side; elite: Elite };
+
+/** Something on the map a squad can go for (Jack). */
+export type Token = 'crest' | 'mystery' | 'rumble' | 'brothel' | 'audience';
 
 /** How the rising plays (being tuned: designer, the rising was too passive). */
 export interface RisingStyle {
@@ -394,7 +486,7 @@ export class RiotGame {
   }
 
   clone(s: RiotState): RiotState {
-    return { ...s, squads: s.squads.map((q) => ({ ...q })), owner: { ...s.owner }, fortified: [...s.fortified], lastFortify: { ...s.lastFortify }, lastSplit: { ...s.lastSplit }, fortifyBefore: { ...s.fortifyBefore }, rumble: s.rumble && { ...s.rumble }, crest: s.crest && { ...s.crest }, mystery: s.mystery && { ...s.mystery }, pending: s.pending && { ...s.pending, ...(s.pending.kind === 'diviner' ? { cards: [...s.pending.cards] } : {}) }, plague: { guard: s.plague?.guard ?? 0, rising: s.plague?.rising ?? 0 }, elites: { guard: { ...s.elites.guard, used: [...s.elites.guard.used], gifts: [...(s.elites.guard.gifts ?? [])] }, rising: { ...s.elites.rising, used: [...s.elites.rising.used], gifts: [...(s.elites.rising.gifts ?? [])] } } };
+    return { ...s, squads: s.squads.map((q) => ({ ...q })), owner: { ...s.owner }, fortified: [...s.fortified], lastFortify: { ...s.lastFortify }, lastSplit: { ...s.lastSplit }, fortifyBefore: { ...s.fortifyBefore }, rumble: s.rumble && { ...s.rumble }, crest: s.crest && { ...s.crest }, mystery: s.mystery && { ...s.mystery }, brothel: s.brothel && { ...s.brothel }, audience: s.audience && { ...s.audience }, moods: (s.moods ?? []).map((m) => ({ ...m })), calls: s.calls && { ...s.calls }, held: [...(s.held ?? [])], pending: s.pending && { ...s.pending, ...(s.pending.kind === 'diviner' ? { cards: [...s.pending.cards] } : s.pending.kind === 'audience' ? { good: [...s.pending.good] } : {}) }, plague: { guard: s.plague?.guard ?? 0, rising: s.plague?.rising ?? 0 }, elites: { guard: { ...s.elites.guard, used: [...s.elites.guard.used], gifts: [...(s.elites.guard.gifts ?? [])] }, rising: { ...s.elites.rising, used: [...s.elites.rising.used], gifts: [...(s.elites.rising.gifts ?? [])] } } };
   }
 
   /** The next number from the dice, 0 to 1 (moves `s.seed` on: only ever on a clone). */
@@ -441,7 +533,8 @@ export class RiotGame {
 
   /** No longer dug in (taken back, or given an order after all): this turn, it gives the side its fortify back. */
   unfortify(s0: RiotState, place: string): RiotState {
-    if (!this.fortified(s0, place)) return s0;
+    // (Never the king's guard: what would be the point? Jack.)
+    if (!this.fortified(s0, place) || this.squadAt(s0, place)?.elite === 'guard3') return s0;
     const s = this.clone(s0);
     s.fortified = s.fortified.filter((p) => p !== place);
     const q = this.squadAt(s, place);
@@ -468,15 +561,23 @@ export class RiotGame {
   }
   /** One of a side's elite squad can be put in: not used yet (or, where they come back, not on the table now). */
   eliteFree(s: RiotState, side: Side, elite: Elite): boolean {
+    // The king's guard can be made up again (Jack): fewer than three about, and somewhere round the base for them.
+    if (elite === 'guard3') return this.guardsShort(s, side) > 0 && this.deployPlaces(s, side, 'guard3').length > 0;
     return this.rules.elites?.once === false ? !s.squads.some((q) => q.side === side && q.elite === elite) : !s.elites[side].used.includes(elite);
   }
+  /** How many of a side's king's guard (barbarians) are missing from round its base. */
+  guardsShort = (s: RiotState, side: Side): number => (this.rules.elites?.guard3.count ?? 0) - s.squads.filter((q) => q.side === side && q.elite === 'guard3').length;
   /** Crests a side has taken in all (held, or spent on its elite squad). */
   crestsTaken = (s: RiotState, side: Side): number => s.elites[side].crests + s.elites[side].used.length;
-  /** Where one can be put in: next to the base, empty or one of yours (not one of the elite, not dug in). */
-  deployPlaces(s: RiotState, side: Side): string[] {
+  /**
+   * Where one can be put in: next to the base, empty or one of yours (not one of the elite, not dug in); the
+   * maiden beside one of your king's guard too (Jack).
+   */
+  deployPlaces(s: RiotState, side: Side, elite?: Elite): string[] {
     this.use(s);
     return this.adj.get(this.base(side))!.filter((p) => {
       const there = this.squadAt(s, p);
+      if (elite === 'maiden' && there?.side === side && there.elite === 'guard3') return !s.squads.some((q) => q.place === p && q.elite === 'maiden');
       return !there || (there.side === side && !there.elite && !this.fortified(s, p));
     });
   }
@@ -488,20 +589,21 @@ export class RiotGame {
    */
   deploy(s0: RiotState, side: Side, elite: Elite, at?: string): { state: RiotState; events: RiotEvent[] } {
     const e = this.rules.elites;
-    const free = this.deployPlaces(s0, side);
+    const free = this.deployPlaces(s0, side, elite);
     if (!e || !this.canDeploy(s0, side, elite) || (elite !== 'guard3' && (!at || !free.includes(at)))) return { state: s0, events: [] };
     const s = this.clone(s0);
+    // (The king's guard: only as many as are missing, Jack.)
     const places = elite === 'guard3'
-      ? [...free].sort((a, b) => (this.squadAt(s, a)?.strength ?? 0) - (this.squadAt(s, b)?.strength ?? 0)).slice(0, e.guard3.count)
+      ? [...free].sort((a, b) => (this.squadAt(s, a)?.strength ?? 0) - (this.squadAt(s, b)?.strength ?? 0)).slice(0, this.guardsShort(s, side))
       : [at!];
     if (!places.length) return { state: s0, events: [] };
     for (const p of places) {
       // A squad of yours there steps back into the base, joining whoever holds it, so nobody's lost (with the base
-      // not yours, it stands down).
-      const there = this.squadAt(s, p);
+      // not yours, it stands down). (The maiden beside the king's guard: they stay, and so does she.)
+      const keep = (q: RiotSquad) => q.elite === 'guard3' && elite === 'maiden';
       const home = this.squadAt(s, this.base(side));
-      if (there && home?.side === side && !home.elite) home.strength += there.strength;
-      s.squads = s.squads.filter((q) => q.place !== p);
+      for (const there of s.squads.filter((q) => q.place === p && !keep(q))) if (home?.side === side && !home.elite) home.strength += there.strength;
+      s.squads = s.squads.filter((q) => q.place !== p || keep(q));
       if (elite === 'guard3') {
         // The king's guard (Jack): there for good, and dug in as they arrive (for as long as their fortify lasts),
         // without using the side's fortify.
@@ -514,6 +616,7 @@ export class RiotGame {
       s.owner[p] = side;
     }
     s.elites[side].used.push(elite);
+    this.settle(s);
     const gifts = s.elites[side].gifts ?? [];
     if (gifts.includes(elite)) s.elites[side].gifts = gifts.filter((x) => x !== elite);
     else s.elites[side].crests -= 1;
@@ -526,7 +629,9 @@ export class RiotGame {
     const max = this.rules.elites?.maiden.seduceMax ?? 0;
     return this.adj.get(maiden.place)!.filter((p) => {
       const there = this.squadAt(s, p);
-      return !!there && there.side !== maiden.side && p !== this.heart && !there.elite && there.strength <= max && !this.fortified(s, p);
+      // (Their hero too, whatever it has left: the maiden turns a bastard into a hero, the witch a hero into a bastard, Jack.)
+      if (there?.elite === 'hero' && there.side !== maiden.side) return true;
+      return !!there && there.side !== maiden.side && p !== this.heart && p !== this.lifts && !there.elite && there.strength <= max && !this.fortified(s, p);
     });
   }
 
@@ -635,8 +740,8 @@ export class RiotGame {
   dests(s: RiotState, q: RiotSquad): string[] {
     this.use(s);
     if (s.cut === q.place) return [];
-    // A crusted hero stays where it is (Jack).
-    if (q.crusted) return [];
+    // A crusted hero stays where it is (Jack); so does a squad at the brothel, the turn after.
+    if (q.crusted || (q.stuck ?? -1) >= s.turn) return [];
     // Nobody joins one of the elite squad, and they join nobody (Jack); but a maiden (witch) can merge into one of
     // hers (poisoning it).
     // Onto one of the king's guard: a squad of yours stands beside them (Jack).
@@ -646,7 +751,15 @@ export class RiotGame {
     };
     // The king's guard hold where they are (Jack).
     if (q.elite === 'guard3') return [];
-    if (q.elite !== 'hero') return this.adj.get(q.place)!.filter(joinable);
+    // Only a hero can hurt their king's guard (or barbarians), and only their bastard (hero) yours (Jack).
+    const reach = (p: string) => {
+      const there = this.squadAt(s, p);
+      if (there && there.side !== q.side && there.elite === 'guard3') return false;
+      // The maiden goes at one of theirs only to seduce it (Jack).
+      if (q.elite === 'maiden' && there && there.side !== q.side) return this.seduceTargets(s, q).includes(p);
+      return true;
+    };
+    if (q.elite !== 'hero') return this.adj.get(q.place)!.filter((p) => joinable(p) && reach(p));
     // A hero: up to two streets, through an empty place or one of its own (never through theirs); never onto the
     // square or the lifts' foot, only at whoever holds them.
     const ok = (p: string) => {
@@ -743,7 +856,7 @@ export class RiotGame {
     const s = this.clone(s0);
     const q0 = s.squads.find((x) => x.id === o.squad);
     // (A fortified squad stays put.)
-    if (!q0 || (o.side && q0.side !== o.side) || o.to === q0.place || !this.dests(s, q0).includes(o.to) || this.fortified(s, q0.place)) return { state: s, events: [] };
+    if (!q0 || (o.side && q0.side !== o.side) || o.to === q0.place || !this.dests(s, q0).includes(o.to) || this.fortified(s, q0.place) || s.held?.includes(q0.id)) return { state: s, events: [] };
     let q = q0;
     const events: RiotEvent[] = [];
     // Split (Jack): the bigger half goes; the rest stays (a hero can't be split; nor can a squad of 1).
@@ -754,6 +867,7 @@ export class RiotGame {
       q.strength -= half.strength;
       // (Poisoned: the half that goes takes it with it.)
       if (q.poison) (half.poison = true), (q.poison = undefined);
+      if (q.cheer) half.cheer = true;
       s.squads.push(half);
       events.push({ type: 'split', squad: half.id, from: q.place, strength: half.strength });
       q = half;
@@ -767,18 +881,42 @@ export class RiotGame {
     }
     // A hero (Jack): one street or two, fighting its way through the first if it has to, and on if it wins its way in.
     if (q.elite === 'hero') {
-      const via = this.via(s, q, o.to);
+      // (The way you chose, if it's one it can go: Jack.)
+      const chosen = o.via && this.near(q.place, o.via) && this.near(o.via, o.to) && o.via !== this.heart && o.via !== this.lifts && this.dests(s, q).includes(o.via) ? o.via : null;
+      const via = this.near(q.place, o.to) && !o.via ? null : chosen ?? this.via(s, q, o.to);
       if (!this.near(q.place, o.to) && !via) return { state: this.clone(s0), events: [] };
       const from = q.place;
       for (const step of via ? [via, o.to] : [o.to]) if (!this.heroStep(s, q, step, events) || !s.squads.includes(q)) break;
       if (s.squads.includes(q) && q.place !== from) events.unshift({ type: 'move', squad: q.id, side: q.side, from, to: q.place });
       if (s.rumble && s.squads.includes(q) && q.place === s.rumble.place) this.setOff(s, q.place, q.side, events);
-      this.takeCrest(s, events);
-      this.takeMystery(s, events);
+      this.takeTokens(s, events);
       return { state: s, events };
     }
     const from = q.place;
     const there = this.squadAt(s, o.to);
+    // The maiden onto one of theirs: seduced (Jack: no button, it's just what she does).
+    if (q.elite === 'maiden' && there && there.side !== q.side) {
+      const r = this.seduce(s, q.id, o.to);
+      return { state: r.state, events: r.events };
+    }
+    // Both going for the same empty place at once (Jack): for something on the map, a race (the winner gets it,
+    // the loser stays put, untouched); otherwise, the same number each, a clash there.
+    if (!there && this.rules.clash) {
+      const rival = this.rivalFor(s, q, o.to, counter);
+      if (rival) {
+        const what = this.tokenAt(s, o.to);
+        if (what) return this.race(s, q, rival, o.to, what, events);
+        if (rival.strength === q.strength && q.elite !== 'maiden' && rival.elite !== 'maiden' && !o.split) {
+          this.clash(s, q, rival, events, o.to);
+          return { state: s, events };
+        }
+      }
+    }
+    // Their base, with exactly its number (Jack): the final clash.
+    if (there && there.side !== q.side && this.rules.clash && !q.elite && there.place === this.base(there.side) && q.strength === this.heldBy(s, o.to) && !this.fortified(s, o.to)) {
+      this.clash(s, q, there, events, undefined, true);
+      return { state: s, events };
+    }
     if (!there) {
       q.place = o.to;
       s.owner[o.to] = q.side;
@@ -796,8 +934,10 @@ export class RiotGame {
       // A maiden (witch) merging in poisons it (Jack); a poisoned squad joining another poisons that.
       if (q.elite === 'maiden' && !there.poison) events.push({ type: 'poison', at: o.to, side: q.side });
       if (q.elite === 'maiden' || q.poison) there.poison = true;
-    } else if (this.fortified(s, o.to) || there.elite === 'hero') {
-      // Dug in, or a hero (nothing can attack one: Jack): the attack doesn't happen, and they stay where they are.
+      if (q.cheer) there.cheer = true;
+    } else if (this.fortified(s, o.to) || there.elite === 'hero' || there.elite === 'guard3') {
+      // Dug in, or a hero (nothing can attack one: Jack), or their king's guard (only a hero can hurt them: Jack):
+      // the attack doesn't happen, and they stay where they are.
       events.push({ type: 'blocked', at: o.to, side: q.side });
     } else {
       // Poisoned (Jack): a chance of a critical hit, adding 10 to 60% to the attack (rounded).
@@ -832,11 +972,62 @@ export class RiotGame {
     }
     // Onto a rumble: it goes off.
     if (s.rumble && q.place === s.rumble.place && s.squads.includes(q)) this.setOff(s, q.place, q.side, events);
-    this.takeCrest(s, events);
-    this.takeMystery(s, events);
+    this.takeTokens(s, events);
     return { state: s, events };
   }
 
+  /** Whatever's on the map where a squad now stands, taken (on `s`, already a clone). */
+  private takeTokens(s: RiotState, events: RiotEvent[]): void {
+    this.takeCrest(s, events);
+    this.takeMystery(s, events);
+    this.takeBrothel(s, events);
+    this.takeAudience(s, events);
+  }
+
+  /** What's on the map at a place, if anything. */
+  tokenAt(s: RiotState, place: string): Token | null {
+    if (s.crest?.place === place) return 'crest';
+    if (s.mystery?.place === place) return 'mystery';
+    if (s.rumble?.place === place) return 'rumble';
+    if (s.brothel?.place === place) return 'brothel';
+    if (s.audience?.place === place) return 'audience';
+    return null;
+  }
+
+  /**
+   * One of theirs ordered onto the same empty place this turn (Jack), that can get there: not split off, not dug
+   * in or cut off, not already beaten to something.
+   */
+  rivalFor(s: RiotState, q: RiotSquad, to: string, counter?: Order[]): RiotSquad | null {
+    if (!counter) return null;
+    for (const x of counter) {
+      const r = s.squads.find((y) => y.id === x.squad);
+      if (!r || r.side === q.side || x.to !== to || x.split || r.place === to || (x.side && x.side !== r.side)) continue;
+      if (s.held?.includes(r.id) || this.fortified(s, r.place) || s.cut === r.place || !this.dests(s, r).includes(to)) continue;
+      return r;
+    }
+    return null;
+  }
+
+  /**
+   * A race for something on the map (Jack): the odds as for a clash; the winner goes on there and takes it, the
+   * loser stays where it is, untouched (and stays there this turn).
+   */
+  private race(s: RiotState, q: RiotSquad, rival: RiotSquad, to: string, what: Token, events: RiotEvent[]): { state: RiotState; events: RiotEvent[] } {
+    const { chance } = this.clashOdds(s, q, to, rival);
+    const won = this.roll(s) < chance;
+    const [winner, loser] = won ? [q, rival] : [rival, q];
+    q.cheer = rival.cheer = undefined;
+    events.push({ type: 'race', at: to, from: q.place, rival: rival.place, side: q.side, won, chance, what });
+    const from = winner.place;
+    winner.place = to;
+    s.owner[to] = winner.side;
+    events.push({ type: 'move', squad: winner.id, side: winner.side, from, to });
+    s.held = [...(s.held ?? []), loser.id, winner.id];
+    if (s.rumble?.place === to) this.setOff(s, to, winner.side, events);
+    this.takeTokens(s, events);
+    return { state: s, events };
+  }
   // --- The mystery square (Jack) ---
 
   /** A squad on the mystery square (on `s`, already a clone): what it turns out to be. */
@@ -944,7 +1135,8 @@ export class RiotGame {
     const s = this.clone(s0);
     s.pending = null;
     const events: RiotEvent[] = [];
-    if (p.kind === 'diviner') {
+    if (p.kind === 'audience') this.hear(s, p.side, p.good, typeof choice === 'string' ? choice : undefined, events);
+    else if (p.kind === 'diviner') {
       const i = typeof choice === 'number' ? choice : Math.floor(this.roll(s) * p.cards.length);
       const card = p.cards[i] ?? p.cards[0]!;
       this.playCard(s, p.side, p.at, card, events);
@@ -965,7 +1157,8 @@ export class RiotGame {
       q.strength += by;
       changes.push({ place: q.place, by });
     };
-    const ordinary = (q: RiotSquad | undefined): q is RiotSquad => !!q && !q.elite;
+    // (Any squad, the elite squad too: Jack.)
+    const ordinary = (q: RiotSquad | undefined): q is RiotSquad => !!q;
     const home = () => {
       const h = this.squadAt(s, this.base(side));
       if (h?.side === side) return h;
@@ -1035,7 +1228,7 @@ export class RiotGame {
    * dug in: they look after themselves); 10 for the ground round it being mostly its side's (or less 10, theirs);
    * 5 for one of its elite there (a hero, the king's guard, a poisoned squad; less 5, theirs). Between 20% and 80%.
    */
-  clashOdds(s: RiotState, q: RiotSquad, to: string): ClashOdds {
+  clashOdds(s: RiotState, q: RiotSquad, to: string, foe?: RiotSquad): ClashOdds {
     this.use(s);
     const side = q.side;
     const parts: ClashOdds['parts'] = [];
@@ -1049,24 +1242,34 @@ export class RiotGame {
     const ground = [...round, q.place, to];
     const held = (x: Side) => ground.filter((p) => s.owner[p] === x).length;
     parts.push({ what: 'Home ground', by: Math.sign(held(side) - held(this.other(side))) * 0.1 });
-    const there = this.squadAt(s, to);
+    const there = foe ?? this.squadAt(s, to);
     const elite = (x: RiotSquad) => x.elite === 'hero' || x.elite === 'guard3' || !!x.poison;
     const elites = (x: Side) => [q, ...(there ? [there] : []), ...near].some((y) => y.side === x && elite(y));
     parts.push({ what: 'Elites', by: (elites(side) ? 0.05 : 0) - (elites(this.other(side)) ? 0.05 : 0) });
+    // Morale (Jack): an audience that went well (or badly), on either side.
+    parts.push({ what: 'Morale', by: Math.round((this.moraleOf(s, side) - this.moraleOf(s, this.other(side))) * 100) / 100 });
+    // Back from the brothel, in fine spirits (Jack).
+    const boost = this.rules.brothel?.boost ?? 0;
+    parts.push({ what: 'Fine spirits', by: (q.cheer ? boost : 0) - (there?.cheer ? boost : 0) });
     const c = this.rules.clash ?? CLASH;
     const chance = Math.max(c.least, Math.min(c.most, 0.5 + parts.reduce((n, x) => n + x.by, 0)));
     return { chance, parts: parts.filter((x) => Math.abs(x.by) > 1e-9) };
   }
 
-  /** A clash fought (on `s`, already a clone): the winner takes the loser's place, with 1 to 3 left (Jack). */
-  private clash(s: RiotState, q: RiotSquad, foe: RiotSquad, events: RiotEvent[]): void {
+  /**
+   * A clash fought (on `s`, already a clone): the winner takes the loser's place, with 1 to 3 left (Jack). Meeting
+   * on an empty place (`meet`), the winner has it; at a base (`base`), the attacker takes it, or the base holds.
+   */
+  private clash(s: RiotState, q: RiotSquad, foe: RiotSquad, events: RiotEvent[], meet?: string, base = false): void {
     const from = q.place;
-    const at = foe.place;
+    const rivalFrom = foe.place;
+    const at = meet ?? foe.place;
     const strength = foe.strength;
-    const { chance } = this.clashOdds(s, q, at);
+    const { chance } = this.clashOdds(s, q, at, foe);
     const won = this.roll(s) < chance;
     const [winner, loser] = won ? [q, foe] : [foe, q];
-    const place = loser.place;
+    q.cheer = foe.cheer = undefined;
+    const place = meet ?? (base ? foe.place : loser.place);
     s.squads = s.squads.filter((x) => x !== loser);
     // How many of the winners are left (Jack): mostly 1, now and then 2, rarely 3; never more than they had.
     const odds = (this.rules.clash ?? CLASH).left;
@@ -1075,8 +1278,61 @@ export class RiotGame {
     winner.place = place;
     winner.strength = left;
     s.owner[place] = winner.side;
-    events.push({ type: 'clash', at, from, side: q.side, won, chance, strength, left });
-    this.takeCrest(s, events);
+    events.push({ type: 'clash', at, from, side: q.side, won, chance, strength, left, ...(meet ? { meet: rivalFrom } : {}), ...(base ? { base: true } : {}) });
+    if (meet) s.held = [...(s.held ?? []), winner.id];
+    this.takeTokens(s, events);
+  }
+
+  /** A side's morale from its moods (Jack): better or worse odds in a clash. */
+  moraleOf = (s: RiotState, side: Side): number => (s.moods ?? []).filter((m) => m.side === side && m.kind === 'morale' && m.until >= s.turn).reduce((n, m) => n + m.by, 0);
+  /** A side's bases making more or less this turn (Jack: the townsfolk). */
+  outputOf = (s: RiotState, side: Side): number => (s.moods ?? []).filter((m) => m.side === side && m.kind === 'output' && m.until >= s.turn).reduce((n, m) => n + m.by, 0);
+  /** Turns left of the commander's advice on a side: seeing ahead, or clouded (0: none). */
+  adviceIn = (s: RiotState, side: Side, kind: 'foresight' | 'cloud'): number => Math.max(0, ...(s.moods ?? []).filter((m) => m.side === side && m.kind === kind).map((m) => m.until - s.turn + 1));
+
+  /** A squad onto the brothel (Jack): stuck there next turn, then in fine spirits. */
+  private takeBrothel(s: RiotState, events: RiotEvent[]): void {
+    const there = s.brothel && this.squadAt(s, s.brothel.place);
+    if (!s.brothel || !there) return;
+    there.stuck = s.turn + 1;
+    there.cheer = true;
+    events.push({ type: 'brothel', at: s.brothel.place, side: there.side });
+    s.brothel = null;
+  }
+
+  /** A squad onto the audience (Jack): who'll they hear? (Waits on a choice: `pending`.) */
+  private takeAudience(s: RiotState, events: RiotEvent[]): void {
+    const there = s.audience && this.squadAt(s, s.audience.place);
+    if (!s.audience || !there) return;
+    s.pending = { kind: 'audience', side: there.side, at: s.audience.place, good: this.goodLines(s) };
+    events.push({ type: 'audienceFound', at: s.audience.place, side: there.side });
+    s.audience = null;
+  }
+
+  /** Which two of the townsfolk's four lines go down well, this time (Jack: always half and half). */
+  private goodLines(s: RiotState): number[] {
+    const lines = [0, 1, 2, 3];
+    for (let i = lines.length - 1; i > 0; i--) {
+      const j = Math.floor(this.roll(s) * (i + 1));
+      [lines[i], lines[j]] = [lines[j]!, lines[i]!];
+    }
+    return lines.slice(0, 2).sort();
+  }
+
+  /** An audience heard (on `s`, a clone): `choice` is who (the townsfolk: `townsfolk:<line>`); the dice otherwise. */
+  private hear(s: RiotState, side: Side, good: number[], choice: string | undefined, events: RiotEvent[]): void {
+    const a = this.rules.audience ?? AUDIENCE;
+    const advisers: Adviser[] = ['accountant', 'townsfolk', 'commander'];
+    const [name, n] = (choice ?? '').split(':');
+    const who: Adviser = advisers.includes(name as Adviser) ? (name as Adviser) : advisers[Math.floor(this.roll(s) * 3)]!;
+    const line = who === 'townsfolk' ? (n !== undefined && /^[0-3]$/.test(n) ? Number(n) : Math.floor(this.roll(s) * 4)) : undefined;
+    const ok = line !== undefined ? good.includes(line) : this.roll(s) < 0.5;
+    const moods = (s.moods = [...(s.moods ?? [])]);
+    const add = (kind: Mood['kind'], by: number, turns: number) => moods.push({ side, kind, by, until: s.turn + turns - 1 });
+    if (who === 'commander') add(ok ? 'foresight' : 'cloud', 0, a.advice);
+    else add('morale', ok ? a.morale : -a.morale, a.moraleTurns);
+    if (who === 'townsfolk') ok ? add('output', a.output, a.outputTurns) : add('output', -a.slump, a.slumpTurns);
+    events.push({ type: 'audience', side, who, good: ok, ...(line !== undefined ? { line } : {}) });
   }
 
   /** A squad on the crest (on `s`, already a clone): its side takes it (Jack). */
@@ -1109,11 +1365,13 @@ export class RiotGame {
     const hits: Extract<RiotEvent, { type: 'rumble' }>['hits'] = [];
     for (const n of this.adj.get(at)!) {
       const there = this.squadAt(s, n);
-      if (!there || this.fortified(s, n) || there.elite === 'hero') continue;
+      // (Heroes too: Jack.)
+      if (!there || this.fortified(s, n)) continue;
       const damage = 1 + Math.floor(this.roll(s) * (this.rules.rumble?.max ?? 3));
       there.strength -= damage;
       const gone = there.strength <= 0;
       if (gone) s.squads = s.squads.filter((x) => x !== there);
+      if (gone && there.elite) events.push({ type: 'eliteGone', at: n, side: there.side, elite: there.elite });
       hits.push({ place: n, side: there.side, damage, gone });
     }
     s.rumble = null;
@@ -1182,7 +1440,7 @@ export class RiotGame {
               score = 60 + need * 2 + (to === this.lifts ? 15 : 0);
             } else if (this.attack(q.place, to, q.strength) > this.defence(s, to, there.strength)) score = 50 + there.strength * 2;
             else continue;
-          } else if (!there && (s.crest?.place === to || s.mystery?.place === to)) score = 55; // (a crest, a mystery: Jack)
+          } else if (!there && this.tokenAt(s, to) && this.tokenAt(s, to) !== 'rumble') score = 55; // (a crest, a mystery: Jack)
           else if (!there && q.elite !== 'guard3') {
             const target = q.elite === 'maiden' ? seducible : guardAt;
             score = 6 + (distTo(q.place, target) - distTo(to, target)) * 5;
@@ -1205,6 +1463,8 @@ export class RiotGame {
           else if (there?.side !== 'rising' || !threat) continue;
           else score = 30;
         } else if (there?.side === 'guard') {
+          // (Their king's guard: only a hero can hurt them, Jack.)
+          if (there.elite === 'guard3' || this.fortified(s, to)) continue;
           if (this.attack(q.place, to, q.strength) > this.defence(s, to, there.strength)) score = 40 + there.strength * 2 + (to === this.lifts ? 15 : 0);
           // Throwing themselves at it: they'll lose, but it'll cost the guard.
           else if (st.wear && q.strength >= st.wear) score = 25 - there.strength + (to === this.lifts ? 10 : 0);
@@ -1216,8 +1476,8 @@ export class RiotGame {
           if (couldBeat(to, there.strength + q.strength)) score = 18;
           else if (st.merge) score = 8;
           else continue;
-        } else if (s.crest?.place === to || s.mystery?.place === to) {
-          // A crest, or a mystery square (Jack): theirs for the taking.
+        } else if (this.tokenAt(s, to) && this.tokenAt(s, to) !== 'rumble') {
+          // A crest, a mystery square, the brothel, an audience (Jack): theirs for the taking.
           score = 55;
         } else if (s.rumble?.place === to) {
           // A rumble: set it off, if it'll hurt the guard round it more than their own.
@@ -1287,6 +1547,12 @@ export class RiotGame {
     this.use(s0);
     let s = s0;
     const events: RiotEvent[] = [];
+    // (An audience the crier called, still waiting: the dice decide, for the computer or a test.)
+    if (s.pending) {
+      const d = this.resolve(s);
+      s = d.state;
+      events.push(...d.events);
+    }
     const first = this.rules.ordered ? yours.filter((o, i) => yours.findIndex((x) => x.squad === o.squad && !!x.split === !!o.split) === i) : this.together(s0, yours);
     for (const [o, counter] of [...first.map((o) => [o, theirs] as const), ...this.together(s0, theirs).map((o) => [o, yours] as const)]) {
       let r = this.order(s, o, counter);
@@ -1304,7 +1570,8 @@ export class RiotGame {
     // People keep joining the square.
     const h = this.rules.muster ? undefined : this.squadAt(s, this.heart);
     if (h?.side === 'rising' && s.cut !== this.heart) {
-      h.strength += 1;
+      // (The townsfolk: a base making more, or less, Jack.)
+      h.strength = Math.max(1, h.strength + 1 + this.outputOf(s, 'rising'));
       events.push({ type: 'grow', at: this.heart });
       // And it pours a crowd out at the guard.
       const to = this.pourTo(s);
@@ -1318,14 +1585,15 @@ export class RiotGame {
     // More of the guard, if the lifts' foot is yours (dug in or not: Jack).
     if (!this.rules.muster && s.turn % this.rules.reinforceEvery === 0) {
       const there = this.squadAt(s, this.lifts);
-      if (there?.side === 'guard') there.strength += this.rules.reinforce;
-      else if (!there && s.owner[this.lifts] !== 'rising') s.squads.push({ id: `q${s.nextId++}`, side: 'guard', place: this.lifts, strength: this.rules.reinforce });
+      const more = Math.max(0, this.rules.reinforce + this.outputOf(s, 'guard'));
+      if (there?.side === 'guard') there.strength += more;
+      else if (!there && s.owner[this.lifts] !== 'rising' && more) s.squads.push({ id: `q${s.nextId++}`, side: 'guard', place: this.lifts, strength: more });
       if (there?.side === 'guard' || (!there && s.owner[this.lifts] !== 'rising')) events.push({ type: 'arrive', at: this.lifts });
     }
-    // The plague (Jack): each of a side's squads but the base loses 1 (never below 1).
+    // The plague (Jack): each of a side's squads but the base loses 1 (never below 1); not the elite squad.
     for (const side of ['guard', 'rising'] as const) {
       if (!s.plague?.[side]) continue;
-      const hit = this.mine(s, side).filter((q) => q.place !== this.base(side) && q.strength > 1);
+      const hit = this.mine(s, side).filter((q) => q.place !== this.base(side) && q.strength > 1 && !q.elite);
       for (const q of hit) q.strength -= 1;
       s.plague[side] -= 1;
       events.push({ type: 'plagueTick', side, places: hit.map((q) => q.place) });
@@ -1333,7 +1601,7 @@ export class RiotGame {
     // One thing on the map at a time (a rumble, a crest, a mystery square: Jack), a crest first when it's due.
     const crest = this.rules.elites?.crest;
     if (crest && s.turn + 1 >= crest.first && (s.turn + 1 - crest.first) % crest.every === 0) s.crestDue = true;
-    const taken = () => !!(s.rumble || s.crest || s.mystery);
+    const taken = () => !!(s.rumble || s.crest || s.mystery || s.brothel || s.audience);
     // A rumble: one there stays a turn less; with none, now and then one appears on an empty street.
     const rumble = this.rules.rumble;
     if (s.rumble) {
@@ -1376,6 +1644,31 @@ export class RiotGame {
         events.push({ type: 'mysteryAppears', at, ...(mark ? { mark } : {}) });
       }
     }
+    // The brothel and the audience (Jack): the same.
+    for (const kind of ['brothel', 'audience'] as const) {
+      const r = this.rules[kind];
+      const there = s[kind];
+      if (there) {
+        there.left -= 1;
+        if (there.left <= 0) (events.push({ type: kind === 'brothel' ? 'brothelGone' : 'audienceGone', at: there.place }), (s[kind] = null));
+      } else if (r && !s.crestDue && !taken() && s.turn + 1 >= r.from && this.roll(s) < r.chance) {
+        const at = this.crestPlace(s, false);
+        if (at) (s[kind] = { place: at, left: r.lasts }), events.push({ type: kind === 'brothel' ? 'brothelAppears' : 'audienceAppears', at });
+      }
+    }
+    // The crier (Jack): in each stretch of turns, half the time, on one turn of it, a side's called to an audience.
+    const call = this.rules.audience?.call;
+    if (call) {
+      if (!s.calls || (s.turn - 1) % call.every === 0) {
+        const when = () => (this.roll(s) < call.chance ? s.turn + Math.floor(this.roll(s) * call.every) : null);
+        s.calls = { guard: when(), rising: when() };
+      }
+      for (const side of ['guard', 'rising'] as const) {
+        if (s.calls[side] !== s.turn || s.pending) continue;
+        s.pending = { kind: 'audience', side, at: null, good: this.goodLines(s) };
+        events.push({ type: 'call', side });
+      }
+    }
     // A shake-up (Jack): every so many turns, each side gets a crest, free, to put in any of its elite it can.
     const shake = this.rules.shakeUp;
     if (shake && this.rules.elites && s.turn % shake.every === 0 && shake.trickster && this.roll(s) < shake.trickster) {
@@ -1389,6 +1682,7 @@ export class RiotGame {
     }
     s.turn++;
     s.cut = null;
+    s.held = [];
     // The elite squad whose time is up are gone (Jack); whoever's still dug in (the king's guard's two turns, a
     // crusted hero) stays dug in.
     for (const q of s.squads.filter((x) => x.elite && (x.until ?? Infinity) < s.turn)) events.push({ type: 'eliteGone', at: q.place, side: q.side, elite: q.elite! });
@@ -1433,12 +1727,13 @@ export class RiotGame {
       if (this.squadAt(s, base)?.side === this.other(side)) continue;
       const to = this.musterTo(s, side);
       const there = to ? this.squadAt(s, to) : undefined;
-      if (there) there.strength += m;
-      else if (to) {
-        s.squads.push({ id: `q${s.nextId++}`, side, place: to, strength: m });
+      const more = Math.max(0, m + this.outputOf(s, side));
+      if (there) there.strength += more;
+      else if (to && more) {
+        s.squads.push({ id: `q${s.nextId++}`, side, place: to, strength: more });
         s.owner[to] = side;
       }
-      events.push({ type: 'muster', side, from: base, to, strength: m });
+      events.push({ type: 'muster', side, from: base, to, strength: Math.max(0, m + this.outputOf(s, side)) });
     }
   }
 
@@ -1449,6 +1744,9 @@ export class RiotGame {
   outcome(s: RiotState): Side | null {
     this.use(s);
     if (this.rules.baseLoss && this.squadAt(s, this.lifts)?.side === 'rising') return 'rising';
+    // Nobody of yours left anywhere, the base included (Jack): game over, no moves possible.
+    if (this.rules.baseLoss && !this.mine(s, 'guard').length) return 'rising';
+    if (this.rules.baseLoss && !this.mine(s, 'rising').length) return 'guard';
     if (this.squadAt(s, this.heart)?.side === 'guard') return 'guard';
     if (this.rules.siege && this.squadAt(s, this.lifts)?.side === 'rising') return 'rising';
     if (s.turn > this.rules.dawn) return this.rules.siege ? 'guard' : 'rising';

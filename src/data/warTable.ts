@@ -1,4 +1,4 @@
-import { CLASH, ELITE_SQUAD, MYSTERY, RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type RisingStyle, type Side } from '../systems/Riot';
+import { AUDIENCE, BROTHEL, CLASH, ELITE_SQUAD, MYSTERY, RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type RisingStyle, type Side } from '../systems/Riot';
 
 // The war table's maps and games (Chapter 3; the game: src/systems/Riot.ts, its design and how it was
 // tuned: docs/sequences/chapter-3/war-table.md). Day 2: the lesson in the simulation room (you're the rising,
@@ -82,8 +82,8 @@ export interface RiotScenario {
   id: string;
   kind: 'riot';
   board: RiotBoard;
-  /** How the table's drawn (the low district's warm and crowded, the promenade's glass). */
-  district: 'low' | 'promenade';
+  /** How the table's drawn (the low district's warm and crowded, the promenade's glass; the skirmish, the crag). */
+  district: 'low' | 'promenade' | 'castle';
   squads: Setup;
   rules?: Partial<RiotRules>;
   /** The fight when you take the square (src/data/combat.ts), and the area its square is in, where you come out after. */
@@ -91,6 +91,8 @@ export interface RiotScenario {
   squareArea: { areaId: string; start: { x: number; y: number } };
   /** A game on its own, for playtesting (Jack): no story, no dawn; it ends when a side's base is taken. */
   skirmish?: boolean;
+  /** The table zoomed in (bigger than the screen, dragged round) and zoomed out (all on the screen): Jack's view mode. */
+  views?: { in: RiotBoard; out: RiotBoard };
   /**
    * Ink knots: before; you took the square (your father comes in; some of them have broken through, and you
    * go down to stop them: the fight); dawn first (your father comes in); him taking it (and the same news);
@@ -289,7 +291,55 @@ export const DUEL: DuelScenario = {
   knots: { intro: 'c3day6_duel_intro', won: 'c3day6_duel_won', lost: 'c3day6_duel_lost', after: 'c3day6_caught' },
 };
 
-const riot = (id: string, board: RiotBoard, district: 'low' | 'promenade', squareArea: RiotScenario['squareArea']): RiotScenario => ({
+/**
+ * The skirmish's table (Jack: a bigger map, the rebels' base well away from yours, its three places round it
+ * like yours): the siege of the old castle's crag (`CASTLE_BOARD`, Harry's) turned round. The keep at the top is
+ * yours (the guard's base, where the guard come in), the siege camp at the bottom the rebels' hideout (their
+ * base, growing); the three places round each base drawn in close (Jack: a kind of defensiveness).
+ */
+export const SKIRMISH_WIDE: RiotBoard = {
+  ways: CASTLE_BOARD.ways,
+  width: CASTLE_BOARD.width,
+  height: CASTLE_BOARD.height,
+  places: CASTLE_BOARD.places.map((p): RiotPlace => {
+    const moved: Record<string, Partial<RiotPlace>> = {
+      keep: { y: 54, heart: undefined, lifts: true, up: true },
+      postern: { x: 338, y: 76 },
+      yard: { x: 462, y: 76 },
+      gate: { y: 108 },
+      camp: { name: 'The hideout', y: 392, heart: true, lifts: undefined, up: undefined },
+      crossroads: { y: 312 },
+      farms: { x: 338, y: 372 },
+      road: { x: 462, y: 372 },
+    };
+    const q: RiotPlace = { ...p, ...moved[p.id] };
+    for (const k of ['heart', 'lifts', 'up'] as const) if (q[k] === undefined) delete q[k];
+    return q;
+  }),
+};
+
+/**
+ * The same, zoomed out (Jack: dragging round the map was a nuisance): squeezed onto the screen (480 by 270), clear
+ * of the note at the top and the bar along the bottom; the names shorter.
+ */
+export const SKIRMISH_BOARD: RiotBoard = {
+  ways: SKIRMISH_WIDE.ways,
+  compact: true,
+  places: SKIRMISH_WIDE.places.map((p) => ({ ...p, x: Math.round(24 + (p.x - 60) * 0.635), y: Math.round(30 + (p.y - 54) * 0.586) })),
+};
+
+/** Where the skirmish starts: your guard round the keep and on the walls; the rising in the country below, the hideout full. */
+const SKIRMISH_START: Setup = [
+  { side: 'guard', place: 'keep', strength: 5 },
+  { side: 'guard', place: 'wtower', strength: 3 },
+  { side: 'guard', place: 'etower', strength: 3 },
+  { side: 'guard', place: 'wwall', strength: 4 },
+  { side: 'guard', place: 'ewall', strength: 4 },
+  { side: 'rising', place: 'camp', strength: 24 },
+  ...['tannery', 'chapel', 'marsh', 'quarry', 'smithy', 'granary'].map((place) => ({ side: 'rising' as const, place, strength: 3 })),
+];
+
+const riot = (id: string, board: RiotBoard, district: RiotScenario['district'], squareArea: RiotScenario['squareArea']): RiotScenario => ({
   id, kind: 'riot', board, district, squads: RIOT_START, square: 'riot_square', squareArea,
   // Rumbles and the elite squads in the riot (Jack), not the lesson.
   rules: { rumble: RUMBLE, elites: ELITE_SQUAD, clash: CLASH, mystery: MYSTERY },
@@ -304,9 +354,12 @@ export const RIOTS: Record<string, RiotScenario | LessonScenario | DuelScenario>
   // A game mode of its own, for playtesting (Jack: no dawn, an indefinite game; a shake-up every 6 turns gives
   // each side a crest, or a quarter of the time it's the trickster; the elite come back once they're gone; take their base and you've won, lose yours and
   // you've lost). Dev: ?scene=wartable.
+  // On the crag (Jack: Harry's bigger map, the rebels' base well away from yours, three places round each base).
   skirmish: {
-    ...riot('skirmish', LOW_DISTRICT_BOARD, 'low', { areaId: 'low-district', start: { x: 720, y: 236 } }),
+    ...riot('skirmish', SKIRMISH_BOARD, 'castle', { areaId: 'low-district', start: { x: 720, y: 236 } }),
+    squads: SKIRMISH_START,
     skirmish: true,
-    rules: { rumble: RUMBLE, elites: { ...ELITE_SQUAD, once: false }, clash: CLASH, mystery: MYSTERY, dawn: 100000, shakeUp: { every: 6, trickster: 0.25 }, baseLoss: true },
+    views: { in: SKIRMISH_WIDE, out: SKIRMISH_BOARD },
+    rules: { rumble: RUMBLE, elites: { ...ELITE_SQUAD, once: false }, clash: CLASH, mystery: MYSTERY, brothel: BROTHEL, audience: AUDIENCE, dawn: 100000, shakeUp: { every: 6, trickster: 0.25 }, baseLoss: true },
   },
 };
