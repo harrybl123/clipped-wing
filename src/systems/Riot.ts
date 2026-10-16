@@ -140,7 +140,7 @@ export interface RiotRules {
 
 /**
  * The rebels' own move (Jack: like your power cut), once every `every` turns, at the start of a turn, whichever
- * suits them: **Rally** (+`rally` to one of theirs), **Sabotage** (one street blocked for the turn: nobody can
+ * suits them: **Rally** (+`rally` to one of theirs), **Sabotage** (one street closed for `closed` turns: nobody can
  * use it) or **Riot** (a fire on an empty place next to one of yours: every squad round it, either side, not dug
  * in, takes 1 to `fire`, and nobody can go there this turn).
  */
@@ -148,8 +148,10 @@ export interface RebelRules {
   every: number;
   rally: number;
   fire: number;
+  /** How many turns a sabotaged street stays closed (this one included). */
+  closed: number;
 }
-export const REBEL: RebelRules = { every: 3, rally: 2, fire: 2 };
+export const REBEL: RebelRules = { every: 3, rally: 2, fire: 2, closed: 1 };
 export type RebelMove = 'rally' | 'sabotage' | 'riot';
 
 /**
@@ -377,8 +379,8 @@ export interface RiotState {
   held?: string[];
   /** The turn the rebels last made their move (Jack). */
   lastRebel?: number;
-  /** A street sabotaged this turn: nobody can use it (Jack). */
-  blocked?: [string, string] | null;
+  /** A street sabotaged (Jack): nobody can use it, up to and including turn `until`. */
+  blocked?: { ways: [string, string]; until: number } | null;
   /** A place on fire this turn: nobody can go there (Jack). */
   fire?: string | null;
 }
@@ -552,7 +554,7 @@ export class RiotGame {
   }
 
   clone(s: RiotState): RiotState {
-    return { ...s, squads: s.squads.map((q) => ({ ...q })), owner: { ...s.owner }, fortified: [...s.fortified], lastFortify: { ...s.lastFortify }, lastSplit: { ...s.lastSplit }, fortifyBefore: { ...s.fortifyBefore }, rumble: s.rumble && { ...s.rumble }, crest: s.crest && { ...s.crest }, mystery: s.mystery && { ...s.mystery }, brothel: s.brothel && { ...s.brothel }, audience: s.audience && { ...s.audience }, church: s.church && { ...s.church }, moods: (s.moods ?? []).map((m) => ({ ...m })), calls: s.calls && { ...s.calls }, held: [...(s.held ?? [])], blocked: s.blocked && [...s.blocked] as [string, string], pending: s.pending && { ...s.pending, ...(s.pending.kind === 'diviner' ? { cards: [...s.pending.cards] } : s.pending.kind === 'audience' ? { good: [...s.pending.good] } : {}) }, plague: { guard: s.plague?.guard ?? 0, rising: s.plague?.rising ?? 0 }, elites: { guard: { ...s.elites.guard, used: [...s.elites.guard.used], gifts: [...(s.elites.guard.gifts ?? [])] }, rising: { ...s.elites.rising, used: [...s.elites.rising.used], gifts: [...(s.elites.rising.gifts ?? [])] } } };
+    return { ...s, squads: s.squads.map((q) => ({ ...q })), owner: { ...s.owner }, fortified: [...s.fortified], lastFortify: { ...s.lastFortify }, lastSplit: { ...s.lastSplit }, fortifyBefore: { ...s.fortifyBefore }, rumble: s.rumble && { ...s.rumble }, crest: s.crest && { ...s.crest }, mystery: s.mystery && { ...s.mystery }, brothel: s.brothel && { ...s.brothel }, audience: s.audience && { ...s.audience }, church: s.church && { ...s.church }, moods: (s.moods ?? []).map((m) => ({ ...m })), calls: s.calls && { ...s.calls }, held: [...(s.held ?? [])], blocked: s.blocked && { ways: [...s.blocked.ways] as [string, string], until: s.blocked.until }, pending: s.pending && { ...s.pending, ...(s.pending.kind === 'diviner' ? { cards: [...s.pending.cards] } : s.pending.kind === 'audience' ? { good: [...s.pending.good] } : {}) }, plague: { guard: s.plague?.guard ?? 0, rising: s.plague?.rising ?? 0 }, elites: { guard: { ...s.elites.guard, used: [...s.elites.guard.used], gifts: [...(s.elites.guard.gifts ?? [])] }, rising: { ...s.elites.rising, used: [...s.elites.rising.used], gifts: [...(s.elites.rising.gifts ?? [])] } } };
   }
 
   /** The next number from the dice, 0 to 1 (moves `s.seed` on: only ever on a clone). */
@@ -730,7 +732,9 @@ export class RiotGame {
   canRebel = (s: RiotState): boolean => !!this.rules.rebel && s.turn - (s.lastRebel ?? -99) >= this.rules.rebel.every;
   rebelIn = (s: RiotState): number => Math.max(0, (this.rules.rebel?.every ?? 0) - (s.turn - (s.lastRebel ?? -99)));
   /** Whether a street can be used this turn: not sabotaged, and not into a fire (Jack). */
-  open = (s: RiotState, from: string, to: string): boolean => to !== s.fire && !(s.blocked && s.blocked.includes(from) && s.blocked.includes(to));
+  open = (s: RiotState, from: string, to: string): boolean => to !== s.fire && !(s.blocked && s.blocked.until >= s.turn && s.blocked.ways.includes(from) && s.blocked.ways.includes(to));
+  /** How many more turns a street stays closed (0: open), this one included (Jack). */
+  closedFor = (s: RiotState, a: string, b: string): number => (s.blocked && s.blocked.ways.includes(a) && s.blocked.ways.includes(b) ? Math.max(0, s.blocked.until - s.turn + 1) : 0);
 
   /**
    * The rebels' move (Jack), the one that suits them best now (or none yet, if nothing's worth it): Rally where
@@ -778,7 +782,7 @@ export class RiotGame {
       this.squadAt(s, b.at)!.strength += rules.rally;
       events.push({ type: 'rally', at: b.at, by: rules.rally });
     } else if (b.move === 'sabotage') {
-      s.blocked = b.ways!;
+      s.blocked = { ways: b.ways!, until: s.turn + rules.closed - 1 };
       events.push({ type: 'sabotage', ways: b.ways! });
     } else {
       s.fire = b.at;
@@ -1933,7 +1937,7 @@ export class RiotGame {
     s.turn++;
     s.cut = null;
     s.held = [];
-    s.blocked = null;
+    if (s.blocked && s.blocked.until < s.turn) s.blocked = null;
     s.fire = null;
     // The elite squad whose time is up are gone (Jack); whoever's still dug in (the king's guard's two turns, a
     // crusted hero) stays dug in.

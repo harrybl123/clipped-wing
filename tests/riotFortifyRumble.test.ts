@@ -925,8 +925,15 @@ describe('the war table: even, the home squares, the rebels’ move, heroes (Jac
     const r = rebels.risingActs(s);
     expect(r.events[0]).toMatchObject({ type: 'sabotage' });
     expect(rebels.dests(r.state, at(r.state, 'crossroads')!)).not.toContain('camp');
-    // (Just the turn.)
+    expect(rebels.closedFor(r.state, 'crossroads', 'camp')).toBe(1);
+    // (Just the turn, as it is; longer, it counts down.)
     expect(rebels.turn(r.state, [], []).state.blocked).toBeNull();
+    const longer = new RiotGame(board, { ...RIOT_RULES, rebel: { ...REBEL, closed: 3 } });
+    let t = longer.risingActs(s).state;
+    expect(longer.closedFor(t, 'crossroads', 'camp')).toBe(3);
+    t = longer.turn(t, [], []).state;
+    expect(longer.closedFor(t, 'crossroads', 'camp')).toBe(2);
+    expect(longer.dests(t, at(t, 'crossroads')!)).not.toContain('camp');
   });
 
   it('Riot: a fire next to yours, everyone round it hit, and nobody can go there this turn', () => {

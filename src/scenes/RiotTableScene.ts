@@ -116,6 +116,8 @@ export class RiotTableScene extends Phaser.Scene {
    */
   private card!: PixelText;
   private hover: { place: RiotPlace; since: number } | null = null;
+  /** A closed route under the mouse (Jack): its two ends. */
+  private roadHover: [string, string] | null = null;
   /** Choosing a place for something (the thief, Jack): where it can go, and the cursor among them. */
   private picking: { targets: string[]; prompt: string } | null = null;
   /** The slot in the elite bar under the mouse (its name shows above it). */
@@ -578,7 +580,7 @@ export class RiotTableScene extends Phaser.Scene {
       await this.banner('Rally!', { colour: COLOUR.rising, sub: `+${e.by} to one of ${them}.`, hold: 1800, then: () => (playSound(this, 'warcry', 0.8), this.lookAt(this.place(e.at)), this.pop(this.place(e.at), `+${e.by}`, COLOUR.rising)) });
     } else if (e.type === 'sabotage') {
       const [a, b] = e.ways.map((p) => this.place(p));
-      await this.banner('Sabotage!', { colour: COLOUR.rising, sub: 'A street is blocked this turn: nobody can use it.', hold: 1800, then: () => (playSound(this, 'crash', 0.8), this.lookAt({ x: (a!.x + b!.x) / 2, y: (a!.y + b!.y) / 2 })) });
+      await this.banner('Sabotage!', { colour: COLOUR.rising, sub: `A route is closed (${this.turnsText(this.g.closedFor(this.state, ...e.ways))}): nobody can use it.`, hold: 1800, then: () => (playSound(this, 'crash', 0.8), this.lookAt({ x: (a!.x + b!.x) / 2, y: (a!.y + b!.y) / 2 })) });
     } else {
       await this.banner('Riot!', {
         colour: COLOUR.rising, sub: `A fire breaks out: every squad round it takes 1 to ${this.g.rules.rebel?.fire ?? 2}, either side. Nobody can go there this turn.`, hold: 2000, jitter: true,
@@ -1222,6 +1224,9 @@ export class RiotTableScene extends Phaser.Scene {
     const near = pool.find((q) => Math.hypot(q.x - wx, q.y - wy) < 13);
     const over = this.sc.board.places.find((q) => Math.hypot(q.x - wx, q.y - wy) < 13) ?? null;
     if (over !== this.hover?.place) this.hover = over ? { place: over, since: this.time.now } : null;
+    // A closed route under the mouse (Jack): lit up, with how long it's closed for.
+    const road = over ? null : this.closedRoadAt(wx, wy);
+    if (road?.join() !== this.roadHover?.join()) (this.roadHover = road), this.draw();
     const slot = this.eliteBar().find((b) => inside(b.box))?.elite ?? null;
     if (slot !== this.barHover) (this.barHover = slot), this.draw();
     if (near && near !== this.cursor) (this.cursor = near), this.draw();
@@ -1691,8 +1696,11 @@ export class RiotTableScene extends Phaser.Scene {
       const pb = this.place(b);
       g.lineStyle(3, SHADES.shadow, 0.5).lineBetween(pa.x, pa.y, pb.x, pb.y);
       // Sabotaged (Jack): broken off, with barricade crosses across it.
-      if (!this.g.open(s, a, b) && s.blocked?.includes(a) && s.blocked.includes(b)) {
-        for (let i = 0; i < 10; i += 2) g.lineStyle(1, SHADES.dim, 0.8).lineBetween(pa.x + ((pb.x - pa.x) * i) / 10, pa.y + ((pb.y - pa.y) * i) / 10, pa.x + ((pb.x - pa.x) * (i + 1)) / 10, pa.y + ((pb.y - pa.y) * (i + 1)) / 10);
+      if (this.g.closedFor(s, a, b)) {
+        // (Under the mouse: lit up, with how long it's closed for on the card.)
+        const lit = this.roadHover && this.roadHover.includes(a) && this.roadHover.includes(b);
+        if (lit) g.lineStyle(5, COLOUR.rising, 0.35).lineBetween(pa.x, pa.y, pb.x, pb.y);
+        for (let i = 0; i < 10; i += 2) g.lineStyle(1, lit ? COLOUR.rising : SHADES.dim, lit ? 1 : 0.8).lineBetween(pa.x + ((pb.x - pa.x) * i) / 10, pa.y + ((pb.y - pa.y) * i) / 10, pa.x + ((pb.x - pa.x) * (i + 1)) / 10, pa.y + ((pb.y - pa.y) * (i + 1)) / 10);
         const [mx, my] = [(pa.x + pb.x) / 2, (pa.y + pb.y) / 2];
         g.lineStyle(2, COLOUR.rising, 1).lineBetween(mx - 4, my - 4, mx + 4, my + 4).lineBetween(mx - 4, my + 4, mx + 4, my - 4);
         continue;
@@ -1989,9 +1997,34 @@ export class RiotTableScene extends Phaser.Scene {
     return `Dawn in ${left} ${left === 1 ? 'turn' : 'turns'}.${sick}`;
   }
 
+  /** The closed route (sabotaged) within a few pixels of a point on the table, if there is one. */
+  private closedRoadAt(x: number, y: number): [string, string] | null {
+    const b = this.state.blocked;
+    if (!b || !this.g.closedFor(this.state, ...b.ways)) return null;
+    const [pa, pb] = b.ways.map((id) => this.place(id)) as [RiotPlace, RiotPlace];
+    const [dx, dy] = [pb.x - pa.x, pb.y - pa.y];
+    const t = Math.max(0, Math.min(1, ((x - pa.x) * dx + (y - pa.y) * dy) / (dx * dx + dy * dy)));
+    return Math.hypot(pa.x + t * dx - x, pa.y + t * dy - y) <= 5 ? b.ways : null;
+  }
+
+  private turnsText = (n: number): string => `${n} ${n === 1 ? 'turn' : 'turns'}`;
+
   /** The card: choosing, the sum by the place; otherwise what's there, once the mouse has rested on it. */
   private drawCard(): void {
     const choosing = this.aiming || this.cutting;
+    // A closed route under the mouse (Jack): "Route closed (3 turns)" by the middle of it.
+    if (!choosing && !this.busy && this.roadHover && this.g.closedFor(this.state, ...this.roadHover)) {
+      const [pa, pb] = this.roadHover.map((id) => this.place(id)) as [RiotPlace, RiotPlace];
+      this.card.setText(`Route closed (${this.turnsText(this.g.closedFor(this.state, ...this.roadHover))})`);
+      const [w, h] = [this.card.width + 8, this.card.height + 6];
+      const [mx, my] = [(pa.x + pb.x) / 2, (pa.y + pb.y) / 2];
+      const x = Math.round(Math.max(this.view.x + 4, Math.min(this.view.x + W - w - 4, mx - w / 2)));
+      const y = Math.round(Math.max(this.view.y + 4, my - h - 8));
+      this.cardBack.clear().fillStyle(SHADES.shadow, 0.92).fillRect(x, y, w, h);
+      this.cardBack.lineStyle(1, COLOUR.rising, 1).strokeRect(x, y, w, h);
+      this.card.setPosition(x + 4, y + 3);
+      return;
+    }
     const rested = this.hover && this.time.now - this.hover.since > 600 ? this.hover.place : null;
     const p = choosing ? this.cursor : rested;
     const text = this.busy || !p ? '' : choosing ? this.sumText() : this.placeText(p);
@@ -2119,7 +2152,7 @@ export class RiotTableScene extends Phaser.Scene {
     if (p.lifts && !homes) lines.push(duel ? `His camp. Each turn ${this.g.rules.muster} new men come out of it, unless you hold every road round it. Take it and you've won.` : `The guard get +${this.g.rules.reinforce} here each turn.`);
     if (s.cut === p.id) lines.push('No power this turn.');
     if (s.fire === p.id) lines.push('On fire (a riot): nobody can go here this turn.');
-    if (s.blocked?.includes(p.id)) lines.push(`Sabotaged: the street to ${lower(this.place(s.blocked.find((x) => x !== p.id)!).name)} is blocked this turn.`);
+    if (s.blocked?.ways.includes(p.id) && this.g.closedFor(s, ...s.blocked.ways)) lines.push(`Sabotaged: the route to ${lower(this.place(s.blocked.ways.find((x) => x !== p.id)!).name)} is closed (${this.turnsText(this.g.closedFor(s, ...s.blocked.ways))}).`);
     if (this.g.fortified(s, p.id)) lines.push('Dug in: nobody can attack it this turn.');
     if (s.rumble?.place === p.id) lines.push(`A rumble: whoever gets here first sets it off. Everyone next to it takes 1 to 3. (${s.rumble.left} ${s.rumble.left === 1 ? 'turn' : 'turns'} left)`);
     return lines.join('\n');
