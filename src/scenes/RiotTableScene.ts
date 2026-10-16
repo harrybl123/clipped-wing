@@ -530,8 +530,15 @@ export class RiotTableScene extends Phaser.Scene {
       const winner = race.won ? race.side : theirs;
       const what = { crest: 'the crest', mystery: 'the mystery', rumble: 'the rumble', brothel: 'the brothel', audience: 'the audience', church: 'the holy cross', barracks: 'the barracks', architect: 'the architect' }[race.what];
       const n = { [race.side]: race.strength, [theirs]: race.rivalStrength } as Record<Side, number>;
-      await playRace(this, { at: to, guard: n.guard, rising: n.rising, winner, you: this.you, chance: race.side === this.you ? race.chance : 1 - race.chance, what, judged: this.judged(s), wiped: !!race.wiped });
-      this.pop(to, `${winner === this.you ? 'You' : 'They'} got there first`, COLOUR[winner], -16);
+      // Five or more bigger (Jack): no race, they're overwhelmed.
+      if (race.outright) {
+        playSound(this, 'gallop', 0.6);
+        this.pop(to, `Overwhelmed! ${winner === this.you ? 'You' : 'They'} got there first`, COLOUR[winner], -16);
+        await this.wait(700);
+      } else {
+        await playRace(this, { at: to, guard: n.guard, rising: n.rising, winner, you: this.you, chance: race.side === this.you ? race.chance : 1 - race.chance, what, judged: this.judged(s), wiped: !!race.wiped });
+        this.pop(to, `${winner === this.you ? 'You' : 'They'} got there first`, COLOUR[winner], -16);
+      }
       if (race.wiped) this.pop(this.place(race.won ? race.rival : race.from), 'wiped out', COLOUR[race.won ? theirs : race.side], 10);
       this.tokensTaken(events);
       const rumble = events.find((e) => e.type === 'rumble');
@@ -2407,6 +2414,8 @@ export class RiotTableScene extends Phaser.Scene {
     if (rival && this.g.rules.clash) {
       const what = this.g.tokenAt(s, p.id);
       const odds = Math.round(this.g.clashOdds(s, aim, p.id, rival).chance * 100);
+      // Five or more bigger (Jack): no race, the bigger gets there first.
+      if (what && this.g.overwhelms(aim.strength, rival.strength)) return `${lead}Race! ${aim.strength} v ${rival.strength}: ${aim.strength > rival.strength ? 'they\'re overwhelmed, you get there first' : 'you\'re overwhelmed, they get there first'}`;
       if (what) {
         const parts = this.g.clashOdds(s, aim, p.id, rival, true).parts;
         const pc = (n: number) => `${n > 0 ? '+' : ''}${Math.round(n * 100)}%`;

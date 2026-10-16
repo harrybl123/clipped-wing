@@ -333,7 +333,11 @@ export const MYSTERY: MysteryRules = {
 export const CLASH: NonNullable<RiotRules['clash']> = { least: 0.2, most: 0.8, left: { two: 0.27, three: 0.08 } };
 
 /** A race's odds (Jack): from the two numbers and morale, kept between these. */
-export const RACE = { least: 0.1, most: 0.9 };
+/**
+ * A race's odds are kept between `least` and `most`; `overwhelm` or more bigger, and `rout` times as big, and it's
+ * no race (Jack): the bigger gets there first (6 v 1 or 12 v 7, yes; 30 v 25, a race still).
+ */
+export const RACE = { least: 0.1, most: 0.9, overwhelm: 5, rout: 1.5 };
 
 /** What makes up a clash's odds, for the side that strikes first. */
 export interface ClashOdds {
@@ -515,7 +519,7 @@ export type RiotEvent =
    * A race for something on the map (Jack): `side` and theirs (from `rival`) both went for it; `won` by `side` or
    * not, at these odds. The winner takes it; the loser stays where it was, untouched.
    */
-  | { type: 'race'; at: string; from: string; rival: string; side: Side; won: boolean; chance: number; what: Token; strength: number; rivalStrength: number; wiped?: boolean }
+  | { type: 'race'; at: string; from: string; rival: string; side: Side; won: boolean; chance: number; what: Token; strength: number; rivalStrength: number; wiped?: boolean; outright?: boolean }
   | { type: 'brothelAppears'; at: string }
   | { type: 'brothel'; at: string; side: Side }
   | { type: 'brothelGone'; at: string }
@@ -1504,14 +1508,18 @@ export class RiotGame {
    * A race for something on the map (Jack): the odds as for a clash; the winner goes on there and takes it, the
    * loser stays where it is, untouched (and stays there this turn).
    */
+  /** One squad 5 or more bigger than the other, and half as big again: no race, it gets there first (Jack). */
+  overwhelms = (a: number, b: number): boolean => Math.abs(a - b) >= RACE.overwhelm && Math.max(a, b) >= Math.min(a, b) * RACE.rout;
+
   private race(s: RiotState, q: RiotSquad, rival: RiotSquad, to: string, what: Token, events: RiotEvent[]): { state: RiotState; events: RiotEvent[] } {
-    const { chance } = this.clashOdds(s, q, to, rival, true);
-    const won = this.roll(s) < chance;
+    const outright = this.overwhelms(q.strength, rival.strength);
+    const chance = outright ? (q.strength > rival.strength ? 1 : 0) : this.clashOdds(s, q, to, rival, true).chance;
+    const won = outright ? q.strength > rival.strength : this.roll(s) < chance;
     const [winner, loser] = won ? [q, rival] : [rival, q];
     q.cheer = rival.cheer = undefined;
     // The Lord's judgement on it (Jack): this once, the loser's wiped out (the heretic's, or whoever faced the blessed).
     const judged = this.favour(s, q.side) !== this.favour(s, rival.side);
-    events.push({ type: 'race', at: to, from: q.place, rival: rival.place, side: q.side, won, chance, what, strength: q.strength, rivalStrength: rival.strength, ...(judged ? { wiped: true } : {}) });
+    events.push({ type: 'race', at: to, from: q.place, rival: rival.place, side: q.side, won, chance, what, strength: q.strength, rivalStrength: rival.strength, ...(judged ? { wiped: true } : {}), ...(outright ? { outright: true } : {}) });
     if (judged) s.squads = s.squads.filter((x) => x !== loser);
     const from = winner.place;
     winner.place = to;

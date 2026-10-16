@@ -742,6 +742,23 @@ describe('the war table: Jack’s third round', () => {
     expect(wins).toBeLessThan(35);
   });
 
+  it('a race with one 5 or more bigger, and half as big again (Jack): no race, the bigger gets there first, every time', () => {
+    for (const [g, r] of [[8, 3], [2, 7], [12, 6]] as const) {
+      const s = set([{ id: 'g', side: 'guard', place: 'arch', strength: g }, { id: 'r', side: 'rising', place: 'well', strength: r }, { id: 'l', side: 'guard', place: 'lifts', strength: 4 }, { id: 'sq', side: 'rising', place: 'square', strength: 9 }]);
+      s.crest = { place: 'market', left: 3 };
+      for (let seed = 1; seed <= 20; seed++) {
+        const race = game.turn({ ...s, seed }, [{ squad: 'g', to: 'market' }], [{ squad: 'r', to: 'market' }]).events.find((e) => e.type === 'race');
+        expect(race).toMatchObject({ type: 'race', won: g > r, outright: true });
+      }
+    }
+    // 4 bigger: still a race.
+    expect(game.overwhelms(7, 3)).toBe(false);
+    expect(game.overwhelms(8, 3)).toBe(true);
+    expect(game.overwhelms(12, 7)).toBe(true);
+    // Big numbers close together: still a race.
+    expect(game.overwhelms(30, 25)).toBe(false);
+  });
+
   it('two the same size going for the same empty place: a clash there (Jack); different sizes, no', () => {
     const s = set([{ id: 'g', side: 'guard', place: 'arch', strength: 3 }, { id: 'r', side: 'rising', place: 'well', strength: 3 }]);
     const r = game.turn(s, [{ squad: 'g', to: 'market' }], [{ squad: 'r', to: 'market' }]);
