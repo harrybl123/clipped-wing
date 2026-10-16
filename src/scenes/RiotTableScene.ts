@@ -592,9 +592,21 @@ export class RiotTableScene extends Phaser.Scene {
     for (const at of places) {
       const glint = this.add.circle(at.x, at.y, 6, ours ? SHADES.white : SHADES.amber).setDepth(6);
       this.tweens.add({ targets: glint, scale: 4, alpha: 0, duration: 500, onComplete: () => glint.destroy() });
+      if (side !== this.you) this.pop(at, 'Enemy', COLOUR[side], -16);
     }
     this.draw();
-    await this.banner(`${ELITE_NAMES[side][elite]}!`, { colour: COLOUR[side] });
+    // Whose it is, plainly (Jack: the enemy's looked like a bonus to you): "(enemy)" after theirs, and what it does.
+    const mine = side === this.you;
+    const whose = mine ? 'Your' : 'The enemy\u2019s';
+    const e = this.g.rules.elites;
+    const hero = this.state.squads.find((q) => q.side === side && q.elite === 'hero');
+    const other = ELITE_NAMES[this.g.other(side)].hero.toLowerCase();
+    const sub = elite === 'hero'
+      ? `${whose} elite fighter: ${hero?.strength ?? e?.hero.points ?? 7}, for ${e?.hero.lasts ?? 3} turns. Only ${mine ? 'their' : 'your'} ${other} can hurt it.`
+      : elite === 'maiden'
+        ? `${whose} elite: she seduces any of ${mine ? 'theirs' : 'yours'} she moves onto (${this.g.seduceMax(this.state, side)} or fewer).`
+        : `${whose} elite guards, round ${mine ? 'your' : 'their'} base. Dug in for ${e?.guard3.fortifyLasts ?? 2} turns.`;
+    await this.banner(`${ELITE_NAMES[side][elite]}!${mine ? '' : ' (enemy)'}`, { colour: COLOUR[side], sub, hold: mine ? 1100 : 1800 });
   }
 
   /** What the rising did at the start of the turn (Jack), shown: an elite put in, a seduction. */
