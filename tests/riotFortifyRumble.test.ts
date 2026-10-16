@@ -26,11 +26,11 @@ describe('the war table: fortify (Jack)', () => {
     expect(at(game.order(u, go(u, 'arch', 'screens')).state, 'screens')).toBeDefined();
   });
 
-  it('dug in, it still gets its +2 at the lifts and +1 in the square (Jack: it needed more benefit); it lasts the one turn', () => {
+  it('dug in, it still gets its +3 at the lifts and +1 in the square (Jack: it needed more benefit); it lasts the one turn', () => {
     const s = game.start([{ side: 'guard', place: 'lifts', strength: 4 }, { side: 'rising', place: 'square', strength: 5 }]);
     const dug = game.fortify(game.fortify(s, at(s, 'lifts')!.id), at(s, 'square')!.id);
     const t = game.turn(dug, [], []).state;
-    expect(at(t, 'lifts')!.strength).toBe(6);
+    expect(at(t, 'lifts')!.strength).toBe(7);
     expect(at(t, 'square')!.strength).toBe(6);
     expect(t.fortified).toEqual([]);
   });
@@ -497,7 +497,7 @@ describe('the war table: the mystery square (Jack)', () => {
     expect(at(s, 'market')!.strength).toBe(2);
     expect(at(s, 'arch')!.strength).toBe(1);
     expect(at(s, 'well')!.strength).toBe(4); // (not theirs)
-    expect(at(s, 'lifts')!.strength).toBe(12); // the base: untouched (it grows 2 a turn)
+    expect(at(s, "lifts")!.strength).toBe(16); // the base: untouched (it grows 3 a turn)
   });
 
   it('the trickster: every street changed; easy to read (none crossing, at most 4 from a place), as many as before, all joined up, the square not near the lifts’ foot', () => {

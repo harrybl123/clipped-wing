@@ -207,6 +207,8 @@ The morning after the riot. **Your father hardens** (doc), in the open now: the 
 
 **What Day 5 sets:** `warrants` (sealed / struck); `raid` (stepped in / stayed out: medium); `seen_below` (if you stepped in). **What it shows from earlier:** `riot` (executed at dawn, or wanted on the screens); `sleeve` (the captain on your friend); the painter's brother; `met_hideout`.
 
+**As built (2026-10-16):** as above, with: the captain brings the day at dawn, and your hand's note; the hideout's three are the barkeep, a woman whose husband was on the square, and the kid; staying out is played (suggestion): out the back way into the street beyond the cellar, past one of the guard with his lamp, to a dark doorway to watch from; the raid's warrant shows your seal, or your father's beside your line. See CLAUDE.md, Decisions.
+
 **New for Day 5:** the address (your father on every screen; the city's screens all showing it); the raid (the hideout smashed; the guard inside; people taken); the hideout after (ransacked, dark: the world doc's "raid's aftermath").
 
 ---
@@ -232,6 +234,8 @@ The card: **"Days later."** Part 3: it closes in. The hideout's been dark since 
 **Agreed (designer):** the commander and the engineer leaving his office is fine at this point; refusing your friend changes the relationship slightly.
 
 **New for Day 6:** the guests (the guest wing full; guards at the barrier stopping them); following your sister (Act 1's tailing, turned gentle: she mustn't be caught either); the hum and a voice behind the sealed door (nobody says whose).
+
+**As built (2026-10-16):** changed first (designer: the war table hasn't been used enough; the simulation room's more adventurous, and more damning when your father finds you). **It opens with your friend**, on your couch at dawn; your father's at the council, so you take him through the bookshelf to the simulation room and **challenge him to a duel on the table**: the siege of the old castle on the crag (a new map), you holding the keep with fewer troops, him with the bigger army; as easy as the riot (tuned by simulation, [war-table.md](war-table.md)). **Your father in the doorway** as it ends, the captain and two of the guard behind him, with the invitation: **the choice is made there**, in front of him (give it to your friend yourself, or let the captain read it out), and they walk your friend out to the guest wing. Then his study: the room, Day 5 (the cellar, the struck warrant), the list and the sleeve. The guests arrive in the halls (your friend's already upstairs), and the rest is as planned. At the sealed door, just the hum (no voice). Dev: `?chapter=3&day=6&at=start|table|duel|study|arrive|wing|banquet|night`.
 
 ---
 

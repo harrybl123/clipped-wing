@@ -689,8 +689,69 @@ VAR riot_table = ""
 VAR riot_turns = 0
 VAR riot_fight = ""
 VAR riot = ""
-// Chapter 3, Day 5 (not built yet).
+// Chapter 3, Day 5 (story/capital/chapter3-day5.ink): terrorists. Stages: wake, address, speech, warrants,
+// evening, office, below, hideout, raid, hide, watched, out, home, done.
 VAR c3day5 = ""
+// The address: what the screens show from now on: "terror", or "wanted" (the face of the man you let go), then
+// "terror_hand" / "wanted_hand" (your father's hand on your shoulder, on every screen in the city).
+VAR screens5 = ""
+// The captain's warrants: you sealed all four ("sealed"), or struck the hideout's cellar off ("struck"; your
+// father sealed it instead). The list sent back to your desk.
+VAR warrants = ""
+VAR list5 = false
+// Below: the screens; the hideout, where they want to talk to you (the barkeep, the woman whose husband was on
+// the square, the kid); the raid ("stepped_in" / "stayed_out": medium); your face seen below (you stepped in);
+// your hand, after.
+VAR low5 = false
+VAR heard5 = 0
+VAR keeper5 = false
+VAR angry5 = false
+VAR painter5 = false
+VAR raid = ""
+VAR seen_below = false
+VAR after5 = false
+// The address cut to the hideout: the barkeep turned the screen off. You promised the woman to find her husband.
+// Stepping in: how well you calmed it (each answer), and how it ended ("held": they went; "taken": with the kid).
+VAR off5 = false
+VAR promised5 = false
+VAR calm5 = 0
+VAR standoff5 = ""
+// Chapter 3, Day 6 (story/capital/chapter3-day6.ink): the guests. Stages: wake, friend, room, table, caught,
+// study, arrive, wing, banquet, office, home, follow, done.
+VAR c3day6 = ""
+// Your friend with you (a follower), to the simulation room; the duel on the war table, the old castle's siege
+// ("won": you took his camp; "lost"), and in how many turns.
+VAR heir_with_you = false
+VAR room6 = false
+VAR duel6 = ""
+VAR duel6_turns = 0
+// Where you fought it (the table only paints it differently): "crag", "forest" or "station"; and how it ended
+// ("camp": you took his; "keep": he took yours; "dawn": a turn limit, if there's one again).
+VAR duel6_map = ""
+VAR duel6_how = ""
+// Your father in the doorway: his invitation, given to your friend by you ("you") or the captain ("captain").
+VAR invitation = ""
+VAR father6 = false
+// The guest wing: your friend at the barrier; you promised to get him out (or told him to stay: he's cooler with
+// you from now on).
+VAR barrier6 = false
+VAR promised = false
+VAR friend_cool = false
+// The banquet; your hand's door, the commander and the engineer coming out (clue 6).
+VAR banquet6 = false
+VAR office6 = false
+// From the banquet to your hand's door you walk (no map: the office is on the way).
+VAR walking6 = false
+// Night: following your sister to the sealed door; you covered for her ("covered": she's your eyes) or told your
+// father ("told": medium).
+VAR gallery6 = false
+VAR sister_hall6 = false
+VAR study6 = false
+VAR sister_wing6 = false
+VAR door6 = false
+VAR sister = ""
+// Chapter 3, Day 7 (not built yet).
+VAR c3day7 = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
@@ -745,6 +806,8 @@ INCLUDE capital/chapter3-day1.ink
 INCLUDE capital/chapter3-day2.ink
 INCLUDE capital/chapter3-day3.ink
 INCLUDE capital/chapter3-day4.ink
+INCLUDE capital/chapter3-day5.ink
+INCLUDE capital/chapter3-day6.ink
 INCLUDE capital/cast.ink
 INCLUDE capital/folk.ink
 INCLUDE capital/looks.ink

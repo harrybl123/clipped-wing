@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import type { RowSprite } from '../../../ui/sprites';
-import { EMBLEM } from './cityProps';
+import { EMBLEM, leaderFace, type Fate, type Leader } from './cityProps';
+import { glyphFor } from '../../../ui/pixelFont';
 
 // PLACEHOLDER pixel props for the capital's citadel (Chapter 3; docs/chapter-3-world.md): clean marble,
 // gold, and a blue glow (designer), obviously futuristic, more cyberpunk than anything before, and still
@@ -83,7 +84,55 @@ export const birdScreen = (width: number, height: number): RowSprite => {
   };
 };
 
-/** A screen's frames, its lines scrolling up (for the `frames` feature). */
+/**
+ * A screen during your father's address (Chapter 3, Day 5): a picture (the face of the man who led the riot,
+ * or him and you), and a word under it; `blink` drops the word for a frame, as a screen does.
+ */
+const addressScreen = (width: number, height: number, picture: readonly string[], scale: number, text: string, blink: boolean): RowSprite => {
+  const glyphs = [...text].map(glyphFor);
+  const letters = Array.from({ length: 7 }, (_, y) => glyphs.map((g) => g[y]).join('.'));
+  const [px, py] = [Math.floor((width - picture[0]!.length * scale) / 2), 3];
+  const [tx, ty] = [Math.floor((width - letters[0]!.length) / 2), height - 10];
+  return {
+    rows: fill(width, height, (x, y) => {
+      if (x === 0 || y === 0 || x === width - 1 || y === height - 1) return 'a';
+      if (x === 1 || y === 1 || x === width - 2 || y === height - 2) return 'd';
+      if (text && !blink && y >= ty && y < ty + 7 && letters[y - ty]![x - tx] === '#') return 'W';
+      const [fx, fy] = [Math.floor((x - px) / scale), Math.floor((y - py) / scale)];
+      const c = x >= px && y >= py && y < ty - 1 ? picture[fy]?.[fx] : undefined;
+      if (c && c !== '.') return c;
+      return (x + y) % 7 === 0 ? 'g' : 's';
+    }),
+    colours: C,
+  };
+};
+
+/**
+ * The address on a citadel screen (the audience hall's great screen, 120 by 64; the halls', 76 by 46): his face
+ * and TERRORISTS, then EXECUTED or WANTED.
+ */
+export const addressFrames = (width: number, height: number, leader: Leader, fate: Fate): RowSprite[] => {
+  const big = height >= 60;
+  const face = leaderFace(leader, !big);
+  return [
+    ...[0, 1, 2, 3].map((i) => addressScreen(width, height, face, 1, 'TERRORISTS', i === 3)),
+    ...[0, 1].map((i) => addressScreen(width, height, face, 1, fate.toUpperCase(), i === 1)),
+  ];
+};
+
+/** A screen switched off: its gold frame round dead glass. */
+export const deadScreen = (width: number, height: number): RowSprite => ({
+  rows: fill(width, height, (x, y) => (x === 0 || y === 0 || x === width - 1 || y === height - 1 ? 'a' : x === 1 || y === 1 || x === width - 2 || y === height - 2 ? 'd' : (x - y) % 11 === 0 ? 'd' : 's')),
+  colours: C,
+});
+
+/** One `frames` feature per thing the screen can be saying (`screens5`, as `terrorScreens` in cityProps). */
+export const addressScreens = (width: number, height: number, x: number, y: number, hideIf?: string) =>
+  (['brother', 'reformer'] as const).flatMap((leader) => (['executed', 'wanted'] as const).map((fate) => ({
+    type: 'frames' as const, frames: addressFrames(width, height, leader, fate), x, y, every: 700,
+    showIf: `screens5=${leader}_${fate},${leader}_${fate}_hand`, ...(hideIf ? { hideIf } : {}),
+  })));
+
 export const scrollingScreen = (width: number, height: number): RowSprite[] => [0, 1, 2].map((i) => screen(width, height, i));
 
 /** A strip of blue light, upright, set into the wall. */

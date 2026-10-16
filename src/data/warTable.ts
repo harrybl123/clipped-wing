@@ -1,8 +1,9 @@
-import { CLASH, ELITE_SQUAD, MYSTERY, RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type Side } from '../systems/Riot';
+import { CLASH, ELITE_SQUAD, MYSTERY, RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type RisingStyle, type Side } from '../systems/Riot';
 
 // The war table's maps and games (Chapter 3; the game: src/systems/Riot.ts, its design and how it was
 // tuned: docs/sequences/chapter-3/war-table.md). Day 2: the lesson in the simulation room (you're the rising,
-// your father the guard; then "Now."). Day 4: the riot, for real (you're the guard).
+// your father the guard; then "Now."). Day 4: the riot, for real (you're the guard). Day 6: a duel with your
+// friend on the old castle's siege (you hold the keep; he has the bigger army).
 
 /**
  * A district that's risen, close up, as a street plan from above (designer: its own map): the way up along
@@ -113,11 +114,12 @@ export interface LessonScenario {
   goals: { place: string; start: string; done?: string }[];
   /** Taking the last goal, you go down yourself: the fight (src/data/combat.ts). */
   dropIn: { encounter: string; knot: string };
+  rules?: Partial<RiotRules>;
   /** What he says the first time each thing happens (ink knots). */
-  firsts: { grow: string; pour: string; arrive: string; tie: string; lost: string; idle: string; join: string };
+  firsts: { grow: string; pour: string; arrive: string; rumble: string; tie: string; lost: string; idle: string; join: string };
   /** After so many turns of the lesson, he moves on anyway. */
   lessonTurns: number;
-  /** "Now.": where everyone stands, how long he plays (if he hasn't taken the square by then, he stops), and its lines. */
+  /** "Now.": where everyone stands, and its lines. He plays until he's taken your square (designer: he crushes you); `turns` is only a safety stop. */
   now: { squads: Setup; turns: number; knots: { now: string; cut: string; end: string } };
   knots: { intro: string; good: string; after: string };
 }
@@ -151,19 +153,22 @@ export const LESSON: LessonScenario = {
     { place: 'screens', start: 'c3day2_lesson_screens' },
   ],
   dropIn: { encounter: 'sim_guards', knot: 'c3day2_table_dropin' },
-  firsts: { grow: 'c3day2_first_grow', pour: 'c3day2_first_pour', arrive: 'c3day2_first_arrive', tie: 'c3day2_react_tie', lost: 'c3day2_react_lost', idle: 'c3day2_react_idle', join: 'c3day2_react_joined' },
+  // Rumbles in the lesson too (designer: with his word on war being a game of chance).
+  rules: { rumble: RUMBLE },
+  firsts: { grow: 'c3day2_first_grow', pour: 'c3day2_first_pour', rumble: 'c3day2_first_rumble', arrive: 'c3day2_first_arrive', tie: 'c3day2_react_tie', lost: 'c3day2_react_lost', idle: 'c3day2_react_idle', join: 'c3day2_react_joined' },
   lessonTurns: 14,
   now: {
     // The riot as he'd play it, from the guard's side: your square big enough that it looks like you could hold
-    // it (tested: whatever the rising does, he takes it in 5 to 9 turns; any smaller, and he chains everything
-    // into it on turn 2).
+    // it; and 12 on his lifts' foot, so going for his lifts can't hold him off (designer: make it impossible;
+    // tested against every way of playing the rising, including going all out for his lifts: he takes it in 2
+    // to 5 turns).
     squads: [
-      { side: 'guard', place: 'lifts', strength: 6 },
+      { side: 'guard', place: 'lifts', strength: 12 },
       { side: 'guard', place: 'stair', strength: 5 },
       { side: 'guard', place: 'arch', strength: 5 },
       { side: 'guard', place: 'lamp', strength: 4 },
       { side: 'guard', place: 'back', strength: 4 },
-      { side: 'rising', place: 'square', strength: 24 },
+      { side: 'rising', place: 'square', strength: 30 },
       { side: 'rising', place: 'screens', strength: 2 },
       { side: 'rising', place: 'market', strength: 2 },
       { side: 'rising', place: 'weavers', strength: 2 },
@@ -172,10 +177,116 @@ export const LESSON: LessonScenario = {
       { side: 'rising', place: 'bridge', strength: 2 },
       { side: 'rising', place: 'tenements', strength: 2 },
     ],
-    turns: 10,
+    turns: 30,
     knots: { now: 'c3day2_table_now', cut: 'c3day2_table_cut', end: 'c3day2_table_end' },
   },
   knots: { intro: 'c3day2_table_intro', good: 'c3day2_table_good', after: 'c3day2_after_table' },
+};
+
+/**
+ * Day 6: the siege of the old castle, the citadel's crag before it was the citadel (designer: show your friend
+ * the table and challenge him to a duel on a new map, where you've fewer troops, but it's as easy as the riot;
+ * then: the map considerably bigger than the riot's). A game from your family's history, on the table for
+ * practice, nearly twice the riot's places, on a table bigger than the screen (it pans). The keep at the top
+ * (the square's rules: walls +1, it grows by 1 a turn as people come in from the fields), with its inner yard,
+ * towers, postern, walls and gatehouse; the country below it in rows, the mill and the orchards, the old town
+ * and the market round the bridge, the woods and the vineyards, the marsh, the tannery, the crossroads, the
+ * chapel and the quarry; and along the bottom his siege camp, where more of his army come every turn, between
+ * the ford, the farms, the south road and the hills.
+ */
+export const CASTLE_BOARD: RiotBoard = (() => {
+  const at = (id: string, name: string, x: number, y: number, extra: Partial<RiotPlace> = {}): RiotPlace => ({ id, name, x, y, ...extra });
+  return {
+    width: 800,
+    height: 440,
+    places: [
+      at('wtower', 'The west tower', 180, 56),
+      at('postern', 'The postern', 290, 56),
+      at('keep', 'The keep', 400, 60, { heart: true }),
+      at('yard', 'The inner yard', 510, 56),
+      at('etower', 'The east tower', 620, 56),
+      at('mill', 'The mill', 70, 130),
+      at('wwall', 'The west wall', 200, 130),
+      at('gate', 'The gatehouse', 400, 136),
+      at('ewall', 'The east wall', 600, 130),
+      at('orchards', 'The orchards', 730, 130),
+      at('woods', 'The woods', 60, 212),
+      at('oldtown', 'The old town', 190, 212),
+      at('smithy', 'The smithy', 300, 212),
+      at('bridge', 'The bridge', 400, 212),
+      at('market', 'The market', 500, 212),
+      at('granary', 'The granary', 620, 212),
+      at('vineyard', 'The vineyards', 740, 212),
+      at('marsh', 'The marsh', 110, 296),
+      at('tannery', 'The tannery', 250, 296),
+      at('crossroads', 'The crossroads', 400, 296),
+      at('chapel', 'The chapel', 550, 296),
+      at('quarry', 'The quarry', 700, 296),
+      at('ford', 'The ford', 70, 380),
+      at('farms', 'The farms', 220, 380),
+      at('camp', 'The siege camp', 400, 384, { lifts: true, up: true }),
+      at('road', 'The south road', 580, 380),
+      at('hills', 'The hills', 740, 380),
+    ],
+    ways: [
+      ['wtower', 'postern'], ['postern', 'keep'], ['keep', 'yard'], ['yard', 'etower'],
+      ['wtower', 'wwall'], ['postern', 'wwall'], ['keep', 'gate'], ['yard', 'ewall'], ['etower', 'ewall'], ['wtower', 'mill'], ['etower', 'orchards'],
+      ['wwall', 'gate'], ['gate', 'ewall'], ['mill', 'wwall'], ['ewall', 'orchards'],
+      ['mill', 'woods'], ['mill', 'oldtown'], ['wwall', 'oldtown'], ['wwall', 'smithy'], ['gate', 'bridge'], ['ewall', 'granary'], ['ewall', 'market'], ['orchards', 'granary'], ['orchards', 'vineyard'],
+      ['woods', 'oldtown'], ['oldtown', 'smithy'], ['smithy', 'bridge'], ['bridge', 'market'], ['market', 'granary'], ['granary', 'vineyard'],
+      ['woods', 'marsh'], ['oldtown', 'tannery'], ['smithy', 'tannery'], ['bridge', 'crossroads'], ['market', 'chapel'], ['granary', 'quarry'], ['vineyard', 'quarry'],
+      ['marsh', 'tannery'], ['tannery', 'crossroads'], ['crossroads', 'chapel'], ['chapel', 'quarry'],
+      ['marsh', 'ford'], ['tannery', 'farms'], ['crossroads', 'camp'], ['chapel', 'road'], ['quarry', 'hills'],
+      ['ford', 'farms'], ['farms', 'camp'], ['camp', 'road'], ['road', 'hills'],
+    ],
+  };
+})();
+
+/** Day 6: a duel, for fun: you hold the keep (the rising's side of the rules), and take his camp (`siege`) against a friend with the bigger army. */
+export interface DuelScenario {
+  id: string;
+  kind: 'duel';
+  board: RiotBoard;
+  district: 'castle';
+  squads: Setup;
+  rules?: Partial<RiotRules>;
+  /** How your side's keep behaves. */
+  style?: Partial<RisingStyle>;
+  /** Ink knots: before; you took his camp; you lost (the keep taken, or dawn first). After either, back in the room (`after`). */
+  knots: { intro: string; won: string; lost: string; after: string };
+}
+
+/**
+ * The siege (tuned by simulation, tests/riotGame.test.ts; designer: the objective's taking his main base, no turn
+ * limit for now; new units coming in on both sides; he played too static): you 31 (6 in the keep, the rest on
+ * the walls and towers and out at the mill and the orchards), him 32 (8 in his camp, eight 3s across the country).
+ * Every turn each base musters 2 onto a road next to it, towards the other (`muster`); a garrison never grows,
+ * and a base whose every road out is held by the other side gets none (a siege). He never empties his camp,
+ * and everything else of his is on the move (`besieger`). His moves are shown as arrows. A first go that gathers
+ * its army at his camp's door and goes in when it's enough takes it about 10 times in 16; doing nothing, or
+ * random orders, loses the keep.
+ */
+export const DUEL: DuelScenario = {
+  id: 'duel',
+  kind: 'duel',
+  board: CASTLE_BOARD,
+  district: 'castle',
+  squads: [
+    { side: 'rising', place: 'keep', strength: 6 },
+    { side: 'rising', place: 'gate', strength: 5 },
+    { side: 'rising', place: 'wwall', strength: 4 },
+    { side: 'rising', place: 'ewall', strength: 4 },
+    { side: 'rising', place: 'wtower', strength: 3 },
+    { side: 'rising', place: 'etower', strength: 3 },
+    { side: 'rising', place: 'mill', strength: 3 },
+    { side: 'rising', place: 'orchards', strength: 3 },
+    { side: 'guard', place: 'camp', strength: 8 },
+    ...['farms', 'road', 'ford', 'hills', 'tannery', 'chapel', 'marsh', 'quarry'].map((place) => ({ side: 'guard' as const, place, strength: 3 })),
+  ],
+  // No power cuts in a siege; rumbles, as ever (Jack). No turn limit for now (designer: a good game first,
+  // restrictions after; with `dawn`, dawn is his).
+  rules: { dawn: 999, powerEvery: 999, rumble: RUMBLE, siege: true, muster: 2 },
+  knots: { intro: 'c3day6_duel_intro', won: 'c3day6_duel_won', lost: 'c3day6_duel_lost', after: 'c3day6_caught' },
 };
 
 const riot = (id: string, board: RiotBoard, district: 'low' | 'promenade', squareArea: RiotScenario['squareArea']): RiotScenario => ({
@@ -185,8 +296,9 @@ const riot = (id: string, board: RiotBoard, district: 'low' | 'promenade', squar
   knots: { intro: 'c3day4_riot_intro', won: 'c3day4_table_won', dawn: 'c3day4_dawn', fatherTook: 'c3day4_father_took', square: 'c3day4_square' },
 });
 
-export const RIOTS: Record<string, RiotScenario | LessonScenario> = {
+export const RIOTS: Record<string, RiotScenario | LessonScenario | DuelScenario> = {
   lesson: LESSON,
+  duel: DUEL,
   riot_low: riot('riot_low', LOW_DISTRICT_BOARD, 'low', { areaId: 'low-district', start: { x: 720, y: 236 } }),
   riot_promenade: riot('riot_promenade', PROMENADE_BOARD, 'promenade', { areaId: 'promenade', start: { x: 720, y: 232 } }),
   // A game mode of its own, for playtesting (Jack: no dawn, an indefinite game; a shake-up every 6 turns gives

@@ -66,6 +66,8 @@ export const fathersStudy: AreaDefinition = {
     { type: 'fire', x: 200, y: FLOOR - 7 },
     // Day 2: the bookshelf swings back, and there's a room behind it (the simulation room).
     { type: 'frames', frames: [P.openShelf(80, 112)], x: 88, y: FLOOR - 112, every: 200, showIf: 'sim_open' },
+    // Day 6's night: the study dark, the door to the sealed wing open a hand's width.
+    { type: 'trigger', x: 40, y: FLOOR, reach: 14, knot: 'c3day6_study_night', showIf: 'sister_hall6', hideIf: 'study6' },
     { type: 'swing', sprite: P.PENDULUM, x: 313, y: FLOOR - 28, ropeTop: FLOOR - 45, quiet: true, ropeColour: S.amberDeep },
   ],
   people: [
@@ -80,10 +82,15 @@ export const fathersStudy: AreaDefinition = {
     inStory('sister-5', 'sister', 30, FLOOR, 'c3day2=report', { knot: 'c3day2_sister_door' }),
     // Day 4: at his desk, in yesterday's clothes (if the physician sent you).
     inStory('father-4', 'father', 226, FLOOR, 'c3day4=persuade', { knot: 'c3day4_father', flipX: true }),
+    // Day 6: your friend with you; then your father at his desk, after the simulation room.
+    inStory('heir-f', 'heir', 60, FLOOR, 'heir_with_you', { follow: true, knot: 'c3day6_heir_walk' }),
+    inStory('father-6', 'father', 380, FLOOR, 'c3day6=study,arrive', { knot: 'c3day6_father', flipX: true }), // (still at his desk after)
   ],
   interactables: [
     { id: 'model', x: 72, y: FLOOR, reach: 14, label: 'Look', knot: 'study_model' },
-    { id: 'books', x: 128, y: FLOOR, reach: 14, label: 'Look', knot: 'study_books', hideIf: 'sim_open' },
+    { id: 'books', x: 128, y: FLOOR, reach: 14, label: 'Look', knot: 'study_books', hideIf: ['sim_open', 'c3day6=friend'] },
+    // Day 6: you know how it opens.
+    { id: 'shelf-6', x: 128, y: FLOOR, reach: 14, label: 'Open the shelf', knot: 'c3day6_shelf', showIf: 'c3day6=friend', hideIf: 'sim_open' },
     { id: 'hearth', x: 196, y: FLOOR, reach: 14, label: 'Look', knot: 'study_hearth' },
     { id: 'clock', x: 312, y: FLOOR, reach: 8, label: 'Look', knot: 'study_clock' },
     { id: 'desk', x: 356, y: FLOOR, reach: 10, label: 'Look', knot: 'study_desk' },

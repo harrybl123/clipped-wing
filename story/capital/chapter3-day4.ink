@@ -462,5 +462,5 @@ She doesn't say anything else, and neither do you.
 ~ c3day5 = "wake"
 ~ objective = ""
 ~ objective_target = ""
-You lie in the dark. Your hands still smell of the smoke. #wake:prince-quarters:120:226 #endday:Day 5
+You lie in the dark. Your hands still smell of the smoke. #wake:prince-quarters:120:226:c3day5_start #endday:Day 5
 -> END

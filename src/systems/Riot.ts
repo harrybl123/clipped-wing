@@ -67,6 +67,9 @@ export interface RiotPlace {
 export interface RiotBoard {
   places: RiotPlace[];
   ways: [string, string][];
+  /** How big the table is, if bigger than the screen (it pans with the cursor): Day 6's castle. */
+  width?: number;
+  height?: number;
 }
 
 export interface RiotRules {
@@ -102,6 +105,17 @@ export interface RiotRules {
   shakeUp?: { every: number; trickster?: number };
   /** Lose your base and you've lost (the skirmish: no dawn, so the rising need a way to win). */
   baseLoss?: boolean;
+  /**
+   * The duel (Day 6; designer): the rising (you, holding the keep) win by taking the guard's base (the lifts'
+   * place: his siege camp) before dawn; dawn first, and the guard have won.
+   */
+  siege?: boolean;
+  /**
+   * The duel (designer: new units coming in, on both sides): each turn, each side's base (the keep, his camp)
+   * musters a squad of this many onto an empty street next to it, towards the other's base; with nowhere free,
+   * they join the base. Replaces the square's growth, its crowds, and the guard's arrivals.
+   */
+  muster?: number;
 }
 
 /** What a mystery square turns out to be (Jack). */
@@ -148,7 +162,7 @@ export interface ClashOdds {
   parts: { what: string; by: number }[];
 }
 
-export const RIOT_RULES: RiotRules = { dawn: 18, reinforce: 2, reinforceEvery: 1, powerEvery: 3, fortifyEvery: 3, splitEvery: 3, ordered: true };
+export const RIOT_RULES: RiotRules = { dawn: 18, reinforce: 3, reinforceEvery: 1, powerEvery: 3, fortifyEvery: 3, splitEvery: 3, ordered: true };
 
 /** Rumbles in the riot (Jack): a one-in-three chance each turn there's none, two turns to get to it, 1 to 3 to each squad round it. */
 export const RUMBLE: NonNullable<RiotRules['rumble']> = { chance: 1 / 3, lasts: 2, max: 3 };
@@ -263,6 +277,8 @@ export type RiotEvent =
   | { type: 'grow'; at: string }
   | { type: 'pour'; from: string; to: string }
   | { type: 'arrive'; at: string }
+  /** The duel: a new squad mustered out of a base onto a street next to it (`to` null: cut off, none came). */
+  | { type: 'muster'; side: Side; from: string; to: string | null; strength: number }
   /** An attack on a fortified squad: it doesn't happen. */
   | { type: 'blocked'; at: string; side: Side }
   /** A rumble set off at a place: each squad next to it, and what it took. */
@@ -1281,11 +1297,12 @@ export class RiotGame {
       }
       s = r.state;
       events.push(...r.events);
-      if (this.outcome(s) === 'guard') return { state: s, events };
+      if (this.outcome(s)) return { state: s, events };
     }
     s = this.clone(s);
+    if (this.rules.muster) this.musterAll(s, events);
     // People keep joining the square.
-    const h = this.squadAt(s, this.heart);
+    const h = this.rules.muster ? undefined : this.squadAt(s, this.heart);
     if (h?.side === 'rising' && s.cut !== this.heart) {
       h.strength += 1;
       events.push({ type: 'grow', at: this.heart });
@@ -1299,7 +1316,7 @@ export class RiotGame {
       }
     }
     // More of the guard, if the lifts' foot is yours (dug in or not: Jack).
-    if (s.turn % this.rules.reinforceEvery === 0) {
+    if (!this.rules.muster && s.turn % this.rules.reinforceEvery === 0) {
       const there = this.squadAt(s, this.lifts);
       if (there?.side === 'guard') there.strength += this.rules.reinforce;
       else if (!there && s.owner[this.lifts] !== 'rising') s.squads.push({ id: `q${s.nextId++}`, side: 'guard', place: this.lifts, strength: this.rules.reinforce });
@@ -1381,12 +1398,60 @@ export class RiotGame {
     return { state: s, events };
   }
 
-  /** Who's won: the guard, when the square's theirs; the rising, if dawn comes and it's still theirs. */
+  /**
+   * Where a base would muster its new squad this turn: a street next to it, free or held by its own side, nearest
+   * the other base (free first). Null: every way out's held by the other side, and they're cut off (a siege).
+   */
+  musterTo(s: RiotState, side: Side): string | null {
+    const base = side === 'rising' ? this.heart : this.lifts;
+    const enemy = side === 'rising' ? this.lifts : this.heart;
+    const dist = (from: string) => {
+      const seen = new Map([[from, 0]]);
+      const todo = [from];
+      while (todo.length) {
+        const p = todo.shift()!;
+        if (p === enemy) return seen.get(p)!;
+        for (const n of this.adj.get(p)!) if (!seen.has(n)) (seen.set(n, seen.get(p)! + 1), todo.push(n));
+      }
+      return 99;
+    };
+    const ways = this.adj.get(base)!.filter((p) => s.rumble?.place !== p && p !== enemy);
+    const free = ways.filter((p) => !this.squadAt(s, p)).sort((a, b) => dist(a) - dist(b) || a.localeCompare(b));
+    const own = ways.filter((p) => this.squadAt(s, p)?.side === side).sort((a, b) => dist(a) - dist(b) || a.localeCompare(b));
+    return free[0] ?? own[0] ?? null;
+  }
+
+  /**
+   * Each base musters its new squad (on `s`, already a clone), whatever's in it (designer: lose your base and the
+   * game's over anyway), out onto a street next to it; never into the base, so a garrison stays what it is. Cut
+   * off on every side, none come (`to` null).
+   */
+  private musterAll(s: RiotState, events: RiotEvent[]): void {
+    const m = this.rules.muster!;
+    for (const side of ['rising', 'guard'] as const) {
+      const base = side === 'rising' ? this.heart : this.lifts;
+      if (this.squadAt(s, base)?.side === this.other(side)) continue;
+      const to = this.musterTo(s, side);
+      const there = to ? this.squadAt(s, to) : undefined;
+      if (there) there.strength += m;
+      else if (to) {
+        s.squads.push({ id: `q${s.nextId++}`, side, place: to, strength: m });
+        s.owner[to] = side;
+      }
+      events.push({ type: 'muster', side, from: base, to, strength: m });
+    }
+  }
+
+  /**
+   * Who's won: the guard, when the square's theirs; the rising, if dawn comes and it's still theirs. In a siege
+   * (the duel), the rising win by taking the guard's base, and dawn's the guard's.
+   */
   outcome(s: RiotState): Side | null {
     this.use(s);
     if (this.rules.baseLoss && this.squadAt(s, this.lifts)?.side === 'rising') return 'rising';
     if (this.squadAt(s, this.heart)?.side === 'guard') return 'guard';
-    if (s.turn > this.rules.dawn) return 'rising';
+    if (this.rules.siege && this.squadAt(s, this.lifts)?.side === 'rising') return 'rising';
+    if (s.turn > this.rules.dawn) return this.rules.siege ? 'guard' : 'rising';
     return null;
   }
 }

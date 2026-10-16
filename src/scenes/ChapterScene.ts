@@ -191,6 +191,15 @@ export function beginChapter3(scene: Phaser.Scene): void {
  * the balcony), `physician`, `afternoon`, `evening` (back to your balcony as it starts), `table` (the
  * simulation room), `riot` (straight onto the war table), `square` (out of the fight; `&table=lost`);
  * `&sleeve=asked|told`, `&physician=yes|no`.
+ * Day 5 (`&day=5`): `start` (dawn, the captain at the door), `address` (the audience hall, your place ahead),
+ * `warrants` (the captain at his post), `evening` (your rooms, your sister), `below` (your hand's office at
+ * night), `hideout` (in the cellar, they're waiting), `raid` (the last of them heard: the raid), `hide` (out
+ * the back way); Day 4's as `&table=lost`, `&riot=let_go`, and this day's `&warrants=struck`.
+ * Day 6 (`&day=6`): `start` (dawn, your friend on your couch), `table` (the simulation room with him), `duel`
+ * (straight onto the war table), `study` (your father, after), `arrive` (the guests at the foot of the stair),
+ * `wing` (the guest wing), `banquet`, `night` (the third bell: your sister on the gallery); Day 5's as
+ * `&raid=stayed_out`, `&standoff=taken`, and this day's `&map=forest|station` (where the duel's painted), `&duel=lost`,
+ * `&invitation=captain`, `&promised=0`.
  */
 export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
   const session = getSession(scene);
@@ -245,16 +254,55 @@ export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
     riot: { area: { areaId: 'simulation-room', start: { x: 330, y: 230 } }, slots: 2, vars: { c3day4: 'table', ...evening4, room4: true } },
     square: { area: { areaId: energy === 'high' ? 'low-district' : 'promenade', start: { x: 720, y: energy === 'high' ? 236 : 232 }, script: 'c3day4_square' }, slots: 2, vars: { c3day4: 'table', ...evening4, room4: true, riot_table: params.get('table') === 'lost' ? 'lost' : 'won', riot_turns: 11, riot_fight: 'won', plain_coat: true } },
   };
+  // Day 5 (`&day=5`; Day 4's as `&table=lost`, `&riot=let_go`; this day's `&warrants=struck`).
+  const riot = params.get('riot') === 'let_go' ? 'let_go' : 'brought_in';
+  const screens = `${leader === 'firebrand' ? 'brother' : 'reformer'}_${riot === 'let_go' ? 'wanted' : 'executed'}_hand`;
+  const warrants = params.get('warrants') === 'struck' ? 'struck' : 'sealed';
+  const morning5 = { screens5: screens, warrants, list5: true };
+  const night5 = { ...morning5, plain_coat: true, hand_with_you: true, low5: true };
+  const day5: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | number | boolean> }> = {
+    start: { area: { areaId: 'prince-quarters', start: { x: 120, y: 226 }, script: 'c3day5_start', card: 'Day 5' }, slots: 0, vars: {} },
+    address: { area: { areaId: 'audience-hall', start: { x: 60, y: 236 } }, slots: 0, vars: { c3day5: 'address', objective: 'Stand beside your father', objective_target: 'audience-hall:mark-5' } },
+    warrants: { area: { areaId: 'citadel-halls', start: { x: 130, y: 232 } }, slots: 1, vars: { c3day5: 'warrants', screens5: screens, objective: 'Sign the warrants', objective_target: 'citadel-halls:captain-5h' } },
+    evening: { area: { areaId: 'prince-quarters', start: { x: 50, y: 226 } }, slots: 2, vars: { c3day5: 'evening', ...morning5, list5: warrants === 'sealed', objective: 'Go back to your rooms', objective_target: 'prince-quarters:sister-5' } },
+    below: { area: { areaId: 'diplomats-office', start: { x: 200, y: 230 } }, slots: 2, vars: { c3day5: 'office', ...morning5, objective: 'Go below with your hand', objective_target: 'diplomats-office:hand-5o' } },
+    hideout: { area: { areaId: 'low-district', start: { x: 560, y: 236 } }, slots: 3, vars: { c3day5: 'below', ...night5, objective: 'Go down to the cellar', objective_target: 'low-district:to-hideout' } },
+    raid: { area: { areaId: 'hideout', start: { x: 300, y: 226 } }, slots: 3, vars: { c3day5: 'hideout', ...night5, hand_with_you: false, heard5: 2, keeper5: true, angry5: true, objective: 'Hear them out', objective_target: 'hideout:painter-5' } },
+    hide: { area: { areaId: 'low-district', start: { x: 910, y: 236 }, script: 'c3day5_backway' }, slots: 3, vars: { c3day5: 'raid', ...night5, hand_with_you: false, heard5: 3, keeper5: true, angry5: true, painter5: true, raid: 'stayed_out' } },
+  };
+  // Day 6 (`&day=6`; Day 5's as `&raid=stayed_out`, `&standoff=taken`; this day's `&duel=lost`, `&invitation=captain`, `&promised=0`).
+  const raid = params.get('raid') === 'stayed_out' ? 'stayed_out' : 'stepped_in';
+  const invitation = params.get('invitation') === 'captain' ? 'captain' : 'you';
+  const promised = params.get('promised') !== '0';
+  const morning6 = { duel6: params.get('duel') === 'lost' ? 'lost' : 'won', duel6_turns: 12, invitation, father6: true, room6: true };
+  const day6: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | number | boolean> }> = {
+    start: { area: { areaId: 'prince-quarters', start: { x: 120, y: 226 }, script: 'c3day6_start', card: 'Days later.' }, slots: 0, vars: {} },
+    table: { area: { areaId: 'simulation-room', start: { x: 120, y: 230 } }, slots: 0, vars: { c3day6: 'room', sim_open: true, heir_with_you: true, objective: 'Show your friend the war table', objective_target: 'simulation-room:table-6' } },
+    duel: { area: { areaId: 'simulation-room', start: { x: 330, y: 230 } }, slots: 0, vars: { c3day6: 'table', sim_open: true, room6: true, duel6_map: params.get('map') ?? 'crag' } },
+    study: { area: { areaId: 'fathers-study', start: { x: 60, y: 230 } }, slots: 0, vars: { c3day6: 'study', ...morning6, father6: false, sim_open: false, objective: "Go to your father's study", objective_target: 'fathers-study:father-6' } },
+    arrive: { area: { areaId: 'citadel-halls', start: { x: 250, y: 136 } }, slots: 0, vars: { c3day6: 'arrive', ...morning6, objective: 'Greet the guests', objective_target: 'citadel-halls:guest-6a' } },
+    wing: { area: { areaId: 'guest-wing', start: { x: 610, y: 226 } }, slots: 1, vars: { c3day6: 'wing', ...morning6, objective: 'See the guests settled', objective_target: 'guest-wing:heir-6w' } },
+    banquet: { area: { areaId: 'banquet-gallery', start: { x: 40, y: 230 } }, slots: 2, vars: { c3day6: 'banquet', ...morning6, barrier6: true, promised, friend_cool: !promised, objective: 'Go to the banquet', objective_target: 'banquet-gallery:father-6b' } },
+    night: { area: { areaId: 'prince-quarters', start: { x: 60, y: 226 }, script: 'c3day6_bed' }, slots: 2, vars: { c3day6: 'home', ...morning6, barrier6: true, promised, friend_cool: !promised, banquet6: true, office6: true } },
+  };
   if (day >= 2) set({ c3day1: 'done', c3day2: 'wake', lift_mended: params.get('lift') === 'mended', seated: params.get('seated') ?? 'councillor', signed_requests: true });
   // (Day 2 done: the energy choice made, the district dark, the war table played, below with your hand.)
   if (day >= 3) set({ c3day2: 'done', sim_open: true, sim_turns: 5, sim_taken: true, energy, dark_district: dark, dark_fade: 100, citadel_dimmed: energy === 'people', painter2: true, woman2: true, streets_cut: true, rewards: true });
   // (Day 3 done: the audience, the requests, the salon, below to the hideout.)
   if (day >= 4) set({ c3day3: 'done', ...morning3, signed3: true, hostess3: true, friend3: true, low3: true, met_hideout: true, heard3: 4, painter3: true, outside3: true });
-  const table = day >= 4 ? day4 : day >= 3 ? day3 : day >= 2 ? day2 : day1;
+  // (Day 4 done: the riot, the square, your father in your rooms.)
+  if (day >= 5) set({ ...day4.square!.vars, c3day4: 'done', plain_coat: false, riot, father4n: true, c3day5: 'wake' });
+  // (Day 5 done: the address, the warrants, below, the raid.)
+  if (day >= 6) set({ ...day5.raid!.vars, c3day5: 'done', plain_coat: false, hand_with_you: false, heard5: 3, painter5: true, raid, seen_below: raid === 'stepped_in', standoff5: raid === 'stepped_in' ? (params.get('standoff') === 'taken' ? 'taken' : 'held') : '', after5: true, c3day6: 'wake' });
+  const table = day >= 6 ? day6 : day >= 5 ? day5 : day >= 4 ? day4 : day >= 3 ? day3 : day >= 2 ? day2 : day1;
   const mid = table[at] ?? Object.values(table)[0]!;
   set(mid.vars);
-  session.calendar.jumpTo(day as 1 | 2 | 3 | 4);
+  session.calendar.jumpTo(day as 1 | 2 | 3 | 4 | 5 | 6);
   for (let i = 0; i < mid.slots; i++) session.calendar.advance();
+  if (day >= 6 && at === 'duel') {
+    scene.scene.start('RiotTable', { scenario: 'duel', back: mid.area } satisfies RiotTableSceneData);
+    return;
+  }
   if (day >= 4 && at === 'riot') {
     scene.scene.start('RiotTable', { scenario: leader === 'firebrand' ? 'riot_low' : 'riot_promenade', back: mid.area } satisfies RiotTableSceneData);
     return;

@@ -74,6 +74,8 @@ export const diplomatsOffice: AreaDefinition = {
     inStory('hand-6', 'diplomat', 336, FLOOR, 'c3day2=report', { knot: 'c3day2_office', flipX: true }),
     // Day 3: the same, and faster.
     inStory('hand-3o', 'diplomat', 336, FLOOR, 'c3day3=office', { knot: 'c3day3_office', flipX: true }),
+    // Day 5: the same: they're waiting.
+    inStory('hand-5o', 'diplomat', 336, FLOOR, 'c3day5=office', { knot: 'c3day5_office', flipX: true }),
   ],
   interactables: [
     { id: 'notes', x: 70, y: FLOOR, reach: 10, label: 'Look', knot: 'office_notes' },
