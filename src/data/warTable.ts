@@ -1,4 +1,4 @@
-import { AUDIENCE, BROTHEL, CLASH, ELITE_SQUAD, MYSTERY, RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type RisingStyle, type Side } from '../systems/Riot';
+import { AUDIENCE, BROTHEL, CHURCH, CLASH, ELITE_SQUAD, MYSTERY, RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type RisingStyle, type Side } from '../systems/Riot';
 
 // The war table's maps and games (Chapter 3; the game: src/systems/Riot.ts, its design and how it was
 // tuned: docs/sequences/chapter-3/war-table.md). Day 2: the lesson in the simulation room (you're the rising,
@@ -360,6 +360,6 @@ export const RIOTS: Record<string, RiotScenario | LessonScenario | DuelScenario>
     squads: SKIRMISH_START,
     skirmish: true,
     views: { in: SKIRMISH_WIDE, out: SKIRMISH_BOARD },
-    rules: { rumble: RUMBLE, elites: { ...ELITE_SQUAD, once: false }, clash: CLASH, mystery: MYSTERY, brothel: BROTHEL, audience: AUDIENCE, dawn: 100000, shakeUp: { every: 6, trickster: 0.25 }, baseLoss: true },
+    rules: { rumble: RUMBLE, elites: { ...ELITE_SQUAD, once: false }, clash: CLASH, mystery: MYSTERY, brothel: BROTHEL, audience: AUDIENCE, church: CHURCH, dawn: 100000, shakeUp: { every: 6, trickster: 0.25 }, baseLoss: true },
   },
 };

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LOW_DISTRICT_BOARD, RIOTS, type RiotScenario } from '../src/data/warTable';
-import { AUDIENCE, BROTHEL, CLASH, ELITE_SQUAD, MYSTERY, RIOT_RULES, RUMBLE, RiotGame, type Card, type Order, type RiotState } from '../src/systems/Riot';
+import { AUDIENCE, BROTHEL, CHURCH, CLASH, ELITE_SQUAD, MYSTERY, RIOT_RULES, RUMBLE, RiotGame, type Card, type Order, type RiotState } from '../src/systems/Riot';
 
 // Jack's two for the war table (proposed for the designer; docs/sequences/chapter-3/war-table.md): fortify,
 // and rumbles.
@@ -665,17 +665,26 @@ describe('the war table: Jack’s third round', () => {
     expect(won).toBeLessThan(130);
   });
 
-  it('the crier (Jack): now and then, a side is called to an audience wherever it is', () => {
-    let s = set([{ id: 'l', side: 'guard', place: 'lifts', strength: 4 }, { id: 'sq', side: 'rising', place: 'square', strength: 9 }]);
+  it('an audience with the Lord (Jack): far less often, one side at a time, and sometimes a holy cross on the map', () => {
+    const g = new RiotGame(LOW_DISTRICT_BOARD, { ...rules, church: CHURCH });
+    let s = { ...game.start([{ side: 'guard', place: 'lifts', strength: 4 }, { side: 'rising', place: 'square', strength: 9 }]) };
     let calls = 0;
-    for (let i = 0; i < 70; i++) {
-      const r = game.turn(s, [], []);
+    let crosses = 0;
+    for (let i = 0; i < 240; i++) {
+      const r = g.turn(s, [], []);
       calls += r.events.filter((e) => e.type === 'call').length;
+      crosses += r.events.filter((e) => e.type === 'churchAppears').length;
       s = r.state;
     }
-    // Ten stretches of 7, two sides, half the time: about 10.
-    expect(calls).toBeGreaterThan(3);
-    expect(calls).toBeLessThan(18);
+    // Twenty stretches of 12 turns, about a third of them: about 7, so once in 35 turns or so.
+    expect(calls).toBeGreaterThan(2);
+    expect(calls).toBeLessThan(13);
+    expect(crosses).toBeGreaterThan(0);
+    // The cross: first there prays.
+    const t = { ...g.start([{ side: 'guard', place: 'arch', strength: 3 }]), church: { place: 'market', left: 3 } };
+    const r = g.order(t, { squad: 'q0', to: 'market' });
+    expect(r.events).toContainEqual({ type: 'churchFound', at: 'market', side: 'guard' });
+    expect(r.state.pending).toEqual({ kind: 'prayer', side: 'guard' });
   });
 
   it('a race for something on the map (Jack): the winner gets it and the place, the loser stays put, untouched', () => {

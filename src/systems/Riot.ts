@@ -122,6 +122,8 @@ export interface RiotRules {
   brothel?: BrothelRules;
   /** The audience (Jack): see `AUDIENCE`. */
   audience?: AudienceRules;
+  /** A holy cross on the map (Jack): first there has an audience with the Lord. See `CHURCH`. */
+  church?: { from: number; chance: number; lasts: number };
 }
 
 /**
@@ -136,6 +138,9 @@ export interface BrothelRules {
   boost: number;
 }
 export const BROTHEL: BrothelRules = { from: 5, chance: 0.2, lasts: 3, boost: 0.15 };
+
+/** The holy cross (Jack): now and then, from turn 8, one on an empty street for 3 turns. */
+export const CHURCH = { from: 8, chance: 0.08, lasts: 3 };
 
 /** Who you hear at an audience (Jack): the accountant, the townsfolk, the commander. */
 export type Adviser = 'accountant' | 'townsfolk' | 'commander';
@@ -169,7 +174,7 @@ export interface AudienceRules {
 }
 export const AUDIENCE: AudienceRules = {
   from: 5, chance: 0.2, lasts: 3, morale: 0.1, moraleTurns: 5, output: 1, outputTurns: 5, slump: 1, slumpTurns: 2, advice: 5,
-  call: { every: 7, chance: 0.5 }, judged: 5,
+  call: { every: 12, chance: 0.35 }, judged: 5,
 };
 
 /** Something lasting on a side (Jack): morale up or down, its bases making more or less, the commander's advice. */
@@ -334,6 +339,8 @@ export interface RiotState {
   brothel?: { place: string; left: number } | null;
   /** An audience on the map (Jack). */
   audience?: { place: string; left: number } | null;
+  /** A holy cross on the map (Jack). */
+  church?: { place: string; left: number } | null;
   /** What's lasting on each side (Jack): morale, output, the commander's advice. */
   moods?: Mood[];
   /** When the crier comes to each side, in this stretch of turns (Jack), or not at all. */
@@ -389,6 +396,10 @@ export type RiotEvent =
   | { type: 'audienceAppears'; at: string }
   | { type: 'audienceGone'; at: string }
   | { type: 'audienceFound'; at: string; side: Side }
+  /** The holy cross (Jack): appearing, gone untaken, or found (an audience with the Lord: `pending`). */
+  | { type: 'churchAppears'; at: string }
+  | { type: 'churchGone'; at: string }
+  | { type: 'churchFound'; at: string; side: Side }
   /** An audience with the Lord (Jack): `side`'s people pray ("O please, Lord, won't you hear our prayer?!"); `pending`. */
   | { type: 'call'; side: Side }
   /** The Lord's judgement on them (Jack): loyal servants (blessed), or heretics (cursed). */
@@ -420,7 +431,7 @@ export type RiotEvent =
   | { type: 'eliteGone'; at: string; side: Side; elite: Elite };
 
 /** Something on the map a squad can go for (Jack). */
-export type Token = 'crest' | 'mystery' | 'rumble' | 'brothel' | 'audience';
+export type Token = 'crest' | 'mystery' | 'rumble' | 'brothel' | 'audience' | 'church';
 
 /** How the rising plays (being tuned: designer, the rising was too passive). */
 export interface RisingStyle {
@@ -500,7 +511,7 @@ export class RiotGame {
   }
 
   clone(s: RiotState): RiotState {
-    return { ...s, squads: s.squads.map((q) => ({ ...q })), owner: { ...s.owner }, fortified: [...s.fortified], lastFortify: { ...s.lastFortify }, lastSplit: { ...s.lastSplit }, fortifyBefore: { ...s.fortifyBefore }, rumble: s.rumble && { ...s.rumble }, crest: s.crest && { ...s.crest }, mystery: s.mystery && { ...s.mystery }, brothel: s.brothel && { ...s.brothel }, audience: s.audience && { ...s.audience }, moods: (s.moods ?? []).map((m) => ({ ...m })), calls: s.calls && { ...s.calls }, held: [...(s.held ?? [])], pending: s.pending && { ...s.pending, ...(s.pending.kind === 'diviner' ? { cards: [...s.pending.cards] } : s.pending.kind === 'audience' ? { good: [...s.pending.good] } : {}) }, plague: { guard: s.plague?.guard ?? 0, rising: s.plague?.rising ?? 0 }, elites: { guard: { ...s.elites.guard, used: [...s.elites.guard.used], gifts: [...(s.elites.guard.gifts ?? [])] }, rising: { ...s.elites.rising, used: [...s.elites.rising.used], gifts: [...(s.elites.rising.gifts ?? [])] } } };
+    return { ...s, squads: s.squads.map((q) => ({ ...q })), owner: { ...s.owner }, fortified: [...s.fortified], lastFortify: { ...s.lastFortify }, lastSplit: { ...s.lastSplit }, fortifyBefore: { ...s.fortifyBefore }, rumble: s.rumble && { ...s.rumble }, crest: s.crest && { ...s.crest }, mystery: s.mystery && { ...s.mystery }, brothel: s.brothel && { ...s.brothel }, audience: s.audience && { ...s.audience }, church: s.church && { ...s.church }, moods: (s.moods ?? []).map((m) => ({ ...m })), calls: s.calls && { ...s.calls }, held: [...(s.held ?? [])], pending: s.pending && { ...s.pending, ...(s.pending.kind === 'diviner' ? { cards: [...s.pending.cards] } : s.pending.kind === 'audience' ? { good: [...s.pending.good] } : {}) }, plague: { guard: s.plague?.guard ?? 0, rising: s.plague?.rising ?? 0 }, elites: { guard: { ...s.elites.guard, used: [...s.elites.guard.used], gifts: [...(s.elites.guard.gifts ?? [])] }, rising: { ...s.elites.rising, used: [...s.elites.rising.used], gifts: [...(s.elites.rising.gifts ?? [])] } } };
   }
 
   /** The next number from the dice, 0 to 1 (moves `s.seed` on: only ever on a clone). */
@@ -1003,6 +1014,16 @@ export class RiotGame {
     this.takeMystery(s, events);
     this.takeBrothel(s, events);
     this.takeAudience(s, events);
+    this.takeChurch(s, events);
+  }
+
+  /** A squad onto the holy cross (Jack): an audience with the Lord for its side. */
+  private takeChurch(s: RiotState, events: RiotEvent[]): void {
+    const there = s.church && this.squadAt(s, s.church.place);
+    if (!s.church || !there) return;
+    s.pending = { kind: 'prayer', side: there.side };
+    events.push({ type: 'churchFound', at: s.church.place, side: there.side });
+    s.church = null;
   }
 
   /** What's on the map at a place, if anything. */
@@ -1012,6 +1033,7 @@ export class RiotGame {
     if (s.rumble?.place === place) return 'rumble';
     if (s.brothel?.place === place) return 'brothel';
     if (s.audience?.place === place) return 'audience';
+    if (s.church?.place === place) return 'church';
     return null;
   }
 
@@ -1656,7 +1678,7 @@ export class RiotGame {
     // One thing on the map at a time (a rumble, a crest, a mystery square: Jack), a crest first when it's due.
     const crest = this.rules.elites?.crest;
     if (crest && s.turn + 1 >= crest.first && (s.turn + 1 - crest.first) % crest.every === 0) s.crestDue = true;
-    const taken = () => !!(s.rumble || s.crest || s.mystery || s.brothel || s.audience);
+    const taken = () => !!(s.rumble || s.crest || s.mystery || s.brothel || s.audience || s.church);
     // A rumble: one there stays a turn less; with none, now and then one appears on an empty street.
     const rumble = this.rules.rumble;
     if (s.rumble) {
@@ -1700,23 +1722,25 @@ export class RiotGame {
       }
     }
     // The brothel and the audience (Jack): the same.
-    for (const kind of ['brothel', 'audience'] as const) {
+    const names = { brothel: ['brothelAppears', 'brothelGone'], audience: ['audienceAppears', 'audienceGone'], church: ['churchAppears', 'churchGone'] } as const;
+    for (const kind of ['brothel', 'audience', 'church'] as const) {
       const r = this.rules[kind];
       const there = s[kind];
       if (there) {
         there.left -= 1;
-        if (there.left <= 0) (events.push({ type: kind === 'brothel' ? 'brothelGone' : 'audienceGone', at: there.place }), (s[kind] = null));
+        if (there.left <= 0) (events.push({ type: names[kind][1], at: there.place }), (s[kind] = null));
       } else if (r && !s.crestDue && !taken() && s.turn + 1 >= r.from && this.roll(s) < r.chance) {
         const at = this.crestPlace(s, false);
-        if (at) (s[kind] = { place: at, left: r.lasts }), events.push({ type: kind === 'brothel' ? 'brothelAppears' : 'audienceAppears', at });
+        if (at) (s[kind] = { place: at, left: r.lasts }), events.push({ type: names[kind][0], at });
       }
     }
-    // The crier (Jack): in each stretch of turns, half the time, on one turn of it, a side's called to an audience.
+    // An audience with the Lord (Jack: far less often): in each stretch of turns, now and then, on one turn of it,
+    // one side's people pray (which side, by the dice).
     const call = this.rules.audience?.call;
     if (call) {
       if (!s.calls || (s.turn - 1) % call.every === 0) {
-        const when = () => (this.roll(s) < call.chance ? s.turn + Math.floor(this.roll(s) * call.every) : null);
-        s.calls = { guard: when(), rising: when() };
+        const when = this.roll(s) < call.chance ? s.turn + Math.floor(this.roll(s) * call.every) : null;
+        s.calls = this.roll(s) < 0.5 ? { guard: when, rising: null } : { guard: null, rising: when };
       }
       for (const side of ['guard', 'rising'] as const) {
         if (s.calls[side] !== s.turn || s.pending) continue;
