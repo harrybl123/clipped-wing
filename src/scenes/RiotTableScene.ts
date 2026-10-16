@@ -1907,6 +1907,7 @@ export class RiotTableScene extends Phaser.Scene {
     }
     // The places: a ring in the colour of whoever holds it; the square's barricades; the lifts' foot.
     const sc = this.sc;
+    const skirmish = sc.kind === 'riot' && !!sc.skirmish;
     const goalPlace = sc.kind === 'lesson' && this.phase === 'lesson' ? sc.goals[this.goal]?.place : sc.kind === 'duel' ? this.g.lifts : this.phase !== 'lesson' ? this.g.heart : undefined;
     // The three places round each base (Jack): a faint glow in its side's colour.
     if (this.g.rules.elites) for (const side of ['guard', 'rising'] as const) {
@@ -1930,7 +1931,8 @@ export class RiotTableScene extends Phaser.Scene {
         g.fillStyle(SHADES.shadow, 0.7).fillCircle(p.x, p.y, 13);
         g.lineStyle(1, SHADES.dim, 1).strokeCircle(p.x, p.y, 13);
       }
-      if (p.id === goalPlace && !this.busy) g.lineStyle(1, SHADES.white, blink ? 1 : 0.35).strokeCircle(p.x, p.y, 17);
+      // (In the skirmish, steady, Jack: the table redraws only now and then, so a blink looked like random flashing.)
+      if (p.id === goalPlace && !this.busy) g.lineStyle(1, SHADES.white, skirmish ? 0.5 : blink ? 1 : 0.35).strokeCircle(p.x, p.y, 17);
       // A mystery square (Jack): a "?" in a dark tile, or the diviner's eye under a hood; turns left.
       if (s.mystery?.place === p.id) {
         g.lineStyle(1, SHADES.white, blink ? 0.9 : 0.35).strokeCircle(p.x, p.y, blink ? 14 : 12);
