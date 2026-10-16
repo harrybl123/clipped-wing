@@ -71,3 +71,47 @@ export function drawBarracks(g: Phaser.GameObjects.Graphics, x: number, y: numbe
   g.fillStyle(SHADES.light, 1).fillRect(px(6), py(-9), 1 * k, 8 * k);
   g.fillStyle(flag, 1).fillTriangle(px(7), py(-9), px(7), py(-5), px(11), py(-7));
 }
+
+/** The architect on the map (Jack): a small scroll, half unrolled, and a pencil across it. */
+export function drawArchitectToken(g: Phaser.GameObjects.Graphics, x: number, y: number): void {
+  g.fillStyle(SHADES.shadow, 1).fillRoundedRect(x - 9, y - 9, 19, 19, 3);
+  g.fillStyle(0xe9dcc0, 1).fillRect(x - 6, y - 5, 12, 10);
+  g.fillStyle(0xcdbb98, 1).fillRect(x - 7, y - 6, 3, 12).fillRect(x + 5, y - 6, 3, 12);
+  g.fillStyle(SHADES.amberDeep, 1).fillRect(x - 3, y - 2, 6, 1).fillRect(x - 3, y + 1, 4, 1);
+  // The pencil, corner to corner: yellow body, a dark point.
+  g.lineStyle(2, SHADES.amber, 1).lineBetween(x - 6, y + 8, x + 5, y - 3);
+  g.fillStyle(SHADES.deep, 1).fillRect(x + 5, y - 5, 2, 2);
+}
+
+/** A building of the architect's (Jack), in its side's colour, at (x, y). */
+export function drawBuilding(g: Phaser.GameObjects.Graphics, x: number, y: number, kind: 'artillery' | 'storehouse' | 'fortress', colour: number, dark = false): void {
+  const body = dark ? SHADES.woodPale : colour;
+  if (kind === 'fortress') {
+    // Stone walls with battlements, two squat towers, a gate; ringed in its colour.
+    g.fillStyle(SHADES.shadow, 1).fillRect(x - 11, y - 8, 23, 17);
+    g.fillStyle(SHADES.dim, 1).fillRect(x - 10, y - 4, 21, 12);
+    g.fillStyle(SHADES.light, 1).fillRect(x - 11, y - 9, 6, 15).fillRect(x + 6, y - 9, 6, 15);
+    for (let i = 0; i < 3; i++) g.fillStyle(SHADES.light, 1).fillRect(x - 4 + i * 3, y - 6, 2, 2);
+    g.fillStyle(SHADES.deep, 1).fillRect(x - 2, y + 2, 5, 6);
+    g.lineStyle(1, body, 1).strokeRect(x - 12, y - 10, 25, 20);
+    return;
+  }
+  if (kind === 'artillery') {
+    // A cannon on its wheel, pointing up and out, over a shield in its colour.
+    g.fillStyle(SHADES.shadow, 1).fillRoundedRect(x - 8, y - 6, 17, 15, 3);
+    g.fillStyle(body, 1).fillRoundedRect(x - 7, y - 5, 15, 13, 2);
+    // (The barrel sticks out past its wall, up and to the right, so it reads even dug in.)
+    g.lineStyle(4, SHADES.shadow, 1).lineBetween(x + 5, y - 6, x + 17, y - 16);
+    g.lineStyle(2, SHADES.light, 1).lineBetween(x + 5, y - 6, x + 17, y - 16);
+    g.fillStyle(SHADES.shadow, 1).fillCircle(x + 17, y - 16, 2);
+    g.fillStyle(SHADES.woodPale, 1).fillCircle(x + 6, y - 5, 3);
+    g.fillStyle(SHADES.deep, 1).fillCircle(x + 6, y - 5, 1);
+    return;
+  }
+  // A storehouse: a little granary, its roof in its colour, sacks by the door.
+  g.fillStyle(SHADES.shadow, 1).fillRect(x - 9, y - 4, 19, 13);
+  g.fillStyle(SHADES.woodPale, 1).fillRect(x - 8, y - 3, 17, 11);
+  g.fillStyle(body, 1).fillTriangle(x - 10, y - 3, x + 11, y - 3, x + 0.5, y - 12);
+  g.fillStyle(SHADES.deep, 1).fillRect(x - 2, y + 2, 5, 6);
+  g.fillStyle(SHADES.skinFair, 1).fillCircle(x + 11, y + 6, 2.5).fillCircle(x + 13, y + 2, 2);
+}

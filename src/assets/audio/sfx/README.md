@@ -25,3 +25,5 @@ real): `murmur`, `gasp`, `roar`, `jeer`, `chant`, `whispers`, `scream`, `sob`. S
 - `gallop.mp3` (a race on the war table: both sides' horses galloping in; Jack): "ground" from "Horse gallop on different surfaces" by congusbongus, OpenGameArt (https://opengameart.org/node/167525), CC-BY 4.0 (https://creativecommons.org/licenses/by/4.0/), adapted from "Single Horse Galopp" by D4XX (https://freesound.org/people/D4XX/sounds/564628/, CC0). Credit congusbongus (and D4XX). Left as it is.
 - `slam` (the heretic: the windows slamming shut) is synthesised.
 - `diviner`, `thief`, `plague` are synthesised (the thief replays `shing`, higher); `plague` (Jack: a hollow, dark sound) could take a recording.
+- `aha.wav` (the architect unrolling his plans on the war table; Jack: an "aha!" sound): "2 AHA" from "Aha! voice pack Female Fighter Voice Over" by JeanMyna_VA, OpenGameArt (https://opengameart.org/content/aha-voice-pack-female-fighter-voice-over-vocal-sound-for-character), **CC-BY 3.0** (http://creativecommons.org/licenses/by/3.0/): credit @JeanMyna_VA. Trimmed and pitched down (0.8) for the architect, a man.
+- `paper` (his scroll unrolling) is synthesised.

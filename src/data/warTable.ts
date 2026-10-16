@@ -1,4 +1,4 @@
-import { AUDIENCE, BARRACKS, BROTHEL, CHURCH, CLASH, ELITE_SQUAD, MYSTERY, REBEL, RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type RisingStyle, type Side } from '../systems/Riot';
+import { ARCHITECT, AUDIENCE, BARRACKS, BROTHEL, CHURCH, CLASH, ELITE_SQUAD, MYSTERY, REBEL, RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type RisingStyle, type Side } from '../systems/Riot';
 
 // The war table's maps and games (Chapter 3; the game: src/systems/Riot.ts, its design and how it was
 // tuned: docs/sequences/chapter-3/war-table.md). Day 2: the lesson in the simulation room (you're the rising,
@@ -368,7 +368,7 @@ export const RIOTS: Record<string, RiotScenario | LessonScenario | DuelScenario>
     rules: {
       rumble: RUMBLE, elites: { ...ELITE_SQUAD, once: false, hero: { ...ELITE_SQUAD.hero, lasts: 5 } }, clash: CLASH,
       mystery: { ...MYSTERY, from: 3, chance: 0.4 }, brothel: { ...BROTHEL, from: 3, chance: 0.3 }, audience: { ...AUDIENCE, from: 4, chance: 0.3 },
-      church: { ...CHURCH, from: 5, chance: 0.15 }, barracks: { ...BARRACKS, from: 4, chance: 0.25 }, tokensAtOnce: 2,
+      church: { ...CHURCH, from: 5, chance: 0.15 }, barracks: { ...BARRACKS, from: 4, chance: 0.25 }, architect: ARCHITECT, tokensAtOnce: 2,
       rebel: REBEL, homeGrowth: true, baseMakes: 2,
       // Two towers each, out on the flanks (Jack), three streets from home: each makes 1 a turn for whoever holds it.
       towers: { guard: ['mill', 'orchards'], rising: ['marsh', 'quarry'], makes: 1, walls: 1 }, clashOutput: { by: 1, turns: 3 }, dawn: 100000, shakeUp: { every: 6, trickster: 0.25 }, baseLoss: true },

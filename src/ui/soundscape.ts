@@ -51,6 +51,8 @@ export const SOUND_IDS = [
   'slam', 'angel',
   // A race on the war table (Jack): horses galloping in.
   'gallop',
+  // The architect (Jack): his "aha!" (a recording) as the plans unroll, and the paper.
+  'aha', 'paper',
 ] as const;
 export type SoundId = (typeof SOUND_IDS)[number];
 
@@ -318,6 +320,16 @@ function oneShot(a: Out, dest: AudioNode, t: number, id: SoundId, v: number, sur
     case 'gallop':
       // (A recording, `gallop.mp3`; if it's missing: hoofbeats in threes.)
       for (let i = 0; i < 12; i++) noise(a, dest, t + i * 0.11 + Math.floor(i / 3) * 0.08, 'lowpass', 500, 1, 0.06, 0.35 * v, 0.002, 120);
+      break;
+    case 'aha':
+      // (A recording, `aha.wav`; if it's missing: a rising then falling hum, like a voice.)
+      tone(a, dest, t, 'triangle', 160, 220, 0.18, 0.2 * v, 0.02);
+      tone(a, dest, t + 0.2, 'triangle', 240, 150, 0.35, 0.25 * v, 0.02);
+      break;
+    case 'paper':
+      // A scroll unrolling: dry crinkles running on, then a soft flap as it falls open.
+      for (let i = 0; i < 14; i++) noise(a, dest, t + i * 0.045 + (i % 3) * 0.008, 'bandpass', 2200 + (i % 4) * 500, 2, 0.035, (0.12 + (i % 2) * 0.06) * v, 0.002);
+      noise(a, dest, t + 0.68, 'lowpass', 1400, 1, 0.12, 0.25 * v, 0.004, 400);
       break;
     case 'angel':
       // (A recording, `angel.ogg`; if it's missing: a soft, bright chord swelling up.)

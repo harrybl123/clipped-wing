@@ -128,6 +128,8 @@ export interface RiotRules {
   rebel?: RebelRules;
   /** The barracks (Jack, the skirmish): see `BARRACKS`. */
   barracks?: BarracksRules;
+  /** The architect (Jack, the skirmish): see `ARCHITECT`. */
+  architect?: ArchitectRules;
   /** How much the rising's base grows each turn (1 if absent). */
   risingGrowth?: number;
   /**
@@ -187,6 +189,27 @@ export const BARRACKS: BarracksRules = { from: 6, chance: 0.15, lasts: 3, rogues
 export type Hired = 'rogue' | 'archer' | 'assassin';
 export const HIRES = ['rogues', 'archers', 'assassin'] as const;
 export type Hire = (typeof HIRES)[number];
+
+/**
+ * The architect (Jack): now and then he's on the map, for a few turns; first there has him build one of three, on
+ * any empty place on its side of the board (one it holds, or nearer its base than theirs; not a base or a tower).
+ * Nobody gives a building orders, it never moves or joins anyone. **Artillery**: 5, dug in for its first 2 turns;
+ * each turn it shoots one of the other side's next to it (the biggest it can hurt) for 3. **A storehouse**: 3, does
+ * nothing itself; while it stands, its side's elite are doubled (the hero 14 to deal out, the maiden seducing up to
+ * 10, the king's guard 4 each, put in while it stands). **A fortress**: dug in for good (nobody can attack it), for
+ * 7 turns; while it stands, a base or tower of its side next to it makes 1 more a turn.
+ */
+export interface ArchitectRules {
+  from: number;
+  chance: number;
+  lasts: number;
+  artillery: { strength: number; dugIn: number; shot: number };
+  storehouse: { strength: number; times: number };
+  fortress: { lasts: number; makes: number };
+}
+export const ARCHITECT: ArchitectRules = { from: 4, chance: 0.25, lasts: 3, artillery: { strength: 5, dugIn: 2, shot: 3 }, storehouse: { strength: 3, times: 2 }, fortress: { lasts: 7, makes: 1 } };
+export const BUILDINGS = ['artillery', 'storehouse', 'fortress'] as const;
+export type Building = (typeof BUILDINGS)[number];
 
 export const REBEL: RebelRules = { every: 3, rally: 2, closed: 3, sabotageEvery: 9 };
 export type RebelMove = 'rally' | 'sabotage';
@@ -351,6 +374,8 @@ export interface RiotSquad {
   elite?: Elite;
   /** Hired at the barracks (Jack): the computer plays it; it never joins anyone or grows. */
   hired?: Hired;
+  /** Built by the architect (Jack): it never moves or joins anyone. */
+  built?: Building;
   /** The last turn an elite is here (it's gone at the end of it). */
   until?: number;
   /** Dug in through this turn (fortify: one turn; the king's guard two; a crusted hero its whole time). */
@@ -399,7 +424,7 @@ export interface RiotState {
   /** A mystery square on the map (Jack): where, for how many more turns, and whether it's the diviner's own mark. */
   mystery?: { place: string; left: number; mark?: 'diviner' | 'trickster' } | null;
   /** Waiting on a choice (Jack): the diviner's three cards, face down, or where the thief goes. */
-  pending?: { kind: 'diviner'; side: Side; at: string; cards: Card[] } | { kind: 'thief'; side: Side; at: string } | { kind: 'audience'; side: Side; at: string; good: number[] } | { kind: 'prayer'; side: Side } | { kind: 'barracks'; side: Side; at: string } | null;
+  pending?: { kind: 'diviner'; side: Side; at: string; cards: Card[] } | { kind: 'thief'; side: Side; at: string } | { kind: 'audience'; side: Side; at: string; good: number[] } | { kind: 'prayer'; side: Side } | { kind: 'barracks'; side: Side; at: string } | { kind: 'architect'; side: Side; at: string } | null;
   /** Turns of plague left for each side (Jack). */
   plague?: Record<Side, number>;
   /** The streets, once the trickster's changed them (Jack); the board's until then. */
@@ -412,6 +437,8 @@ export interface RiotState {
   church?: { place: string; left: number } | null;
   /** The barracks on the map (Jack). */
   barracks?: { place: string; left: number } | null;
+  /** The architect on the map (Jack). */
+  architect?: { place: string; left: number } | null;
   /** What's lasting on each side (Jack): morale, output, the commander's advice. */
   moods?: Mood[];
   /** When the crier comes to each side, in this stretch of turns (Jack), or not at all. */
@@ -485,6 +512,13 @@ export type RiotEvent =
   | { type: 'churchFound'; at: string; side: Side }
   /** The barracks (Jack): appearing, gone, found, who was hired and where; an archer's arrow; the assassin's strike. */
   | { type: 'barracksAppears'; at: string }
+  /** The architect (Jack): appearing, gone, found; what he built; an artillery shot; a building gone. */
+  | { type: 'architectAppears'; at: string }
+  | { type: 'architectGone'; at: string }
+  | { type: 'architectFound'; at: string; side: Side }
+  | { type: 'built'; side: Side; building: Building; at: string }
+  | { type: 'shell'; side: Side; from: string; at: string; damage: number; gone: boolean }
+  | { type: 'builtGone'; side: Side; building: Building; at: string }
   /** A tower taken (Jack), and its men each turn. */
   | { type: 'captured'; at: string; side: Side }
   | { type: 'towerMakes'; at: string; side: Side; by: number }
@@ -524,7 +558,7 @@ export type RiotEvent =
   | { type: 'eliteGone'; at: string; side: Side; elite: Elite };
 
 /** Something on the map a squad can go for (Jack). */
-export type Token = 'crest' | 'mystery' | 'rumble' | 'brothel' | 'audience' | 'church' | 'barracks';
+export type Token = 'crest' | 'mystery' | 'rumble' | 'brothel' | 'audience' | 'church' | 'barracks' | 'architect';
 
 /** How the rising plays (being tuned: designer, the rising was too passive). */
 export interface RisingStyle {
@@ -609,7 +643,7 @@ export class RiotGame {
   }
 
   clone(s: RiotState): RiotState {
-    return { ...s, squads: s.squads.map((q) => ({ ...q })), owner: { ...s.owner }, fortified: [...s.fortified], lastFortify: { ...s.lastFortify }, lastSplit: { ...s.lastSplit }, fortifyBefore: { ...s.fortifyBefore }, rumble: s.rumble && { ...s.rumble }, crest: s.crest && { ...s.crest }, mystery: s.mystery && { ...s.mystery }, brothel: s.brothel && { ...s.brothel }, audience: s.audience && { ...s.audience }, church: s.church && { ...s.church }, barracks: s.barracks && { ...s.barracks }, moods: (s.moods ?? []).map((m) => ({ ...m })), calls: s.calls && { ...s.calls }, held: [...(s.held ?? [])], blocked: s.blocked && { ways: [...s.blocked.ways] as [string, string], until: s.blocked.until }, pending: s.pending && { ...s.pending, ...(s.pending.kind === 'diviner' ? { cards: [...s.pending.cards] } : s.pending.kind === 'audience' ? { good: [...s.pending.good] } : {}) }, plague: { guard: s.plague?.guard ?? 0, rising: s.plague?.rising ?? 0 }, elites: { guard: { ...s.elites.guard, used: [...s.elites.guard.used], gifts: [...(s.elites.guard.gifts ?? [])] }, rising: { ...s.elites.rising, used: [...s.elites.rising.used], gifts: [...(s.elites.rising.gifts ?? [])] } } };
+    return { ...s, squads: s.squads.map((q) => ({ ...q })), owner: { ...s.owner }, fortified: [...s.fortified], lastFortify: { ...s.lastFortify }, lastSplit: { ...s.lastSplit }, fortifyBefore: { ...s.fortifyBefore }, rumble: s.rumble && { ...s.rumble }, crest: s.crest && { ...s.crest }, mystery: s.mystery && { ...s.mystery }, brothel: s.brothel && { ...s.brothel }, audience: s.audience && { ...s.audience }, church: s.church && { ...s.church }, barracks: s.barracks && { ...s.barracks }, architect: s.architect && { ...s.architect }, moods: (s.moods ?? []).map((m) => ({ ...m })), calls: s.calls && { ...s.calls }, held: [...(s.held ?? [])], blocked: s.blocked && { ways: [...s.blocked.ways] as [string, string], until: s.blocked.until }, pending: s.pending && { ...s.pending, ...(s.pending.kind === 'diviner' ? { cards: [...s.pending.cards] } : s.pending.kind === 'audience' ? { good: [...s.pending.good] } : {}) }, plague: { guard: s.plague?.guard ?? 0, rising: s.plague?.rising ?? 0 }, elites: { guard: { ...s.elites.guard, used: [...s.elites.guard.used], gifts: [...(s.elites.guard.gifts ?? [])] }, rising: { ...s.elites.rising, used: [...s.elites.rising.used], gifts: [...(s.elites.rising.gifts ?? [])] } } };
   }
 
   /** The next number from the dice, 0 to 1 (moves `s.seed` on: only ever on a clone). */
@@ -640,8 +674,8 @@ export class RiotGame {
     const b0 = s0.squads.find((x) => x.id === squad);
     // (Beside the king's guard: it's the place that digs in, theirs.)
     const q0 = b0?.beside ? this.squadAt(s0, b0.place) : b0;
-    // (The maiden can't dig in: she's left open, Jack.)
-    if (q0?.elite === 'maiden') return s0;
+    // (The maiden can't dig in: she's left open, Jack. Nor the hired, nor a building.)
+    if (q0?.elite === 'maiden' || q0?.hired || q0?.built) return s0;
     if (!q0 || this.fortified(s0, q0.place) || !this.canFortify(s0, q0.side)) return s0;
     const s = this.clone(s0);
     const q = s.squads.find((x) => x.id === q0.id)!;
@@ -657,7 +691,7 @@ export class RiotGame {
   /** No longer dug in (taken back, or given an order after all): this turn, it gives the side its fortify back. */
   unfortify(s0: RiotState, place: string): RiotState {
     // (Never the king's guard: what would be the point? Jack.)
-    if (!this.fortified(s0, place) || this.squadAt(s0, place)?.elite === 'guard3') return s0;
+    if (!this.fortified(s0, place) || this.squadAt(s0, place)?.elite === 'guard3' || this.squadAt(s0, place)?.built) return s0;
     const s = this.clone(s0);
     s.fortified = s.fortified.filter((p) => p !== place);
     const q = this.squadAt(s, place);
@@ -702,7 +736,7 @@ export class RiotGame {
       const there = this.squadAt(s, p);
       // (The maiden or the hero beside one of your king's guard, Jack: if none of the elite's beside them already.)
       if ((elite === 'maiden' || elite === 'hero') && there?.side === side && there.elite === 'guard3') return !s.squads.some((q) => q.place === p && q.elite && q.elite !== 'guard3');
-      return !there || (there.side === side && !there.elite && !this.fortified(s, p));
+      return !there || (there.side === side && !there.elite && !there.hired && !there.built && !this.fortified(s, p));
     });
   }
 
@@ -731,10 +765,10 @@ export class RiotGame {
       if (elite === 'guard3') {
         // The king's guard (Jack): there for good, and dug in as they arrive (for as long as their fortify lasts),
         // without using the side's fortify.
-        s.squads.push({ id: `q${s.nextId++}`, side, place: p, strength: e.guard3.strength, elite, fortUntil: s.turn + e.guard3.fortifyLasts - 1 });
+        s.squads.push({ id: `q${s.nextId++}`, side, place: p, strength: e.guard3.strength * this.stored(s, side), elite, fortUntil: s.turn + e.guard3.fortifyLasts - 1 });
         s.fortified.push(p);
       } else {
-        const [strength, lasts] = elite === 'hero' ? [e.hero.points, e.hero.lasts] : [1, e.maiden.lasts];
+        const [strength, lasts] = elite === 'hero' ? [e.hero.points * this.stored(s, side), e.hero.lasts] : [1, e.maiden.lasts];
         s.squads.push({ id: `q${s.nextId++}`, side, place: p, strength, elite, until: s.turn + lasts - 1 });
       }
       s.owner[p] = side;
@@ -750,7 +784,7 @@ export class RiotGame {
   /** Who a maiden (witch) can seduce: a squad of theirs next to her, 5 or fewer, not the square, not one of the elite, not dug in. */
   seduceTargets(s: RiotState, maiden: RiotSquad): string[] {
     this.use(s);
-    const max = this.rules.elites?.maiden.seduceMax ?? 0;
+    const max = this.seduceMax(s, maiden.side);
     return this.adj.get(maiden.place)!.filter((p) => {
       const there = this.squadAt(s, p);
       // (Their hero too, whatever it has left: the maiden turns a bastard into a hero, the witch a hero into a bastard, Jack.)
@@ -803,7 +837,7 @@ export class RiotGame {
     const rules = this.rules.rebel;
     if (!rules || !this.canRebel(s0)) return { state: s0, events: [] };
     this.use(s0);
-    const theirs = this.mine(s0, 'rising').filter((q) => !q.elite && !q.hired);
+    const theirs = this.mine(s0, 'rising').filter((q) => !q.elite && !q.hired && !q.built);
     const yours = this.mine(s0, 'guard').filter((q) => !this.fortified(s0, q.place) && s0.cut !== q.place && !q.crusted);
     const hittable = (q: RiotSquad) => q.elite !== 'guard3';
     let best: { move: RebelMove; score: number; at: string; ways?: [string, string] } | null = null;
@@ -863,7 +897,7 @@ export class RiotGame {
       const can = (e: Elite) => this.canDeploy(s, side, e);
       if (can('guard3') && closing) apply(this.deploy(s, side, 'guard3'));
       else if (can('hero') && best && nearest(best) <= 3) apply(this.deploy(s, side, 'hero', best));
-      else if (can('maiden') && best && them.some((g) => !g.elite && g.place !== this.heart && g.strength <= (this.rules.elites?.maiden.seduceMax ?? 0) && dist(best, g.place) <= 2)) apply(this.deploy(s, side, 'maiden', best));
+      else if (can('maiden') && best && them.some((g) => !g.elite && g.place !== this.heart && g.strength <= this.seduceMax(s, side) && dist(best, g.place) <= 2)) apply(this.deploy(s, side, 'maiden', best));
       else {
         // One given free (a card, a shake-up): put in, rather than kept.
         const gift = (s.elites[side].gifts ?? []).find((e) => can(e));
@@ -926,11 +960,11 @@ export class RiotGame {
     // Nobody joins one of the elite squad, and they join nobody (Jack); but a maiden (witch) can merge into one of
     // hers (poisoning it).
     // Onto one of the king's guard: a squad of yours stands beside them (Jack).
-    // (Hired fighters: the computer's, by `hiredDests`; nobody joins them.)
-    if (q.hired) return [];
+    // (Hired fighters: the computer's, by `hiredDests`; nobody joins them. Buildings never move.)
+    if (q.hired || q.built) return [];
     const joinable = (p: string) => {
       const there = this.squadAt(s, p);
-      return !there || there.side !== q.side || (!there.elite && !there.hired && (!q.elite || q.elite === 'maiden')) || (there.elite === 'guard3' && !q.elite);
+      return !there || there.side !== q.side || (!there.elite && !there.hired && !there.built && (!q.elite || q.elite === 'maiden')) || (there.elite === 'guard3' && !q.elite);
     };
     // The king's guard hold where they are (Jack).
     if (q.elite === 'guard3') return [];
@@ -1180,7 +1214,67 @@ export class RiotGame {
     this.takeAudience(s, events);
     this.takeChurch(s, events);
     this.takeBarracks(s, events);
+    this.takeArchitect(s, events);
   }
+
+  /** A squad onto the architect (Jack): what will he build, and where? (Waits on a choice: `pending`.) */
+  private takeArchitect(s: RiotState, events: RiotEvent[]): void {
+    const there = s.architect && this.squadAt(s, s.architect.place);
+    if (!s.architect || !there) return;
+    s.pending = { kind: 'architect', side: there.side, at: s.architect.place };
+    events.push({ type: 'architectFound', at: s.architect.place, side: there.side });
+    s.architect = null;
+  }
+
+  /** Where a side can build (Jack: its side of the board): empty places it holds, or nearer its base than theirs; not a base, a tower, or anything on the map. */
+  buildPlaces(s: RiotState, side: Side): string[] {
+    this.use(s);
+    const far = (from: string, to: string): number => {
+      const seen = new Map([[from, 0]]);
+      const todo = [from];
+      while (todo.length) {
+        const p = todo.shift()!;
+        if (p === to) return seen.get(p)!;
+        for (const n of this.adj.get(p)!) if (!seen.has(n)) (seen.set(n, seen.get(p)! + 1), todo.push(n));
+      }
+      return 99;
+    };
+    const [mine, theirs] = [this.base(side), this.base(this.other(side))];
+    return this.board.places.map((p) => p.id).filter((p) => p !== mine && p !== theirs && !this.squadAt(s, p) && !this.isTower(p) && !this.tokenAt(s, p) && (s.owner[p] === side || (s.owner[p] !== this.other(side) && far(p, mine) < far(p, theirs))));
+  }
+
+  /** What, and where, the computer has the architect build: a fortress next to its base if there's room, else artillery nearest the other side. */
+  buildFor(s: RiotState, side: Side): { building: Building; at: string } | null {
+    const places = this.buildPlaces(s, side);
+    if (!places.length) return null;
+    const home = places.find((p) => this.near(p, this.base(side)) || this.towerList().some((t) => s.owner[t.place] === side && this.near(p, t.place)));
+    if (home && this.roll(s) < 0.5) return { building: 'fortress', at: home };
+    const foe = this.mine(s, this.other(side));
+    const near = (p: string) => this.adj.get(p)!.filter((n) => foe.some((q) => q.place === n)).length;
+    const at = [...places].sort((a, b) => near(b) - near(a) || a.localeCompare(b))[0]!;
+    return { building: this.roll(s) < 0.8 ? 'artillery' : 'storehouse', at };
+  }
+
+  /** Built (on `s`, a clone). */
+  private build(s: RiotState, side: Side, building: Building, at: string, events: RiotEvent[]): void {
+    const a = this.rules.architect ?? ARCHITECT;
+    if (!this.buildPlaces(s, side).includes(at)) return;
+    const q: RiotSquad = { id: `q${s.nextId++}`, side, place: at, strength: 1, built: building };
+    if (building === 'artillery') (q.strength = a.artillery.strength), (q.fortUntil = s.turn + a.artillery.dugIn - 1);
+    if (building === 'storehouse') q.strength = a.storehouse.strength;
+    if (building === 'fortress') (q.until = s.turn + a.fortress.lasts - 1), (q.fortUntil = q.until);
+    s.squads.push(q);
+    s.owner[at] = side;
+    if (q.fortUntil !== undefined) s.fortified = [...new Set([...s.fortified, at])];
+    events.push({ type: 'built', side, building, at });
+  }
+
+  /** The storehouse's doubling (Jack): 2 while one of a side's stands, else 1. */
+  stored = (s: RiotState, side: Side): number => (s.squads.some((q) => q.side === side && q.built === 'storehouse') ? (this.rules.architect ?? ARCHITECT).storehouse.times : 1);
+  /** How many a side's maiden can seduce (doubled by a storehouse). */
+  seduceMax = (s: RiotState, side: Side): number => (this.rules.elites?.maiden.seduceMax ?? 0) * this.stored(s, side);
+  /** A fortress of a side's next to a place (its base or a tower: Jack, +1 a turn). */
+  fortressBy = (s: RiotState, side: Side, place: string): number => (s.squads.some((q) => q.side === side && q.built === 'fortress' && this.near(q.place, place)) ? (this.rules.architect ?? ARCHITECT).fortress.makes : 0);
 
   /** A squad onto the barracks (Jack): who to hire? (Waits on a choice: `pending`.) */
   private takeBarracks(s: RiotState, events: RiotEvent[]): void {
@@ -1307,6 +1401,18 @@ export class RiotGame {
       if (gone && t.elite) events.push({ type: 'eliteGone', at: t.place, side: t.side, elite: t.elite });
       events.push({ type: 'arrow', side: a.side, from: a.place, at: t.place, damage: b.archers.damage, gone });
     }
+    // Artillery (Jack): the biggest of the other side's next to it it can hurt, for 3.
+    const art = (this.rules.architect ?? ARCHITECT).artillery;
+    for (const a of s.squads.filter((x) => x.built === 'artillery')) {
+      const foe = this.other(a.side);
+      const t = this.adj.get(a.place)!.map((p) => this.squadAt(s, p)).filter((x): x is RiotSquad => !!x && x.side === foe && !this.fortified(s, x.place) && x.place !== this.base(foe)).sort((x, y) => y.strength - x.strength)[0];
+      if (!t) continue;
+      t.strength -= art.shot;
+      const gone = t.strength <= 0;
+      if (gone) s.squads = s.squads.filter((x) => x !== t);
+      if (gone && t.elite) events.push({ type: 'eliteGone', at: t.place, side: t.side, elite: t.elite });
+      events.push({ type: 'shell', side: a.side, from: a.place, at: t.place, damage: art.shot, gone });
+    }
     for (const a of s.squads.filter((x) => x.hired === 'assassin')) {
       const base = this.base(this.other(a.side));
       const there = this.squadAt(s, base);
@@ -1337,6 +1443,7 @@ export class RiotGame {
     if (s.audience?.place === place) return 'audience';
     if (s.church?.place === place) return 'church';
     if (s.barracks?.place === place) return 'barracks';
+    if (s.architect?.place === place) return 'architect';
     return null;
   }
 
@@ -1486,7 +1593,12 @@ export class RiotGame {
     const events: RiotEvent[] = [];
     if (p.kind === 'audience') this.hear(s, p.side, p.good, typeof choice === 'string' ? choice : undefined, events);
     else if (p.kind === 'prayer') this.judge(s, p.side, events);
-    else if (p.kind === 'barracks') this.hire(s, p.side, p.at, typeof choice === 'string' && (HIRES as readonly string[]).includes(choice) ? (choice as Hire) : this.hireFor(s, p.side, p.at), events);
+    else if (p.kind === 'architect') {
+      // (`building:place`, or the computer's choice.)
+      const [b, at] = typeof choice === 'string' ? choice.split(':') : [];
+      const pick = (BUILDINGS as readonly string[]).includes(b ?? '') && at ? { building: b as Building, at } : this.buildFor(s, p.side);
+      if (pick) this.build(s, p.side, pick.building, pick.at, events);
+    } else if (p.kind === 'barracks') this.hire(s, p.side, p.at, typeof choice === 'string' && (HIRES as readonly string[]).includes(choice) ? (choice as Hire) : this.hireFor(s, p.side, p.at), events);
     else if (p.kind === 'diviner') {
       const i = typeof choice === 'number' ? choice : Math.floor(this.roll(s) * p.cards.length);
       const card = p.cards[i] ?? p.cards[0]!;
@@ -1663,7 +1775,7 @@ export class RiotGame {
   production = (s: RiotState, side: Side): number => {
     const lost = this.homeSquares(side).filter((p) => s.owner[p] === this.other(side)).length;
     const made = this.rules.homeGrowth ? (this.rules.baseMakes === undefined ? 3 - lost : Math.max(0, this.rules.baseMakes - lost)) : side === 'guard' ? this.rules.reinforce : (this.rules.risingGrowth ?? 1);
-    return Math.max(side === 'rising' && !this.rules.homeGrowth ? 1 : 0, made + this.outputOf(s, side));
+    return Math.max(side === 'rising' && !this.rules.homeGrowth ? 1 : 0, made + this.outputOf(s, side) + this.fortressBy(s, side, this.base(side)));
   };
   outputOf = (s: RiotState, side: Side): number => (s.moods ?? []).filter((m) => m.side === side && m.kind === 'output' && m.until >= s.turn).reduce((n, m) => n + m.by, 0);
   /** Turns left of the commander's advice on a side: seeing ahead, or clouded (0: none). */
@@ -1842,7 +1954,7 @@ export class RiotGame {
     const busy = new Set(chained.map((o) => o.squad));
     // (A small crowd on a tower holds it while one of yours is next to it, Jack; otherwise it goes home.)
     const holding = (q: RiotSquad) => homes && !threat && this.isTower(q.place) && this.adj.get(q.place)!.some((p) => this.squadAt(s, p)?.side === 'guard');
-    const crowds = this.mine(s, 'rising').filter((q) => q.place !== this.heart && s.cut !== q.place && !busy.has(q.id) && !q.hired && !holding(q)).sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id));
+    const crowds = this.mine(s, 'rising').filter((q) => q.place !== this.heart && s.cut !== q.place && !busy.has(q.id) && !q.hired && !q.built && !holding(q)).sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id));
     for (const q of crowds) {
       let best: { to: string; score: number } | null = null;
       // Their elite squad (Jack). The bastard: up to two streets (fighting through one on the way), for one of
@@ -1850,7 +1962,7 @@ export class RiotGame {
       // she could seduce. The barbarians: at one of yours round the square they beat; else they hold.
       if (q.elite) {
         const guardAt = (p: string) => yours.some((y) => y.place === p);
-        const seducible = (p: string) => yours.some((y) => y.place === p && !y.elite && y.strength <= (this.rules.elites?.maiden.seduceMax ?? 0));
+        const seducible = (p: string) => yours.some((y) => y.place === p && !y.elite && y.strength <= this.seduceMax(s, 'rising'));
         for (const to of this.dests(s, q)) {
           if (claimed.has(to)) continue;
           const there = this.squadAt(s, to);
@@ -1898,7 +2010,7 @@ export class RiotGame {
           else if (st.wear && !homes && q.strength >= st.wear) score = 25 - there.strength + (to === this.lifts ? 10 : 0);
           else continue;
         } else if (there) {
-          if (there.elite || there.hired) continue; // (nobody joins the elite squad, or the hired)
+          if (there.elite || there.hired || there.built) continue; // (nobody joins the elite squad, the hired, or a building)
           // Together, they could take one of yours next turn (or, gathering, just to be bigger).
           if (couldBeat(q.place, q.strength)) continue;
           if (couldBeat(to, there.strength + q.strength)) score = 18;
@@ -1959,7 +2071,7 @@ export class RiotGame {
     const worth = (y: RiotSquad) => y.strength * 2 + (y.place === this.lifts ? 30 : 0) + (this.homeSquares('guard').includes(y.place) || this.isTower(y.place) ? 15 : 0);
     const crowd = (p: string) => {
       const q = this.squadAt(s, p);
-      return q && q.side === 'rising' && !q.elite && !q.hired && p !== this.heart && s.cut !== p && !used.has(q.id) && !q.crusted && (q.stuck ?? -1) < s.turn && !s.held?.includes(q.id) ? q : null;
+      return q && q.side === 'rising' && !q.elite && !q.hired && !q.built && p !== this.heart && s.cut !== p && !used.has(q.id) && !q.crusted && (q.stuck ?? -1) < s.turn && !s.held?.includes(q.id) ? q : null;
     };
     for (const y of [...yours].sort((a, b) => worth(b) - worth(a))) {
       if (claimed.has(y.place)) continue;
@@ -2151,8 +2263,8 @@ export class RiotGame {
       const side = s.owner[t.place];
       if (!side || s.cut === t.place) continue;
       const there = this.squadAt(s, t.place);
-      const by = this.rules.towers!.makes;
-      if (there && (there.side !== side || there.elite || there.hired)) continue;
+      const by = this.rules.towers!.makes + this.fortressBy(s, side, t.place);
+      if (there && (there.side !== side || there.elite || there.hired || there.built)) continue;
       if (there) there.strength += by;
       else s.squads.push({ id: `q${s.nextId++}`, side, place: t.place, strength: by });
       events.push({ type: 'towerMakes', at: t.place, side, by });
@@ -2195,7 +2307,7 @@ export class RiotGame {
     // One thing on the map at a time (a rumble, a crest, a mystery square: Jack), a crest first when it's due.
     const crest = this.rules.elites?.crest;
     if (crest && s.turn + 1 >= crest.first && (s.turn + 1 - crest.first) % crest.every === 0) s.crestDue = true;
-    const taken = () => [s.rumble, s.crest, s.mystery, s.brothel, s.audience, s.church, s.barracks].filter(Boolean).length >= (this.rules.tokensAtOnce ?? 1);
+    const taken = () => [s.rumble, s.crest, s.mystery, s.brothel, s.audience, s.church, s.barracks, s.architect].filter(Boolean).length >= (this.rules.tokensAtOnce ?? 1);
     // A rumble: one there stays a turn less; with none, now and then one appears on an empty street.
     const rumble = this.rules.rumble;
     if (s.rumble) {
@@ -2239,8 +2351,8 @@ export class RiotGame {
       }
     }
     // The brothel and the audience (Jack): the same.
-    const names = { brothel: ['brothelAppears', 'brothelGone'], audience: ['audienceAppears', 'audienceGone'], church: ['churchAppears', 'churchGone'], barracks: ['barracksAppears', 'barracksGone'] } as const;
-    for (const kind of ['brothel', 'audience', 'church', 'barracks'] as const) {
+    const names = { brothel: ['brothelAppears', 'brothelGone'], audience: ['audienceAppears', 'audienceGone'], church: ['churchAppears', 'churchGone'], barracks: ['barracksAppears', 'barracksGone'], architect: ['architectAppears', 'architectGone'] } as const;
+    for (const kind of ['brothel', 'audience', 'church', 'barracks', 'architect'] as const) {
       const r = this.rules[kind];
       const there = s[kind];
       if (there) {
@@ -2285,7 +2397,8 @@ export class RiotGame {
     // The elite squad whose time is up are gone (Jack); whoever's still dug in (the king's guard's two turns, a
     // crusted hero) stays dug in.
     for (const q of s.squads.filter((x) => x.elite && (x.until ?? Infinity) < s.turn)) events.push({ type: 'eliteGone', at: q.place, side: q.side, elite: q.elite! });
-    s.squads = s.squads.filter((x) => !x.elite || (x.until ?? Infinity) >= s.turn);
+    for (const q of s.squads.filter((x) => x.built && (x.until ?? Infinity) < s.turn)) events.push({ type: 'builtGone', at: q.place, side: q.side, building: q.built! });
+    s.squads = s.squads.filter((x) => !(x.elite || x.built) || (x.until ?? Infinity) >= s.turn);
     s.fortified = s.squads.filter((x) => (x.fortUntil ?? -1) >= s.turn).map((x) => x.place);
     this.settle(s);
     return { state: s, events };

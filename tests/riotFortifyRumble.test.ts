@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LOW_DISTRICT_BOARD, RIOTS, type RiotScenario } from '../src/data/warTable';
-import { AUDIENCE, BARRACKS, BROTHEL, CHURCH, CLASH, ELITE_SQUAD, MYSTERY, REBEL, RIOT_RULES, RUMBLE, RiotGame, type Card, type Order, type RiotEvent, type RiotState } from '../src/systems/Riot';
+import { ARCHITECT, AUDIENCE, BARRACKS, BROTHEL, CHURCH, CLASH, ELITE_SQUAD, MYSTERY, REBEL, RIOT_RULES, RUMBLE, RiotGame, type Card, type Order, type RiotEvent, type RiotState } from '../src/systems/Riot';
 
 // Jack's two for the war table (proposed for the designer; docs/sequences/chapter-3/war-table.md): fortify,
 // and rumbles.
@@ -1052,4 +1052,62 @@ describe('the war table: towers, and more on the map (Jack)', () => {
     const t = busy.turn(busy.start(bases), [], []).state;
     expect([t.rumble, t.crest, t.mystery, t.brothel, t.audience, t.church, t.barracks].filter(Boolean)).toHaveLength(2);
   });
+});
+
+describe('the war table: the architect (Jack)', () => {
+  const sc = RIOTS.skirmish as RiotScenario;
+  const game = new RiotGame(sc.board, { ...RIOT_RULES, ...sc.rules, rumble: undefined, mystery: undefined, brothel: undefined, audience: undefined, church: undefined, barracks: undefined, shakeUp: undefined, towers: undefined, rebel: undefined });
+  const bases = [{ side: 'guard' as const, place: 'keep', strength: 5 }, { side: 'rising' as const, place: 'camp', strength: 5 }];
+  const found = (extra: Parameters<typeof game.start>[0] = []) => {
+    const s = { ...game.start([...bases, { side: 'guard', place: 'gate', strength: 4 }, ...extra]), architect: { place: 'bridge', left: 3 } };
+    const r = game.order(s, { squad: at(s, 'gate')!.id, to: 'bridge' });
+    expect(r.events).toContainEqual({ type: 'architectFound', at: 'bridge', side: 'guard' });
+    expect(r.state.pending).toEqual({ kind: 'architect', side: 'guard', at: 'bridge' });
+    return r.state;
+  };
+
+  it('he builds on your side of the board only: an empty place you hold, or nearer your base; not a base or a tower', () => {
+    const places = game.buildPlaces(found(), 'guard');
+    expect(places).toContain('postern');
+    expect(places).not.toContain('keep');
+    expect(places).not.toContain('farms');
+    expect(places).not.toContain('bridge');
+    const s = found();
+    expect(game.resolve(s, 'artillery:farms').state.squads.some((q) => q.built)).toBe(false);
+  });
+
+  it('artillery: 5, dug in at first, never moves, and shoots one of theirs next to it for 3 a turn', () => {
+    const s = game.resolve(found([{ side: 'rising', place: 'smithy', strength: 6 }]), 'artillery:wwall').state;
+    const a = at(s, 'wwall')!;
+    expect(a).toMatchObject({ built: 'artillery', strength: 5, side: 'guard' });
+    expect(game.fortified(s, 'wwall')).toBe(true);
+    expect(game.dests(s, a)).toEqual([]);
+    const r = game.turn(s, [], []);
+    expect(r.events).toContainEqual({ type: 'shell', side: 'guard', from: 'wwall', at: 'smithy', damage: 3, gone: false });
+    expect(at(r.state, 'smithy')!.strength).toBe(3);
+  });
+
+  it('a storehouse: while it stands, your elite are doubled (hero 14, maiden seduces 10, the king’s guard 4)', () => {
+    const s = game.resolve(found(), 'storehouse:postern').state;
+    expect(at(s, 'postern')).toMatchObject({ built: 'storehouse', strength: 3 });
+    expect(game.seduceMax(s, 'guard')).toBe(10);
+    expect(game.seduceMax(s, 'rising')).toBe(5);
+    const gift = { ...s, elites: { ...s.elites, guard: { used: [], crests: 1, gifts: [] } } };
+    const hero = game.deploy(gift, 'guard', 'hero', game.deployPlaces(gift, 'guard', 'hero')[0]).state;
+    expect(hero.squads.find((q) => q.elite === 'hero')!.strength).toBe(14);
+  });
+
+  it('a fortress: dug in for 7 turns, nobody can attack it, and your base next to it makes 1 more a turn', () => {
+    const s = game.resolve(found(), 'fortress:postern').state;
+    expect(game.fortified(s, 'postern')).toBe(true);
+    expect(game.production(s, 'guard')).toBe(game.production(found(), 'guard') + 1);
+    let t = s;
+    for (let i = 0; i < 6; i++) t = game.turn(t, [], []).state;
+    expect(at(t, 'postern')?.built).toBe('fortress');
+    const r = game.turn(t, [], []);
+    expect(r.events).toContainEqual({ type: 'builtGone', side: 'guard', building: 'fortress', at: 'postern' });
+    expect(at(r.state, 'postern')).toBeUndefined();
+  });
+
+  it('the skirmish has him', () => expect(sc.rules?.architect).toBe(ARCHITECT));
 });
