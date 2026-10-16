@@ -71,8 +71,9 @@ export async function openArchitect(scene: Phaser.Scene, show: ArchitectShow): P
   layer.add(face);
   scene.tweens.add({ targets: face, x: 30, duration: 400, ease: 'Sine.easeOut' });
   // The scroll: rolled up in the middle, then opening out to both sides.
+  // (Behind him from the start, Jack: it rolled out over his face, then jumped behind it.)
   const scroll = scene.add.graphics().setScrollFactor(0);
-  layer.add(scroll);
+  layer.addAt(scroll, layer.getIndex(face));
   const [top, height] = [40, 186];
   const open = { w: 8 };
   const drawScroll = () => {
@@ -91,8 +92,6 @@ export async function openArchitect(scene: Phaser.Scene, show: ArchitectShow): P
   drawScroll();
   playSound(scene, 'paper', 1);
   await new Promise<void>((r) => scene.tweens.add({ targets: open, w: W - 64, duration: 750, ease: 'Sine.easeOut', onUpdate: drawScroll, onComplete: () => r() }));
-  // (In front of his scroll.)
-  layer.bringToTop(face);
   // "Aha!"
   playSound(scene, 'aha', 1);
   const aha = new PixelText(scene, 0, top + 8, 'Aha!', { color: INK, scale: 2 }).setScrollFactor(0);
