@@ -92,28 +92,46 @@ You put your hands on the table, and it lights under them: the crag, before ther
 "I'll give you the bigger army." #speaker:prince
 "Then I'll take it." #speaker:heir
 He comes round to the other side of the table, rubbing his hands.
-~ c3day6 = "table"
+"Where do you want to fight it? It'll paint it anywhere." #speaker:prince
+"Anywhere?" #speaker:heir
+* [A rainforest.]
+    ~ duel6_map = "forest"
+    "A rainforest. I've never seen one." #speaker:heir
+    The crag goes green under your hands: a canopy so thick you can't see the ground, paths worn through it.
+* [A space station.]
+    ~ duel6_map = "station"
+    "Somewhere in the sky. Up past the stars." #speaker:heir
+    The crag goes to metal plates and lit corridors, with the stars all round the edge.
+* [The crag, as it really was.]
+    ~ duel6_map = "crag"
+    "The real thing, then. Fine." #speaker:heir
+    The crag stays the crag: the keep, the walls, the old town below, the fields.
+- ~ c3day6 = "table"
 ~ heir_with_you = false
-"Hold the keep till dawn, and you win. Take it, and I do." #speaker:prince #wartable:duel
+"Take my camp and you win. Take my keep, and I do." #speaker:prince #wartable:duel
 -> END
 
 // --- The duel (src/scenes/RiotTableScene.ts, `duel`) ---
 
 === c3day6_duel_intro ===
-"Sixty men a turn coming out of my camp, and you've a few farmers behind a wall." #speaker:heir
-"Two a turn. And it's a very good wall." #speaker:prince
+"More men every turn coming into my camp, and you've a few farmers behind a wall." #speaker:heir
+"One a turn. And I'm coming for your camp." #speaker:prince
 "Your move, Highness." #speaker:heir
 -> END
 
 === c3day6_duel_won ===
-The sun comes up on the table's edge, and the keep's still yours.
+Your army in his camp, and the light there gone your colour.
 "That's not fair. I had more of everything." #speaker:heir
-"You had more. I had the wall." #speaker:prince
+"You had more. I brought mine together." #speaker:prince
 He laughs, and leans across the table to shake your hand.
 -> END
 
 === c3day6_duel_lost ===
-His army over the walls, into the keep, the light gone his colour.
+{ duel6_how == "keep":
+    His army over the walls, into the keep, the light gone his colour.
+- else:
+    The sun comes up on the table's edge, and his camp's still standing.
+}
 "The crag falls! History is rewritten!" #speaker:heir
 He's doing a little dance round his side of the table.
 "Don't tell anyone." #speaker:prince
@@ -132,7 +150,7 @@ He's doing a little dance round his side of the table.
 Your father, in the doorway of his own room.
 Your friend stands up very straight.
 Behind your father, the captain. Behind the captain, two of the guard. #show:captain-6s #show:guard-6a #show:guard-6b
-Your father walks the length of the table, slowly, looking at it. At the keep, in your colour or his. #walk:father-6s:268 #walk:captain-6s:120 #walk:guard-6a:80 #walk:guard-6b:96
+Your father walks the length of the table, slowly, looking at it. At the camp, and the keep, and whose colour each is. #walk:father-6s:268 #walk:captain-6s:120 #walk:guard-6a:80 #walk:guard-6b:96
 "The siege of the crag." #speaker:father
 "I taught you that one." #speaker:father
 He doesn't look at your friend. Not once.

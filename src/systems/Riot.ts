@@ -76,6 +76,11 @@ export interface RiotRules {
   ordered: boolean;
   /** Rumbles (Jack): the chance one appears each turn when there's none, how many turns it stays, and the most a dice can take (from 1). None if absent. */
   rumble?: { chance: number; lasts: number; max: number };
+  /**
+   * The duel (Day 6; designer): the rising (you, holding the keep) win by taking the guard's base (the lifts'
+   * place: his siege camp) before dawn; dawn first, and the guard have won.
+   */
+  siege?: boolean;
 }
 
 export const RIOT_RULES: RiotRules = { dawn: 18, reinforce: 3, reinforceEvery: 1, powerEvery: 3, fortifyEvery: 3, ordered: true };
@@ -457,7 +462,7 @@ export class RiotGame {
       const r = this.order(s, o);
       s = r.state;
       events.push(...r.events);
-      if (this.outcome(s) === 'guard') return { state: s, events };
+      if (this.outcome(s)) return { state: s, events };
     }
     s = this.clone(s);
     // People keep joining the square.
@@ -506,10 +511,14 @@ export class RiotGame {
     return { state: s, events };
   }
 
-  /** Who's won: the guard, when the square's theirs; the rising, if dawn comes and it's still theirs. */
+  /**
+   * Who's won: the guard, when the square's theirs; the rising, if dawn comes and it's still theirs. In a siege
+   * (the duel), the rising win by taking the guard's base, and dawn's the guard's.
+   */
   outcome(s: RiotState): Side | null {
     if (this.squadAt(s, this.heart)?.side === 'guard') return 'guard';
-    if (s.turn > this.rules.dawn) return 'rising';
+    if (this.rules.siege && this.squadAt(s, this.lifts)?.side === 'rising') return 'rising';
+    if (s.turn > this.rules.dawn) return this.rules.siege ? 'guard' : 'rising';
     return null;
   }
 }

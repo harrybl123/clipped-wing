@@ -178,3 +178,17 @@ export function naive(): GuardPlayer {
     return { orders };
   };
 }
+
+/**
+ * Your friend in the duel (Day 6): sensible, but his camp's garrison never leaves it (the duel's won by taking
+ * it: designer), so his reinforcements gather there and you have to bring enough together to take it.
+ */
+export function besieger(): GuardPlayer {
+  const quick = sensible();
+  return (g, s) => {
+    const turn = quick(g, s);
+    const home = g.squadAt(s, g.lifts);
+    if (home?.side !== 'guard') return turn;
+    return { ...turn, orders: turn.orders.filter((o) => o.squad !== home.id) };
+  };
+}

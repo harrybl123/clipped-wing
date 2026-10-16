@@ -3,7 +3,7 @@ import { GAME_HEIGHT as H, GAME_WIDTH as W } from '../config';
 import { RIOTS, type DuelScenario, type LessonScenario, type RiotScenario } from '../data/warTable';
 import { getSession } from '../session';
 import { RIOT_RULES, RISING_STYLE, RiotGame, type Order, type RiotBoard, type RiotEvent, type RiotPlace, type RiotSquad, type RiotState, type Side } from '../systems/Riot';
-import { careful, sensible, steady, type GuardPlayer } from '../systems/RiotPlayers';
+import { besieger, careful, steady, type GuardPlayer } from '../systems/RiotPlayers';
 import { DialogueBox } from '../ui/DialogueBox';
 import { rgb, SHADES, type PixelColour, type RGB } from '../ui/pixelArt';
 import { makePaintedTexture } from '../ui/pixelTextures';
@@ -24,8 +24,8 @@ import type { CombatSceneData } from './CombatScene';
 //   play (designer). Take the square before dawn and you go down yourself; if dawn comes first, your father
 //   comes in, takes the table, and wins it while you watch.
 //   Day 6, the duel (`duel`): the old castle's siege, with your friend, for fun. You hold the keep (the rising's
-//   side of the rules), he has the bigger army (the guard's), played sensibly, his moves shown; hold it till
-//   dawn and you've won. Either way, back in the room after.
+//   side of the rules), he has the bigger army (the guard's), played sensibly, his moves shown; take his camp,
+//   keeping your keep, and you've won (designer; no turn limit for now). Either way, back in the room after.
 //
 // The table shows a riot (designer): the district's streets in light; the rising's squads amber circles, with
 // fire and a crowd round them; the guard's blue shields; a key at the top says who's who, and which is you.
@@ -107,6 +107,8 @@ export class RiotTableScene extends Phaser.Scene {
   /** Where the view's heading (it eases there). */
   private view = { x: 0, y: 0 };
   private looked: RiotPlace | null = null;
+  /** Dragging the table round with the mouse (designer: hard to get about): where it started, and whether it's moved. */
+  private drag: { x: number; y: number; vx: number; vy: number; moved: boolean } | null = null;
 
   constructor() {
     super('RiotTable');
@@ -134,14 +136,18 @@ export class RiotTableScene extends Phaser.Scene {
     this.numbers = [];
     this.embers = [];
     this.looked = null;
+    this.drag = null;
     this.bw = sc.board.width ?? W;
     this.bh = sc.board.height ?? H;
   }
 
   create(): void {
     this.cameras.main.setBackgroundColor(SHADES.shadow);
-    const key = `riot-table-${this.sc.district}`;
-    makePaintedTexture(this, key, this.bw, this.bh, districtPainter(this.sc.board, this.sc.district, this.bw, this.bh));
+    // The duel's table can be painted anywhere (designer: where do you want to fight?): the crag, a rainforest, a
+    // space station. Only the picture changes.
+    const look: TableLook = this.sc.kind === 'duel' ? duelLook(String(getSession(this).story.getVariable('duel6_map') ?? '')) : this.sc.district;
+    const key = `riot-table-${look}`;
+    makePaintedTexture(this, key, this.bw, this.bh, look === 'forest' ? forestPainter(this.sc.board, this.bw, this.bh) : look === 'station' ? stationPainter(this.sc.board, this.bw, this.bh) : districtPainter(this.sc.board, look, this.bw, this.bh));
     this.add.image(0, 0, key).setOrigin(0);
     this.cameras.main.setBounds(0, 0, this.bw, this.bh);
     this.life = this.add.graphics().setDepth(2);
@@ -169,6 +175,7 @@ export class RiotTableScene extends Phaser.Scene {
     this.input.mouse?.disableContextMenu();
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.onPointer(p, false));
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => this.onPointer(p, true));
+    this.input.on('pointerup', (p: Phaser.Input.Pointer) => this.onPointerUp(p));
     this.time.addEvent({ delay: 400, loop: true, callback: () => this.draw() });
     this.time.addEvent({ delay: 120, loop: true, callback: () => ((this.t += 1), this.drawLife()) });
     this.cameras.main.fadeIn(600);
@@ -204,7 +211,7 @@ export class RiotTableScene extends Phaser.Scene {
     if (this.bw <= W && this.bh <= H) return;
     // The mouse at an edge of the screen pans the table (when you're free to look round).
     const p = this.input.activePointer;
-    if (this.ready() && !this.aiming && p.x >= 0 && p.y >= 0 && p.x <= W && p.y <= H) {
+    if (this.ready() && !this.drag && !this.aiming && p.x >= 0 && p.y >= 0 && p.x <= W && p.y <= H) {
       const edge = 14;
       const step = delta * 0.25;
       const dx = p.x < edge ? -step : p.x > W - edge ? step : 0;
@@ -217,9 +224,9 @@ export class RiotTableScene extends Phaser.Scene {
   }
   private lesson = (): LessonScenario | null => (this.sc.kind === 'lesson' ? this.sc : null);
 
-  /** The computer's guard: your father, steady in the lesson, meaning it in "Now." and when he takes over; your friend, sensible. */
+  /** The computer's guard: your father, steady in the lesson, meaning it in "Now." and when he takes over; your friend, sensible, never emptying his camp. */
   private guardPlayer(): GuardPlayer {
-    return this.phase === 'lesson' ? steady() : this.phase === 'duel' ? sensible() : careful();
+    return this.phase === 'lesson' ? steady() : this.phase === 'duel' ? besieger() : careful();
   }
 
   // --- The turn ---
@@ -285,10 +292,12 @@ export class RiotTableScene extends Phaser.Scene {
       this.state = s;
       events.push(...r.events);
       this.draw();
-      if (this.g.outcome(s) === 'guard') break;
+      if (this.g.outcome(s)) break;
       // The lesson's last goal, taken: you go down yourself for the last of it.
       if (this.lastGoalTaken()) return this.goDownLesson();
     }
+    // The duel: his camp taken, or your keep.
+    if (this.sc.kind === 'duel' && this.g.outcome(s)) return this.duelOver(this.sc, this.g.outcome(s) === 'rising');
     // Into the square: the guard have it.
     if (this.g.outcome(s) === 'guard') return this.squareTaken();
     // The square grows; the guard come down the lifts.
@@ -303,6 +312,8 @@ export class RiotTableScene extends Phaser.Scene {
     this.draw();
     await this.wait(this.fatherPlaying ? 250 : 500);
     if (this.fatherPlaying) return this.startTurn();
+    // The duel: dawn, and his camp still his.
+    if (this.sc.kind === 'duel' && this.g.outcome(this.state)) return this.duelOver(this.sc, this.g.outcome(this.state) === 'rising');
     // Dawn.
     if (this.g.outcome(this.state) === 'rising') return this.dawn();
     if (this.phase === 'now' && this.state.turn > this.lesson()!.now.turns) return this.switchOff();
@@ -501,16 +512,18 @@ export class RiotTableScene extends Phaser.Scene {
     ]);
   }
 
-  /** The duel's over: you held the keep till dawn, or he took it (play it again, or go on). Back in the room either way. */
+  /** The duel's over: you took his camp, or he took your keep, or dawn came (play it again, or go on). Back in the room either way. */
   private duelOver(sc: DuelScenario, won: boolean): void {
     this.busy = true;
     this.draw();
     const { story } = getSession(this);
+    const keepTaken = this.g.squadAt(this.state, this.g.heart)?.side === 'guard';
     story.setVariable('duel6', won ? 'won' : 'lost');
+    story.setVariable('duel6_how', won ? 'camp' : keepTaken ? 'keep' : 'dawn');
     story.setVariable('duel6_turns', Math.min(this.state.turn, this.g.rules.dawn));
     const out = () => this.talk(won ? sc.knots.won : sc.knots.lost, () => this.leave(() => this.scene.start('Area', { ...this.params.back, script: sc.knots.after } satisfies AreaSceneData)));
     if (won) return out();
-    this.dialogue.openMenu('He\u2019s taken the keep.', [
+    this.dialogue.openMenu(keepTaken ? 'He\u2019s taken the keep.' : 'Dawn, and his camp\u2019s still standing.', [
       { label: 'Play it again', run: () => this.leave(() => this.scene.restart({ ...this.params, phase: undefined } satisfies RiotTableSceneData)) },
       { label: 'Go on', run: () => this.time.delayedCall(150, out) },
     ]);
@@ -561,6 +574,16 @@ export class RiotTableScene extends Phaser.Scene {
   }
 
   private onPointer(p: Phaser.Input.Pointer, down: boolean): void {
+    // Dragging the table round.
+    if (this.drag && !down && p.isDown) {
+      const [dx, dy] = [p.x - this.drag.x, p.y - this.drag.y];
+      if (Math.abs(dx) + Math.abs(dy) > 3) this.drag.moved = true;
+      if (this.drag.moved) {
+        this.view = { x: Math.max(0, Math.min(this.bw - W, this.drag.vx - dx)), y: Math.max(0, Math.min(this.bh - H, this.drag.vy - dy)) };
+        this.cameras.main.setScroll(Math.round(this.view.x), Math.round(this.view.y));
+      }
+      return;
+    }
     if (!this.ready()) return;
     if (down && p.rightButtonDown()) return this.back();
     // The corner buttons are on the screen; everything else is on the table (which may have panned).
@@ -579,8 +602,16 @@ export class RiotTableScene extends Phaser.Scene {
     if (near && near !== this.cursor) (this.cursor = near), this.draw();
     if (down) {
       if (near) this.choose(near);
+      // Off the places: hold and drag to move round the table; a click without dragging backs out, as ever.
+      else if (p.leftButtonDown()) this.drag = { x: p.x, y: p.y, vx: this.view.x, vy: this.view.y, moved: false };
       else this.back();
     }
+  }
+
+  private onPointerUp(_p: Phaser.Input.Pointer): void {
+    const drag = this.drag;
+    this.drag = null;
+    if (drag && !drag.moved && this.ready()) this.back();
   }
 
   /** E or a click: pick up a squad of yours, send the one you've picked there, or cut the power there. */
@@ -775,7 +806,7 @@ export class RiotTableScene extends Phaser.Scene {
     }
     // The places: a ring in the colour of whoever holds it; the square's barricades; the lifts' foot.
     const sc = this.sc;
-    const goalPlace = sc.kind === 'lesson' && this.phase === 'lesson' ? sc.goals[this.goal]?.place : this.phase !== 'lesson' ? this.g.heart : undefined;
+    const goalPlace = sc.kind === 'lesson' && this.phase === 'lesson' ? sc.goals[this.goal]?.place : sc.kind === 'duel' ? this.g.lifts : this.phase !== 'lesson' ? this.g.heart : undefined;
     for (const p of sc.board.places) {
       const owner = s.owner[p.id];
       g.lineStyle(1, owner ? COLOUR[owner] : SHADES.dim, owner ? 0.9 : 0.6).strokeCircle(p.x, p.y, 10);
@@ -884,7 +915,7 @@ export class RiotTableScene extends Phaser.Scene {
     if (this.fatherPlaying) return 'Your father has the table.';
     if (sc.kind === 'lesson') return this.phase === 'lesson' ? `Take ${lower(this.place(sc.goals[this.goal]?.place ?? this.g.heart).name)}.` : 'Hold the square.';
     const left = this.g.rules.dawn - this.state.turn + 1;
-    if (sc.kind === 'duel') return `Hold the keep: ${left} ${left === 1 ? 'turn' : 'turns'} till dawn.`;
+    if (sc.kind === 'duel') return `Take his camp. Turn ${this.state.turn}.`;
     return `Dawn in ${left} ${left === 1 ? 'turn' : 'turns'}.`;
   }
 
@@ -938,8 +969,8 @@ export class RiotTableScene extends Phaser.Scene {
     const whose = (side: Side) => (duel ? (side === this.you ? 'Your garrison' : 'His army') : side === this.you ? (side === 'guard' ? 'Your guard' : 'Your people') : side === 'guard' ? 'The guard' : 'The rising');
     const lines = [p.name];
     if (there) lines.push(`${whose(there.side)}, ${there.strength}`);
-    if (p.heart) lines.push(duel ? 'Walls +1. Grows 1 a turn, as people come in from the fields.' : `Barricades +1. Grows 1 a turn; over ${this.g.style.pourAbove}, sends crowds out.`);
-    if (p.lifts) lines.push(duel ? `His army get +${this.g.rules.reinforce} here each turn.` : `The guard get +${this.g.rules.reinforce} here each turn.`);
+    if (p.heart) lines.push(duel ? `Walls +1. Grows 1 a turn; over ${this.g.style.pourAbove}, sends ${this.g.style.pour} out. Lose it and you've lost.` : `Barricades +1. Grows 1 a turn; over ${this.g.style.pourAbove}, sends crowds out.`);
+    if (p.lifts) lines.push(duel ? `His army get +${this.g.rules.reinforce} here each turn. Take it and you've won.` : `The guard get +${this.g.rules.reinforce} here each turn.`);
     if (s.cut === p.id) lines.push('No power this turn.');
     if (this.g.fortified(s, p.id)) lines.push('Dug in: nobody can attack it this turn.');
     if (s.rumble?.place === p.id) lines.push(`A rumble: whoever gets here first sets it off. Everyone next to it takes 1 to 3. (${s.rumble.left} ${s.rumble.left === 1 ? 'turn' : 'turns'} left)`);
@@ -1069,6 +1100,95 @@ function nearestIn(places: readonly RiotPlace[], from: RiotPlace, dx: number, dy
  * dark with a few lit windows. The low district warm and crowded (small blocks); the promenade's glass in
  * long, clean ones. In the table's cyan.
  */
+/** What the table's painted as: a district, the crag, or (the duel, for fun) a rainforest or a space station. */
+type TableLook = 'low' | 'promenade' | 'castle' | 'forest' | 'station';
+
+function duelLook(map: string): TableLook {
+  return map === 'forest' ? 'forest' : map === 'station' ? 'station' : 'castle';
+}
+
+/** How far a pixel is from the nearest street or place on the board (for painting them lit). */
+function roadDistance(board: RiotBoard): (x: number, y: number) => number {
+  const pos = new Map(board.places.map((p) => [p.id, p]));
+  const segs = board.ways.map(([a, b]) => [pos.get(a)!, pos.get(b)!] as const);
+  return (x, y) => {
+    let d = Infinity;
+    for (const [a, b] of segs) {
+      const vx = b.x - a.x;
+      const vy = b.y - a.y;
+      const t = Math.max(0, Math.min(1, ((x - a.x) * vx + (y - a.y) * vy) / (vx * vx + vy * vy)));
+      d = Math.min(d, Math.hypot(x - (a.x + vx * t), y - (a.y + vy * t)));
+    }
+    for (const p of board.places) d = Math.min(d, Math.hypot(x - p.x, y - p.y) - 8);
+    return d;
+  };
+}
+
+const hash = (a: number, b: number) => (((a * 73856093) ^ (b * 19349663)) >>> 0);
+/** The table's own light over a picture: scan lines, and darker towards the edges. */
+const tableLight = (x: number, y: number, bw: number, bh: number) => (y % 3 === 0 ? 0.8 : 1) * Math.min(1, 0.45 + Math.min(x, bw - x, y, bh - y) / 40);
+const scale = (c: number, k: number): RGB => rgb(c).map((v) => v * k) as unknown as RGB;
+
+/**
+ * A rainforest, from above: the canopy crowns packed close, lit on top and dark between, with paths of earth
+ * worn through it where the streets are, and here and there a river's glint. (The duel, if you choose it.)
+ */
+function forestPainter(board: RiotBoard, bw: number, bh: number): (x: number, y: number) => PixelColour {
+  const road = roadDistance(board);
+  return (x, y) => {
+    const k = tableLight(x, y, bw, bh) * 0.85;
+    const d = road(x, y);
+    if (d < 3) return scale(SHADES.woodLight, k * 0.75);
+    if (d < 5) return scale(SHADES.wood, k);
+    // The nearest crown, on a jittered grid.
+    const cell = 11;
+    let best = Infinity;
+    let r = 0;
+    let dx = 0;
+    let dy = 0;
+    const [cx, cy] = [Math.floor(x / cell), Math.floor(y / cell)];
+    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+      const h = hash(cx + i, cy + j);
+      const tx = (cx + i) * cell + (h % cell);
+      const ty = (cy + j) * cell + ((h >> 4) % cell);
+      const dist = Math.hypot(x - tx, y - ty);
+      if (dist < best) [best, r, dx, dy] = [dist, 5 + ((h >> 8) % 4), x - tx, y - ty];
+    }
+    if (best > r) return scale(SHADES.shadow, k);
+    // Lit from the top left.
+    const lit = -(dx + dy) / (r * 1.4);
+    if (lit > 0.35) return scale(SHADES.green, k * 0.8);
+    if (lit > -0.3) return scale(SHADES.greenMid, k);
+    return scale(SHADES.greenDeep, k);
+  };
+}
+
+/**
+ * A space station, from above: hull plates riveted in a grid, seams of cyan light, the corridors lit where the
+ * streets are, small amber lamps, and the stars at its edges. (The duel, if you choose it.)
+ */
+function stationPainter(board: RiotBoard, bw: number, bh: number): (x: number, y: number) => PixelColour {
+  const road = roadDistance(board);
+  return (x, y) => {
+    const k = tableLight(x, y, bw, bh);
+    const edge = Math.min(x, bw - x, y, bh - y);
+    // Space round the hull.
+    if (edge < 14) return hash(x, y) % 97 === 0 ? scale(SHADES.white, 0.8) : scale(SHADES.shadow, 1);
+    if (edge < 16) return scale(SHADES.cyanMid, k);
+    const d = road(x, y);
+    if (d < 2) return scale(SHADES.light, k * 0.8);
+    if (d < 4) return scale(SHADES.cyanMid, k);
+    if (d < 6) return scale(SHADES.deep, k);
+    const plate = 18;
+    const [gx, gy] = [x % plate, y % plate];
+    if (gx === 0 || gy === 0) return scale(SHADES.cyanDeep, k);
+    const h = hash(Math.floor(x / plate), Math.floor(y / plate));
+    if ((gx === 2 || gx === plate - 2) && (gy === 2 || gy === plate - 2)) return scale(SHADES.dim, k);
+    if (h % 9 === 0 && gx > 6 && gx < 11 && gy > 6 && gy < 11) return scale(gx === 8 && gy === 8 ? SHADES.amber : SHADES.amberDeep, k);
+    return scale(h % 3 === 0 ? SHADES.dim : SHADES.deep, k * (0.7 + (h % 5) * 0.06));
+  };
+}
+
 function districtPainter(board: RiotBoard, district: 'low' | 'promenade' | 'castle', bw = W, bh = H): (x: number, y: number) => PixelColour {
   const pos = new Map(board.places.map((p) => [p.id, p]));
   const segs = board.ways.map(([a, b]) => [pos.get(a)!, pos.get(b)!] as const);

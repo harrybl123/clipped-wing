@@ -198,7 +198,8 @@ export function beginChapter3(scene: Phaser.Scene): void {
  * Day 6 (`&day=6`): `start` (dawn, your friend on your couch), `table` (the simulation room with him), `duel`
  * (straight onto the war table), `study` (your father, after), `arrive` (the guests at the foot of the stair),
  * `wing` (the guest wing), `banquet`, `night` (the third bell: your sister on the gallery); Day 5's as
- * `&raid=stayed_out`, `&standoff=taken`, and this day's `&duel=lost`, `&invitation=captain`, `&promised=0`.
+ * `&raid=stayed_out`, `&standoff=taken`, and this day's `&map=forest|station` (where the duel's painted), `&duel=lost`,
+ * `&invitation=captain`, `&promised=0`.
  */
 export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
   const session = getSession(scene);
@@ -277,7 +278,7 @@ export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
   const day6: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | number | boolean> }> = {
     start: { area: { areaId: 'prince-quarters', start: { x: 120, y: 226 }, script: 'c3day6_start', card: 'Days later.' }, slots: 0, vars: {} },
     table: { area: { areaId: 'simulation-room', start: { x: 120, y: 230 } }, slots: 0, vars: { c3day6: 'room', sim_open: true, heir_with_you: true, objective: 'Show your friend the war table', objective_target: 'simulation-room:table-6' } },
-    duel: { area: { areaId: 'simulation-room', start: { x: 330, y: 230 } }, slots: 0, vars: { c3day6: 'table', sim_open: true, room6: true } },
+    duel: { area: { areaId: 'simulation-room', start: { x: 330, y: 230 } }, slots: 0, vars: { c3day6: 'table', sim_open: true, room6: true, duel6_map: params.get('map') ?? 'crag' } },
     study: { area: { areaId: 'fathers-study', start: { x: 60, y: 230 } }, slots: 0, vars: { c3day6: 'study', ...morning6, father6: false, sim_open: false, objective: "Go to your father's study", objective_target: 'fathers-study:father-6' } },
     arrive: { area: { areaId: 'citadel-halls', start: { x: 250, y: 136 } }, slots: 0, vars: { c3day6: 'arrive', ...morning6, objective: 'Greet the guests', objective_target: 'citadel-halls:guest-6a' } },
     wing: { area: { areaId: 'guest-wing', start: { x: 610, y: 226 } }, slots: 1, vars: { c3day6: 'wing', ...morning6, objective: 'See the guests settled', objective_target: 'guest-wing:heir-6w' } },

@@ -720,11 +720,15 @@ VAR standoff5 = ""
 // study, arrive, wing, banquet, office, home, follow, done.
 VAR c3day6 = ""
 // Your friend with you (a follower), to the simulation room; the duel on the war table, the old castle's siege
-// ("won": you held the keep till dawn; "lost"), and in how many turns.
+// ("won": you took his camp; "lost"), and in how many turns.
 VAR heir_with_you = false
 VAR room6 = false
 VAR duel6 = ""
 VAR duel6_turns = 0
+// Where you fought it (the table only paints it differently): "crag", "forest" or "station"; and how it ended
+// ("camp": you took his; "keep": he took yours; "dawn": a turn limit, if there's one again).
+VAR duel6_map = ""
+VAR duel6_how = ""
 // Your father in the doorway: his invitation, given to your friend by you ("you") or the captain ("captain").
 VAR invitation = ""
 VAR father6 = false
