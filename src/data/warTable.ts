@@ -1,4 +1,4 @@
-import { AUDIENCE, BROTHEL, CHURCH, CLASH, ELITE_SQUAD, MYSTERY, RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type RisingStyle, type Side } from '../systems/Riot';
+import { AUDIENCE, BROTHEL, CHURCH, CLASH, ELITE_SQUAD, MYSTERY, REBEL, RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type RisingStyle, type Side } from '../systems/Riot';
 
 // The war table's maps and games (Chapter 3; the game: src/systems/Riot.ts, its design and how it was
 // tuned: docs/sequences/chapter-3/war-table.md). Day 2: the lesson in the simulation room (you're the rising,
@@ -335,8 +335,12 @@ const SKIRMISH_START: Setup = [
   { side: 'guard', place: 'etower', strength: 3 },
   { side: 'guard', place: 'wwall', strength: 4 },
   { side: 'guard', place: 'ewall', strength: 4 },
-  { side: 'rising', place: 'camp', strength: 24 },
-  ...['tannery', 'chapel', 'marsh', 'quarry', 'smithy', 'granary'].map((place) => ({ side: 'rising' as const, place, strength: 3 })),
+  // Even (Jack): 5 in each base, and the same out in the field (19 each), two streets out.
+  { side: 'rising', place: 'camp', strength: 5 },
+  { side: 'rising', place: 'tannery', strength: 4 },
+  { side: 'rising', place: 'chapel', strength: 4 },
+  { side: 'rising', place: 'ford', strength: 3 },
+  { side: 'rising', place: 'hills', strength: 3 },
 ];
 
 const riot = (id: string, board: RiotBoard, district: RiotScenario['district'], squareArea: RiotScenario['squareArea']): RiotScenario => ({
@@ -360,6 +364,6 @@ export const RIOTS: Record<string, RiotScenario | LessonScenario | DuelScenario>
     squads: SKIRMISH_START,
     skirmish: true,
     views: { in: SKIRMISH_WIDE, out: SKIRMISH_BOARD },
-    rules: { rumble: RUMBLE, elites: { ...ELITE_SQUAD, once: false, hero: { ...ELITE_SQUAD.hero, lasts: 5 } }, clash: CLASH, mystery: MYSTERY, brothel: BROTHEL, audience: AUDIENCE, church: CHURCH, dawn: 100000, shakeUp: { every: 6, trickster: 0.25 }, baseLoss: true },
+    rules: { rumble: RUMBLE, elites: { ...ELITE_SQUAD, once: false, hero: { ...ELITE_SQUAD.hero, lasts: 5 } }, clash: CLASH, mystery: MYSTERY, brothel: BROTHEL, audience: AUDIENCE, church: CHURCH, rebel: REBEL, homeGrowth: true, clashOutput: { by: 1, turns: 3 }, dawn: 100000, shakeUp: { every: 6, trickster: 0.25 }, baseLoss: true },
   },
 };

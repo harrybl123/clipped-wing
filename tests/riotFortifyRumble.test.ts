@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LOW_DISTRICT_BOARD, RIOTS, type RiotScenario } from '../src/data/warTable';
-import { AUDIENCE, BROTHEL, CHURCH, CLASH, ELITE_SQUAD, MYSTERY, RIOT_RULES, RUMBLE, RiotGame, type Card, type Order, type RiotState } from '../src/systems/Riot';
+import { AUDIENCE, BROTHEL, CHURCH, CLASH, ELITE_SQUAD, MYSTERY, REBEL, RIOT_RULES, RUMBLE, RiotGame, type Card, type Order, type RiotState } from '../src/systems/Riot';
 
 // Jack's two for the war table (proposed for the designer; docs/sequences/chapter-3/war-table.md): fortify,
 // and rumbles.
@@ -237,7 +237,9 @@ describe('the war table: the elite squad (Jack, a trial)', () => {
       { id: 'h', side: 'guard', place: 'arch', strength: 7, elite: 'hero', until: 3 },
       { id: 'r', side: 'rising', place: 'market', strength: 4 },
     ]);
-    expect(game.order(s, { squad: 'r', to: 'arch' }).events).toEqual([{ type: 'blocked', at: 'arch', side: 'rising' }]);
+    // (Only their hero can go at it, Jack: an ordinary squad can't.)
+    expect(game.dests(s, at(s, 'market')!)).not.toContain('arch');
+    expect(game.order(s, { squad: 'r', to: 'arch' }).events).toEqual([]);
     const t = game.order(s, { squad: 'h', to: 'market' }).state;
     expect(at(t, 'market')).toMatchObject({ elite: 'hero', strength: 3 });
     const exact = game.order({ ...s, squads: [{ ...s.squads[0]!, strength: 4 }, s.squads[1]!] }, { squad: 'h', to: 'market' }).state;
@@ -389,8 +391,8 @@ describe('the war table: clashes (Jack)', () => {
     expect(Object.keys(count(1))).toEqual(['1']);
   });
 
-  it('a hero clashes too, when the numbers match', () => {
-    const h = set([{ id: 'g', side: 'guard', place: 'arch', strength: 4, elite: 'hero', until: 3 }, { id: 'r', side: 'rising', place: 'market', strength: 4 }]);
+  it('the two heroes clash too, when the numbers match (only they can hurt each other: Jack)', () => {
+    const h = set([{ id: 'g', side: 'guard', place: 'arch', strength: 4, elite: 'hero', until: 3 }, { id: 'r', side: 'rising', place: 'market', strength: 4, elite: 'hero', until: 3 }]);
     expect(game.turn(h, [{ squad: 'g', to: 'market' }], [{ squad: 'r', to: 'arch' }]).events.some((e) => e.type === 'clash')).toBe(true);
   });
 
@@ -864,5 +866,76 @@ describe('the war table: races on horseback (Jack)', () => {
     const b = game.turn(blessed, [{ squad: 'g', to: 'market' }], [{ squad: 'r', to: 'market' }]);
     expect(b.state.squads.some((q) => q.id === 'r')).toBe(false);
     expect(at(b.state, 'market')?.id).toBe('g');
+  });
+});
+
+describe('the war table: even, the home squares, the rebels’ move, heroes (Jack)', () => {
+  const board = (RIOTS.skirmish as RiotScenario).board;
+  const even = new RiotGame(board, { ...RIOT_RULES, homeGrowth: true, clash: CLASH, clashOutput: { by: 1, turns: 3 } });
+  const both = [{ side: 'guard' as const, place: 'keep', strength: 5 }, { side: 'rising' as const, place: 'camp', strength: 5 }];
+
+  it('each base makes 1 a turn for each of its three home squares the other side doesn’t hold; besieged, none', () => {
+    const s = even.turn(even.start(both), [], []).state;
+    expect([at(s, 'keep')!.strength, at(s, 'camp')!.strength]).toEqual([8, 8]);
+    const one = even.start([...both, { side: 'rising', place: 'gate', strength: 1 }]);
+    expect(even.production(one, 'guard')).toBe(2);
+    const besieged = { ...even.start(both), owner: { ...even.start(both).owner, postern: 'rising' as const, yard: 'rising' as const, gate: 'rising' as const } };
+    expect(even.production(besieged, 'guard')).toBe(0);
+    expect(even.production(besieged, 'rising')).toBe(3);
+  });
+
+  it('the skirmish is even: 5 in each base, the same out in the field', () => {
+    const sc = RIOTS.skirmish as RiotScenario;
+    const total = (side: string) => sc.squads.filter((q) => q.side === side).reduce((n, q) => n + q.strength, 0);
+    expect(sc.squads.find((q) => q.place === 'keep')!.strength).toBe(5);
+    expect(sc.squads.find((q) => q.place === 'camp')!.strength).toBe(5);
+    expect(total('guard')).toBe(total('rising'));
+    expect(sc.rules?.homeGrowth).toBe(true);
+  });
+
+  it('winning a clash: the winners’ base makes 1 more for 3 turns', () => {
+    const s = even.start([...both, { side: 'guard', place: 'gate', strength: 3 }, { side: 'rising', place: 'bridge', strength: 3 }]);
+    const r = even.turn(s, [go(s, 'gate', 'bridge')], [{ ...go(s, 'bridge', 'gate'), side: 'rising' }]);
+    const clash = r.events.find((e) => e.type === 'clash');
+    expect(clash).toBeTruthy();
+    const winner = clash?.type === 'clash' && clash.won ? 'guard' : 'rising';
+    expect(even.outputOf(r.state, winner)).toBe(1);
+  });
+
+  it('the hero and the bastard can hurt each other; nothing else can hurt either', () => {
+    const s = { ...even.start(both), squads: [{ id: 'h', side: 'guard' as const, place: 'gate', strength: 7, elite: 'hero' as const, until: 9 }, { id: 'b', side: 'rising' as const, place: 'bridge', strength: 3, elite: 'hero' as const, until: 9 }, { id: 'c', side: 'guard' as const, place: 'smithy', strength: 9 }] };
+    expect(even.dests(s, s.squads[2]!)).not.toContain('bridge');
+    const r = even.order(s, { squad: 'h', to: 'bridge' });
+    expect(r.state.squads.some((q) => q.id === 'b')).toBe(false);
+    expect(r.events.some((e) => e.type === 'eliteGone' && e.side === 'rising')).toBe(true);
+  });
+
+  const rebels = new RiotGame(board, { ...RIOT_RULES, rebel: REBEL });
+  it('the rebels’ move, once every 3 turns: Rally where +2 wins them a fight', () => {
+    const s = rebels.start([...both, { side: 'guard', place: 'gate', strength: 4 }, { side: 'rising', place: 'bridge', strength: 3 }]);
+    const r = rebels.risingActs(s);
+    expect(r.events).toContainEqual({ type: 'rally', at: 'bridge', by: 2 });
+    expect(at(r.state, 'bridge')!.strength).toBe(5);
+    expect(rebels.canRebel(r.state)).toBe(false);
+    expect(rebels.rebelIn(r.state)).toBe(3);
+  });
+
+  it('Sabotage: the street one of yours would take their base by, blocked for the turn', () => {
+    const s = rebels.start([...both, { side: 'guard', place: 'crossroads', strength: 9 }]);
+    const r = rebels.risingActs(s);
+    expect(r.events[0]).toMatchObject({ type: 'sabotage' });
+    expect(rebels.dests(r.state, at(r.state, 'crossroads')!)).not.toContain('camp');
+    // (Just the turn.)
+    expect(rebels.turn(r.state, [], []).state.blocked).toBeNull();
+  });
+
+  it('Riot: a fire next to yours, everyone round it hit, and nobody can go there this turn', () => {
+    const s = rebels.start([...both, { side: 'guard', place: 'wwall', strength: 6 }, { side: 'guard', place: 'oldtown', strength: 6 }]);
+    const r = rebels.risingActs(s);
+    const riot = r.events.find((e) => e.type === 'riot');
+    if (riot?.type !== 'riot') throw new Error('no riot');
+    expect(riot.hits.length).toBeGreaterThan(0);
+    for (const h of riot.hits) expect(h.damage).toBeGreaterThanOrEqual(1), expect(h.damage).toBeLessThanOrEqual(2);
+    expect(rebels.dests(r.state, at(r.state, 'wwall')!)).not.toContain(riot.at);
   });
 });

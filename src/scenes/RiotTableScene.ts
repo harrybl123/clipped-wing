@@ -324,7 +324,7 @@ export class RiotTableScene extends Phaser.Scene {
     this.splitRest = false;
     this.ahead = null;
     // The rising's elite squad, at the start of the turn (Jack): whoever they put in, and a witch's seduction.
-    if (this.you === 'guard' && this.g.rules.elites) {
+    if (this.you === 'guard' && (this.g.rules.elites || this.g.rules.rebel)) {
       const acts = this.g.risingActs(this.state);
       this.state = acts.state;
       this.showActs(acts.events);
@@ -420,9 +420,9 @@ export class RiotTableScene extends Phaser.Scene {
       await this.wait(180);
     }
     for (const e of end.events) {
-      if (e.type === 'grow') this.pop(this.place(e.at), `+${Math.max(1, 1 + this.g.outputOf(s, 'rising'))}`, AMBER);
-      if (e.type === 'arrive') this.pop(this.place(e.at), `+${Math.max(0, this.g.rules.reinforce + this.g.outputOf(s, 'guard'))}`, CYAN);
-      if (e.type === 'pour') this.pop(this.place(e.to), `${this.g.style.pour} out`, AMBER);
+      if (e.type === 'grow') this.pop(this.place(e.at), `+${this.g.production(s, 'rising')}`, AMBER);
+      if (e.type === 'arrive') this.pop(this.place(e.at), `+${this.g.production(s, 'guard')}`, CYAN);
+      if (e.type === 'pour') this.pop(this.place(e.to), `${e.strength ?? this.g.style.pour} out`, AMBER);
       if (e.type === 'crestGone') this.pop(this.place(e.at), 'gone', AMBER);
       if (e.type === 'mysteryGone' || e.type === 'brothelGone' || e.type === 'audienceGone' || e.type === 'churchGone') this.pop(this.place(e.at), 'gone', SHADES.light);
       if (e.type === 'plagueTick') for (const p of e.places) this.pop(this.place(p), '-1', SHADES.greenMid, -10);
@@ -567,7 +567,31 @@ export class RiotTableScene extends Phaser.Scene {
     for (const e of events) {
       if (e.type === 'deploy') void this.eliteArrives(e.side, e.elite, e.at.map((p) => this.place(p)));
       if (e.type === 'seduce') this.seduced(this.place(e.at), e.side);
+      if (e.type === 'rally' || e.type === 'sabotage' || e.type === 'riot') void this.rebelMove(e);
     }
+  }
+
+  /** The rebels' move (Jack): Rally, Sabotage or Riot, said across the screen, and shown where it happens. */
+  private async rebelMove(e: Extract<RiotEvent, { type: 'rally' | 'sabotage' | 'riot' }>): Promise<void> {
+    const them = this.you === 'guard' ? 'theirs' : 'yours';
+    if (e.type === 'rally') {
+      await this.banner('Rally!', { colour: COLOUR.rising, sub: `+${e.by} to one of ${them}.`, hold: 1800, then: () => (playSound(this, 'warcry', 0.8), this.lookAt(this.place(e.at)), this.pop(this.place(e.at), `+${e.by}`, COLOUR.rising)) });
+    } else if (e.type === 'sabotage') {
+      const [a, b] = e.ways.map((p) => this.place(p));
+      await this.banner('Sabotage!', { colour: COLOUR.rising, sub: 'A street is blocked this turn: nobody can use it.', hold: 1800, then: () => (playSound(this, 'crash', 0.8), this.lookAt({ x: (a!.x + b!.x) / 2, y: (a!.y + b!.y) / 2 })) });
+    } else {
+      await this.banner('Riot!', {
+        colour: COLOUR.rising, sub: `A fire breaks out: every squad round it takes 1 to ${this.g.rules.rebel?.fire ?? 2}, either side. Nobody can go there this turn.`, hold: 2000, jitter: true,
+        then: () => {
+          playSound(this, 'boom', 0.8);
+          playSound(this, 'warcryLow', 0.6);
+          this.lookAt(this.place(e.at));
+          for (const h of e.hits) this.pop(this.place(h.place), h.gone ? 'all' : `-${h.damage}`, COLOUR[h.side]);
+          this.draw();
+        },
+      });
+    }
+    this.draw();
   }
 
   /** Seduced (Jack): "Seduced!" plucking up off it, and a kiss. */
@@ -1666,6 +1690,13 @@ export class RiotTableScene extends Phaser.Scene {
       const pa = this.place(a);
       const pb = this.place(b);
       g.lineStyle(3, SHADES.shadow, 0.5).lineBetween(pa.x, pa.y, pb.x, pb.y);
+      // Sabotaged (Jack): broken off, with barricade crosses across it.
+      if (!this.g.open(s, a, b) && s.blocked?.includes(a) && s.blocked.includes(b)) {
+        for (let i = 0; i < 10; i += 2) g.lineStyle(1, SHADES.dim, 0.8).lineBetween(pa.x + ((pb.x - pa.x) * i) / 10, pa.y + ((pb.y - pa.y) * i) / 10, pa.x + ((pb.x - pa.x) * (i + 1)) / 10, pa.y + ((pb.y - pa.y) * (i + 1)) / 10);
+        const [mx, my] = [(pa.x + pb.x) / 2, (pa.y + pb.y) / 2];
+        g.lineStyle(2, COLOUR.rising, 1).lineBetween(mx - 4, my - 4, mx + 4, my + 4).lineBetween(mx - 4, my + 4, mx + 4, my - 4);
+        continue;
+      }
       g.lineStyle(1, SHADES.cyanMid, 0.8).lineBetween(pa.x, pa.y, pb.x, pb.y);
     }
     // The places: a ring in the colour of whoever holds it; the square's barricades; the lifts' foot.
@@ -1951,7 +1982,9 @@ export class RiotTableScene extends Phaser.Scene {
     // The skirmish (Jack): no dawn; the turn, and the next shake-up.
     if (sc.kind === 'riot' && sc.skirmish) {
       const k = this.g.shakeIn(this.state);
-      return `Turn ${this.state.turn}. Shake-up ${k === 1 ? 'this turn' : `in ${k} turns`}.${sick}`;
+      const rb = this.g.rules.rebel ? this.g.rebelIn(this.state) : null;
+      const rebel = rb === null ? '' : ` ${this.you === 'guard' ? 'Their' : 'Your'} move ${rb === 0 ? 'ready' : `in ${rb}`}.`;
+      return `Turn ${this.state.turn}. Shake-up ${k === 1 ? 'this turn' : `in ${k} turns`}.${rebel}${sick}`;
     }
     return `Dawn in ${left} ${left === 1 ? 'turn' : 'turns'}.${sick}`;
   }
@@ -2077,9 +2110,16 @@ export class RiotTableScene extends Phaser.Scene {
     if (s.church?.place === p.id) lines.push(`A holy cross: first here has an audience with the Lord. He judges them loyal servants (blessed) or heretics (cursed), for ${this.g.rules.audience?.judged ?? 5} turns. (${s.church.left} ${s.church.left === 1 ? 'turn' : 'turns'} left)`);
     if (s.audience?.place === p.id) lines.push(`An audience: first here hears the accountant, the townsfolk or the commander. It can go well, or badly. (${s.audience.left} ${s.audience.left === 1 ? 'turn' : 'turns'} left)`);
     if (s.crest?.place === p.id) lines.push(`A crest: whoever gets here first can put in one of their elite squad. (${s.crest.left} ${s.crest.left === 1 ? 'turn' : 'turns'} left)`);
-    if (p.heart) lines.push(duel ? `Your keep. Walls +1. Each turn ${this.g.rules.muster} new men come out onto a road next to it, unless he holds them all. Lose it and you've lost.` : `Barricades +1. Grows 1 a turn; over ${this.g.style.pourAbove}, sends crowds out.`);
-    if (p.lifts) lines.push(duel ? `His camp. Each turn ${this.g.rules.muster} new men come out of it, unless you hold every road round it. Take it and you've won.` : `The guard get +${this.g.rules.reinforce} here each turn.`);
+    // Production from the home squares (Jack): what each base makes, and why.
+    const homes = this.g.rules.homeGrowth;
+    const made = (side: Side) => `Makes +${this.g.production(s, side)} a turn: 1 for each of the three places round it not held by the other side.`;
+    if (homes && (p.heart || p.lifts)) lines.push(made(p.heart ? 'rising' : 'guard'));
+    for (const side of homes ? (['guard', 'rising'] as const) : []) if (this.g.homeSquares(side).includes(p.id)) lines.push(`${side === this.you ? 'One of your' : 'One of their'} home squares: lost to the other side, ${side === this.you ? 'your' : 'their'} base makes 1 less.`);
+    if (p.heart && !homes) lines.push(duel ? `Your keep. Walls +1. Each turn ${this.g.rules.muster} new men come out onto a road next to it, unless he holds them all. Lose it and you've lost.` : `Barricades +1. Grows 1 a turn; over ${this.g.style.pourAbove}, sends crowds out.`);
+    if (p.lifts && !homes) lines.push(duel ? `His camp. Each turn ${this.g.rules.muster} new men come out of it, unless you hold every road round it. Take it and you've won.` : `The guard get +${this.g.rules.reinforce} here each turn.`);
     if (s.cut === p.id) lines.push('No power this turn.');
+    if (s.fire === p.id) lines.push('On fire (a riot): nobody can go here this turn.');
+    if (s.blocked?.includes(p.id)) lines.push(`Sabotaged: the street to ${lower(this.place(s.blocked.find((x) => x !== p.id)!).name)} is blocked this turn.`);
     if (this.g.fortified(s, p.id)) lines.push('Dug in: nobody can attack it this turn.');
     if (s.rumble?.place === p.id) lines.push(`A rumble: whoever gets here first sets it off. Everyone next to it takes 1 to 3. (${s.rumble.left} ${s.rumble.left === 1 ? 'turn' : 'turns'} left)`);
     return lines.join('\n');
@@ -2173,6 +2213,18 @@ export class RiotTableScene extends Phaser.Scene {
   /** The riot, alive (designer: make it look like one): fire and a crowd round every squad of the rising, smoke going up. */
   private drawLife(): void {
     const g = this.life.clear();
+    // A riot's fire (Jack): flames licking up off the place, for the turn.
+    if (this.state.fire) {
+      const p = this.place(this.state.fire);
+      g.fillStyle(SHADES.amber, 0.18).fillCircle(p.x, p.y, 14);
+      for (let i = 0; i < 7; i++) {
+        const k = (this.t * 3 + i * 5) % 12;
+        const x = p.x - 7 + i * 2.3 + Math.sin(this.t / 2 + i) * 1.5;
+        const h = 6 + ((i * 7) % 5) - k * 0.3;
+        g.fillStyle(i % 2 ? SHADES.amber : SHADES.white, 0.8).fillTriangle(x - 2, p.y + 5, x + 2, p.y + 5, x, p.y + 5 - h - (this.t + i) % 3);
+      }
+      g.fillStyle(SHADES.white, 0.5).fillCircle(p.x - 2 + ((this.t % 5) - 2), p.y - 4 - (this.t % 6), 1);
+    }
     // The Lord's judgement (Jack), round every squad of the judged side for as long as it lasts: the blessed in a
     // slow-pulsing golden light with motes rising off it; the cursed in a looming darkness, wisps creeping round it,
     // ash drifting away.
