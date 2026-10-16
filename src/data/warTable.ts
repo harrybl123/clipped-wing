@@ -1,8 +1,9 @@
-import { RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type Side } from '../systems/Riot';
+import { RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type RisingStyle, type Side } from '../systems/Riot';
 
 // The war table's maps and games (Chapter 3; the game: src/systems/Riot.ts, its design and how it was
 // tuned: docs/sequences/chapter-3/war-table.md). Day 2: the lesson in the simulation room (you're the rising,
-// your father the guard; then "Now."). Day 4: the riot, for real (you're the guard).
+// your father the guard; then "Now."). Day 4: the riot, for real (you're the guard). Day 6: a duel with your
+// friend on the old castle's siege (you hold the keep; he has the bigger army).
 
 /**
  * A district that's risen, close up, as a street plan from above (designer: its own map): the way up along
@@ -180,6 +181,87 @@ export const LESSON: LessonScenario = {
   knots: { intro: 'c3day2_table_intro', good: 'c3day2_table_good', after: 'c3day2_after_table' },
 };
 
+/**
+ * Day 6: the siege of the old castle, the citadel's crag before it was the citadel (designer: show your friend
+ * the table and challenge him to a duel on a new map, where you've fewer troops, but it's as easy as the riot).
+ * A game from your family's history, on the table for practice: the keep at the top (the square's rules: walls
+ * +1, it grows by 1 a turn as people come in from the fields), its walls, gatehouse, postern and watchtower round it;
+ * below, the bridge, the old town and the market, the mill and the orchards, the ford and the quarry; and his
+ * siege camp at the bottom, where more of his army come every turn.
+ */
+export const CASTLE_BOARD: RiotBoard = (() => {
+  const at = (id: string, name: string, x: number, y: number, extra: Partial<RiotPlace> = {}): RiotPlace => ({ id, name, x, y, ...extra });
+  return {
+    places: [
+      at('keep', 'The keep', 240, 52, { heart: true }),
+      at('postern', 'The postern', 116, 52),
+      at('westwall', 'The west wall', 152, 108),
+      at('gate', 'The gatehouse', 240, 114),
+      at('eastwall', 'The east wall', 328, 108),
+      at('tower', 'The watchtower', 372, 46),
+      at('mill', 'The mill', 52, 120),
+      at('bridge', 'The bridge', 240, 168),
+      at('oldtown', 'The old town', 128, 176),
+      at('market', 'The market', 352, 176),
+      at('orchards', 'The orchards', 436, 116),
+      at('ford', 'The ford', 56, 222),
+      at('camp', 'The siege camp', 240, 226, { lifts: true, up: true }),
+      at('quarry', 'The quarry', 414, 222),
+    ],
+    ways: [
+      ['keep', 'postern'], ['keep', 'westwall'], ['keep', 'gate'], ['keep', 'eastwall'], ['postern', 'westwall'], ['postern', 'mill'],
+      ['westwall', 'gate'], ['eastwall', 'gate'], ['eastwall', 'tower'], ['westwall', 'mill'], ['eastwall', 'orchards'], ['gate', 'bridge'],
+      ['bridge', 'oldtown'], ['bridge', 'market'], ['bridge', 'camp'], ['oldtown', 'mill'], ['oldtown', 'ford'], ['oldtown', 'camp'],
+      ['market', 'orchards'], ['market', 'quarry'], ['market', 'camp'], ['ford', 'camp'], ['quarry', 'camp'], ['tower', 'orchards'],
+      ['mill', 'ford'], ['orchards', 'quarry'],
+    ],
+  };
+})();
+
+/** Day 6: a duel, for fun: you hold the keep (the rising's side of the rules) against a friend with the bigger army. */
+export interface DuelScenario {
+  id: string;
+  kind: 'duel';
+  board: RiotBoard;
+  district: 'castle';
+  squads: Setup;
+  rules?: Partial<RiotRules>;
+  /** How your side's keep behaves (no crowds poured out of it: your orders are your own). */
+  style?: Partial<RisingStyle>;
+  /** Ink knots: before; you held it till dawn; he took the keep. After either, back in the room (`after`). */
+  knots: { intro: string; won: string; lost: string; after: string };
+}
+
+/**
+ * The siege (tuned by simulation, tests/riotGame.test.ts): you 25 (11 in the keep), him 26 and 2 more a turn at his
+ * camp (designer: fewer troops, technically); your friend plays it sensibly (`sensible`), his moves shown as
+ * arrows; hold the keep for 12 turns. A first go (hit what you can beat, pull back what's threatened) holds it
+ * most of the time; doing nothing, or anything, loses it.
+ */
+export const DUEL: DuelScenario = {
+  id: 'duel',
+  kind: 'duel',
+  board: CASTLE_BOARD,
+  district: 'castle',
+  squads: [
+    { side: 'rising', place: 'keep', strength: 11 },
+    { side: 'rising', place: 'gate', strength: 4 },
+    { side: 'rising', place: 'westwall', strength: 3 },
+    { side: 'rising', place: 'eastwall', strength: 3 },
+    { side: 'rising', place: 'tower', strength: 2 },
+    { side: 'rising', place: 'postern', strength: 2 },
+    { side: 'guard', place: 'camp', strength: 12 },
+    { side: 'guard', place: 'oldtown', strength: 4 },
+    { side: 'guard', place: 'market', strength: 4 },
+    { side: 'guard', place: 'ford', strength: 3 },
+    { side: 'guard', place: 'quarry', strength: 3 },
+  ],
+  // No power cuts in a siege; rumbles, as ever (Jack).
+  rules: { dawn: 12, reinforce: 2, powerEvery: 999, rumble: RUMBLE },
+  style: { pour: 0 },
+  knots: { intro: 'c3day6_duel_intro', won: 'c3day6_duel_won', lost: 'c3day6_duel_lost', after: 'c3day6_caught' },
+};
+
 const riot = (id: string, board: RiotBoard, district: 'low' | 'promenade', squareArea: RiotScenario['squareArea']): RiotScenario => ({
   id, kind: 'riot', board, district, squads: RIOT_START, square: 'riot_square', squareArea,
   // Rumbles in the riot (Jack), not the lesson.
@@ -187,8 +269,9 @@ const riot = (id: string, board: RiotBoard, district: 'low' | 'promenade', squar
   knots: { intro: 'c3day4_riot_intro', won: 'c3day4_table_won', dawn: 'c3day4_dawn', fatherTook: 'c3day4_father_took', square: 'c3day4_square' },
 });
 
-export const RIOTS: Record<string, RiotScenario | LessonScenario> = {
+export const RIOTS: Record<string, RiotScenario | LessonScenario | DuelScenario> = {
   lesson: LESSON,
+  duel: DUEL,
   riot_low: riot('riot_low', LOW_DISTRICT_BOARD, 'low', { areaId: 'low-district', start: { x: 720, y: 236 } }),
   riot_promenade: riot('riot_promenade', PROMENADE_BOARD, 'promenade', { areaId: 'promenade', start: { x: 720, y: 232 } }),
 };

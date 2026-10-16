@@ -716,8 +716,36 @@ VAR off5 = false
 VAR promised5 = false
 VAR calm5 = 0
 VAR standoff5 = ""
-// Chapter 3, Day 6 (not built yet).
+// Chapter 3, Day 6 (story/capital/chapter3-day6.ink): the guests. Stages: wake, friend, room, table, caught,
+// study, arrive, wing, banquet, office, home, follow, done.
 VAR c3day6 = ""
+// Your friend with you (a follower), to the simulation room; the duel on the war table, the old castle's siege
+// ("won": you held the keep till dawn; "lost"), and in how many turns.
+VAR heir_with_you = false
+VAR room6 = false
+VAR duel6 = ""
+VAR duel6_turns = 0
+// Your father in the doorway: his invitation, given to your friend by you ("you") or the captain ("captain").
+VAR invitation = ""
+VAR father6 = false
+// The guest wing: your friend at the barrier; you promised to get him out (or told him to stay: he's cooler with
+// you from now on).
+VAR barrier6 = false
+VAR promised = false
+VAR friend_cool = false
+// The banquet; your hand's door, the commander and the engineer coming out (clue 6).
+VAR banquet6 = false
+VAR office6 = false
+// Night: following your sister to the sealed door; you covered for her ("covered": she's your eyes) or told your
+// father ("told": medium).
+VAR gallery6 = false
+VAR sister_hall6 = false
+VAR study6 = false
+VAR sister_wing6 = false
+VAR door6 = false
+VAR sister = ""
+// Chapter 3, Day 7 (not built yet).
+VAR c3day7 = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
@@ -773,6 +801,7 @@ INCLUDE capital/chapter3-day2.ink
 INCLUDE capital/chapter3-day3.ink
 INCLUDE capital/chapter3-day4.ink
 INCLUDE capital/chapter3-day5.ink
+INCLUDE capital/chapter3-day6.ink
 INCLUDE capital/cast.ink
 INCLUDE capital/folk.ink
 INCLUDE capital/looks.ink

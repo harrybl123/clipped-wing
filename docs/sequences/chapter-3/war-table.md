@@ -122,3 +122,9 @@ Merged: fortify, rumbles, Cut power under their circles, and matching the square
 - **Losing, you can play it again** (designer), or go on (your father comes in).
 - **Place names back on the table**, small and dim (designer).
 - **The fight at the citadel steps has its own stage** (designer: it had the low district's square): the citadel's marble steps up to the great gate, the portcullis down, firelight from the city below (`steps`).
+
+## Day 6: the duel with your friend (2026-10-16)
+
+Designer: show your friend the table and challenge him to a duel on a new map, where you've fewer troops, technically, but it's as easy as the riot. **The siege of the old castle** (`CASTLE_BOARD`, `DUEL` in `src/data/warTable.ts`): the crag before it was the citadel. You hold the keep (the rising's side of the same rules: walls +1, it grows by 1 a turn, match it and it's taken), with its walls, gatehouse, postern and watchtower; he has the bigger army (the guard's side) and his siege camp at the bottom, where 2 more arrive each turn (the lifts' rule). Hold the keep for 12 turns. No power cuts (`powerEvery` 999); rumbles as ever; the keep doesn't pour crowds out (`style.pour` 0: your orders are your own). Your orders go first, in the order you give them; his are shown as arrows at the start of the turn (he plays `sensible`). Lose, and you can play it again.
+
+Tuned by simulation (`tests/riotGame.test.ts`): you 25 (11 in the keep), him 26. Against his sensible play, a first go (hit what you can beat next to you, pull back to the keep what could be beaten) holds the keep at least 8 times in 12 (tested); doing nothing, or random orders, lose it by turn 3 to 5; pulling everything into the keep and sitting there holds. His naive play (straight at the keep) was too brittle to balance against: a point either way and it won or lost every time.

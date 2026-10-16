@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition } from '../types';
-import { cast, guard } from './people';
+import { cast, guard, inStory } from './people';
 
 // The sealed wing (Chapter 3): a door only your father goes through. It hums, and nobody explains it
 // (docs/areas/capital/sealed-wing.md). A long corridor behind his study that gets plainer as it goes, the
@@ -59,12 +59,24 @@ export const sealedWing: AreaDefinition = {
   ],
 
   features: [
+    // Chapter 3, Day 6's night: following your sister down the corridor (she looks back twice: behind the statue,
+    // or in the dark where the cables come down); then the door.
+    {
+      type: 'quarry', people: ['sister-6w'], y: FLOOR, speed: 16, range: 90, lose: 200, reset: { x: 40, y: FLOOR }, showIf: 'c3day6=sealed', done: 'sister_wing6', seen: "Who's there?",
+      path: [{ x: 132 }, { x: 220, wait: 1800, look: true }, { x: 330 }, { x: 400, wait: 1800, look: true }, { x: 470 }],
+    },
+    { type: 'shadow', x: 84, y: FLOOR, width: 26, showIf: 'c3day6=sealed' }, // behind the statue
+    { type: 'shadow', x: 292, y: FLOOR, width: 22, showIf: 'c3day6=sealed' }, // the dark where the cables come down
+    { type: 'trigger', x: 430, y: FLOOR, reach: 20, knot: 'c3day6_door', showIf: 'sister_wing6', hideIf: 'door6' },
     // Light running along the cables into the door.
     { type: 'pulse', points: [{ x: 16, y: TOP + 4 }, { x: 500, y: TOP + 4 }, { x: 500, y: FLOOR - 68 }], speed: 150, every: 700, count: 3, colour: S.cyan },
     { type: 'pulse', points: [{ x: 140, y: FLOOR - 3 }, { x: 502, y: FLOOR - 3 }], speed: 130, every: 900, count: 2, colour: S.cyan },
   ],
   people: [
-    guard('door-guard', 0, 472, FLOOR, 'c3_guard_sealed', undefined, { flipX: true }),
+    guard('door-guard', 0, 472, FLOOR, 'c3_guard_sealed', undefined, { flipX: true, hideIf: 'c3day6=follow,sealed' }), // (not at the change of the guard)
+    // Chapter 3, Day 6's night: your sister, ahead of you down the corridor; then at the door, her hand on it.
+    inStory('sister-6w', 'sister', 132, FLOOR, 'c3day6=sealed', { hideIf: 'sister_wing6' }),
+    inStory('sister-6d', 'sister', 488, FLOOR, 'sister_wing6', { hideIf: 'c3day6=done' }),
     // At night, your father, at the door.
     cast('father', 522, FLOOR, { knot: 'sealed_father', when: ['night'], flipX: true }),
     // In the afternoon, the engineer, seeing to the cables.

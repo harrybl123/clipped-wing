@@ -636,16 +636,15 @@ He goes off into the dark, the other way. #leave:hand-5w:940:50
 ~ hand_with_you = false
 You hang up the plain coat. It smells of the cellar's smoke, and the rain.
 ~ c3day5 = "done"
-~ c3day6 = "wake"
 ~ objective = ""
 ~ objective_target = ""
 { raid == "stepped_in":
     { standoff5 == "taken":
-        You lie awake. The kid, looking back at you all the way up the steps. And by morning, your father will know where you were. #wake:prince-quarters:120:226 #endday:Days later.
+        You lie awake. The kid, looking back at you all the way up the steps. And by morning, your father will know where you were. #wake:prince-quarters:120:226:c3day6_start #endday:Days later.
     - else:
-        You lie awake. Every face in that cellar has seen yours now. And by morning, your father will know where you were. #wake:prince-quarters:120:226 #endday:Days later.
+        You lie awake. Every face in that cellar has seen yours now. And by morning, your father will know where you were. #wake:prince-quarters:120:226:c3day6_start #endday:Days later.
     }
 - else:
-    You lie awake. The kid, looking right at your doorway. #wake:prince-quarters:120:226 #endday:Days later.
+    You lie awake. The kid, looking right at your doorway. #wake:prince-quarters:120:226:c3day6_start #endday:Days later.
 }
 -> END

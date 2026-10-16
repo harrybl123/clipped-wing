@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT as H, GAME_WIDTH as W } from '../config';
-import { RIOTS, type LessonScenario, type RiotScenario } from '../data/warTable';
+import { RIOTS, type DuelScenario, type LessonScenario, type RiotScenario } from '../data/warTable';
 import { getSession } from '../session';
-import { RIOT_RULES, RiotGame, type Order, type RiotBoard, type RiotEvent, type RiotPlace, type RiotSquad, type RiotState, type Side } from '../systems/Riot';
-import { careful, steady, type GuardPlayer } from '../systems/RiotPlayers';
+import { RIOT_RULES, RISING_STYLE, RiotGame, type Order, type RiotBoard, type RiotEvent, type RiotPlace, type RiotSquad, type RiotState, type Side } from '../systems/Riot';
+import { careful, sensible, steady, type GuardPlayer } from '../systems/RiotPlayers';
 import { DialogueBox } from '../ui/DialogueBox';
 import { rgb, SHADES, type PixelColour, type RGB } from '../ui/pixelArt';
 import { makePaintedTexture } from '../ui/pixelTextures';
@@ -23,6 +23,9 @@ import type { CombatSceneData } from './CombatScene';
 //   Day 4, the riot (`riot_low`, `riot_promenade`): you're the guard, for real, and nobody tells you how to
 //   play (designer). Take the square before dawn and you go down yourself; if dawn comes first, your father
 //   comes in, takes the table, and wins it while you watch.
+//   Day 6, the duel (`duel`): the old castle's siege, with your friend, for fun. You hold the keep (the rising's
+//   side of the rules), he has the bigger army (the guard's), played sensibly, his moves shown; hold it till
+//   dawn and you've won. Either way, back in the room after.
 //
 // The table shows a riot (designer): the district's streets in light; the rising's squads amber circles, with
 // fire and a crowd round them; the guard's blue shields; a key at the top says who's who, and which is you.
@@ -53,12 +56,12 @@ const COLOUR: Record<Side, number> = { guard: CYAN, rising: AMBER };
 
 export class RiotTableScene extends Phaser.Scene {
   private params!: RiotTableSceneData;
-  private sc!: RiotScenario | LessonScenario;
+  private sc!: RiotScenario | LessonScenario | DuelScenario;
   private g!: RiotGame;
   private state!: RiotState;
   /** Which side is yours, and the computer's. */
   private you: Side = 'guard';
-  private phase: 'riot' | 'lesson' | 'now' = 'riot';
+  private phase: 'riot' | 'lesson' | 'now' | 'duel' = 'riot';
   private goal = 0;
   private said = new Set<string>();
   private orders: Order[] = [];
@@ -106,9 +109,10 @@ export class RiotTableScene extends Phaser.Scene {
     const sc = RIOTS[data.scenario];
     if (!sc) throw new Error(`RiotTableScene: no game called "${data.scenario}"`);
     this.sc = sc;
-    this.you = sc.kind === 'lesson' ? 'rising' : 'guard';
-    this.phase = sc.kind === 'lesson' ? (data.phase ?? 'lesson') : 'riot';
+    this.you = sc.kind === 'riot' ? 'guard' : 'rising';
+    this.phase = sc.kind === 'lesson' ? (data.phase ?? 'lesson') : sc.kind === 'duel' ? 'duel' : 'riot';
     this.g = new RiotGame(sc.board, { ...RIOT_RULES, ...sc.rules });
+    if (sc.kind === 'duel') this.g.style = { ...RISING_STYLE, ...sc.style };
     this.state = this.g.start(this.phase === 'now' ? (sc as LessonScenario).now.squads : sc.squads, Math.floor(Math.random() * 2 ** 31));
     this.goal = 0;
     this.said = new Set();
@@ -145,7 +149,7 @@ export class RiotTableScene extends Phaser.Scene {
     this.powerButton = new PixelText(this, POWER.x + 4, POWER.y + 2, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8);
     this.cursor = this.place(this.g.mine(this.state, this.you)[0]!.place);
     this.dialogue = new DialogueBox(this, getSession(this).story);
-    this.music = startTableMusic(this, this.phase === 'lesson' ? 'lesson' : 'now');
+    this.music = startTableMusic(this, this.phase === 'lesson' || this.phase === 'duel' ? 'lesson' : 'now');
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.music.stop());
     this.input.keyboard!.on('keydown', (e: KeyboardEvent) => this.onKey(e));
     this.input.mouse?.disableContextMenu();
@@ -157,7 +161,7 @@ export class RiotTableScene extends Phaser.Scene {
     this.draw();
     const sc = this.sc;
     this.time.delayedCall(600, () => {
-      if (sc.kind === 'riot') this.talk(sc.knots.intro, () => this.startTurn());
+      if (sc.kind === 'riot' || sc.kind === 'duel') this.talk(sc.knots.intro, () => this.startTurn());
       else if (this.phase === 'now') this.talk(sc.knots.good, () => this.turnItOn());
       else this.talk(sc.knots.intro, () => this.talk(sc.goals[0]!.start, () => this.startTurn()));
     });
@@ -166,9 +170,9 @@ export class RiotTableScene extends Phaser.Scene {
   private place = (id: string): RiotPlace => this.sc.board.places.find((p) => p.id === id)!;
   private lesson = (): LessonScenario | null => (this.sc.kind === 'lesson' ? this.sc : null);
 
-  /** The computer's guard: your father, steady in the lesson, meaning it in "Now." and when he takes over. */
+  /** The computer's guard: your father, steady in the lesson, meaning it in "Now." and when he takes over; your friend, sensible. */
   private guardPlayer(): GuardPlayer {
-    return this.phase === 'lesson' ? steady() : careful();
+    return this.phase === 'lesson' ? steady() : this.phase === 'duel' ? sensible() : careful();
   }
 
   // --- The turn ---
@@ -419,6 +423,7 @@ export class RiotTableScene extends Phaser.Scene {
     this.draw();
     const sc = this.sc;
     if (sc.kind === 'lesson') return this.switchOff();
+    if (sc.kind === 'duel') return this.duelOver(sc, false);
     this.busy = true;
     const { story } = getSession(this);
     if (!this.fatherPlaying) story.setVariable('riot_table', 'won');
@@ -433,6 +438,7 @@ export class RiotTableScene extends Phaser.Scene {
 
   /** Dawn, and the square's still theirs: your father comes in, and takes the table from you (designer). */
   private dawn(): void {
+    if (this.sc.kind === 'duel') return this.duelOver(this.sc, true);
     const sc = this.sc as RiotScenario;
     this.busy = true;
     const { story } = getSession(this);
@@ -442,6 +448,21 @@ export class RiotTableScene extends Phaser.Scene {
     this.dialogue.openMenu('Dawn. The square\u2019s still theirs.', [
       { label: 'Play it again', run: () => this.leave(() => this.scene.restart({ ...this.params, phase: undefined } satisfies RiotTableSceneData)) },
       { label: 'Go on (your father comes in)', run: () => this.time.delayedCall(150, () => this.fatherIn(sc)) },
+    ]);
+  }
+
+  /** The duel's over: you held the keep till dawn, or he took it (play it again, or go on). Back in the room either way. */
+  private duelOver(sc: DuelScenario, won: boolean): void {
+    this.busy = true;
+    this.draw();
+    const { story } = getSession(this);
+    story.setVariable('duel6', won ? 'won' : 'lost');
+    story.setVariable('duel6_turns', Math.min(this.state.turn, this.g.rules.dawn));
+    const out = () => this.talk(won ? sc.knots.won : sc.knots.lost, () => this.leave(() => this.scene.start('Area', { ...this.params.back, script: sc.knots.after } satisfies AreaSceneData)));
+    if (won) return out();
+    this.dialogue.openMenu('He\u2019s taken the keep.', [
+      { label: 'Play it again', run: () => this.leave(() => this.scene.restart({ ...this.params, phase: undefined } satisfies RiotTableSceneData)) },
+      { label: 'Go on', run: () => this.time.delayedCall(150, out) },
     ]);
   }
 
@@ -695,7 +716,7 @@ export class RiotTableScene extends Phaser.Scene {
     }
     // The places: a ring in the colour of whoever holds it; the square's barricades; the lifts' foot.
     const sc = this.sc;
-    const goalPlace = sc.kind === 'lesson' && this.phase === 'lesson' ? sc.goals[this.goal]?.place : this.phase === 'riot' || this.phase === 'now' ? this.g.heart : undefined;
+    const goalPlace = sc.kind === 'lesson' && this.phase === 'lesson' ? sc.goals[this.goal]?.place : this.phase !== 'lesson' ? this.g.heart : undefined;
     for (const p of sc.board.places) {
       const owner = s.owner[p.id];
       g.lineStyle(1, owner ? COLOUR[owner] : SHADES.dim, owner ? 0.9 : 0.6).strokeCircle(p.x, p.y, 10);
@@ -804,6 +825,7 @@ export class RiotTableScene extends Phaser.Scene {
     if (this.fatherPlaying) return 'Your father has the table.';
     if (sc.kind === 'lesson') return this.phase === 'lesson' ? `Take ${lower(this.place(sc.goals[this.goal]?.place ?? this.g.heart).name)}.` : 'Hold the square.';
     const left = this.g.rules.dawn - this.state.turn + 1;
+    if (sc.kind === 'duel') return `Hold the keep: ${left} ${left === 1 ? 'turn' : 'turns'} till dawn.`;
     return `Dawn in ${left} ${left === 1 ? 'turn' : 'turns'}.`;
   }
 
@@ -843,7 +865,7 @@ export class RiotTableScene extends Phaser.Scene {
     // Their number as it shows on the circle, and the barricades (or the power cut) beside it; match the square's
     // number and you take it (Jack), keeping what's over after the barricades, at least 1.
     const n = there.strength;
-    const vs = `${a} v ${n}${d > n ? ' (+1 barricades)' : d < n ? ' (no power: -1)' : ''}`;
+    const vs = `${a} v ${n}${d > n ? (this.sc.kind === 'duel' ? ' (+1 walls)' : ' (+1 barricades)') : d < n ? ' (no power: -1)' : ''}`;
     if (a > d || (p.id === this.g.heart && a >= n)) return `${vs}: you take it, ${Math.max(1, a - d)} left${rumble}`;
     return a === d ? `${vs}: a tie, they hold` : `${vs}: they hold`;
   }
@@ -852,11 +874,12 @@ export class RiotTableScene extends Phaser.Scene {
   private placeText(p: RiotPlace): string {
     const s = this.state;
     const there = this.g.squadAt(s, p.id);
-    const whose = (side: Side) => (side === this.you ? (side === 'guard' ? 'Your guard' : 'Your people') : side === 'guard' ? 'The guard' : 'The rising');
+    const duel = this.sc.kind === 'duel';
+    const whose = (side: Side) => (duel ? (side === this.you ? 'Your garrison' : 'His army') : side === this.you ? (side === 'guard' ? 'Your guard' : 'Your people') : side === 'guard' ? 'The guard' : 'The rising');
     const lines = [p.name];
     if (there) lines.push(`${whose(there.side)}, ${there.strength}`);
-    if (p.heart) lines.push(`Barricades +1. Grows 1 a turn; over ${this.g.style.pourAbove}, sends crowds out.`);
-    if (p.lifts) lines.push(`The guard get +${this.g.rules.reinforce} here each turn.`);
+    if (p.heart) lines.push(duel ? 'Walls +1. Grows 1 a turn, as people come in from the fields.' : `Barricades +1. Grows 1 a turn; over ${this.g.style.pourAbove}, sends crowds out.`);
+    if (p.lifts) lines.push(duel ? `His army get +${this.g.rules.reinforce} here each turn.` : `The guard get +${this.g.rules.reinforce} here each turn.`);
     if (s.cut === p.id) lines.push('No power this turn.');
     if (this.g.fortified(s, p.id)) lines.push('Dug in: nobody can attack it this turn.');
     if (s.rumble?.place === p.id) lines.push(`A rumble: whoever gets here first sets it off. Everyone next to it takes 1 to 3. (${s.rumble.left} ${s.rumble.left === 1 ? 'turn' : 'turns'} left)`);
@@ -986,10 +1009,10 @@ function nearestIn(places: readonly RiotPlace[], from: RiotPlace, dx: number, dy
  * dark with a few lit windows. The low district warm and crowded (small blocks); the promenade's glass in
  * long, clean ones. In the table's cyan.
  */
-function districtPainter(board: RiotBoard, district: 'low' | 'promenade'): (x: number, y: number) => PixelColour {
+function districtPainter(board: RiotBoard, district: 'low' | 'promenade' | 'castle'): (x: number, y: number) => PixelColour {
   const pos = new Map(board.places.map((p) => [p.id, p]));
   const segs = board.ways.map(([a, b]) => [pos.get(a)!, pos.get(b)!] as const);
-  const lot = district === 'low' ? 9 : 16;
+  const lot = district === 'low' ? 9 : district === 'castle' ? 12 : 16;
   const steps: RGB[] = [SHADES.shadow, SHADES.cyanDeep, SHADES.cyanMid, SHADES.cyan].map(rgb);
   return (x, y) => {
     let d = Infinity;

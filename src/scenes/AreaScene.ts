@@ -1225,7 +1225,7 @@ export class AreaScene extends Phaser.Scene {
       if (seen || lost) {
         q.alarm = 1000;
         q.callout
-          .setText(seen ? 'Hm? Who\'s that?' : "You've lost them.")
+          .setText(seen ? (f.seen ?? 'Hm? Who\'s that?') : "You've lost them.")
           .setPosition(Math.round((seen ? leader.image.x : px) - 30), f.y - 46)
           .setVisible(true);
         if (seen) this.cameras.main.flash(300, 242, 180, 90);

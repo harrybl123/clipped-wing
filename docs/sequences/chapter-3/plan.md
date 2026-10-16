@@ -235,6 +235,8 @@ The card: **"Days later."** Part 3: it closes in. The hideout's been dark since 
 
 **New for Day 6:** the guests (the guest wing full; guards at the barrier stopping them); following your sister (Act 1's tailing, turned gentle: she mustn't be caught either); the hum and a voice behind the sealed door (nobody says whose).
 
+**As built (2026-10-16):** changed first (designer: the war table hasn't been used enough; the simulation room's more adventurous, and more damning when your father finds you). **It opens with your friend**, on your couch at dawn; your father's at the council, so you take him through the bookshelf to the simulation room and **challenge him to a duel on the table**: the siege of the old castle on the crag (a new map), you holding the keep with fewer troops, him with the bigger army; as easy as the riot (tuned by simulation, [war-table.md](war-table.md)). **Your father in the doorway** as it ends, the captain and two of the guard behind him, with the invitation: **the choice is made there**, in front of him (give it to your friend yourself, or let the captain read it out), and they walk your friend out to the guest wing. Then his study: the room, Day 5 (the cellar, the struck warrant), the list and the sleeve. The guests arrive in the halls (your friend's already upstairs), and the rest is as planned. At the sealed door, just the hum (no voice). Dev: `?chapter=3&day=6&at=start|table|duel|study|arrive|wing|banquet|night`.
+
 ---
 
 ## Day 7: the order (suggestion, unless marked)
