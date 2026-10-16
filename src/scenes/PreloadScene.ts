@@ -62,6 +62,8 @@ export class PreloadScene extends Phaser.Scene {
       const foe = params.get('foe');
       this.scene.start('Combat', { encounter: encounter ?? 'market_scrap', back: { areaId: 'roots-market' }, ...(foe ? { only: foe } : {}), ...(!encounter && !foe ? { pick: true } : {}) });
     }
+    // ?scene=wartable: the war table as a game of its own, for playtesting (Jack: no dawn, shake-ups).
+    else if (params?.get('scene') === 'wartable') this.scene.start('RiotTable', { scenario: 'skirmish', back: { areaId: 'prince-quarters' } });
     else if (params?.get('scene') === 'decode') this.scene.start('Decode', { message: 'message1' });
     else if (params?.get('ending')) this.scene.start('Ending', { ending: params.get('ending')! });
     else if (params && ['2', '3', '4', '5', '6', '7'].includes(params.get('day') ?? '')) {

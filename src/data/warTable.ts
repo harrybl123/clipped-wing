@@ -1,4 +1,4 @@
-import { HERO, RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type Side } from '../systems/Riot';
+import { CLASH, ELITE_SQUAD, MYSTERY, RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type Side } from '../systems/Riot';
 
 // The war table's maps and games (Chapter 3; the game: src/systems/Riot.ts, its design and how it was
 // tuned: docs/sequences/chapter-3/war-table.md). Day 2: the lesson in the simulation room (you're the rising,
@@ -88,6 +88,8 @@ export interface RiotScenario {
   /** The fight when you take the square (src/data/combat.ts), and the area its square is in, where you come out after. */
   square: string;
   squareArea: { areaId: string; start: { x: number; y: number } };
+  /** A game on its own, for playtesting (Jack): no story, no dawn; it ends when a side's base is taken. */
+  skirmish?: boolean;
   /**
    * Ink knots: before; you took the square (your father comes in; some of them have broken through, and you
    * go down to stop them: the fight); dawn first (your father comes in); him taking it (and the same news);
@@ -178,8 +180,8 @@ export const LESSON: LessonScenario = {
 
 const riot = (id: string, board: RiotBoard, district: 'low' | 'promenade', squareArea: RiotScenario['squareArea']): RiotScenario => ({
   id, kind: 'riot', board, district, squads: RIOT_START, square: 'riot_square', squareArea,
-  // Rumbles and heroes in the riot (Jack), not the lesson.
-  rules: { rumble: RUMBLE, hero: HERO },
+  // Rumbles and the elite squads in the riot (Jack), not the lesson.
+  rules: { rumble: RUMBLE, elites: ELITE_SQUAD, clash: CLASH, mystery: MYSTERY },
   knots: { intro: 'c3day4_riot_intro', won: 'c3day4_table_won', dawn: 'c3day4_dawn', fatherTook: 'c3day4_father_took', square: 'c3day4_square' },
 });
 
@@ -187,4 +189,12 @@ export const RIOTS: Record<string, RiotScenario | LessonScenario> = {
   lesson: LESSON,
   riot_low: riot('riot_low', LOW_DISTRICT_BOARD, 'low', { areaId: 'low-district', start: { x: 720, y: 236 } }),
   riot_promenade: riot('riot_promenade', PROMENADE_BOARD, 'promenade', { areaId: 'promenade', start: { x: 720, y: 232 } }),
+  // A game mode of its own, for playtesting (Jack: no dawn, an indefinite game; a shake-up every 6 turns gives
+  // each side a crest, or a quarter of the time it's the trickster; the elite come back once they're gone; take their base and you've won, lose yours and
+  // you've lost). Dev: ?scene=wartable.
+  skirmish: {
+    ...riot('skirmish', LOW_DISTRICT_BOARD, 'low', { areaId: 'low-district', start: { x: 720, y: 236 } }),
+    skirmish: true,
+    rules: { rumble: RUMBLE, elites: { ...ELITE_SQUAD, once: false }, clash: CLASH, mystery: MYSTERY, dawn: 100000, shakeUp: { every: 6, trickster: 0.25 }, baseLoss: true },
+  },
 };

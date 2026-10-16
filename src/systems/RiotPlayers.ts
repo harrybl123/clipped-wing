@@ -24,6 +24,11 @@ export function evaluate(g: RiotGame, s: RiotState): number {
   // Crowds next to the square will fall back into it.
   for (const q of rising) if (q.place !== g.heart && g.near(q.place, g.heart)) v -= q.strength * 2;
   for (const p of g.board.places) if (s.owner[p.id] === 'guard') v += 1;
+  // Crests (Jack): each one taken is an elite; a crest on the map, worth getting near.
+  if (g.rules.elites) {
+    v += (g.crestsTaken(s, 'guard') - g.crestsTaken(s, 'rising')) * 4;
+    for (const q of guard) if (q.poison) v += 3;
+  }
   // Crowds near the way up are a worry.
   for (const q of rising) if (q.place !== g.heart) v -= Math.max(0, 3 - (g.upDist.get(q.place) ?? 9)) * q.strength;
   // Closing on the square: how much is next to it, and the biggest squad, how near and how close to matching it.
@@ -147,9 +152,17 @@ export function random(seed = 1): GuardPlayer {
   }) });
 }
 
-/** A whole game, the guard against the rising (by default the rising's own play), to the end or a turn limit. */
+/**
+ * A whole game, the guard against the rising (by default the rising's own play, its elite squad too: Jack), to
+ * the end or a turn limit.
+ */
 export function playOut(g: RiotGame, s0: RiotState, player: GuardPlayer, rising?: (g: RiotGame, s: RiotState) => Order[], limit = 40): { state: RiotState; winner: 'guard' | 'rising' } {
   let s = s0;
-  for (let i = 0; i < limit && !g.outcome(s); i++) s = playTurn(g, s, player(g, s), rising ? rising(g, s) : g.risingOrders(s));
+  for (let i = 0; i < limit && !g.outcome(s); i++) {
+    if (!rising) s = g.risingActs(s).state;
+    // (The guard's elite squad too, played simply: Jack.)
+    if (g.rules.elites) s = g.eliteActs(s, 'guard').state;
+    s = playTurn(g, s, player(g, s), rising ? rising(g, s) : g.risingOrders(s));
+  }
   return { state: s, winner: g.outcome(s) ?? 'rising' };
 }

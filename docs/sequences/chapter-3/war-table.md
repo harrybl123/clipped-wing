@@ -125,3 +125,68 @@ Simulated on the riot's set-up, with rumbles (30 and 10 games):
 
 The hero makes the riot a good deal easier: rarer heroes, or a smaller one, if it's too much.
 - **Their hero, the bastard** (Jack): the rising have one too. With none about, one in six turns the square sends one out instead of growing, onto a street next to it (where it would pour a crowd). The same as yours, in amber with a dark plume: always 7, two streets a turn, joins nobody. It goes for a squad of the guard it beats, the lifts' foot first, or towards the nearest. Its arrival: "Bastard!" in amber, the light dimming and a shake, and the sword pitched down (`shingLow`). With heroes on both sides (rumbles too): sensible wins 90% by turn 7.7, careful by 5.3; about 0.5 heroes and 0.9 bastards a game.
+
+## The elite squad (Jack's trial, 2026-10-16; replaces the random hero and bastard above)
+
+Each side has three, along the bottom of the table, shown as their emblems (the name beside them under the mouse): **the hero, the maiden and the king's guard** (the rising's: **the bastard, the witch and the barbarians**). Each once a game, for a crest (below). Click one (or 1, 2, 3), then a place next to your base (the lifts' foot; the rising's, the square): it appears there, and a squad of yours that was there steps back into the base, joining it, so nobody's lost; the king's guard goes straight round the base. None of them joins anyone, or is joined.
+
+- **Hero / bastard** (a plumed helmet): 7 to deal out; nothing can attack it; 3 turns. Two streets a turn ("2 moves" over it when picked up), fighting its way through the first if it has to and on if it wins its way in (Jack: a 2, then the 3 beside it). Each fight spends what it takes to wipe them out: more than enough, it moves in; just enough, it clears the place and is spent; too little, it wears them down and is spent. It never stays on the square or the lifts' foot (it clears them). Dug in, it's **crusted**: fixed there for the rest of its time.
+- **Maiden / witch** (fair hair; dark hair under a pointed hat): 1, so easily killed; 5 turns. **Seduce** (the button under her): a squad of theirs next to her, 5 or fewer, not the square, is yours ("Seduced!", a kiss), and she's gone; its order from its old side doesn't happen.
+- **King's guard / barbarians** (a closed steel helm and crest, armoured; a horned helmet): three of 2, round the base, moving only between the places next to it, never growing, never joining anyone; dug in as they arrive (free) and for 2 turns whenever fortified; there for good (Jack: their only downside is they can't merge).
+- Their arrivals: "Hero!" and a sword drawn ("Bastard!", pitched down); "Maiden!" and a giggle ("Witch!", a cackle); "King's Guard!" ("Barbarians!", the grunt slowed) and a grunt; a seduction, "Seduced!" and a kiss with a long dark reverb. All recordings (credited in `src/assets/audio/sfx/README.md`); "Hero!" itself waits for Jack's.
+- The rising play theirs simply (`eliteActs`; so does the computer guard in the tests): a witch next to one she can seduce does; and when one's ready, the barbarians if you're closing on the square, else the bastard if there's one of yours within reach, else the witch if there's one to seduce.
+
+Simulated with both sides playing their elite squads that way (rumbles too). At first an elite replaced the squad it was put on, and its points were lost: **sensible won only 17%**, and its own elite squad made things worse (70% with only the guard's; 97% with none), since the places next to the lifts are usually taken. Capping seduce at 3 changed nothing (17%). With the displaced squad stepping back into the base: **sensible 83%** (turn 11.1), careful always (turn 6.0); with only the guard's elite squad, always (turn 6.4); with only the rising's, 30%. 
+
+**Crests** (Jack, replacing one every 3 turns: the rising's bastard and barbarians came out on turn 1): like a rumble, a gold crest appears on an empty street on turn 3 and every 4 turns after, for 3 turns ("Elite!", a bright glint). It's never on or next to either base; it's about as far from both sides (two streets, if it can), a street nearer the guard when even (the rising have more crowds out, and won most races otherwise) and nearer whichever side has taken fewer. A squad onto it takes it, and its side can put in any one of its elite squad it hasn't used. Both sides only go for one in reach (the computer guard marching for them lost games: 98% to 65% with nobody even spending them).
+
+**Poison** (Jack): a maiden (witch) can merge into one of her side's squads (her 1 joins it); it turns green and bubbles ("Poisoned!", a recorded bubbling). Attacking, half the time it lands a critical hit ("Critical! +n"): 10 to 60% of its attack more, rounded; won, it never keeps more than it had. Split, the half that goes takes the poison.
+
+Simulated with crests, poison, the king's guard for good, rumbles: sensible about 60% (turn 15.7), careful 92% (turn 9). Switched off one at a time: without the rising's bastard, sensible 63%; without their barbarians, 33% (they tie up the rising's own crowds); critical hits change nothing in these (the computer players rarely merge). (Earlier figures of "sensible always, turn 16" were simulated without the riot's rules, by mistake.)
+
+### Clashes (Jack's trial)
+
+Jack: equal numbers head-on lost you your whole squad (a tie holds), the worst result in the game; make it a fight. When one of yours goes straight at one of theirs whose arrow points straight back at it, with exactly the same number, it's a clash, every time (Jack): heroes and the king's guard too; not the maiden (she seduces instead), not on the square (its own rule), not a squad dug in or with its power cut, not half a split. The rising trigger them the same way (the rules don't care whose turn order it is).
+
+The odds are morale, nothing else (Jack: odds only, no button to press), for the side striking first:
+
+| | |
+| --- | --- |
+| Start | 50% |
+| Strength: your share of everything on the board | up to ±15% |
+| Each of yours next to either end of the street (not dug in: Jack) | +5% |
+| Each of theirs there (not dug in) | −5% |
+| Home ground: the places round it mostly yours (or theirs) | +10% (−10%) |
+| An elite there: a hero, the king's guard, a poisoned squad (yours; theirs) | +5% (−5%) |
+| Kept between | 20% and 80% (Jack) |
+
+The winner takes the loser's place with 1 left (Jack), or now and then 2 (27%), rarely 3 (8%; Jack: so winning a clash can beat holding), never more than it had; its own place stays its side's, empty. Choosing the attack, the card shows "Clash! 74% to win" and each part. It's shown as a short scene: "Clash!", into the street, the two sides (up to six each, in the city's looks), war cries, a charge, swords, falling one by one until only the winners' last stand. Simulated: sensible about 60% (turn 15.2), careful 83% (turn 8.6), from 60% and 92% without.
+
+Split is once every 3 turns, like fortify (Jack): the button greys with the turns to wait, or "Split used" once another squad's split is ordered this turn.
+
+Holding against a matching squad still wins for sure (a tie holds: they're lost, you keep 1), while striking at it is a clash, a gamble; the clash's reward is their place. Kept as it is for now (Jack's question, 2026-10-16).
+
+### The mystery square (Jack's trial)
+
+One thing on the map at a time: a rumble, a crest or a mystery square (a crest that's due waits for the map to clear). From turn 4, with the map clear, there's a 30% chance each turn of a mystery square on an empty street (placed like a crest, a street nearer the guard), for 3 turns; a quarter of them are the diviner's own mark (an eye under a hood), the rest a "?". First there finds out. A "?" is:
+
+- **The diviner** (40%): a sly old hooded figure leans in close over the table and deals three cards face down ("Choose, and the city chooses with you."). You pick one; it's turned over, then the two you didn't take. The cards: any of your elite you've not used (yours to put in, no crest needed), the **Joker** (every squad next to it but the bases, either side's, thrown up: 1 to the most there, at most 10), the **Jack** (+2 to each of yours next to it), the **King** (+5 to your base), the **Queen** (+3 to one of yours), the **Ace** (+5 to the squad that found it), the **Plague** card (as below). The rising's are picked for them.
+- **The thief** (35%): "Thief!" and a knife drawn; you pick any of theirs but their base, and it steals up to 3 (it can wipe a squad out), added to your base. The rising's robs your biggest.
+- **The plague** (25%; Jack: renamed from poison, since the maiden's poison is something else): a skull fills the screen and decays, with a hollow, dark sound; for 3 turns each of your squads but the base loses 1, never below 1. The note in the corner counts it down.
+
+### The king's guard hold (Jack)
+
+The king's guard never move. A squad of yours can step onto their place and stand beside them (drawn as its own shield, down and to the right of them), passing through: it can go on again later. An attack there faces both together; the king's guard take it first, then whoever's beside them.
+
+### The trickster (Jack)
+
+A mystery square can turn out to be the trickster (15%; the "?" is now diviner 35%, thief 30%, plague 20%, trickster 15%), and a tenth of mystery squares show its own mark (two arrows crossing). First there changes every street on the table: the same places, joined up differently, so somewhere two or three streets away can be next door. Kept easy to read: no streets crossing, none running past a place, at most four from any place, about as many as before, everywhere still reachable, and the square at least three streets from the lifts' foot. "Trickster!", a tumble of bells, the streets flicker, and the street plan under the table is painted again.
+
+### Home bases (Jack)
+
+The guard's base is drawn as a keep (battlements, a gate, a white flag), the rising's as a camp under their ragged banner, with the number in the middle.
+
+### The skirmish (Jack, for playtesting)
+
+A game mode of its own (dev: `?scene=wartable`): the riot's table and rules, no story, no dawn. Take their base and you've won; lose yours and you've lost. Every 6 turns, a shake-up: each side gets a crest, to put in any elite it chooses (Jack: not one picked for you), or, a quarter of the time, it's the trickster and the streets change instead (Jack; the note in the corner counts down). Here the elite come back once they're gone from the table. The maiden can't be fortified (Jack: she's left open).
+
