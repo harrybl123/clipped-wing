@@ -149,6 +149,16 @@ export const citadelHalls: AreaDefinition = {
     // Day 6's night: out of your door at the third bell, you see your sister slip along the gallery into your
     // father's study (the tail itself is in the sealed wing).
     { type: 'trigger', x: 104, y: UPPER, reach: 14, knot: 'c3day6_gallery', showIf: 'c3day6=follow', hideIf: 'gallery6' },
+    // Day 7's night: your friend out of the guest wing to your hand's door, past one of the night guard walking
+    // the gallery between them, his lamp up. Keep to the doorways (the guest wing's, the banner's shadow, your
+    // hand's), and go when his back's turned; seen, you're both back at the guest wing's door.
+    {
+      type: 'watch', from: 610, to: 836, y: UPPER, speed: 22, range: 64, pause: 1500, reset: { x: 860, y: UPPER }, showIf: 'c3day7=halls',
+      who: 'capital-guard-2', id: 'gallery-guard', call: 'Who’s that? Stop there!',
+    },
+    { type: 'shadow', x: 848, y: UPPER, width: 26, showIf: 'c3day7=halls' },
+    { type: 'shadow', x: 788, y: UPPER, width: 22, showIf: 'c3day7=halls' },
+    { type: 'shadow', x: 706, y: UPPER, width: 28, showIf: 'c3day7=halls' },
   ],
   people: [
     // The guards on the audience hall's great doors, always.
@@ -203,6 +213,11 @@ export const citadelHalls: AreaDefinition = {
     inStory('engineer-6', 'engineer', 706, UPPER, 'c3day6=office', { hidden: true }),
     inStory('hand-6h', 'diplomat', 714, UPPER, 'c3day6=office', { hidden: true, flipX: true }),
     inStory('sister-6n', 'sister', 170, UPPER, 'c3day6=follow', { hideIf: 'sister_hall6' }),
+    // Day 7: the captain at his post with the transfer list; at night, the guest wing's two guards, sent to the
+    // foot of the stair by you, waiting for him.
+    inStory('captain-7', 'captain', 450, FLOOR, 'c3day7=list,friend', { knot: 'c3day7_list', flipX: true }),
+    guard('guard-7c', 0, 458, FLOOR, 'c3_guard_night', undefined, { showIf: 'c3day7=halls' }),
+    guard('guard-7d', 1, 502, FLOOR, 'c3_guard_night', undefined, { showIf: 'c3day7=halls', flipX: true }),
   ],
   interactables: [
     { id: 'statue', x: 206, y: FLOOR, reach: 14, label: 'Look', knot: 'halls_statue' },

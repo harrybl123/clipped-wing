@@ -539,8 +539,7 @@ Cover for her, or tell your father she's been here?
     ++ [No. Think again.]
         -> choose
 - ~ c3day6 = "done"
-~ c3day7 = "wake"
 ~ objective = ""
 ~ objective_target = ""
-You walk back to your rooms the long way. The hum stays in your teeth till morning. #wake:prince-quarters:120:226 #endday:Day 7
+You walk back to your rooms the long way. The hum stays in your teeth till morning. #wake:prince-quarters:120:226:c3day7_start #endday:Day 7
 -> END

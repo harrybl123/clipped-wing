@@ -184,6 +184,7 @@ export const promenade: AreaDefinition = {
     watch('post-1', 0, 196, FLOOR, 'c3_watch', undefined, { showIf: 'c3day1=walk,requests' }),
     watch('post-2', 1, 210, FLOOR, 'c3_watch', undefined, { showIf: 'c3day1=walk,requests', flipX: true }),
     inStory('hand', 'diplomat', 40, FLOOR, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
+    inStory('heir-f', 'heir', 44, FLOOR, 'heir_with_you', { follow: true, knot: 'c3day7_heir_walk' }),
     // Day 2, below at night (if the upper city went without): people who know you, and the painter by a dead lamp.
     citizen('cold-2', 5, 250, FLOOR, 'c3day2_cold', undefined, { showIf: 'c3day2=below', hideIf: 'energy=high' }),
     citizen('stairs-2', 3, 360, FLOOR, 'c3day2_stairs', undefined, { showIf: 'c3day2=below', hideIf: 'energy=high', flipX: true }),

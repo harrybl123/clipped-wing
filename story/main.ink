@@ -750,8 +750,29 @@ VAR study6 = false
 VAR sister_wing6 = false
 VAR door6 = false
 VAR sister = ""
-// Chapter 3, Day 7 (not built yet).
+// Chapter 3, Day 7 (story/capital/chapter3-day7.ink): the order. Stages: wake, list, friend, then (promised)
+// night, barrier, halls, lifts, fight, home, or (not) bed, dawn; done.
 VAR c3day7 = ""
+// The order (pushback 6): you read it back as written, or asked him to soften it (he changed nothing).
+VAR order7 = false
+VAR asked_soften = false
+// The transfer list: the one name you struck ("kid", "woman", "barkeep") or "none".
+VAR list7 = false
+VAR struck = ""
+// Your friend; the escape (promised): the barrier's guards sent off, your hand's office (clue 7), the lifts, the
+// commander turning her back, and the fight at the gate with two of her watch ("won" / "lost": he still gets
+// away, but the commander sees your face, `seen_gate`). He's gone either way; `helped_escape` if you got him out.
+VAR wing7 = false
+VAR barrier7 = false
+VAR office7 = false
+VAR lifts7 = false
+VAR gate_seen7 = false
+VAR gate7 = ""
+VAR seen_gate = false
+VAR helped_escape = false
+VAR friend_gone = false
+// Chapter 3, Day 8 (not built yet).
+VAR c3day8 = ""
 
 INCLUDE prologue.ink
 INCLUDE day1.ink
@@ -808,6 +829,7 @@ INCLUDE capital/chapter3-day3.ink
 INCLUDE capital/chapter3-day4.ink
 INCLUDE capital/chapter3-day5.ink
 INCLUDE capital/chapter3-day6.ink
+INCLUDE capital/chapter3-day7.ink
 INCLUDE capital/cast.ink
 INCLUDE capital/folk.ink
 INCLUDE capital/looks.ink

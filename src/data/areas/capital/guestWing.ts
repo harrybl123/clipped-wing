@@ -76,8 +76,8 @@ export const guestWing: AreaDefinition = {
   ],
   people: [
     // The guards' post at the way out.
-    guard('barrier-guard-1', 0, 522, FLOOR, 'c3_guard_guests', undefined, { flipX: true }),
-    guard('barrier-guard-2', 1, 576, FLOOR, 'c3_guard_guests', undefined, { flipX: true }),
+    guard('barrier-guard-1', 0, 522, FLOOR, 'c3_guard_guests', undefined, { flipX: true, hideIf: 'c3day7=barrier,halls,lifts,fight,home' }),
+    guard('barrier-guard-2', 1, 576, FLOOR, 'c3_guard_guests', undefined, { flipX: true, hideIf: 'c3day7=barrier,halls,lifts,fight,home' }),
     cast('captain', 498, FLOOR, { knot: 'guest_captain', when: ['afternoon'], flipX: true }),
     // The other guests.
     courtier('guest-1', 0, 290, FLOOR, 'guest_wing_guest', MORNING),
@@ -90,6 +90,12 @@ export const guestWing: AreaDefinition = {
     courtier('guest-6w2', 6, 360, FLOOR, 'c3day6_guest', undefined, { showIf: 'c3day6=wing', flipX: true }),
     courtier('guest-6w3', 3, 446, FLOOR, 'c3day6_guest', undefined, { showIf: 'c3day6=wing' }),
     courtier('grandson-6w', 5, 196, FLOOR, 'c3day6_grandson', undefined, { showIf: 'c3day6=wing', hideIf: 'seated=councillor', flipX: true }),
+    // Day 7: your friend at his window; at night, the barrier's two guards (sent off by you to the stair), and
+    // him with you from there.
+    inStory('heir-7', 'heir', 90, FLOOR, 'c3day7=friend,night,barrier,bed', { knot: 'c3day7_friend', hideIf: 'heir_with_you' }),
+    guard('guard-7a', 0, 522, FLOOR, 'c3day7_barrier', undefined, { showIf: 'c3day7=barrier', flipX: true }),
+    guard('guard-7b', 1, 576, FLOOR, 'c3day7_barrier', undefined, { showIf: 'c3day7=barrier', flipX: true }),
+    inStory('heir-f', 'heir', 560, FLOOR, 'heir_with_you', { follow: true, knot: 'c3day7_heir_walk' }),
   ],
   interactables: [
     { id: 'bed', x: 44, y: FLOOR, reach: 14, label: 'Look', knot: 'guest_bed' },

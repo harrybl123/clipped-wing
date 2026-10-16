@@ -2,7 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import { scrollingScreen } from './citadelProps';
 import * as P from './cityProps';
 import type { AreaDefinition } from '../types';
-import { cast, citizen, strollingCitizen, watch, AWAKE, DAY, MORNING } from './people';
+import { cast, citizen, inStory, strollingCitizen, watch, AWAKE, DAY, MORNING } from './people';
 
 // The gate (Chapter 3): the city's edge, where envoys arrive from outside (docs/areas/capital/city-gate.md).
 // Inside, on the right: the checkpoint, its booth and screens, the barrier across the road, the city's
@@ -60,10 +60,13 @@ export const cityGate: AreaDefinition = {
   features: [
     { type: 'rain' },
     { type: 'frames', frames: scrollingScreen(40, 26), x: 560, y: 120, every: 420 },
+    // Chapter 3, Day 7's night: the commander turns her back; then the arch, and her watch.
+    { type: 'trigger', x: 650, y: FLOOR, reach: 16, knot: 'c3day7_commander', showIf: 'c3day7=lifts', hideIf: 'gate_seen7' },
+    { type: 'trigger', x: 470, y: FLOOR, reach: 14, knot: 'c3day7_gate', showIf: 'c3day7=lifts' },
   ],
   people: [
     // The watch at the checkpoint, and its commander in the morning.
-    watch('booth-watch', 0, 532, FLOOR, 'gate_watch', undefined, { flipX: true }),
+    watch('booth-watch', 0, 532, FLOOR, 'gate_watch', undefined, { flipX: true, hideIf: 'c3day7=lifts,fight' }),
     watch('barrier-watch', 1, 470, FLOOR, 'gate_watch', DAY, { flipX: true }),
     cast('commander', 584, FLOOR, { knot: 'gate_commander', when: MORNING, flipX: true }),
     // Outside the wall: the envoy arriving, people waiting to be let in.
@@ -72,6 +75,14 @@ export const cityGate: AreaDefinition = {
     citizen('traveller-2', 2, 150, FLOOR, 'gate_traveller', ['afternoon']),
     strollingCitizen('passer', 7, 600, 760, FLOOR, 'gate_folk', AWAKE),
     cast('commander', 560, FLOOR, { id: 'commander-night', knot: 'gate_commander_night', when: ['night'], flipX: true }),
+    // Chapter 3, Day 7's night: your friend with you; the commander at the booth (she turns her back), and two
+    // of her watch who don't: the young one by the booth, and the other, who comes out when he calls. After
+    // the fight, your friend on his own, going.
+    inStory('heir-f', 'heir', 760, FLOOR, 'heir_with_you', { follow: true, knot: 'c3day7_heir_walk' }),
+    inStory('commander-7', 'commander', 560, FLOOR, 'c3day7=lifts,fight', { knot: 'c3day7_commander_talk', flipX: true }),
+    watch('watch-7a', 1, 530, FLOOR, 'c3day7_commander_talk', undefined, { showIf: 'c3day7=lifts,fight' }),
+    watch('watch-7b', 0, 548, FLOOR, 'c3day7_commander_talk', undefined, { showIf: 'c3day7=fight', hidden: true }),
+    inStory('heir-7g', 'heir', 450, FLOOR, 'c3day7=fight', { hideIf: 'heir_with_you', flipX: true }),
   ],
   interactables: [
     { id: 'wall', x: 365, y: FLOOR, reach: 14, label: 'Look', knot: 'gate_wall' },
