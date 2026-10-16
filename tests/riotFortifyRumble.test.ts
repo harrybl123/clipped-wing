@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LOW_DISTRICT_BOARD, RIOTS, type RiotScenario } from '../src/data/warTable';
-import { AUDIENCE, BROTHEL, CHURCH, CLASH, ELITE_SQUAD, MYSTERY, REBEL, RIOT_RULES, RUMBLE, RiotGame, type Card, type Order, type RiotState } from '../src/systems/Riot';
+import { AUDIENCE, BARRACKS, BROTHEL, CHURCH, CLASH, ELITE_SQUAD, MYSTERY, REBEL, RIOT_RULES, RUMBLE, RiotGame, type Card, type Order, type RiotEvent, type RiotState } from '../src/systems/Riot';
 
 // Jack's two for the war table (proposed for the designer; docs/sequences/chapter-3/war-table.md): fortify,
 // and rumbles.
@@ -951,5 +951,72 @@ describe('the war table: even, the home squares, the rebels’ move, heroes (Jac
   it('no riot (Jack took it out): with only fire-worthy ground about, they wait', () => {
     const s = rebels.start([...both, { side: 'guard', place: 'wwall', strength: 6 }, { side: 'guard', place: 'oldtown', strength: 6 }]);
     expect(rebels.risingActs(s).events).toEqual([]);
+  });
+});
+
+describe('the war table: the barracks (Jack)', () => {
+  const board = (RIOTS.skirmish as RiotScenario).board;
+  const game = new RiotGame(board, { ...RIOT_RULES, barracks: BARRACKS, homeGrowth: true });
+  const bases = [{ side: 'guard' as const, place: 'keep', strength: 5 }, { side: 'rising' as const, place: 'camp', strength: 5 }];
+  const found = (extra: Parameters<typeof game.start>[0] = []) => {
+    const s = { ...game.start([...bases, { side: 'guard', place: 'gate', strength: 4 }, ...extra]), barracks: { place: 'bridge', left: 3 } };
+    const r = game.order(s, { squad: at(s, 'gate')!.id, to: 'bridge' });
+    expect(r.events).toContainEqual({ type: 'barracksFound', at: 'bridge', side: 'guard' });
+    expect(r.state.pending).toEqual({ kind: 'barracks', side: 'guard', at: 'bridge' });
+    return r.state;
+  };
+
+  it('first there hires: rogue mercenaries, three of 3, out next to it; nobody gives them orders, nobody joins them', () => {
+    const r = game.resolve(found(), 'rogues');
+    const rogues = r.state.squads.filter((q) => q.hired === 'rogue');
+    expect(rogues).toHaveLength(3);
+    for (const q of rogues) expect(q).toMatchObject({ side: 'guard', strength: 3 });
+    expect(game.dests(r.state, rogues[0]!)).toEqual([]);
+    expect(game.order(r.state, { squad: rogues[0]!.id, to: game.adj.get(rogues[0]!.place)![0]! }).events).toEqual([]);
+    // (One of yours can't join them.)
+    const next = game.adj.get(rogues[0]!.place)!.find((p) => at(r.state, p)?.side === 'guard' && !at(r.state, p)!.hired);
+    if (next) expect(game.dests(r.state, at(r.state, next)!)).not.toContain(rogues[0]!.place);
+  });
+
+  it('rogues go for the nearest of theirs they can beat, on their own, and beat one next to them', () => {
+    const s0 = game.resolve(found([{ side: 'rising', place: 'crossroads', strength: 2 }]), 'rogues').state;
+    const orders = game.hiredOrders(s0);
+    expect(orders.length).toBeGreaterThan(0);
+    let t = s0;
+    for (let i = 0; i < 3; i++) t = game.turn(t, [], []).state;
+    expect(t.squads.some((q) => q.side === 'rising' && q.place === 'crossroads')).toBe(false);
+    expect(t.squads.some((q) => q.hired === 'rogue' && q.place === 'crossroads')).toBe(true);
+  });
+
+  it('archers: two of 2 next to it, never moving, shooting one of theirs next to them for 1 a turn', () => {
+    const s0 = game.resolve(found([{ side: 'rising', place: 'smithy', strength: 5 }]), 'archers').state;
+    const archers = s0.squads.filter((q) => q.hired === 'archer');
+    expect(archers).toHaveLength(2);
+    expect(archers.every((q) => game.near(q.place, 'bridge') && q.strength === 2)).toBe(true);
+    expect(game.hiredOrders(s0)).toEqual([]);
+    const r = game.turn(s0, [], []);
+    const arrows = r.events.filter((e) => e.type === 'arrow');
+    const nextTo = archers.filter((a) => game.near(a.place, 'smithy')).length;
+    expect(arrows).toHaveLength(nextTo);
+    expect(at(r.state, 'smithy')!.strength).toBe(5 - nextTo);
+  });
+
+  it('the assassin: weaves to their base, two streets a turn, and strikes it (3, or 6 on a critical hit), then is gone', () => {
+    let s = game.resolve(found(), 'assassin').state;
+    expect(s.squads.filter((q) => q.hired === 'assassin')).toHaveLength(1);
+    let strike: RiotEvent | undefined;
+    for (let i = 0; i < 8 && !strike; i++) {
+      const r = game.turn({ ...s, squads: s.squads.map((q) => (q.place === 'camp' ? { ...q, strength: 20 } : q)) }, [], []);
+      strike = r.events.find((e) => e.type === 'assassin');
+      s = r.state;
+    }
+    if (strike?.type !== 'assassin') throw new Error('no strike');
+    expect(strike.at).toBe('camp');
+    expect([3, 6]).toContain(strike.damage);
+    expect(s.squads.some((q) => q.hired === 'assassin')).toBe(false);
+  });
+
+  it('the skirmish has the barracks', () => {
+    expect((RIOTS.skirmish as RiotScenario).rules?.barracks).toBe(BARRACKS);
   });
 });

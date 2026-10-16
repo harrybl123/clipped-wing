@@ -54,13 +54,13 @@ export interface AudienceShow {
 }
 
 /** An overlay on the screen (fixed while the table pans). */
-function overlay(scene: Phaser.Scene, alpha = 0.85): Phaser.GameObjects.Container {
+export function overlay(scene: Phaser.Scene, alpha = 0.85): Phaser.GameObjects.Container {
   const layer = scene.add.container(0, 0).setDepth(110).setScrollFactor(0);
   layer.add(scene.add.rectangle(0, 0, W, H, 0x000000, alpha).setOrigin(0).setScrollFactor(0));
   return layer;
 }
 
-function text(scene: Phaser.Scene, layer: Phaser.GameObjects.Container, y: number, words: string, color: number = SHADES.light, scale = 1, wrapWidth?: number): PixelText {
+export function text(scene: Phaser.Scene, layer: Phaser.GameObjects.Container, y: number, words: string, color: number = SHADES.light, scale = 1, wrapWidth?: number): PixelText {
   const t = new PixelText(scene, 0, y, words, { color, shadow: SHADES.shadow, scale, ...(wrapWidth ? { wrapWidth } : {}) }).setScrollFactor(0);
   t.setX(Math.round((W - t.width) / 2));
   layer.add(t);
@@ -79,7 +79,7 @@ const wait = (scene: Phaser.Scene, ms: number) => new Promise<void>((r) => scene
  * Until a click anywhere (or a key): the result stays up to be read (Jack), whoever it was for. (`mine` and `ms` are
  * kept for the choosing, which the computer does after a moment.)
  */
-function untilPressed(scene: Phaser.Scene, _mine: boolean, _ms = 1600, layer?: Phaser.GameObjects.Container): Promise<void> {
+export function untilPressed(scene: Phaser.Scene, _mine: boolean, _ms = 1600, layer?: Phaser.GameObjects.Container): Promise<void> {
   if (layer) {
     const t = new PixelText(scene, 0, H - 10, 'Click anywhere to carry on', { color: SHADES.dim, shadow: SHADES.shadow }).setScrollFactor(0);
     t.setX(Math.round((W - t.width) / 2));
@@ -99,7 +99,7 @@ function untilPressed(scene: Phaser.Scene, _mine: boolean, _ms = 1600, layer?: P
 }
 
 /** Choosing one of several things laid out across the screen: arrows and E, 1 to n, or the mouse. */
-function choose(scene: Phaser.Scene, boxes: { x: number; y: number; w: number; h: number }[], onHover: (i: number) => void, mine: boolean, pick: number): Promise<number> {
+export function choose(scene: Phaser.Scene, boxes: { x: number; y: number; w: number; h: number }[], onHover: (i: number) => void, mine: boolean, pick: number): Promise<number> {
   if (!mine) {
     onHover(pick);
     return wait(scene, 1200).then(() => pick);
@@ -139,7 +139,7 @@ function choose(scene: Phaser.Scene, boxes: { x: number; y: number; w: number; h
   });
 }
 
-async function fade(scene: Phaser.Scene, layer: Phaser.GameObjects.Container): Promise<void> {
+export async function fade(scene: Phaser.Scene, layer: Phaser.GameObjects.Container): Promise<void> {
   await new Promise<void>((r) => scene.tweens.add({ targets: layer, alpha: 0, duration: 250, onComplete: () => r() }));
   layer.destroy();
 }

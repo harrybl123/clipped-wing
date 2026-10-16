@@ -126,6 +126,8 @@ export interface RiotRules {
   church?: { from: number; chance: number; lasts: number };
   /** The rebels' own move (Jack, the skirmish): see `REBEL`. */
   rebel?: RebelRules;
+  /** The barracks (Jack, the skirmish): see `BARRACKS`. */
+  barracks?: BarracksRules;
   /** How much the rising's base grows each turn (1 if absent). */
   risingGrowth?: number;
   /**
@@ -151,6 +153,29 @@ export interface RebelRules {
   /** Sabotage at most once in this many turns (Jack). */
   sabotageEvery: number;
 }
+/**
+ * The barracks (Jack): now and then one appears on the map, for a few turns; first there hires fighters, one of
+ * three kinds. They're on that side but nobody gives them orders (the computer plays them), they never join anyone
+ * or grow, and they can be attacked like anyone. **Rogue mercenaries**: three of 3, out next to the barracks; each
+ * turn they go for the nearest of the other side's they can beat (and beat it if it's next to them).
+ * **Archers**: two of 2, on two places next to the barracks; they never move, and each turn each shoots one of the
+ * other side's next to it for 1. **An assassin**: 3, weaving through the map for the other side's base by the
+ * safest way (two streets a turn, through empty places only); there, it strikes it for its 3, half the time a
+ * critical hit for twice that (never taking the base: it leaves at least 1), and is gone.
+ */
+export interface BarracksRules {
+  from: number;
+  chance: number;
+  lasts: number;
+  rogues: { count: number; strength: number };
+  archers: { count: number; strength: number; damage: number };
+  assassin: { strength: number; crit: number; critTimes: number };
+}
+export const BARRACKS: BarracksRules = { from: 6, chance: 0.15, lasts: 3, rogues: { count: 3, strength: 3 }, archers: { count: 2, strength: 2, damage: 1 }, assassin: { strength: 3, crit: 0.5, critTimes: 2 } };
+export type Hired = 'rogue' | 'archer' | 'assassin';
+export const HIRES = ['rogues', 'archers', 'assassin'] as const;
+export type Hire = (typeof HIRES)[number];
+
 export const REBEL: RebelRules = { every: 3, rally: 2, closed: 3, sabotageEvery: 9 };
 export type RebelMove = 'rally' | 'sabotage';
 
@@ -312,6 +337,8 @@ export interface RiotSquad {
   strength: number;
   /** One of the elite squad (Jack): never joined with anyone. A hero's `strength` is what it has left to deal out. */
   elite?: Elite;
+  /** Hired at the barracks (Jack): the computer plays it; it never joins anyone or grows. */
+  hired?: Hired;
   /** The last turn an elite is here (it's gone at the end of it). */
   until?: number;
   /** Dug in through this turn (fortify: one turn; the king's guard two; a crusted hero its whole time). */
@@ -360,7 +387,7 @@ export interface RiotState {
   /** A mystery square on the map (Jack): where, for how many more turns, and whether it's the diviner's own mark. */
   mystery?: { place: string; left: number; mark?: 'diviner' | 'trickster' } | null;
   /** Waiting on a choice (Jack): the diviner's three cards, face down, or where the thief goes. */
-  pending?: { kind: 'diviner'; side: Side; at: string; cards: Card[] } | { kind: 'thief'; side: Side; at: string } | { kind: 'audience'; side: Side; at: string; good: number[] } | { kind: 'prayer'; side: Side } | null;
+  pending?: { kind: 'diviner'; side: Side; at: string; cards: Card[] } | { kind: 'thief'; side: Side; at: string } | { kind: 'audience'; side: Side; at: string; good: number[] } | { kind: 'prayer'; side: Side } | { kind: 'barracks'; side: Side; at: string } | null;
   /** Turns of plague left for each side (Jack). */
   plague?: Record<Side, number>;
   /** The streets, once the trickster's changed them (Jack); the board's until then. */
@@ -371,6 +398,8 @@ export interface RiotState {
   audience?: { place: string; left: number } | null;
   /** A holy cross on the map (Jack). */
   church?: { place: string; left: number } | null;
+  /** The barracks on the map (Jack). */
+  barracks?: { place: string; left: number } | null;
   /** What's lasting on each side (Jack): morale, output, the commander's advice. */
   moods?: Mood[];
   /** When the crier comes to each side, in this stretch of turns (Jack), or not at all. */
@@ -397,6 +426,8 @@ export interface Order {
   via?: string;
   /** Part of a chain (the rising, in the even skirmish): joins up, then strikes on together, in this order. */
   chain?: boolean;
+  /** A hired fighter's (Jack): the computer's, the only orders they take. */
+  auto?: boolean;
 }
 
 export type RiotEvent =
@@ -440,6 +471,13 @@ export type RiotEvent =
   | { type: 'churchAppears'; at: string }
   | { type: 'churchGone'; at: string }
   | { type: 'churchFound'; at: string; side: Side }
+  /** The barracks (Jack): appearing, gone, found, who was hired and where; an archer's arrow; the assassin's strike. */
+  | { type: 'barracksAppears'; at: string }
+  | { type: 'barracksGone'; at: string }
+  | { type: 'barracksFound'; at: string; side: Side }
+  | { type: 'hired'; side: Side; hire: Hire; at: string[] }
+  | { type: 'arrow'; side: Side; from: string; at: string; damage: number; gone: boolean }
+  | { type: 'assassin'; side: Side; at: string; damage: number; crit: boolean }
   /** An audience with the Lord (Jack): `side`'s people pray ("O please, Lord, won't you hear our prayer?!"); `pending`. */
   | { type: 'call'; side: Side }
   /** The Lord's judgement on them (Jack): loyal servants (blessed), or heretics (cursed). */
@@ -471,7 +509,7 @@ export type RiotEvent =
   | { type: 'eliteGone'; at: string; side: Side; elite: Elite };
 
 /** Something on the map a squad can go for (Jack). */
-export type Token = 'crest' | 'mystery' | 'rumble' | 'brothel' | 'audience' | 'church';
+export type Token = 'crest' | 'mystery' | 'rumble' | 'brothel' | 'audience' | 'church' | 'barracks';
 
 /** How the rising plays (being tuned: designer, the rising was too passive). */
 export interface RisingStyle {
@@ -554,7 +592,7 @@ export class RiotGame {
   }
 
   clone(s: RiotState): RiotState {
-    return { ...s, squads: s.squads.map((q) => ({ ...q })), owner: { ...s.owner }, fortified: [...s.fortified], lastFortify: { ...s.lastFortify }, lastSplit: { ...s.lastSplit }, fortifyBefore: { ...s.fortifyBefore }, rumble: s.rumble && { ...s.rumble }, crest: s.crest && { ...s.crest }, mystery: s.mystery && { ...s.mystery }, brothel: s.brothel && { ...s.brothel }, audience: s.audience && { ...s.audience }, church: s.church && { ...s.church }, moods: (s.moods ?? []).map((m) => ({ ...m })), calls: s.calls && { ...s.calls }, held: [...(s.held ?? [])], blocked: s.blocked && { ways: [...s.blocked.ways] as [string, string], until: s.blocked.until }, pending: s.pending && { ...s.pending, ...(s.pending.kind === 'diviner' ? { cards: [...s.pending.cards] } : s.pending.kind === 'audience' ? { good: [...s.pending.good] } : {}) }, plague: { guard: s.plague?.guard ?? 0, rising: s.plague?.rising ?? 0 }, elites: { guard: { ...s.elites.guard, used: [...s.elites.guard.used], gifts: [...(s.elites.guard.gifts ?? [])] }, rising: { ...s.elites.rising, used: [...s.elites.rising.used], gifts: [...(s.elites.rising.gifts ?? [])] } } };
+    return { ...s, squads: s.squads.map((q) => ({ ...q })), owner: { ...s.owner }, fortified: [...s.fortified], lastFortify: { ...s.lastFortify }, lastSplit: { ...s.lastSplit }, fortifyBefore: { ...s.fortifyBefore }, rumble: s.rumble && { ...s.rumble }, crest: s.crest && { ...s.crest }, mystery: s.mystery && { ...s.mystery }, brothel: s.brothel && { ...s.brothel }, audience: s.audience && { ...s.audience }, church: s.church && { ...s.church }, barracks: s.barracks && { ...s.barracks }, moods: (s.moods ?? []).map((m) => ({ ...m })), calls: s.calls && { ...s.calls }, held: [...(s.held ?? [])], blocked: s.blocked && { ways: [...s.blocked.ways] as [string, string], until: s.blocked.until }, pending: s.pending && { ...s.pending, ...(s.pending.kind === 'diviner' ? { cards: [...s.pending.cards] } : s.pending.kind === 'audience' ? { good: [...s.pending.good] } : {}) }, plague: { guard: s.plague?.guard ?? 0, rising: s.plague?.rising ?? 0 }, elites: { guard: { ...s.elites.guard, used: [...s.elites.guard.used], gifts: [...(s.elites.guard.gifts ?? [])] }, rising: { ...s.elites.rising, used: [...s.elites.rising.used], gifts: [...(s.elites.rising.gifts ?? [])] } } };
   }
 
   /** The next number from the dice, 0 to 1 (moves `s.seed` on: only ever on a clone). */
@@ -748,7 +786,7 @@ export class RiotGame {
     const rules = this.rules.rebel;
     if (!rules || !this.canRebel(s0)) return { state: s0, events: [] };
     this.use(s0);
-    const theirs = this.mine(s0, 'rising').filter((q) => !q.elite);
+    const theirs = this.mine(s0, 'rising').filter((q) => !q.elite && !q.hired);
     const yours = this.mine(s0, 'guard').filter((q) => !this.fortified(s0, q.place) && s0.cut !== q.place && !q.crusted);
     const hittable = (q: RiotSquad) => q.elite !== 'guard3';
     let best: { move: RebelMove; score: number; at: string; ways?: [string, string] } | null = null;
@@ -871,9 +909,11 @@ export class RiotGame {
     // Nobody joins one of the elite squad, and they join nobody (Jack); but a maiden (witch) can merge into one of
     // hers (poisoning it).
     // Onto one of the king's guard: a squad of yours stands beside them (Jack).
+    // (Hired fighters: the computer's, by `hiredDests`; nobody joins them.)
+    if (q.hired) return [];
     const joinable = (p: string) => {
       const there = this.squadAt(s, p);
-      return !there || there.side !== q.side || (!there.elite && (!q.elite || q.elite === 'maiden')) || (there.elite === 'guard3' && !q.elite);
+      return !there || there.side !== q.side || (!there.elite && !there.hired && (!q.elite || q.elite === 'maiden')) || (there.elite === 'guard3' && !q.elite);
     };
     // The king's guard hold where they are (Jack).
     if (q.elite === 'guard3') return [];
@@ -989,7 +1029,7 @@ export class RiotGame {
     const s = this.clone(s0);
     const q0 = s.squads.find((x) => x.id === o.squad);
     // (A fortified squad stays put.)
-    if (!q0 || (o.side && q0.side !== o.side) || o.to === q0.place || !this.dests(s, q0).includes(o.to) || this.fortified(s, q0.place) || s.held?.includes(q0.id)) return { state: s, events: [] };
+    if (!q0 || (o.side && q0.side !== o.side) || o.to === q0.place || !(q0.hired ? (o.auto ? this.hiredDests(s, q0) : []) : this.dests(s, q0)).includes(o.to) || this.fortified(s, q0.place) || s.held?.includes(q0.id)) return { state: s, events: [] };
     let q = q0;
     const events: RiotEvent[] = [];
     // Split (Jack): the bigger half goes; the rest stays (a hero can't be split; nor can a squad of 1).
@@ -1120,6 +1160,144 @@ export class RiotGame {
     this.takeBrothel(s, events);
     this.takeAudience(s, events);
     this.takeChurch(s, events);
+    this.takeBarracks(s, events);
+  }
+
+  /** A squad onto the barracks (Jack): who to hire? (Waits on a choice: `pending`.) */
+  private takeBarracks(s: RiotState, events: RiotEvent[]): void {
+    const there = s.barracks && this.squadAt(s, s.barracks.place);
+    if (!s.barracks || !there) return;
+    s.pending = { kind: 'barracks', side: there.side, at: s.barracks.place };
+    events.push({ type: 'barracksFound', at: s.barracks.place, side: there.side });
+    s.barracks = null;
+  }
+
+  /** Who the computer hires (the rising's, or a test's): an assassin when their base is in reach of one, else rogues, or archers when theirs are about. */
+  hireFor(s: RiotState, side: Side, at: string): Hire {
+    const foe = this.other(side);
+    const near = this.adj.get(at)!.filter((p) => this.squadAt(s, p)?.side === foe).length;
+    if (near >= 2) return 'archers';
+    return this.roll(s) < 0.35 ? 'assassin' : 'rogues';
+  }
+
+  /** Fighters hired (on `s`, a clone): out on the empty places nearest the barracks. */
+  private hire(s: RiotState, side: Side, at: string, hire: Hire, events: RiotEvent[]): void {
+    const b = this.rules.barracks ?? BARRACKS;
+    const [count, strength, kind] = hire === 'rogues' ? [b.rogues.count, b.rogues.strength, 'rogue' as const] : hire === 'archers' ? [b.archers.count, b.archers.strength, 'archer' as const] : [1, b.assassin.strength, 'assassin' as const];
+    // The nearest empty places (next to it first; not the bases, the square or the lifts' foot).
+    const seen = new Map([[at, 0]]);
+    const todo = [at];
+    const free: string[] = [];
+    while (todo.length && free.length < count) {
+      const p = todo.shift()!;
+      for (const n of this.adj.get(p)!) {
+        if (seen.has(n)) continue;
+        seen.set(n, seen.get(p)! + 1);
+        todo.push(n);
+        if (!this.squadAt(s, n) && n !== this.heart && n !== this.lifts && !this.tokenAt(s, n) && free.length < count) free.push(n);
+      }
+    }
+    for (const p of free) {
+      s.squads.push({ id: `q${s.nextId++}`, side, place: p, strength, hired: kind });
+      s.owner[p] = side;
+    }
+    events.push({ type: 'hired', side, hire, at: free });
+  }
+
+  /** Where a hired fighter can go (Jack: the computer plays it): rogues one street (not onto their own, not at a hero or the king's guard); the assassin two through empty places; archers nowhere. */
+  private hiredDests(s: RiotState, q: RiotSquad): string[] {
+    if (q.hired === 'archer') return [];
+    const ok = (from: string, p: string) => {
+      const there = this.squadAt(s, p);
+      if (!this.open(s, from, p)) return false;
+      if (q.hired === 'assassin') return !there;
+      return !there || (there.side !== q.side && there.elite !== 'hero' && there.elite !== 'guard3' && !this.fortified(s, p));
+    };
+    const one = this.adj.get(q.place)!.filter((p) => ok(q.place, p));
+    if (q.hired !== 'assassin') return one;
+    return [...new Set([...one, ...one.flatMap((p) => this.adj.get(p)!.filter((m) => m !== q.place && ok(p, m)))])];
+  }
+
+  /**
+   * What the hired fighters do this turn (Jack: the computer plays them), as orders: a rogue at one of the other
+   * side's next to it it beats, or a street towards the nearest it could; the assassin two streets nearer their
+   * base by the safest way (keeping clear of anyone who'd beat it), or none once it's next to it.
+   */
+  hiredOrders(s: RiotState): Order[] {
+    this.use(s);
+    const orders: Order[] = [];
+    const claimed = new Set<string>();
+    const dist = (from: string, goal: (p: string) => boolean, avoid?: (p: string) => number): number => {
+      // (Cheapest way, counting a step next to danger as 4.)
+      const cost = new Map([[from, 0]]);
+      const todo = [from];
+      let best = 99;
+      while (todo.length) {
+        todo.sort((a, b) => cost.get(a)! - cost.get(b)!);
+        const p = todo.shift()!;
+        if (goal(p)) best = Math.min(best, cost.get(p)!);
+        for (const n of this.adj.get(p)!) {
+          const c = cost.get(p)! + 1 + (avoid ? avoid(n) : 0);
+          if (c < (cost.get(n) ?? 99)) (cost.set(n, c), todo.push(n));
+        }
+      }
+      return best;
+    };
+    for (const q of s.squads.filter((x) => x.hired && x.hired !== 'archer')) {
+      const foe = this.other(q.side);
+      const dests = this.hiredDests(s, q).filter((p) => !claimed.has(p));
+      let to: string | undefined;
+      if (q.hired === 'rogue') {
+        const beats = (p: string) => {
+          const there = this.squadAt(s, p);
+          return !!there && there.side === foe && there.elite !== 'hero' && there.elite !== 'guard3' && !this.fortified(s, p) && q.strength > this.defence(s, p, there.strength);
+        };
+        to = dests.filter(beats).sort((a, b) => this.squadAt(s, b)!.strength - this.squadAt(s, a)!.strength)[0];
+        if (!to) {
+          const here = dist(q.place, beats);
+          to = dests.filter((p) => !this.squadAt(s, p)).sort((a, b) => dist(a, beats) - dist(b, beats))[0];
+          if (to && dist(to, beats) >= here) to = undefined;
+        }
+      } else {
+        const base = this.base(foe);
+        if (this.near(q.place, base)) continue;
+        const danger = (p: string) => (this.adj.get(p)!.some((n) => this.squadAt(s, n)?.side === foe && this.squadAt(s, n)!.strength >= q.strength && n !== base) ? 4 : 0);
+        const here = dist(q.place, (p) => this.near(p, base), danger);
+        to = dests.sort((a, b) => dist(a, (p) => this.near(p, base), danger) + danger(a) - (dist(b, (p) => this.near(p, base), danger) + danger(b)))[0];
+        if (to && dist(to, (p) => this.near(p, base), danger) + danger(to) > here) to = undefined;
+      }
+      if (to) (orders.push({ squad: q.id, to, side: q.side, auto: true }), claimed.add(to));
+    }
+    return orders;
+  }
+
+  /**
+   * At the end of the turn (on `s`, a clone), the hired fighters' shots (Jack): each archer shoots one of the other
+   * side's next to it for 1 (the weakest, to finish it); the assassin next to their base strikes it, and is gone.
+   */
+  private hiredStrike(s: RiotState, events: RiotEvent[]): void {
+    const b = this.rules.barracks ?? BARRACKS;
+    for (const a of s.squads.filter((x) => x.hired === 'archer')) {
+      const foe = this.other(a.side);
+      const targets = this.adj.get(a.place)!.map((p) => this.squadAt(s, p)).filter((t): t is RiotSquad => !!t && t.side === foe && !this.fortified(s, t.place) && t.place !== this.base(foe)).sort((x, y) => x.strength - y.strength);
+      const t = targets[0];
+      if (!t) continue;
+      t.strength -= b.archers.damage;
+      const gone = t.strength <= 0;
+      if (gone) s.squads = s.squads.filter((x) => x !== t);
+      if (gone && t.elite) events.push({ type: 'eliteGone', at: t.place, side: t.side, elite: t.elite });
+      events.push({ type: 'arrow', side: a.side, from: a.place, at: t.place, damage: b.archers.damage, gone });
+    }
+    for (const a of s.squads.filter((x) => x.hired === 'assassin')) {
+      const base = this.base(this.other(a.side));
+      const there = this.squadAt(s, base);
+      if (!this.near(a.place, base)) continue;
+      const crit = this.roll(s) < b.assassin.crit;
+      const damage = a.strength * (crit ? b.assassin.critTimes : 1);
+      if (there && there.side !== a.side) there.strength = Math.max(1, there.strength - damage);
+      s.squads = s.squads.filter((x) => x !== a);
+      events.push({ type: 'assassin', side: a.side, at: base, damage, crit });
+    }
   }
 
   /** A squad onto the holy cross (Jack): an audience with the Lord for its side. */
@@ -1139,6 +1317,7 @@ export class RiotGame {
     if (s.brothel?.place === place) return 'brothel';
     if (s.audience?.place === place) return 'audience';
     if (s.church?.place === place) return 'church';
+    if (s.barracks?.place === place) return 'barracks';
     return null;
   }
 
@@ -1288,6 +1467,7 @@ export class RiotGame {
     const events: RiotEvent[] = [];
     if (p.kind === 'audience') this.hear(s, p.side, p.good, typeof choice === 'string' ? choice : undefined, events);
     else if (p.kind === 'prayer') this.judge(s, p.side, events);
+    else if (p.kind === 'barracks') this.hire(s, p.side, p.at, typeof choice === 'string' && (HIRES as readonly string[]).includes(choice) ? (choice as Hire) : this.hireFor(s, p.side, p.at), events);
     else if (p.kind === 'diviner') {
       const i = typeof choice === 'number' ? choice : Math.floor(this.roll(s) * p.cards.length);
       const card = p.cards[i] ?? p.cards[0]!;
@@ -1632,7 +1812,7 @@ export class RiotGame {
     const chained = homes ? this.chains(s, claimed) : [];
     orders.push(...chained);
     const busy = new Set(chained.map((o) => o.squad));
-    const crowds = this.mine(s, 'rising').filter((q) => q.place !== this.heart && s.cut !== q.place && !busy.has(q.id)).sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id));
+    const crowds = this.mine(s, 'rising').filter((q) => q.place !== this.heart && s.cut !== q.place && !busy.has(q.id) && !q.hired).sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id));
     for (const q of crowds) {
       let best: { to: string; score: number } | null = null;
       // Their elite squad (Jack). The bastard: up to two streets (fighting through one on the way), for one of
@@ -1688,7 +1868,7 @@ export class RiotGame {
           else if (st.wear && !homes && q.strength >= st.wear) score = 25 - there.strength + (to === this.lifts ? 10 : 0);
           else continue;
         } else if (there) {
-          if (there.elite) continue; // (nobody joins the elite squad)
+          if (there.elite || there.hired) continue; // (nobody joins the elite squad, or the hired)
           // Together, they could take one of yours next turn (or, gathering, just to be bigger).
           if (couldBeat(q.place, q.strength)) continue;
           if (couldBeat(to, there.strength + q.strength)) score = 18;
@@ -1710,7 +1890,7 @@ export class RiotGame {
           const beatable = (p: string) => yours.some((y) => y.place === p && y.elite !== 'guard3' && y.elite !== 'hero' && q.strength > this.defence(s, p, y.strength));
           const theirHome = (p: string) => this.homeSquares('guard').includes(p) && s.owner[p] !== 'rising' && !yours.some((y) => y.place === p && q.strength <= this.defence(s, p, y.strength));
           const guardNear = homes ? (p: string) => beatable(p) || theirHome(p) : (p: string) => yours.some((y) => y.place === p);
-          const crowdNear = (p: string) => this.mine(s, 'rising').some((c) => c !== q && !c.elite && c.place === p && p !== this.heart);
+          const crowdNear = (p: string) => this.mine(s, 'rising').some((c) => c !== q && !c.elite && !c.hired && c.place === p && p !== this.heart);
           const toward = st.hunt && yours.length ? distTo(q.place, guardNear) - distTo(to, guardNear) : (this.upDist.get(q.place) ?? 9) - (this.upDist.get(to) ?? 9);
           score = 6 + toward * 5 + (s.owner[to] !== 'rising' ? 4 + homeBonus(to) : 0);
           // (Their base threatened: home, Jack.)
@@ -1749,7 +1929,7 @@ export class RiotGame {
     const worth = (y: RiotSquad) => y.strength * 2 + (y.place === this.lifts ? 30 : 0) + (this.homeSquares('guard').includes(y.place) ? 15 : 0);
     const crowd = (p: string) => {
       const q = this.squadAt(s, p);
-      return q && q.side === 'rising' && !q.elite && p !== this.heart && s.cut !== p && !used.has(q.id) && !q.crusted && (q.stuck ?? -1) < s.turn && !s.held?.includes(q.id) ? q : null;
+      return q && q.side === 'rising' && !q.elite && !q.hired && p !== this.heart && s.cut !== p && !used.has(q.id) && !q.crusted && (q.stuck ?? -1) < s.turn && !s.held?.includes(q.id) ? q : null;
     };
     for (const y of [...yours].sort((a, b) => worth(b) - worth(a))) {
       if (claimed.has(y.place)) continue;
@@ -1893,7 +2073,14 @@ export class RiotGame {
    * The end of the turn: your orders, then the other side's (as shown at the start), then the square grows,
    * then the guard.
    */
-  turn(s0: RiotState, yours: Order[], theirs: Order[]): { state: RiotState; events: RiotEvent[] } {
+  /**
+   * The rising's orders in the order they happen: its chains first, in order (the even skirmish), then the rest all
+   * at once.
+   */
+  theirsInOrder = (s: RiotState, theirs: Order[]): Order[] => [...theirs.filter((o) => o.chain), ...this.together(s, theirs.filter((o) => !o.chain))];
+
+  /** `hiredDone`: the hired fighters have already gone this turn (the table plays them itself, to show them). */
+  turn(s0: RiotState, yours: Order[], theirs: Order[], opts: { hiredDone?: boolean } = {}): { state: RiotState; events: RiotEvent[] } {
     this.use(s0);
     let s = s0;
     const events: RiotEvent[] = [];
@@ -1904,9 +2091,19 @@ export class RiotGame {
       events.push(...d.events);
     }
     const first = this.rules.ordered ? yours.filter((o, i) => yours.findIndex((x) => x.squad === o.squad && !!x.split === !!o.split) === i) : this.together(s0, yours);
-    // (The rising's chains go in order, first; the rest all at once.)
-    const second = [...theirs.filter((o) => o.chain), ...this.together(s0, theirs.filter((o) => !o.chain))];
-    for (const [o, counter] of [...first.map((o) => [o, theirs] as const), ...second.map((o) => [o, yours] as const)]) {
+    // (The rising's chains go in order, first; the rest all at once. Then the hired fighters.)
+    const second = this.theirsInOrder(s0, theirs);
+    const hired = this.rules.barracks && !opts.hiredDone;
+    for (const [o, counter] of [...first.map((o) => [o, theirs] as const), ...second.map((o) => [o, yours] as const), ...(hired ? [[null, []] as const] : [])]) {
+      if (!o) {
+        for (const h of this.hiredOrders(s)) {
+          const r = this.order(s, h, []);
+          s = r.state;
+          events.push(...r.events);
+          if (this.outcome(s)) return { state: s, events };
+        }
+        continue;
+      }
       let r = this.order(s, o, counter);
       // (A choice waiting, here, is made by the dice: the computer's, or a test's.)
       if (r.state.pending) {
@@ -1918,6 +2115,7 @@ export class RiotGame {
       if (this.outcome(s)) return { state: s, events };
     }
     s = this.clone(s);
+    this.hiredStrike(s, events);
     if (this.rules.muster) this.musterAll(s, events);
     // People keep joining the square.
     // (Even, Jack: an empty base of theirs still makes men, as yours does.)
@@ -1956,7 +2154,7 @@ export class RiotGame {
     // One thing on the map at a time (a rumble, a crest, a mystery square: Jack), a crest first when it's due.
     const crest = this.rules.elites?.crest;
     if (crest && s.turn + 1 >= crest.first && (s.turn + 1 - crest.first) % crest.every === 0) s.crestDue = true;
-    const taken = () => !!(s.rumble || s.crest || s.mystery || s.brothel || s.audience || s.church);
+    const taken = () => !!(s.rumble || s.crest || s.mystery || s.brothel || s.audience || s.church || s.barracks);
     // A rumble: one there stays a turn less; with none, now and then one appears on an empty street.
     const rumble = this.rules.rumble;
     if (s.rumble) {
@@ -2000,8 +2198,8 @@ export class RiotGame {
       }
     }
     // The brothel and the audience (Jack): the same.
-    const names = { brothel: ['brothelAppears', 'brothelGone'], audience: ['audienceAppears', 'audienceGone'], church: ['churchAppears', 'churchGone'] } as const;
-    for (const kind of ['brothel', 'audience', 'church'] as const) {
+    const names = { brothel: ['brothelAppears', 'brothelGone'], audience: ['audienceAppears', 'audienceGone'], church: ['churchAppears', 'churchGone'], barracks: ['barracksAppears', 'barracksGone'] } as const;
+    for (const kind of ['brothel', 'audience', 'church', 'barracks'] as const) {
       const r = this.rules[kind];
       const there = s[kind];
       if (there) {

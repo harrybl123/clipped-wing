@@ -14,6 +14,8 @@ import { hearPrayer, holdAudience } from '../ui/audienceScene';
 import { dealCards } from '../ui/divinerScene';
 import { playSound } from '../ui/soundscape';
 import { startTableMusic, type TableMusic } from '../ui/tableMusic';
+import { openBarracks } from '../ui/barracksScene';
+import { drawBarracks, drawHired } from '../ui/hiredArt';
 import type { AreaSceneData } from './AreaScene';
 import type { CombatSceneData } from './CombatScene';
 
@@ -378,7 +380,23 @@ export class RiotTableScene extends Phaser.Scene {
     const events: RiotEvent[] = [];
     let s = before;
     // Your side first, then theirs (as the rules say), each order shown as it goes.
-    for (const [o, counter] of [...mine.map((o) => [o, this.theirs] as const), ...this.g.together(before, this.theirs).map((o) => [o, mine] as const)]) {
+    // (Then the hired fighters, Jack: the computer plays them, after everyone else.)
+    const hiredNext = this.g.rules.barracks ? [[null, []] as const] : [];
+    for (const [o0, counter] of [...mine.map((o) => [o, this.theirs] as const), ...this.g.theirsInOrder(before, this.theirs).map((o) => [o, mine] as const), ...hiredNext]) {
+      if (!o0) {
+        for (const h of this.g.hiredOrders(s)) {
+          const r = this.g.order(s, h, []);
+          if (!r.events.length) continue;
+          await this.show(s, h, r.events);
+          s = r.state;
+          this.state = s;
+          events.push(...r.events);
+          this.draw();
+          if (this.g.outcome(s)) break;
+        }
+        continue;
+      }
+      const o = o0;
       const r = this.g.order(s, o, counter);
       if (!r.events.length) continue;
       await this.show(s, o, r.events);
@@ -399,7 +417,7 @@ export class RiotTableScene extends Phaser.Scene {
     // Into the square: the guard have it.
     if (this.g.outcome(s) === 'guard') return this.squareTaken();
     // The square grows; the guard come down the lifts.
-    const end = this.g.turn(s, [], []);
+    const end = this.g.turn(s, [], [], { hiredDone: true });
     // New squads mustered out of each base (the duel): the camera goes to each, and you see them arrive.
     for (const e of end.events) {
       if (e.type !== 'muster') continue;
@@ -429,6 +447,12 @@ export class RiotTableScene extends Phaser.Scene {
       if (e.type === 'mysteryGone' || e.type === 'brothelGone' || e.type === 'audienceGone' || e.type === 'churchGone') this.pop(this.place(e.at), 'gone', SHADES.light);
       if (e.type === 'plagueTick') for (const p of e.places) this.pop(this.place(p), '-1', SHADES.greenMid, -10);
       if (e.type === 'eliteGone') this.pop(this.place(e.at), 'gone', COLOUR[e.side]);
+      if (e.type === 'barracksGone') this.pop(this.place(e.at), 'gone', SHADES.light);
+    }
+    // The hired fighters' shots (Jack): arrows, and an assassin at a base.
+    for (const e of end.events) {
+      if (e.type === 'arrow') await this.arrowFlies(e);
+      if (e.type === 'assassin') await this.assassinStrikes(e);
     }
     // What appears on the map, and a shake-up: one at a time, each long enough to read (Jack).
     for (const e of end.events) {
@@ -437,6 +461,7 @@ export class RiotTableScene extends Phaser.Scene {
       if (e.type === 'mysteryAppears') await this.appears(this.place(e.at), e.mark === 'diviner' ? 'The Diviner!' : e.mark === 'trickster' ? 'The Trickster!' : 'A mystery!', SHADES.white, () => this.mysteryAppears(this.place(e.at), e.mark));
       if (e.type === 'brothelAppears') await this.appears(this.place(e.at), 'A brothel!', AMBER, () => this.tokenAppears(this.place(e.at), SHADES.amber));
       if (e.type === 'audienceAppears') await this.appears(this.place(e.at), 'An audience!', SHADES.white, () => this.tokenAppears(this.place(e.at), SHADES.white));
+      if (e.type === 'barracksAppears') await this.appears(this.place(e.at), 'Barracks!', SHADES.light, () => this.tokenAppears(this.place(e.at), SHADES.light));
       if (e.type === 'churchAppears') await this.appears(this.place(e.at), 'A holy cross!', SHADES.amber, () => this.tokenAppears(this.place(e.at), SHADES.white));
       if (e.type === 'shakeUp') await this.shakeUp(e.sides);
       // (A shake-up that's the trickster: the streets change.)
@@ -484,7 +509,7 @@ export class RiotTableScene extends Phaser.Scene {
     if (race?.type === 'race') {
       const theirs = this.g.other(race.side);
       const winner = race.won ? race.side : theirs;
-      const what = { crest: 'the crest', mystery: 'the mystery', rumble: 'the rumble', brothel: 'the brothel', audience: 'the audience', church: 'the holy cross' }[race.what];
+      const what = { crest: 'the crest', mystery: 'the mystery', rumble: 'the rumble', brothel: 'the brothel', audience: 'the audience', church: 'the holy cross', barracks: 'the barracks' }[race.what];
       const n = { [race.side]: race.strength, [theirs]: race.rivalStrength } as Record<Side, number>;
       await playRace(this, { at: to, guard: n.guard, rising: n.rising, winner, you: this.you, chance: race.side === this.you ? race.chance : 1 - race.chance, what, judged: this.judged(s), wiped: !!race.wiped });
       this.pop(to, `${winner === this.you ? 'You' : 'They'} got there first`, COLOUR[winner], -16);
@@ -621,6 +646,45 @@ export class RiotTableScene extends Phaser.Scene {
   }
 
   /** After an order: a mystery square found, what it was, and what it brings (the diviner's cards, the thief's target). */
+  /** Hired fighters out of the barracks (Jack): their name over each. */
+  private hiredOut(e: Extract<RiotEvent, { type: 'hired' }>): void {
+    playSound(this, 'boots', 0.7);
+    const name = { rogues: 'Rogue', archers: 'Archer', assassin: 'Assassin' }[e.hire];
+    for (const p of e.at) this.pop(this.place(p), name, COLOUR[e.side], -16);
+  }
+
+  /** An archer's arrow (Jack): it flies from the archer to whoever it hit, and takes 1. */
+  private async arrowFlies(e: Extract<RiotEvent, { type: 'arrow' }>): Promise<void> {
+    const [a, b] = [this.place(e.from), this.place(e.at)];
+    await this.focusOn(a, b);
+    const g = this.add.graphics().setDepth(8);
+    const ang = Math.atan2(b.y - a.y, b.x - a.x);
+    const shaft = { t: 0 };
+    playSound(this, 'whoosh', 0.6);
+    await this.tween(shaft, {
+      t: 1, duration: 320,
+      onUpdate: () => {
+        const x = a.x + (b.x - a.x) * shaft.t;
+        const y = a.y + (b.y - a.y) * shaft.t - Math.sin(shaft.t * Math.PI) * 10;
+        g.clear().lineStyle(1, SHADES.light, 1).lineBetween(x - Math.cos(ang) * 6, y - Math.sin(ang) * 6, x, y);
+        g.fillStyle(SHADES.white, 1).fillCircle(x, y, 1);
+      },
+    });
+    g.destroy();
+    playSound(this, 'hit', 0.6);
+    this.pop(b, e.gone ? 'all' : `-${e.damage}`, COLOUR[this.g.other(e.side)]);
+  }
+
+  /** The assassin reaches their base (Jack): a strike, sometimes critical. */
+  private async assassinStrikes(e: Extract<RiotEvent, { type: 'assassin' }>): Promise<void> {
+    const at = this.place(e.at);
+    await this.focusOn(at);
+    playSound(this, 'shing', 1);
+    this.cameras.main.shake(e.crit ? 400 : 200, e.crit ? 0.012 : 0.005);
+    this.pop(at, `-${e.damage}`, COLOUR[this.g.other(e.side)]);
+    await this.banner('Assassin!', { colour: COLOUR[e.side], sub: `${e.side === this.you ? 'Yours' : 'Theirs'} reached ${e.side === this.you ? 'their' : 'your'} base: ${e.crit ? `a critical hit, -${e.damage}!` : `-${e.damage}.`}`, hold: 1500 });
+  }
+
   private async mysteryFollows(s0: RiotState, events: RiotEvent[]): Promise<RiotState> {
     let s = s0;
     for (const e of events) {
@@ -628,6 +692,7 @@ export class RiotTableScene extends Phaser.Scene {
       if (e.type === 'plague') await this.plagueSkull(e.side);
       if (e.type === 'trickster') await this.trickster(s0);
       if (e.type === 'churchFound') await this.banner('The holy cross!', { colour: SHADES.amber, sub: `${e.side === this.you ? 'Your' : 'Their'} people pray. The Lord will judge them.`, hold: 1000 });
+      if (e.type === 'barracksFound') await this.banner('The barracks!', { colour: COLOUR[e.side], sub: e.side === this.you ? 'Its doors open. Hire your fighters.' : 'They hire fighters.', hold: 1000 });
       if (e.type === 'audienceFound') await this.banner('An audience!', { sub: e.side === this.you ? 'Three have come to you. Choose who to hear.' : 'The rising hold an audience.', hold: 1000 });
     }
     const p = s.pending;
@@ -642,6 +707,15 @@ export class RiotTableScene extends Phaser.Scene {
       await hearPrayer(this, { side: p.side, you: this.you, blessed: e?.type === 'judgement' && e.blessed, turns: this.g.rules.audience?.judged ?? 5 });
       this.state = d.state;
       this.draw();
+      return d.state;
+    }
+    if (p.kind === 'barracks') {
+      // The barracks (Jack): who to hire; out they come, next to it.
+      const hire = await openBarracks(this, { side: p.side, you: this.you, colour: COLOUR[p.side], ...(ours ? {} : { pick: this.g.hireFor(s, p.side, p.at) }) });
+      const d = this.g.resolve(s, hire);
+      this.state = d.state;
+      this.draw();
+      for (const e of d.events) if (e.type === 'hired') this.hiredOut(e);
       return d.state;
     }
     if (p.kind === 'audience') {
@@ -1778,6 +1852,12 @@ export class RiotTableScene extends Phaser.Scene {
         g.fillStyle(blink ? SHADES.amber : SHADES.amberMid, 1).fillCircle(p.x + 0.5, p.y - 8, 2); // the lantern
         this.numbers.push(new PixelText(this, Math.round(p.x + 9), Math.round(p.y + 6), String(s.brothel.left), { color: SHADES.amber, shadow: SHADES.shadow }).setDepth(5));
       }
+      // The barracks (Jack): a long hut, a door, its flag.
+      if (s.barracks?.place === p.id) {
+        g.lineStyle(1, SHADES.light, blink ? 0.9 : 0.35).strokeCircle(p.x, p.y, blink ? 15 : 13);
+        drawBarracks(g, p.x, p.y, 1, blink ? SHADES.white : SHADES.light);
+        this.numbers.push(new PixelText(this, Math.round(p.x + 10), Math.round(p.y + 6), String(s.barracks.left), { color: SHADES.light, shadow: SHADES.shadow }).setDepth(5));
+      }
       // The holy cross (Jack): a gold cross on a dark tile, glowing.
       if (s.church?.place === p.id) {
         g.lineStyle(1, SHADES.amber, blink ? 0.9 : 0.35).strokeCircle(p.x, p.y, blink ? 14 : 12);
@@ -1847,7 +1927,8 @@ export class RiotTableScene extends Phaser.Scene {
       const stuck = (q.stuck ?? -1) >= s.turn;
       if (stuck) this.drawBrothel(g, p, blink);
       // (The Lord's judgement round it, golden light or looming darkness, is drawn with the riot's life, behind it.)
-      if (q.elite === 'maiden') this.drawMaiden(g, p, q.side, dark);
+      if (q.hired) drawHired(g, p.x, p.y, q.hired, col, 1, dark);
+      else if (q.elite === 'maiden') this.drawMaiden(g, p, q.side, dark);
       else if (q.elite === 'guard3') this.drawGuardsman(g, p, q.side, dark);
       else if (q.elite === 'hero') this.drawHero(g, p, q.side, dark);
       else if (!q.beside && q.place === this.g.base(q.side)) this.drawBase(g, p, q.side, dark, q.poison);
@@ -1873,8 +1954,8 @@ export class RiotTableScene extends Phaser.Scene {
         g.fillStyle(SHADES.shadow, 1).fillRect(Math.round(p.x + Math.cos(ang) * 12) - 2, Math.round(p.y + Math.sin(ang) * 12) - 2, 4, 4);
         g.fillStyle(SHADES.light, 1).fillRect(Math.round(p.x + Math.cos(ang) * 12) - 1, Math.round(p.y + Math.sin(ang) * 12) - 1, 3, 3);
       }
-      const lit = q.elite === 'hero' || q.elite === 'guard3';
-      const n = new PixelText(this, 0, q.elite === 'hero' ? p.y - 1 : q.elite === 'maiden' ? p.y + 4 : q.elite === 'guard3' ? p.y + 1 : p.y - 4, String(q.strength), { color: lit ? SHADES.white : SHADES.shadow }).setDepth(5);
+      const lit = q.elite === 'hero' || q.elite === 'guard3' || q.hired === 'assassin';
+      const n = new PixelText(this, 0, q.hired === 'assassin' ? p.y + 1 : q.hired ? p.y - 2 : q.elite === 'hero' ? p.y - 1 : q.elite === 'maiden' ? p.y + 4 : q.elite === 'guard3' ? p.y + 1 : p.y - 4, String(q.strength), { color: lit ? SHADES.white : SHADES.shadow }).setDepth(5);
       // The elite squad: how many turns left, as pips under it (Jack).
       if (q.elite && q.until !== undefined) {
         const n = q.until - s.turn + 1;
@@ -2072,7 +2153,7 @@ export class RiotTableScene extends Phaser.Scene {
     if (aim.elite === 'hero' && p.id !== aim.place) return this.heroSum(s, aim, p, this.heroVia);
     if (p.id === aim.place) return this.splitting ? 'Split: pick where half goes' : this.splitRest ? `The rest, ${half}, stay here` : this.g.fortified(s, p.id) ? 'Hold, dug in' : 'Hold';
     const tok = this.g.tokenAt(s, p.id);
-    const rumble = tok ? `, and ${{ rumble: 'set off the rumble', crest: 'the crest', mystery: 'the mystery', brothel: 'the brothel (stuck a turn, then +15% in a clash)', audience: 'the audience', church: 'the holy cross (an audience with the Lord)' }[tok]}` : '';
+    const rumble = tok ? `, and ${{ rumble: 'set off the rumble', crest: 'the crest', mystery: 'the mystery', brothel: 'the brothel (stuck a turn, then +15% in a clash)', audience: 'the audience', church: 'the holy cross (an audience with the Lord)', barracks: 'the barracks (hire fighters)' }[tok]}` : '';
     if (!there) return `${lead}Take it${rumble}`;
     if (there.side !== aim.side && aim.elite === 'maiden') return `Seduce: ${there.elite === 'hero' ? `their ${ELITE_NAMES[there.side].hero.toLowerCase()} becomes your ${ELITE_NAMES[aim.side].hero.toLowerCase()}` : `their ${there.strength} are yours`}, and she's gone`;
     if (there.side !== aim.side && there.elite === 'guard3') return `Their ${ELITE_NAMES[there.side].guard3.toLowerCase()}: only your ${ELITE_NAMES[aim.side].hero.toLowerCase()} can hurt them`;
@@ -2129,6 +2210,9 @@ export class RiotTableScene extends Phaser.Scene {
     else if (there?.cheer) lines.push(`In fine spirits: +${Math.round((this.g.rules.brothel?.boost ?? 0) * 100)}% in its next clash.`);
     if (there && this.plagued(there)) lines.push('The plague: -1 a turn.');
     if (s.brothel?.place === p.id) lines.push(`A brothel: first here is stuck here next turn (and can be attacked), then +${Math.round((this.g.rules.brothel?.boost ?? 0) * 100)}% in its next clash. (${s.brothel.left} ${s.brothel.left === 1 ? 'turn' : 'turns'} left)`);
+    if (s.barracks?.place === p.id) lines.push(`The barracks: first here hires fighters (rogue mercenaries, archers, or an assassin). (${s.barracks.left} ${s.barracks.left === 1 ? 'turn' : 'turns'} left)`);
+    const hired = this.g.squadAt(s, p.id)?.hired;
+    if (hired) lines.push({ rogue: 'A rogue mercenary: goes after the enemy on its own. Never joins up or grows.', archer: 'An archer: holds here, and shoots one enemy next to it each turn, for 1.', assassin: 'An assassin: slips through to the enemy base the safest way, and strikes it (3, half the time 6).' }[hired]);
     if (s.church?.place === p.id) lines.push(`A holy cross: first here has an audience with the Lord. He judges them loyal servants (blessed) or heretics (cursed), for ${this.g.rules.audience?.judged ?? 5} turns. (${s.church.left} ${s.church.left === 1 ? 'turn' : 'turns'} left)`);
     if (s.audience?.place === p.id) lines.push(`An audience: first here hears the accountant, the townsfolk or the commander. It can go well, or badly. (${s.audience.left} ${s.audience.left === 1 ? 'turn' : 'turns'} left)`);
     if (s.crest?.place === p.id) lines.push(`A crest: whoever gets here first can put in one of their elite squad. (${s.crest.left} ${s.crest.left === 1 ? 'turn' : 'turns'} left)`);
