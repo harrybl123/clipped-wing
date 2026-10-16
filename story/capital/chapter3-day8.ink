@@ -314,7 +314,7 @@ Up the hill, in the citadel, the hall is still silent. #cut:low-district:352:236
 - "backed":
     The low district. A woman sits down on the step under the screen, as if her legs have gone. #bark:low-8b:Everyone?
     Nobody helps her up. Everyone's looking at everyone else, working out who'll be on it.
-    Quiet, all the way down the street. Quiet isn't the same as over.
+    Quiet, all the way down the street.
 - "defied":
     The low district. They're shouting it up at the screen, at where your face was. #bark:low-8a:He said nobody!
     Somebody's crying. Somebody's laughing. #bark:low-8b:He said it out loud.
@@ -477,6 +477,7 @@ Your hand, at the rail, where he waited for you with the blades the first mornin
 { broadcast == "backed":
     Boots, somewhere in the halls behind your rooms. A lot of them, going the other way.
     "They'll start with my office. It'll take them a while to understand what they're looking at." #speaker:diplomat
+    He keeps looking past you, at the door to your rooms. You've never seen him nervous before.
 - else:
     He doesn't turn round. He's in no hurry at all.
 }
@@ -543,6 +544,10 @@ Every one of them lines up, the whole long way back to the first morning on this
 { broadcast:
 - "backed":
     "Because after today, you'll be his completely, unless somebody tells you. I couldn't let that happen without trying." #speaker:diplomat
+    He glances at the door again.
+    "Do what you like with it. Go to him tonight, if that's what you are now. I can't stop you." #speaker:diplomat
+    "But understand this. It's planted. Every wall, every cellar, every one of them I told you about, and the ones I didn't." #speaker:diplomat
+    "Take me down, and it doesn't stop. It doesn't need me any more. It hasn't for a while." #speaker:diplomat
 - "defied":
     "Because after today, you're not his any more. You told the whole city so." #speaker:diplomat
 - else:

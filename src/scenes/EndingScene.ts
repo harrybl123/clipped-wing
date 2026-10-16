@@ -101,7 +101,7 @@ const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number
 
 /**
  * Chapter 3's endings (Day 8): on your balcony after "Join me." (no answer: designer). A title by the broadcast
- * (designer: defying him makes you a thorn in the king's side, its lines his; backing him, something about your loyalty; draft
+ * (designer: defying him makes you a thorn in the side of the king, its lines his; backing him, something about your loyalty; draft
  * titles), the city, your hand and your father by the broadcast, and your friend by the escape (plan). Draft
  * text. Ids `c3_<backed|defied|middle>_<out|alone>`.
  */
@@ -110,16 +110,17 @@ function chapter3Endings(): Record<string, { title: string; lines: string[]; ret
     backed: {
       title: 'Your father\u2019s son.',
       lines: [
-        'Below you, a city gone quiet. Quiet isn\u2019t the same as over.',
-        'Your hand is out there now, somewhere in it, and he knows every way up.',
+        'Below you, a city gone quiet.',
+        'Your hand is out there now, chalking the wing on the walls.',
         'Your father trusts you. You\u2019ll have to decide, every morning, whether you deserve it.',
       ],
     },
     defied: {
-      title: 'A thorn in the king\u2019s side.',
+      title: 'A thorn in the side of the king.',
       lines: [
         'Below you, a city chanting your name, for you are giving them hope.',
         'A hand at your side, to guide you.',
+        'By night, he\u2019s out in the city, chalking the wing on the walls.',
         'Your father hasn\u2019t spoken to you since. He will.',
       ],
     },
@@ -128,12 +129,13 @@ function chapter3Endings(): Record<string, { title: string; lines: string[]; ret
       lines: [
         'Below you, a city waiting to find out what you meant.',
         'Your hand keeps his distance now. Polite. Watching.',
+        'By night, he\u2019s out in the city, chalking the wing on the walls.',
         'Your father has started telling you things. Not everything. Not yet.',
       ],
     },
   };
   const friend = {
-    out: 'Somewhere on the road, your friend. You opened the door.',
+    out: 'Somewhere on the road, your friend.',
     alone: 'Somewhere on the road, your friend. He didn\u2019t say goodbye.',
   };
   const endings: Record<string, { title: string; lines: string[]; retryDay: number; coda: string; chapter: 3 }> = {};
