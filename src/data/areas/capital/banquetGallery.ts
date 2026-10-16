@@ -116,12 +116,12 @@ export const banquetGallery: AreaDefinition = {
     // Day 6: the banquet in the guests' honour. Your father at the head of the table; the guests along it, a seat
     // between each where their families would be; your friend halfway down; two of the guard at the doors,
     // facing in.
-    inStory('father-6b', 'father', 610, FLOOR, 'c3day6=banquet,office', { knot: 'c3day6_father_banquet', flipX: true }),
-    inStory('heir-6b', 'heir', 418, FLOOR, 'c3day6=banquet,office', { knot: 'c3day6_heir_banquet' }),
-    ...([[276, 1], [354, 2], [488, 6], [556, 3]] as const).map(([x, look], i) =>
-      courtier(`guest-6b${i}`, look, x, FLOOR, 'c3day6_guest', undefined, { showIf: 'c3day6=banquet,office', flipX: i % 2 === 1 })),
-    guard('door-6a', 0, 48, FLOOR, 'c3_guard', undefined, { showIf: 'c3day6=banquet,office' }),
-    guard('door-6b', 1, 70, FLOOR, 'c3_guard', undefined, { showIf: 'c3day6=banquet,office' }),
+    inStory('father-6b', 'father', 610, FLOOR, 'c3day6=banquet,toasted,office', { knot: 'c3day6_father_banquet', flipX: true }),
+    inStory('heir-6b', 'heir', 418, FLOOR, 'c3day6=banquet,toasted,office', { knot: 'c3day6_heir_banquet' }),
+    ...([[276, 1], [354, 2], [488, 6], [544, 3]] as const).map(([x, look], i) =>
+      courtier(`guest-6b${i}`, look, x, FLOOR, 'c3day6_banquet_guest', undefined, { showIf: 'c3day6=banquet,toasted,office', flipX: i % 2 === 1 })),
+    guard('door-6a', 0, 48, FLOOR, 'c3_guard', undefined, { showIf: 'c3day6=banquet,toasted,office' }),
+    guard('door-6b', 1, 70, FLOOR, 'c3_guard', undefined, { showIf: 'c3day6=banquet,toasted,office' }),
   ],
   interactables: [
     { id: 'mirrors', x: 330, y: FLOOR, reach: 10, label: 'Look', knot: 'banquet_mirrors' },
@@ -129,6 +129,8 @@ export const banquetGallery: AreaDefinition = {
     { id: 'chair', x: 604, y: FLOOR, reach: 10, label: 'Look', knot: 'banquet_chair', hideIf: 'c3day1=toast,friend' }, // (not while he's by it)
     { id: 'balcony', x: 760, y: FLOOR, reach: 14, label: 'Look', knot: 'banquet_balcony' },
     // Chapter 3, Day 1: the cards (the chair at your father's right, then two further down).
+    // Chapter 3, Day 6: your place, at your father's right.
+    { id: 'seat-6', x: 580, y: FLOOR, reach: 10, label: 'Take your seat', knot: 'c3day6_toast', showIf: 'c3day6=banquet' },
     { id: 'card-right', x: 558, y: FLOOR, reach: 10, label: 'Place card', knot: 'c3day1_card_right', showIf: 'c3day1=cards', hideIf: 'right_placed' },
     { id: 'card-down', x: 286, y: FLOOR, reach: 10, label: 'Place cards', knot: 'c3day1_card_down', showIf: 'right_placed', hideIf: 'cards_done' },
   ],

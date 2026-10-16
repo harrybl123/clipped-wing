@@ -84,7 +84,7 @@ export const fathersStudy: AreaDefinition = {
     inStory('father-4', 'father', 226, FLOOR, 'c3day4=persuade', { knot: 'c3day4_father', flipX: true }),
     // Day 6: your friend with you; then your father at his desk, after the simulation room.
     inStory('heir-f', 'heir', 60, FLOOR, 'heir_with_you', { follow: true, knot: 'c3day6_heir_walk' }),
-    inStory('father-6', 'father', 380, FLOOR, 'c3day6=study', { knot: 'c3day6_father', flipX: true }),
+    inStory('father-6', 'father', 380, FLOOR, 'c3day6=study,arrive', { knot: 'c3day6_father', flipX: true }), // (still at his desk after)
   ],
   interactables: [
     { id: 'model', x: 72, y: FLOOR, reach: 14, label: 'Look', knot: 'study_model' },

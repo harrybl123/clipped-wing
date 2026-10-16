@@ -152,39 +152,30 @@ Your friend stands up very straight.
 Behind your father, the captain. Behind the captain, two of the guard. #show:captain-6s #show:guard-6a #show:guard-6b
 Your father walks the length of the table, slowly, looking at it. At the camp, and the keep, and whose colour each is. #walk:father-6s:268 #walk:captain-6s:120 #walk:guard-6a:80 #walk:guard-6b:96
 "The siege of the crag." #speaker:father
-"I taught you that one." #speaker:father
+"I told you stories about it, when you were small enough to sit on this table." #speaker:father
 He doesn't look at your friend. Not once.
 "I came to find you because I have a gift for your friend. How fortunate that he's here." #speaker:father
 He holds out a card, sealed in gold, to you. The captain holds out his hand for it too.
 "An invitation. To live in the citadel, as our guest, for as long as these times last. His family will be proud." #speaker:father
 "Someone takes it to him. You, or the captain." #speaker:father
 Hand it to your friend yourself, or let the captain give it to him?
-- (choose)
 + [Give it to him yourself.]
-    He'll take it gladly, from you. And later, he'll remember whose hand it came from.
-    ++ [Yes. Give it to him.]
-        ~ invitation = "you"
-        You take the card. It's heavy, for a card.
-        You hold it out across the table. Your friend looks at it, then at you.
-        "From you?" #speaker:heir
-        "From me." #speaker:prince
-        He breaks the seal. He reads it twice.
-        "A guest of the citadel. Me." #speaker:heir
-        "My mother will faint." #speaker:heir
-        He's smiling. He doesn't know yet. You do.
-    ++ [No. Think again.]
-        -> choose
+    ~ invitation = "you"
+    You take the card. It's heavy, for a card.
+    You hold it out across the table. Your friend looks at it, then at you.
+    "From you?" #speaker:heir
+    "From me." #speaker:prince
+    He breaks the seal. He reads it twice.
+    "A guest of the citadel. Me." #speaker:heir
+    "My mother will faint." #speaker:heir
+    He's smiling. He doesn't know yet. You do.
 + [Let the captain give it to him.]
-    It won't be your hand on it. But you'll stand there while it's done.
-    ++ [Yes. Let the captain.]
-        ~ invitation = "captain"
-        ~ lean -= 1
-        You don't take it. The captain does.
-        He reads it out, the whole thing, every honour in it, in the voice he uses for warrants.
-        Your friend listens to all of it. Then he looks at you.
-        You look at the table.
-    ++ [No. Think again.]
-        -> choose
+    ~ invitation = "captain"
+    ~ lean -= 1
+    You don't take it. The captain does.
+    He reads it out, the whole thing, every honour in it, in the voice he uses for warrants.
+    Your friend listens to all of it. Then he looks at you.
+    You look at the table.
 - "The captain will see you to your rooms. Your things will follow." #speaker:father
 "My rooms? I've rooms at home." #speaker:heir
 "You have better ones here." #speaker:father
@@ -202,7 +193,7 @@ He goes. #leave:father-6s:30:40
 
 === c3day6_father ===
 { c3day6 != "study":
-    "Later." #speaker:father
+    "They're waiting at the foot of the stair. Go and be gracious." #speaker:father
     -> END
 }
 ~ father6 = true
@@ -359,11 +350,19 @@ Somewhere below, the musicians are tuning up. #time:evening
 
 // --- Evening, the banquet gallery: in the guests' honour ---
 
+// Coming in: the room, and your place.
 === c3day6_banquet ===
 ~ banquet6 = true
-The banquet gallery, lit gold. The guests along the table in their best, one seat between each of them, where their families would sit.
+The banquet gallery, lit gold. The guests along the table in their best, an empty chair between each of them, where their families would sit.
 Two of the guard at the doors. They face in.
-Your father at the head of the table, standing. He waits for you to take your place.
+Your father at the head of the table, standing. Your chair's at his right, waiting for you.
+~ objective = "Take your seat"
+~ objective_target = "banquet-gallery:seat-6"
+-> END
+
+// Your seat: the toast.
+=== c3day6_toast ===
+You take your place at your father's right. He waits until you're settled.
 "To our guests." #speaker:father
 He lifts his glass. The guests lift theirs. Nobody drinks quite at the same time.
 { friend_cool:
@@ -372,28 +371,78 @@ He lifts his glass. The guests lift theirs. Nobody drinks quite at the same time
     Halfway down the table, your friend lifts his glass an inch higher, at you. Just you.
 }
 "They're the future of this city. We'll keep them safe." #speaker:father
-~ c3day6 = "office"
-~ objective = "Go to bed"
-~ objective_target = "prince-quarters:bed-6"
+The music starts again. People start talking, too loudly.
+~ c3day6 = "toasted"
+~ objective = "Talk to your friend"
+~ objective_target = "banquet-gallery:heir-6b"
 -> END
 
 === c3day6_father_banquet ===
-"Smile, Highness. They're watching you to see whether to be afraid." #speaker:father
+{ c3day6 == "banquet":
+    "Sit, Highness. They won't start until you do." #speaker:father
+- else:
+    "Smile, Highness. They're watching you to see whether to be afraid." #speaker:father
+}
 -> END
 
-=== c3day6_heir_banquet ===
-{ friend_cool:
-    He's talking to the girl beside him. He doesn't stop.
+// The guests at the table.
+=== c3day6_banquet_guest ===
+{ c3day6 == "banquet":
+    { shuffle:
+    - "Highness. Is that your seat? By your father?" #speaker:them
+    - "Mother's chair is right there. Empty." #speaker:them
+    }
 - else:
-    "Not here." #speaker:heir
-    He says it under the music, and goes on smiling at the table.
+    { shuffle:
+    - "Lovely toast. Lovely." #speaker:them
+    - "Will our families come next time, do you think?" #speaker:them
+    - They smile at you, and keep smiling after you've gone.
+    - "The guards don't eat. Have you noticed?" #speaker:them
+    }
 }
+-> END
+
+// Your friend, after the toast.
+=== c3day6_heir_banquet ===
+{ c3day6 == "banquet":
+    "Sit down before he sees you standing about." #speaker:heir
+    -> END
+}
+{ c3day6 != "toasted":
+    { friend_cool:
+        He's talking to the girl beside him. He doesn't stop.
+    - else:
+        "Goodnight, Highness. Not yet, I know." #speaker:heir
+    }
+    -> END
+}
+{ friend_cool:
+    He looks up when you sit in the empty chair beside him. He doesn't move it.
+    "Highness." #speaker:heir
+    "Are they treating you well?" #speaker:prince
+    "Beautifully. Everything I could want, except the door." #speaker:heir
+    "My mother sent a cake. They checked it for letters." #speaker:heir
+    He goes back to his plate.
+- else:
+    You sit in the empty chair beside him. He doesn't look at you.
+    "Not here." #speaker:heir
+    He says it under the music, smiling at the table.
+    "They've taken my blue coat away to be cleaned. Both my coats. Funny, that." #speaker:heir
+    "I'll find you." #speaker:prince
+    "I know." #speaker:heir
+    He raises his glass to the room, and laughs at nothing, loudly.
+}
+~ c3day6 = "office"
+~ walking6 = true
+~ objective = "Go to bed"
+~ objective_target = "prince-quarters:bed-6"
 -> END
 
 // --- The halls, on the way up: your hand's door (clue 6) ---
 
 === c3day6_office ===
 ~ office6 = true
+~ walking6 = false
 Up on the gallery, your hand's door opens.
 Two people come out. The commander of the watch, in her coat, and the engineer from the sealed wing, her visor up. #show:commander-6 #show:engineer-6
 Nobody has business in that office at this hour. They walk along the gallery to the lift, talking low, and don't see you. #leave:commander-6:900:30 #leave:engineer-6:900:30

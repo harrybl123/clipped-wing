@@ -740,6 +740,8 @@ VAR friend_cool = false
 // The banquet; your hand's door, the commander and the engineer coming out (clue 6).
 VAR banquet6 = false
 VAR office6 = false
+// From the banquet to your hand's door you walk (no map: the office is on the way).
+VAR walking6 = false
 // Night: following your sister to the sealed door; you covered for her ("covered": she's your eyes) or told your
 // father ("told": medium).
 VAR gallery6 = false

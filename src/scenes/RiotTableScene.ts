@@ -215,7 +215,7 @@ export class RiotTableScene extends Phaser.Scene {
     const cx = ps.reduce((n, p) => n + p.x, 0) / ps.length;
     const cy = ps.reduce((n, p) => n + p.y, 0) / ps.length;
     this.view = { x: Math.max(0, Math.min(this.bw - W, cx - W / 2)), y: Math.max(0, Math.min(this.bh - H, cy - H / 2)) };
-    await this.wait(420);
+    await this.wait(320);
   }
 
   override update(_t: number, delta: number): void {
@@ -327,12 +327,12 @@ export class RiotTableScene extends Phaser.Scene {
       await this.focusOn(base, to);
       const dot = this.add.circle(base.x, base.y, 4, COLOUR[e.side]).setDepth(6);
       playSound(this, 'boots', 0.4);
-      await this.tween(dot, { x: to.x, y: to.y, duration: 420, ease: 'Sine.easeOut' });
+      await this.tween(dot, { x: to.x, y: to.y, duration: 320, ease: 'Sine.easeOut' });
       dot.destroy();
       this.state = { ...this.state, squads: end.state.squads.filter((q) => q.place === e.to).concat(this.state.squads.filter((q) => q.place !== e.to)) };
       this.pop(to, `+${e.strength}`, COLOUR[e.side]);
       this.draw();
-      await this.wait(300);
+      await this.wait(180);
     }
     for (const e of end.events) {
       if (e.type === 'grow') this.pop(this.place(e.at), '+1', AMBER);
@@ -371,7 +371,7 @@ export class RiotTableScene extends Phaser.Scene {
       dot.destroy();
       return;
     }
-    await this.tween(dot, { x: to.x, y: to.y, duration: this.fatherPlaying ? 160 : slow ? 480 : 260, ease: 'Sine.easeInOut' });
+    await this.tween(dot, { x: to.x, y: to.y, duration: this.fatherPlaying ? 160 : slow ? 360 : 260, ease: 'Sine.easeInOut' });
     dot.destroy();
     const fight = events.find((e) => e.type === 'fight');
     if (fight && fight.type === 'fight') {
@@ -395,7 +395,7 @@ export class RiotTableScene extends Phaser.Scene {
         this.tweens.add({ targets: d, x: to.x + Math.cos(a) * 16, y: to.y + Math.sin(a) * 11, alpha: 0, duration: 420, onComplete: () => d.destroy() });
       }
     } else playSound(this, 'tick', 0.5);
-    await this.wait(slow ? 260 : 80);
+    await this.wait(slow ? 150 : 80);
     const rumble = events.find((e) => e.type === 'rumble');
     if (rumble?.type === 'rumble') await this.rumbleGoesOff(rumble);
   }
@@ -873,13 +873,6 @@ export class RiotTableScene extends Phaser.Scene {
     if (this.phase !== 'now' || this.fatherPlaying) for (const o of this.theirs) this.arrow(g, o, COLOUR[this.g.other(this.you)], true, undefined, undefined, this.g.fortified(s, o.to) && this.g.squadAt(s, o.to)?.side === this.you);
     // Where the square will send a crowd out, at the end of the turn.
     const pour = this.g.rules.muster ? null : this.g.pourTo(s);
-    // Where each base's new squad will come out this turn (the duel).
-    if (this.g.rules.muster) for (const side of ['rising', 'guard'] as const) {
-      const base = side === 'rising' ? this.g.heart : this.g.lifts;
-      const to = this.g.musterTo(s, side);
-      const there = this.g.squadAt(s, base);
-      if (to && there?.side === side) this.arrow(g, { squad: there.id, to }, COLOUR[side], true);
-    }
     if (pour) {
       const sq = this.g.squadAt(s, this.g.heart);
       if (sq) this.arrow(g, { squad: sq.id, to: pour }, AMBER, true);

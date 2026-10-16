@@ -155,4 +155,4 @@ export const isAreaOpen = (areaId: string, day: Day, slot: TimeSlot) => closedRe
  * or stealing (Night 5), tailing the Tender (Day 6), and the chase (Day 7). Chapter 3: going below in the
  * plain coat.
  */
-export const ON_FOOT = ['plain_coat', 'girl_with_you', 'sneaking', 'escorted', 'archivist_waiting', 'in_grove', 'stealing', 'tailing', 'chased', 'ambush_night', 'noon8', 'searchers_coming', 'chase9'] as const;
+export const ON_FOOT = ['plain_coat', 'girl_with_you', 'sneaking', 'escorted', 'archivist_waiting', 'in_grove', 'stealing', 'tailing', 'chased', 'ambush_night', 'noon8', 'searchers_coming', 'chase9', 'walking6'] as const;
