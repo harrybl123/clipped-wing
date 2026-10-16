@@ -14,8 +14,8 @@ import { playSound } from './soundscape';
 // The audience on the war table (Jack: a "community square"): three people come to you and you choose who to
 // hear. The accountant weighs your gold on his scales; the townsfolk gather in a square to hear you from a stage
 // (four things to say, two that go down well, you can't tell which); the commander advises you on tactics, or
-// clouds your judgement. Half and half, whoever you choose. A crier can call you to one wherever you are ("Lord,
-// your people require attention!"). Draft looks and draft lines throughout.
+// clouds your judgement. Half and half, whoever you choose. Draft looks and draft lines throughout. And an audience
+// with the Lord (Jack): a man on his knees at the altar, praying, and the Lord's judgement on your people.
 
 /** What the townsfolk can be told (draft lines; which two go down well changes every time). */
 export const SPEECHES = [
@@ -38,8 +38,6 @@ const ACCOUNTANT = capitalPortrait(
 );
 /** The commander (draft): the captain's look, older and harder. */
 const COMMANDER = capitalPortrait(CAPITAL_CAST_LOOKS.captain as CapitalLook, { build: 'broad', age: 1, jaw: 'square', brow: 'heavy', mouth: 'flat', items: ['scar'] });
-/** The crier (draft): one of the city's folk, in tears. */
-const CRIER = capitalPortrait(CITIZEN_LOOKS[2]!, { build: 'plain', age: 1, brow: 'knit', eyes: 'tired', mouth: 'open' });
 /** The townsfolk: three faces together. */
 const FOLK = [0, 3, 5].map((i) => capitalPortrait(CITIZEN_LOOKS[i % CITIZEN_LOOKS.length]!, { age: (i % 3) as 0 | 1 | 2, mouth: i % 2 ? 'frown' : 'flat' }));
 
@@ -47,8 +45,6 @@ export interface AudienceShow {
   /** Who found it, and which side you are. */
   side: Side;
   you: Side;
-  /** Called to it by the crier (not found on the map). */
-  called: boolean;
   /** The rules decide how it went: the choice (`accountant`, `commander`, `townsfolk:<line>`), and whether it went well. */
   decide: (choice: string) => boolean;
   /** For the computer: its choice. */
@@ -134,32 +130,6 @@ function choose(scene: Phaser.Scene, boxes: { x: number; y: number; w: number; h
       scene.input.on('pointermove', onMove);
     });
   });
-}
-
-/** The crier: "Lord, your people require attention!" */
-async function crier(scene: Phaser.Scene, mine: boolean): Promise<void> {
-  const layer = overlay(scene);
-  playSound(scene, 'chime', 0.8);
-  const face = image(scene, layer, 'riot-crier', CRIER, W / 2, 30, 2.4);
-  // Tears.
-  const tears = scene.add.graphics().setScrollFactor(0);
-  layer.add(tears);
-  let k = 0;
-  const ev = scene.time.addEvent({ delay: 90, loop: true, callback: () => {
-    tears.clear();
-    k++;
-    for (const [dx, phase] of [[-9, 0], [9, 4]] as const) {
-      const y = 30 + 58 + ((k + phase) % 8) * 4;
-      tears.fillStyle(SHADES.cyan, 0.9).fillRect(Math.round(W / 2 + dx), y, 2, 3);
-    }
-  } });
-  face.setAlpha(0);
-  scene.tweens.add({ targets: face, alpha: 1, duration: 300 });
-  text(scene, layer, 170, mine ? '"Lord, your people require attention!"' : '"The rising’s people want them..."', SHADES.white);
-  if (mine) text(scene, layer, 186, 'Click to hear them', SHADES.dim);
-  await untilPressed(scene, mine, 1300);
-  ev.remove();
-  await fade(scene, layer);
 }
 
 async function fade(scene: Phaser.Scene, layer: Phaser.GameObjects.Container): Promise<void> {
@@ -318,10 +288,107 @@ async function commander(scene: Phaser.Scene, mine: boolean, good: boolean, turn
 export async function holdAudience(scene: Phaser.Scene, show: AudienceShow): Promise<void> {
   const mine = show.side === show.you;
   const [pickWho, pickLine] = (show.pick ?? 'accountant').split(':');
-  if (show.called) await crier(scene, mine);
   const who = await pickAdviser(scene, mine, (pickWho as Adviser) ?? 'accountant');
   if (who === 'townsfolk') return townsfolk(scene, mine, Number(pickLine ?? 0) || 0, (line) => show.decide(`townsfolk:${line}`), show.turns);
   const good = show.decide(who);
   if (who === 'accountant') return accountant(scene, mine, good, show.turns);
   return commander(scene, mine, good, show.turns);
+}
+
+export interface PrayerShow {
+  side: Side;
+  you: Side;
+  /** The Lord's judgement: loyal servants (blessed), or heretics (cursed). */
+  blessed: boolean;
+  turns: number;
+}
+
+/**
+ * An audience with the Lord (Jack): a church, the sun's rays through its stained glass onto a man on his knees at
+ * the altar, pleading ("O please, Lord, won't you hear our prayer?!"); then the judgement. Heretics: the windows
+ * slam shut, one after another, and the church goes dark. Loyal servants: the light turns golden, and an angelic
+ * "ahhh".
+ */
+export async function hearPrayer(scene: Phaser.Scene, show: PrayerShow): Promise<void> {
+  const mine = show.side === show.you;
+  const layer = overlay(scene, 1);
+  const g = scene.add.graphics().setScrollFactor(0);
+  layer.add(g);
+  const windows = [100, 240, 380];
+  // The nave: dark stone, pillars, the altar on its steps.
+  g.fillStyle(SHADES.shadow, 1).fillRect(0, 0, W, H);
+  for (const x of [30, 170, 310, 450]) g.fillStyle(SHADES.deep, 1).fillRect(x - 6, 20, 12, 200);
+  g.fillStyle(SHADES.deep, 1).fillRect(0, 214, W, 56);
+  g.fillStyle(SHADES.wood, 1).fillRect(W / 2 - 70, 196, 141, 6).fillRect(W / 2 - 80, 202, 161, 6).fillRect(W / 2 - 90, 208, 181, 6); // the steps
+  g.fillStyle(SHADES.woodLight, 1).fillRect(W / 2 - 34, 168, 69, 28).fillStyle(SHADES.light, 1).fillRect(W / 2 - 34, 168, 69, 3); // the altar
+  g.fillStyle(SHADES.amber, 1).fillRect(W / 2 - 1, 150, 3, 18).fillRect(W / 2 - 6, 155, 13, 3); // a gold mark on it
+  // The stained glass: tall arched windows of coloured panes (no red: the palette's).
+  const glass = scene.add.graphics().setScrollFactor(0);
+  layer.add(glass);
+  const panes = [SHADES.cyan, SHADES.amber, SHADES.green, SHADES.cyanMid, SHADES.white, SHADES.amberMid];
+  const paintGlass = (gold: boolean) => {
+    glass.clear();
+    for (const [w, x] of windows.entries()) {
+      glass.fillStyle(SHADES.shadow, 1).fillRect(x - 18, 30, 37, 90).fillCircle(x + 0.5, 30, 18.5);
+      for (let r = 0; r < 9; r++) for (let c = 0; c < 4; c++) {
+        const colour = gold ? (r + c) % 2 ? SHADES.amber : SHADES.white : panes[(r * 3 + c + w) % panes.length]!;
+        glass.fillStyle(colour, 1).fillRect(x - 16 + c * 8.5, 22 + r * 10.5, 7, 9);
+      }
+    }
+  };
+  paintGlass(false);
+  // The sun's rays down through them onto him.
+  const rays = scene.add.graphics().setScrollFactor(0);
+  layer.add(rays);
+  const paintRays = (colour: number, alpha: number) => {
+    rays.clear();
+    for (const x of windows) rays.fillStyle(colour, alpha).fillTriangle(x - 16, 110, x + 17, 110, W / 2 + (x - W / 2) * 0.15, 214);
+  };
+  paintRays(SHADES.light, 0.12);
+  // Him: on his knees before the altar, hands together.
+  const look = { ...CITIZEN_LOOKS[1]!, pose: 'front' as const };
+  const f = courtlyFrames(look).idle[0]!;
+  const man = scene.add.image(W / 2, 214, makeSpriteTexture(scene, 'riot-prayer-man', f.rows, f.colours)).setOrigin(0.5, 1).setScale(2.6).setScrollFactor(0);
+  man.setCrop(0, 0, f.rows[0]!.length, Math.round(f.rows.length * 0.72)); // (kneeling: his legs folded under him)
+  man.y += Math.round(f.rows.length * 0.28 * 2.6);
+  man.setTint(0x3a3028); // (backlit by the windows: a shape on his knees, facing the altar)
+  layer.add(man);
+  layer.setAlpha(0);
+  await new Promise<void>((r) => scene.tweens.add({ targets: layer, alpha: 1, duration: 400, onComplete: () => r() }));
+  playSound(scene, 'chime', 0.6);
+  const plea = text(scene, layer, 232, '"O please, Lord, won\u2019t you hear our prayer?!"', SHADES.white);
+  text(scene, layer, 6, mine ? 'An audience with the Lord' : 'The rising pray', SHADES.dim);
+  scene.tweens.add({ targets: man, y: man.y - 2, duration: 500, yoyo: true, repeat: 2 });
+  await wait(scene, 1800);
+  plea.setVisible(false);
+  if (!show.blessed) {
+    // Heretics: the windows slam shut one after another, and the church goes dark.
+    for (const x of windows) {
+      playSound(scene, 'slam', 1);
+      scene.cameras.main.shake(120, 0.006);
+      glass.fillStyle(SHADES.deep, 1).fillRect(x - 19, 10, 39, 112);
+      glass.lineStyle(1, SHADES.wood, 1).lineBetween(x, 10, x, 122);
+      await wait(scene, 260);
+    }
+    rays.clear();
+    const dark = scene.add.rectangle(0, 0, W, H, 0x000000, 0).setOrigin(0).setScrollFactor(0);
+    layer.add(dark);
+    await new Promise<void>((r) => scene.tweens.add({ targets: dark, fillAlpha: 0.85, duration: 700, onComplete: () => r() }));
+  } else {
+    // Loyal servants: the light turns golden, and an angelic "ahhh".
+    playSound(scene, 'angel', 1);
+    paintGlass(true);
+    for (let i = 1; i <= 8; i++) {
+      paintRays(SHADES.amber, 0.05 * i);
+      await wait(scene, 70);
+    }
+    man.setTint(0xb08a50);
+  }
+  text(scene, layer, 196, show.blessed ? 'Loyal servants!' : 'Heretics!', show.blessed ? SHADES.amber : SHADES.dim, 3);
+  const who = mine ? 'you' : 'them';
+  text(scene, layer, 226, show.blessed
+    ? `Blessed for ${show.turns} turns: anything left to luck or morale goes ${mine ? 'your' : 'their'} way, and ${mine ? 'your' : 'their'} attacks win on a tie.`
+    : `Cursed for ${show.turns} turns: anything left to luck or morale goes against ${who}, and attacks on ${who} win on a tie.`, SHADES.light, 1, W - 40);
+  await untilPressed(scene, mine, 2200);
+  await fade(scene, layer);
 }

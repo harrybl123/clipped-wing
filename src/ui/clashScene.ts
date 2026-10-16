@@ -29,6 +29,8 @@ export interface ClashShow {
   /** The side you're playing, and your odds of winning it (shown at the top). */
   you: Side;
   chance: number;
+  /** The Lord's judgement on it (Jack): `dark`, the street plunged into darkness (cursed); `gold`, lit gold (blessed). */
+  mood?: 'dark' | 'gold';
 }
 
 /** The look's frames as textures: standing, and walking. */
@@ -140,6 +142,18 @@ export async function playClash(scene: Phaser.Scene, show: ClashShow): Promise<v
   walking.remove();
   for (const w of [...guard, ...rising]) w.img.setTexture(w.tex.idle);
 
+  // Cursed (Jack): the street's plunged into darkness, the fighters only shapes; blessed, it's lit gold.
+  if (show.mood) {
+    const wash = scene.add.rectangle(0, 34, W, H - 64, show.mood === 'dark' ? 0x000000 : SHADES.amber, 0).setOrigin(0);
+    layer.add(wash);
+    layer.bringToTop(wash);
+    if (show.mood === 'dark') {
+      for (const w of [...guard, ...rising]) w.img.setTint(0x2a2a2a);
+      playSound(scene, 'slam', 0.6);
+    } else playSound(scene, 'angel', 0.5);
+    scene.tweens.add({ targets: wash, fillAlpha: show.mood === 'dark' ? 0.6 : 0.18, duration: skip ? 0 : 400 });
+    await wait(400);
+  }
   // Swords meet; they fall one by one, until only the winners' last are left.
   const winners = show.winner === 'guard' ? guard : rising;
   const losers = show.winner === 'guard' ? rising : guard;

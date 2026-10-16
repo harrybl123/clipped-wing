@@ -160,17 +160,26 @@ export interface AudienceRules {
   slumpTurns: number;
   /** The commander: seeing two turns of theirs ahead, or none (clouded judgement), for so many turns. */
   advice: number;
+  /**
+   * An audience with the Lord (Jack, in place of the crier): in each stretch of turns, half the time, on one turn of
+   * it, a side's people pray; the Lord judges them heretics (cursed) or loyal servants (blessed), for `judged` turns.
+   */
   call: { every: number; chance: number };
+  judged: number;
 }
 export const AUDIENCE: AudienceRules = {
   from: 5, chance: 0.2, lasts: 3, morale: 0.1, moraleTurns: 5, output: 1, outputTurns: 5, slump: 1, slumpTurns: 2, advice: 5,
-  call: { every: 7, chance: 0.5 },
+  call: { every: 7, chance: 0.5 }, judged: 5,
 };
 
 /** Something lasting on a side (Jack): morale up or down, its bases making more or less, the commander's advice. */
 export interface Mood {
   side: Side;
-  kind: 'morale' | 'output' | 'foresight' | 'cloud';
+  /**
+   * `blessed` (a loyal servant, Jack): anything left to luck or morale goes its way, and its attacks win on a tie;
+   * `cursed` (a heretic): the opposite.
+   */
+  kind: 'morale' | 'output' | 'foresight' | 'cloud' | 'blessed' | 'cursed';
   by: number;
   /** The last turn it lasts. */
   until: number;
@@ -313,7 +322,7 @@ export interface RiotState {
   /** A mystery square on the map (Jack): where, for how many more turns, and whether it's the diviner's own mark. */
   mystery?: { place: string; left: number; mark?: 'diviner' | 'trickster' } | null;
   /** Waiting on a choice (Jack): the diviner's three cards, face down, or where the thief goes. */
-  pending?: { kind: 'diviner'; side: Side; at: string; cards: Card[] } | { kind: 'thief'; side: Side; at: string } | { kind: 'audience'; side: Side; at: string | null; good: number[] } | null;
+  pending?: { kind: 'diviner'; side: Side; at: string; cards: Card[] } | { kind: 'thief'; side: Side; at: string } | { kind: 'audience'; side: Side; at: string; good: number[] } | { kind: 'prayer'; side: Side } | null;
   /** Turns of plague left for each side (Jack). */
   plague?: Record<Side, number>;
   /** The streets, once the trickster's changed them (Jack); the board's until then. */
@@ -377,8 +386,10 @@ export type RiotEvent =
   | { type: 'audienceAppears'; at: string }
   | { type: 'audienceGone'; at: string }
   | { type: 'audienceFound'; at: string; side: Side }
-  /** The crier (Jack): "Lord, your people require attention!" (`side`'s audience waits: `pending`). */
+  /** An audience with the Lord (Jack): `side`'s people pray ("O please, Lord, won't you hear our prayer?!"); `pending`. */
   | { type: 'call'; side: Side }
+  /** The Lord's judgement on them (Jack): loyal servants (blessed), or heretics (cursed). */
+  | { type: 'judgement'; side: Side; blessed: boolean }
   /** An audience heard (Jack): who, and whether it went well; for the townsfolk, which line was said. */
   | { type: 'audience'; side: Side; who: Adviser; good: boolean; line?: number }
   /** A mystery square appearing (the diviner's mark, or a "?"), found, or gone untaken (Jack). */
@@ -577,7 +588,8 @@ export class RiotGame {
     this.use(s);
     return this.adj.get(this.base(side))!.filter((p) => {
       const there = this.squadAt(s, p);
-      if (elite === 'maiden' && there?.side === side && there.elite === 'guard3') return !s.squads.some((q) => q.place === p && q.elite === 'maiden');
+      // (The maiden or the hero beside one of your king's guard, Jack: if none of the elite's beside them already.)
+      if ((elite === 'maiden' || elite === 'hero') && there?.side === side && there.elite === 'guard3') return !s.squads.some((q) => q.place === p && q.elite && q.elite !== 'guard3');
       return !there || (there.side === side && !there.elite && !this.fortified(s, p));
     });
   }
@@ -600,7 +612,7 @@ export class RiotGame {
     for (const p of places) {
       // A squad of yours there steps back into the base, joining whoever holds it, so nobody's lost (with the base
       // not yours, it stands down). (The maiden beside the king's guard: they stay, and so does she.)
-      const keep = (q: RiotSquad) => q.elite === 'guard3' && elite === 'maiden';
+      const keep = (q: RiotSquad) => q.elite === 'guard3' && (elite === 'maiden' || elite === 'hero');
       const home = this.squadAt(s, this.base(side));
       for (const there of s.squads.filter((q) => q.place === p && !keep(q))) if (home?.side === side && !home.elite) home.strength += there.strength;
       s.squads = s.squads.filter((q) => q.place !== p || keep(q));
@@ -711,7 +723,7 @@ export class RiotGame {
   /** A squad standing beside the king's guard at a place (Jack). */
   besideAt = (s: RiotState, place: string): RiotSquad | undefined => s.squads.find((q) => q.place === place && q.beside);
   /** How strong a place is all told: whoever holds it and anyone beside them. */
-  heldBy = (s: RiotState, place: string): number => s.squads.filter((q) => q.place === place).reduce((n, q) => n + q.strength, 0);
+  heldBy = (s: RiotState, place: string): number => s.squads.filter((q) => q.place === place && !(q.beside && q.elite === 'hero')).reduce((n, q) => n + q.strength, 0);
   /** Who's beside the king's guard, worked out again (on `s`, a clone): a squad of theirs sharing the place. */
   private settle(s: RiotState): void {
     for (const q of s.squads) q.beside = q.elite !== 'guard3' && s.squads.some((k) => k !== q && k.place === q.place && k.elite === 'guard3' && k.side === q.side) ? true : undefined;
@@ -809,7 +821,9 @@ export class RiotGame {
       events.push({ type: 'blocked', at: to, side: q.side });
       return false;
     }
-    const by = this.besideAt(s, to);
+    // (A hero beside the king's guard: nothing can attack it, so it doesn't count.)
+    const beside = this.besideAt(s, to);
+    const by = beside?.elite === 'hero' ? undefined : beside;
     const total = there.strength + (by?.strength ?? 0);
     const need = to === this.heart ? total : this.defence(s, to, total);
     const enough = q.strength >= need;
@@ -942,7 +956,8 @@ export class RiotGame {
     } else {
       // Poisoned (Jack): a chance of a critical hit, adding 10 to 60% to the attack (rounded).
       const c = this.rules.elites?.crit;
-      const crit = q.poison && c && this.roll(s) < c.chance ? Math.round(q.strength * (c.least + this.roll(s) * (c.most - c.least))) : 0;
+      const fav = this.favour(s, q.side);
+      const crit = q.poison && c && fav >= 0 && (fav > 0 || this.roll(s) < c.chance) ? Math.max(1, Math.round(q.strength * (fav > 0 ? c.most : c.least + this.roll(s) * (c.most - c.least)))) : 0;
       const attack = this.attack(from, o.to, q.strength) + crit;
       // (The king's guard and anyone beside them stand together: Jack.)
       const by = this.besideAt(s, o.to);
@@ -950,13 +965,16 @@ export class RiotGame {
       // The square: match its number and you've taken it (Jack: 9 on its 8 bounced off the barricades, which was
       // confusing); the barricades still cost one more, but you keep at least 1. Elsewhere a tie holds, as ever
       // (tried everywhere, it broke "Now." and made the rising's ties win too: docs/sequences/chapter-3/war-table.md).
-      const won = attack > defence || (o.to === this.heart && attack >= there.strength);
+      // Blessed, your attack wins on a tie; cursed, theirs on you does (Jack: their number matching yours).
+      const tie = q.strength === this.heldBy(s, o.to) && this.favour(s, q.side) - this.favour(s, there.side) > 0;
+      const won = attack > defence || (o.to === this.heart && attack >= there.strength) || tie;
       events.push({ type: 'fight', at: o.to, side: q.side, won, attack, defence, ...(crit ? { crit } : {}) });
       if (won) {
         s.squads = s.squads.filter((x) => x !== there && x !== by);
         q.place = o.to;
         // (A critical hit costs them more, never adds to yours.)
         q.strength = Math.max(1, Math.min(q.strength, attack - defence));
+        if (tie && attack <= defence) q.strength = 1;
         s.owner[o.to] = q.side;
       } else {
         // Beaten off: the attackers are lost, and the defenders lose as many (they keep at least 1): the king's
@@ -1136,6 +1154,7 @@ export class RiotGame {
     s.pending = null;
     const events: RiotEvent[] = [];
     if (p.kind === 'audience') this.hear(s, p.side, p.good, typeof choice === 'string' ? choice : undefined, events);
+    else if (p.kind === 'prayer') this.judge(s, p.side, events);
     else if (p.kind === 'diviner') {
       const i = typeof choice === 'number' ? choice : Math.floor(this.roll(s) * p.cards.length);
       const card = p.cards[i] ?? p.cards[0]!;
@@ -1252,7 +1271,13 @@ export class RiotGame {
     const boost = this.rules.brothel?.boost ?? 0;
     parts.push({ what: 'Fine spirits', by: (q.cheer ? boost : 0) - (there?.cheer ? boost : 0) });
     const c = this.rules.clash ?? CLASH;
-    const chance = Math.max(c.least, Math.min(c.most, 0.5 + parts.reduce((n, x) => n + x.by, 0)));
+    let chance = Math.max(c.least, Math.min(c.most, 0.5 + parts.reduce((n, x) => n + x.by, 0)));
+    // Blessed, it's won; cursed, it's lost (Jack: certainly).
+    const f = this.favour(s, side) - this.favour(s, this.other(side));
+    if (f) {
+      parts.push({ what: f > 0 ? 'Blessed' : 'Cursed', by: f > 0 ? 1 - chance : -chance });
+      chance = f > 0 ? 1 : 0;
+    }
     return { chance, parts: parts.filter((x) => Math.abs(x.by) > 1e-9) };
   }
 
@@ -1309,6 +1334,17 @@ export class RiotGame {
     s.audience = null;
   }
 
+  /** The Lord's judgement (on `s`, a clone): heretics or loyal servants, half and half, for a few turns (Jack). */
+  private judge(s: RiotState, side: Side, events: RiotEvent[]): void {
+    const blessed = this.roll(s) < 0.5;
+    const turns = (this.rules.audience ?? AUDIENCE).judged;
+    s.moods = [...(s.moods ?? []).filter((m) => !(m.side === side && (m.kind === 'blessed' || m.kind === 'cursed'))), { side, kind: blessed ? 'blessed' : 'cursed', by: 0, until: s.turn + turns - 1 }];
+    events.push({ type: 'judgement', side, blessed });
+  }
+
+  /** The Lord's favour on a side (Jack): 1 blessed, -1 cursed, 0 neither. */
+  favour = (s: RiotState, side: Side): number => ((s.moods ?? []).some((m) => m.side === side && m.kind === 'blessed' && m.until >= s.turn) ? 1 : 0) - ((s.moods ?? []).some((m) => m.side === side && m.kind === 'cursed' && m.until >= s.turn) ? 1 : 0);
+
   /** Which two of the townsfolk's four lines go down well, this time (Jack: always half and half). */
   private goodLines(s: RiotState): number[] {
     const lines = [0, 1, 2, 3];
@@ -1326,7 +1362,10 @@ export class RiotGame {
     const [name, n] = (choice ?? '').split(':');
     const who: Adviser = advisers.includes(name as Adviser) ? (name as Adviser) : advisers[Math.floor(this.roll(s) * 3)]!;
     const line = who === 'townsfolk' ? (n !== undefined && /^[0-3]$/.test(n) ? Number(n) : Math.floor(this.roll(s) * 4)) : undefined;
-    const ok = line !== undefined ? good.includes(line) : this.roll(s) < 0.5;
+    const luck = line !== undefined ? good.includes(line) : this.roll(s) < 0.5;
+    // (Blessed or cursed, Jack: luck has nothing to do with it.)
+    const f = this.favour(s, side);
+    const ok = f > 0 ? true : f < 0 ? false : luck;
     const moods = (s.moods = [...(s.moods ?? [])]);
     const add = (kind: Mood['kind'], by: number, turns: number) => moods.push({ side, kind, by, until: s.turn + turns - 1 });
     if (who === 'commander') add(ok ? 'foresight' : 'cloud', 0, a.advice);
@@ -1355,8 +1394,12 @@ export class RiotGame {
     // (A street nearer the guard when even: the rising have more crowds out, so they'd win most races otherwise.)
     const lead = tilt ? Math.sign(this.crestsTaken(s, 'guard') - this.crestsTaken(s, 'rising')) - (this.crestsTaken(s, 'guard') <= this.crestsTaken(s, 'rising') ? 1 : 0) : -1;
     const score = (p: string) => Math.abs(far(p, 'guard') - far(p, 'rising') - lead) * 10 + Math.abs(Math.min(far(p, 'guard'), far(p, 'rising')) - 2) * 3;
-    const best = Math.min(...empty.map((p) => score(p.id)));
-    const pool = empty.filter((p) => score(p.id) === best);
+    // (Only where both sides could get to it before it goes, if there's anywhere: Jack, some were out of reach.)
+    const lasts = Math.min(this.rules.elites?.crest.lasts ?? 3, this.rules.mystery?.lasts ?? 3);
+    const reach = empty.filter((p) => far(p.id, 'guard') <= lasts && far(p.id, 'rising') <= lasts);
+    const among = reach.length ? reach : empty;
+    const best = Math.min(...among.map((p) => score(p.id)));
+    const pool = among.filter((p) => score(p.id) === best);
     return pool[Math.floor(this.roll(s) * pool.length)]?.id ?? null;
   }
 
@@ -1367,7 +1410,10 @@ export class RiotGame {
       const there = this.squadAt(s, n);
       // (Heroes too: Jack.)
       if (!there || this.fortified(s, n)) continue;
-      const damage = 1 + Math.floor(this.roll(s) * (this.rules.rumble?.max ?? 3));
+      // (Blessed, the least; cursed, the most: Jack.)
+      const fav = this.favour(s, there.side);
+      const most = this.rules.rumble?.max ?? 3;
+      const damage = fav > 0 ? 1 : fav < 0 ? most : 1 + Math.floor(this.roll(s) * most);
       there.strength -= damage;
       const gone = there.strength <= 0;
       if (gone) s.squads = s.squads.filter((x) => x !== there);
@@ -1665,7 +1711,7 @@ export class RiotGame {
       }
       for (const side of ['guard', 'rising'] as const) {
         if (s.calls[side] !== s.turn || s.pending) continue;
-        s.pending = { kind: 'audience', side, at: null, good: this.goodLines(s) };
+        s.pending = { kind: 'prayer', side };
         events.push({ type: 'call', side });
       }
     }

@@ -10,7 +10,7 @@ import { makePaintedTexture } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
 import { playConfirm, playMove } from '../ui/sfx';
 import { playClash } from '../ui/clashScene';
-import { holdAudience } from '../ui/audienceScene';
+import { hearPrayer, holdAudience } from '../ui/audienceScene';
 import { dealCards } from '../ui/divinerScene';
 import { playSound } from '../ui/soundscape';
 import { startTableMusic, type TableMusic } from '../ui/tableMusic';
@@ -460,7 +460,10 @@ export class RiotTableScene extends Phaser.Scene {
       const winner = clash.won ? clash.side : this.g.other(clash.side);
       const at = clash.meet || clash.base ? to : { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 };
       if (clash.base) await this.banner('Final clash!', { colour: SHADES.white, sub: `${clash.strength} against ${clash.strength}, for ${lower(to.name)}.`, hold: 1100 });
-      await playClash(this, { at, strength: clash.strength, winner, left: clash.left, you: this.you, chance: clash.side === this.you ? clash.chance : 1 - clash.chance });
+      // (Cursed, the street's plunged into darkness; blessed, it's lit gold: Jack.)
+      const favour = [this.g.favour(s, 'guard'), this.g.favour(s, 'rising')];
+      const mood = favour.includes(-1) ? 'dark' : favour.includes(1) ? 'gold' : undefined;
+      await playClash(this, { at, strength: clash.strength, winner, left: clash.left, you: this.you, chance: clash.side === this.you ? clash.chance : 1 - clash.chance, mood });
       const took = clash.meet || clash.base ? to : clash.won ? to : from;
       this.pop(took, `Clash won: ${clash.left} left`, COLOUR[winner]);
       this.tokensTaken(events);
@@ -620,13 +623,22 @@ export class RiotTableScene extends Phaser.Scene {
     await this.banners;
     const ours = p.side === this.you && !this.fatherPlaying;
     let choice: number | string | undefined;
+    if (p.kind === 'prayer') {
+      // An audience with the Lord (Jack): the prayer, and his judgement.
+      const d = this.g.resolve(s);
+      const e = d.events.find((x) => x.type === 'judgement');
+      await hearPrayer(this, { side: p.side, you: this.you, blessed: e?.type === 'judgement' && e.blessed, turns: this.g.rules.audience?.judged ?? 5 });
+      this.state = d.state;
+      this.draw();
+      return d.state;
+    }
     if (p.kind === 'audience') {
-      // The audience (Jack): the crier first if it's a call; who to hear; how it went (the rules decide, as it plays).
+      // The audience (Jack): who to hear; how it went (the rules decide, as it plays).
       let d = { state: s, events: [] as RiotEvent[] };
       const a = this.g.rules.audience;
       const pick = ours ? undefined : (['accountant', 'townsfolk', 'commander'] as const)[Math.floor(Math.random() * 3)]! + `:${Math.floor(Math.random() * 4)}`;
       await holdAudience(this, {
-        side: p.side, you: this.you, called: p.at === null, pick,
+        side: p.side, you: this.you, pick,
         turns: { morale: a?.moraleTurns ?? 5, output: a?.outputTurns ?? 5, slump: a?.slumpTurns ?? 2, advice: a?.advice ?? 5 },
         decide: (c) => {
           d = this.g.resolve(s, c);
@@ -1789,6 +1801,12 @@ export class RiotTableScene extends Phaser.Scene {
       const sick = this.plagued(q);
       const col = sick ? SHADES.greenMid : COLOUR[q.side];
       const dark = s.cut === q.place;
+      const stuck = (q.stuck ?? -1) >= s.turn;
+      if (stuck) this.drawBrothel(g, p, blink);
+      // The Lord's judgement (Jack): a gold halo over the blessed; a dark cloud over the cursed.
+      const fav = this.g.favour(s, q.side);
+      if (fav > 0) g.lineStyle(1, SHADES.amber, 0.9).strokeEllipse(p.x + 0.5, p.y - 12, 12, 4);
+      if (fav < 0) g.fillStyle(SHADES.shadow, 0.8).fillEllipse(p.x - 2, p.y - 13, 10, 5).fillEllipse(p.x + 3, p.y - 14, 10, 5);
       if (q.elite === 'maiden') this.drawMaiden(g, p, q.side, dark);
       else if (q.elite === 'guard3') this.drawGuardsman(g, p, q.side, dark);
       else if (q.elite === 'hero') this.drawHero(g, p, q.side, dark);
@@ -1805,8 +1823,7 @@ export class RiotTableScene extends Phaser.Scene {
       }
       if (sick) this.drawSkull(g, { x: p.x + 10, y: p.y - 11 });
       // Been to the brothel (Jack): a lantern while it's stuck there; a little gold star once it's in fine spirits.
-      if ((q.stuck ?? -1) >= s.turn) g.fillStyle(SHADES.amber, 1).fillCircle(p.x - 10, p.y - 10, 2).fillStyle(SHADES.amberDeep, 1).fillRect(p.x - 11, p.y - 13, 3, 1);
-      else if (q.cheer) {
+      if (!stuck && q.cheer) {
         g.fillStyle(SHADES.amber, 1).fillTriangle(p.x - 13, p.y - 9, p.x - 7, p.y - 9, p.x - 10, p.y - 14).fillTriangle(p.x - 13, p.y - 12, p.x - 7, p.y - 12, p.x - 10, p.y - 7);
       }
       if (this.aiming?.squad.id === q.id) g.lineStyle(1, SHADES.white, 1).strokeCircle(p.x, p.y, 11);
@@ -1912,7 +1929,8 @@ export class RiotTableScene extends Phaser.Scene {
     const extra = (plague ? ` Plague: ${plague} more ${plague === 1 ? 'turn' : 'turns'}.` : '')
       + (morale ? ` Morale ${morale > 0 ? '+' : ''}${Math.round(morale * 100)}%.` : '')
       + (out ? ` Bases ${out > 0 ? '+' : ''}${out} a turn.` : '')
-      + (fore ? ` Seeing ahead: ${fore}.` : '') + (cloud ? ` Clouded: ${cloud}.` : '');
+      + (fore ? ` Seeing ahead: ${fore}.` : '') + (cloud ? ` Clouded: ${cloud}.` : '')
+      + (this.g.favour(st, this.you) ? ` ${this.g.favour(st, this.you) > 0 ? 'Blessed' : 'Cursed'}: ${this.judgedIn(st)}.` : '');
     const sick = extra ? `\n${extra.trim()}` : '';
     if (sc.kind === 'duel') return `Take his camp. Turn ${this.state.turn}.${sick}`;
     // The skirmish (Jack): no dawn; the turn, and the next shake-up.
@@ -2045,6 +2063,23 @@ export class RiotTableScene extends Phaser.Scene {
     if (this.g.fortified(s, p.id)) lines.push('Dug in: nobody can attack it this turn.');
     if (s.rumble?.place === p.id) lines.push(`A rumble: whoever gets here first sets it off. Everyone next to it takes 1 to 3. (${s.rumble.left} ${s.rumble.left === 1 ? 'turn' : 'turns'} left)`);
     return lines.join('\n');
+  }
+
+  /** Turns left of the Lord's judgement on your side. */
+  private judgedIn(s: RiotState): number {
+    return Math.max(0, ...(s.moods ?? []).filter((m) => m.side === this.you && (m.kind === 'blessed' || m.kind === 'cursed')).map((m) => m.until - s.turn + 1));
+  }
+
+  /**
+   * The brothel round a squad that's in it (Jack: the icon still there, the squad sitting within): a little house
+   * with a lit doorway, curtains, and its lantern.
+   */
+  private drawBrothel(g: Phaser.GameObjects.Graphics, p: At, blink: boolean): void {
+    g.fillStyle(SHADES.shadow, 1).fillRect(p.x - 13, p.y - 12, 27, 25).fillTriangle(p.x - 15, p.y - 11, p.x + 16, p.y - 11, p.x + 0.5, p.y - 20);
+    g.fillStyle(SHADES.deep, 1).fillRect(p.x - 12, p.y - 11, 25, 23).fillTriangle(p.x - 13, p.y - 11, p.x + 14, p.y - 11, p.x + 0.5, p.y - 18);
+    g.fillStyle(SHADES.amberDeep, 1).fillRect(p.x - 10, p.y - 10, 21, 21); // the lit doorway
+    g.fillStyle(SHADES.amberMid, 1).fillRect(p.x - 10, p.y - 10, 3, 21).fillRect(p.x + 8, p.y - 10, 3, 21); // the curtains
+    g.fillStyle(blink ? SHADES.amber : SHADES.amberMid, 1).fillCircle(p.x + 0.5, p.y - 14, 2); // the lantern
   }
 
   /** A squad the plague's on (Jack): its side's, not its base, not one of the elite squad. */

@@ -47,6 +47,8 @@ export const SOUND_IDS = [
   'deal',
   // The trickster (Jack): a jester's bells tumbling, a mocking slide down and up.
   'trickster',
+  // The Lord's judgement (Jack): windows slamming shut (the heretic), an angelic "ahhh" (the loyal servant).
+  'slam', 'angel',
 ] as const;
 export type SoundId = (typeof SOUND_IDS)[number];
 
@@ -303,6 +305,17 @@ function oneShot(a: Out, dest: AudioNode, t: number, id: SoundId, v: number, sur
       }
       tone(a, dest, t + 0.1, 'sawtooth', 300, 140, 0.35, 0.05 * v, 0.02);
       tone(a, dest, t + 0.45, 'sawtooth', 140, 340, 0.35, 0.05 * v, 0.02);
+      break;
+    case 'slam':
+      // Heavy shutters banging shut, one after another, and the boom of the hall.
+      for (const [d, f] of [[0, 140], [0.12, 120], [0.26, 100]] as const) {
+        noise(a, dest, t + d, 'lowpass', 900, 1, 0.22, 0.5 * v, 0.002, 200);
+        tone(a, dest, t + d, 'sine', f, f * 0.5, 0.4, 0.3 * v, 0.003);
+      }
+      break;
+    case 'angel':
+      // (A recording, `angel.ogg`; if it's missing: a soft, bright chord swelling up.)
+      for (const f of [523, 659, 784, 1047]) tone(a, dest, t, 'sine', f, f, 1.8, 0.05 * v, 0.6);
       break;
     case 'deal':
       noise(a, dest, t, 'bandpass', 3000, 0.8, 0.16, 0.12 * v, 0.03, 1800);

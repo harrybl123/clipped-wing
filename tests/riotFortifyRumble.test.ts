@@ -742,3 +742,77 @@ describe('the war table: Jack’s third round', () => {
     expect(sk.outcome(set([{ id: 'sq', side: 'rising', place: 'square', strength: 9 }]))).toBe('rising');
   });
 });
+
+describe('the war table: an audience with the Lord (Jack)', () => {
+  const rules = { ...RIOT_RULES, elites: ELITE_SQUAD, clash: CLASH, mystery: MYSTERY, brothel: BROTHEL, audience: AUDIENCE };
+  const game = new RiotGame(LOW_DISTRICT_BOARD, rules);
+  type Q = RiotState['squads'][number];
+  const set = (list: Q[], seed = 1): RiotState => {
+    const s = game.start([], seed);
+    for (const q of list) s.owner[q.place] = q.side;
+    return { ...s, squads: list.map((q) => ({ ...q })), nextId: 50 };
+  };
+  const judged = (s: RiotState, side: 'guard' | 'rising', kind: 'blessed' | 'cursed'): RiotState => ({ ...s, moods: [{ side, kind, by: 0, until: s.turn + 4 }] });
+
+  it('the crier’s gone: a call is a prayer, judged heretics or loyal servants, half and half, for 5 turns', () => {
+    let blessed = 0;
+    for (let seed = 1; seed <= 100; seed++) {
+      const s = { ...set([{ id: 'l', side: 'guard', place: 'lifts', strength: 4 }]), seed, pending: { kind: 'prayer' as const, side: 'guard' as const } };
+      const r = game.resolve(s);
+      const e = r.events.find((x) => x.type === 'judgement');
+      expect(e?.type).toBe('judgement');
+      if (e?.type !== 'judgement') return;
+      expect(game.favour(r.state, 'guard')).toBe(e.blessed ? 1 : -1);
+      blessed += e.blessed ? 1 : 0;
+    }
+    expect(blessed).toBeGreaterThan(30);
+    expect(blessed).toBeLessThan(70);
+  });
+
+  it('blessed, every clash and race is won; cursed, lost; and it wears off after 5 turns', () => {
+    const s = set([{ id: 'g', side: 'guard', place: 'arch', strength: 3 }, { id: 'r', side: 'rising', place: 'market', strength: 3 }]);
+    const g = s.squads[0]!;
+    expect(game.clashOdds(judged(s, 'guard', 'blessed'), g, 'market').chance).toBe(1);
+    expect(game.clashOdds(judged(s, 'guard', 'cursed'), g, 'market').chance).toBe(0);
+    expect(game.clashOdds(judged(s, 'rising', 'cursed'), g, 'market').chance).toBe(1);
+    let t = judged(s, 'guard', 'blessed');
+    for (let i = 0; i < 5; i++) t = game.turn(t, [], []).state;
+    expect(game.favour(t, 'guard')).toBe(0);
+  });
+
+  it('blessed, your attack wins on a tie; cursed, theirs on you does', () => {
+    const s = set([{ id: 'g', side: 'guard', place: 'arch', strength: 3 }, { id: 'r', side: 'rising', place: 'market', strength: 3 }]);
+    expect(at(game.order(s, { squad: 'g', to: 'market' }).state, 'market')!.side).toBe('rising');
+    expect(at(game.order(judged(s, 'guard', 'blessed'), { squad: 'g', to: 'market' }).state, 'market')).toMatchObject({ side: 'guard', strength: 1 });
+    expect(at(game.order(judged(s, 'guard', 'cursed'), { squad: 'r', to: 'arch' }).state, 'arch')).toMatchObject({ side: 'rising', strength: 1 });
+  });
+
+  it('blessed, a poisoned squad always lands its critical hit; an audience always goes well', () => {
+    const s = judged(set([{ id: 'g', side: 'guard', place: 'arch', strength: 4, poison: true }, { id: 'r', side: 'rising', place: 'market', strength: 2 }]), 'guard', 'blessed');
+    for (let seed = 1; seed <= 20; seed++) expect(game.order({ ...s, seed }, { squad: 'g', to: 'market' }).events.find((e) => e.type === 'fight')).toHaveProperty('crit');
+    const a = { ...s, pending: { kind: 'audience' as const, side: 'guard' as const, at: 'market', good: [0, 1] } };
+    for (let seed = 1; seed <= 20; seed++) expect(game.resolve({ ...a, seed }, 'townsfolk:3').events).toContainEqual(expect.objectContaining({ type: 'audience', good: true }));
+  });
+
+  it('the hero can be put in beside the king’s guard (Jack)', () => {
+    const s = set([{ id: 'k1', side: 'guard', place: 'stair', strength: 2, elite: 'guard3' }, { id: 'k2', side: 'guard', place: 'arch', strength: 2, elite: 'guard3' }, { id: 'k3', side: 'guard', place: 'lamp', strength: 2, elite: 'guard3' }, { id: 'l', side: 'guard', place: 'lifts', strength: 5 }]);
+    s.elites.guard.crests = 1;
+    expect(game.deployPlaces(s, 'guard', 'hero')).toEqual(expect.arrayContaining(['stair', 'arch', 'lamp']));
+    const t = game.deploy(s, 'guard', 'hero', 'arch').state;
+    expect(t.squads.filter((q) => q.place === 'arch').map((q) => q.elite).sort()).toEqual(['guard3', 'hero']);
+    expect(game.heldBy(t, 'arch')).toBe(2);
+  });
+
+  it('a crest or a mystery appears where both sides can get to it before it goes (Jack)', () => {
+    let s = set([{ id: 'l', side: 'guard', place: 'lifts', strength: 4 }, { id: 'sq', side: 'rising', place: 'square', strength: 9 }, { id: 'a', side: 'guard', place: 'arch', strength: 2 }, { id: 'w', side: 'rising', place: 'wash', strength: 2 }]);
+    for (let i = 0; i < 30; i++) {
+      const r = game.turn(s, [], []);
+      for (const e of r.events) if (e.type === 'crestAppears' || e.type === 'mysteryAppears') {
+        const far = (side: 'guard' | 'rising') => Math.min(...game.mine(r.state, side).map((q) => game.distance(e.at, q.place)));
+        expect(far('guard')).toBeLessThanOrEqual(3);
+        expect(far('rising')).toBeLessThanOrEqual(3);
+      }
+      s = r.state;
+    }
+  });
+});
