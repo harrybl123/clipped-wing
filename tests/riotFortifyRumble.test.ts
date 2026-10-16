@@ -759,6 +759,26 @@ describe('the war table: Jack’s third round', () => {
     expect(game.overwhelms(30, 25)).toBe(false);
   });
 
+  it('a race from several directions at once (Jack): everyone each side sends there counts, and the loser’s all stay put', () => {
+    // Three of yours, 5, 6 and 6, onto the crest at once against their 6: 17 v 6, overwhelmed.
+    const s = set([{ id: 'a', side: 'guard', place: 'arch', strength: 5 }, { id: 'b', side: 'guard', place: 'lamp', strength: 6 }, { id: 'c', side: 'guard', place: 'yards', strength: 6 }, { id: 'r', side: 'rising', place: 'well', strength: 6 }, { id: 'sq', side: 'rising', place: 'square', strength: 9 }]);
+    s.crest = { place: 'market', left: 3 };
+    const yours = ['a', 'b', 'c'].map((squad) => ({ squad, to: 'market' }));
+    for (let seed = 1; seed <= 20; seed++) {
+      const r = game.turn({ ...s, seed }, yours, [{ squad: 'r', to: 'market' }]);
+      expect(r.events.find((e) => e.type === 'race')).toMatchObject({ won: true, outright: true, strength: 17, rivalStrength: 6 });
+      expect(at(r.state, 'market')).toMatchObject({ side: 'guard', strength: 17 });
+      expect(at(r.state, 'well')).toMatchObject({ side: 'rising', strength: 6 });
+    }
+    // Two of yours, 3 and 3, against their 14: overwhelmed, and both of yours stay where they were.
+    const t = set([{ id: 'a', side: 'guard', place: 'arch', strength: 3 }, { id: 'b', side: 'guard', place: 'lamp', strength: 3 }, { id: 'r', side: 'rising', place: 'well', strength: 14 }, { id: 'sq', side: 'rising', place: 'square', strength: 9 }]);
+    t.crest = { place: 'market', left: 3 };
+    const r = game.turn(t, [{ squad: 'a', to: 'market' }, { squad: 'b', to: 'market' }], [{ squad: 'r', to: 'market' }]);
+    expect(r.events.find((e) => e.type === 'race')).toMatchObject({ won: false, outright: true, strength: 6, rivalStrength: 14 });
+    expect(at(r.state, 'market')).toMatchObject({ side: 'rising', strength: 14 });
+    expect([at(r.state, 'arch')?.strength, at(r.state, 'lamp')?.strength]).toEqual([3, 3]);
+  });
+
   it('two the same size going for the same empty place: a clash there (Jack); different sizes, no', () => {
     const s = set([{ id: 'g', side: 'guard', place: 'arch', strength: 3 }, { id: 'r', side: 'rising', place: 'well', strength: 3 }]);
     const r = game.turn(s, [{ squad: 'g', to: 'market' }], [{ squad: 'r', to: 'market' }]);

@@ -2409,19 +2409,25 @@ export class RiotTableScene extends Phaser.Scene {
     const half = this.splitting ? Math.ceil(whole.strength / 2) : this.splitRest ? whole.strength - Math.ceil(whole.strength / 2) : whole.strength;
     const aim = { ...whole, strength: half };
     const lead = this.splitting ? `Split: ${half} go, ${whole.strength - half} stay. ` : this.splitRest ? `The rest, ${half}: ` : '';
-    // Both going for the same empty place (Jack): a race for what's on it, or, the same size, a clash there.
+    // A race for what's on the map (Jack): as the turn starts, everyone each side's sending there counts (from three
+    // directions at once, they race as one); five or more bigger, and half as big again, and it's no race.
+    const s0 = this.state;
+    const what0 = this.g.rules.clash && p.id !== aim.place && !this.g.squadAt(s0, p.id) ? this.g.tokenAt(s0, p.id) : null;
+    const rival0 = what0 ? this.g.rivalFor(s0, aim, p.id, this.theirs) : null;
+    if (rival0) {
+      const mine = aim.strength + this.g.heading(s0, aim.side, p.id, this.orders, [whole.id]).strength;
+      const theirs = rival0.strength + this.g.heading(s0, rival0.side, p.id, this.theirs, [rival0.id]).strength;
+      if (this.g.overwhelms(mine, theirs)) return `${lead}Race! ${mine} v ${theirs}: ${mine > theirs ? 'they\'re overwhelmed, you get there first' : 'you\'re overwhelmed, they get there first'}`;
+      const odds = this.g.clashOdds(s0, { ...aim, strength: mine }, p.id, { ...rival0, strength: theirs }, true);
+      const pc = (n: number) => `${n > 0 ? '+' : ''}${Math.round(n * 100)}%`;
+      return [`${lead}Race! ${mine} v ${theirs}: ${Math.round(odds.chance * 100)}% to get there first`, ...odds.parts.map((x) => `${x.what} ${pc(x.by)}`), 'The loser stays put'].join('\n');
+    }
+    // Both going for the same empty place (Jack): the same size, a clash there.
     const rival = !there && p.id !== aim.place ? this.g.rivalFor(s, aim, p.id, this.theirs) : null;
     if (rival && this.g.rules.clash) {
       const what = this.g.tokenAt(s, p.id);
       const odds = Math.round(this.g.clashOdds(s, aim, p.id, rival).chance * 100);
-      // Five or more bigger (Jack): no race, the bigger gets there first.
-      if (what && this.g.overwhelms(aim.strength, rival.strength)) return `${lead}Race! ${aim.strength} v ${rival.strength}: ${aim.strength > rival.strength ? 'they\'re overwhelmed, you get there first' : 'you\'re overwhelmed, they get there first'}`;
-      if (what) {
-        const parts = this.g.clashOdds(s, aim, p.id, rival, true).parts;
-        const pc = (n: number) => `${n > 0 ? '+' : ''}${Math.round(n * 100)}%`;
-        return [`${lead}Race! ${aim.strength} v ${rival.strength}: ${Math.round(this.g.clashOdds(s, aim, p.id, rival, true).chance * 100)}% to get there first`, ...parts.map((x) => `${x.what} ${pc(x.by)}`), 'The loser stays put'].join('\n');
-      }
-      if (rival.strength === aim.strength && aim.elite !== 'maiden' && !this.splitting) return `${lead}Clash! They're going there too, ${aim.strength} each: ${odds}% to win. Winner has it, 1 to 3 left.`;
+      if (!what && rival.strength === aim.strength && aim.elite !== 'maiden' && !this.splitting) return `${lead}Clash! They're going there too, ${aim.strength} each: ${odds}% to win. Winner has it, 1 to 3 left.`;
     }
     // A clash (Jack): they're coming straight at it with the same number.
     if (!this.splitting && this.g.clashWith(s, aim, p.id, this.theirs)) {

@@ -618,6 +618,9 @@ export class RiotGame {
   readonly lifts: string;
   /** How far each place is from the way up (the same). */
   upDist!: Map<string, number>;
+  /** While a turn plays out: the side ordering's orders and the other side's (for a race, `heading`). */
+  private ownOrders: readonly Order[] = [];
+  private otherOrders: readonly Order[] = [];
   private nets = new WeakMap<readonly (readonly [string, string])[], { adj: Map<string, string[]>; upDist: Map<string, number> }>();
 
   constructor(board: RiotBoard, rules: RiotRules = RIOT_RULES) {
@@ -1173,7 +1176,7 @@ export class RiotGame {
       const rival = this.rivalFor(s, q, o.to, counter);
       if (rival) {
         const what = this.tokenAt(s, o.to);
-        if (what) return this.race(s, q, rival, o.to, what, events);
+        if (what) return this.race(s, q, rival, o.to, what, events, o.squad);
         if (rival.strength === q.strength && q.elite !== 'maiden' && rival.elite !== 'maiden' && !o.split) {
           this.clash(s, q, rival, events, o.to);
           return { state: s, events };
@@ -1504,28 +1507,51 @@ export class RiotGame {
     return null;
   }
 
-  /**
-   * A race for something on the map (Jack): the odds as for a clash; the winner goes on there and takes it, the
-   * loser stays where it is, untouched (and stays there this turn).
-   */
   /** One squad 5 or more bigger than the other, and half as big again: no race, it gets there first (Jack). */
   overwhelms = (a: number, b: number): boolean => Math.abs(a - b) >= RACE.overwhelm && Math.max(a, b) >= Math.min(a, b) * RACE.rout;
 
-  private race(s: RiotState, q: RiotSquad, rival: RiotSquad, to: string, what: Token, events: RiotEvent[]): { state: RiotState; events: RiotEvent[] } {
-    const outright = this.overwhelms(q.strength, rival.strength);
-    const chance = outright ? (q.strength > rival.strength ? 1 : 0) : this.clashOdds(s, q, to, rival, true).chance;
-    const won = outright ? q.strength > rival.strength : this.roll(s) < chance;
+  /**
+   * How many more of a side are heading for a place this turn (Jack: from three directions at once, they race as
+   * one): the side's squads ordered there that can get there (a split, the half that goes), but those in `skip`.
+   */
+  heading(s: RiotState, side: Side, to: string, orders: readonly Order[], skip: readonly string[] = []): { strength: number; ids: string[] } {
+    let strength = 0;
+    const ids: string[] = [];
+    for (const x of orders) {
+      const r = s.squads.find((y) => y.id === x.squad);
+      if (!r || r.side !== side || x.to !== to || r.place === to || skip.includes(r.id) || ids.includes(r.id) || (x.side && x.side !== r.side)) continue;
+      if (s.held?.includes(r.id) || this.fortified(s, r.place) || s.cut === r.place || r.hired || r.built || !this.dests(s, r).includes(to)) continue;
+      strength += x.split ? Math.ceil(r.strength / 2) : r.strength;
+      ids.push(r.id);
+    }
+    return { strength, ids };
+  }
+
+  /**
+   * A race for something on the map (Jack): the odds as for a clash; the winner goes on there and takes it, the
+   * loser stays where it is, untouched (and stays there this turn). Everyone each side is sending there this turn
+   * counts (Jack), and all the loser's stay where they are.
+   */
+  private race(s: RiotState, q: RiotSquad, rival: RiotSquad, to: string, what: Token, events: RiotEvent[], lead?: string): { state: RiotState; events: RiotEvent[] } {
+    const ours = this.heading(s, q.side, to, this.ownOrders, [q.id, ...(lead ? [lead] : [])]);
+    const them = this.heading(s, rival.side, to, this.otherOrders, [rival.id]);
+    const [mine, theirs] = [q.strength + ours.strength, rival.strength + them.strength];
+    const outright = this.overwhelms(mine, theirs);
+    const chance = outright ? (mine > theirs ? 1 : 0) : this.clashOdds(s, { ...q, strength: mine }, to, { ...rival, strength: theirs }, true).chance;
+    const won = outright ? mine > theirs : this.roll(s) < chance;
     const [winner, loser] = won ? [q, rival] : [rival, q];
+    // (All the loser's that were on their way stay where they are.)
+    const stay = won ? them.ids : ours.ids;
     q.cheer = rival.cheer = undefined;
     // The Lord's judgement on it (Jack): this once, the loser's wiped out (the heretic's, or whoever faced the blessed).
     const judged = this.favour(s, q.side) !== this.favour(s, rival.side);
-    events.push({ type: 'race', at: to, from: q.place, rival: rival.place, side: q.side, won, chance, what, strength: q.strength, rivalStrength: rival.strength, ...(judged ? { wiped: true } : {}), ...(outright ? { outright: true } : {}) });
+    events.push({ type: 'race', at: to, from: q.place, rival: rival.place, side: q.side, won, chance, what, strength: mine, rivalStrength: theirs, ...(judged ? { wiped: true } : {}), ...(outright ? { outright: true } : {}) });
     if (judged) s.squads = s.squads.filter((x) => x !== loser);
     const from = winner.place;
     winner.place = to;
     s.owner[to] = winner.side;
     events.push({ type: 'move', squad: winner.id, side: winner.side, from, to });
-    s.held = [...(s.held ?? []), loser.id, winner.id];
+    s.held = [...(s.held ?? []), loser.id, winner.id, ...stay];
     if (s.rumble?.place === to) this.setOff(s, to, winner.side, events);
     this.takeTokens(s, events);
     return { state: s, events };
@@ -2485,7 +2511,11 @@ export class RiotGame {
         }
         continue;
       }
+      // (Each side's own orders, for a race: everyone it's sending to the same place counts, Jack.)
+      this.ownOrders = counter === theirs ? yours : theirs;
+      this.otherOrders = counter;
       let r = this.order(s, o, counter);
+      this.ownOrders = this.otherOrders = [];
       // (A choice waiting, here, is made by the dice: the computer's, or a test's.)
       if (r.state.pending) {
         const d = this.resolve(r.state);
