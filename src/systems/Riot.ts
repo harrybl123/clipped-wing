@@ -171,10 +171,12 @@ export interface AudienceRules {
    */
   call: { every: number; chance: number };
   judged: number;
+  /** Whose people are called to pray out of the blue (Jack: only the player's side, the guard); anyone can reach the holy cross. */
+  prays: Side;
 }
 export const AUDIENCE: AudienceRules = {
   from: 5, chance: 0.2, lasts: 3, morale: 0.1, moraleTurns: 5, output: 1, outputTurns: 5, slump: 1, slumpTurns: 2, advice: 5,
-  call: { every: 12, chance: 0.35 }, judged: 5,
+  call: { every: 12, chance: 0.35 }, judged: 5, prays: 'guard',
 };
 
 /** Something lasting on a side (Jack): morale up or down, its bases making more or less, the commander's advice. */
@@ -1740,7 +1742,9 @@ export class RiotGame {
     if (call) {
       if (!s.calls || (s.turn - 1) % call.every === 0) {
         const when = this.roll(s) < call.chance ? s.turn + Math.floor(this.roll(s) * call.every) : null;
-        s.calls = this.roll(s) < 0.5 ? { guard: when, rising: null } : { guard: null, rising: when };
+        // (Only the player's side: Jack.)
+        const who = this.rules.audience?.prays ?? 'guard';
+        s.calls = who === 'guard' ? { guard: when, rising: null } : { guard: null, rising: when };
       }
       for (const side of ['guard', 'rising'] as const) {
         if (s.calls[side] !== s.turn || s.pending) continue;

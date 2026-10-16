@@ -685,6 +685,10 @@ describe('the war table: Jack’s third round', () => {
     const r = g.order(t, { squad: 'q0', to: 'market' });
     expect(r.events).toContainEqual({ type: 'churchFound', at: 'market', side: 'guard' });
     expect(r.state.pending).toEqual({ kind: 'prayer', side: 'guard' });
+    // Only the player's side is called out of the blue (Jack); the rising can still reach the cross.
+    expect(s.calls?.rising).toBeNull();
+    const u = { ...g.start([{ side: 'rising', place: 'well', strength: 3 }]), church: { place: 'market', left: 3 } };
+    expect(g.order(u, { squad: 'q0', to: 'market' }).state.pending).toEqual({ kind: 'prayer', side: 'rising' });
   });
 
   it('a race for something on the map (Jack): the winner gets it and the place, the loser stays put, untouched', () => {
