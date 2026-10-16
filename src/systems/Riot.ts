@@ -223,6 +223,9 @@ export const MYSTERY: MysteryRules = {
 /** Clashes in the riot (Jack: 20% deep in their streets, 80% at home, at the outside). */
 export const CLASH: NonNullable<RiotRules['clash']> = { least: 0.2, most: 0.8, left: { two: 0.27, three: 0.08 } };
 
+/** A race's odds (Jack): from the two numbers and morale, kept between these. */
+export const RACE = { least: 0.1, most: 0.9 };
+
 /** What makes up a clash's odds, for the side that strikes first. */
 export interface ClashOdds {
   chance: number;
@@ -379,7 +382,7 @@ export type RiotEvent =
    * A race for something on the map (Jack): `side` and theirs (from `rival`) both went for it; `won` by `side` or
    * not, at these odds. The winner takes it; the loser stays where it was, untouched.
    */
-  | { type: 'race'; at: string; from: string; rival: string; side: Side; won: boolean; chance: number; what: Token }
+  | { type: 'race'; at: string; from: string; rival: string; side: Side; won: boolean; chance: number; what: Token; strength: number; rivalStrength: number; wiped?: boolean }
   | { type: 'brothelAppears'; at: string }
   | { type: 'brothel'; at: string; side: Side }
   | { type: 'brothelGone'; at: string }
@@ -1032,11 +1035,14 @@ export class RiotGame {
    * loser stays where it is, untouched (and stays there this turn).
    */
   private race(s: RiotState, q: RiotSquad, rival: RiotSquad, to: string, what: Token, events: RiotEvent[]): { state: RiotState; events: RiotEvent[] } {
-    const { chance } = this.clashOdds(s, q, to, rival);
+    const { chance } = this.clashOdds(s, q, to, rival, true);
     const won = this.roll(s) < chance;
     const [winner, loser] = won ? [q, rival] : [rival, q];
     q.cheer = rival.cheer = undefined;
-    events.push({ type: 'race', at: to, from: q.place, rival: rival.place, side: q.side, won, chance, what });
+    // The Lord's judgement on it (Jack): this once, the loser's wiped out (the heretic's, or whoever faced the blessed).
+    const judged = this.favour(s, q.side) !== this.favour(s, rival.side);
+    events.push({ type: 'race', at: to, from: q.place, rival: rival.place, side: q.side, won, chance, what, strength: q.strength, rivalStrength: rival.strength, ...(judged ? { wiped: true } : {}) });
+    if (judged) s.squads = s.squads.filter((x) => x !== loser);
     const from = winner.place;
     winner.place = to;
     s.owner[to] = winner.side;
@@ -1247,13 +1253,15 @@ export class RiotGame {
    * dug in: they look after themselves); 10 for the ground round it being mostly its side's (or less 10, theirs);
    * 5 for one of its elite there (a hero, the king's guard, a poisoned squad; less 5, theirs). Between 20% and 80%.
    */
-  clashOdds(s: RiotState, q: RiotSquad, to: string, foe?: RiotSquad): ClashOdds {
+  clashOdds(s: RiotState, q: RiotSquad, to: string, foe?: RiotSquad, race = false): ClashOdds {
     this.use(s);
     const side = q.side;
     const parts: ClashOdds['parts'] = [];
     const total = (x: Side) => this.mine(s, x).reduce((n, y) => n + y.strength, 0);
     const all = total(side) + total(this.other(side));
-    parts.push({ what: 'Strength on the board', by: all ? Math.round((total(side) / all - 0.5) * 30) / 100 : 0 });
+    // A race (Jack): the two squads' numbers ("7 v 6") rather than the whole board's.
+    if (race && foe) parts.push({ what: `${q.strength} v ${foe.strength}`, by: Math.round((q.strength / (q.strength + foe.strength) - 0.5) * 100) / 100 });
+    else parts.push({ what: 'Strength on the board', by: all ? Math.round((total(side) / all - 0.5) * 30) / 100 : 0 });
     const round = [...new Set([...this.adj.get(q.place)!, ...this.adj.get(to)!])].filter((p) => p !== q.place && p !== to);
     const near = round.map((p) => this.squadAt(s, p)).filter((x): x is RiotSquad => !!x && !this.fortified(s, x.place));
     parts.push({ what: 'Allies near', by: near.filter((x) => x.side === side).length * 0.05 });
@@ -1271,7 +1279,8 @@ export class RiotGame {
     const boost = this.rules.brothel?.boost ?? 0;
     parts.push({ what: 'Fine spirits', by: (q.cheer ? boost : 0) - (there?.cheer ? boost : 0) });
     const c = this.rules.clash ?? CLASH;
-    let chance = Math.max(c.least, Math.min(c.most, 0.5 + parts.reduce((n, x) => n + x.by, 0)));
+    const [least, most] = race ? [RACE.least, RACE.most] : [c.least, c.most];
+    let chance = Math.max(least, Math.min(most, 0.5 + parts.reduce((n, x) => n + x.by, 0)));
     // Blessed, it's won; cursed, it's lost (Jack: certainly).
     const f = this.favour(s, side) - this.favour(s, this.other(side));
     if (f) {

@@ -816,3 +816,35 @@ describe('the war table: an audience with the Lord (Jack)', () => {
     }
   });
 });
+
+describe('the war table: races on horseback (Jack)', () => {
+  const rules = { ...RIOT_RULES, elites: ELITE_SQUAD, clash: CLASH, mystery: MYSTERY, brothel: BROTHEL, audience: AUDIENCE };
+  const game = new RiotGame(LOW_DISTRICT_BOARD, rules);
+  const set = (g: number, r: number): RiotState => {
+    const s = game.start([], 1);
+    s.owner.arch = 'guard';
+    s.owner.well = 'rising';
+    return { ...s, squads: [{ id: 'g', side: 'guard', place: 'arch', strength: g }, { id: 'r', side: 'rising', place: 'well', strength: r }], nextId: 50, crest: { place: 'market', left: 3 } };
+  };
+
+  it('the odds come from the two numbers ("7 v 6") and morale, not the whole board', () => {
+    const s = set(7, 6);
+    const odds = game.clashOdds(s, s.squads[0]!, 'market', s.squads[1]!, true);
+    expect(odds.parts[0]).toEqual({ what: '7 v 6', by: 0.04 });
+    expect(game.clashOdds(set(9, 1), set(9, 1).squads[0]!, 'market', set(9, 1).squads[1]!, true).chance).toBeLessThanOrEqual(0.9);
+    const r = game.turn(s, [{ squad: 'g', to: 'market' }], [{ squad: 'r', to: 'market' }]);
+    expect(r.events.find((e) => e.type === 'race')).toMatchObject({ strength: 7, rivalStrength: 6 });
+  });
+
+  it('under the Lord’s judgement, the loser’s wiped out: the heretic’s, or whoever faced the blessed', () => {
+    const cursed: RiotState = { ...set(7, 6), moods: [{ side: 'guard', kind: 'cursed', by: 0, until: 9 }] };
+    const r = game.turn(cursed, [{ squad: 'g', to: 'market' }], [{ squad: 'r', to: 'market' }]);
+    expect(r.events.find((e) => e.type === 'race')).toMatchObject({ won: false, wiped: true });
+    expect(r.state.squads.some((q) => q.id === 'g')).toBe(false);
+    expect(at(r.state, 'market')?.id).toBe('r');
+    const blessed: RiotState = { ...set(2, 6), moods: [{ side: 'guard', kind: 'blessed', by: 0, until: 9 }] };
+    const b = game.turn(blessed, [{ squad: 'g', to: 'market' }], [{ squad: 'r', to: 'market' }]);
+    expect(b.state.squads.some((q) => q.id === 'r')).toBe(false);
+    expect(at(b.state, 'market')?.id).toBe('g');
+  });
+});

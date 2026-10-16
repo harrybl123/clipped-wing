@@ -9,7 +9,7 @@ import { rgb, SHADES, type PixelColour, type RGB } from '../ui/pixelArt';
 import { makePaintedTexture } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
 import { playConfirm, playMove } from '../ui/sfx';
-import { playClash } from '../ui/clashScene';
+import { playClash, playRace, type Judged } from '../ui/clashScene';
 import { hearPrayer, holdAudience } from '../ui/audienceScene';
 import { dealCards } from '../ui/divinerScene';
 import { playSound } from '../ui/soundscape';
@@ -460,37 +460,23 @@ export class RiotTableScene extends Phaser.Scene {
       const winner = clash.won ? clash.side : this.g.other(clash.side);
       const at = clash.meet || clash.base ? to : { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 };
       if (clash.base) await this.banner('Final clash!', { colour: SHADES.white, sub: `${clash.strength} against ${clash.strength}, for ${lower(to.name)}.`, hold: 1100 });
-      // (Cursed, the street's plunged into darkness; blessed, it's lit gold: Jack.)
-      const favour = [this.g.favour(s, 'guard'), this.g.favour(s, 'rising')];
-      const mood = favour.includes(-1) ? 'dark' : favour.includes(1) ? 'gold' : undefined;
-      await playClash(this, { at, strength: clash.strength, winner, left: clash.left, you: this.you, chance: clash.side === this.you ? clash.chance : 1 - clash.chance, mood });
+      await playClash(this, { at, strength: clash.strength, winner, left: clash.left, you: this.you, chance: clash.side === this.you ? clash.chance : 1 - clash.chance, judged: this.judged(s) });
       const took = clash.meet || clash.base ? to : clash.won ? to : from;
       this.pop(took, `Clash won: ${clash.left} left`, COLOUR[winner]);
       this.tokensTaken(events);
       return;
     }
-    // A race for something on the map (Jack): both run for it; the winner gets there, the loser's turned back.
+    // A race for something on the map (Jack): "7 v 6", and both sides gallop in on horseback; the winner gets
+    // there, the loser rides off (or, under the Lord's judgement, is wiped out).
     const race = events.find((e) => e.type === 'race');
     if (race?.type === 'race') {
-      const rival = this.place(race.rival);
       const theirs = this.g.other(race.side);
-      const mine = this.add.circle(from.x, from.y, 6, COLOUR[race.side]).setDepth(6);
-      const other = this.add.circle(rival.x, rival.y, 6, COLOUR[theirs]).setDepth(6);
-      playSound(this, 'boots', 0.6);
-      await Promise.all([
-        this.tween(mine, { x: (from.x + to.x * 2) / 3, y: (from.y + to.y * 2) / 3, duration: 300, ease: 'Sine.easeIn' }),
-        this.tween(other, { x: (rival.x + to.x * 2) / 3, y: (rival.y + to.y * 2) / 3, duration: 300, ease: 'Sine.easeIn' }),
-      ]);
-      const pc = Math.round((race.side === this.you ? race.chance : 1 - race.chance) * 100);
+      const winner = race.won ? race.side : theirs;
       const what = { crest: 'the crest', mystery: 'the mystery', rumble: 'the rumble', brothel: 'the brothel', audience: 'the audience' }[race.what];
-      void this.banner(`Race for ${what}!`, { sub: `Your odds: ${pc}%`, hold: 900 });
-      await this.wait(700);
-      const [win, lose, back] = race.won ? [mine, other, rival] : [other, mine, from];
-      playSound(this, 'clash', 0.7);
-      await Promise.all([this.tween(win, { x: to.x, y: to.y, duration: 220 }), this.tween(lose, { x: back.x, y: back.y, duration: 300, ease: 'Sine.easeOut' })]);
-      mine.destroy();
-      other.destroy();
-      this.pop(to, `${(race.won ? race.side : theirs) === this.you ? 'You' : 'They'} got there first`, COLOUR[race.won ? race.side : theirs], -16);
+      const n = { [race.side]: race.strength, [theirs]: race.rivalStrength } as Record<Side, number>;
+      await playRace(this, { at: to, guard: n.guard, rising: n.rising, winner, you: this.you, chance: race.side === this.you ? race.chance : 1 - race.chance, what, judged: this.judged(s), wiped: !!race.wiped });
+      this.pop(to, `${winner === this.you ? 'You' : 'They'} got there first`, COLOUR[winner], -16);
+      if (race.wiped) this.pop(this.place(race.won ? race.rival : race.from), 'wiped out', COLOUR[race.won ? theirs : race.side], 10);
       this.tokensTaken(events);
       const rumble = events.find((e) => e.type === 'rumble');
       if (rumble?.type === 'rumble') await this.rumbleGoesOff(rumble);
@@ -1986,7 +1972,11 @@ export class RiotTableScene extends Phaser.Scene {
     if (rival && this.g.rules.clash) {
       const what = this.g.tokenAt(s, p.id);
       const odds = Math.round(this.g.clashOdds(s, aim, p.id, rival).chance * 100);
-      if (what) return `${lead}Race! They're going for it too: ${odds}% to get there first. The loser stays put.`;
+      if (what) {
+        const parts = this.g.clashOdds(s, aim, p.id, rival, true).parts;
+        const pc = (n: number) => `${n > 0 ? '+' : ''}${Math.round(n * 100)}%`;
+        return [`${lead}Race! ${aim.strength} v ${rival.strength}: ${Math.round(this.g.clashOdds(s, aim, p.id, rival, true).chance * 100)}% to get there first`, ...parts.map((x) => `${x.what} ${pc(x.by)}`), 'The loser stays put'].join('\n');
+      }
       if (rival.strength === aim.strength && aim.elite !== 'maiden' && !this.splitting) return `${lead}Clash! They're going there too, ${aim.strength} each: ${odds}% to win. Winner has it, 1 to 3 left.`;
     }
     // A clash (Jack): they're coming straight at it with the same number.
@@ -2063,6 +2053,11 @@ export class RiotTableScene extends Phaser.Scene {
     if (this.g.fortified(s, p.id)) lines.push('Dug in: nobody can attack it this turn.');
     if (s.rumble?.place === p.id) lines.push(`A rumble: whoever gets here first sets it off. Everyone next to it takes 1 to 3. (${s.rumble.left} ${s.rumble.left === 1 ? 'turn' : 'turns'} left)`);
     return lines.join('\n');
+  }
+
+  /** The Lord's judgement on either side, as it stands (for the clash and race scenes). */
+  private judged(s: RiotState): Judged[] {
+    return (['guard', 'rising'] as const).filter((side) => this.g.favour(s, side)).map((side) => ({ side, grace: this.g.favour(s, side) > 0 }));
   }
 
   /** Turns left of the Lord's judgement on your side. */

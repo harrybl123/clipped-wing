@@ -75,9 +75,16 @@ function image(scene: Phaser.Scene, layer: Phaser.GameObjects.Container, key: st
 
 const wait = (scene: Phaser.Scene, ms: number) => new Promise<void>((r) => scene.time.delayedCall(ms, r));
 
-/** Until a click or a key (or, for the computer, a moment). */
-function untilPressed(scene: Phaser.Scene, mine: boolean, ms = 1600): Promise<void> {
-  if (!mine) return wait(scene, ms);
+/**
+ * Until a click anywhere (or a key): the result stays up to be read (Jack), whoever it was for. (`mine` and `ms` are
+ * kept for the choosing, which the computer does after a moment.)
+ */
+function untilPressed(scene: Phaser.Scene, _mine: boolean, _ms = 1600, layer?: Phaser.GameObjects.Container): Promise<void> {
+  if (layer) {
+    const t = new PixelText(scene, 0, H - 10, 'Click anywhere to carry on', { color: SHADES.dim, shadow: SHADES.shadow }).setScrollFactor(0);
+    t.setX(Math.round((W - t.width) / 2));
+    layer.add(t);
+  }
   return new Promise((resolve) => {
     const go = () => {
       scene.input.keyboard?.off('keydown', go);
@@ -209,7 +216,7 @@ async function accountant(scene: Phaser.Scene, mine: boolean, good: boolean, tur
   const who = mine ? 'Your' : 'Their';
   text(scene, layer, 214, good ? 'The gold outweighs it.' : 'Short.', good ? SHADES.amber : SHADES.dim, 2);
   text(scene, layer, 236, good ? `${who} morale is up, for ${turns.morale} turns.` : `${who} morale is down, for ${turns.morale} turns.`, SHADES.light);
-  await untilPressed(scene, mine);
+  await untilPressed(scene, mine, 0, layer);
   await fade(scene, layer);
 }
 
@@ -262,7 +269,7 @@ async function townsfolk(scene: Phaser.Scene, mine: boolean, pick: number, decid
   const who = mine ? 'your' : 'their';
   text(scene, layer, 196, good ? 'They cheer!' : 'They mutter, and turn away.', good ? SHADES.amber : SHADES.dim, 2);
   text(scene, layer, 220, good ? `Morale up, and ${who} bases make 1 more a turn, for ${turns.output} turns.` : `Morale down, and ${who} bases make 1 less a turn, for ${turns.slump} turns.`, SHADES.white);
-  await untilPressed(scene, mine);
+  await untilPressed(scene, mine, 0, layer);
   await fade(scene, layer);
 }
 
@@ -280,7 +287,7 @@ async function commander(scene: Phaser.Scene, mine: boolean, good: boolean, turn
   text(scene, layer, 206, good
     ? `${mine ? 'You see' : 'They see'} two turns of ${mine ? 'their' : 'your'} moves ahead, for ${turns.advice} turns.`
     : `${mine ? 'You won’t' : 'They won’t'} see ${mine ? 'their' : 'your'} moves at all, for ${turns.advice} turns.`, SHADES.light);
-  await untilPressed(scene, mine);
+  await untilPressed(scene, mine, 0, layer);
   await fade(scene, layer);
 }
 
@@ -389,6 +396,6 @@ export async function hearPrayer(scene: Phaser.Scene, show: PrayerShow): Promise
   text(scene, layer, 226, show.blessed
     ? `Blessed for ${show.turns} turns: anything left to luck or morale goes ${mine ? 'your' : 'their'} way, and ${mine ? 'your' : 'their'} attacks win on a tie.`
     : `Cursed for ${show.turns} turns: anything left to luck or morale goes against ${who}, and attacks on ${who} win on a tie.`, SHADES.light, 1, W - 40);
-  await untilPressed(scene, mine, 2200);
+  await untilPressed(scene, mine, 0, layer);
   await fade(scene, layer);
 }
