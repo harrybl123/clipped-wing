@@ -138,6 +138,18 @@ export interface RiotRules {
   homeGrowth?: boolean;
   /** Winning a clash (Jack): this much more production, for so many turns. */
   clashOutput?: { by: number; turns: number };
+  /**
+   * With `homeGrowth`, what a base makes with all its home squares held (Jack: 2), losing 1 for each the other
+   * side holds (never below none). 3 if absent (1 for each).
+   */
+  baseMakes?: number;
+  /**
+   * Towers (Jack, the skirmish): each side's two, out on its flanks; each makes `makes` a turn for whoever holds
+   * it, onto its own place, and has walls (+`walls` holding it). Taken, it's "Captured!", and makes men for them.
+   */
+  towers?: { guard: string[]; rising: string[]; makes: number; walls: number };
+  /** How many things can be on the map at once (Jack: more of them); 1 if absent. */
+  tokensAtOnce?: number;
 }
 
 /**
@@ -473,6 +485,9 @@ export type RiotEvent =
   | { type: 'churchFound'; at: string; side: Side }
   /** The barracks (Jack): appearing, gone, found, who was hired and where; an archer's arrow; the assassin's strike. */
   | { type: 'barracksAppears'; at: string }
+  /** A tower taken (Jack), and its men each turn. */
+  | { type: 'captured'; at: string; side: Side }
+  | { type: 'towerMakes'; at: string; side: Side; by: number }
   | { type: 'barracksGone'; at: string }
   | { type: 'barracksFound'; at: string; side: Side }
   | { type: 'hired'; side: Side; hire: Hire; at: string[] }
@@ -588,6 +603,8 @@ export class RiotGame {
   start(squads: { side: Side; place: string; strength: number }[], seed = 1): RiotState {
     const owner: Record<string, Side> = {};
     for (const s of squads) owner[s.place] = s.side;
+    // (The towers start their own side's, Jack.)
+    for (const t of this.towerList()) owner[t.place] ??= t.side;
     return { turn: 1, squads: squads.map((s, i) => ({ id: `q${i}`, ...s })), owner, cut: null, lastCut: -99, nextId: squads.length, fortified: [], lastFortify: { guard: -99, rising: -99 }, lastSplit: { guard: -99, rising: -99 }, fortifyBefore: { guard: -99, rising: -99 }, rumble: null, seed, elites: { guard: { used: [], crests: 0, gifts: [] }, rising: { used: [], crests: 0, gifts: [] } }, crest: null, mystery: null, pending: null, plague: { guard: 0, rising: 0 } };
   }
 
@@ -897,7 +914,7 @@ export class RiotGame {
 
   /** A squad's strength holding where it is (the square's barricades +1; the power cut −1). */
   defence(s: RiotState, place: string, strength: number): number {
-    return Math.max(0, strength + (place === this.heart ? 1 : 0) - (s.cut === place ? 1 : 0));
+    return Math.max(0, strength + (place === this.heart ? 1 : 0) + (this.rules.towers && this.isTower(place) ? this.rules.towers.walls : 0) - (s.cut === place ? 1 : 0));
   }
 
   /** Where a squad can go this turn: the streets next to it (nowhere, with its power cut). */
@@ -1021,6 +1038,8 @@ export class RiotGame {
   order(s0: RiotState, o: Order, counter?: Order[]): { state: RiotState; events: RiotEvent[] } {
     const r = this.orderOne(s0, o, counter);
     if (r.state !== s0) this.settle(r.state);
+    // A tower changing hands (Jack): "Captured!".
+    for (const t of this.towerList()) if (r.state.owner[t.place] && r.state.owner[t.place] !== s0.owner[t.place]) r.events.push({ type: 'captured', at: t.place, side: r.state.owner[t.place]! });
     return r;
   }
 
@@ -1630,11 +1649,20 @@ export class RiotGame {
   /** A side's morale from its moods (Jack): better or worse odds in a clash. */
   moraleOf = (s: RiotState, side: Side): number => (s.moods ?? []).filter((m) => m.side === side && m.kind === 'morale' && m.until >= s.turn).reduce((n, m) => n + m.by, 0);
   /** A side's bases making more or less this turn (Jack: the townsfolk). */
+  /** The towers (Jack): every one, whose it was to start with. */
+  towerList = (): { place: string; side: Side }[] => (this.rules.towers ? [...this.rules.towers.guard.map((place) => ({ place, side: 'guard' as Side })), ...this.rules.towers.rising.map((place) => ({ place, side: 'rising' as Side }))] : []);
+  isTower = (place: string): boolean => this.towerList().some((t) => t.place === place);
+  /** Who holds a tower now (whoever last took the place). */
+  towerHolder = (s: RiotState, place: string): Side | undefined => s.owner[place];
+  /** How many towers a side holds. */
+  towersHeld = (s: RiotState, side: Side): number => this.towerList().filter((t) => s.owner[t.place] === side).length;
+
   /** A side's home squares: the places round its base (Jack). */
   homeSquares = (side: Side): string[] => this.adj.get(this.base(side))!;
   /** How many a side's base makes this turn: its home squares held (or its usual), and whatever's lasting. */
   production = (s: RiotState, side: Side): number => {
-    const made = this.rules.homeGrowth ? this.homeSquares(side).filter((p) => s.owner[p] !== this.other(side)).length : side === 'guard' ? this.rules.reinforce : (this.rules.risingGrowth ?? 1);
+    const lost = this.homeSquares(side).filter((p) => s.owner[p] === this.other(side)).length;
+    const made = this.rules.homeGrowth ? (this.rules.baseMakes === undefined ? 3 - lost : Math.max(0, this.rules.baseMakes - lost)) : side === 'guard' ? this.rules.reinforce : (this.rules.risingGrowth ?? 1);
     return Math.max(side === 'rising' && !this.rules.homeGrowth ? 1 : 0, made + this.outputOf(s, side));
   };
   outputOf = (s: RiotState, side: Side): number => (s.moods ?? []).filter((m) => m.side === side && m.kind === 'output' && m.until >= s.turn).reduce((n, m) => n + m.by, 0);
@@ -1715,7 +1743,7 @@ export class RiotGame {
    */
   private crestPlace(s: RiotState, tilt = true): string | null {
     const bases = [this.heart, this.lifts];
-    const empty = this.board.places.filter((p) => !p.heart && !p.lifts && !this.squadAt(s, p.id) && p.id !== s.rumble?.place && !bases.some((b) => this.near(p.id, b)));
+    const empty = this.board.places.filter((p) => !p.heart && !p.lifts && !this.squadAt(s, p.id) && !this.tokenAt(s, p.id) && !this.isTower(p.id) && !bases.some((b) => this.near(p.id, b)));
     const far = (p: string, side: Side) => Math.min(99, ...this.mine(s, side).map((q) => this.distance(p, q.place)));
     // (A street nearer the guard when even: the rising have more crowds out, so they'd win most races otherwise.)
     const lead = tilt ? Math.sign(this.crestsTaken(s, 'guard') - this.crestsTaken(s, 'rising')) - (this.crestsTaken(s, 'guard') <= this.crestsTaken(s, 'rising') ? 1 : 0) : -1;
@@ -1767,7 +1795,7 @@ export class RiotGame {
     const threat = this.threatened(s);
     // (Even, with production from the home squares: they guard their base, and fight over the home squares.)
     const homes = !!this.rules.homeGrowth;
-    const homeBonus = (p: string) => (homes && (this.homeSquares('rising').includes(p) || this.homeSquares('guard').includes(p)) ? 15 : 0);
+    const homeBonus = (p: string) => (homes && (this.homeSquares('rising').includes(p) || this.homeSquares('guard').includes(p) || this.isTower(p)) ? 15 : 0);
     const couldBeat = (place: string, strength: number) => yours.some((y) => this.near(place, y.place) && this.attack(place, y.place, strength) > this.defence(s, y.place, y.strength));
     const st = this.style;
     const distTo = (from: string, to: (p: string) => boolean): number => {
@@ -1812,7 +1840,9 @@ export class RiotGame {
     const chained = homes ? this.chains(s, claimed) : [];
     orders.push(...chained);
     const busy = new Set(chained.map((o) => o.squad));
-    const crowds = this.mine(s, 'rising').filter((q) => q.place !== this.heart && s.cut !== q.place && !busy.has(q.id) && !q.hired).sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id));
+    // (A small crowd on a tower holds it while one of yours is next to it, Jack; otherwise it goes home.)
+    const holding = (q: RiotSquad) => homes && !threat && this.isTower(q.place) && this.adj.get(q.place)!.some((p) => this.squadAt(s, p)?.side === 'guard');
+    const crowds = this.mine(s, 'rising').filter((q) => q.place !== this.heart && s.cut !== q.place && !busy.has(q.id) && !q.hired && !holding(q)).sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id));
     for (const q of crowds) {
       let best: { to: string; score: number } | null = null;
       // Their elite squad (Jack). The bastard: up to two streets (fighting through one on the way), for one of
@@ -1888,7 +1918,7 @@ export class RiotGame {
         } else {
           // (Even: for one of yours it could beat, or your home squares, to cut what your base makes.)
           const beatable = (p: string) => yours.some((y) => y.place === p && y.elite !== 'guard3' && y.elite !== 'hero' && q.strength > this.defence(s, p, y.strength));
-          const theirHome = (p: string) => this.homeSquares('guard').includes(p) && s.owner[p] !== 'rising' && !yours.some((y) => y.place === p && q.strength <= this.defence(s, p, y.strength));
+          const theirHome = (p: string) => (this.homeSquares('guard').includes(p) || this.isTower(p)) && s.owner[p] !== 'rising' && !yours.some((y) => y.place === p && q.strength <= this.defence(s, p, y.strength));
           const guardNear = homes ? (p: string) => beatable(p) || theirHome(p) : (p: string) => yours.some((y) => y.place === p);
           const crowdNear = (p: string) => this.mine(s, 'rising').some((c) => c !== q && !c.elite && !c.hired && c.place === p && p !== this.heart);
           const toward = st.hunt && yours.length ? distTo(q.place, guardNear) - distTo(to, guardNear) : (this.upDist.get(q.place) ?? 9) - (this.upDist.get(to) ?? 9);
@@ -1926,7 +1956,7 @@ export class RiotGame {
     const out: Order[] = [];
     const used = new Set<string>();
     const yours = this.mine(s, 'guard').filter((y) => y.elite !== 'guard3' && y.elite !== 'hero' && !this.fortified(s, y.place));
-    const worth = (y: RiotSquad) => y.strength * 2 + (y.place === this.lifts ? 30 : 0) + (this.homeSquares('guard').includes(y.place) ? 15 : 0);
+    const worth = (y: RiotSquad) => y.strength * 2 + (y.place === this.lifts ? 30 : 0) + (this.homeSquares('guard').includes(y.place) || this.isTower(y.place) ? 15 : 0);
     const crowd = (p: string) => {
       const q = this.squadAt(s, p);
       return q && q.side === 'rising' && !q.elite && !q.hired && p !== this.heart && s.cut !== p && !used.has(q.id) && !q.crusted && (q.stuck ?? -1) < s.turn && !s.held?.includes(q.id) ? q : null;
@@ -2116,6 +2146,17 @@ export class RiotGame {
     }
     s = this.clone(s);
     this.hiredStrike(s, events);
+    // The towers (Jack): each makes its men for whoever holds it, onto its own place (not with the power cut).
+    for (const t of this.towerList()) {
+      const side = s.owner[t.place];
+      if (!side || s.cut === t.place) continue;
+      const there = this.squadAt(s, t.place);
+      const by = this.rules.towers!.makes;
+      if (there && (there.side !== side || there.elite || there.hired)) continue;
+      if (there) there.strength += by;
+      else s.squads.push({ id: `q${s.nextId++}`, side, place: t.place, strength: by });
+      events.push({ type: 'towerMakes', at: t.place, side, by });
+    }
     if (this.rules.muster) this.musterAll(s, events);
     // People keep joining the square.
     // (Even, Jack: an empty base of theirs still makes men, as yours does.)
@@ -2154,7 +2195,7 @@ export class RiotGame {
     // One thing on the map at a time (a rumble, a crest, a mystery square: Jack), a crest first when it's due.
     const crest = this.rules.elites?.crest;
     if (crest && s.turn + 1 >= crest.first && (s.turn + 1 - crest.first) % crest.every === 0) s.crestDue = true;
-    const taken = () => !!(s.rumble || s.crest || s.mystery || s.brothel || s.audience || s.church || s.barracks);
+    const taken = () => [s.rumble, s.crest, s.mystery, s.brothel, s.audience, s.church, s.barracks].filter(Boolean).length >= (this.rules.tokensAtOnce ?? 1);
     // A rumble: one there stays a turn less; with none, now and then one appears on an empty street.
     const rumble = this.rules.rumble;
     if (s.rumble) {
@@ -2163,7 +2204,7 @@ export class RiotGame {
     } else if (rumble && !s.crestDue && !taken() && this.roll(s) < rumble.chance) {
       // Where it matters (Jack: never caught one): an empty street next to both sides if there is one, so it's
       // a race; else next to anyone; else anywhere empty.
-      const empty = this.board.places.filter((p) => !p.heart && !p.lifts && !this.squadAt(s, p.id));
+      const empty = this.board.places.filter((p) => !p.heart && !p.lifts && !this.squadAt(s, p.id) && !this.tokenAt(s, p.id) && !this.isTower(p.id));
       const nextTo = (p: RiotPlace, side: Side) => this.adj.get(p.id)!.some((n) => this.squadAt(s, n)?.side === side);
       const contested = empty.filter((p) => nextTo(p, 'guard') && nextTo(p, 'rising'));
       const near = empty.filter((p) => nextTo(p, 'guard') || nextTo(p, 'rising'));

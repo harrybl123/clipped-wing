@@ -1017,6 +1017,39 @@ describe('the war table: the barracks (Jack)', () => {
   });
 
   it('the skirmish has the barracks', () => {
-    expect((RIOTS.skirmish as RiotScenario).rules?.barracks).toBe(BARRACKS);
+    expect((RIOTS.skirmish as RiotScenario).rules?.barracks).toMatchObject({ rogues: BARRACKS.rogues, archers: BARRACKS.archers, assassin: BARRACKS.assassin });
+  });
+});
+
+describe('the war table: towers, and more on the map (Jack)', () => {
+  const sc = RIOTS.skirmish as RiotScenario;
+  const game = new RiotGame(sc.board, { ...RIOT_RULES, ...sc.rules, rumble: undefined, mystery: undefined, brothel: undefined, audience: undefined, church: undefined, barracks: undefined, elites: undefined, shakeUp: undefined });
+  const bases = [{ side: 'guard' as const, place: 'keep', strength: 5 }, { side: 'rising' as const, place: 'camp', strength: 5 }];
+
+  it('each side’s two towers start theirs, and each makes 1 a turn for whoever holds it; each base makes 2', () => {
+    const s = game.start(bases);
+    expect(game.towersHeld(s, 'guard')).toBe(2);
+    expect(game.towersHeld(s, 'rising')).toBe(2);
+    const t = game.turn(s, [], []).state;
+    for (const p of ['mill', 'orchards', 'marsh', 'quarry']) expect(at(t, p)!.strength).toBe(1);
+    expect(at(t, 'keep')!.strength).toBe(7);
+    expect(at(t, 'camp')!.strength).toBe(7);
+  });
+
+  it('walls +1; taken, it’s "Captured!", and makes men for whoever took it', () => {
+    const s = game.start([...bases, { side: 'rising', place: 'mill', strength: 2 }, { side: 'guard', place: 'wtower', strength: 4 }]);
+    expect(game.defence(s, 'mill', 2)).toBe(3);
+    const r = game.order(s, { squad: at(s, 'wtower')!.id, to: 'mill' });
+    expect(r.events).toContainEqual({ type: 'captured', at: 'mill', side: 'guard' });
+    expect(game.towersHeld(s, 'guard')).toBe(1);
+    expect(game.towersHeld(r.state, 'guard')).toBe(2);
+    expect(at(game.turn(r.state, [], []).state, 'mill')!.strength).toBe(2);
+  });
+
+  it('up to two things on the map at once (Jack: more going on)', () => {
+    expect(sc.rules?.tokensAtOnce).toBe(2);
+    const busy = new RiotGame(sc.board, { ...RIOT_RULES, ...sc.rules, brothel: { ...BROTHEL, from: 1, chance: 1 }, audience: { ...AUDIENCE, from: 1, chance: 1 } });
+    const t = busy.turn(busy.start(bases), [], []).state;
+    expect([t.rumble, t.crest, t.mystery, t.brothel, t.audience, t.church, t.barracks].filter(Boolean)).toHaveLength(2);
   });
 });

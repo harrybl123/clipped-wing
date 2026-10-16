@@ -364,6 +364,13 @@ export const RIOTS: Record<string, RiotScenario | LessonScenario | DuelScenario>
     squads: SKIRMISH_START,
     skirmish: true,
     views: { in: SKIRMISH_WIDE, out: SKIRMISH_BOARD },
-    rules: { rumble: RUMBLE, elites: { ...ELITE_SQUAD, once: false, hero: { ...ELITE_SQUAD.hero, lasts: 5 } }, clash: CLASH, mystery: MYSTERY, brothel: BROTHEL, audience: AUDIENCE, church: CHURCH, barracks: BARRACKS, rebel: REBEL, homeGrowth: true, clashOutput: { by: 1, turns: 3 }, dawn: 100000, shakeUp: { every: 6, trickster: 0.25 }, baseLoss: true },
+    // More going on (Jack: it was a bit boring): two things on the map at once, and each more often and sooner.
+    rules: {
+      rumble: RUMBLE, elites: { ...ELITE_SQUAD, once: false, hero: { ...ELITE_SQUAD.hero, lasts: 5 } }, clash: CLASH,
+      mystery: { ...MYSTERY, from: 3, chance: 0.4 }, brothel: { ...BROTHEL, from: 3, chance: 0.3 }, audience: { ...AUDIENCE, from: 4, chance: 0.3 },
+      church: { ...CHURCH, from: 5, chance: 0.15 }, barracks: { ...BARRACKS, from: 4, chance: 0.25 }, tokensAtOnce: 2,
+      rebel: REBEL, homeGrowth: true, baseMakes: 2,
+      // Two towers each, out on the flanks (Jack), three streets from home: each makes 1 a turn for whoever holds it.
+      towers: { guard: ['mill', 'orchards'], rising: ['marsh', 'quarry'], makes: 1, walls: 1 }, clashOutput: { by: 1, turns: 3 }, dawn: 100000, shakeUp: { every: 6, trickster: 0.25 }, baseLoss: true },
   },
 };

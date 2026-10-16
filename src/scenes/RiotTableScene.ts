@@ -392,6 +392,7 @@ export class RiotTableScene extends Phaser.Scene {
           this.state = s;
           events.push(...r.events);
           this.draw();
+          await this.captured(r.events);
           if (this.g.outcome(s)) break;
         }
         continue;
@@ -404,6 +405,7 @@ export class RiotTableScene extends Phaser.Scene {
       this.state = s;
       events.push(...r.events);
       this.draw();
+      await this.captured(r.events);
       // A mystery square found (Jack): what it was, and any choice it brings.
       s = await this.mysteryFollows(s, r.events);
       this.state = s;
@@ -448,6 +450,7 @@ export class RiotTableScene extends Phaser.Scene {
       if (e.type === 'plagueTick') for (const p of e.places) this.pop(this.place(p), '-1', SHADES.greenMid, -10);
       if (e.type === 'eliteGone') this.pop(this.place(e.at), 'gone', COLOUR[e.side]);
       if (e.type === 'barracksGone') this.pop(this.place(e.at), 'gone', SHADES.light);
+      if (e.type === 'towerMakes') this.pop(this.place(e.at), `+${e.by}`, COLOUR[e.side]);
     }
     // The hired fighters' shots (Jack): arrows, and an assassin at a base.
     for (const e of end.events) {
@@ -646,6 +649,16 @@ export class RiotTableScene extends Phaser.Scene {
   }
 
   /** After an order: a mystery square found, what it was, and what it brings (the diviner's cards, the thief's target). */
+  /** A tower taken (Jack): "Captured!" in the colour of whoever took it. */
+  private async captured(events: RiotEvent[]): Promise<void> {
+    for (const e of events) {
+      if (e.type !== 'captured') continue;
+      const name = lower(this.place(e.at).name);
+      playSound(this, e.side === this.you ? 'shing' : 'shingLow', 0.9);
+      await this.banner('Captured!', { colour: COLOUR[e.side], sub: `${e.side === this.you ? 'You' : 'They'} took the tower at ${name}: it makes men for ${e.side === this.you ? 'you' : 'them'} now.`, hold: 1600 });
+    }
+  }
+
   /** Hired fighters out of the barracks (Jack): their name over each. */
   private hiredOut(e: Extract<RiotEvent, { type: 'hired' }>): void {
     playSound(this, 'boots', 0.7);
@@ -1489,6 +1502,18 @@ export class RiotTableScene extends Phaser.Scene {
    * A side's home base (Jack: it should look like one): the guard's a keep, battlements along the top and a gate;
    * the rising's a camp, a ring of their colour with their banner flying over it (and their fire, behind).
    */
+  /** A tower (Jack): stone, battlements, a slit window, and a flag (whoever holds it; none, dim). */
+  private drawTower(g: Phaser.GameObjects.Graphics, p: At, holder?: Side): void {
+    const [x, y] = [p.x - 17, p.y - 20];
+    g.fillStyle(SHADES.shadow, 1).fillRect(x - 1, y + 2, 9, 15);
+    g.fillStyle(SHADES.dim, 1).fillRect(x, y + 4, 7, 12);
+    g.fillStyle(SHADES.light, 1).fillRect(x, y + 3, 2, 2).fillRect(x + 3, y + 3, 1, 2).fillRect(x + 5, y + 3, 2, 2);
+    g.fillStyle(SHADES.woodPale, 1).fillRect(x, y + 9, 7, 1).fillRect(x, y + 13, 7, 1);
+    g.fillStyle(SHADES.shadow, 1).fillRect(x + 3, y + 6, 1, 3);
+    g.fillStyle(SHADES.light, 1).fillRect(x + 6, y - 4, 1, 7);
+    g.fillStyle(holder ? COLOUR[holder] : SHADES.dim, 1).fillTriangle(x + 7, y - 4, x + 7, y, x + 11, y - 2);
+  }
+
   private drawBase(g: Phaser.GameObjects.Graphics, p: At, side: Side, dark: boolean, poison?: boolean): void {
     const body = poison ? (dark ? SHADES.greenMid : SHADES.green) : dark ? (side === 'guard' ? SHADES.cyanDeep : SHADES.amberDeep) : COLOUR[side];
     if (side === 'guard') {
@@ -1915,6 +1940,8 @@ export class RiotTableScene extends Phaser.Scene {
       this.arrow(g, { squad: this.aiming.squad.id, to: this.cursor.id }, blink ? COLOUR[this.you] : SHADES.white, false, undefined, via ?? undefined);
       if (this.aiming.squad.elite === 'maiden' && this.g.squadAt(this.state, this.cursor.id)?.side === this.g.other(this.you)) this.arrowWord(this.aiming.squad.place, this.cursor.id, 'Seduce');
     }
+    // The towers (Jack): a stone tower at the shoulder of the place, its flag in the colour of whoever holds it.
+    for (const t of this.g.towerList()) this.drawTower(g, this.place(t.place), s.owner[t.place]);
     // The squads: the guard a blue shield, the rising an amber circle; the number on each.
     for (const q of s.squads) {
       // (Beside the king's guard, Jack: a little down and to the right of them, plainly not one of them.)
@@ -2062,7 +2089,8 @@ export class RiotTableScene extends Phaser.Scene {
       const k = this.g.shakeIn(this.state);
       const rb = this.g.rules.rebel ? this.g.rebelIn(this.state) : null;
       const rebel = rb === null ? '' : ` ${this.you === 'guard' ? 'Their' : 'Your'} move ${rb === 0 ? 'ready' : `in ${rb}`}.`;
-      return `Turn ${this.state.turn}. Shake-up ${k === 1 ? 'this turn' : `in ${k} turns`}.${rebel}${sick}`;
+      const towers = this.g.rules.towers ? ` Towers ${this.g.towersHeld(this.state, this.you)} v ${this.g.towersHeld(this.state, this.g.other(this.you))}.` : '';
+      return `Turn ${this.state.turn}. Shake-up ${k === 1 ? 'this turn' : `in ${k} turns`}.${rebel}${towers}${sick}`;
     }
     return `Dawn in ${left} ${left === 1 ? 'turn' : 'turns'}.${sick}`;
   }
@@ -2210,6 +2238,10 @@ export class RiotTableScene extends Phaser.Scene {
     else if (there?.cheer) lines.push(`In fine spirits: +${Math.round((this.g.rules.brothel?.boost ?? 0) * 100)}% in its next clash.`);
     if (there && this.plagued(there)) lines.push('The plague: -1 a turn.');
     if (s.brothel?.place === p.id) lines.push(`A brothel: first here is stuck here next turn (and can be attacked), then +${Math.round((this.g.rules.brothel?.boost ?? 0) * 100)}% in its next clash. (${s.brothel.left} ${s.brothel.left === 1 ? 'turn' : 'turns'} left)`);
+    if (this.g.isTower(p.id)) {
+      const holder = s.owner[p.id];
+      lines.push(`A tower${holder ? ` (${holder === this.you ? 'yours' : 'theirs'})` : ''}: makes ${this.g.rules.towers?.makes ?? 1} a turn for whoever holds it. Walls +${this.g.rules.towers?.walls ?? 1}.`);
+    }
     if (s.barracks?.place === p.id) lines.push(`The barracks: first here hires fighters (rogue mercenaries, archers, or an assassin). (${s.barracks.left} ${s.barracks.left === 1 ? 'turn' : 'turns'} left)`);
     const hired = this.g.squadAt(s, p.id)?.hired;
     if (hired) lines.push({ rogue: 'A rogue mercenary: goes after the enemy on its own. Never joins up or grows.', archer: 'An archer: holds here, and shoots one enemy next to it each turn, for 1.', assassin: 'An assassin: slips through to the enemy base the safest way, and strikes it (3, half the time 6).' }[hired]);
@@ -2218,7 +2250,8 @@ export class RiotTableScene extends Phaser.Scene {
     if (s.crest?.place === p.id) lines.push(`A crest: whoever gets here first can put in one of their elite squad. (${s.crest.left} ${s.crest.left === 1 ? 'turn' : 'turns'} left)`);
     // Production from the home squares (Jack): what each base makes, and why.
     const homes = this.g.rules.homeGrowth;
-    const made = (side: Side) => `Makes +${this.g.production(s, side)} a turn: 1 for each of the three places round it not held by the other side.`;
+    const most = this.g.rules.baseMakes;
+    const made = (side: Side) => most === undefined ? `Makes +${this.g.production(s, side)} a turn: 1 for each of the three places round it not held by the other side.` : `Makes +${this.g.production(s, side)} a turn: ${most}, less 1 for each of the three places round it the other side holds.`;
     if (homes && (p.heart || p.lifts)) lines.push(made(p.heart ? 'rising' : 'guard'));
     for (const side of homes ? (['guard', 'rising'] as const) : []) if (this.g.homeSquares(side).includes(p.id)) lines.push(`${side === this.you ? 'One of your' : 'One of their'} home squares: lost to the other side, ${side === this.you ? 'your' : 'their'} base makes 1 less.`);
     if (p.heart && !homes) lines.push(duel ? `Your keep. Walls +1. Each turn ${this.g.rules.muster} new men come out onto a road next to it, unless he holds them all. Lose it and you've lost.` : `Barricades +1. Grows 1 a turn; over ${this.g.style.pourAbove}, sends crowds out.`);
