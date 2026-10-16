@@ -47,6 +47,11 @@ He goes. #leave:hand-8:36:50
 ~ objective = ""
 ~ objective_target = ""
 He's already at the table, and the low district's lit on it. He doesn't look up.
+"Why me? Why not you? They're used to hearing it from you." #speaker:prince
+"That's why." #speaker:father
+"When I say a hard thing, they hear a hard man. When you say it, they hear a young one, and they think it can't be as bad as it sounds." #speaker:father
+"You have the charm of youth. You can tell them the worst news of their lives, and it won't feel like it." #speaker:father
+"That's worth more to me this morning than any guard in the city." #speaker:father
 "Before you read it to them, I want you to see why." #speaker:father
 "You'll be the guard. I'll be them." #speaker:father
 "You? The rising?" #speaker:prince
@@ -147,7 +152,10 @@ The foot of the lifts. The queue for the first car up has stopped, under the scr
 On it, your face. Silent. Waiting, like them. #bark:lift-8b:Is it on?
 The table's still lit somewhere behind your eyes. The square. The crowds going off it, one at a time.
 Sent away. Sent away. Sent away.
-It was so easy, once they were gone. That was the point. #cut:low-district:352:236:c3day8_cut_low
+It was so easy, once they were gone. That was the point.
+The charm of youth, he said. Bad news that doesn't feel like it.
+Not because you're his son. Because you're useful. A piece he can pick up, and put down on a square.
+You were on that table too. You just didn't have a number. #cut:low-district:352:236:c3day8_cut_low
 -> END
 
 // The low district: the street under its screen, more of them than came out for your father.
@@ -476,9 +484,17 @@ Your hand, at the rail, where he waited for you with the blades the first mornin
 "You fought dirty." #speaker:prince
 "I fought like a soldier. I was one, once, before I learned to talk instead." #speaker:diplomat
 He's quiet for a while. Below, a lift goes down the tower, a little bead of light.
-"Whatever you said up there today, you said it out loud. In front of everyone. You chose." #speaker:diplomat
-{ broadcast == "backed":
+"I heard you today." #speaker:diplomat
+{ broadcast:
+- "backed":
+    "'My father and I will keep you safe.' He didn't write that. You did." #speaker:diplomat
     "I didn't like what you chose. But you chose it, with your own mouth. He never does that. He has other people do it for him." #speaker:diplomat
+- "defied":
+    "'I'm sorry.' Nobody up here has said that to them. Not once, in my whole life." #speaker:diplomat
+    "You folded his paper up in front of the whole city, and you told them you were listening." #speaker:diplomat
+- else:
+    "'I will see them brought home.' He'll never forgive you for that line. They'll never let you forget it." #speaker:diplomat
+    "You stood between the two of them, out loud, where everyone could see." #speaker:diplomat
 }
 "Most people never do that once, their whole lives." #speaker:diplomat
 "I'm proud of you." #speaker:diplomat
@@ -524,10 +540,21 @@ The stairs, the people greeting him. The square on the night of the riot, going 
 "I'm not sorry for that." #speaker:diplomat
 Every one of them lines up, the whole long way back to the first morning on this balcony.
 "Why tell me? Nobody knew. You could have gone on." #speaker:prince
-"Because after today, you're not only his any more. Whatever you said." #speaker:diplomat
+{ broadcast:
+- "backed":
+    "Because after today, you'll be his completely, unless somebody tells you. I couldn't let that happen without trying." #speaker:diplomat
+- "defied":
+    "Because after today, you're not his any more. You told the whole city so." #speaker:diplomat
+- else:
+    "Because after today, you're not only his any more. You gave them your word, not his." #speaker:diplomat
+}
 "And because it's coming. Whatever any of us does." #speaker:diplomat
 "Revolution is inevitable." #speaker:diplomat
 "Don't be on the wrong side of history." #speaker:diplomat
+"Your father isn't the enemy. I know that. I've always known it." #speaker:diplomat
+"But he's sided with them." #speaker:diplomat
+"With who?" #speaker:prince
+He doesn't answer. Somewhere deep in the citadel behind you, the sealed wing hums.
 He turns round, at last, and holds out his hand.
 "Join me." #speaker:diplomat
 { broadcast:

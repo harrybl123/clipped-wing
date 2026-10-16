@@ -101,7 +101,7 @@ const ENDINGS: Record<string, { title: string; lines: string[]; retryDay: number
 
 /**
  * Chapter 3's endings (Day 8): on your balcony after "Join me." (no answer: designer). A title by the broadcast
- * (designer: defying him makes you a thorn in his side; backing him, something about your loyalty; draft
+ * (designer: defying him makes you a thorn in the king's side, its lines his; backing him, something about your loyalty; draft
  * titles), the city, your hand and your father by the broadcast, and your friend by the escape (plan). Draft
  * text. Ids `c3_<backed|defied|middle>_<out|alone>`.
  */
@@ -116,10 +116,10 @@ function chapter3Endings(): Record<string, { title: string; lines: string[]; ret
       ],
     },
     defied: {
-      title: 'A thorn in his side.',
+      title: 'A thorn in the king\u2019s side.',
       lines: [
-        'Below you, a city chanting a name. Yours.',
-        'Your hand is at your side, smiling at everyone. Only you know why.',
+        'Below you, a city chanting your name, for you are giving them hope.',
+        'A hand at your side, to guide you.',
         'Your father hasn\u2019t spoken to you since. He will.',
       ],
     },
