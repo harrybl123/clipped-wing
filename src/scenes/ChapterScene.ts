@@ -207,7 +207,7 @@ export function beginChapter3(scene: Phaser.Scene): void {
  * Day 6's as `&promised=0`, `&sister=told`, and Day 5's and Day 4's as above (`&raid=`, `&standoff=`, `&riot=`).
  * Day 8 (`&day=8`): `start` (dawn, your hand with your coat), `table` (the simulation room, your father at the
  * table), `game` (straight onto the war table against him), `list` (straight onto the second game, with the
- * list), `hall` (the audience hall, your place ahead), `balcony` (evening, your hand at the rail); Day 7's as
+ * list), `hall` (the audience hall, your place ahead), `choice` (on the dais, the speech's choice), `balcony` (evening, your hand at the rail); Day 7's as
  * `&struck=kid|woman|barkeep|none`, `&gate=lost` (the commander saw you), `&promised=0` (he went without you),
  * and this day's `&broadcast=backed|defied|middle` (for `balcony`).
  */
@@ -320,6 +320,7 @@ export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
     game: { area: { areaId: 'simulation-room', start: { x: 330, y: 230 } }, slots: 0, vars: { c3day8: 'table', sim_open: true } },
     list: { area: { areaId: 'simulation-room', start: { x: 330, y: 230 } }, slots: 0, vars: { c3day8: 'table', sim_open: true, table8: 'won' } },
     hall: { area: { areaId: 'audience-hall', start: { x: 60, y: 236 } }, slots: 0, vars: { c3day8: 'hall', sim_open: true, table8: 'won', list8: 'won', objective: 'Speak to the city', objective_target: 'audience-hall:mark-8' } },
+    choice: { area: { areaId: 'audience-hall', start: { x: 610, y: 212 }, script: 'c3day8_choice' }, slots: 0, vars: { c3day8: 'speech', sim_open: true, table8: 'won', list8: 'won' } },
     balcony: { area: { areaId: 'prince-quarters', start: { x: 300, y: 226 } }, slots: 2, vars: { c3day8: 'evening', sim_open: true, table8: 'won', list8: 'won', broadcast, objective: 'Go out to the balcony', objective_target: 'prince-quarters:hand-8b' } },
   };
   if (day >= 2) set({ c3day1: 'done', c3day2: 'wake', lift_mended: params.get('lift') === 'mended', seated: params.get('seated') ?? 'councillor', signed_requests: true });
