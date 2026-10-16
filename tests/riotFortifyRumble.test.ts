@@ -913,6 +913,25 @@ describe('the war table: even, the home squares, the rebels’ move, heroes (Jac
     expect(even.outputOf(r.state, winner)).toBe(1);
   });
 
+  it('one big stack at their base (Jack: too easy): walls +3; they dig in when it could take it', () => {
+    const sk = new RiotGame(board, { ...RIOT_RULES, ...(RIOTS.skirmish as RiotScenario).rules });
+    const s = sk.start([{ side: 'guard', place: 'keep', strength: 10 }, { side: 'rising', place: 'camp', strength: 10 }, { side: 'guard', place: 'farms', strength: 14 }], 5);
+    // 10 behind walls of 3: 13 is the final clash, 14 takes it.
+    expect(sk.defence(s, 'camp', 10)).toBe(13);
+    expect(sk.baseClashAt(s, 'camp')).toBe(13);
+    expect(sk.defence(s, 'keep', 10)).toBe(13);
+    const taken = sk.order(s, go(s, 'farms', 'camp')).state;
+    expect(at(taken, 'camp')).toMatchObject({ side: 'guard', strength: 1 });
+    // With 14 next to it, they dig in first: the attack doesn't happen.
+    const r = sk.risingActs(s);
+    expect(r.events.some((e) => e.type === 'dugIn')).toBe(true);
+    expect(sk.fortified(r.state, 'camp')).toBe(true);
+    expect(at(sk.turn(r.state, [go(r.state, 'farms', 'camp')], []).state, 'camp')!.side).toBe('rising');
+    // 12 next to it can't even tie it: no need.
+    const small = sk.start([{ side: 'guard', place: 'keep', strength: 10 }, { side: 'rising', place: 'camp', strength: 10 }, { side: 'guard', place: 'farms', strength: 12 }], 5);
+    expect(sk.risingActs(small).events.some((e) => e.type === 'dugIn')).toBe(false);
+  });
+
   it('the rebels don’t sit in their base (Jack: 39 at home, never coming out): your keep far off doesn’t hold them in', () => {
     const sk = new RiotGame(board, { ...RIOT_RULES, ...(RIOTS.skirmish as RiotScenario).rules });
     let s = sk.start([{ side: 'guard', place: 'keep', strength: 30 }, { side: 'rising', place: 'camp', strength: 39 }, { side: 'guard', place: 'farms', strength: 12 }, { side: 'guard', place: 'market', strength: 5 }], 5);

@@ -380,7 +380,7 @@ export const RIOTS: Record<string, RiotScenario | LessonScenario | DuelScenario>
       // (Jack: too many now; one at a time, and one thing out of the blue a turn at most, a middle ground in how often.)
       rumble: { ...RUMBLE, chance: 0.25 }, mystery: { ...MYSTERY, from: 3, chance: 0.25 }, audience: { ...AUDIENCE, from: 4, chance: 0.2 },
       church: { ...CHURCH, from: 5, chance: 0.1 }, barracks: { ...BARRACKS, from: 4, chance: 0.2 }, architect: { ...ARCHITECT, chance: 0.2 }, tokensAtOnce: 1,
-      rebel: REBEL, homeGrowth: true, baseMakes: 2, guardsOpen: true,
+      rebel: REBEL, homeGrowth: true, baseMakes: 2, guardsOpen: true, baseWalls: 3,
       // Two towers each, out on the flanks (Jack), three streets from home: each makes 2 every 4 turns, there, for
       // whoever holds it (Jack: not 1 every turn). No shake-ups, no brothel (Jack).
       towers: { guard: ['mill', 'orchards'], rising: ['marsh', 'quarry'], makes: 2, every: 4, walls: 1 }, clashOutput: { by: 1, turns: 3 }, dawn: 100000, baseLoss: true },

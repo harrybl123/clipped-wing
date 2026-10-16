@@ -623,6 +623,8 @@ export class RiotTableScene extends Phaser.Scene {
       if (e.type === 'deploy') void this.eliteArrives(e.side, e.elite, e.at.map((p) => this.place(p)));
       if (e.type === 'seduce') this.seduced(this.place(e.at), e.side);
       if (e.type === 'rally' || e.type === 'sabotage') void this.rebelMove(e);
+      // (Jack: one big stack walked into their hideout too easily: they dig in when it could take it.)
+      if (e.type === 'dugIn') void this.banner('Dug in! (enemy)', { colour: COLOUR.rising, sub: 'The rebels dig in at their hideout: it can\'t be attacked this turn.', hold: 1800, then: () => (this.lookAt(this.place(e.at)), this.draw()) });
     }
   }
 
@@ -2378,16 +2380,19 @@ export class RiotTableScene extends Phaser.Scene {
     if (this.g.fortified(s, p.id)) return "They're dug in: no attack this turn";
     if (there.elite === 'hero') return `Their ${ELITE_NAMES[there.side].hero.toLowerCase()}: nothing can attack it`;
     // Their base, with exactly its number (Jack): the final clash.
-    if (this.g.rules.clash && !aim.elite && p.id === this.g.base(there.side) && aim.strength === this.g.heldBy(s, p.id)) {
+    if (this.g.rules.clash && !aim.elite && p.id === this.g.base(there.side) && aim.strength === this.g.baseClashAt(s, p.id)) {
       const odds = Math.round(this.g.clashOdds(s, aim, p.id, there).chance * 100);
-      return `${lead}Final clash! ${aim.strength} against ${aim.strength}: ${odds}% to win. Win and it's yours, 1 to 3 left; lose and they hold.`;
+      const held = this.g.heldBy(s, p.id);
+      const vs = aim.strength === held ? `${aim.strength} against ${held}` : `${aim.strength} against ${held} (+${aim.strength - held} walls)`;
+      return `${lead}Final clash! ${vs}: ${odds}% to win. Win and it's yours, 1 to 3 left; lose and they hold.`;
     }
     // Their number as it shows on the circle, and the barricades (or the power cut) beside it; match the square's
     // number and you take it (Jack), keeping what's over after the barricades, at least 1.
     const n = this.g.heldBy(s, p.id);
-    const vs = `${a} v ${n}${d > n ? (this.sc.kind === 'duel' ? ' (+1 walls)' : ' (+1 barricades)') : d < n ? ' (no power: -1)' : ''}`;
+    const walled = this.g.rules.baseWalls && (p.id === this.g.heart || p.id === this.g.lifts);
+    const vs = `${a} v ${n}${d > n ? (this.sc.kind === 'duel' || walled ? ` (+${d - n} walls)` : ' (+1 barricades)') : d < n ? ' (no power: -1)' : ''}`;
     const crit = aim.poison ? ` (poisoned: ${this.critChance()} chance of a critical hit)` : '';
-    if (a > d || (p.id === this.g.heart && a >= n)) return `${lead}${vs}: you take it, ${Math.max(1, a - d)} left${rumble}${crit}`;
+    if (a > d || (p.id === this.g.heart && !this.g.rules.baseWalls && a >= n)) return `${lead}${vs}: you take it, ${Math.max(1, a - d)} left${rumble}${crit}`;
     return lead + (a === d ? `${vs}: a tie, they hold` : `${vs}: they hold`) + crit;
   }
 
@@ -2451,6 +2456,7 @@ export class RiotTableScene extends Phaser.Scene {
     const most = this.g.rules.baseMakes;
     const made = (side: Side) => most === undefined ? `Makes +${this.g.production(s, side)} a turn: 1 for each of the three places round it not held by the other side.` : `Makes +${this.g.production(s, side)} a turn: ${most}, less 1 for each of the three places round it the other side holds.`;
     if (homes && (p.heart || p.lifts)) lines.push(made(p.heart ? 'rising' : 'guard'));
+    if (homes && (p.heart || p.lifts) && this.g.rules.baseWalls) lines.push(`Walls +${this.g.rules.baseWalls}: beat its number and the walls to take it; exactly that is the final clash.`);
     for (const side of homes ? (['guard', 'rising'] as const) : []) if (this.g.homeSquares(side).includes(p.id)) lines.push(`${side === this.you ? 'One of your' : 'One of their'} home squares: lost to the other side, ${side === this.you ? 'your' : 'their'} base makes 1 less.`);
     if (p.heart && !homes) lines.push(duel ? `Your keep. Walls +1. Each turn ${this.g.rules.muster} new men come out onto a road next to it, unless he holds them all. Lose it and you've lost.` : `Barricades +1. Grows 1 a turn; over ${this.g.style.pourAbove}, sends crowds out.`);
     if (p.lifts && !homes) lines.push(duel ? `His camp. Each turn ${this.g.rules.muster} new men come out of it, unless you hold every road round it. Take it and you've won.` : `The guard get +${this.g.rules.reinforce} here each turn.`);

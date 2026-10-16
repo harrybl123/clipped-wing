@@ -108,6 +108,12 @@ export interface RiotRules {
   /** Lose your base and you've lost (the skirmish: no dawn, so the rising need a way to win). */
   baseLoss?: boolean;
   /**
+   * Walls round both bases (the skirmish, Jack: one big stack brought all the way down took theirs too easily): an
+   * attack has to beat their number plus these; exactly that is the final clash. Without it, the square's
+   * barricades +1, and matching its number takes it (the riot).
+   */
+  baseWalls?: number;
+  /**
    * The duel (Day 6; designer): the rising (you, holding the keep) win by taking the guard's base (the lifts'
    * place: his siege camp) before dawn; dawn first, and the guard have won.
    */
@@ -491,6 +497,8 @@ export type RiotEvent =
   | { type: 'rumbleAppears'; at: string }
   /** The rebels' move (Jack): +2 to one of theirs; a street closed. */
   | { type: 'rally'; at: string; by: number }
+  /** The rebels dig in at their base (the skirmish, Jack: one big stack walked in too easily). */
+  | { type: 'dugIn'; at: string; side: Side }
   | { type: 'sabotage'; ways: [string, string] }
   /** Half a squad split off (`squad`, the half that went) from `from`. */
   | { type: 'split'; squad: string; from: string; strength: number }
@@ -644,6 +652,8 @@ export class RiotGame {
     for (const s of squads) owner[s.place] = s.side;
     // (The towers start their own side's, Jack.)
     for (const t of this.towerList()) owner[t.place] ??= t.side;
+    // (On the board's own streets: a game before may have ended with the trickster's.)
+    this.useWays(this.board.ways);
     return { turn: 1, squads: squads.map((s, i) => ({ id: `q${i}`, ...s })), owner, cut: null, lastCut: -99, nextId: squads.length, fortified: [], lastFortify: { guard: -99, rising: -99 }, lastSplit: { guard: -99, rising: -99 }, fortifyBefore: { guard: -99, rising: -99 }, rumble: null, seed, elites: { guard: { used: [], crests: 0, gifts: [] }, rising: { used: [], crests: 0, gifts: [] } }, crest: null, mystery: null, pending: null, plague: { guard: 0, rising: 0 } };
   }
 
@@ -817,9 +827,22 @@ export class RiotGame {
    */
   risingActs(s0: RiotState): { state: RiotState; events: RiotEvent[] } {
     const e = this.rules.elites ? this.eliteActs(s0, 'rising') : { state: s0, events: [] };
-    if (!this.rules.rebel || !this.canRebel(e.state)) return e;
-    const r = this.rebelActs(e.state);
-    return { state: r.state, events: [...e.events, ...r.events] };
+    const r = this.rules.rebel && this.canRebel(e.state) ? this.rebelActs(e.state) : { state: e.state, events: [] };
+    const d = this.digIn(r.state);
+    return { state: d.state, events: [...e.events, ...r.events, ...d.events] };
+  }
+
+  /**
+   * The rebels dig in at their base (the skirmish, Jack: bringing one big stack all the way down took it too
+   * easily): when what of yours could hit it next turn would take it, they fortify it (once in 3 turns, as you can),
+   * so nothing can attack it this turn, and their crowds have a turn to get home.
+   */
+  private digIn(s: RiotState): { state: RiotState; events: RiotEvent[] } {
+    const h = this.squadAt(s, this.heart);
+    if (!this.rules.homeGrowth || !h || h.side !== 'rising' || this.fortified(s, this.heart) || !this.canFortify(s, 'rising')) return { state: s, events: [] };
+    if (this.strike(s) + this.heroNear(s) < this.baseClashAt(s, this.heart)) return { state: s, events: [] };
+    const t = this.fortify(s, h.id);
+    return t === s ? { state: s, events: [] } : { state: t, events: [{ type: 'dugIn', at: this.heart, side: 'rising' }] };
   }
 
   /** Whether the rebels can make their move this turn (Jack: once every 3 turns), and in how many turns they can. */
@@ -928,6 +951,8 @@ export class RiotGame {
   near = (a: string, b: string): boolean => this.adj.get(a)!.includes(b);
   /** Who holds a place (the king's guard, not anyone beside them). */
   squadAt = (s: RiotState, place: string): RiotSquad | undefined => (this.use(s), s.squads.find((q) => q.place === place && !q.beside) ?? s.squads.find((q) => q.place === place));
+  /** The number that makes an attack on a base its final clash (Jack): exactly its number, or with walls, its number and the walls. */
+  baseClashAt = (s: RiotState, place: string): number => (this.rules.baseWalls ? this.defence(s, place, this.heldBy(s, place)) : this.heldBy(s, place));
   /** Who others of their side can stand beside (Jack): the king's guard, and hired fighters. */
   host = (q: RiotSquad): boolean => q.elite === 'guard3' || !!q.hired;
   /** A squad standing beside the king's guard (or hired fighters) at a place (Jack). */
@@ -955,7 +980,8 @@ export class RiotGame {
 
   /** A squad's strength holding where it is (the square's barricades +1; the power cut −1). */
   defence(s: RiotState, place: string, strength: number): number {
-    return Math.max(0, strength + (place === this.heart ? 1 : 0) + (this.rules.towers && this.isTower(place) ? this.rules.towers.walls : 0) - (s.cut === place ? 1 : 0));
+    const walls = this.rules.baseWalls ? (place === this.heart || place === this.lifts ? this.rules.baseWalls : 0) : place === this.heart ? 1 : 0;
+    return Math.max(0, strength + walls + (this.rules.towers && this.isTower(place) ? this.rules.towers.walls : 0) - (s.cut === place ? 1 : 0));
   }
 
   /** Where a squad can go this turn: the streets next to it (nowhere, with its power cut). */
@@ -1042,7 +1068,7 @@ export class RiotGame {
     const beside = this.besideAt(s, to);
     const by = beside?.elite === 'hero' ? undefined : beside;
     const total = there.strength + (by?.strength ?? 0);
-    const need = to === this.heart ? total : this.defence(s, to, total);
+    const need = to === this.heart && !this.rules.baseWalls ? total : this.defence(s, to, total) + (this.rules.baseWalls && (to === this.heart || to === this.lifts) ? 1 : 0);
     const enough = q.strength >= need;
     events.push({ type: 'fight', at: to, side: q.side, won: enough, attack: q.strength, defence: need });
     let moved = false;
@@ -1148,7 +1174,7 @@ export class RiotGame {
       }
     }
     // Their base, with exactly its number (Jack): the final clash.
-    if (there && there.side !== q.side && this.rules.clash && !q.elite && there.place === this.base(there.side) && q.strength === this.heldBy(s, o.to) && !this.fortified(s, o.to)) {
+    if (there && there.side !== q.side && this.rules.clash && !q.elite && there.place === this.base(there.side) && q.strength === this.baseClashAt(s, o.to) && !this.fortified(s, o.to)) {
       this.clash(s, q, there, events, undefined, true);
       return { state: s, events };
     }
@@ -1188,7 +1214,7 @@ export class RiotGame {
       // (tried everywhere, it broke "Now." and made the rising's ties win too: docs/sequences/chapter-3/war-table.md).
       // Blessed, your attack wins on a tie; cursed, theirs on you does (Jack: their number matching yours).
       const tie = q.strength === this.heldBy(s, o.to) && this.favour(s, q.side) - this.favour(s, there.side) > 0;
-      const won = attack > defence || (o.to === this.heart && attack >= there.strength) || tie;
+      const won = attack > defence || (o.to === this.heart && !this.rules.baseWalls && attack >= there.strength) || tie;
       events.push({ type: 'fight', at: o.to, side: q.side, won, attack, defence, ...(crit ? { crit } : {}) });
       if (won) {
         s.squads = s.squads.filter((x) => x !== there && x !== by);
@@ -1993,9 +2019,13 @@ export class RiotGame {
     // (By how much it'd fall short: the less, the better, so they come home to it when it's in danger.)
     const short = this.strike(s) + this.heroNear(s) - (hold + (h ? 0 : this.production(s, 'rising')));
     if (short >= 0) v -= 150 + short * 15;
-    // And in two turns' time, what's gathering within two streets: crowds nearer home, as much as it needs.
+    // And in two turns' time, what's gathering within two streets: crowds nearer home, as much as it needs; and
+    // much more so with one of yours next to it that could take it (Jack: one big stack walked in), the base dug
+    // in for a turn to let them get back.
     const later = this.looming(s) + this.heroNear(s) - (hold + 2 * this.production(s, 'rising'));
-    if (later > 0) for (const q of rising) if (q.place !== this.heart && !q.hired && !q.built) v -= this.distance(q.place, this.heart) * Math.min(q.strength, later) * 1.5;
+    const now = short >= 0 ? short + 2 : 0;
+    const need = Math.max(later, now);
+    if (need > 0) for (const q of rising) if (q.place !== this.heart && !q.hired && !q.built) v -= this.distance(q.place, this.heart) * Math.min(q.strength, need) * (now ? 4 : 1.5);
     // Next turn: each of theirs one of yours next to it could beat is at risk (a tower or home square more so);
     // each of yours one of theirs next to it could beat is a chance (your keep most of all).
     const beats = (from: RiotSquad, p: string) => !this.fortified(s, from.place) && from.elite !== 'guard3' && !from.built && s.cut !== from.place && this.attack(from.place, p, from.strength) > this.defence(s, p, this.heldBy(s, p));
@@ -2118,7 +2148,7 @@ export class RiotGame {
           if (there?.side === 'guard') {
             if (this.fortified(s, to) || (there.elite === 'hero' && q.elite !== 'hero')) continue;
             if (q.elite === 'hero') {
-              const need = to === this.heart ? there.strength : this.defence(s, to, there.strength);
+              const need = to === this.heart && !this.rules.baseWalls ? there.strength : this.defence(s, to, there.strength) + (this.rules.baseWalls && to === this.lifts ? 1 : 0);
               if (q.strength < need) continue;
               score = homes && to === this.lifts ? 200 : 60 + need * 2 + (to === this.lifts ? 15 : 0);
             } else if (this.attack(q.place, to, q.strength) > this.defence(s, to, there.strength)) score = 50 + there.strength * 2;
@@ -2155,7 +2185,7 @@ export class RiotGame {
           // Your base, theirs for the taking (Jack: their main aim): nothing comes first.
           if (homes && to === this.lifts && this.attack(q.place, to, q.strength) > this.defence(s, to, this.heldBy(s, to))) score = 200;
           // (Or exactly its number: the final clash, a coin toss for the game.)
-          else if (homes && to === this.lifts && this.rules.clash && q.strength === this.heldBy(s, to)) score = 60;
+          else if (homes && to === this.lifts && this.rules.clash && q.strength === this.baseClashAt(s, to)) score = 60;
           else if (this.attack(q.place, to, q.strength) > this.defence(s, to, this.heldBy(s, to))) score = 40 + there.strength * 2 + (to === this.lifts ? 15 : 0) + homeBonus(to) - (homes && (threat || q.strength < WAVE.least) && !this.near(to, this.heart) && to !== this.lifts ? 40 : 0);
           // Throwing themselves at it: they'll lose, but it'll cost the guard.
           // (Not in the even game: they keep their numbers.)
@@ -2217,7 +2247,9 @@ export class RiotGame {
     if (!this.rules.homeGrowth) return this.style.pour;
     // (Even: everything it can spare, keeping enough to hold what's about, and never less than half home.)
     // (What could actually hit it next turn, Jack: more ruthless; not everything of yours within a few streets.)
-    const keep = s ? this.strike(s) + this.heroNear(s) + 3 : 0;
+    // (And never below what's within two streets could take after a turn's making: one big stack of yours
+    // closing in, Jack, walked in while it sent its men out.)
+    const keep = s ? Math.max(this.strike(s) + this.heroNear(s) + 3, this.looming(s) + this.heroNear(s) + 2 - this.production(s, 'rising')) : 0;
     // (Never more than 20 at home, Jack, unless that much of yours could really hit it next turn.)
     if (strength > WAVE.home) return Math.max(0, strength - Math.max(keep, Math.min(WAVE.home, Math.ceil(strength * 0.4))));
     return Math.max(0, Math.min(Math.ceil(strength * 0.6), strength - keep));
