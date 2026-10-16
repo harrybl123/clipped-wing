@@ -122,6 +122,8 @@ export class RiotTableScene extends Phaser.Scene {
   private hover: { place: RiotPlace; since: number } | null = null;
   /** A closed route under the mouse (Jack): its two ends. */
   private roadHover: [string, string] | null = null;
+  /** One of theirs next to the maiden you're moving that she can't seduce, under the mouse (Jack: say why). */
+  private refused: RiotPlace | null = null;
   /** Choosing a place for something (the thief, Jack): where it can go, and the cursor among them. */
   private picking: { targets: string[]; prompt: string } | null = null;
   /** The slot in the elite bar under the mouse (its name shows above it). */
@@ -1431,6 +1433,8 @@ export class RiotTableScene extends Phaser.Scene {
     // A closed route under the mouse (Jack): lit up, with how long it's closed for.
     const road = over ? null : this.closedRoadAt(wx, wy);
     if (road?.join() !== this.roadHover?.join()) (this.roadHover = road), this.draw();
+    const refused = over && this.seduceRefused(over) ? over : null;
+    if (refused !== this.refused) (this.refused = refused), this.draw();
     const slot = this.eliteBar().find((b) => inside(b.box))?.elite ?? null;
     if (slot !== this.barHover) (this.barHover = slot), this.draw();
     if (near && near !== this.cursor) (this.cursor = near), this.draw();
@@ -2254,9 +2258,43 @@ export class RiotTableScene extends Phaser.Scene {
 
   private turnsText = (n: number): string => `${n} ${n === 1 ? 'turn' : 'turns'}`;
 
+  /**
+   * Why the maiden you're moving can't seduce one of theirs next to her (Jack: it wasn't clear), or null (she can,
+   * it isn't theirs, or it isn't next to her).
+   */
+  private seduceRefused(p: RiotPlace): string | null {
+    const m = this.aiming?.squad;
+    if (!m || m.elite !== 'maiden' || this.splitting || this.splitRest || !this.g.near(m.place, p.id)) return null;
+    const there = this.g.squadAt(this.state, p.id);
+    if (!there || there.side === m.side || this.aiming!.dests.includes(p)) return null;
+    const max = this.g.seduceMax(this.state, m.side);
+    const name = ELITE_NAMES[m.side].maiden;
+    if (p.id === this.g.heart || p.id === this.g.lifts) return `${name} cannot seduce a base`;
+    if (this.g.fortified(this.state, p.id)) return `${name} cannot seduce: they're dug in`;
+    if (there.elite) return `${name} cannot seduce the ${ELITE_NAMES[there.side][there.elite]}`;
+    if (there.hired || there.built) return `${name} cannot seduce ${there.built ? 'a building' : 'hired fighters'}`;
+    if (there.strength > max) return `${name} cannot seduce: limit = ${max} (this is ${there.strength})`;
+    return `${name} cannot seduce this`;
+  }
+
   /** The card: choosing, the sum by the place; otherwise what's there, once the mouse has rested on it. */
   private drawCard(): void {
     const choosing = this.aiming || this.cutting;
+    // The maiden can't seduce that one (Jack): it's marked, and the card says why.
+    const why = this.refused && !this.busy ? this.seduceRefused(this.refused) : null;
+    if (why && this.refused) {
+      const p = this.refused;
+      this.card.setText(why);
+      const [w, h] = [this.card.width + 8, this.card.height + 6];
+      const x = Math.round(p.x + 18 + w < this.view.x + W - 4 ? p.x + 18 : p.x - 18 - w);
+      const y = Math.round(Math.max(this.view.y + 4, Math.min(this.view.y + H - h - 20, p.y - 10)));
+      this.cardBack.clear();
+      this.cardBack.lineStyle(2, SHADES.light, 0.9).strokeCircle(p.x, p.y, 15).lineStyle(1, SHADES.light, 0.4).strokeCircle(p.x, p.y, 18);
+      this.cardBack.fillStyle(SHADES.shadow, 0.92).fillRect(x, y, w, h);
+      this.cardBack.lineStyle(1, SHADES.light, 1).strokeRect(x, y, w, h);
+      this.card.setPosition(x + 4, y + 3);
+      return;
+    }
     // A closed route under the mouse (Jack): "Route closed (3 turns)" by the middle of it.
     if (!choosing && !this.busy && this.roadHover && this.g.closedFor(this.state, ...this.roadHover)) {
       const [pa, pb] = this.roadHover.map((id) => this.place(id)) as [RiotPlace, RiotPlace];
