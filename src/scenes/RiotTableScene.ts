@@ -133,6 +133,8 @@ export class RiotTableScene extends Phaser.Scene {
   private splitRest = false;
   /** The big words across the screen, one after another (Jack: two at once was a mess). */
   private banners: Promise<void> = Promise.resolve();
+  /** Motes round the judged (Jack): gold rising off the blessed, ash drifting off the cursed. */
+  private motes: { x: number; y: number; life: number; gold: boolean; dx: number }[] = [];
   /** The plague's drips off each squad it's on (Jack). */
   private drips: { x: number; y: number; life: number }[] = [];
   /** Their next turn's orders after this one (the commander's advice), worked out once per change. */
@@ -191,6 +193,7 @@ export class RiotTableScene extends Phaser.Scene {
     this.numbers = [];
     this.embers = [];
     this.bubbles = [];
+    this.motes = [];
     this.looked = null;
     this.drag = null;
     this.bw = this.sc.board.width ?? W;
@@ -1803,10 +1806,7 @@ export class RiotTableScene extends Phaser.Scene {
       const dark = s.cut === q.place;
       const stuck = (q.stuck ?? -1) >= s.turn;
       if (stuck) this.drawBrothel(g, p, blink);
-      // The Lord's judgement (Jack): a gold halo over the blessed; a dark cloud over the cursed.
-      const fav = this.g.favour(s, q.side);
-      if (fav > 0) g.lineStyle(1, SHADES.amber, 0.9).strokeEllipse(p.x + 0.5, p.y - 12, 12, 4);
-      if (fav < 0) g.fillStyle(SHADES.shadow, 0.8).fillEllipse(p.x - 2, p.y - 13, 10, 5).fillEllipse(p.x + 3, p.y - 14, 10, 5);
+      // (The Lord's judgement round it, golden light or looming darkness, is drawn with the riot's life, behind it.)
       if (q.elite === 'maiden') this.drawMaiden(g, p, q.side, dark);
       else if (q.elite === 'guard3') this.drawGuardsman(g, p, q.side, dark);
       else if (q.elite === 'hero') this.drawHero(g, p, q.side, dark);
@@ -1869,9 +1869,9 @@ export class RiotTableScene extends Phaser.Scene {
       eb.lineStyle(1, lit || this.barHover === b.elite ? SHADES.light : SHADES.dim, 1).strokeRect(b.box.x, b.box.y, b.box.w, b.box.h);
       // Its emblem: the piece itself, darkened while it waits or once it's used.
       const at = { x: b.box.x + Math.floor(b.box.w / 2), y: b.box.y + 17 };
-      if (b.elite === 'hero') this.drawHero(bg, at, this.you, !lit && b.state !== 'out');
-      else if (b.elite === 'maiden') this.drawMaiden(bg, at, this.you, !lit && b.state !== 'out');
-      else this.drawGuardsman(bg, at, this.you, !lit && b.state !== 'out');
+      if (b.elite === 'hero') this.drawHero(eb, at, this.you, !lit && b.state !== 'out');
+      else if (b.elite === 'maiden') this.drawMaiden(eb, at, this.you, !lit && b.state !== 'out');
+      else this.drawGuardsman(eb, at, this.you, !lit && b.state !== 'out');
       if (b.state === 'used' || b.state === 'wait') eb.fillStyle(SHADES.shadow, 0.55).fillRect(b.box.x + 1, b.box.y + 1, b.box.w - 2, b.box.h - 2);
       if (b.state === 'used') eb.lineStyle(2, SHADES.dim, 1).lineBetween(b.box.x + 3, b.box.y + 3, b.box.x + b.box.w - 3, b.box.y + b.box.h - 3);
       // Its key, in the corner.
@@ -1883,7 +1883,7 @@ export class RiotTableScene extends Phaser.Scene {
     const held = this.g.rules.elites && this.phase === 'riot' && !this.fatherPlaying ? s.elites[this.you].crests : 0;
     if (held) {
       const at = { x: 4 + ELITES.length * (SLOT.w + 3) + 7, y: H - SLOT.h + 4 };
-      this.drawCrest(bg, at, 0.8);
+      this.drawCrest(eb, at, 0.8);
       this.numbers.push(new PixelText(this, at.x + 9, at.y - 3, `x${held}`, { color: SHADES.amber, shadow: SHADES.shadow }).setDepth(10).setScrollFactor(0));
     }
     if (this.deploying) for (const id of this.g.deployPlaces(s, this.you, this.deploying)) g.lineStyle(1, SHADES.white, blink ? 1 : 0.4).strokeCircle(this.place(id).x, this.place(id).y, 14);
@@ -2158,6 +2158,42 @@ export class RiotTableScene extends Phaser.Scene {
   /** The riot, alive (designer: make it look like one): fire and a crowd round every squad of the rising, smoke going up. */
   private drawLife(): void {
     const g = this.life.clear();
+    // The Lord's judgement (Jack), round every squad of the judged side for as long as it lasts: the blessed in a
+    // slow-pulsing golden light with motes rising off it; the cursed in a looming darkness, wisps creeping round it,
+    // ash drifting away.
+    for (const q of this.state.squads) {
+      const fav = this.g.favour(this.state, q.side);
+      if (!fav) continue;
+      const at = this.place(q.place);
+      const p = q.beside ? { x: at.x + 14, y: at.y + 10 } : at;
+      const beat = 0.5 + 0.5 * Math.sin(this.t / 4 + p.x * 0.07);
+      if (fav > 0) {
+        g.fillStyle(SHADES.amber, 0.08 + 0.06 * beat).fillCircle(p.x, p.y, 20 + beat * 2);
+        g.fillStyle(SHADES.amber, 0.14).fillCircle(p.x, p.y, 15);
+        g.fillStyle(SHADES.white, 0.1 + 0.06 * beat).fillCircle(p.x, p.y, 11);
+        for (let i = 0; i < 8; i++) {
+          const a = (i / 8) * Math.PI * 2 + this.t * 0.03;
+          g.lineStyle(1, SHADES.amber, 0.35 + 0.3 * beat).lineBetween(p.x + Math.cos(a) * 13, p.y + Math.sin(a) * 13, p.x + Math.cos(a) * (17 + beat * 3), p.y + Math.sin(a) * (17 + beat * 3));
+        }
+        if (this.t % 2 === 0) this.motes.push({ x: p.x - 8 + ((this.t * 7 + p.y) % 17), y: p.y + 4, life: 14, gold: true, dx: 0 });
+      } else {
+        g.fillStyle(0x000000, 0.3 + 0.12 * beat).fillCircle(p.x, p.y, 21 + beat * 2);
+        g.fillStyle(SHADES.shadow, 0.45).fillCircle(p.x, p.y, 15);
+        for (let i = 0; i < 6; i++) {
+          const a = (i / 6) * Math.PI * 2 - this.t * 0.04;
+          const r = 15 + Math.sin(this.t / 3 + i) * 3;
+          g.fillStyle(0x000000, 0.55).fillEllipse(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r * 0.8, 8, 4);
+        }
+        if (this.t % 2 === 0) this.motes.push({ x: p.x - 8 + ((this.t * 5 + p.x) % 17), y: p.y - 6, life: 16, gold: false, dx: ((this.t % 3) - 1) * 0.3 });
+      }
+    }
+    for (const m of this.motes) {
+      m.life--;
+      if (m.gold) m.y -= 0.9;
+      else (m.y += 0.4), (m.x += m.dx);
+      g.fillStyle(m.gold ? (m.life > 7 ? SHADES.white : SHADES.amber) : SHADES.shadow, m.gold ? 0.9 : 0.8).fillRect(Math.round(m.x), Math.round(m.y), m.gold ? 1 : 2, m.gold ? 1 : 2);
+    }
+    this.motes = this.motes.filter((m) => m.life > 0).slice(-160);
     for (const q of this.state.squads) {
       if (q.side !== 'rising') continue;
       const p = this.place(q.place);
