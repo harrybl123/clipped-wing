@@ -902,6 +902,16 @@ describe('the war table: even, the home squares, the rebels’ move, heroes (Jac
     expect(even.outputOf(r.state, winner)).toBe(1);
   });
 
+  it('the rebels don’t sit in their base (Jack: 39 at home, never coming out): your keep far off doesn’t hold them in', () => {
+    const sk = new RiotGame(board, { ...RIOT_RULES, ...(RIOTS.skirmish as RiotScenario).rules });
+    let s = sk.start([{ side: 'guard', place: 'keep', strength: 30 }, { side: 'rising', place: 'camp', strength: 39 }, { side: 'guard', place: 'farms', strength: 12 }, { side: 'guard', place: 'market', strength: 5 }], 5);
+    s = { ...s, turn: 20, owner: { ...s.owner, crossroads: 'rising', road: 'rising', farms: 'guard' } };
+    expect(sk.threatened(s)).toBe(false);
+    const r = sk.turn(s, [], sk.risingOrders(s));
+    expect(at(r.state, 'camp')!.strength).toBeLessThan(30);
+    expect(r.state.squads.filter((q) => q.side === 'rising' && q.place !== 'camp').reduce((n, q) => n + q.strength, 0)).toBeGreaterThan(5);
+  });
+
   it('the hero and the bastard can hurt each other; nothing else can hurt either', () => {
     const s = { ...even.start(both), squads: [{ id: 'h', side: 'guard' as const, place: 'gate', strength: 7, elite: 'hero' as const, until: 9 }, { id: 'b', side: 'rising' as const, place: 'bridge', strength: 3, elite: 'hero' as const, until: 9 }, { id: 'c', side: 'guard' as const, place: 'smithy', strength: 9 }] };
     expect(even.dests(s, s.squads[2]!)).not.toContain('bridge');
