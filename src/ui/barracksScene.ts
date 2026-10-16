@@ -28,7 +28,7 @@ export async function openBarracks(scene: Phaser.Scene, show: BarracksShow): Pro
   const mine = show.side === show.you && !show.pick;
   const layer = overlay(scene);
   playSound(scene, 'door', 0.8);
-  text(scene, layer, 14, mine ? 'The barracks! Who will you hire?' : 'They hire fighters at the barracks...', SHADES.white, 2);
+  text(scene, layer, 14, mine ? 'The barracks! Who will you hire?' : 'The enemy hire fighters at the barracks', SHADES.white, 2);
   const boxes = HIRES.map((_, i) => ({ x: 24 + i * 148, y: 46, w: 136, h: 172 }));
   const frame = scene.add.graphics().setScrollFactor(0);
   layer.addAt(frame, 1);
@@ -57,7 +57,7 @@ export async function openBarracks(scene: Phaser.Scene, show: BarracksShow): Pro
       frame.lineStyle(1, i === at ? SHADES.light : SHADES.dim, 1).strokeRect(b.x, b.y, b.w, b.h);
     });
   };
-  const i = await choose(scene, boxes, hover, mine, show.pick ? HIRES.indexOf(show.pick) : 0);
+  const i = await choose(scene, boxes, hover, mine, show.pick ? HIRES.indexOf(show.pick) : 0, layer);
   playSound(scene, 'boots', 0.8);
   await fade(scene, layer);
   return HIRES[i]!;

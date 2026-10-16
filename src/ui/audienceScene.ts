@@ -25,6 +25,14 @@ export const SPEECHES = [
   'There will be bread for every house that stays loyal.',
 ];
 
+/** What their leader can tell the rebels round the fire (Jack: they rally the rebels, at a campsite; draft lines). */
+export const REBEL_SPEECHES = [
+  'They took our streets. Tonight we take them back.',
+  'For every one of us who falls, ten more will stand.',
+  'Go home to your families, while you still can.',
+  'Their granaries are full. Bread for all of us.',
+];
+
 const ADVISERS: { who: Adviser; name: string; says: string }[] = [
   { who: 'accountant', name: 'The accountant', says: 'Weighs your gold' },
   { who: 'townsfolk', name: 'The townsfolk', says: 'Want to hear you' },
@@ -73,6 +81,9 @@ function image(scene: Phaser.Scene, layer: Phaser.GameObjects.Container, key: st
   return img;
 }
 
+/** The enemy's colour, for their choices (the rising's amber). */
+const ENEMY = SHADES.amber;
+
 const wait = (scene: Phaser.Scene, ms: number) => new Promise<void>((r) => scene.time.delayedCall(ms, r));
 
 /**
@@ -98,12 +109,12 @@ export function untilPressed(scene: Phaser.Scene, _mine: boolean, _ms = 1600, la
   });
 }
 
-/** Choosing one of several things laid out across the screen: arrows and E, 1 to n, or the mouse. */
-export function choose(scene: Phaser.Scene, boxes: { x: number; y: number; w: number; h: number }[], onHover: (i: number) => void, mine: boolean, pick: number): Promise<number> {
-  if (!mine) {
-    onHover(pick);
-    return wait(scene, 1200).then(() => pick);
-  }
+/**
+ * Choosing one of several things laid out across the screen: arrows and E, 1 to n, or the mouse. The other side's
+ * choice (Jack: it looked like yours) is made after a moment: the rest greyed out, "Enemy selected:" over theirs.
+ */
+export function choose(scene: Phaser.Scene, boxes: { x: number; y: number; w: number; h: number }[], onHover: (i: number) => void, mine: boolean, pick: number, layer?: Phaser.GameObjects.Container): Promise<number> {
+  if (!mine) return enemyPicks(scene, boxes, onHover, pick, layer);
   let at = 0;
   onHover(at);
   return new Promise((resolve) => {
@@ -139,6 +150,29 @@ export function choose(scene: Phaser.Scene, boxes: { x: number; y: number; w: nu
   });
 }
 
+/** The other side picks (Jack): the others greyed out, "Enemy selected:" over theirs, held long enough to read. */
+async function enemyPicks(scene: Phaser.Scene, boxes: { x: number; y: number; w: number; h: number }[], onHover: (i: number) => void, pick: number, layer?: Phaser.GameObjects.Container): Promise<number> {
+  onHover(-1);
+  await wait(scene, 700);
+  onHover(pick);
+  playConfirm(scene);
+  const add = (o: Phaser.GameObjects.GameObject) => (layer ? layer.add(o) : (o as unknown as Phaser.GameObjects.Components.Depth).setDepth?.(120));
+  const grey = scene.add.graphics().setScrollFactor(0).setName('enemyPick');
+  add(grey);
+  boxes.forEach((b, i) => i !== pick && grey.fillStyle(0x000000, 0.7).fillRect(b.x - 1, b.y - 1, b.w + 2, b.h + 2));
+  const b = boxes[pick]!;
+  grey.lineStyle(2, ENEMY, 1).strokeRect(b.x - 2, b.y - 2, b.w + 4, b.h + 4);
+  const tag = new PixelText(scene, 0, 0, 'Enemy selected:', { color: SHADES.shadow }).setScrollFactor(0).setName('enemyPick');
+  const [tw, th] = [tag.width + 8, 12];
+  const [tx, ty] = [Math.round(Math.max(2, Math.min(W - tw - 2, b.x + b.w / 2 - tw / 2))), Math.max(2, b.y - th - 3)];
+  grey.fillStyle(ENEMY, 1).fillRect(tx, ty, tw, th);
+  tag.setPosition(tx + 4, ty + 2);
+  add(tag);
+  await wait(scene, 2000);
+  if (!layer) (grey.destroy(), tag.destroy());
+  return pick;
+}
+
 export async function fade(scene: Phaser.Scene, layer: Phaser.GameObjects.Container): Promise<void> {
   await new Promise<void>((r) => scene.tweens.add({ targets: layer, alpha: 0, duration: 250, onComplete: () => r() }));
   layer.destroy();
@@ -148,7 +182,7 @@ export async function fade(scene: Phaser.Scene, layer: Phaser.GameObjects.Contai
 async function pickAdviser(scene: Phaser.Scene, mine: boolean, pick: Adviser): Promise<Adviser> {
   const layer = overlay(scene);
   playSound(scene, 'diviner', 0.5);
-  text(scene, layer, 14, mine ? 'Who will you hear?' : 'The rising hold an audience...', SHADES.white, 2);
+  text(scene, layer, 14, mine ? 'Who will you hear?' : 'The enemy hold an audience', mine ? SHADES.white : ENEMY, 2);
   const boxes = ADVISERS.map((_, i) => ({ x: 24 + i * 148, y: 46, w: 136, h: 168 }));
   // (Behind the faces, over the shade.)
   const frame = scene.add.graphics().setScrollFactor(0);
@@ -156,11 +190,12 @@ async function pickAdviser(scene: Phaser.Scene, mine: boolean, pick: Adviser): P
   ADVISERS.forEach((a, i) => {
     const b = boxes[i]!;
     const cx = b.x + b.w / 2;
+    const [aName, aSays] = mine ? [a.name, a.says] : a.who === 'townsfolk' ? ['The rebels', 'Want rallying'] : a.who === 'accountant' ? [a.name, 'Weighs their gold'] : [a.name, a.says];
     if (a.who === 'townsfolk') FOLK.forEach((f, j) => image(scene, layer, `riot-folk-${j}`, f, cx - 34 + j * 34, b.y + 22 + (j === 1 ? -6 : 6), 1.3));
     else image(scene, layer, `riot-${a.who}`, a.who === 'accountant' ? ACCOUNTANT : COMMANDER, cx, b.y + 8, 2);
-    const name = new PixelText(scene, 0, b.y + b.h - 34, a.name, { color: SHADES.white, shadow: SHADES.shadow }).setScrollFactor(0);
+    const name = new PixelText(scene, 0, b.y + b.h - 34, aName, { color: SHADES.white, shadow: SHADES.shadow }).setScrollFactor(0);
     name.setX(Math.round(cx - name.width / 2));
-    const says = new PixelText(scene, 0, b.y + b.h - 22, a.says, { color: SHADES.dim, shadow: SHADES.shadow }).setScrollFactor(0);
+    const says = new PixelText(scene, 0, b.y + b.h - 22, aSays, { color: SHADES.dim, shadow: SHADES.shadow }).setScrollFactor(0);
     says.setX(Math.round(cx - says.width / 2));
     const key = new PixelText(scene, b.x + 4, b.y + 4, String(i + 1), { color: SHADES.dim, shadow: SHADES.shadow }).setScrollFactor(0);
     layer.add([name, says, key]);
@@ -168,11 +203,11 @@ async function pickAdviser(scene: Phaser.Scene, mine: boolean, pick: Adviser): P
   const hover = (at: number) => {
     frame.clear();
     boxes.forEach((b, i) => {
-      frame.fillStyle(i === at ? SHADES.cyanDeep : SHADES.deep, 0.6).fillRect(b.x, b.y, b.w, b.h);
+      frame.fillStyle(i === at ? (mine ? SHADES.cyanDeep : SHADES.amberDeep) : SHADES.deep, 0.6).fillRect(b.x, b.y, b.w, b.h);
       frame.lineStyle(1, i === at ? SHADES.light : SHADES.dim, 1).strokeRect(b.x, b.y, b.w, b.h);
     });
   };
-  const i = await choose(scene, boxes, hover, mine, ADVISERS.findIndex((a) => a.who === pick));
+  const i = await choose(scene, boxes, hover, mine, ADVISERS.findIndex((a) => a.who === pick), layer);
   await fade(scene, layer);
   return ADVISERS[i]!.who;
 }
@@ -225,12 +260,52 @@ async function townsfolk(scene: Phaser.Scene, mine: boolean, pick: number, decid
   const layer = overlay(scene, 0.92);
   const g = scene.add.graphics().setScrollFactor(0);
   layer.add(g);
-  // The square at night: lamps, the stage.
-  g.fillStyle(SHADES.deep, 1).fillRect(0, 120, W, 150);
-  for (const x of [40, 440]) g.fillStyle(SHADES.wood, 1).fillRect(x, 70, 3, 60).fillStyle(SHADES.amber, 1).fillCircle(x + 1, 68, 4);
-  g.fillStyle(SHADES.wood, 1).fillRect(W / 2 - 50, 96, 101, 10).fillStyle(SHADES.woodLight, 1).fillRect(W / 2 - 50, 96, 101, 2); // the stage
-  const you = image(scene, layer, 'riot-stage-you', PRINCE.idle[0]!, W / 2, 96 - PRINCE.idle[0]!.rows.length * 2, 2);
-  void you;
+  if (mine) {
+    // The square at night: lamps, the stage.
+    g.fillStyle(SHADES.deep, 1).fillRect(0, 120, W, 150);
+    for (const x of [40, 440]) g.fillStyle(SHADES.wood, 1).fillRect(x, 70, 3, 60).fillStyle(SHADES.amber, 1).fillCircle(x + 1, 68, 4);
+    g.fillStyle(SHADES.wood, 1).fillRect(W / 2 - 50, 96, 101, 10).fillStyle(SHADES.woodLight, 1).fillRect(W / 2 - 50, 96, 101, 2); // the stage
+    image(scene, layer, 'riot-stage-you', PRINCE.idle[0]!, W / 2, 96 - PRINCE.idle[0]!.rows.length * 2, 2);
+  } else {
+    // Their camp (Jack: the rebels, rallied at a campsite, not a town): trees black against the night, tents, the
+    // fire, and their leader up on a stump beside it.
+    g.fillStyle(0x141a24, 1).fillRect(0, 0, W, 120);
+    for (let i = 0; i < 30; i++) g.fillStyle(SHADES.light, 0.5).fillRect((i * 97) % W, (i * 37) % 70, 1, 1); // stars
+    g.fillStyle(SHADES.deep, 1).fillRect(0, 120, W, 150);
+    for (let i = 0; i < 12; i++) {
+      const x = 10 + i * 42 + (i % 3) * 7;
+      const h = 50 + (i % 4) * 12;
+      g.fillStyle(SHADES.shadow, 1).fillTriangle(x - 16, 124, x + 16, 124, x, 124 - h).fillRect(x - 2, 118, 4, 8);
+    }
+    for (const [x, w] of [[70, 56], [390, 60], [150, 40], [320, 44]] as const) {
+      g.fillStyle(SHADES.woodPale, 1).fillTriangle(x - w / 2, 132, x + w / 2, 132, x, 132 - w * 0.6);
+      g.fillStyle(SHADES.amberDeep, 1).fillTriangle(x - 4, 132, x + 4, 132, x, 132 - w * 0.3); // the flap, lit from inside
+      g.lineStyle(1, SHADES.wood, 1).lineBetween(x, 132 - w * 0.6, x, 132 - w * 0.6 - 6);
+    }
+    // Their ragged banner on a pole.
+    g.fillStyle(SHADES.woodPale, 1).fillRect(W / 2 + 46, 52, 2, 66);
+    g.fillStyle(SHADES.amber, 1).fillRect(W / 2 + 48, 54, 22, 14).fillStyle(SHADES.amberDeep, 1).fillRect(W / 2 + 48, 62, 22, 2);
+    // The stump, and him on it.
+    g.fillStyle(SHADES.wood, 1).fillRect(W / 2 - 14, 98, 29, 14).fillStyle(SHADES.woodLight, 1).fillRect(W / 2 - 14, 98, 29, 2);
+    const f = courtlyFrames({ ...CITIZEN_LOOKS[2]!, pose: 'front' }).idle[0]!;
+    image(scene, layer, 'riot-rebel-leader', f, W / 2, 98 - f.rows.length * 2, 2);
+    // The fire: logs, flames that flicker, a glow on everything.
+    const fire = scene.add.graphics().setScrollFactor(0);
+    layer.add(fire);
+    const [fx, fy] = [W / 2 - 46, 130];
+    const flicker = () => {
+      fire.clear();
+      fire.fillStyle(SHADES.amber, 0.08 + Math.random() * 0.04).fillCircle(fx, fy - 6, 46);
+      fire.fillStyle(SHADES.wood, 1).fillRect(fx - 10, fy - 2, 21, 3);
+      for (let k = 0; k < 5; k++) {
+        const h = 8 + Math.random() * 10;
+        fire.fillStyle(k % 2 ? SHADES.amber : SHADES.white, 1).fillTriangle(fx - 8 + k * 4, fy - 1, fx - 4 + k * 4, fy - 1, fx - 6 + k * 4, fy - 1 - h);
+      }
+    };
+    flicker();
+    const flames = scene.time.addEvent({ delay: 110, loop: true, callback: flicker });
+    layer.once('destroy', () => flames.remove());
+  }
   // The crowd.
   const crowd: Phaser.GameObjects.Image[] = [];
   for (let i = 0; i < 22; i++) {
@@ -242,15 +317,16 @@ async function townsfolk(scene: Phaser.Scene, mine: boolean, pick: number, decid
     crowd.push(img);
     layer.add(img);
   }
-  const ask = text(scene, layer, 8, mine ? 'The townsfolk wait. What do you tell them?' : 'The rising speak to their people...', SHADES.white);
+  const ask = text(scene, layer, 8, mine ? 'The townsfolk wait. What do you tell them?' : 'The enemy rally the rebels round the fire', mine ? SHADES.white : ENEMY);
   // Four things to say.
-  const lines = SPEECHES.map((s, i) => {
+  const lines = (mine ? SPEECHES : REBEL_SPEECHES).map((s, i) => {
     const t = new PixelText(scene, 30, 178 + i * 20, `${i + 1}. ${s}`, { color: SHADES.light, shadow: SHADES.shadow }).setScrollFactor(0);
     layer.add(t);
     return t;
   });
   const boxes = lines.map((t) => ({ x: 24, y: t.y - 3, w: W - 48, h: 16 }));
-  const i = await choose(scene, boxes, (at) => lines.forEach((t, j) => t.setColor(j === at ? SHADES.white : SHADES.dim)), mine, pick);
+  const i = await choose(scene, boxes, (at) => lines.forEach((t, j) => t.setColor(j === at ? SHADES.white : SHADES.dim)), mine, pick, layer);
+  for (const o of layer.list.filter((x) => x.name === 'enemyPick')) o.destroy();
   for (const [j, t] of lines.entries()) if (j !== i) t.setVisible(false);
   const said = lines[i]!;
   ask.setVisible(false);
@@ -267,7 +343,7 @@ async function townsfolk(scene: Phaser.Scene, mine: boolean, pick: number, decid
   }
   await wait(scene, 900);
   const who = mine ? 'your' : 'their';
-  text(scene, layer, 196, good ? 'They cheer!' : 'They mutter, and turn away.', good ? SHADES.amber : SHADES.dim, 2);
+  text(scene, layer, 196, good ? (mine ? 'They cheer!' : 'The rebels roar!') : 'They mutter, and turn away.', good ? SHADES.amber : SHADES.dim, 2);
   text(scene, layer, 220, good ? `Morale up, and ${who} bases make 1 more a turn, for ${turns.output} turns.` : `Morale down, and ${who} bases make 1 less a turn, for ${turns.slump} turns.`, SHADES.white);
   await untilPressed(scene, mine, 0, layer);
   await fade(scene, layer);

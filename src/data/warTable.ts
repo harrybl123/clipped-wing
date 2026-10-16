@@ -1,4 +1,4 @@
-import { ARCHITECT, AUDIENCE, BARRACKS, BROTHEL, CHURCH, CLASH, ELITE_SQUAD, MYSTERY, REBEL, RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type RisingStyle, type Side } from '../systems/Riot';
+import { ARCHITECT, AUDIENCE, BARRACKS, CHURCH, CLASH, ELITE_SQUAD, MYSTERY, REBEL, RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type RisingStyle, type Side } from '../systems/Riot';
 
 // The war table's maps and games (Chapter 3; the game: src/systems/Riot.ts, its design and how it was
 // tuned: docs/sequences/chapter-3/war-table.md). Day 2: the lesson in the simulation room (you're the rising,
@@ -304,9 +304,11 @@ export const SKIRMISH_WIDE: RiotBoard = {
   places: CASTLE_BOARD.places.map((p): RiotPlace => {
     const moved: Record<string, Partial<RiotPlace>> = {
       keep: { y: 54, heart: undefined, lifts: true, up: true },
-      postern: { x: 338, y: 76 },
-      yard: { x: 462, y: 76 },
-      gate: { y: 108 },
+      // (The west wall's streets to the postern and the gatehouse, and the east wall's, spread apart: Jack, they
+      // ran too close together to tell apart with everyone on the board.)
+      postern: { x: 338, y: 62 },
+      yard: { x: 462, y: 62 },
+      gate: { y: 136 },
       camp: { name: 'The hideout', y: 392, heart: true, lifts: undefined, up: undefined },
       crossroads: { y: 312 },
       farms: { x: 338, y: 372 },
@@ -364,13 +366,14 @@ export const RIOTS: Record<string, RiotScenario | LessonScenario | DuelScenario>
     squads: SKIRMISH_START,
     skirmish: true,
     views: { in: SKIRMISH_WIDE, out: SKIRMISH_BOARD },
-    // More going on (Jack: it was a bit boring): two things on the map at once, and each more often and sooner.
     rules: {
-      rumble: RUMBLE, elites: { ...ELITE_SQUAD, once: false, hero: { ...ELITE_SQUAD.hero, lasts: 5 } }, clash: CLASH,
-      mystery: { ...MYSTERY, from: 3, chance: 0.4 }, brothel: { ...BROTHEL, from: 3, chance: 0.3 }, audience: { ...AUDIENCE, from: 4, chance: 0.3 },
-      church: { ...CHURCH, from: 5, chance: 0.15 }, barracks: { ...BARRACKS, from: 4, chance: 0.25 }, architect: ARCHITECT, tokensAtOnce: 2,
-      rebel: REBEL, homeGrowth: true, baseMakes: 2,
-      // Two towers each, out on the flanks (Jack), three streets from home: each makes 1 a turn for whoever holds it.
-      towers: { guard: ['mill', 'orchards'], rising: ['marsh', 'quarry'], makes: 1, walls: 1 }, clashOutput: { by: 1, turns: 3 }, dawn: 100000, shakeUp: { every: 6, trickster: 0.25 }, baseLoss: true },
+      elites: { ...ELITE_SQUAD, once: false, hero: { ...ELITE_SQUAD.hero, lasts: 5 } }, clash: CLASH,
+      // (Jack: too many now; one at a time, and one thing out of the blue a turn at most, a middle ground in how often.)
+      rumble: { ...RUMBLE, chance: 0.25 }, mystery: { ...MYSTERY, from: 3, chance: 0.25 }, audience: { ...AUDIENCE, from: 4, chance: 0.2 },
+      church: { ...CHURCH, from: 5, chance: 0.1 }, barracks: { ...BARRACKS, from: 4, chance: 0.2 }, architect: { ...ARCHITECT, chance: 0.2 }, tokensAtOnce: 1,
+      rebel: REBEL, homeGrowth: true, baseMakes: 2, guardsOpen: true,
+      // Two towers each, out on the flanks (Jack), three streets from home: each makes 2 every 4 turns, there, for
+      // whoever holds it (Jack: not 1 every turn). No shake-ups, no brothel (Jack).
+      towers: { guard: ['mill', 'orchards'], rising: ['marsh', 'quarry'], makes: 2, every: 4, walls: 1 }, clashOutput: { by: 1, turns: 3 }, dawn: 100000, baseLoss: true },
   },
 };

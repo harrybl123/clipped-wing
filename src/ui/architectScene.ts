@@ -100,7 +100,7 @@ export async function openArchitect(scene: Phaser.Scene, show: ArchitectShow): P
   layer.add(aha);
   aha.setScale(0.6);
   scene.tweens.add({ targets: aha, scale: 1, duration: 200, ease: 'Back.easeOut' });
-  const ask = new PixelText(scene, 0, top + 26, mine ? 'What shall I build you?' : 'He draws up plans for them...', { color: INK }).setScrollFactor(0);
+  const ask = new PixelText(scene, 0, top + 26, mine ? 'What shall I build you?' : 'He draws up plans for the enemy', { color: INK }).setScrollFactor(0);
   ask.setX(Math.round(W / 2 - ask.width / 2));
   layer.add(ask);
   // The three plans, in ink.
@@ -127,7 +127,7 @@ export async function openArchitect(scene: Phaser.Scene, show: ArchitectShow): P
     frame.clear();
     boxes.forEach((b, i) => frame.lineStyle(i === at ? 2 : 1, i === at ? INK : PAPER_SHADE, 1).strokeRect(b.x, b.y, b.w, b.h));
   };
-  const i = await choose(scene, boxes, hover, mine, show.pick ? BUILDINGS.indexOf(show.pick) : 0);
+  const i = await choose(scene, boxes, hover, mine, show.pick ? BUILDINGS.indexOf(show.pick) : 0, layer);
   playSound(scene, 'paper', 0.6);
   await fade(scene, layer);
   return BUILDINGS[i]!;

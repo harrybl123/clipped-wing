@@ -534,28 +534,21 @@ describe('the war table: the skirmish (Jack, for playtesting)', () => {
   const rules = { ...RIOT_RULES, ...(RIOTS.skirmish as RiotScenario).rules };
   const game = new RiotGame(LOW_DISTRICT_BOARD, rules);
 
-  it('no dawn; a shake-up every 6 turns gives each side a crest (any elite); they come back once gone', () => {
+  it('no dawn, and no shake-ups now (Jack: no need for a random hero or the map changing every few turns); the elite come back once gone', () => {
     let s = game.start([{ side: 'guard', place: 'lifts', strength: 4 }, { side: 'rising', place: 'square', strength: 6 }]);
     let shakes = 0;
-    let tricks = 0;
     for (let i = 0; i < 40; i++) {
       const r = game.turn(s, [], []);
       s = r.state;
       shakes += r.events.filter((e) => e.type === 'shakeUp').length;
-      tricks += r.events.filter((e) => e.type === 'trickster').length;
     }
     expect(game.outcome(s)).toBeNull();
-    expect(shakes).toBe(6);
-    // Each shake-up is a crest: any elite, the hero included (Jack).
-    expect(s.elites.guard.crests + tricks).toBe(6);
-    expect(tricks).toBeGreaterThan(0); // (a quarter of them the trickster instead)
-    expect(game.canDeploy(s, 'guard', 'hero')).toBe(true);
+    expect(shakes).toBe(0);
     // A gift: put in without a crest; gone, it can come back.
     let t: RiotState = { ...game.start([{ side: 'guard', place: 'lifts', strength: 4 }]), elites: { guard: { used: ['hero'], crests: 0, gifts: ['hero'] }, rising: { used: [], crests: 0, gifts: [] } } };
     expect(game.canDeploy(t, 'guard', 'hero')).toBe(true);
     t = game.deploy(t, 'guard', 'hero', 'arch').state;
     expect(game.canDeploy(t, 'guard', 'hero')).toBe(false); // (on the table)
-    expect(game.shakeIn(game.start([]))).toBe(6);
   });
 
   it('take their base and you’ve won; lose yours and you’ve lost', () => {
@@ -1026,31 +1019,68 @@ describe('the war table: towers, and more on the map (Jack)', () => {
   const game = new RiotGame(sc.board, { ...RIOT_RULES, ...sc.rules, rumble: undefined, mystery: undefined, brothel: undefined, audience: undefined, church: undefined, barracks: undefined, elites: undefined, shakeUp: undefined });
   const bases = [{ side: 'guard' as const, place: 'keep', strength: 5 }, { side: 'rising' as const, place: 'camp', strength: 5 }];
 
-  it('each side’s two towers start theirs, and each makes 1 a turn for whoever holds it; each base makes 2', () => {
-    const s = game.start(bases);
+  it('each side’s two towers start theirs, and each makes 2 every 4 turns, there, for whoever holds it (Jack); each base makes 2', () => {
+    let s = game.start(bases);
     expect(game.towersHeld(s, 'guard')).toBe(2);
     expect(game.towersHeld(s, 'rising')).toBe(2);
-    const t = game.turn(s, [], []).state;
-    for (const p of ['mill', 'orchards', 'marsh', 'quarry']) expect(at(t, p)!.strength).toBe(1);
-    expect(at(t, 'keep')!.strength).toBe(7);
-    expect(at(t, 'camp')!.strength).toBe(7);
+    s = game.turn(s, [], []).state;
+    for (const p of ['mill', 'orchards', 'marsh', 'quarry']) expect(at(s, p)).toBeUndefined();
+    expect(at(s, 'keep')!.strength).toBe(7);
+    expect(at(s, 'camp')!.strength).toBe(7);
+    expect(game.towersIn(s)).toBe(2);
+    for (let i = 0; i < 3; i++) s = game.turn(s, [], []).state;
+    for (const p of ['mill', 'orchards', 'marsh', 'quarry']) expect(at(s, p)!.strength).toBe(2);
   });
 
   it('walls +1; taken, it’s "Captured!", and makes men for whoever took it', () => {
     const s = game.start([...bases, { side: 'rising', place: 'mill', strength: 2 }, { side: 'guard', place: 'wtower', strength: 4 }]);
     expect(game.defence(s, 'mill', 2)).toBe(3);
     const r = game.order(s, { squad: at(s, 'wtower')!.id, to: 'mill' });
-    expect(r.events).toContainEqual({ type: 'captured', at: 'mill', side: 'guard' });
+    expect(r.events).toContainEqual({ type: 'captured', at: 'mill', side: 'guard', from: 'wtower' });
     expect(game.towersHeld(s, 'guard')).toBe(1);
     expect(game.towersHeld(r.state, 'guard')).toBe(2);
-    expect(at(game.turn(r.state, [], []).state, 'mill')!.strength).toBe(2);
+    expect(at(game.turn({ ...r.state, turn: 4 }, [], []).state, 'mill')!.strength).toBe(3);
   });
 
-  it('up to two things on the map at once (Jack: more going on)', () => {
-    expect(sc.rules?.tokensAtOnce).toBe(2);
-    const busy = new RiotGame(sc.board, { ...RIOT_RULES, ...sc.rules, brothel: { ...BROTHEL, from: 1, chance: 1 }, audience: { ...AUDIENCE, from: 1, chance: 1 } });
+  it('one thing on the map at a time, and no brothel (Jack: too many, and confusing)', () => {
+    expect(sc.rules?.tokensAtOnce).toBe(1);
+    expect(sc.rules?.brothel).toBeUndefined();
+    const busy = new RiotGame(sc.board, { ...RIOT_RULES, ...sc.rules, barracks: { ...BARRACKS, from: 1, chance: 1 }, audience: { ...AUDIENCE, from: 1, chance: 1 } });
     const t = busy.turn(busy.start(bases), [], []).state;
-    expect([t.rumble, t.crest, t.mystery, t.brothel, t.audience, t.church, t.barracks].filter(Boolean)).toHaveLength(2);
+    expect([t.rumble, t.crest, t.mystery, t.brothel, t.audience, t.church, t.barracks, t.architect].filter(Boolean)).toHaveLength(1);
+  });
+
+  it('at most one thing out of the blue a turn (Jack): a prayer due as something appears waits a turn', () => {
+    const busy = new RiotGame(sc.board, { ...RIOT_RULES, ...sc.rules, barracks: { ...BARRACKS, from: 1, chance: 1 } });
+    const s = { ...busy.start(bases), turn: 2, calls: { guard: 2, rising: null } };
+    const r = busy.turn(s, [], []);
+    expect(r.events.some((e) => e.type.endsWith('Appears'))).toBe(true);
+    expect(r.events.some((e) => e.type === 'call')).toBe(false);
+    expect(r.state.calls?.guard).toBe(3);
+  });
+
+  it('anyone can attack the barbarians in the skirmish (Jack: it felt like a bug); in the riot, only a hero', () => {
+    const k = { id: 'k', side: 'rising' as const, place: 'tannery', strength: 2, elite: 'guard3' as const };
+    const s = { ...game.start([...bases, { side: 'guard', place: 'smithy', strength: 5 }]), turn: 5 };
+    s.squads.push(k);
+    expect(game.dests(s, at(s, 'smithy')!)).toContain('tannery');
+    const r = game.order(s, { squad: at(s, 'smithy')!.id, to: 'tannery' });
+    expect(at(r.state, 'tannery')).toMatchObject({ side: 'guard', strength: 3 });
+    const riot = new RiotGame(sc.board, { ...RIOT_RULES, ...sc.rules, guardsOpen: undefined });
+    expect(riot.dests(s, at(s, 'smithy')!)).not.toContain('tannery');
+  });
+
+  it('the rebels go for your base first (Jack): an empty keep next to them, they walk in', () => {
+    const s = game.start([{ side: 'rising', place: 'camp', strength: 5 }, { side: 'rising', place: 'gate', strength: 3 }, { side: 'rising', place: 'market', strength: 9 }]);
+    s.owner.keep = 'guard';
+    const o = game.risingOrders(s);
+    expect(o).toContainEqual(expect.objectContaining({ squad: at(s, 'gate')!.id, to: 'keep' }));
+  });
+
+  it('with the field theirs, the rebels close in on your keep (Jack: their main aim)', () => {
+    const s = game.start([...bases, { side: 'rising', place: 'crossroads', strength: 9 }]);
+    const o = game.risingOrders(s).find((x) => x.squad === at(s, 'crossroads')!.id);
+    expect(o?.to).toBe('bridge');
   });
 });
 
@@ -1109,5 +1139,5 @@ describe('the war table: the architect (Jack)', () => {
     expect(at(r.state, 'postern')).toBeUndefined();
   });
 
-  it('the skirmish has him', () => expect(sc.rules?.architect).toBe(ARCHITECT));
+  it('the skirmish has him', () => expect(sc.rules?.architect).toMatchObject({ artillery: ARCHITECT.artillery, storehouse: ARCHITECT.storehouse, fortress: ARCHITECT.fortress }));
 });

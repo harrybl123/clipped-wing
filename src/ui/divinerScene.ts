@@ -48,7 +48,7 @@ export async function dealCards(scene: Phaser.Scene, deal: DivinerDeal): Promise
   layer.add(face);
   scene.tweens.add({ targets: face, alpha: 1, y: 8, duration: 500, ease: 'Sine.easeOut' });
   const mine = deal.side === deal.you;
-  const line = new PixelText(scene, 0, 130, mine ? '"Choose, and the city chooses with you."' : '"The rising draw..."', { color: SHADES.light, shadow: SHADES.shadow });
+  const line = new PixelText(scene, 0, 130, mine ? '"Choose, and the city chooses with you."' : '"The enemy draw..."', { color: SHADES.light, shadow: SHADES.shadow });
   line.setX(Math.round((W - line.width) / 2));
   layer.add(line);
   const hint = new PixelText(scene, 0, 144, mine ? 'Pick a card' : '', { color: SHADES.dim, shadow: SHADES.shadow });
