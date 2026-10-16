@@ -37,8 +37,13 @@ Someone's on your couch, eating your breakfast.
     "Every screen in the city's got that face on it. Your father's hand on your shoulder." #speaker:heir
     "You looked like you'd swallowed a wasp." #speaker:heir
 }
-"I'm bored. The whole city's holding its breath. Show me something." #speaker:heir
-Something nobody's seen. Your father's at the council all morning.
+"So. What should we do?" #speaker:heir
+{ spar4 == "lost":
+    "Not sparring. I've beaten you once, I'm not risking it again." #speaker:heir
+- else:
+    "Not sparring. I'm sick of being beaten up by you." #speaker:heir
+}
+Your father's at the council all morning. And you know something nobody else does.
 "Come with me." #speaker:prince
 ~ c3day6 = "friend"
 ~ heir_with_you = true
@@ -87,8 +92,10 @@ The points of light go on and on into the dark. Your friend turns round slowly, 
     -> END
 }
 You put your hands on the table, and it lights under them: the crag, before there was a citadel on it. The old castle, and an army round it.
-"The siege of the crag. My great-great-something held it through a winter. Every child in this family's played it." #speaker:prince
-"You want to play me at your family's own game?" #speaker:heir
+"The siege of the crag. The story goes my great-great-something held it through a whole winter, and then marched out and took their camp." #speaker:prince
+"The bedtime story? Your father's told it at every banquet since we were six." #speaker:heir
+"It's on here. All of it. I only found out the other day." #speaker:prince
+"Then let's see if it's true." #speaker:heir
 "I'll give you the bigger army." #speaker:prince
 "Then I'll take it." #speaker:heir
 He comes round to the other side of the table, rubbing his hands.
@@ -477,7 +484,9 @@ Your sister. She told you she'd found a gap in the guard on the sealed wing: the
 ~ gallery6 = true
 Along the gallery, your sister, her shoes in her hand.
 Where the night guard stands at your father's door, nobody. The change of the guard.
-If she sees you, she'll go straight back to bed, and you'll never know.
+She doesn't look back. She slips into the study, and the door doesn't quite close behind her. #leave:sister-6n:250:30
+~ sister_hall6 = true
+If she sees you following, she'll go straight back to bed, and you'll never know.
 -> END
 
 // The study, dark, and the door to the sealed wing.

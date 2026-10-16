@@ -146,14 +146,9 @@ export const citadelHalls: AreaDefinition = {
     ...P.addressScreens(76, 46, C - 38, TOP + 14),
     // Day 6: coming out of the banquet, your hand's door opens up on the gallery (clue 6).
     { type: 'trigger', x: 660, y: FLOOR, reach: 14, knot: 'c3day6_office', showIf: 'c3day6=office', hideIf: 'office6' },
-    // Day 6's night: out of your door at the third bell, your sister along the gallery to your father's study.
-    // She stops and looks back twice; stand back in your own doorway (designer: gentle; she mustn't be caught either).
+    // Day 6's night: out of your door at the third bell, you see your sister slip along the gallery into your
+    // father's study (the tail itself is in the sealed wing).
     { type: 'trigger', x: 104, y: UPPER, reach: 14, knot: 'c3day6_gallery', showIf: 'c3day6=follow', hideIf: 'gallery6' },
-    {
-      type: 'quarry', people: ['sister-6n'], y: UPPER, speed: 16, range: 90, lose: 170, reset: { x: 100, y: UPPER }, showIf: 'c3day6=follow', done: 'sister_hall6', seen: "Who's there?",
-      path: [{ x: 150 }, { x: 196, wait: 1600, look: true }, { x: 236, wait: 1200, look: true }, { x: 252 }],
-    },
-    { type: 'shadow', x: 88, y: UPPER, width: 24, showIf: 'c3day6=follow' }, // your own doorway
   ],
   people: [
     // The guards on the audience hall's great doors, always.
@@ -207,7 +202,7 @@ export const citadelHalls: AreaDefinition = {
     inStory('commander-6', 'commander', 694, UPPER, 'c3day6=office', { hidden: true }),
     inStory('engineer-6', 'engineer', 706, UPPER, 'c3day6=office', { hidden: true }),
     inStory('hand-6h', 'diplomat', 714, UPPER, 'c3day6=office', { hidden: true, flipX: true }),
-    inStory('sister-6n', 'sister', 150, UPPER, 'c3day6=follow', { hideIf: 'sister_hall6' }),
+    inStory('sister-6n', 'sister', 170, UPPER, 'c3day6=follow', { hideIf: 'sister_hall6' }),
   ],
   interactables: [
     { id: 'statue', x: 206, y: FLOOR, reach: 14, label: 'Look', knot: 'halls_statue' },

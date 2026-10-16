@@ -54,19 +54,24 @@ export const sealedWing: AreaDefinition = {
     // The gold runs out as you go.
     { sprite: P.rug(140), x: 18, y: FLOOR - 3 },
     { sprite: P.STATUE, x: 92, y: FLOOR - 46 },
+    // Old doors from the castle, locked for good, set back in the wall.
+    { sprite: P.closedDoor(26, 46), x: 210, y: FLOOR - 46 },
+    { sprite: P.closedDoor(26, 46), x: 334, y: FLOOR - 46 },
     // The door.
     { sprite: P.SEALED_DOOR, x: 502, y: FLOOR - 68 },
   ],
 
   features: [
-    // Chapter 3, Day 6's night: following your sister down the corridor (she looks back twice: behind the statue,
-    // or in the dark where the cables come down); then the door.
+    // Chapter 3, Day 6's night: following your sister down the corridor (designer: the first try didn't work).
+    // She looks back three times, each when you're about level with a hiding place behind you: the statue, then
+    // the recess of each old door. Keep up between them; when she stops, get into the dark.
     {
-      type: 'quarry', people: ['sister-6w'], y: FLOOR, speed: 16, range: 90, lose: 200, reset: { x: 40, y: FLOOR }, showIf: 'c3day6=sealed', done: 'sister_wing6', seen: "Who's there?",
-      path: [{ x: 132 }, { x: 220, wait: 1800, look: true }, { x: 330 }, { x: 400, wait: 1800, look: true }, { x: 470 }],
+      type: 'quarry', people: ['sister-6w'], y: FLOOR, speed: 18, range: 160, lose: 200, reset: { x: 40, y: FLOOR }, showIf: 'c3day6=sealed', done: 'sister_wing6', seen: "Who's there?",
+      path: [{ x: 150 }, { x: 186, wait: 1800, look: true }, { x: 300, wait: 1800, look: true }, { x: 424, wait: 2000, look: true }, { x: 486 }],
     },
-    { type: 'shadow', x: 84, y: FLOOR, width: 26, showIf: 'c3day6=sealed' }, // behind the statue
-    { type: 'shadow', x: 292, y: FLOOR, width: 22, showIf: 'c3day6=sealed' }, // the dark where the cables come down
+    { type: 'shadow', x: 82, y: FLOOR, width: 30, showIf: 'c3day6=sealed' }, // behind the statue
+    { type: 'shadow', x: 208, y: FLOOR, width: 30, showIf: 'c3day6=sealed' }, // the first old door's recess
+    { type: 'shadow', x: 332, y: FLOOR, width: 30, showIf: 'c3day6=sealed' }, // the second's
     { type: 'trigger', x: 430, y: FLOOR, reach: 20, knot: 'c3day6_door', showIf: 'sister_wing6', hideIf: 'door6' },
     // Light running along the cables into the door.
     { type: 'pulse', points: [{ x: 16, y: TOP + 4 }, { x: 500, y: TOP + 4 }, { x: 500, y: FLOOR - 68 }], speed: 150, every: 700, count: 3, colour: S.cyan },
@@ -75,7 +80,7 @@ export const sealedWing: AreaDefinition = {
   people: [
     guard('door-guard', 0, 472, FLOOR, 'c3_guard_sealed', undefined, { flipX: true, hideIf: 'c3day6=follow,sealed' }), // (not at the change of the guard)
     // Chapter 3, Day 6's night: your sister, ahead of you down the corridor; then at the door, her hand on it.
-    inStory('sister-6w', 'sister', 132, FLOOR, 'c3day6=sealed', { hideIf: 'sister_wing6' }),
+    inStory('sister-6w', 'sister', 150, FLOOR, 'c3day6=sealed', { hideIf: 'sister_wing6' }),
     inStory('sister-6d', 'sister', 488, FLOOR, 'sister_wing6', { hideIf: 'c3day6=done' }),
     // At night, your father, at the door.
     cast('father', 522, FLOOR, { knot: 'sealed_father', when: ['night'], flipX: true }),
