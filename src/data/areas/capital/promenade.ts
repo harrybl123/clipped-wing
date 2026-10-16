@@ -154,10 +154,10 @@ export const promenade: AreaDefinition = {
     citizen('cook-1', 1, 346, FLOOR, 'promenade_cook', AWAKE, { hideIf: 'c3day4=square' }),
     citizen('cook-2', 10, 460, FLOOR, 'promenade_cook', AWAKE, { flipX: true, hideIf: 'c3day4=square' }),
     // The square: people about their business, a kid, someone resting by the bench.
-    strollingCitizen('passer-1', 0, 60, 560, FLOOR, 'promenade_folk', AWAKE, { hideIf: ['c3day4=square', 'c3day5=speech'] }),
-    strollingCitizen('passer-2', 5, 220, 580, FLOOR, 'promenade_folk', DAY, { hideIf: 'c3day5=speech' }),
+    strollingCitizen('passer-1', 0, 60, 560, FLOOR, 'promenade_folk', AWAKE, { hideIf: ['c3day4=square', 'c3day5=speech', 'c3day8=speech,answer,city'] }),
+    strollingCitizen('passer-2', 5, 220, 580, FLOOR, 'promenade_folk', DAY, { hideIf: ['c3day5=speech', 'c3day8=speech,answer,city'] }),
     strollingCitizen('passer-3', 12, 80, 300, FLOOR, 'promenade_folk', ['afternoon', 'evening'], { hideIf: 'c3day4=square' }),
-    strollingCitizen('kid', 6, 300, 520, FLOOR, 'c3_kid', DAY, { hideIf: 'c3day5=speech' }),
+    strollingCitizen('kid', 6, 300, 520, FLOOR, 'c3_kid', DAY, { hideIf: ['c3day5=speech', 'c3day8=speech,answer,city'] }),
     citizen('resting', 3, 404, FLOOR, 'c3_old', ['afternoon']),
     // Shoppers along the walkway and under it.
     citizen('shopper-1', 8, 650, WALK, 'promenade_shopper', AWAKE, { hideIf: 'c3day4=square' }),
@@ -174,6 +174,9 @@ export const promenade: AreaDefinition = {
     // Day 5, the address (a cutaway): the morning's shoppers stopped under the great screen, bags down.
     ...([[372, 4], [388, 8], [404, 11], [424, 1], [440, 13], [456, 6]] as const).map(([x, look], i) =>
       citizen(`prom-5${'abcdef'[i]}`, look, x, FLOOR, 'c3day5_watching', undefined, { showIf: 'c3day5=speech', flipX: x > 410 })),
+    // Day 8, the broadcast (cutaways): the shoppers under the great screen again, a child lifted up to see.
+    ...([[364, 4], [380, 8], [396, 13], [424, 1], [440, 11], [456, 6]] as const).map(([x, look], i) =>
+      citizen(`prom-8${'abcdef'[i]}`, look, x, FLOOR, 'c3day8_watching', undefined, { showIf: 'c3day8=speech,answer,city', flipX: x > 410 })),
     cast('painter', 250, FLOOR, { knot: 'promenade_painter', when: MORNING }),
     cast('envoy', 250, FLOOR, { id: 'envoy-evening', knot: 'promenade_envoy', when: ['evening'] }),
     // Chapter 3's story. Day 1: a city worker scrubbing the chalk wing, one of your guards close by; your hand with you.
@@ -184,6 +187,7 @@ export const promenade: AreaDefinition = {
     watch('post-1', 0, 196, FLOOR, 'c3_watch', undefined, { showIf: 'c3day1=walk,requests' }),
     watch('post-2', 1, 210, FLOOR, 'c3_watch', undefined, { showIf: 'c3day1=walk,requests', flipX: true }),
     inStory('hand', 'diplomat', 40, FLOOR, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
+    inStory('heir-f', 'heir', 44, FLOOR, 'heir_with_you', { follow: true, knot: 'c3day7_heir_walk' }),
     // Day 2, below at night (if the upper city went without): people who know you, and the painter by a dead lamp.
     citizen('cold-2', 5, 250, FLOOR, 'c3day2_cold', undefined, { showIf: 'c3day2=below', hideIf: 'energy=high' }),
     citizen('stairs-2', 3, 360, FLOOR, 'c3day2_stairs', undefined, { showIf: 'c3day2=below', hideIf: 'energy=high', flipX: true }),
@@ -193,7 +197,7 @@ export const promenade: AreaDefinition = {
     ...riotSquare('reformer', 'riot_leader=firebrand', FLOOR),
   ],
   interactables: [
-    { id: 'screen', x: 410, y: FLOOR, reach: 10, label: 'Look', knot: 'promenade_screen', hideIf: 'c3day5=speech' },
+    { id: 'screen', x: 410, y: FLOOR, reach: 10, label: 'Look', knot: 'promenade_screen', hideIf: ['c3day5=speech', 'c3day8=speech,answer,city'] },
     { id: 'signs', x: 120, y: FLOOR, reach: 14, label: 'Look', knot: 'promenade_signs' },
     { id: 'view', x: 780, y: WALK, reach: 14, label: 'Look', knot: 'promenade_view' },
   ],

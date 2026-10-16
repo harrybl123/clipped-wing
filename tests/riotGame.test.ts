@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CASTLE_BOARD, DUEL, LESSON, LOW_DISTRICT_BOARD, PROMENADE_BOARD, RIOT_START, RIOTS } from '../src/data/warTable';
+import { CASTLE_BOARD, DUEL, FATHER, FATHER_LIST, FATHER_START, LESSON, LOW_DISTRICT_BOARD, PROMENADE_BOARD, RIOT_START, RIOTS, TRANSFER_LIST } from '../src/data/warTable';
 import { ENCOUNTERS } from '../src/data/combat';
 import { RIOT_RULES, RISING_STYLE, RiotGame, type Order, type RiotState } from '../src/systems/Riot';
 import { besieger, careful, naive, playOut, random, sensible, steady } from '../src/systems/RiotPlayers';
@@ -286,4 +286,39 @@ describe('the war table: Day 6, the duel with your friend (simulated play)', () 
       })).winner).toBe('guard');
     }
   }, 120000);
+});
+
+describe('the war table: Day 8, against your father (simulated play)', () => {
+  const game = new RiotGame(FATHER.board, { ...RIOT_RULES, ...FATHER.rules });
+  // The second game: the list off the table, but for the one you kept.
+  const listed = (kept?: string) => {
+    const off = new Set(TRANSFER_LIST.filter((l) => !l.left && !(l.name && l.name === kept)).map((l) => l.place));
+    const left = new Map(TRANSFER_LIST.filter((l) => l.left).map((l) => [l.place, l.left!]));
+    return FATHER_START.filter((q) => !off.has(q.place)).map((q) =>
+      q.place === TRANSFER_LIST.find((l) => l.name === kept)?.place ? { ...q, strength: FATHER_LIST.kept! } : left.has(q.place) ? { ...q, strength: left.get(q.place)! } : q);
+  };
+
+  it('winnable but difficult (designer): harder than the riot for a first go, which still wins it some of the time; careful play wins', () => {
+    const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const first = seeds.filter((seed) => playOut(game, game.start(FATHER_START, seed), naive()).winner === 'guard').length;
+    expect(first).toBeGreaterThanOrEqual(3);
+    expect(first).toBeLessThanOrEqual(9);
+    for (const seed of [1, 2, 3]) expect(playOut(game, game.start(FATHER_START, seed), careful()).winner).toBe('guard');
+  }, 300000);
+
+  it('with the list off the table, it\u2019s easy, even with one name kept', () => {
+    for (const kept of ['none', 'barkeep', 'kid', 'woman']) {
+      for (const seed of [1, 2, 3, 4, 5, 6]) {
+        const r = playOut(game, game.start(listed(kept), seed), naive());
+        expect(r.winner).toBe('guard');
+        expect(r.state.turn).toBeLessThanOrEqual(6);
+      }
+    }
+  }, 300000);
+
+  it('the list is crowds on the table, and every name you can strike is one of them', () => {
+    for (const l of TRANSFER_LIST) expect(FATHER_START.some((q) => q.side === 'rising' && q.place === l.place)).toBe(true);
+    expect(TRANSFER_LIST.map((l) => l.name).filter(Boolean).sort()).toEqual(['barkeep', 'kid', 'woman']);
+    expect(RIOTS[FATHER.next!]).toBe(FATHER_LIST);
+  });
 });

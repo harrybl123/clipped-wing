@@ -64,6 +64,8 @@ export const simulationRoom: AreaDefinition = {
     // Day 6: your friend with you, then across the table from you; your father in the doorway after, the
     // captain and two of the guard behind him (the story brings them in).
     inStory('heir-f', 'heir', 60, FLOOR, 'heir_with_you', { follow: true, knot: 'c3day6_heir_walk' }),
+    // Day 8: your father at the head of the table, waiting, the district already lit on it.
+    inStory('father-8', 'father', 424, FLOOR, 'c3day8=study,table', { knot: 'c3day8_father', flipX: true }),
     inStory('heir-6s', 'heir', 404, FLOOR, 'c3day6=table,caught', { flipX: true }),
     inStory('father-6s', 'father', 36, FLOOR, 'c3day6=table,caught', { hidden: true }),
     inStory('captain-6s', 'captain', 30, FLOOR, 'c3day6=table,caught', { hidden: true }),

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT as H, GAME_WIDTH as W } from '../config';
-import { RIOTS, type DuelScenario, type LessonScenario, type RiotScenario } from '../data/warTable';
+import { RIOTS, type DuelScenario, type FatherScenario, type LessonScenario, type RiotScenario } from '../data/warTable';
 import { getSession } from '../session';
 import { ELITE_NAMES, ELITES, RIOT_RULES, RISING_STYLE, RiotGame, type Building, type Card, type Elite, type Mystery, type Order, type RiotBoard, type RiotEvent, type RiotPlace, type RiotSquad, type RiotState, type Side } from '../systems/Riot';
 import { besieger, careful, steady, type GuardPlayer } from '../systems/RiotPlayers';
@@ -32,12 +32,14 @@ import type { CombatSceneData } from './CombatScene';
 //   Day 6, the duel (`duel`): the old castle's siege, with your friend, for fun. You hold the keep (the rising's
 //   side of the rules), he has the bigger army (the guard's), played sensibly, his moves shown; take his camp,
 //   keeping your keep, and you've won (designer; no turn limit for now). Either way, back in the room after.
+//   Day 8, your father (`father8`, then `father8_list`): he plays the rising, you the guard, the riot's rules
+//   (designer: a game against him, to make a point); then again, the transfer list taken off the table first.
 //
 // The table shows a riot (designer): the district's streets in light; the rising's squads amber circles, with
 // fire and a crowd round them; the guard's blue shields; a key at the top says who's who, and which is you.
 // Controls (the old table's): pick a squad of yours (E or click), the arrows step round where it can go, E or
-// click to send it (its own place to hold); Esc or right-click backs out; Tab to the next squad; Enter (or the
-// button) ends the turn. Undo (or U) takes back your last order, one at a time (designer). Buttons under the
+// click to send it (its own place to hold), and Enter does what E does; Esc or right-click backs out; Tab to the
+// next squad; Space (or the button) ends the turn. Undo (or U) takes back your last order, one at a time (designer). Buttons under the
 // circles (Jack: easier to play): with a squad picked up, Fortify (or F) digs it in for the turn and puts it
 // down, so you can pick up the next (once every 3 turns, like the power cut); Unfortify sits under every
 // squad that's dug in. As the guard, click one
@@ -89,7 +91,7 @@ let carriedMusic: TableMusic | undefined;
 
 export class RiotTableScene extends Phaser.Scene {
   private params!: RiotTableSceneData;
-  private sc!: RiotScenario | LessonScenario | DuelScenario;
+  private sc!: RiotScenario | LessonScenario | DuelScenario | FatherScenario;
   private g!: RiotGame;
   private state!: RiotState;
   /** Which side is yours, and the computer's. */
@@ -187,7 +189,7 @@ export class RiotTableScene extends Phaser.Scene {
     // View mode (Jack): zoomed out (all on the screen) or in (bigger, dragged round), where there's both.
     this.view_ = data.view ?? savedView();
     this.sc = sc.kind === 'riot' && sc.views ? { ...sc, board: sc.views[this.view_] } : sc;
-    this.you = sc.kind === 'riot' ? 'guard' : 'rising';
+    this.you = sc.kind === 'riot' || sc.kind === 'father' ? 'guard' : 'rising';
     this.phase = sc.kind === 'lesson' ? (data.phase ?? 'lesson') : sc.kind === 'duel' ? 'duel' : 'riot';
     this.g = new RiotGame(this.sc.board, { ...RIOT_RULES, ...sc.rules });
     if (sc.kind === 'duel') this.g.style = { ...RISING_STYLE, ...sc.style };
@@ -261,6 +263,7 @@ export class RiotTableScene extends Phaser.Scene {
       // (Back from switching view mode: carry on where you were.)
       if (this.params.resume) return void ((this.busy = false), this.draw());
       if (sc.kind === 'riot' && sc.skirmish) this.startTurn();
+      else if (sc.kind === 'father') this.talk(sc.knots.intro, () => void this.sendAway(sc).then(() => this.startTurn()));
       else if (sc.kind === 'riot' || sc.kind === 'duel') this.talk(sc.knots.intro, () => this.startTurn());
       else if (this.phase === 'now') this.talk(sc.knots.good, () => this.turnItOn());
       else this.talk(sc.knots.intro, () => this.talk(sc.goals[0]!.start, () => this.startTurn()));
@@ -1292,6 +1295,7 @@ export class RiotTableScene extends Phaser.Scene {
     if (sc.kind === 'lesson') return this.switchOff();
     if (sc.kind === 'riot' && sc.skirmish) return this.skirmishOver(true);
     if (sc.kind === 'duel') return this.duelOver(sc, false);
+    if (sc.kind === 'father') return this.fatherOver(sc, true);
     this.busy = true;
     const { story } = getSession(this);
     if (!this.fatherPlaying) story.setVariable('riot_table', 'won');
@@ -1325,6 +1329,7 @@ export class RiotTableScene extends Phaser.Scene {
   /** Dawn, and the square's still theirs: your father comes in, and takes the table from you (designer). */
   private dawn(): void {
     if (this.sc.kind === 'duel') return this.duelOver(this.sc, true);
+    if (this.sc.kind === 'father') return this.fatherOver(this.sc, false);
     const sc = this.sc as RiotScenario;
     if (sc.skirmish) return this.skirmishOver(false);
     this.busy = true;
@@ -1351,6 +1356,53 @@ export class RiotTableScene extends Phaser.Scene {
     if (won) return out();
     this.dialogue.openMenu(keepTaken ? 'He\u2019s taken the keep.' : 'Dawn, and his camp\u2019s still standing.', [
       { label: 'Play it again', run: () => this.leave(() => this.scene.restart({ ...this.params, phase: undefined, resume: undefined } satisfies RiotTableSceneData)) },
+      { label: 'Go on', run: () => this.time.delayedCall(150, out) },
+    ]);
+  }
+
+  /**
+   * Day 8, the second game: the transfer list comes off the table before it starts (designer: his point), one
+   * crowd at a time, all but the one you struck off it, which stays, and grows.
+   */
+  private async sendAway(sc: FatherScenario): Promise<void> {
+    if (!sc.list) return;
+    const struck = String(getSession(this).story.getVariable('struck') ?? '');
+    await this.wait(300);
+    for (const { place, name, left } of sc.list) {
+      const p = this.place(place);
+      const q = this.g.squadAt(this.state, place);
+      if (!q) continue;
+      if (name && name === struck) continue;
+      playSound(this, 'boots', 0.4);
+      this.pop(p, 'Sent away', SHADES.white);
+      const squads = left ? this.state.squads.map((x) => (x.id === q.id ? { ...x, strength: left } : x)) : this.state.squads.filter((x) => x.id !== q.id);
+      this.state = { ...this.state, squads };
+      this.draw();
+      await this.wait(650);
+    }
+    const kept = sc.list.find((l) => l.name && l.name === struck);
+    if (kept) {
+      const p = this.place(kept.place);
+      this.state = { ...this.state, squads: this.state.squads.map((x) => (x.place === kept.place ? { ...x, strength: sc.kept ?? x.strength } : x)) };
+      this.pop(p, 'Kept', AMBER);
+      this.draw();
+      await this.wait(900);
+    }
+  }
+
+  /** Day 8: a game against your father over (the square yours, or dawn first); then the next, or back in the room. */
+  private fatherOver(sc: FatherScenario, won: boolean): void {
+    this.busy = true;
+    this.draw();
+    getSession(this).story.setVariable(sc.result, won ? 'won' : 'lost');
+    const after = () => {
+      if (sc.next) return this.leave(() => this.scene.restart({ ...this.params, scenario: sc.next!, phase: undefined } satisfies RiotTableSceneData));
+      this.leave(() => this.scene.start('Area', { ...this.params.back, script: sc.knots.after } satisfies AreaSceneData));
+    };
+    const out = () => this.talk(won ? sc.knots.won : sc.knots.lost, after);
+    if (won) return out();
+    this.dialogue.openMenu('Dawn. The square\u2019s still theirs.', [
+      { label: 'Play it again', run: () => this.leave(() => this.scene.restart({ ...this.params, phase: undefined } satisfies RiotTableSceneData)) },
       { label: 'Go on', run: () => this.time.delayedCall(150, out) },
     ]);
   }
@@ -1387,7 +1439,8 @@ export class RiotTableScene extends Phaser.Scene {
       this.draw();
       return;
     }
-    if (e.key === 'e' || e.key === 'E') return this.choose(this.cursor);
+    // Enter does what E does (designer, for the whole game); Space ends the turn.
+    if (e.key === 'e' || e.key === 'E' || e.key === 'Enter') return this.choose(this.cursor);
     if (e.key === 'Escape') return this.back();
     if (e.key === 'u' || e.key === 'U') return this.undo();
     if (e.key === 'v' || e.key === 'V') return this.switchView();
@@ -1398,7 +1451,7 @@ export class RiotTableScene extends Phaser.Scene {
       e.preventDefault();
       return this.nextSquad();
     }
-    if (e.key === 'Enter' && !this.aiming && !this.cutting) void this.endTurn();
+    if (e.key === ' ' && !this.aiming && !this.cutting) void this.endTurn();
   }
 
   private onPointer(p: Phaser.Input.Pointer, down: boolean): void {

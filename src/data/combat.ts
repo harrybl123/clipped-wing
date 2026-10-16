@@ -1324,3 +1324,102 @@ ENCOUNTERS.riot_square = {
   timing: { lunge: 950, ease: 1.2 },
   outcomes: { won: { riot_fight: 'won' }, lost: { riot_fight: 'lost' } },
 };
+
+// --- Chapter 3, Day 7: the gate at night (draft numbers, to playtest) ---
+// Your friend's escape (designer: a normal fight). The commander turns her back, but not all her watch do: a
+// keen young one calls out, and an older one comes. You, hooded in the plain coat so they don't know you, and
+// your friend beside you for the first time instead of across from you.
+
+Object.assign(MOVES, {
+  // Your friend, beside you: quick and showy still, and better than he lets on.
+  heir_cut: {
+    id: 'heir_cut', name: 'Flick', target: 'enemy', power: 6, kind: 'pierce', crit: 0.15,
+    qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    description: 'Basic attack with his blade.',
+  },
+  heir_three: {
+    id: 'heir_three', name: 'One, two, three', target: 'enemy', power: 3, kind: 'strike', sp: 3, hits: 3,
+    qte: { kind: 'notes', outer: 180, perfect: 70, gap: 400, alt: { kind: 'mash', presses: 7, time: 1600 } },
+    combo: { build: 0.25, finisher: true },
+    description: '3 cuts, fast and showy. Land all 3 to knock them off balance.',
+  },
+  heir_showoff: {
+    id: 'heir_showoff', name: 'Over here!', target: 'self', sp: 2, taunts: true,
+    description: 'Spins his blade for them: draws every one of them that hasn’t moved yet onto him, and braces.',
+  },
+
+  // The watch: batons, a lantern, and shouting for more.
+  baton_strike: {
+    id: 'baton_strike', name: 'Baton', target: 'enemy', power: 7, kind: 'strike',
+    qte: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'cockR', lines: ['The baton goes up.', '"Stay where you are!"'] },
+    description: 'A blow with the baton.',
+  },
+  baton_jab: {
+    id: 'baton_jab', name: 'Jab', target: 'enemy', power: 3, kind: 'pierce', hits: 2,
+    qte: { kind: 'notes', outer: 190, perfect: 75, gap: 420, lanes: ['left', 'up', 'right'], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'cock', lines: ['He shortens his grip.', '"Down! Get down!"'] },
+    description: 'Two jabs with the baton’s end.',
+  },
+  lantern_glare: {
+    id: 'lantern_glare', name: 'Lantern', target: 'enemy', power: 2, kind: 'none', blinds: 2,
+    qte: { kind: 'key', time: 750, quick: 280, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    tell: { pose: 'glance', lines: ['He swings his lantern up.', '“Let’s see your face!”'] },
+    description: 'The lantern in your eyes: for 2 rounds, dodging is harder.',
+  },
+  watch_tackle: {
+    id: 'watch_tackle', name: 'Tackle', target: 'enemy', power: 6, kind: 'grab', exposes: { turns: 2, mult: 1.3 },
+    qte: { kind: 'mash', presses: 8, time: 1800, alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'reach', lines: ['He drops his shoulder.', 'He sets himself to rush you.'] },
+    description: 'Bundled to the ground: break free, or take more for 2 rounds.',
+  },
+  watch_whistle: {
+    id: 'watch_whistle', name: 'Whistle', target: 'self', windsUp: 'watch_heavy',
+    tell: { pose: 'glance', lines: ['He gets his whistle to his lips.'] },
+    description: 'Blows for help.',
+  },
+  watch_heavy: {
+    id: 'watch_heavy', name: 'Two-handed', target: 'enemy', power: 12, kind: 'strike', softened: { guard: 0.3, dodge: 0.1 },
+    qte: { kind: 'bar', time: 1100, zone: [0.64, 0.84], sweet: [0.72, 0.76], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'windup', lines: ['The whistle’s still shrilling. He brings the baton round in both hands.'] },
+    description: 'The baton in both hands. Guard, or Disarm him first.',
+  },
+} satisfies Record<string, MoveDef>);
+
+/** The prince, hooded in the plain coat, his light-blade at full. */
+COMBATANTS.prince_plain = { ...COMBATANTS.prince!, id: 'prince_plain', sprite: 'prince_plain', attack: 10 };
+
+/** Your friend, beside you, from behind. */
+COMBATANTS.heir_ally = {
+  id: 'heir_ally', name: 'Your friend', sprite: 'heir_back', hp: 40, sp: 10, attack: 9, defence: 7, speed: 15,
+  basic: 'heir_cut', moves: ['heir_three', 'heir_showoff'], reactions: ['dodge'],
+};
+
+/** The young one of the watch: keen, quick, with a lantern. */
+COMBATANTS.watch_young = {
+  id: 'watch_young', name: 'The young one', sprite: 'watch_young', hp: 26, attack: 8, defence: 7, speed: 13,
+  moves: ['baton_jab', 'lantern_glare', 'baton_strike'], weights: [2, 1.2, 1.5],
+  weak: ['pierce'], poise: 1, feint: 0.05,
+  ai: { opening: ['lantern_glare', 'baton_jab'], maxRepeat: 2, recent: 0.5 },
+};
+/** The older one: broad, slow, and he knows to blow for help. */
+COMBATANTS.watch_old = {
+  id: 'watch_old', name: 'The older one', sprite: 'watch_old', hp: 38, attack: 9, defence: 9, speed: 9,
+  moves: ['baton_strike', 'watch_tackle', 'watch_whistle'], weights: [2, 1.5, 0.8],
+  weak: ['shove'], poise: 2, feint: 0,
+  ai: { opening: ['baton_strike', 'watch_tackle'], maxRepeat: 2, recent: 0.5, when: { hurt: { watch_whistle: 3 } } },
+};
+
+/**
+ * Chapter 3, Day 7, the gate at night: two of the watch, you and your friend (designer: a normal fight). Lost,
+ * he still gets away, but you're held, and the commander sees your face (designer). Writes `gate7`.
+ */
+ENCOUNTERS.gate_watch = {
+  id: 'gate_watch',
+  name: 'The gate',
+  party: ['prince_plain', 'heir_ally'],
+  enemies: ['watch_young', 'watch_old'],
+  stage: 'gate',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { gate7: 'won' }, lost: { gate7: 'lost' } },
+};

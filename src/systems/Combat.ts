@@ -166,7 +166,7 @@ export interface EncounterDef {
    */
   timing?: { lunge?: number; ease?: number };
   /** Where it's fought (the scene paints a stage for each): the market by default. */
-  stage?: 'market' | 'rot' | 'fields' | 'camp' | 'bar' | 'den' | 'yard' | 'balcony' | 'sim' | 'square' | 'steps';
+  stage?: 'market' | 'rot' | 'fields' | 'camp' | 'bar' | 'den' | 'yard' | 'balcony' | 'sim' | 'square' | 'steps' | 'gate';
   /** The fight teaches itself: a short explanation the first time each of these comes up (`LESSONS`). */
   teaches?: string[];
   /**

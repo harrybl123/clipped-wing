@@ -119,10 +119,22 @@ export const princeQuarters: AreaDefinition = {
     inStory('sister-5', 'sister', 112, FLOOR, 'c3day5=evening', { knot: 'c3day5_sister', flipX: true }),
     // Day 6: your friend on your couch at dawn, eating your breakfast; then with you, to the simulation room.
     inStory('heir-6', 'heir', 244, FLOOR, 'c3day6=wake', { knot: 'c3day6_heir' }),
+    // Day 7, before it's light (if you didn't get your friend out): your sister at your door with the news if
+    // she's your eyes, or the captain.
+    inStory('sister-7d', 'sister', 56, FLOOR, 'c3day7=dawn', { hideIf: 'sister=told' }),
+    inStory('captain-7d', 'captain', 56, FLOOR, 'c3day7=dawn', { hideIf: 'sister=covered' }),
     inStory('heir-f', 'heir', 230, FLOOR, 'heir_with_you', { follow: true, knot: 'c3day6_heir_walk' }),
+    // Day 8: your hand at the door at dawn with your coat (the story brings him in); in the evening, at the
+    // rail, where he waited with the blades the first morning.
+    inStory('hand-8', 'diplomat', 40, FLOOR, 'c3day8=wake', { hidden: true }),
+    inStory('hand-8b', 'diplomat', 516, FLOOR, 'c3day8=evening,balcony', { knot: 'c3day8_hand', flipX: true }),
+    // Day 8, after the broadcast: your sister on the end of your bed.
+    inStory('sister-8', 'sister', 112, FLOOR, 'c3day8=city,home', { flipX: true }),
   ],
   interactables: [
-    { id: 'bed', x: 84, y: FLOOR, reach: 14, label: 'Look', knot: 'quarters_bed', hideIf: ['c3day1=night', 'c3day2=home', 'c3day3=home', 'c3day4=night', 'c3day5=home', 'c3day6=home'] },
+    { id: 'bed', x: 84, y: FLOOR, reach: 14, label: 'Look', knot: 'quarters_bed', hideIf: ['c3day1=night', 'c3day2=home', 'c3day3=home', 'c3day4=night', 'c3day5=home', 'c3day6=home', 'c3day7=night', 'c3day7=bed'] },
+    { id: 'bed-7', x: 84, y: FLOOR, reach: 14, label: 'Wait', knot: 'c3day7_wait', showIf: 'c3day7=night' },
+    { id: 'bed-7s', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day7_bed', showIf: 'c3day7=bed' },
     { id: 'bed-6', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day6_bed', showIf: 'c3day6=home' },
     { id: 'bed-5', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day5_bed', showIf: 'c3day5=home' },
     // (Only once your father's had his word: designer, you could go to bed before he spoke to you.)

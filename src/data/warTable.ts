@@ -3,7 +3,8 @@ import { ARCHITECT, AUDIENCE, BARRACKS, CHURCH, CLASH, ELITE_SQUAD, MYSTERY, REB
 // The war table's maps and games (Chapter 3; the game: src/systems/Riot.ts, its design and how it was
 // tuned: docs/sequences/chapter-3/war-table.md). Day 2: the lesson in the simulation room (you're the rising,
 // your father the guard; then "Now."). Day 4: the riot, for real (you're the guard). Day 6: a duel with your
-// friend on the old castle's siege (you hold the keep; he has the bigger army).
+// friend on the old castle's siege (you hold the keep; he has the bigger army). Day 8: your father plays the
+// rising, and you the guard; then again, with the transfer list taken off the table.
 
 /**
  * A district that's risen, close up, as a street plan from above (designer: its own map): the way up along
@@ -345,6 +346,69 @@ const SKIRMISH_START: Setup = [
   { side: 'rising', place: 'hills', strength: 3 },
 ];
 
+/**
+ * Day 8: your father plays the rising, for once (designer: a game against him before the broadcast, to make a
+ * point), on the low district as it is this morning: everyone who was on the square or in the cellar still in it.
+ * You're the guard; take the square before dawn. Winnable but difficult (designer; to be tuned again once Jack's
+ * work on the table is in). Then again, "with the list": the crowds that are the people on the transfer list
+ * come off the table before it starts, all but the one you struck off it, which stays, and grows; and it's easy.
+ */
+export interface FatherScenario {
+  id: string;
+  kind: 'father';
+  board: RiotBoard;
+  district: 'low';
+  squads: Setup;
+  rules?: Partial<RiotRules>;
+  /**
+   * The second game: the crowds sent away first (the list), each with the `struck` name it is, if it's one of
+   * those you could strike; `left`, how many stay behind (the square: the order takes everyone who was on it).
+   */
+  list?: { place: string; name?: string; left?: number }[];
+  /** How strong the one you kept is, the second time. */
+  kept?: number;
+  /** The game after this one (on to the list). */
+  next?: string;
+  /** The story variable the result goes in (won / lost). */
+  result: string;
+  /** Ink knots: before; won; lost; and, after the last game, back in the room. */
+  knots: { intro: string; won: string; lost: string; after?: string };
+}
+
+/**
+ * Day 8's first game (tuned by simulation, tests/riotGame.test.ts): the riot's start with one more crowd, in the
+ * cellar lane (the cellar's people), and dawn two turns sooner (16). A first go (`naive`) takes the square about
+ * half the time (the riot: four in five); careful play always, sensible nearly always.
+ */
+export const FATHER_START: Setup = [...RIOT_START, { side: 'rising', place: 'cellar', strength: 3 }];
+const FATHER_RULES: Partial<RiotRules> = { rumble: RUMBLE, dawn: 16 };
+
+/**
+ * The transfer list on the table: the barkeep's cellar, the kid's back stairs, the woman's wash house, three
+ * more streets' worth, and everyone who was on the square (6 of its 14 stay). With it, the second game's over in
+ * two to five turns, whichever you kept (simulated).
+ */
+export const TRANSFER_LIST: { place: string; name?: string; left?: number }[] = [
+  { place: 'square', left: 6 },
+  { place: 'cellar', name: 'barkeep' },
+  { place: 'back', name: 'kid' },
+  { place: 'wash', name: 'woman' },
+  { place: 'screens' },
+  { place: 'market' },
+  { place: 'bridge' },
+];
+
+export const FATHER: FatherScenario = {
+  id: 'father8', kind: 'father', board: LOW_DISTRICT_BOARD, district: 'low', squads: FATHER_START, rules: FATHER_RULES,
+  next: 'father8_list', result: 'table8',
+  knots: { intro: 'c3day8_table_intro', won: 'c3day8_table_won', lost: 'c3day8_table_lost' },
+};
+export const FATHER_LIST: FatherScenario = {
+  id: 'father8_list', kind: 'father', board: LOW_DISTRICT_BOARD, district: 'low', squads: FATHER_START, rules: FATHER_RULES,
+  list: TRANSFER_LIST, kept: 6, result: 'list8',
+  knots: { intro: 'c3day8_list_intro', won: 'c3day8_list_won', lost: 'c3day8_list_lost', after: 'c3day8_after_table' },
+};
+
 const riot = (id: string, board: RiotBoard, district: RiotScenario['district'], squareArea: RiotScenario['squareArea']): RiotScenario => ({
   id, kind: 'riot', board, district, squads: RIOT_START, square: 'riot_square', squareArea,
   // Rumbles and the elite squads in the riot (Jack), not the lesson; and (Jack: what we built for the skirmish) the
@@ -361,9 +425,11 @@ const riot = (id: string, board: RiotBoard, district: RiotScenario['district'], 
   knots: { intro: 'c3day4_riot_intro', won: 'c3day4_table_won', dawn: 'c3day4_dawn', fatherTook: 'c3day4_father_took', square: 'c3day4_square' },
 });
 
-export const RIOTS: Record<string, RiotScenario | LessonScenario | DuelScenario> = {
+export const RIOTS: Record<string, RiotScenario | LessonScenario | DuelScenario | FatherScenario> = {
   lesson: LESSON,
   duel: DUEL,
+  father8: FATHER,
+  father8_list: FATHER_LIST,
   riot_low: riot('riot_low', LOW_DISTRICT_BOARD, 'low', { areaId: 'low-district', start: { x: 720, y: 236 } }),
   riot_promenade: riot('riot_promenade', PROMENADE_BOARD, 'promenade', { areaId: 'promenade', start: { x: 720, y: 232 } }),
   // A game mode of its own, for playtesting (Jack: no dawn, an indefinite game; a shake-up every 6 turns gives

@@ -2,6 +2,14 @@
 
 Things discussed but deliberately not built yet. Not decisions; revisit when the time comes.
 
+## Story notes for later (designer, 2026-10-16)
+
+Thoughts for later, not built and not yet in the story docs. Keep them out of placeholder lines (the mystery stays).
+
+- **Why the rebellion lives above the tree** (in the treehouse-capital sort of place up there): they know the
+  capital can't attack it without damaging the tree itself, and the tree is a useful asset to the capital.
+- **The Tender is the capital's agent**, placed in the tree by the prince's father.
+
 ## Title and menu flow (parked 2026-09-30)
 
 The current title screen is visual only. When menus are built for real, consider:
