@@ -871,7 +871,7 @@ export class RiotTableScene extends Phaser.Scene {
       const pick = ours ? undefined : (['accountant', 'townsfolk', 'commander'] as const)[Math.floor(Math.random() * 3)]! + `:${Math.floor(Math.random() * 4)}`;
       await holdAudience(this, {
         side: p.side, you: this.you, pick,
-        turns: { morale: a?.moraleTurns ?? 5, output: a?.outputTurns ?? 5, slump: a?.slumpTurns ?? 2, advice: a?.advice ?? 5 },
+        turns: { morale: a?.moraleTurns ?? 5, output: a?.outputTurns ?? 5, slump: a?.slumpTurns ?? 2, treasury: a?.treasuryTurns ?? 3, treasuryBy: a?.treasury ?? 1, advice: a?.advice ?? 5 },
         decide: (c) => {
           d = this.g.resolve(s, c);
           const e = d.events.find((x) => x.type === 'audience');

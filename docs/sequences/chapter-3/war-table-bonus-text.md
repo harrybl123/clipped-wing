@@ -44,7 +44,7 @@ fighters)", "…and the architect (he builds for you)".
   - The accountant: "Weighs your gold" (enemy: "Weighs their gold")
   - The townsfolk: "Want to hear you" (enemy: "The rebels: Want rallying")
   - The commander: "Advises on tactics"
-- **Accountant:** good: "The gold outweighs it." / "Your morale is up, for 5 turns." Bad: "Short." / "Your morale is down, for 5 turns."
+- **Accountant:** good: "The gold outweighs it." / "Your morale is up, for 5 turns." / "Your base makes 1 more a turn, for 3 turns." Bad: "Short." / "Your morale is down, for 5 turns." / "Your base makes 1 less a turn, for 3 turns."
 - **Townsfolk:** "The townsfolk wait. What do you tell them?" (enemy: "The enemy rally the rebels round the fire"). Good: "They cheer!" (rebels: "The rebels roar!") / "Morale up, and your bases make 1 more a turn, for 5 turns." Bad: "They mutter, and turn away." / "Morale down, and your bases make 1 less a turn, for 2 turns."
 - **Commander:** good: "Good advice" / "You see two turns of their moves ahead, for 5 turns." Bad: "Clouded judgement" / "You won't see their moves at all, for 5 turns."
 

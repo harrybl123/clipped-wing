@@ -58,7 +58,7 @@ export interface AudienceShow {
   /** For the computer: its choice. */
   pick?: string;
   /** How long things last, for the words. */
-  turns: { morale: number; output: number; slump: number; advice: number };
+  turns: { morale: number; output: number; slump: number; treasury: number; treasuryBy: number; advice: number };
 }
 
 /** An overlay on the screen (fixed while the table pans). */
@@ -250,7 +250,9 @@ async function accountant(scene: Phaser.Scene, mine: boolean, good: boolean, tur
   playSound(scene, good ? 'crest' : 'boom', 0.8);
   const who = mine ? 'Your' : 'Their';
   text(scene, layer, 214, good ? 'The gold outweighs it.' : 'Short.', good ? SHADES.amber : SHADES.dim, 2);
-  text(scene, layer, 236, good ? `${who} morale is up, for ${turns.morale} turns.` : `${who} morale is down, for ${turns.morale} turns.`, SHADES.light);
+  text(scene, layer, 232, good ? `${who} morale is up, for ${turns.morale} turns.` : `${who} morale is down, for ${turns.morale} turns.`, SHADES.light);
+  // (The treasury, Jack: the main base makes more, or less.)
+  text(scene, layer, 243, `${who} base makes ${turns.treasuryBy} ${good ? 'more' : 'less'} a turn, for ${turns.treasury} turns.`, SHADES.light);
   await untilPressed(scene, mine, 0, layer);
   await fade(scene, layer);
 }

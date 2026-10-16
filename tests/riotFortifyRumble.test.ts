@@ -681,6 +681,20 @@ describe('the war table: Jack’s third round', () => {
     for (let seed = 1; seed <= 200; seed++) won += game.resolve({ ...r.state, seed }, 'accountant').events.some((x) => x.type === 'audience' && x.good) ? 1 : 0;
     expect(won).toBeGreaterThan(70);
     expect(won).toBeLessThan(130);
+    // The accountant (the treasury, Jack): morale, and the main base 1 more (or less) a turn, for 3 turns.
+    for (const seed of [1, 2, 3, 4, 5, 6]) {
+      const a = game.resolve({ ...r.state, seed }, 'accountant');
+      const ae = a.events.find((x) => x.type === 'audience');
+      const by = ae?.type === 'audience' && ae.good ? 1 : -1;
+      let t = a.state;
+      for (let i = 0; i < 3; i++) {
+        const before = at(t, 'lifts')!.strength;
+        t = game.turn(t, [], []).state;
+        expect(at(t, 'lifts')!.strength).toBe(before + 3 + by);
+      }
+      const before = at(t, 'lifts')!.strength;
+      expect(at(game.turn(t, [], []).state, 'lifts')!.strength).toBe(before + 3);
+    }
   });
 
   it('an audience with the Lord (Jack): far less often, one side at a time, and sometimes a holy cross on the map', () => {

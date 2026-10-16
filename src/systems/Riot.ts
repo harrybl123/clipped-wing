@@ -262,6 +262,9 @@ export interface AudienceRules {
   outputTurns: number;
   slump: number;
   slumpTurns: number;
+  /** The accountant (Jack: the treasury): your main base making more (or less) a turn, for so many turns, as well as morale. */
+  treasury: number;
+  treasuryTurns: number;
   /** The commander: seeing two turns of theirs ahead, or none (clouded judgement), for so many turns. */
   advice: number;
   /**
@@ -274,7 +277,7 @@ export interface AudienceRules {
   prays: Side;
 }
 export const AUDIENCE: AudienceRules = {
-  from: 5, chance: 0.2, lasts: 3, morale: 0.1, moraleTurns: 5, output: 1, outputTurns: 5, slump: 1, slumpTurns: 2, advice: 5,
+  from: 5, chance: 0.2, lasts: 3, morale: 0.1, moraleTurns: 5, output: 1, outputTurns: 5, slump: 1, slumpTurns: 2, treasury: 1, treasuryTurns: 3, advice: 5,
   call: { every: 12, chance: 0.35 }, judged: 5, prays: 'guard',
 };
 
@@ -1885,6 +1888,8 @@ export class RiotGame {
     if (who === 'commander') add(ok ? 'foresight' : 'cloud', 0, a.advice);
     else add('morale', ok ? a.morale : -a.morale, a.moraleTurns);
     if (who === 'townsfolk') ok ? add('output', a.output, a.outputTurns) : add('output', -a.slump, a.slumpTurns);
+    // (The accountant, Jack: the treasury's weight shows at the main base too, +1 or -1 a turn for 3 turns.)
+    if (who === 'accountant') add('output', ok ? a.treasury : -a.treasury, a.treasuryTurns);
     events.push({ type: 'audience', side, who, good: ok, ...(line !== undefined ? { line } : {}) });
   }
 
