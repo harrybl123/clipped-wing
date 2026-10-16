@@ -478,20 +478,6 @@ export const rewardScreen = (phase: number): RowSprite => {
 };
 export const REWARD_FRAMES = [0, 1, 2, 3].map(rewardScreen);
 
-/**
- * Your father and you on the screens (Chapter 3, Day 5: his address): two figures, him on the left, taller,
- * and you; with `arm`, his hand on your shoulder, as at the end of it. 24 wide, 21 high, like the wing.
- */
-export const addressFigures = (arm: boolean): string[] =>
-  Array.from({ length: 21 }, (_, y) =>
-    Array.from({ length: 24 }, (_, x) => {
-      const father = (x - 5) ** 2 + (y - 3) ** 2 <= 7 || (y >= 7 && x >= 1 && x <= 9 && !(y === 7 && (x === 1 || x === 9)));
-      const you = (x - 17) ** 2 + (y - 6) ** 2 <= 5 || (y >= 10 && x >= 13 && x <= 21 && !(y === 10 && (x === 13 || x === 21)));
-      const hand = arm && y >= 8 && y <= 9 && x >= 9 && x <= 16;
-      return father || you || hand ? 'h' : '.';
-    }).join(''),
-  );
-
 /** Who led the riot, as the screens show him (Day 4's `riot_leader`: the painter's brother, or the reformer). */
 export type Leader = 'brother' | 'reformer';
 
@@ -539,27 +525,26 @@ const noticeScreen = (topText: string, picture: readonly string[], bottomText: s
 
 /**
  * The city's screens from Day 5 (Chapter 3, your father's third pushback: the word): TERRORISTS, and the
- * face of the man who led the riot, EXECUTED or WANTED; with `hand`, your father with his hand on your
- * shoulder (from the end of the address); then the old reward notice.
+ * face of the man who led the riot, EXECUTED or WANTED; then the old reward notice. (Your father and you, his
+ * hand on your shoulder, was cut: designer, it looked poor.)
  */
-export const terrorFrames = (leader: Leader, fate: Fate, hand: boolean): RowSprite[] => {
+export const terrorFrames = (leader: Leader, fate: Fate): RowSprite[] => {
   const face = leaderFace(leader, true);
   return [
     ...[0, 1, 2].map((i) => noticeScreen('TERRORISTS', face, fate.toUpperCase(), i)),
-    ...(hand ? [0, 1, 2].map((i) => noticeScreen('TERRORISTS', addressFigures(true), 'REPORT', i)) : []),
     ...[0, 1, 2].map((i) => noticeScreen('REPORT', EMBLEM, 'REWARD', i)),
   ];
 };
 
 /**
  * Where the city's screens show the address (Day 5 on): one `frames` feature per thing the screens can be
- * saying (`screens5`: `<leader>_<fate>`, and `_hand` once his hand's on your shoulder), at x, y (63 by 46).
+ * saying (`screens5`: `<leader>_<fate>`, with `_hand` once his hand's on your shoulder), at x, y (63 by 46).
  */
 export const terrorScreens = (x: number, y: number) =>
-  (['brother', 'reformer'] as const).flatMap((leader) => (['executed', 'wanted'] as const).flatMap((fate) => [false, true].map((hand) => ({
-    type: 'frames' as const, frames: terrorFrames(leader, fate, hand), x, y, every: 450, power: 'any' as const,
-    showIf: `screens5=${leader}_${fate}${hand ? '_hand' : ''}`,
-  }))));
+  (['brother', 'reformer'] as const).flatMap((leader) => (['executed', 'wanted'] as const).map((fate) => ({
+    type: 'frames' as const, frames: terrorFrames(leader, fate), x, y, every: 450, power: 'any' as const,
+    showIf: `screens5=${leader}_${fate},${leader}_${fate}_hand`,
+  })));
 
 // --- The low district's homes and shops, in detail (designer: people's things in view) ---
 

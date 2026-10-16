@@ -110,16 +110,20 @@ A man in the queue looks at the man beside him. The man beside him looks at the 
 A cellar under the low district. A small screen up behind the bar, that nobody ever watches.
 They're watching it now. The barkeep, a cloth in his hand. The kid, right under it.
 ~ screens5 = screens5 + "_hand"
-On the screen, your father stands, and puts his hand on your shoulder.
-And there you are. Beside him. In your good coat, looking out at them.
-The kid's looking at you. Not at your father. At you.
+On the screen, the word, and the face. Your father's voice goes on under it, calm.
+"My son and I will keep you safe." #speaker:father
+{ riot_leader == "firebrand":
+    The kid hasn't taken his eyes off it. It's his brother's face.
+- else:
+    The kid hasn't taken his eyes off it, as if the face might change.
+}
 ~ off5 = true
 The barkeep reaches up, and turns it off. #goto:audience-hall:654:212:c3day5_address_end
 -> END
 
-// Back in the hall, his hand on your shoulder.
+// Back in the hall: his hand on your shoulder, put there on the last word, for the lenses.
 === c3day5_address_end ===
-His hand's still on your shoulder. The little lights over the lenses go out.
+Your father's hand is on your shoulder. He put it there on the last word, for the lenses. The little lights over them go out.
 By the doors, someone starts to clap. Then the whole hall.
 Your father lifts his hand from your shoulder, and the clapping stops.
 { riot == "let_go":
@@ -271,7 +275,6 @@ Every screen says the same thing. TERRORISTS. The face.
 - else:
     EXECUTED. The man you brought in.
 }
-And between them, every time: your father's hand on your shoulder. Your face, looking down the empty street.
 "Nobody's out." #speaker:prince
 "Nobody's going to be out for a long time. Not now they know their neighbours are watching." #speaker:diplomat
 "Hood up. The cellar." #speaker:diplomat
@@ -340,7 +343,7 @@ Someone's started a new row since you came in.
 He puts a cup in front of you you didn't ask for.
 { riot_table == "won":
     "They're saying you gave the guard every order yourself last night. Street by street." #speaker:hideout_keeper
-    "Took the square before dawn. Quicker than your father ever did." #speaker:hideout_keeper
+    "Took the square before dawn." #speaker:hideout_keeper
 - else:
     "They're saying you had the guard all night. And the square burned till morning, and then your father took it in an hour." #speaker:hideout_keeper
 }
@@ -406,7 +409,7 @@ She doesn't wait for an answer.
 }
 ~ painter5 = true
 The kid, in his corner by the steps, his knees up, as before. He's been waiting for you.
-"I saw you this morning. On the screen. With his hand on you." #speaker:painter
+"I watched you this morning. Standing next to him while he said it." #speaker:painter
 { riot_leader == "firebrand":
     { riot == "brought_in":
         "They're saying my brother's dead. Executed, at dawn. They put his face up so everyone would know." #speaker:painter
@@ -448,10 +451,11 @@ A minute. Two.
 Boots, in the street. A lot of them.
 The barkeep's head comes up.
 The door at the top of the steps comes off its hinges. #shake #sound:smash:boots
-Lamps. Pikes. Your father's guard, down the steps four at a time, shouting. #show:raid-1 #show:raid-2 #show:raid-3 #show:raid-4 #shake
+Lamps. Pikes. Your father's guard, down the steps four at a time, shouting. #show:raid-1 #walk:raid-1:100:110 #show:raid-2 #walk:raid-2:128:100 #show:raid-3 #walk:raid-3:172:100 #show:raid-4 #walk:raid-4:206:100 #shake
 "On the floor! All of you, on the floor!" #speaker:c3_guard_0
-A table goes over. Then another. Someone at the long table is thrown against the wall, and goes down, and doesn't get up. #sound:crash #shake
-The barkeep comes round the bar, and a pike-butt takes him in the stomach. #sound:punch
+Everyone's moving at once. Chairs go over. People shove past each other for the back way. #leave:folk-50:456:110 #leave:folk-51:456:120 #leave:folk-53:456:110 #leave:folk-54:456:100 #sound:crash
+A table goes over. Then another. Someone at the long table is thrown against the wall, and goes down, and doesn't get up. #walk:raid-3:150:90 #sound:crash #shake
+The barkeep comes round the bar, and a pike-butt takes him in the stomach. #walk:keeper-5:376:60 #walk:raid-4:356:110 #sound:punch
 The woman's screaming her husband's name at them, as if they'd know him.
 { warrants == "sealed":
     The first one through has the warrant in his fist. Your seal's on it.

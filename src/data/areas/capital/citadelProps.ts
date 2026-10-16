@@ -1,6 +1,6 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import type { RowSprite } from '../../../ui/sprites';
-import { EMBLEM, addressFigures, leaderFace, type Fate, type Leader } from './cityProps';
+import { EMBLEM, leaderFace, type Fate, type Leader } from './cityProps';
 import { glyphFor } from '../../../ui/pixelFont';
 
 // PLACEHOLDER pixel props for the capital's citadel (Chapter 3; docs/chapter-3-world.md): clean marble,
@@ -109,15 +109,14 @@ const addressScreen = (width: number, height: number, picture: readonly string[]
 
 /**
  * The address on a citadel screen (the audience hall's great screen, 120 by 64; the halls', 76 by 46): his face
- * and TERRORISTS, then EXECUTED or WANTED; with `hand`, you and your father, his hand on your shoulder.
+ * and TERRORISTS, then EXECUTED or WANTED.
  */
-export const addressFrames = (width: number, height: number, leader: Leader, fate: Fate, hand: boolean): RowSprite[] => {
+export const addressFrames = (width: number, height: number, leader: Leader, fate: Fate): RowSprite[] => {
   const big = height >= 60;
   const face = leaderFace(leader, !big);
   return [
     ...[0, 1, 2, 3].map((i) => addressScreen(width, height, face, 1, 'TERRORISTS', i === 3)),
     ...[0, 1].map((i) => addressScreen(width, height, face, 1, fate.toUpperCase(), i === 1)),
-    ...(hand ? [0, 1, 2].map(() => addressScreen(width, height, addressFigures(true), big ? 2 : 1, '', false)) : []),
   ];
 };
 
@@ -129,10 +128,10 @@ export const deadScreen = (width: number, height: number): RowSprite => ({
 
 /** One `frames` feature per thing the screen can be saying (`screens5`, as `terrorScreens` in cityProps). */
 export const addressScreens = (width: number, height: number, x: number, y: number, hideIf?: string) =>
-  (['brother', 'reformer'] as const).flatMap((leader) => (['executed', 'wanted'] as const).flatMap((fate) => [false, true].map((hand) => ({
-    type: 'frames' as const, frames: addressFrames(width, height, leader, fate, hand), x, y, every: 700,
-    showIf: `screens5=${leader}_${fate}${hand ? '_hand' : ''}`, ...(hideIf ? { hideIf } : {}),
-  }))));
+  (['brother', 'reformer'] as const).flatMap((leader) => (['executed', 'wanted'] as const).map((fate) => ({
+    type: 'frames' as const, frames: addressFrames(width, height, leader, fate), x, y, every: 700,
+    showIf: `screens5=${leader}_${fate},${leader}_${fate}_hand`, ...(hideIf ? { hideIf } : {}),
+  })));
 
 export const scrollingScreen = (width: number, height: number): RowSprite[] => [0, 1, 2].map((i) => screen(width, height, i));
 

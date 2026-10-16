@@ -119,7 +119,7 @@ export const hideout: AreaDefinition = {
     ...([[216, 0], [240, 11], [318, 7], [350, 2], [372, 13]] as const).map(([x, look], i) =>
       citizen(`folk-5${i}`, look, x, FLOOR, 'c3day5_crowd', undefined, { showIf: NIGHT5, flipX: i % 2 === 0 })),
     inStory('hand-5', 'diplomat', 52, FLOOR, 'c3day5=hideout,raid', { knot: 'c3day5_hand' }),
-    ...[46, 60, 74, 128].map((x, i) => guard(`raid-${i + 1}`, i % 2, x, FLOOR, 'c3_guard', undefined, { showIf: 'c3day5=raid,out', hidden: true, knot: undefined })),
+    ...[24, 28, 32, 36].map((x, i) => guard(`raid-${i + 1}`, i % 2, x, FLOOR, 'c3_guard', undefined, { showIf: 'c3day5=raid,out', hidden: true, knot: undefined })),
     inStory('captain-5r', 'captain', 36, FLOOR, 'c3day5=raid,out', { hidden: true }),
   ],
   interactables: [
