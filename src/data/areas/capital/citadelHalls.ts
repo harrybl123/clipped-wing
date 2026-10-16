@@ -66,6 +66,9 @@ export const citadelHalls: AreaDefinition = {
     { x: 0, y: FLOOR, width: W, height: 270 - FLOOR },
     { x: 16, y: UPPER, width: CL - 16, height: 6, oneWay: true }, // the left gallery
     { x: CR, y: UPPER, width: LIFT - CR, height: 6, oneWay: true }, // the right gallery, up to the lift's shaft
+    // Firm floor in the right gallery's doorways and the banner's shadow (Day 7's sneak: you crouch in them, and
+    // down on a one-way board drops you through it).
+    ...[[704, 32], [786, 26], [846, 30]].map(([x, width]) => ({ x: x!, y: UPPER, width: width!, height: 6, invisible: true })),
     ...grandStair(),
     { x: 0, y: 0, width: 16, height: 270, invisible: true },
     { x: W - 16, y: 0, width: 16, height: 270, invisible: true },

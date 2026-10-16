@@ -1592,6 +1592,15 @@ export class AreaScene extends Phaser.Scene {
           }
           break;
         }
+        case 'down':
+          // #down:<id>: they're knocked down, lying on the floor where they stand (Chapter 3, Day 7: the watch at
+          // the gate, hurt); they stay down until the area's left.
+          if (entry) {
+            entry.scripted = true;
+            entry.image.setVisible(true).setAngle(entry.image.flipX ? 90 : -90).setY(entry.image.y - entry.image.width / 2 + 2);
+            this.soundscape.play('thump', undefined, 0.5);
+          }
+          break;
         case 'face': {
           // #face:<id>:<other id or x>: they turn to face someone (or a spot).
           const other = args[1] ? this.people.get(args[1]) : undefined;

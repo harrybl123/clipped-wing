@@ -24,6 +24,7 @@ A note under your door, in your father's hand. "My study. Early."
 
 === c3day7_order ===
 { c3day7 != "wake":
+    He doesn't turn round from the window.
     "Learn it. By tomorrow you won't need the paper." #speaker:father
     -> END
 }
@@ -39,7 +40,7 @@ It doesn't say where the managed places are. It doesn't say what the work is.
 "Where they're needed." #speaker:father
 "For how long?" #speaker:prince
 "As long as they're needed." #speaker:father
-He turns round, at last. He's smiling, a little, the way he smiles at the council.
+He turns round, at last. He's smiling, a little, the way he smiles at the council. #face:father-7:300
 "You'll read it to the city tomorrow. They should hear it from you." #speaker:father
 "Read it back to me." #speaker:father
 Read it back to him as it's written, or ask him to soften it?
@@ -62,7 +63,7 @@ Read it back to him as it's written, or ask him to soften it?
 - "The captain has the list of who goes. Look it over." #speaker:father
 "I've told him you may take one name off it. Every list should have a kindness on it." #speaker:father
 ~ c3day7 = "list"
-He's back at the window before you're out of the door. #time:afternoon
+He turns back to the window before you're out of the door. #face:father-7:476 #time:afternoon
 ~ objective = "See the transfer list"
 ~ objective_target = "citadel-halls:captain-7"
 -> END
@@ -288,19 +289,18 @@ Your friend's blade is already in his hand.
 ~ heir_with_you = false
 ~ friend_gone = true
 { gate7 == "won":
-    The young one's up off the stones first, and running, back into the city, shouting for more. #leave:watch-7a:800:90
-    The other goes after him, holding his arm. #leave:watch-7b:800:60
+    The two of them are down on the wet stones, and not getting up yet. #down:watch-7a #down:watch-7b
     "Go. Now." #speaker:prince
     ~ helped_escape = true
     He goes through the arch at a run. #leave:heir-7g:0:70
     He looks back once, from the dark beyond it.
     Then the dark has him.
-    Behind you, without turning round, the commander says it to her screens.
-    "Go home. Whoever you are." #speaker:commander
+    The young one groans, and gropes on the stones for his whistle. At the booth, the commander still hasn't turned round.
+    You don't wait for either of them. Hood pulled low, you slip off into the city's dark.
 - else:
     ~ helped_escape = true
     ~ seen_gate = true
-    They have you down on the wet stones, a knee in your back, your arm up behind you.
+    They have you down on the wet stones, a knee in your back, your arm up behind you. #show:watch-7b
     "Run!" #speaker:prince
     He runs. Through the arch, and out. #leave:heir-7g:0:80
     The young one goes after him, and comes back alone, out of breath. #walk:watch-7a:470:70
