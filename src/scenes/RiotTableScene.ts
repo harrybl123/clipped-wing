@@ -453,7 +453,13 @@ export class RiotTableScene extends Phaser.Scene {
       if (e.type === 'eliteGone') this.pop(this.place(e.at), 'gone', COLOUR[e.side]);
       if (e.type === 'barracksGone' || e.type === 'architectGone') this.pop(this.place(e.at), 'gone', SHADES.light);
       if (e.type === 'builtGone') this.pop(this.place(e.at), `${BUILT_NAMES[e.building]} gone`, COLOUR[e.side]);
-      if (e.type === 'towerMakes') this.pop(this.place(e.at), `+${e.by}`, COLOUR[e.side]);
+    }
+    // The towers' new men (Jack: make it clear, subtly): all at once, a ring of light out from each, and its men
+    // stepping out of the tower's door onto its place, "+2".
+    const made = end.events.filter((e): e is Extract<RiotEvent, { type: 'towerMakes' }> => e.type === 'towerMakes');
+    if (made.length) {
+      playSound(this, 'boots', 0.35);
+      await Promise.all(made.map((e) => this.towerMakes(this.place(e.at), e.side, e.by)));
     }
     // The hired fighters' shots (Jack): arrows, and an assassin at a base.
     for (const e of end.events) {
@@ -741,6 +747,27 @@ export class RiotTableScene extends Phaser.Scene {
     this.tweens.add({ targets: shout, alpha: 0, duration: 300, onComplete: () => shout.destroy() });
     this.draw();
     await this.wait(300);
+  }
+
+  /** A tower's new men (Jack): a ring of its colour going out, two little figures out of its door onto the place. */
+  private async towerMakes(p: RiotPlace, side: Side, by: number): Promise<void> {
+    const c = COLOUR[side];
+    const ring = this.add.circle(p.x, p.y, 12).setStrokeStyle(1, c, 0.9).setDepth(6);
+    this.tweens.add({ targets: ring, scale: 1.9, alpha: 0, duration: 650, ease: 'Sine.easeOut', onComplete: () => ring.destroy() });
+    const door = { x: p.x - 14, y: p.y - 5 };
+    const walks = Array.from({ length: Math.min(3, by) }, (_, i) => {
+      const g = this.add.graphics().setDepth(7);
+      g.fillStyle(SHADES.shadow, 1).fillRect(-1, -3, 3, 6);
+      g.fillStyle(c, 1).fillRect(0, -1, 1, 3);
+      g.fillStyle(SHADES.skinFair, 1).fillRect(0, -2, 1, 1);
+      g.setPosition(door.x, door.y).setAlpha(0);
+      return new Promise<void>((r) => this.tweens.add({
+        targets: g, x: p.x - 3 + i * 6, y: p.y + 1, alpha: { from: 0, to: 1 }, duration: 420, delay: 120 + i * 120, ease: 'Sine.easeOut',
+        onComplete: () => this.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => (g.destroy(), r()) }),
+      }));
+    });
+    this.pop(p, `+${by}`, c);
+    await Promise.all(walks);
   }
 
   /** Hired fighters out of the barracks (Jack): their name over each. */
