@@ -360,6 +360,6 @@ export const RIOTS: Record<string, RiotScenario | LessonScenario | DuelScenario>
     squads: SKIRMISH_START,
     skirmish: true,
     views: { in: SKIRMISH_WIDE, out: SKIRMISH_BOARD },
-    rules: { rumble: RUMBLE, elites: { ...ELITE_SQUAD, once: false }, clash: CLASH, mystery: MYSTERY, brothel: BROTHEL, audience: AUDIENCE, church: CHURCH, dawn: 100000, shakeUp: { every: 6, trickster: 0.25 }, baseLoss: true },
+    rules: { rumble: RUMBLE, elites: { ...ELITE_SQUAD, once: false, hero: { ...ELITE_SQUAD.hero, lasts: 5 } }, clash: CLASH, mystery: MYSTERY, brothel: BROTHEL, audience: AUDIENCE, church: CHURCH, dawn: 100000, shakeUp: { every: 6, trickster: 0.25 }, baseLoss: true },
   },
 };

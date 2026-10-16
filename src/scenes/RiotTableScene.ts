@@ -55,7 +55,7 @@ export interface RiotTableSceneData {
   /** View mode (Jack): the table zoomed in or out, where it has both. */
   view?: 'in' | 'out';
   /** Switching view mode mid-game: the game as it was (this turn's orders and theirs too). */
-  resume?: { state: RiotState; orders: Order[]; theirs: Order[] };
+  resume?: { state: RiotState; orders: Order[]; theirs: Order[]; cursor?: string };
 }
 
 /** View mode's button, top right (Jack). */
@@ -79,6 +79,9 @@ const COLOUR: Record<Side, number> = { guard: CYAN, rising: AMBER };
 type At = { x: number; y: number };
 /** A slot in the elite bar (Jack: emblems, not words). */
 const SLOT = { w: 26, h: 30 };
+
+/** The table's music, handed on across a view switch's restart. */
+let carriedMusic: TableMusic | undefined;
 
 export class RiotTableScene extends Phaser.Scene {
   private params!: RiotTableSceneData;
@@ -228,11 +231,14 @@ export class RiotTableScene extends Phaser.Scene {
     this.undoButton = new PixelText(this, UNDO.x + 4, UNDO.y + 2, 'Undo', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8).setScrollFactor(0);
     this.powerButton = new PixelText(this, POWER.x + 4, POWER.y + 2, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8).setScrollFactor(0);
     this.viewButton = new PixelText(this, VIEW.x + 4, VIEW.y + 2, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8).setScrollFactor(0);
-    this.cursor = this.place(this.g.mine(this.state, this.you)[0]!.place);
+    const was = this.params.resume?.cursor;
+    this.cursor = was && this.sc.board.places.some((p) => p.id === was) ? this.place(was) : this.place(this.g.mine(this.state, this.you)[0]!.place);
     this.lookAt(this.cursor, true);
     this.dialogue = new DialogueBox(this, getSession(this).story);
-    this.music = startTableMusic(this, this.phase === 'lesson' || this.phase === 'duel' ? 'lesson' : 'now');
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.music.stop());
+    // Switching view mode, the music carries on where it was (Jack): the same tune, not started again.
+    this.music = (this.params.resume && carriedMusic) || startTableMusic(this, this.phase === 'lesson' || this.phase === 'duel' ? 'lesson' : 'now');
+    carriedMusic = undefined;
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => carriedMusic !== this.music && this.music.stop());
     this.input.keyboard!.on('keydown', (e: KeyboardEvent) => this.onKey(e));
     this.input.mouse?.disableContextMenu();
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.onPointer(p, false));
@@ -240,10 +246,10 @@ export class RiotTableScene extends Phaser.Scene {
     this.input.on('pointerup', (p: Phaser.Input.Pointer) => this.onPointerUp(p));
     this.time.addEvent({ delay: 400, loop: true, callback: () => this.draw() });
     this.time.addEvent({ delay: 120, loop: true, callback: () => ((this.t += 1), this.drawLife()) });
-    this.cameras.main.fadeIn(600);
+    this.cameras.main.fadeIn(this.params.resume ? 120 : 600);
     this.draw();
     const sc = this.sc;
-    this.time.delayedCall(this.params.resume ? 200 : 600, () => {
+    this.time.delayedCall(this.params.resume ? 0 : 600, () => {
       // (Back from switching view mode: carry on where you were.)
       if (this.params.resume) return void ((this.busy = false), this.draw());
       if (sc.kind === 'riot' && sc.skirmish) this.startTurn();
@@ -934,8 +940,10 @@ export class RiotTableScene extends Phaser.Scene {
     const ring = this.add.circle(at.x, at.y, 8, SHADES.amber, 0.6).setDepth(6);
     this.tweens.add({ targets: ring, scale: 5, alpha: 0, duration: 700, onComplete: () => ring.destroy() });
     for (const h of e.hits) this.pop(this.place(h.place), h.gone ? 'all' : `-${h.damage}`, COLOUR[h.side]);
+    // Whoever set it off is spared (Jack): said over it, and under the banner.
+    this.pop(at, 'Spared', SHADES.white);
     this.draw();
-    await this.banner('Rumble!', { colour: SHADES.amber, jitter: true, hold: 1100 });
+    await this.banner('Rumble!', { colour: SHADES.amber, jitter: true, hold: 1500, sub: 'Every squad round it is hit, yours or theirs. The squad that set it off is spared.' });
   }
 
   /**
@@ -1570,7 +1578,7 @@ export class RiotTableScene extends Phaser.Scene {
 
   /** View mode (Jack): zoomed in or out, the game carrying on exactly where it was. */
   private switchView(): void {
-    if (!this.hasViews() || this.aiming || this.cutting || this.deploying) return;
+    if (!this.hasViews() || this.aiming || this.cutting || this.deploying || carriedMusic) return;
     const view = this.view_ === 'in' ? 'out' : 'in';
     try {
       localStorage.setItem('clipped-wing:table-view', view);
@@ -1578,8 +1586,12 @@ export class RiotTableScene extends Phaser.Scene {
       // (Not remembered: fine.)
     }
     playConfirm(this);
-    this.music.stop();
-    this.scene.restart({ ...this.params, view, resume: { state: this.state, orders: this.orders, theirs: this.theirs } } satisfies RiotTableSceneData);
+    // As seamless as it can be (Jack): the music kept, a quick dip to black, the same place in view.
+    carriedMusic = this.music;
+    this.busy = true;
+    const resume = { state: this.state, orders: this.orders, theirs: this.theirs, cursor: this.cursor.id };
+    this.cameras.main.fadeOut(90);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.restart({ ...this.params, view, resume } satisfies RiotTableSceneData));
   }
 
   /** Undo: the last order (or the power cut) taken back. */
@@ -1836,7 +1848,10 @@ export class RiotTableScene extends Phaser.Scene {
       const lit = q.elite === 'hero' || q.elite === 'guard3';
       const n = new PixelText(this, 0, q.elite === 'hero' ? p.y - 1 : q.elite === 'maiden' ? p.y + 4 : q.elite === 'guard3' ? p.y + 1 : p.y - 4, String(q.strength), { color: lit ? SHADES.white : SHADES.shadow }).setDepth(5);
       // The elite squad: how many turns left, as pips under it (Jack).
-      if (q.elite && q.until !== undefined) for (let i = 0; i <= q.until - s.turn; i++) g.fillStyle(SHADES.white, 1).fillRect(Math.round(p.x - 6 + i * 4), p.y + 12, 2, 2);
+      if (q.elite && q.until !== undefined) {
+        const n = q.until - s.turn + 1;
+        for (let i = 0; i < n; i++) g.fillStyle(SHADES.white, 1).fillRect(Math.round(p.x - (n * 4 - 2) / 2 + i * 4), p.y + 12, 2, 2);
+      }
       // A hero picked up: a reminder it goes two streets (Jack).
       if (q.elite === 'hero' && this.aiming?.squad.id === q.id) {
         const m = new PixelText(this, 0, p.y - 30, '2 moves', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(10);

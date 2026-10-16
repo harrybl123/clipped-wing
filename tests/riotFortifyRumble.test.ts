@@ -561,6 +561,11 @@ describe('the war table: the skirmish (Jack, for playtesting)', () => {
     expect(game.outcome(s)).toBe('rising');
   });
 
+  it('on the bigger map the hero (and the bastard) last 5 turns (Jack); in the riot, 3', () => {
+    expect(rules.elites?.hero.lasts).toBe(5);
+    expect(ELITE_SQUAD.hero.lasts).toBe(3);
+  });
+
   it('the maiden can’t dig in (Jack: she’s left open)', () => {
     const s = { ...game.start([]), squads: [{ id: 'm', side: 'guard' as const, place: 'arch', strength: 1, elite: 'maiden' as const, until: 5 }] };
     expect(game.fortify(s, 'm')).toBe(s);
