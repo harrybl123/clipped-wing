@@ -255,14 +255,14 @@ export interface DuelScenario {
 }
 
 /**
- * The siege (tuned by simulation, tests/riotGame.test.ts; designer: 18 turns, and the objective's taking his main
- * base): you 41 (9 in the keep, the rest on the walls and towers and out at the mill and the orchards), him 42
- * (18 in his camp, the rest spread across the country below). Take his camp, and keep your keep (no turn limit
- * for now: designer, restrictions after).
- * His camp gets 1 more a turn and he never empties it (`besieger`); your keep grows by 1 a turn and, over 9,
- * sends 2 out (the square's rules), so your men come out to you. His moves are shown as arrows. A first go
- * (everyone at his camp, beating what they can on the way) takes it about two times in three, mostly between
- * turns 9 and 14 (and with no limit, most of the rest later); random orders lose the keep.
+ * The siege (tuned by simulation, tests/riotGame.test.ts; designer: the objective's taking his main base, no turn
+ * limit for now; new units coming in on both sides; he played too static): you 31 (6 in the keep, the rest on
+ * the walls and towers and out at the mill and the orchards), him 32 (8 in his camp, eight 3s across the country).
+ * Every turn each base musters 2 onto a road next to it, towards the other (`muster`); a garrison never grows,
+ * and a base whose every road out is held by the other side gets none (a siege). He never empties his camp,
+ * and everything else of his is on the move (`besieger`). His moves are shown as arrows. A first go that gathers
+ * its army at his camp's door and goes in when it's enough takes it about 10 times in 16; doing nothing, or
+ * random orders, loses the keep.
  */
 export const DUEL: DuelScenario = {
   id: 'duel',
@@ -270,29 +270,20 @@ export const DUEL: DuelScenario = {
   board: CASTLE_BOARD,
   district: 'castle',
   squads: [
-    { side: 'rising', place: 'keep', strength: 9 },
-    { side: 'rising', place: 'gate', strength: 6 },
-    { side: 'rising', place: 'wwall', strength: 5 },
-    { side: 'rising', place: 'ewall', strength: 5 },
+    { side: 'rising', place: 'keep', strength: 6 },
+    { side: 'rising', place: 'gate', strength: 5 },
+    { side: 'rising', place: 'wwall', strength: 4 },
+    { side: 'rising', place: 'ewall', strength: 4 },
     { side: 'rising', place: 'wtower', strength: 3 },
     { side: 'rising', place: 'etower', strength: 3 },
     { side: 'rising', place: 'mill', strength: 3 },
     { side: 'rising', place: 'orchards', strength: 3 },
-    { side: 'rising', place: 'postern', strength: 2 },
-    { side: 'rising', place: 'yard', strength: 2 },
-    { side: 'guard', place: 'camp', strength: 18 },
-    { side: 'guard', place: 'farms', strength: 3 },
-    { side: 'guard', place: 'road', strength: 3 },
-    { side: 'guard', place: 'ford', strength: 3 },
-    { side: 'guard', place: 'hills', strength: 3 },
-    { side: 'guard', place: 'tannery', strength: 3 },
-    { side: 'guard', place: 'chapel', strength: 3 },
-    { side: 'guard', place: 'marsh', strength: 3 },
-    { side: 'guard', place: 'quarry', strength: 3 },
+    { side: 'guard', place: 'camp', strength: 8 },
+    ...['farms', 'road', 'ford', 'hills', 'tannery', 'chapel', 'marsh', 'quarry'].map((place) => ({ side: 'guard' as const, place, strength: 3 })),
   ],
   // No power cuts in a siege; rumbles, as ever (Jack). No turn limit for now (designer: a good game first,
-  // restrictions after; 18 turns was tried: `dawn`, and dawn is his).
-  rules: { dawn: 999, reinforce: 1, powerEvery: 999, rumble: RUMBLE, siege: true },
+  // restrictions after; with `dawn`, dawn is his).
+  rules: { dawn: 999, powerEvery: 999, rumble: RUMBLE, siege: true, muster: 2 },
   knots: { intro: 'c3day6_duel_intro', won: 'c3day6_duel_won', lost: 'c3day6_duel_lost', after: 'c3day6_caught' },
 };
 

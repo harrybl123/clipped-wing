@@ -202,33 +202,63 @@ describe('the war table: Day 6, the duel with your friend (simulated play)', () 
     }
     return 99;
   };
-  // A first go (designer: as easy as the riot): everyone but the keep heads for his camp, beating what they can
-  // on the way and joining up as they meet; at the camp, only if it'd take it.
+  // A first go at his camp (as a person plays it): everyone but the keep heads for the camp's door, beating what
+  // they can on the way; whoever's already at the door waits for the rest to join it, and goes in once it's enough.
   const firstGo: You = (g, s) => {
     const orders: Order[] = [];
+    const camp = g.squadAt(s, g.lifts);
+    const need = camp?.side === 'guard' ? g.defence(s, g.lifts, camp.strength) : 0;
+    const lead = g.mine(s, 'rising').filter((q) => g.near(q.place, g.lifts)).sort((a, b) => b.strength - a.strength)[0];
     for (const q of [...g.mine(s, 'rising')].sort((a, b) => b.strength - a.strength)) {
       if (q.place === g.heart) continue;
       const ways = g.dests(s, q);
+      if (ways.includes(g.lifts) && q.strength > need) {
+        orders.push({ squad: q.id, to: g.lifts });
+        continue;
+      }
       const beat = ways.find((to) => {
         const t = g.squadAt(s, to);
-        return t?.side === 'guard' && q.strength > g.defence(s, to, t.strength);
+        return to !== g.lifts && t?.side === 'guard' && q.strength > g.defence(s, to, t.strength);
       });
       if (beat) {
         orders.push({ squad: q.id, to: beat });
         continue;
       }
+      if (lead && q !== lead && ways.includes(lead.place)) {
+        orders.push({ squad: q.id, to: lead.place });
+        continue;
+      }
+      if (q === lead) continue;
       const step = ways.filter((to) => g.squadAt(s, to)?.side !== 'guard').sort((a, b) => steps(g, a, g.lifts) - steps(g, b, g.lifts))[0];
       if (step && steps(g, step, g.lifts) < steps(g, q.place, g.lifts)) orders.push({ squad: q.id, to: step });
     }
     return orders;
   };
 
-  it('a first go usually takes his camp, and not in a rush (designer: as easy as the riot)', () => {
-    const results = Array.from({ length: 16 }, (_, i) => duel(game(), i + 1, firstGo, 18));
-    const won = results.filter((r) => r.winner === 'rising');
-    expect(won.length).toBeGreaterThanOrEqual(9);
-    for (const r of won) expect(r.turn).toBeGreaterThanOrEqual(6);
+  it('a first go usually takes his camp (designer: as easy as the riot)', () => {
+    const results = Array.from({ length: 16 }, (_, i) => duel(game(), i + 1, firstGo));
+    expect(results.filter((r) => r.winner === 'rising').length).toBeGreaterThanOrEqual(8);
   }, 120000);
+
+  it('both bases muster new men every turn onto a road next to them; a garrison never grows; cut off, none come', () => {
+    const g = game();
+    const s = g.start([{ side: 'rising', place: 'keep', strength: 6 }, { side: 'guard', place: 'camp', strength: 8 }]);
+    const t = g.turn(s, [], []).state;
+    expect(g.squadAt(t, 'keep')!.strength).toBe(6);
+    expect(g.squadAt(t, 'camp')!.strength).toBe(8);
+    expect(g.mine(t, 'rising').filter((q) => q.place !== 'keep').map((q) => [q.place, q.strength])).toEqual([['gate', 2]]);
+    expect(g.mine(t, 'guard').filter((q) => q.place !== 'camp').map((q) => q.strength)).toEqual([2]);
+    // Every road out of the keep held by him: none come.
+    const sieged = g.start([{ side: 'rising', place: 'keep', strength: 6 }, ...['postern', 'yard', 'gate'].map((place) => ({ side: 'guard' as const, place, strength: 3 })), { side: 'guard', place: 'camp', strength: 8 }]);
+    expect(g.mine(g.turn(sieged, [], []).state, 'rising')).toHaveLength(1);
+  });
+
+  it('he keeps moving (designer: he played too static)', () => {
+    const g = game();
+    const s = g.start(DUEL.squads, 1);
+    const his = besieger()(g, s).orders;
+    expect(his.length).toBeGreaterThanOrEqual(6);
+  });
 
   it('the map is considerably bigger than the riot’s (designer), on a table bigger than the screen', () => {
     expect(CASTLE_BOARD.places.length).toBeGreaterThanOrEqual(LOW_DISTRICT_BOARD.places.length * 1.7);
@@ -243,15 +273,15 @@ describe('the war table: Day 6, the duel with your friend (simulated play)', () 
     expect(total('rising')).toBeLessThan(total('guard'));
   });
 
-  it('his camp doesn’t fall by itself, or to random orders', () => {
+  it('doing nothing, or random orders, loses the keep', () => {
     for (const seed of [1, 2, 3]) {
-      expect(duel(game(), seed, () => [], 30).winner).not.toBe('rising');
+      expect(duel(game(), seed, () => [], 30).winner).toBe('guard');
       let r = seed;
       const rnd = () => ((r = (r * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
       expect(duel(game(), seed, (g, s) => g.mine(s, 'rising').map((q) => {
         const o = [q.place, ...g.dests(s, q)];
         return { squad: q.id, to: o[Math.floor(rnd() * o.length)]! };
-      })).winner).not.toBe('rising');
+      })).winner).toBe('guard');
     }
   }, 120000);
 });

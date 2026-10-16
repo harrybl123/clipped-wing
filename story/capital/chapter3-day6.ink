@@ -114,8 +114,8 @@ He comes round to the other side of the table, rubbing his hands.
 // --- The duel (src/scenes/RiotTableScene.ts, `duel`) ---
 
 === c3day6_duel_intro ===
-"More men every turn coming into my camp, and you've a few farmers behind a wall." #speaker:heir
-"One a turn. And I'm coming for your camp." #speaker:prince
+"Fresh men out of my camp every turn, and you've a few farmers behind a wall." #speaker:heir
+"Mine come out of the keep the same. And I'm coming for your camp." #speaker:prince
 "Your move, Highness." #speaker:heir
 -> END
 

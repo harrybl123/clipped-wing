@@ -207,6 +207,17 @@ export class RiotTableScene extends Phaser.Scene {
     if (now) cam.setScroll(this.view.x, this.view.y);
   }
 
+  /** Bring places into view before something happens there, and give the camera time to get there (a big table). */
+  private async focusOn(...ps: RiotPlace[]): Promise<void> {
+    if (this.bw <= W && this.bh <= H) return;
+    const v = this.view;
+    if (ps.every((p) => p.x > v.x + 40 && p.x < v.x + W - 40 && p.y > v.y + 30 && p.y < v.y + H - 40)) return;
+    const cx = ps.reduce((n, p) => n + p.x, 0) / ps.length;
+    const cy = ps.reduce((n, p) => n + p.y, 0) / ps.length;
+    this.view = { x: Math.max(0, Math.min(this.bw - W, cx - W / 2)), y: Math.max(0, Math.min(this.bh - H, cy - H / 2)) };
+    await this.wait(420);
+  }
+
   override update(_t: number, delta: number): void {
     if (this.bw <= W && this.bh <= H) return;
     // The mouse at an edge of the screen pans the table (when you're free to look round).
@@ -302,6 +313,27 @@ export class RiotTableScene extends Phaser.Scene {
     if (this.g.outcome(s) === 'guard') return this.squareTaken();
     // The square grows; the guard come down the lifts.
     const end = this.g.turn(s, [], []);
+    // New squads mustered out of each base (the duel): the camera goes to each, and you see them arrive.
+    for (const e of end.events) {
+      if (e.type !== 'muster') continue;
+      const base = this.place(e.from);
+      if (!e.to) {
+        await this.focusOn(base);
+        this.pop(base, 'Cut off', SHADES.white);
+        await this.wait(600);
+        continue;
+      }
+      const to = this.place(e.to);
+      await this.focusOn(base, to);
+      const dot = this.add.circle(base.x, base.y, 4, COLOUR[e.side]).setDepth(6);
+      playSound(this, 'boots', 0.4);
+      await this.tween(dot, { x: to.x, y: to.y, duration: 420, ease: 'Sine.easeOut' });
+      dot.destroy();
+      this.state = { ...this.state, squads: end.state.squads.filter((q) => q.place === e.to).concat(this.state.squads.filter((q) => q.place !== e.to)) };
+      this.pop(to, `+${e.strength}`, COLOUR[e.side]);
+      this.draw();
+      await this.wait(300);
+    }
     for (const e of end.events) {
       if (e.type === 'grow') this.pop(this.place(e.at), '+1', AMBER);
       if (e.type === 'arrive') this.pop(this.place(e.at), `+${this.g.rules.reinforce}`, CYAN);
@@ -326,7 +358,9 @@ export class RiotTableScene extends Phaser.Scene {
     const q = s.squads.find((x) => x.id === o.squad)!;
     const from = this.place(q.place);
     const to = this.place(o.to);
-    this.lookAt(to);
+    // The camera goes to it first (designer: stuff happened off screen, too fast to see).
+    await this.focusOn(from, to);
+    const slow = this.bw > W || this.bh > H;
     const dot = this.add.circle(from.x, from.y, 6, COLOUR[q.side]).setDepth(6);
     if (events.some((e) => e.type === 'blocked')) {
       // Into a squad that's dug in: up to it, and turned back.
@@ -337,7 +371,7 @@ export class RiotTableScene extends Phaser.Scene {
       dot.destroy();
       return;
     }
-    await this.tween(dot, { x: to.x, y: to.y, duration: this.fatherPlaying ? 160 : 260, ease: 'Sine.easeInOut' });
+    await this.tween(dot, { x: to.x, y: to.y, duration: this.fatherPlaying ? 160 : slow ? 480 : 260, ease: 'Sine.easeInOut' });
     dot.destroy();
     const fight = events.find((e) => e.type === 'fight');
     if (fight && fight.type === 'fight') {
@@ -361,7 +395,7 @@ export class RiotTableScene extends Phaser.Scene {
         this.tweens.add({ targets: d, x: to.x + Math.cos(a) * 16, y: to.y + Math.sin(a) * 11, alpha: 0, duration: 420, onComplete: () => d.destroy() });
       }
     } else playSound(this, 'tick', 0.5);
-    await this.wait(80);
+    await this.wait(slow ? 260 : 80);
     const rumble = events.find((e) => e.type === 'rumble');
     if (rumble?.type === 'rumble') await this.rumbleGoesOff(rumble);
   }
@@ -838,7 +872,14 @@ export class RiotTableScene extends Phaser.Scene {
     // Orders: the other side's (if shown) in their colour; yours in yours; the one you're choosing, blinking.
     if (this.phase !== 'now' || this.fatherPlaying) for (const o of this.theirs) this.arrow(g, o, COLOUR[this.g.other(this.you)], true, undefined, undefined, this.g.fortified(s, o.to) && this.g.squadAt(s, o.to)?.side === this.you);
     // Where the square will send a crowd out, at the end of the turn.
-    const pour = this.g.pourTo(s);
+    const pour = this.g.rules.muster ? null : this.g.pourTo(s);
+    // Where each base's new squad will come out this turn (the duel).
+    if (this.g.rules.muster) for (const side of ['rising', 'guard'] as const) {
+      const base = side === 'rising' ? this.g.heart : this.g.lifts;
+      const to = this.g.musterTo(s, side);
+      const there = this.g.squadAt(s, base);
+      if (to && there?.side === side) this.arrow(g, { squad: there.id, to }, COLOUR[side], true);
+    }
     if (pour) {
       const sq = this.g.squadAt(s, this.g.heart);
       if (sq) this.arrow(g, { squad: sq.id, to: pour }, AMBER, true);
@@ -969,8 +1010,8 @@ export class RiotTableScene extends Phaser.Scene {
     const whose = (side: Side) => (duel ? (side === this.you ? 'Your garrison' : 'His army') : side === this.you ? (side === 'guard' ? 'Your guard' : 'Your people') : side === 'guard' ? 'The guard' : 'The rising');
     const lines = [p.name];
     if (there) lines.push(`${whose(there.side)}, ${there.strength}`);
-    if (p.heart) lines.push(duel ? `Walls +1. Grows 1 a turn; over ${this.g.style.pourAbove}, sends ${this.g.style.pour} out. Lose it and you've lost.` : `Barricades +1. Grows 1 a turn; over ${this.g.style.pourAbove}, sends crowds out.`);
-    if (p.lifts) lines.push(duel ? `His army get +${this.g.rules.reinforce} here each turn. Take it and you've won.` : `The guard get +${this.g.rules.reinforce} here each turn.`);
+    if (p.heart) lines.push(duel ? `Your keep. Walls +1. Each turn ${this.g.rules.muster} new men come out onto a road next to it, unless he holds them all. Lose it and you've lost.` : `Barricades +1. Grows 1 a turn; over ${this.g.style.pourAbove}, sends crowds out.`);
+    if (p.lifts) lines.push(duel ? `His camp. Each turn ${this.g.rules.muster} new men come out of it, unless you hold every road round it. Take it and you've won.` : `The guard get +${this.g.rules.reinforce} here each turn.`);
     if (s.cut === p.id) lines.push('No power this turn.');
     if (this.g.fortified(s, p.id)) lines.push('Dug in: nobody can attack it this turn.');
     if (s.rumble?.place === p.id) lines.push(`A rumble: whoever gets here first sets it off. Everyone next to it takes 1 to 3. (${s.rumble.left} ${s.rumble.left === 1 ? 'turn' : 'turns'} left)`);
