@@ -54,6 +54,9 @@ export interface RiotPlace {
 export interface RiotBoard {
   places: RiotPlace[];
   ways: [string, string][];
+  /** How big the table is, if bigger than the screen (it pans with the cursor): Day 6's castle. */
+  width?: number;
+  height?: number;
 }
 
 export interface RiotRules {

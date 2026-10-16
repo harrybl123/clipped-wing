@@ -183,37 +183,59 @@ export const LESSON: LessonScenario = {
 
 /**
  * Day 6: the siege of the old castle, the citadel's crag before it was the citadel (designer: show your friend
- * the table and challenge him to a duel on a new map, where you've fewer troops, but it's as easy as the riot).
- * A game from your family's history, on the table for practice: the keep at the top (the square's rules: walls
- * +1, it grows by 1 a turn as people come in from the fields), its walls, gatehouse, postern and watchtower round it;
- * below, the bridge, the old town and the market, the mill and the orchards, the ford and the quarry; and his
- * siege camp at the bottom, where more of his army come every turn.
+ * the table and challenge him to a duel on a new map, where you've fewer troops, but it's as easy as the riot;
+ * then: the map considerably bigger than the riot's). A game from your family's history, on the table for
+ * practice, nearly twice the riot's places, on a table bigger than the screen (it pans). The keep at the top
+ * (the square's rules: walls +1, it grows by 1 a turn as people come in from the fields), with its inner yard,
+ * towers, postern, walls and gatehouse; the country below it in rows, the mill and the orchards, the old town
+ * and the market round the bridge, the woods and the vineyards, the marsh, the tannery, the crossroads, the
+ * chapel and the quarry; and along the bottom his siege camp, where more of his army come every turn, between
+ * the ford, the farms, the south road and the hills.
  */
 export const CASTLE_BOARD: RiotBoard = (() => {
   const at = (id: string, name: string, x: number, y: number, extra: Partial<RiotPlace> = {}): RiotPlace => ({ id, name, x, y, ...extra });
   return {
+    width: 800,
+    height: 440,
     places: [
-      at('keep', 'The keep', 240, 52, { heart: true }),
-      at('postern', 'The postern', 116, 52),
-      at('westwall', 'The west wall', 152, 108),
-      at('gate', 'The gatehouse', 240, 114),
-      at('eastwall', 'The east wall', 328, 108),
-      at('tower', 'The watchtower', 372, 46),
-      at('mill', 'The mill', 52, 120),
-      at('bridge', 'The bridge', 240, 168),
-      at('oldtown', 'The old town', 128, 176),
-      at('market', 'The market', 352, 176),
-      at('orchards', 'The orchards', 436, 116),
-      at('ford', 'The ford', 56, 222),
-      at('camp', 'The siege camp', 240, 226, { lifts: true, up: true }),
-      at('quarry', 'The quarry', 414, 222),
+      at('wtower', 'The west tower', 180, 56),
+      at('postern', 'The postern', 290, 56),
+      at('keep', 'The keep', 400, 60, { heart: true }),
+      at('yard', 'The inner yard', 510, 56),
+      at('etower', 'The east tower', 620, 56),
+      at('mill', 'The mill', 70, 130),
+      at('wwall', 'The west wall', 200, 130),
+      at('gate', 'The gatehouse', 400, 136),
+      at('ewall', 'The east wall', 600, 130),
+      at('orchards', 'The orchards', 730, 130),
+      at('woods', 'The woods', 60, 212),
+      at('oldtown', 'The old town', 190, 212),
+      at('smithy', 'The smithy', 300, 212),
+      at('bridge', 'The bridge', 400, 212),
+      at('market', 'The market', 500, 212),
+      at('granary', 'The granary', 620, 212),
+      at('vineyard', 'The vineyards', 740, 212),
+      at('marsh', 'The marsh', 110, 296),
+      at('tannery', 'The tannery', 250, 296),
+      at('crossroads', 'The crossroads', 400, 296),
+      at('chapel', 'The chapel', 550, 296),
+      at('quarry', 'The quarry', 700, 296),
+      at('ford', 'The ford', 70, 380),
+      at('farms', 'The farms', 220, 380),
+      at('camp', 'The siege camp', 400, 384, { lifts: true, up: true }),
+      at('road', 'The south road', 580, 380),
+      at('hills', 'The hills', 740, 380),
     ],
     ways: [
-      ['keep', 'postern'], ['keep', 'westwall'], ['keep', 'gate'], ['keep', 'eastwall'], ['postern', 'westwall'], ['postern', 'mill'],
-      ['westwall', 'gate'], ['eastwall', 'gate'], ['eastwall', 'tower'], ['westwall', 'mill'], ['eastwall', 'orchards'], ['gate', 'bridge'],
-      ['bridge', 'oldtown'], ['bridge', 'market'], ['bridge', 'camp'], ['oldtown', 'mill'], ['oldtown', 'ford'], ['oldtown', 'camp'],
-      ['market', 'orchards'], ['market', 'quarry'], ['market', 'camp'], ['ford', 'camp'], ['quarry', 'camp'], ['tower', 'orchards'],
-      ['mill', 'ford'], ['orchards', 'quarry'],
+      ['wtower', 'postern'], ['postern', 'keep'], ['keep', 'yard'], ['yard', 'etower'],
+      ['wtower', 'wwall'], ['postern', 'wwall'], ['keep', 'gate'], ['yard', 'ewall'], ['etower', 'ewall'], ['wtower', 'mill'], ['etower', 'orchards'],
+      ['wwall', 'gate'], ['gate', 'ewall'], ['mill', 'wwall'], ['ewall', 'orchards'],
+      ['mill', 'woods'], ['mill', 'oldtown'], ['wwall', 'oldtown'], ['wwall', 'smithy'], ['gate', 'bridge'], ['ewall', 'granary'], ['ewall', 'market'], ['orchards', 'granary'], ['orchards', 'vineyard'],
+      ['woods', 'oldtown'], ['oldtown', 'smithy'], ['smithy', 'bridge'], ['bridge', 'market'], ['market', 'granary'], ['granary', 'vineyard'],
+      ['woods', 'marsh'], ['oldtown', 'tannery'], ['smithy', 'tannery'], ['bridge', 'crossroads'], ['market', 'chapel'], ['granary', 'quarry'], ['vineyard', 'quarry'],
+      ['marsh', 'tannery'], ['tannery', 'crossroads'], ['crossroads', 'chapel'], ['chapel', 'quarry'],
+      ['marsh', 'ford'], ['tannery', 'farms'], ['crossroads', 'camp'], ['chapel', 'road'], ['quarry', 'hills'],
+      ['ford', 'farms'], ['farms', 'camp'], ['camp', 'road'], ['road', 'hills'],
     ],
   };
 })();
@@ -233,10 +255,11 @@ export interface DuelScenario {
 }
 
 /**
- * The siege (tuned by simulation, tests/riotGame.test.ts): you 25 (11 in the keep), him 26 and 2 more a turn at his
- * camp (designer: fewer troops, technically); your friend plays it sensibly (`sensible`), his moves shown as
- * arrows; hold the keep for 12 turns. A first go (hit what you can beat, pull back what's threatened) holds it
- * most of the time; doing nothing, or anything, loses it.
+ * The siege (tuned by simulation, tests/riotGame.test.ts): you 40 (12 in the keep, the rest on the walls and
+ * towers, and out at the bridge, the mill and the orchards), him 52 spread along the bottom, and 2 more a turn at
+ * his camp (designer: fewer troops, technically); your friend plays it sensibly (`sensible`), his moves shown as
+ * arrows; hold the keep for 14 turns. A first go (hit what you can beat, pull back what's threatened) holds it
+ * about three times in four, as with the riot; doing nothing, or anything, loses it.
  */
 export const DUEL: DuelScenario = {
   id: 'duel',
@@ -244,20 +267,29 @@ export const DUEL: DuelScenario = {
   board: CASTLE_BOARD,
   district: 'castle',
   squads: [
-    { side: 'rising', place: 'keep', strength: 11 },
-    { side: 'rising', place: 'gate', strength: 4 },
-    { side: 'rising', place: 'westwall', strength: 3 },
-    { side: 'rising', place: 'eastwall', strength: 3 },
-    { side: 'rising', place: 'tower', strength: 2 },
+    { side: 'rising', place: 'keep', strength: 12 },
+    { side: 'rising', place: 'gate', strength: 5 },
+    { side: 'rising', place: 'wwall', strength: 4 },
+    { side: 'rising', place: 'ewall', strength: 4 },
+    { side: 'rising', place: 'bridge', strength: 3 },
+    { side: 'rising', place: 'wtower', strength: 2 },
+    { side: 'rising', place: 'etower', strength: 2 },
     { side: 'rising', place: 'postern', strength: 2 },
-    { side: 'guard', place: 'camp', strength: 12 },
-    { side: 'guard', place: 'oldtown', strength: 4 },
-    { side: 'guard', place: 'market', strength: 4 },
-    { side: 'guard', place: 'ford', strength: 3 },
+    { side: 'rising', place: 'yard', strength: 2 },
+    { side: 'rising', place: 'mill', strength: 2 },
+    { side: 'rising', place: 'orchards', strength: 2 },
+    { side: 'guard', place: 'camp', strength: 16 },
+    { side: 'guard', place: 'farms', strength: 5 },
+    { side: 'guard', place: 'road', strength: 5 },
+    { side: 'guard', place: 'ford', strength: 5 },
+    { side: 'guard', place: 'hills', strength: 5 },
+    { side: 'guard', place: 'tannery', strength: 5 },
+    { side: 'guard', place: 'chapel', strength: 5 },
+    { side: 'guard', place: 'marsh', strength: 3 },
     { side: 'guard', place: 'quarry', strength: 3 },
   ],
   // No power cuts in a siege; rumbles, as ever (Jack).
-  rules: { dawn: 12, reinforce: 2, powerEvery: 999, rumble: RUMBLE },
+  rules: { dawn: 14, reinforce: 2, powerEvery: 999, rumble: RUMBLE },
   style: { pour: 0 },
   knots: { intro: 'c3day6_duel_intro', won: 'c3day6_duel_won', lost: 'c3day6_duel_lost', after: 'c3day6_caught' },
 };

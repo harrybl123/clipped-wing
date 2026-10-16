@@ -225,9 +225,17 @@ describe('the war table: Day 6, the duel with your friend (simulated play)', () 
   };
 
   it('a first go usually holds the keep till dawn (designer: fewer troops, but as easy as the riot)', () => {
-    const results = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((seed) => duel(game(), seed, firstGo));
-    expect(results.filter((r) => r === 'rising').length).toBeGreaterThanOrEqual(8);
+    const results = Array.from({ length: 16 }, (_, i) => duel(game(), i + 1, firstGo));
+    expect(results.filter((r) => r === 'rising').length).toBeGreaterThanOrEqual(10);
   }, 120000);
+
+  it('the map is considerably bigger than the riot’s (designer), on a table bigger than the screen', () => {
+    expect(CASTLE_BOARD.places.length).toBeGreaterThanOrEqual(LOW_DISTRICT_BOARD.places.length * 1.7);
+    for (const p of CASTLE_BOARD.places) {
+      expect(p.x).toBeLessThanOrEqual(CASTLE_BOARD.width! - 30);
+      expect(p.y).toBeLessThanOrEqual(CASTLE_BOARD.height! - 30);
+    }
+  });
 
   it('you have fewer troops, technically', () => {
     const total = (side: string) => DUEL.squads.filter((q) => q.side === side).reduce((n, q) => n + q.strength, 0);

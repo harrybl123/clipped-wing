@@ -99,6 +99,14 @@ export class RiotTableScene extends Phaser.Scene {
   private music!: TableMusic;
   private t = 0;
   private embers: { x: number; y: number; life: number; smoke: boolean }[] = [];
+  /** The table's size (bigger than the screen on Day 6: it pans with the cursor, or the mouse at an edge). */
+  private bw = W;
+  private bh = H;
+  /** The buttons in the corner, fixed to the screen while the table pans. */
+  private ui!: Phaser.GameObjects.Graphics;
+  /** Where the view's heading (it eases there). */
+  private view = { x: 0, y: 0 };
+  private looked: RiotPlace | null = null;
 
   constructor() {
     super('RiotTable');
@@ -125,29 +133,35 @@ export class RiotTableScene extends Phaser.Scene {
     this.fatherPlaying = false;
     this.numbers = [];
     this.embers = [];
+    this.looked = null;
+    this.bw = sc.board.width ?? W;
+    this.bh = sc.board.height ?? H;
   }
 
   create(): void {
     this.cameras.main.setBackgroundColor(SHADES.shadow);
     const key = `riot-table-${this.sc.district}`;
-    makePaintedTexture(this, key, W, H, districtPainter(this.sc.board, this.sc.district));
+    makePaintedTexture(this, key, this.bw, this.bh, districtPainter(this.sc.board, this.sc.district, this.bw, this.bh));
     this.add.image(0, 0, key).setOrigin(0);
+    this.cameras.main.setBounds(0, 0, this.bw, this.bh);
     this.life = this.add.graphics().setDepth(2);
     this.gfx = this.add.graphics().setDepth(3);
+    this.ui = this.add.graphics().setDepth(7).setScrollFactor(0);
     // Place names, small and dim under each place (designer: the map needs them), so they're there to read
     // without shouting.
     for (const p of this.sc.board.places) {
       const label = new PixelText(this, 0, p.y + 11, lower(p.name), { color: SHADES.dim, shadow: SHADES.shadow }).setDepth(4);
-      label.setX(Math.max(2, Math.min(W - label.width - 2, Math.round(p.x - label.width / 2))));
+      label.setX(Math.max(2, Math.min(this.bw - label.width - 2, Math.round(p.x - label.width / 2))));
     }
     // Hardly any words on the table (designer: too cluttered): a note in the corner, and a card by the cursor.
-    this.chip = new PixelText(this, 6, 5, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(7);
+    this.chip = new PixelText(this, 6, 5, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(9).setScrollFactor(0);
     this.cardBack = this.add.graphics().setDepth(7);
     this.card = new PixelText(this, 0, 0, '', { color: SHADES.white, shadow: SHADES.shadow, wrapWidth: 150 }).setDepth(8);
-    this.endButton = new PixelText(this, END.x + 4, END.y + 2, 'End turn', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8);
-    this.undoButton = new PixelText(this, UNDO.x + 4, UNDO.y + 2, 'Undo', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8);
-    this.powerButton = new PixelText(this, POWER.x + 4, POWER.y + 2, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8);
+    this.endButton = new PixelText(this, END.x + 4, END.y + 2, 'End turn', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8).setScrollFactor(0);
+    this.undoButton = new PixelText(this, UNDO.x + 4, UNDO.y + 2, 'Undo', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8).setScrollFactor(0);
+    this.powerButton = new PixelText(this, POWER.x + 4, POWER.y + 2, '', { color: SHADES.white, shadow: SHADES.shadow }).setDepth(8).setScrollFactor(0);
     this.cursor = this.place(this.g.mine(this.state, this.you)[0]!.place);
+    this.lookAt(this.cursor, true);
     this.dialogue = new DialogueBox(this, getSession(this).story);
     this.music = startTableMusic(this, this.phase === 'lesson' || this.phase === 'duel' ? 'lesson' : 'now');
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.music.stop());
@@ -168,6 +182,39 @@ export class RiotTableScene extends Phaser.Scene {
   }
 
   private place = (id: string): RiotPlace => this.sc.board.places.find((p) => p.id === id)!;
+
+  // --- The view (a table bigger than the screen) ---
+
+  /** Bring a place into view, with room round it (at once, or easing there). */
+  private lookAt(p: { x: number; y: number }, now = false): void {
+    if (this.bw <= W && this.bh <= H) return;
+    const cam = this.cameras.main;
+    const m = 44;
+    let { x, y } = this.view;
+    if (now) [x, y] = [p.x - W / 2, p.y - H / 2];
+    if (p.x < x + m) x = p.x - m;
+    if (p.x > x + W - m) x = p.x - W + m;
+    if (p.y < y + 30) y = p.y - 30;
+    if (p.y > y + H - 40) y = p.y - H + 40;
+    this.view = { x: Math.max(0, Math.min(this.bw - W, x)), y: Math.max(0, Math.min(this.bh - H, y)) };
+    if (now) cam.setScroll(this.view.x, this.view.y);
+  }
+
+  override update(_t: number, delta: number): void {
+    if (this.bw <= W && this.bh <= H) return;
+    // The mouse at an edge of the screen pans the table (when you're free to look round).
+    const p = this.input.activePointer;
+    if (this.ready() && !this.aiming && p.x >= 0 && p.y >= 0 && p.x <= W && p.y <= H) {
+      const edge = 14;
+      const step = delta * 0.25;
+      const dx = p.x < edge ? -step : p.x > W - edge ? step : 0;
+      const dy = p.y < edge && p.x > 120 ? -step : p.y > H - edge && p.x < POWER.x ? step : 0;
+      if (dx || dy) this.view = { x: Math.max(0, Math.min(this.bw - W, this.view.x + dx)), y: Math.max(0, Math.min(this.bh - H, this.view.y + dy)) };
+    }
+    const cam = this.cameras.main;
+    const k = Math.min(1, delta / 120);
+    cam.setScroll(Math.round(cam.scrollX + (this.view.x - cam.scrollX) * k), Math.round(cam.scrollY + (this.view.y - cam.scrollY) * k));
+  }
   private lesson = (): LessonScenario | null => (this.sc.kind === 'lesson' ? this.sc : null);
 
   /** The computer's guard: your father, steady in the lesson, meaning it in "Now." and when he takes over; your friend, sensible. */
@@ -268,6 +315,7 @@ export class RiotTableScene extends Phaser.Scene {
     const q = s.squads.find((x) => x.id === o.squad)!;
     const from = this.place(q.place);
     const to = this.place(o.to);
+    this.lookAt(to);
     const dot = this.add.circle(from.x, from.y, 6, COLOUR[q.side]).setDepth(6);
     if (events.some((e) => e.type === 'blocked')) {
       // Into a squad that's dug in: up to it, and turned back.
@@ -309,6 +357,7 @@ export class RiotTableScene extends Phaser.Scene {
 
   /** A rumble appears (Jack: hard to miss): a flash, a low rumble, a ring going out from it, and its name. */
   private rumbleAppears(at: RiotPlace): void {
+    this.lookAt(at);
     playSound(this, 'rumble', 1);
     this.cameras.main.flash(250, 242, 180, 90);
     for (const delay of [0, 350]) {
@@ -324,11 +373,12 @@ export class RiotTableScene extends Phaser.Scene {
    */
   private async rumbleGoesOff(e: Extract<RiotEvent, { type: 'rumble' }>): Promise<void> {
     const at = this.place(e.at);
+    this.lookAt(at);
     playSound(this, 'quake', 1);
     this.cameras.main.shake(900, 0.018);
     const ring = this.add.circle(at.x, at.y, 8, SHADES.amber, 0.6).setDepth(6);
     this.tweens.add({ targets: ring, scale: 5, alpha: 0, duration: 700, onComplete: () => ring.destroy() });
-    const word = new PixelText(this, 0, 0, 'Rumble!', { color: SHADES.amber, shadow: SHADES.shadow, scale: 3 }).setDepth(20);
+    const word = new PixelText(this, 0, 0, 'Rumble!', { color: SHADES.amber, shadow: SHADES.shadow, scale: 3 }).setDepth(20).setScrollFactor(0);
     word.setPosition(Math.round((W - word.width) / 2), Math.round(H / 2 - word.height / 2 - 20));
     this.tweens.add({ targets: word, x: word.x + 3, duration: 50, yoyo: true, repeat: 9 });
     this.tweens.add({ targets: word, alpha: 0, delay: 1100, duration: 500, onComplete: () => word.destroy() });
@@ -513,15 +563,18 @@ export class RiotTableScene extends Phaser.Scene {
   private onPointer(p: Phaser.Input.Pointer, down: boolean): void {
     if (!this.ready()) return;
     if (down && p.rightButtonDown()) return this.back();
+    // The corner buttons are on the screen; everything else is on the table (which may have panned).
     const inside = (b: typeof END) => p.x >= b.x && p.x < b.x + b.w && p.y >= b.y && p.y < b.y + b.h;
+    const [wx, wy] = [p.x + this.cameras.main.scrollX, p.y + this.cameras.main.scrollY];
+    const onTable = (b: typeof END) => wx >= b.x && wx < b.x + b.w && wy >= b.y && wy < b.y + b.h;
     if (down && inside(END)) return void (!this.aiming && !this.cutting && this.endTurn());
     if (down && inside(UNDO)) return this.undo();
     if (down && inside(POWER) && this.you === 'guard' && !this.fatherPlaying) return this.startCut();
     // The buttons under the circles (a greyed one does nothing).
-    if (down) for (const b of this.underButtons()) if (inside(this.buttonBox(b))) return void (b.enabled && b.run());
+    if (down) for (const b of this.underButtons()) if (onTable(this.buttonBox(b))) return void (b.enabled && b.run());
     const pool = this.aiming ? this.aiming.dests : this.cutting ? this.cutTargets() : this.sc.board.places;
-    const near = pool.find((q) => Math.hypot(q.x - p.x, q.y - p.y) < 13);
-    const over = this.sc.board.places.find((q) => Math.hypot(q.x - p.x, q.y - p.y) < 13) ?? null;
+    const near = pool.find((q) => Math.hypot(q.x - wx, q.y - wy) < 13);
+    const over = this.sc.board.places.find((q) => Math.hypot(q.x - wx, q.y - wy) < 13) ?? null;
     if (over !== this.hover?.place) this.hover = over ? { place: over, since: this.time.now } : null;
     if (near && near !== this.cursor) (this.cursor = near), this.draw();
     if (down) {
@@ -615,7 +668,7 @@ export class RiotTableScene extends Phaser.Scene {
     }
     const p = b.place;
     const below = p.y + 14;
-    return { x: Math.round(Math.max(2, Math.min(W - w - 10, p.x - (w + 8) / 2))), y: Math.round(below + 11 > H - 17 ? p.y - 25 : below), w: w + 8, h: 11 };
+    return { x: Math.round(Math.max(2, Math.min(this.bw - w - 10, p.x - (w + 8) / 2))), y: Math.round(below + 11 > this.bh - 17 ? p.y - 25 : below), w: w + 8, h: 11 };
   }
 
   /**
@@ -702,7 +755,13 @@ export class RiotTableScene extends Phaser.Scene {
   // --- Drawing ---
 
   private draw(): void {
+    // The cursor moved: bring it into view (only then, so panning with the mouse isn't undone).
+    if (!this.busy && this.cursor !== this.looked) {
+      this.looked = this.cursor;
+      this.lookAt(this.cursor);
+    }
     const g = this.gfx.clear();
+    const ui = this.ui.clear();
     for (const n of this.numbers) n.destroy();
     this.numbers = [];
     const s = this.state;
@@ -801,17 +860,17 @@ export class RiotTableScene extends Phaser.Scene {
     }
     // The buttons.
     const idle = !this.busy && !this.aiming && !this.cutting;
-    g.fillStyle(idle ? SHADES.cyanDeep : SHADES.deep, 0.95).fillRect(END.x, END.y, END.w, END.h);
-    g.lineStyle(1, idle ? CYAN : SHADES.dim, 1).strokeRect(END.x, END.y, END.w, END.h);
+    ui.fillStyle(idle ? SHADES.cyanDeep : SHADES.deep, 0.95).fillRect(END.x, END.y, END.w, END.h);
+    ui.lineStyle(1, idle ? CYAN : SHADES.dim, 1).strokeRect(END.x, END.y, END.w, END.h);
     this.endButton.setColor(idle ? SHADES.white : SHADES.dim);
     const canUndo = !this.busy && this.history.length > 0;
-    g.fillStyle(canUndo ? SHADES.cyanDeep : SHADES.deep, 0.95).fillRect(UNDO.x, UNDO.y, UNDO.w, UNDO.h);
-    g.lineStyle(1, canUndo ? CYAN : SHADES.dim, 1).strokeRect(UNDO.x, UNDO.y, UNDO.w, UNDO.h);
+    ui.fillStyle(canUndo ? SHADES.cyanDeep : SHADES.deep, 0.95).fillRect(UNDO.x, UNDO.y, UNDO.w, UNDO.h);
+    ui.lineStyle(1, canUndo ? CYAN : SHADES.dim, 1).strokeRect(UNDO.x, UNDO.y, UNDO.w, UNDO.h);
     this.undoButton.setColor(canUndo ? SHADES.white : SHADES.dim);
     if (this.you === 'guard' && !this.fatherPlaying) {
       const canCut = !this.busy && !this.aiming && this.g.canCut(s);
-      g.fillStyle(this.cutting ? SHADES.amberDeep : canCut ? SHADES.cyanDeep : SHADES.deep, 0.95).fillRect(POWER.x, POWER.y, POWER.w, POWER.h);
-      g.lineStyle(1, canCut || this.cutting ? CYAN : SHADES.dim, 1).strokeRect(POWER.x, POWER.y, POWER.w, POWER.h);
+      ui.fillStyle(this.cutting ? SHADES.amberDeep : canCut ? SHADES.cyanDeep : SHADES.deep, 0.95).fillRect(POWER.x, POWER.y, POWER.w, POWER.h);
+      ui.lineStyle(1, canCut || this.cutting ? CYAN : SHADES.dim, 1).strokeRect(POWER.x, POWER.y, POWER.w, POWER.h);
       this.powerButton.setText(s.cut ? 'Power cut' : this.cutting ? 'Cut: where?' : this.g.canCut(s) ? 'Cut power' : `Power in ${this.g.cutIn(s)}`).setColor(canCut || this.cutting ? SHADES.white : SHADES.dim);
     } else this.powerButton.setText('');
     // The words: the note in the corner, and the card by the cursor.
@@ -839,8 +898,9 @@ export class RiotTableScene extends Phaser.Scene {
     this.cardBack.clear();
     if (!text || !p) return;
     const [w, h] = [this.card.width + 8, this.card.height + 6];
-    const x = p.x + 18 + w < W - 4 ? p.x + 18 : p.x - 18 - w;
-    const y = Math.max(4, Math.min(H - h - 20, p.y - 10));
+    const [vx, vy] = [this.view.x, this.view.y];
+    const x = p.x + 18 + w < vx + W - 4 ? p.x + 18 : p.x - 18 - w;
+    const y = Math.max(vy + 4, Math.min(vy + H - h - 20, p.y - 10));
     this.cardBack.fillStyle(SHADES.shadow, 0.92).fillRect(x, y, w, h);
     this.cardBack.lineStyle(1, SHADES.cyanDeep, 1).strokeRect(x, y, w, h);
     this.card.setPosition(Math.round(x + 4), Math.round(y + 3));
@@ -1009,7 +1069,7 @@ function nearestIn(places: readonly RiotPlace[], from: RiotPlace, dx: number, dy
  * dark with a few lit windows. The low district warm and crowded (small blocks); the promenade's glass in
  * long, clean ones. In the table's cyan.
  */
-function districtPainter(board: RiotBoard, district: 'low' | 'promenade' | 'castle'): (x: number, y: number) => PixelColour {
+function districtPainter(board: RiotBoard, district: 'low' | 'promenade' | 'castle', bw = W, bh = H): (x: number, y: number) => PixelColour {
   const pos = new Map(board.places.map((p) => [p.id, p]));
   const segs = board.ways.map(([a, b]) => [pos.get(a)!, pos.get(b)!] as const);
   const lot = district === 'low' ? 9 : district === 'castle' ? 12 : 16;
@@ -1035,7 +1095,7 @@ function districtPainter(board: RiotBoard, district: 'low' | 'promenade' | 'cast
       if (!gap && gx % 3 === 1 && gy % 4 === 2 && ((h >> 3) + gx * 7 + gy) % 11 === 0) lum = 0.6;
     }
     if (y % 3 === 0) lum *= 0.8;
-    const edge = Math.min(x, W - x, y, H - y) / 40;
+    const edge = Math.min(x, bw - x, y, bh - y) / 40;
     lum *= Math.min(1, 0.4 + edge) * 0.75;
     const t = Math.min(2.999, lum * 4);
     const i = Math.floor(t);
