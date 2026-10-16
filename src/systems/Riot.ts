@@ -390,8 +390,8 @@ export interface RiotSquad {
   /** A maiden (witch) merged into it (Jack): green, bubbling, a chance of a critical hit when it attacks. */
   poison?: boolean;
   /**
-   * Standing beside one of the king's guard (Jack): a squad of yours on the same place, not one of them, only
-   * passing through. Attacks there hit the king's guard first, then these.
+   * Standing beside one of the king's guard, or hired fighters of yours (Jack): a squad of yours on the same place,
+   * not one of them, only passing through. Attacks there hit them first, then these.
    */
   beside?: boolean;
   /** Been to the brothel (Jack): stuck there through this turn. */
@@ -928,13 +928,15 @@ export class RiotGame {
   near = (a: string, b: string): boolean => this.adj.get(a)!.includes(b);
   /** Who holds a place (the king's guard, not anyone beside them). */
   squadAt = (s: RiotState, place: string): RiotSquad | undefined => (this.use(s), s.squads.find((q) => q.place === place && !q.beside) ?? s.squads.find((q) => q.place === place));
-  /** A squad standing beside the king's guard at a place (Jack). */
+  /** Who others of their side can stand beside (Jack): the king's guard, and hired fighters. */
+  host = (q: RiotSquad): boolean => q.elite === 'guard3' || !!q.hired;
+  /** A squad standing beside the king's guard (or hired fighters) at a place (Jack). */
   besideAt = (s: RiotState, place: string): RiotSquad | undefined => s.squads.find((q) => q.place === place && q.beside);
   /** How strong a place is all told: whoever holds it and anyone beside them. */
   heldBy = (s: RiotState, place: string): number => s.squads.filter((q) => q.place === place && !(q.beside && q.elite === 'hero')).reduce((n, q) => n + q.strength, 0);
   /** Who's beside the king's guard, worked out again (on `s`, a clone): a squad of theirs sharing the place. */
   private settle(s: RiotState): void {
-    for (const q of s.squads) q.beside = q.elite !== 'guard3' && s.squads.some((k) => k !== q && k.place === q.place && k.elite === 'guard3' && k.side === q.side) ? true : undefined;
+    for (const q of s.squads) q.beside = !this.host(q) && s.squads.some((k) => k !== q && k.place === q.place && this.host(k) && k.side === q.side) ? true : undefined;
   }
   mine = (s: RiotState, side: Side): RiotSquad[] => (this.use(s), s.squads.filter((q) => q.side === side));
   canCut = (s: RiotState): boolean => !s.cut && s.turn - s.lastCut >= this.rules.powerEvery;
@@ -964,12 +966,12 @@ export class RiotGame {
     if (q.crusted || (q.stuck ?? -1) >= s.turn) return [];
     // Nobody joins one of the elite squad, and they join nobody (Jack); but a maiden (witch) can merge into one of
     // hers (poisoning it).
-    // Onto one of the king's guard: a squad of yours stands beside them (Jack).
+    // Onto one of the king's guard, or hired fighters of yours: a squad of yours stands beside them (Jack).
     // (Hired fighters: the computer's, by `hiredDests`; nobody joins them. Buildings never move.)
     if (q.hired || q.built) return [];
     const joinable = (p: string) => {
       const there = this.squadAt(s, p);
-      return !there || there.side !== q.side || (!there.elite && !there.hired && !there.built && (!q.elite || q.elite === 'maiden')) || (there.elite === 'guard3' && !q.elite);
+      return !there || there.side !== q.side || (!there.elite && !there.hired && !there.built && (!q.elite || q.elite === 'maiden')) || (this.host(there) && !q.elite);
     };
     // The king's guard hold where they are (Jack).
     if (q.elite === 'guard3') return [];
@@ -1154,8 +1156,8 @@ export class RiotGame {
       q.place = o.to;
       s.owner[o.to] = q.side;
       events.push({ type: 'move', squad: q.id, side: q.side, from, to: o.to });
-    } else if (there.side === q.side && there.elite === 'guard3') {
-      // Beside the king's guard (Jack): with whoever's already beside them, or standing there alone.
+    } else if (there.side === q.side && this.host(there)) {
+      // Beside the king's guard or hired fighters (Jack): with whoever's already beside them, or standing there alone.
       const by = this.besideAt(s, o.to);
       if (by && by !== q) (by.strength += q.strength), (s.squads = s.squads.filter((x) => x !== q));
       else q.place = o.to;

@@ -153,7 +153,7 @@ describe('the war table: split (Jack, a trial)', () => {
 
 describe('the war table: the elite squad (Jack, a trial)', () => {
   const game = new RiotGame(LOW_DISTRICT_BOARD, { ...RIOT_RULES, elites: ELITE_SQUAD });
-  const squads = (s: RiotState, list: { id: string; side: 'guard' | 'rising'; place: string; strength: number; elite?: 'hero' | 'maiden' | 'guard3'; until?: number; poison?: boolean }[]): RiotState => ({ ...s, squads: list, nextId: 50 });
+  const squads = (s: RiotState, list: { id: string; side: 'guard' | 'rising'; place: string; strength: number; elite?: 'hero' | 'maiden' | 'guard3'; until?: number; poison?: boolean; hired?: 'rogue' | 'archer' | 'assassin' }[]): RiotState => ({ ...s, squads: list, nextId: 50 });
   /** A side given crests to spend. */
   const crests = (s: RiotState, side: 'guard' | 'rising', n = 1): RiotState => ({ ...s, elites: { ...s.elites, [side]: { ...s.elites[side], crests: n } } });
 
@@ -334,6 +334,24 @@ describe('the war table: the elite squad (Jack, a trial)', () => {
     expect(t.squads.some((q) => q.place === 'arch' && q.side === 'guard')).toBe(false);
     // They can go on again.
     expect(game.dests(s, game.besideAt(s, 'arch')!)).toContain('market');
+  });
+
+  it('beside your hired fighters (Jack): yours step onto their place and stand beside them; attacks hit them first', () => {
+    let s = squads(game.start([]), [{ id: 'a', side: 'guard', place: 'arch', strength: 2, hired: 'archer' }, { id: 'l', side: 'guard', place: 'lifts', strength: 5 }, { id: 'r', side: 'rising', place: 'market', strength: 8 }]);
+    expect(game.dests(s, s.squads[1]!)).toContain('arch');
+    s = game.order(s, { squad: 'l', to: 'arch' }).state;
+    expect(game.squadAt(s, 'arch')!.id).toBe('a');
+    expect(game.besideAt(s, 'arch')).toMatchObject({ id: 'l', strength: 5, beside: true });
+    expect(game.heldBy(s, 'arch')).toBe(7);
+    // 8 against the archers' 2 and the 5 beside them: through, with 1 left.
+    const t = game.order(s, { squad: 'r', to: 'arch' }).state;
+    expect(t.squads.filter((q) => q.place === 'arch').map((q) => [q.side, q.strength])).toEqual([['rising', 1]]);
+    // A rogue moving off leaves them standing there on their own.
+    let u = squads(game.start([]), [{ id: 'g', side: 'guard', place: 'arch', strength: 3, hired: 'rogue' }, { id: 'l', side: 'guard', place: 'lifts', strength: 5 }]);
+    u = game.order(u, { squad: 'l', to: 'arch' }).state;
+    u = game.order(u, { squad: 'g', to: 'market', auto: true }).state;
+    expect(game.squadAt(u, 'arch')).toMatchObject({ id: 'l', strength: 5 });
+    expect(game.squadAt(u, 'arch')!.beside).toBeUndefined();
   });
 
   it('the rising put in their bastard when there’s one of yours to hit, and a witch seduces', () => {
@@ -966,9 +984,13 @@ describe('the war table: the barracks (Jack)', () => {
     for (const q of rogues) expect(q).toMatchObject({ side: 'guard', strength: 3 });
     expect(game.dests(r.state, rogues[0]!)).toEqual([]);
     expect(game.order(r.state, { squad: rogues[0]!.id, to: game.adj.get(rogues[0]!.place)![0]! }).events).toEqual([]);
-    // (One of yours can't join them.)
-    const next = game.adj.get(rogues[0]!.place)!.find((p) => at(r.state, p)?.side === 'guard' && !at(r.state, p)!.hired);
-    if (next) expect(game.dests(r.state, at(r.state, next)!)).not.toContain(rogues[0]!.place);
+    // (One of yours doesn't join them: it stands beside them, Jack.)
+    const next = game.adj.get(rogues[0]!.place)!.find((p) => at(r.state, p)?.side === 'guard' && !at(r.state, p)!.hired && !at(r.state, p)!.elite && p !== game.base('guard'));
+    if (next) {
+      const t = game.order(r.state, { squad: at(r.state, next)!.id, to: rogues[0]!.place }).state;
+      expect(game.squadAt(t, rogues[0]!.place)).toMatchObject({ hired: 'rogue', strength: 3 });
+      expect(game.besideAt(t, rogues[0]!.place)?.beside).toBe(true);
+    }
   });
 
   it('rogues go for the nearest of theirs they can beat, on their own, and beat one next to them', () => {

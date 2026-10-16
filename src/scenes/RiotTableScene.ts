@@ -2093,7 +2093,7 @@ export class RiotTableScene extends Phaser.Scene {
     for (const t of this.g.towerList()) this.drawTower(g, this.place(t.place), s.owner[t.place]);
     // The squads: the guard a blue shield, the rising an amber circle; the number on each.
     for (const q of s.squads) {
-      // (Beside the king's guard, Jack: a little down and to the right of them, plainly not one of them.)
+      // (Beside the king's guard or hired fighters, Jack: a little down and to the right of them, plainly not one of them.)
       const at = this.place(q.place);
       const p = q.beside ? { ...at, x: at.x + 14, y: at.y + 10 } : at;
       // The plague on it (Jack): a sickly green, dripping, and a small skull at its shoulder.
@@ -2371,7 +2371,7 @@ export class RiotTableScene extends Phaser.Scene {
     if (there.side !== aim.side && aim.elite === 'maiden') return `Seduce: ${there.elite === 'hero' ? `their ${ELITE_NAMES[there.side].hero.toLowerCase()} becomes your ${ELITE_NAMES[aim.side].hero.toLowerCase()}` : `their ${there.strength} are yours`}, and she's gone`;
     if (there.side !== aim.side && there.elite === 'guard3' && !this.g.rules.guardsOpen) return `Their ${ELITE_NAMES[there.side].guard3.toLowerCase()}: only your ${ELITE_NAMES[aim.side].hero.toLowerCase()} can hurt them`;
     if (there.side === aim.side && aim.elite === 'maiden') return `Merge: ${aim.strength + there.strength}, poisoned (${this.critChance()} chance of a critical hit)`;
-    if (there.side === aim.side && there.elite === 'guard3') return `${lead}Stand beside the ${ELITE_NAMES[there.side].guard3}: they take any attack first`;
+    if (there.side === aim.side && this.g.host(there)) return `${lead}Stand beside the ${this.hostName(there)}: they take any attack first`;
     if (there.side === aim.side) return `${lead}Join: ${aim.strength + there.strength}, then send them on`;
     const a = this.g.attack(aim.place, p.id, aim.strength);
     const d = this.g.defence(s, p.id, this.g.heldBy(s, p.id));
@@ -2391,6 +2391,11 @@ export class RiotTableScene extends Phaser.Scene {
     return lead + (a === d ? `${vs}: a tie, they hold` : `${vs}: they hold`) + crit;
   }
 
+  /** Who a squad's standing beside, by name: the king's guard (barbarians), or the hired fighters. */
+  private hostName(q: RiotSquad): string {
+    return q.hired ? { rogue: 'rogue mercenary', archer: 'archers', assassin: 'assassin' }[q.hired] : ELITE_NAMES[q.side].guard3;
+  }
+
   /** A poisoned squad's chance of a critical hit, as a percentage. */
   private critChance(): string {
     return `${Math.round((this.g.rules.elites?.crit.chance ?? 0) * 100)}%`;
@@ -2405,7 +2410,7 @@ export class RiotTableScene extends Phaser.Scene {
     const lines = [p.name];
     if (there) lines.push(`${whose(there.side)}, ${there.strength}`);
     const by = this.g.besideAt(s, p.id);
-    if (by) lines.push(`Beside them: ${whose(by.side).toLowerCase()}, ${by.strength}, passing through (hit only once the ${ELITE_NAMES[by.side].guard3} are gone)`);
+    if (by && there) lines.push(`Beside them: ${whose(by.side).toLowerCase()}, ${by.strength}, passing through (hit only once the ${this.hostName(there)} ${there.hired === 'assassin' ? 'is' : 'are'} gone)`);
     if (there?.elite) {
       const left = (there.until ?? s.turn) - s.turn + 1;
       const name = ELITE_NAMES[there.side][there.elite];
