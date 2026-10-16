@@ -347,8 +347,17 @@ const SKIRMISH_START: Setup = [
 
 const riot = (id: string, board: RiotBoard, district: RiotScenario['district'], squareArea: RiotScenario['squareArea']): RiotScenario => ({
   id, kind: 'riot', board, district, squads: RIOT_START, square: 'riot_square', squareArea,
-  // Rumbles and the elite squads in the riot (Jack), not the lesson.
-  rules: { rumble: RUMBLE, elites: ELITE_SQUAD, clash: CLASH, mystery: MYSTERY },
+  // Rumbles and the elite squads in the riot (Jack), not the lesson; and (Jack: what we built for the skirmish) the
+  // audience, the holy cross, the barracks, the architect, one at a time; anyone can go at the barbarians; two towers
+  // each, the guard's on their way in, the rising's at the back of the district, without walls (simulated: with
+  // them, a first-timer won 2 in 24). Not the rebels' own move: Rally's +2 turns the riot's crowds of 3 into 5s
+  // that beat your 4s (a first-timer won none).
+  rules: {
+    rumble: { ...RUMBLE, chance: 0.25 }, elites: ELITE_SQUAD, clash: CLASH, mystery: { ...MYSTERY, from: 3, chance: 0.25 },
+    audience: { ...AUDIENCE, from: 4, chance: 0.2 }, church: { ...CHURCH, from: 5, chance: 0.1 }, barracks: { ...BARRACKS, from: 4, chance: 0.2 },
+    architect: { ...ARCHITECT, chance: 0.2 }, tokensAtOnce: 1, guardsOpen: true,
+    towers: { guard: ['arch', 'lamp'], rising: ['wash', 'tenements'], makes: 2, every: 4, walls: 0 },
+  },
   knots: { intro: 'c3day4_riot_intro', won: 'c3day4_table_won', dawn: 'c3day4_dawn', fatherTook: 'c3day4_father_took', square: 'c3day4_square' },
 });
 

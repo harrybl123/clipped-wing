@@ -2433,7 +2433,7 @@ export class RiotTableScene extends Phaser.Scene {
       const tw = this.g.rules.towers;
       const k = this.g.towersIn(s);
       const when = (tw?.every ?? 1) > 1 ? ` every ${tw!.every} turns (${k === 0 ? 'this turn' : `in ${k + 1}`})` : ' a turn';
-      lines.push(`A tower${holder ? ` (${holder === this.you ? 'yours' : 'theirs'})` : ''}: makes ${tw?.makes ?? 1} here for whoever holds it${when}. Walls +${tw?.walls ?? 1}.`);
+      lines.push(`A tower${holder ? ` (${holder === this.you ? 'yours' : 'theirs'})` : ''}: makes ${tw?.makes ?? 1} here for whoever holds it${when}.${tw?.walls ? ` Walls +${tw.walls}.` : ''}`);
     }
     if (s.architect?.place === p.id) lines.push(`The architect: first here has him build something (artillery, a storehouse, or a fortress) anywhere on their side. (${s.architect.left} ${s.architect.left === 1 ? 'turn' : 'turns'} left)`);
     const built = this.g.squadAt(s, p.id)?.built;

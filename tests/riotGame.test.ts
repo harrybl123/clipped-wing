@@ -130,9 +130,10 @@ describe('the war table: Day 4, the riot (simulated play)', () => {
   it('a naive player (straight at the square, no power cut, no fortify: designer, on a first go) usually wins, late', () => {
     // (Balanced against this, not only the clever players: Jack's version had sensible play at 97%, and the naive at 0.)
     const riot = new RiotGame(RIOTS.riot_low!.board, { ...game.rules, ...(RIOTS.riot_low as { rules?: object }).rules });
-    // (With Jack's elite squads, clashes and mystery squares, about 73% over 60 games: 16 here.)
-    const results = Array.from({ length: 16 }, (_, i) => playOut(riot, riot.start(RIOT_START, i + 1), naive()));
-    expect(results.filter((r) => r.winner === 'guard').length).toBeGreaterThanOrEqual(10);
+    // (With Jack's elite squads, clashes and mystery squares, about 73% over 60 games; with the skirmish's bonuses
+    // and towers too, about 66%: 32 here.)
+    const results = Array.from({ length: 32 }, (_, i) => playOut(riot, riot.start(RIOT_START, i + 1), naive()));
+    expect(results.filter((r) => r.winner === 'guard').length).toBeGreaterThanOrEqual(19);
     for (const r of results) if (r.winner === 'guard') expect(r.state.turn).toBeGreaterThanOrEqual(8);
   }, 120000);
 

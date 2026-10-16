@@ -41,13 +41,14 @@ export function evaluate(g: RiotGame, s: RiotState): number {
   return v;
 }
 
-function distance(g: RiotGame, a: string, b: string): number {
+function distance(g: RiotGame, a: string, b: string, s?: RiotState): number {
   const seen = new Map([[a, 0]]);
   const todo = [a];
   while (todo.length) {
     const p = todo.shift()!;
     if (p === b) return seen.get(p)!;
-    for (const n of g.adj.get(p)!) if (!seen.has(n)) (seen.set(n, seen.get(p)! + 1), todo.push(n));
+    // (Given the state, round a street that's closed, as a person would: Jack's sabotage.)
+    for (const n of g.adj.get(p)!) if (!seen.has(n) && (!s || g.open(s, p, n))) (seen.set(n, seen.get(p)! + 1), todo.push(n));
   }
   return 99;
 }
@@ -185,8 +186,8 @@ export function naive(): GuardPlayer {
         orders.push({ squad: q.id, to: beat });
         continue;
       }
-      const step = ways.filter((to) => g.squadAt(s, to)?.side !== 'rising').sort((a, b) => distance(g, a, g.heart) - distance(g, b, g.heart))[0];
-      if (step && distance(g, step, g.heart) < distance(g, q.place, g.heart)) orders.push({ squad: q.id, to: step });
+      const step = ways.filter((to) => g.squadAt(s, to)?.side !== 'rising').sort((a, b) => distance(g, a, g.heart, s) - distance(g, b, g.heart, s))[0];
+      if (step && distance(g, step, g.heart, s) < distance(g, q.place, g.heart, s)) orders.push({ squad: q.id, to: step });
     }
     return { orders };
   };

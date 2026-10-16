@@ -2088,7 +2088,7 @@ export class RiotGame {
     const crowds = this.mine(s, 'rising').filter((q) => q.place !== this.heart && s.cut !== q.place && !busy.has(q.id) && !q.hired && !q.built).sort((a, b) => b.strength - a.strength || a.id.localeCompare(b.id));
     // (Bonuses on the map, Jack: each one, the nearest crowd that could get there before it goes heads for it.)
     const chase = new Map<string, string>();
-    if (homes) for (const t of [s.crest, s.mystery, s.audience, s.church, s.barracks, s.architect]) {
+    if (homes || this.rules.tokensAtOnce) for (const t of [s.crest, s.mystery, s.audience, s.church, s.barracks, s.architect]) {
       if (!t) continue;
       const free = crowds.filter((q) => !q.elite && !chase.has(q.id) && !(this.isTower(q.place)) && distTo(q.place, (p) => p === t.place) <= t.left);
       const near = free.sort((a, b) => distTo(a.place, (p) => p === t.place) - distTo(b.place, (p) => p === t.place) || b.strength - a.strength)[0];
