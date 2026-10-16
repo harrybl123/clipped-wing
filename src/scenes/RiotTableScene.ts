@@ -30,8 +30,8 @@ import type { CombatSceneData } from './CombatScene';
 // The table shows a riot (designer): the district's streets in light; the rising's squads amber circles, with
 // fire and a crowd round them; the guard's blue shields; a key at the top says who's who, and which is you.
 // Controls (the old table's): pick a squad of yours (E or click), the arrows step round where it can go, E or
-// click to send it (its own place to hold); Esc or right-click backs out; Tab to the next squad; Enter (or the
-// button) ends the turn. Undo (or U) takes back your last order, one at a time (designer). Buttons under the
+// click to send it (its own place to hold), and Enter does what E does; Esc or right-click backs out; Tab to the
+// next squad; Space (or the button) ends the turn. Undo (or U) takes back your last order, one at a time (designer). Buttons under the
 // circles (Jack: easier to play): with a squad picked up, Fortify (or F) digs it in for the turn and puts it
 // down, so you can pick up the next (once every 3 turns, like the power cut); Unfortify sits under every
 // squad that's dug in. As the guard, click one
@@ -595,7 +595,8 @@ export class RiotTableScene extends Phaser.Scene {
       this.draw();
       return;
     }
-    if (e.key === 'e' || e.key === 'E') return this.choose(this.cursor);
+    // Enter does what E does (designer, for the whole game); Space ends the turn.
+    if (e.key === 'e' || e.key === 'E' || e.key === 'Enter') return this.choose(this.cursor);
     if (e.key === 'Escape') return this.back();
     if (e.key === 'u' || e.key === 'U') return this.undo();
     if ((e.key === 'f' || e.key === 'F') && this.aiming) return this.fortifyPicked();
@@ -604,7 +605,7 @@ export class RiotTableScene extends Phaser.Scene {
       e.preventDefault();
       return this.nextSquad();
     }
-    if (e.key === 'Enter' && !this.aiming && !this.cutting) void this.endTurn();
+    if (e.key === ' ' && !this.aiming && !this.cutting) void this.endTurn();
   }
 
   private onPointer(p: Phaser.Input.Pointer, down: boolean): void {

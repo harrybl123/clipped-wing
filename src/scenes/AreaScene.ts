@@ -310,6 +310,8 @@ export class AreaScene extends Phaser.Scene {
   private prompt!: PixelText;
   private promptPlate!: Phaser.GameObjects.Rectangle;
   private interactKey!: Phaser.Input.Keyboard.Key;
+  /** Enter does what E does, everywhere (designer: kept pressing it). */
+  private enterKey!: Phaser.Input.Keyboard.Key;
   private usables: Usable[] = [];
   private current: Usable | null = null;
   /** The dog's finding, checked every frame (`seek`); where it's digging now, for the marker. */
@@ -608,6 +610,7 @@ export class AreaScene extends Phaser.Scene {
     } else if (area.width > GAME_WIDTH || area.height > GAME_HEIGHT) this.cameras.main.startFollow(this.player.sprite, true, 0.1, 0.1);
 
     this.interactKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+    this.enterKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
     this.promptPlate = this.add.rectangle(0, 0, 1, 1, SHADES.shadow, 0.85).setOrigin(0).setDepth(19).setVisible(false);
     this.prompt = new PixelText(this, 0, 0, '', { color: SHADES.white }).setDepth(20).setVisible(false);
     this.dialogue = new DialogueBox(this, session.story, (tags) => this.handleTags(tags));
@@ -649,7 +652,10 @@ export class AreaScene extends Phaser.Scene {
   }
 
   override update(_time: number, delta: number): void {
-    const interactPressed = Phaser.Input.Keyboard.JustDown(this.interactKey);
+    // (Both read every frame, so a press never waits in a queue: JustDown.)
+    const pressedE = Phaser.Input.Keyboard.JustDown(this.interactKey);
+    const pressedEnter = Phaser.Input.Keyboard.JustDown(this.enterKey);
+    const interactPressed = pressedE || pressedEnter;
     const caught = this.watchmen.some((w) => w.alarm !== null) || this.quarries.some((q) => q.alarm !== null) || this.mobs.some((m) => m.alarm !== null);
     const blocked = this.leaving || caught || this.dialogue.isOpen || this.game.loop.frame === this.dialogueClosedFrame || this.digBusy || this.cutaway;
     this.player.update(blocked);
