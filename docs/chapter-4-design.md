@@ -46,10 +46,12 @@ Only the tube and rot endings continue (the loyal ending doesn't). Two things fr
 ## Chapter shape
 
 1. **Opening (every ending):** **you're scared and shocked by everything** (designer, 2026-10-17: this is important). Up the tube, **the master with the spiral finds you, careful and kind**, understanding you'll be in shock (designer: someone from the colony; Claude suggested her, designer agreed: you watched her ascend on Day 1). Through the rot, **the hunter finds you** at the bottom (designer), with the girl or alone; with her, she's bickering at you, and he basically tells you to shut up. Then Grounded. He explains the world and who he is, and tells you his real name. His people are hungry, and you can be their key of leverage. You can reject this, but you can't bluntly tell your people the truth, because they'd reject it. If you commit to freeing them, you have to devise a plan with the tree scavengers.
-2. **Life in the colony:** getting to know the treehouse colony, hunting in the lowlands with the hunter, and secret trips back into the tree.
-3. **The big decisions** (below).
-4. **The Tender, and the battle** (designer, 2026-10-17): **the Tender is revealed as an agent of the capital**, and you find out he's orchestrating an attack on the canopy's people with the king. **A boss fight with him**, beside the hunter and his electric bow (designer), and **a final big battle**. The capital can't blow the canopy up: they need the tree undisrupted. **The tree stays as it is for now**: no revolution in the tree this chapter (designer).
-5. **Final beat:** after the ultimate choice and the battle, the chapter ends quietly with the hunter crouched over dog prints at the base of the tree (designer, 2026-10-17) in the lowlands. Dogs are meant to be extinct. This sets up meeting the scavenger in a later chapter.
+2. **Fast paced** (designer, 2026-10-17): kept quick wherever it isn't consequential to the story.
+3. **Scavenging with the hunter, and an invasion, early on** (designer, 2026-10-17): the hunter takes you down scavenging for weapons and trains you; the tree is invaded by scavengers while this is going on (details to settle). **Your weapon is a big metal fist** you find, from one of the unsuccessfully integrated (like Chapter 5's hitman) (designer). *(Claude's note: you lost your left thumb and finger in the prologue, and on Day 4 you can't make a fist; this is the fist you couldn't make.)*
+4. **Life in the colony:** getting to know the treehouse colony, hunting in the lowlands with the hunter, and secret trips back into the tree.
+5. **The big decisions** (below).
+6. **The Tender, and the battle** (designer, 2026-10-17): **the Tender is revealed as an agent of the capital**, and you find out he's orchestrating an attack on the canopy's people with the king. **A boss fight with him**, beside the hunter and his electric bow (designer), and **a final big battle**. The capital can't blow the canopy up: they need the tree undisrupted. **The tree stays as it is for now**: no revolution in the tree this chapter (designer).
+7. **Final beat:** after the ultimate choice and the battle, the chapter ends quietly with the hunter crouched over dog prints at the base of the tree (designer, 2026-10-17) in the lowlands. Dogs are meant to be extinct. This sets up meeting the scavenger in a later chapter.
 
 ## Locations
 
