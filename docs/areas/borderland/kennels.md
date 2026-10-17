@@ -10,6 +10,8 @@ A new place in the settlement with a locked-away secret. **(Jack)**
 - The key could tie into the story, or be a secret for later. **(Jack)** That's for Harry to decide (see the open questions).
 
 ## No dogs
+**Now wolves (Jack, 2026-10-17):** the cages and the pen hold wolves, starved and kept hungry (the wolf drawings from before), barking with the recorded barks from when they were dogs (`savage`) and snarling. The creatures below were the version before. Wolves aren't dogs, but whether they fit a world where dogs are all but extinct is Harry's call.
+
 - Dogs are all but extinct, and the scavenger's dog is her secret, so the kennels can't hold dogs. **(designer)**
 - Instead: nobody has dogs, so whoever needs something guarded keeps **rabid, diseased creatures**, half-wild, kept hungry, as likely to bite their owners as obey them. **(Jack)** It makes her dog more precious by contrast: everyone else's "guard dog" is a sick thing, and hers is loyal. **(suggestion)**
 - **A mix of three kinds** **(Jack)**:

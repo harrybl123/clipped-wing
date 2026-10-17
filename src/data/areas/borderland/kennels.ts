@@ -6,10 +6,10 @@ import { AWAKE } from './people';
 
 // The kennels (Chapter 2; Jack's idea, for Harry to confirm): a fenced yard off the scrap stacks, loud
 // before you can see it. Nobody has dogs (they're all but extinct), so whoever needs something guarded
-// keeps rabid, diseased creatures instead (Jack): scrap hyenas, tusked hogs, nameless hairless things. A
-// row of scrap cages along the way in, one in each, hurling itself at the bars; they can't reach you,
-// they're noise and fear. At the far end, behind tall bars with a gate, three of them (one of each) keep a
-// wooden box with a key hidden in it. Come near the bars and they come up to them; go in and they run at
+// keeps wolves instead, starved and kept hungry (Jack; they were rabid creatures for a while). A row of
+// scrap cages along the way in, one in each, hurling itself at the bars; they can't reach you, they're
+// noise and fear. At the far end, behind tall bars with a gate, three of them keep a wooden box with a
+// key hidden in it. Come near the bars and they come up to them; go in and they run at
 // you, and if they reach you, it's game over. All of it so loud it distorts.
 // See docs/areas/borderland/kennels.md.
 
@@ -29,7 +29,7 @@ const SMALL = CAGES[1]!;
 const GATE = 470;
 const ROOF = 100;
 
-/** A creature pacing its cage. */
+/** A wolf pacing its cage. */
 const caged = (n: number, look: number, cage: Cage, flipX = false): Person => ({
   id: `cage-${n}`,
   sprite: CAGED_BEASTS[look]!.idle[0]!,
@@ -41,7 +41,7 @@ const caged = (n: number, look: number, cage: Cage, flipX = false): Person => ({
   wander: { from: cage.x + 18, to: cage.x + Math.max(19, cage.width - 18) },
 });
 
-/** One of the three guarding the box: 1 the hyena, 2 the hog, 3 the nameless thing. */
+/** One of the three guarding the box: 1 the grey wolf, 2 the brown, 3 the black. */
 const guard = (n: number, x: number): Person => ({
   id: `guard-${n}`,
   sprite: GUARD_BEASTS[n - 1]!.idle[0]!,
@@ -115,26 +115,25 @@ export const kennels: AreaDefinition = {
     {
       type: 'barks',
       lines: [
-        { who: 'cage-1', text: 'Ha-ha-HAAA!', wait: 700, sound: 'cackle', volume: 0.5 },
-        { who: 'cage-2', text: 'SKREEE!', wait: 600, sound: 'squeal', volume: 0.5 },
-        { who: 'cage-3', text: 'Hhhhkkk...', wait: 800, sound: 'wheeze', volume: 0.5 },
+        { who: 'cage-1', text: 'ROWF! ROWF!', wait: 700, sound: 'savage', volume: 0.5 },
+        { who: 'cage-2', text: 'Grrrr...', wait: 600, sound: 'snarl', volume: 0.5 },
+        { who: 'cage-3', text: 'RAH-RAH!', wait: 800, sound: 'savage', volume: 0.5 },
         { who: 'cage-5', text: 'HRAAH!', wait: 500, sound: 'snarl', volume: 0.5 },
-        { who: 'cage-4', text: 'Ha-ha-ha!', wait: 650, sound: 'cackle', volume: 0.5 },
-        { who: 'cage-3', text: 'KHHAAA!', wait: 600, sound: 'shriek', volume: 0.45 },
-        { who: 'cage-2', text: 'GRRNK!', wait: 550, sound: 'snarl', volume: 0.5 },
+        { who: 'cage-4', text: 'ROWF!', wait: 650, sound: 'savage', volume: 0.5 },
+        { who: 'cage-3', text: 'ROWF! ROWF!', wait: 600, sound: 'savage', volume: 0.45 },
+        { who: 'cage-2', text: 'GRRR!', wait: 550, sound: 'snarl', volume: 0.5 },
       ],
     },
-    // The three at the end, so loud it distorts: the hyena, the hog and the nameless thing, and their
-    // sick breathing in between.
+    // The three at the end, so loud it distorts.
     {
       type: 'barks',
       lines: [
-        { who: 'guard-1', text: 'HRAAH!', wait: 400, sound: 'snarl', volume: 1 },
-        { who: 'guard-2', text: 'SKREEEE!', wait: 450, sound: 'squeal', volume: 1 },
-        { who: 'guard-3', text: 'KHHHAAA!', wait: 500, sound: 'shriek', volume: 1 },
-        { who: 'guard-1', text: 'Ha-ha-HAAA!', wait: 550, sound: 'cackle', volume: 1 },
-        { who: 'guard-3', text: 'Hhhhkkk...', wait: 700, sound: 'wheeze', volume: 1 },
-        { who: 'guard-2', text: 'GRRNK!', wait: 400, sound: 'snarl', volume: 1 },
+        { who: 'guard-1', text: 'ROWF! ROWF!', wait: 400, sound: 'savage', volume: 1 },
+        { who: 'guard-2', text: 'HRAAH!', wait: 450, sound: 'snarl', volume: 1 },
+        { who: 'guard-3', text: 'RAH-RAH-RAH!', wait: 500, sound: 'savage', volume: 1 },
+        { who: 'guard-1', text: 'GRRRR!', wait: 550, sound: 'snarl', volume: 1 },
+        { who: 'guard-2', text: 'ROWF!', wait: 700, sound: 'savage', volume: 1 },
+        { who: 'guard-3', text: 'HRRAAH!', wait: 400, sound: 'snarl', volume: 1 },
       ],
     },
     // The music: uneasy at the way in, more and more ominous and disturbing towards the pen (Jack).

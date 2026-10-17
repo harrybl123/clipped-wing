@@ -22,9 +22,9 @@ export const SOUND_IDS = [
   'chop', 'shave', 'skid', 'scratch', 'pop', 'rub', 'slip',
   // The dog (Chapter 2).
   'bark', 'growl', 'whimper', 'yip',
-  // The kennels' creatures (Chapter 2): rabid, diseased, so loud they distort. A hyena's cackle, a hog's
-  // squeal, the nameless thing's shriek, any of them snarling, their sick breathing, and all three at once.
-  'cackle', 'squeal', 'shriek', 'snarl', 'wheeze', 'maul',
+  // The kennels' wolves (Chapter 2): so loud they distort. Their bark, a snarl, all three at once (and, from
+  // when they were rabid creatures, a hyena's cackle, a hog's squeal, a shriek, sick breathing).
+  'savage', 'cackle', 'squeal', 'shriek', 'snarl', 'wheeze', 'maul',
 ] as const;
 export type SoundId = (typeof SOUND_IDS)[number];
 
@@ -230,12 +230,15 @@ function crowdOf(t: number, count: number, spread: number, make: (at: number) =>
 
 // --- The kennels' creatures (Chapter 2; Jack) ---
 //
+// The kennels hold wolves now (Jack), barking (`savage`: recordings) and snarling; the rest (the cackle, the
+// squeal, the shriek, the wheeze) are from when they were rabid creatures, kept for now.
+//
 // Rabid, diseased things kept in place of dogs (nobody has dogs). Nothing in them should sound like a dog,
 // or like any one animal: each cry is recordings (snarls, and a hyena's or a hog's if they've been dropped
 // in) pitched and stuttered and ring-modulated till they sound wrong, with sick wet breath and gurgling
 // under them, all pushed through a saturating overdrive (Jack: so loud it distorts).
 
-const CREATURE_SOUNDS: ReadonlySet<SoundId> = new Set(['cackle', 'squeal', 'shriek', 'snarl', 'wheeze', 'maul']);
+const CREATURE_SOUNDS: ReadonlySet<SoundId> = new Set(['savage', 'cackle', 'squeal', 'shriek', 'snarl', 'wheeze', 'maul']);
 
 /**
  * The sick chain: what goes in comes out partly as itself and partly ring-modulated at `ring` Hz (a
@@ -304,6 +307,12 @@ function creature(a: Out, dest: AudioNode, t: number, id: SoundId, v: number): v
   const level = 0.8 * Math.min(1, v);
   const snarls = hasRecording(a.ctx, 'snarl');
   switch (id) {
+    case 'savage': {
+      // A wolf barking (Jack: the bark from when they were dogs): a big dog's barks, recorded, pitched down, driven
+      // too hot. (A snarl till the recordings have loaded.)
+      if (!playRecording(a.ctx, overdrive(a, dest, level, SATURATE_CURVE), t, 'savage', 2.5, { rate: rand(0.92, 1.05) })) creature(a, dest, t, 'snarl', v);
+      break;
+    }
     case 'snarl': {
       // Any of them: a snarl, deep and stuttering, with a metallic edge and froth in it.
       const chain = sickChain(a, dest, t, level, rand(35, 60), 0.4);
@@ -381,7 +390,7 @@ function creature(a: Out, dest: AudioNode, t: number, id: SoundId, v: number): v
       break;
     case 'maul':
       // All three at once, over you, and the thrashing under them.
-      (['shriek', 'snarl', 'squeal', 'cackle', 'snarl', 'shriek'] as const).forEach((cry, i) => creature(a, dest, t + i * rand(0.3, 0.45), cry, v));
+      (['savage', 'snarl', 'savage', 'snarl', 'savage', 'snarl'] as const).forEach((cry, i) => creature(a, dest, t + i * rand(0.3, 0.45), cry, v));
       for (let i = 0; i < 10; i++) {
         const k = t + rand(0.1, 2.4);
         noise(a, dest, k, 'lowpass', 500, 1, 0.12, 0.45 * v, 0.003); // a body hitting the dirt

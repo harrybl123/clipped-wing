@@ -13,6 +13,9 @@ real): `murmur`, `gasp`, `roar`, `jeer`, `chant`, `whispers`, `scream`, `sob`. S
 
 All public domain (CC0): free to use and share, no credit required (credited here anyway).
 
+- `savage-1.wav` to `savage-5.wav` (the kennels' wolves barking; Jack): short cuts of the loudest barks
+  from "Barking dog #1" by Joseph Sardin, BigSoundBank, sound 0916
+  (https://bigsoundbank.com/barking-dog-s0916.html), pitched down to 0.82 so they sound bigger.
 - `snarl-1.wav` to `snarl-3.wav` (the kennels' creatures: twisted into every one of their cries, see
   `creature()` in `src/ui/soundscape.ts`): "Dog Snarl Grunt Grumble" by qubodup,
   OpenGameArt (https://opengameart.org/content/dog-snarl-grunt-grumble; Freesound 122183), pitched
