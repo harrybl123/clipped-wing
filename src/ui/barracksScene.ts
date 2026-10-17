@@ -10,8 +10,8 @@ import { playSound } from './soundscape';
 
 const FIGHTERS: Record<Hire, { kind: Hired; name: string; says: string[] }> = {
   // (Designer: simplified, like the architect's. The numbers are on the card when you hover over them on the table.)
-  rogues: { kind: 'rogue', name: 'Rogue mercenaries', says: ['Hunt the enemy', 'on their own.'] },
-  archers: { kind: 'archer', name: 'Archers', says: ['Shoot the enemy', 'next to them.'] },
+  rogues: { kind: 'rogue', name: 'Rogue mercenaries', says: ['Fight the enemy', 'without your commands.'] },
+  archers: { kind: 'archer', name: 'Archers', says: ['Can shoot the enemy', 'next to them.'] },
   assassin: { kind: 'assassin', name: 'An assassin', says: ['Sneaks to their base', 'and strikes it.'] },
 };
 
