@@ -114,7 +114,7 @@ Choose who inside the tree you use, depending on your relationships in Act 1 (de
 - **The girl:** if she's still in there, not with you (designer). *(To settle: framed and flown, she's alone in the rot and hates you.)*
 - **Mum.**
 
-**What they're used for is to settle, maybe later** (designer, 2026-10-17). Earlier draft: ascended, they're your hands. Through the rot, they're your messenger, and they spread the rumours that the dead carver walks.
+**They get your message to the people** (Claude's suggestion, designer agreed, 2026-10-17), each their own way: **the archivist** can read, so he reads it out at a rite (the most public, with his authority behind it); **your friend**, devout and trusted, puts it where people will see it (the rite, the shrine); **Mum** passes it round the roots by word of mouth; **the girl** scratches it into the lower roots' walls at night. So big choice 1 decides how your message lands. Earlier draft: ascended, they're your hands. Through the rot, they're your messenger, and they spread the rumours that the dead carver walks.
 
 ### 2. Kill the Tender, or spare him (every route)
 
@@ -127,7 +127,7 @@ Choose who inside the tree you use, depending on your relationships in Act 1 (de
 - **By fear:** you go down in the night and leave cursed symbols and words of instruction.
 - **As a prophet:** you send messages down, and the chapter ends seeing the people's reaction to your message.
 
-**The message plants a doubt** (designer, 2026-10-17), the first small crack of the truth; the options to choose between, to settle. **Pictures, as Grounded's were** (Claude's suggestion, agreed): the roots can't read, so you make it the way he made his. **Someone who can read it out**, perhaps the archivist, reads it to the people (designer); or symbols scratched into the walls.
+**The message plants a doubt** (designer, 2026-10-17), the first small crack of the truth; the options (designer agreed, 2026-10-17): **"The Tree did not choose them"** (doubt the Ascension), **"The Tender lies"** (doubt the man at the tube), **"Keep what you make"** (doubt the offerings). **Pictures, as Grounded's were** (Claude's suggestion, agreed): the roots can't read, so you make it the way he made his. **Someone who can read it out**, perhaps the archivist, reads it to the people (designer); or symbols scratched into the walls.
 
 **Before any of it, you find out the tree's mysteries for yourself** (designer): Grounded explains how he wants to use you to control the tree, then wants you to learn first hand what really goes on in there (the espionage).
 
