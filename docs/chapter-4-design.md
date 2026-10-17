@@ -45,7 +45,7 @@ Only the tube and rot endings continue (the loyal ending doesn't). Two things fr
 
 ## Chapter shape
 
-1. **Opening (every ending):** through the rot, **the hunter finds you** at the bottom (designer, 2026-10-17), with the girl or alone. Then Grounded. He explains the world and who he is, and tells you his real name. His people are hungry, and you can be their key of leverage. You can reject this, but you can't bluntly tell your people the truth, because they'd reject it. If you commit to freeing them, you have to devise a plan with the tree scavengers.
+1. **Opening (every ending):** **you're scared and shocked by everything** (designer, 2026-10-17: this is important). Up the tube, **someone from the colony finds you, careful and kind**, understanding you'll be in shock (designer). Through the rot, **the hunter finds you** at the bottom (designer), with the girl or alone; with her, she's bickering at you, and he basically tells you to shut up. Then Grounded. He explains the world and who he is, and tells you his real name. His people are hungry, and you can be their key of leverage. You can reject this, but you can't bluntly tell your people the truth, because they'd reject it. If you commit to freeing them, you have to devise a plan with the tree scavengers.
 2. **Life in the colony:** getting to know the treehouse colony, hunting in the lowlands with the hunter, and secret trips back into the tree.
 3. **The big decisions** (below).
 4. **Final beat:** after the ultimate choice, the chapter ends quietly with the hunter crouched over dog prints in the lowlands. Dogs are meant to be extinct. This sets up meeting the scavenger in a later chapter.
@@ -81,7 +81,7 @@ A treehouse civilisation. Height means status.
 - **The doubter:** a former roots-dweller who finally has a good life up here. He doesn't want a revolution to take it away, and he'll inform to protect it.
 - **The hatch-keeper:** canopy-born and has never been inside. Obsessed with the tree like a fairytale, full of questions, and reckless. Your guide back in.
 - **The messenger:** cool and polished, never stays a night, and carries a hint of the capital. He's the only one who's seen other places like the tree, and he trades in what each place knows.
-- **The hunter:** canopy-born, wiry, and laughs at danger. **Based on Sevro au Barca from *Red Rising*** (designer, 2026-10-17; a type, not a likeness): small, rough, feral, a wolf's pelt over his head and shoulders, foul-mouthed and fiercely loyal. *(suggestion: the pelt is from something he hunted down in the lowlands.)* He loves the ground more than the trees and has no time for Grounded's politics. He just wants everyone fed. He takes you down to the lowlands to scavenge and hunt. To the ground clans, the canopy's hunts are raids, so every trip down risks a fight.
+- **The hunter:** canopy-born, wiry, and laughs at danger. **Based on Sevro au Barca from *Red Rising*** (designer, 2026-10-17; a type, not a likeness): small, rough, feral, a wolf's pelt over his head and shoulders, foul-mouthed (he swears for real: designer) and fiercely loyal. *(suggestion: the pelt is from something he hunted down in the lowlands.)* He loves the ground more than the trees and has no time for Grounded's politics. He just wants everyone fed. He takes you down to the lowlands to scavenge and hunt. To the ground clans, the canopy's hunts are raids, so every trip down risks a fight.
 - **The ascended:** most, not all, are the revolution's core.
 
 **Inside the tree** (on your secret visits)
