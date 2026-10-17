@@ -14,6 +14,8 @@ Labels: **(doc)** comes from the chapter design, **(designer)** was decided in c
 
 ## Look
 
+**Revised after the first look (designer, 2026-10-17): a village among the limbs, like the Ewoks' in Return of the Jedi.** Every area is built round the tree's giant limbs: ring platforms round them, round huts under tall thatched roofs, rope bridges, plank stairs; nothing floats; a calm, hazy background of limbs so what's near reads clearly. What follows was the first idea; the solarpunk touches (sails, turbines, lanterns, water) stay, as accents.
+
 - **Solarpunk** (designer): futurism mixed with living in treehouses.
   - **Living wood and green** (suggestion): platforms grown from the branches, not nailed to them; walls of woven boughs and carved panels; gardens on every deck, vines, hanging planters, beehives. Green belongs to the tree (Chapter 2's rule), and up here it's everywhere.
   - **Clean, bright tech in the leaves** (suggestion): solar sails cut like leaves among the real ones, small wind turbines turning on the high branches, glass lanterns that charge by day, water caught on wide funnels and piped down to every house, pulley lifts, cable runs with baskets. Radios (the hunter's), the electric bow. Nothing dark, nothing smoking: a place built to last.

@@ -590,7 +590,9 @@ export class AreaScene extends Phaser.Scene {
     const canStand = (r: Phaser.Geom.Rectangle) => !area.solids.some((s) => !s.oneWay && r.right > s.x && r.left < s.x + s.width && r.bottom > s.y && r.top < s.y + s.height);
     this.player = new Player(this, arrival.x, arrival.y, canStand);
     const world = worldOf(placeOf(area.id)).id;
-    if (world === 'borderland') this.player.look = 'scavenger';
+    // (Chapter 4 is the carver's again, wherever you go: down to the borderland's edge too.)
+    const carverAgain = session.story.getVariable('chapter') === 4;
+    if (world === 'borderland' && !carverAgain) this.player.look = 'scavenger';
     if (world === 'capital') this.player.look = 'prince';
     // Anyone following you comes in with you (whether or not they're showing yet: after a fight, the
     // dog comes back beside you, not where it stands when you first come into the area).

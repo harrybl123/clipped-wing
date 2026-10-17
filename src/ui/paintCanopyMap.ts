@@ -26,11 +26,14 @@ export function crownHalfWidth(y: number): number {
 
 /** The tentacles: curves from the tube mouth up and out over the crown (each a list of points). */
 export const TENTACLES: readonly (readonly [number, number])[][] = [
-  [[0, 0], [-6, -30], [-30, -62], [-62, -78], [-82, -74]],
-  [[0, 0], [-2, -36], [-14, -72], [-26, -96], [-20, -104]],
-  [[0, 0], [2, -40], [6, -78], [2, -100]],
-  [[0, 0], [4, -34], [22, -66], [44, -82], [58, -80]],
-  [[0, 0], [6, -26], [36, -48], [70, -52], [86, -44]],
+  [[0, 0], [-10, -26], [-40, -50], [-76, -66], [-98, -86]],
+  [[0, 0], [10, -26], [42, -50], [78, -64], [100, -84]],
+  [[0, 0], [-6, -34], [-20, -66], [-30, -96], [-26, -108]],
+  [[0, 0], [6, -34], [20, -66], [28, -96], [24, -108]],
+  [[0, 0], [1, -40], [-4, -80], [2, -104]],
+  [[0, 0], [8, -30], [34, -56], [60, -72], [74, -92]],
+  [[0, 0], [-8, -20], [-40, -36], [-66, -40], [-80, -34]],
+  [[0, 0], [10, -22], [34, -40], [56, -42], [66, -30]],
 ];
 
 /** A point along a polyline at fraction t (0–1). */
@@ -85,12 +88,32 @@ function landmarks(): Map<number, number> {
   for (const [i, pts] of TENTACLES.entries()) {
     for (let t = 0; t <= 1; t += 0.004) {
       const [px, py] = along(pts, t);
-      const w = 4 - t * 2.2;
+      const w = 5.5 - t * 3;
       for (let d = -w; d <= w; d += 0.5) {
         const band = Math.round(t * 60 + i * 3) % 14 === 0;
         put(mouth.x + px + d, mouth.y + py, band ? S.cyanMid : Math.abs(d) > w - 1 ? S.cyanMid : Math.abs(d) < 0.8 ? S.white : S.cyan);
       }
     }
+  }
+
+  // More treehouses all through the crown (designer: more dense), small, on the boughs, rope bridges
+  // between neighbours, a lantern lit in some.
+  const extra: { x: number; y: number; s: number }[] = [];
+  for (let i = 0; i < 46; i++) {
+    const y = CROWN_TOP + 22 + cellRandom(i, 0, 91) * (CROWN_BOTTOM - CROWN_TOP - 70);
+    const half = crownHalfWidth(y) - 14;
+    const x = CANOPY_TUBE_X + (cellRandom(i, 1, 91) * 2 - 1) * half;
+    if (CANOPY_PLACES.some((p) => Math.hypot(p.x - x, p.y - y) < 20) || Math.abs(x - CANOPY_TUBE_X) < 24) continue;
+    extra.push({ x: Math.round(x), y: Math.round(y), s: 3 + Math.floor(cellRandom(i, 2, 91) * 3) });
+  }
+  for (const [i, h] of extra.entries()) {
+    const near = extra.slice(i + 1).find((o) => Math.abs(o.x - h.x) < 50 && Math.abs(o.y - h.y) < 16);
+    if (near) for (let t = 0; t <= 1; t += 0.02) put(h.x + (near.x - h.x) * t, h.y + 2 + (near.y - h.y) * t + Math.sin(t * Math.PI) * 3, S.woodLight);
+  }
+  for (const [i, h] of extra.entries()) {
+    treehouse(put, h.x, h.y - 3, h.s, h.s + 1);
+    if (cellRandom(i, 3, 91) > 0.4) put(h.x - 1, h.y - 1, S.amber);
+    if (cellRandom(i, 4, 91) > 0.7) for (let d = 0; d < 4; d++) put(h.x + h.s + 2 + d, h.y - 6 - d, S.light); // a sail
   }
 
   // The treehouses, one at each place (the window itself is left for the glow).

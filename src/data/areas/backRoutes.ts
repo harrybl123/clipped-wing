@@ -173,5 +173,7 @@ export const backRoutes: AreaDefinition = {
     { id: 'to-friends-window', x: 930, y: UPPER, reach: 6, to: 'friends-home' },
     { id: 'to-home', x: 36, y: MIDDLE, reach: 12, to: 'home' },
     { id: 'to-lower-roots', x: 36, y: LOWER, reach: 12, to: 'lower-roots' },
+    // Chapter 4: the hatch up the inside of the bark to the canopy (only the canopy's people know it).
+    { id: 'to-hatches', x: 700, y: MIDDLE, reach: 10, to: 'hatches', showIf: 'chapter=4' },
   ],
 };

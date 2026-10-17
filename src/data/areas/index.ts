@@ -35,6 +35,17 @@ import { hideout } from './capital/hideout';
 import { lifts } from './capital/lifts';
 import { lowDistrict } from './capital/lowDistrict';
 import { tubeMouth } from './canopy/tubeMouth';
+import { greatHouse } from './canopy/greatHouse';
+import { messageLoft } from './canopy/messageLoft';
+import { walkways } from './canopy/walkways';
+import { ascendedHall } from './canopy/ascendedHall';
+import { groundedsHouse } from './canopy/groundedsHouse';
+import { seedBed } from './canopy/seedBed';
+import { lookout } from './canopy/lookout';
+import { loweringPlatform } from './canopy/loweringPlatform';
+import { hatches } from './canopy/hatches';
+import { outsideDeck } from './canopy/outsideDeck';
+import { homestead } from './canopy/homestead';
 import { friendsHome } from './friendsHome';
 import { girlsHome } from './girlsHome';
 import { home } from './home';
@@ -125,6 +136,10 @@ export const HIDDEN_AREAS: Record<string, string> = {
   'girls-home': "the girl's home",
   'the-rot': 'the rot',
   'shrine-cell': 'the cell behind the shrine',
+  // Chapter 4: on the trunk's outside, through a door from the back routes (you follow the Tender there);
+  // the quartermaster's family on the ground (the hunter takes you).
+  'outside-deck': 'the outside deck',
+  homestead: "the quartermaster's family",
 };
 
 /**
@@ -139,6 +154,8 @@ export const INSIDE_AREAS: Record<string, { name: string; of: string; storyOnly?
   hideout: { name: 'the hideout', of: 'low-district' },
   // Chapter 3, Day 2: the simulation room, behind your father's bookshelf.
   'simulation-room': { name: 'the simulation room', of: 'fathers-study' },
+  // Chapter 4: the message loft, up over the great house's sorting deck.
+  'message-loft': { name: 'the message loft', of: 'great-house' },
 };
 
 /** The place on the map an area counts as: its parent if it's an area within an area, else itself. */
@@ -206,4 +223,15 @@ export const AREAS: Record<string, AreaDefinition> = {
   [cityGate.id]: cityGate,
   // Chapter 4: the canopy.
   [tubeMouth.id]: tubeMouth,
+  [greatHouse.id]: greatHouse,
+  [messageLoft.id]: messageLoft,
+  [walkways.id]: walkways,
+  [ascendedHall.id]: ascendedHall,
+  [groundedsHouse.id]: groundedsHouse,
+  [seedBed.id]: seedBed,
+  [lookout.id]: lookout,
+  [loweringPlatform.id]: loweringPlatform,
+  [hatches.id]: hatches,
+  [outsideDeck.id]: outsideDeck,
+  [homestead.id]: homestead,
 };

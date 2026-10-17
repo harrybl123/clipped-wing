@@ -34,6 +34,11 @@ export interface Prop {
   sprite: RowSprite;
   x: number;
   y: number;
+  /**
+   * Out in the open (`outdoor`), drawn behind the area's solids instead of over them: a trunk or a bough
+   * running down behind a deck, a house behind a walkway (the canopy: nothing floats, designer).
+   */
+  behind?: boolean;
 }
 
 /** A straight line of pixels baked into the backdrop (ropes, cords, pipes, beams). */
@@ -212,10 +217,12 @@ export interface Outdoor {
   backdrop?: 'plain' | 'settlement' | 'city' | 'canopy';
   /** With the city backdrop: where its towers begin in the far layer (the open plain before it: the gate, looking out). */
   cityFrom?: number;
-  /** With the city backdrop: where the citadel stands above the towers, in the far layer's pixels. */
+  /** With the city backdrop: where the citadel stands above the towers, in the far layer's pixels. With the canopy's: where the capital's lights are, far off on the horizon (the lookout). */
   citadelX?: number;
   /** With the canopy backdrop: where the tentacles (the tubes out of the top of the tree) rise in the far layer, if they're in view. */
   tentaclesX?: number;
+  /** With the canopy backdrop: how far below the horizon the treetop's leaves lie (the lookout: above them all, the horizon clear). */
+  canopyDrop?: number;
   /** The ground: scrapland dirt (default), the deep ground's (harder, darker, no junk, cut with straight grooves running away to the horizon), the capital's paved streets, or the canopy's decks (planks over living wood). */
   ground?: 'scrap' | 'deep' | 'street' | 'deck';
   /** Ground level, when there's earth far below it (the sunk town): dirt is darker and layered by its depth below this, unlit by the sky, with no sunlit crust on floors underground. */

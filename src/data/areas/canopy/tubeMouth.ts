@@ -12,11 +12,11 @@ import type { AreaDefinition, Feature, Solid } from '../types';
 // view; a rope bridge off to the walkways. On the right, crates going on, a cable with a basket riding up
 // it towards the great house, gardens, a beehive, and an arch of woven boughs through to the great house.
 
-const W = 800;
+const W = 880;
 const H = 300;
 const FLOOR = 252;
 /** The tentacles' sprite: the collar where they come out of the tree is in the middle of the deck. */
-const TX = 240;
+const TX = 160;
 /** The platform on the bough (up the stair), and the higher one with the view. */
 const LEDGE = 200;
 const LEDGE_FROM = 96;
@@ -50,7 +50,7 @@ export const tubeMouth: AreaDefinition = {
   cavity: { x: 0, y: 0, width: W, height: H, radius: 0 },
   outdoor: { horizon: 214, treeX: -9999, backdrop: 'canopy', ground: 'deck' },
   ambient: 1,
-  playerStart: { x: 540, y: FLOOR },
+  playerStart: { x: 668, y: FLOOR },
   surface: 'plank',
   acoustics: 'open',
   ambience: [
@@ -73,9 +73,11 @@ export const tubeMouth: AreaDefinition = {
   ],
 
   lights: [
-    { x: 400, y: FLOOR, colour: S.cyan, radius: 110, radiusY: 12, strength: 0.35 }, // the tentacles' glow round their foot
-    { x: 540, y: FLOOR, colour: S.cyan, radius: 50, radiusY: 10, strength: 0.25 }, // the mouth over the basin
-    { x: 758, y: FLOOR, colour: S.amber, radius: 50, radiusY: 10, strength: 0.2 }, // the lantern in the arch
+    { x: 440, y: FLOOR, colour: S.cyan, radius: 150, radiusY: 14, strength: 0.4 }, // the tentacles' glow round their foot
+    { x: 668, y: FLOOR, colour: S.cyan, radius: 50, radiusY: 10, strength: 0.25 }, // the mouth over the basin
+    { x: 849, y: FLOOR, colour: S.amber, radius: 50, radiusY: 10, strength: 0.2 }, // the lantern in the arch
+    { x: 300, y: FLOOR, colour: S.amber, radius: 30, radiusY: 8, strength: 0.15 },
+    { x: 610, y: FLOOR, colour: S.amber, radius: 30, radiusY: 8, strength: 0.15 },
   ],
 
   lines: [
@@ -89,57 +91,87 @@ export const tubeMouth: AreaDefinition = {
     { from: { x: 142, y: HIGH + 6 }, to: { x: 142, y: LEDGE - 1 }, colour: S.wood },
     { from: { x: 143, y: HIGH + 6 }, to: { x: 143, y: LEDGE - 1 }, colour: S.woodLight },
     // The cable from the post by the basin up towards the great house.
-    { from: { x: 626, y: 195 }, to: { x: 799, y: 142 }, colour: S.deep },
+    { from: { x: 750, y: 195 }, to: { x: 879, y: 150 }, colour: S.deep },
   ],
 
   props: [
-    // Leaves hanging into view at the top.
-    { sprite: P.leafClump(180, 70, 3), x: 0, y: 0 },
-    { sprite: P.leafClump(180, 60, 8), x: 620, y: 0 },
+    // Far back: a bough out of the leaves on the right; treehouses on boughs behind the deck (nothing floats:
+    // one on a bough from the left, one on its own limb rising out of the branch behind the deck).
+    // Giant limbs behind the deck: the platforms on the left are built against one; another on the right
+    // carries a ring platform and a hut high up.
+    { sprite: P.giantTrunk(80, H, 21), x: 40, y: 0, behind: true },
+    { sprite: P.giantTrunk(90, H, 22), x: 770, y: 0, behind: true },
+    { sprite: P.behind(P.ringDeck(140, 6)), x: 736, y: 112, behind: true },
+    { sprite: P.behind(P.roundHut(46, 22, 7)), x: 790, y: 112 - P.roundHut(46, 22, 7).rows.length, behind: true },
+    // Leaves and vines hanging into view at the top.
+    { sprite: P.leafClump(210, 72, 3), x: 0, y: 0 },
+    { sprite: P.vines(46, 90, 4), x: 150, y: 30 },
+    { sprite: P.leafClump(200, 62, 8), x: 680, y: 0 },
+    { sprite: P.vines(30, 70, 9), x: 700, y: 34 },
     // The tentacles, out of their collar in the middle of the deck; the basin under the mouth.
     { sprite: P.TENTACLES, x: TX, y: FLOOR - P.TENTACLES_H },
-    { sprite: P.BASIN, x: 503, y: FLOOR - 22 },
-    // The left: a water funnel and a planter on the deck; carved birds along the platform's rail; the view's rail.
-    { sprite: P.waterFunnel(70), x: 68, y: FLOOR - 82 },
-    { sprite: P.planter(36, 2), x: 128, y: FLOOR - 24 },
+    { sprite: P.BASIN, x: 631, y: FLOOR - 22 },
+    // The left: a sign at the bridge; a water tank and its funnel; pots; a hammock under the platform; carved
+    // birds along the platform's rail; the view's rail; bunting from the platform to the tentacles' collar.
+    { sprite: P.signpost('leaf'), x: 40, y: FLOOR - 26 },
+    { sprite: P.waterFunnel(56), x: 64, y: FLOOR - 68 - 15 },
+    { sprite: P.WATER_TANK, x: 70, y: FLOOR - 15 },
+    { sprite: P.hammock(44), x: 114, y: FLOOR - 18 },
+    { sprite: P.pots(40, 3), x: 188, y: FLOOR - 16 },
     { sprite: P.birdRail(LEDGE_TO - LEDGE_FROM, 5), x: LEDGE_FROM, y: LEDGE - 22 },
     { sprite: P.rail(52), x: 116, y: HIGH - 10 },
-    // The right: crates going on, the cable's post, a solar sail, gardens, a beehive, the arch through to the great house.
-    { sprite: P.solarSail(54, 1, -1), x: 636, y: FLOOR - 24 - 82 },
-    { sprite: P.solarSail(40, 4, 1), x: 690, y: FLOOR - 24 - 68 },
-    { sprite: P.CRATE, x: 584, y: FLOOR - 8 },
-    { sprite: P.CRATE, x: 598, y: FLOOR - 16 },
-    { sprite: P.CRATE, x: 600, y: FLOOR - 8 },
-    { sprite: P.cablePost(60), x: 618, y: FLOOR - 60 },
-    { sprite: P.planter(40, 7), x: 638, y: FLOOR - 24 },
-    { sprite: P.planter(28, 11), x: 682, y: FLOOR - 24 },
-    { sprite: P.BEEHIVE, x: 712, y: FLOOR - 16 },
-    { sprite: P.wovenArch(62, 72), x: 728, y: FLOOR - 72 },
+    { sprite: P.bunting(120, 1), x: 168, y: HIGH + 4 },
+    // Round the collar: lamps, a bench.
+    { sprite: P.lampPost(40), x: 290, y: FLOOR - 40 },
+    { sprite: P.bench(26), x: 236, y: FLOOR - 6 },
+    { sprite: P.lampPost(40), x: 604, y: FLOOR - 40 },
+    // A ladder down off the deck's edge to the great house below.
+    { sprite: P.poleLadder(H - FLOOR), x: 568, y: FLOOR },
+    // The right: crates going on, the cable's post, solar sails, gardens, a beehive, the arch through to the
+    // great house with bunting over it.
+    { sprite: P.solarSail(58, 1, -1), x: 752, y: FLOOR - 24 - 86 },
+    { sprite: P.solarSail(44, 4, 1), x: 786, y: FLOOR - 24 - 72 },
+    { sprite: P.CRATE, x: 710, y: FLOOR - 8 },
+    { sprite: P.CRATE, x: 722, y: FLOOR - 16 },
+    { sprite: P.CRATE, x: 726, y: FLOOR - 8 },
+    { sprite: P.cablePost(60), x: 742, y: FLOOR - 60 },
+    { sprite: P.planter(36, 7), x: 754, y: FLOOR - 24 },
+    { sprite: P.BEEHIVE, x: 792, y: FLOOR - 16 },
+    { sprite: P.pots(16, 9), x: 802, y: FLOOR - 16 },
+    { sprite: P.wovenArch(62, 72), x: 818, y: FLOOR - 72 },
+    { sprite: P.bunting(56, 3), x: 822, y: FLOOR - 66 },
+    // Along the branch's side, under the deck: the water pipe, and vines hanging off it.
+    { sprite: P.pipeRun(W - 70), x: 66, y: FLOOR + 9 },
+    { sprite: P.vines(60, 30, 12), x: 120, y: FLOOR + 12 },
+    { sprite: P.vines(70, 34, 13), x: 380, y: FLOOR + 12 },
+    { sprite: P.vines(50, 28, 14), x: 690, y: FLOOR + 12 },
   ],
 
   features: [
     ...tentacleLight(),
     // A basket of offerings riding up the cable to the great house, now and then.
-    { type: 'pulse', points: [{ x: 626, y: 199 }, { x: 799, y: 146 }], speed: 26, every: 4200, sprite: P.CABLE_BASKET },
+    { type: 'pulse', points: [{ x: 750, y: 199 }, { x: 879, y: 154 }], speed: 26, every: 4200, sprite: P.CABLE_BASKET },
     // A turbine on the high platform, turning.
     { type: 'frames', frames: P.turbineFrames(30), x: 128, y: HIGH - 55, every: 160, power: 'any' },
-    // Lanterns: one in the arch, one under the platform.
-    { type: 'swing', sprite: P.LANTERN, x: 759, y: FLOOR - 52, ropeTop: FLOOR - 66, quiet: true, ropeColour: S.wood },
-    { type: 'swing', sprite: P.LANTERN, x: 150, y: LEDGE + 18, ropeTop: LEDGE + 6, quiet: true, ropeColour: S.wood },
+    // Lanterns: one in the arch, one under the platform; a wind chime.
+    { type: 'swing', sprite: P.LANTERN, x: 849, y: FLOOR - 52, ropeTop: FLOOR - 66, quiet: true, ropeColour: S.wood },
+    { type: 'swing', sprite: P.LANTERN, x: 170, y: LEDGE + 16, ropeTop: LEDGE + 6, quiet: true, ropeColour: S.wood },
+    { type: 'swing', sprite: P.CHIME, x: 100, y: LEDGE + 14, ropeTop: LEDGE + 6, quiet: true, ropeColour: S.wood },
   ],
 
   people: [],
 
   interactables: [
-    { id: 'basin', x: 540, y: FLOOR, reach: 20, label: 'Look', knot: 'c4_look_basin' },
-    { id: 'tentacles', x: 400, y: FLOOR, reach: 18, label: 'Look', knot: 'c4_look_tentacles' },
-    { id: 'crates', x: 600, y: FLOOR, reach: 10, label: 'Look', knot: 'c4_look_crates' },
+    { id: 'basin', x: 668, y: FLOOR, reach: 20, label: 'Look', knot: 'c4_look_basin' },
+    { id: 'tentacles', x: 440, y: FLOOR, reach: 22, label: 'Look', knot: 'c4_look_tentacles' },
+    { id: 'crates', x: 724, y: FLOOR, reach: 10, label: 'Look', knot: 'c4_look_crates' },
     { id: 'birds', x: 140, y: LEDGE, reach: 30, label: 'Look', knot: 'c4_look_birds' },
     { id: 'view', x: 142, y: HIGH, reach: 20, label: 'Look', knot: 'c4_look_canopy' },
   ],
 
   exits: [
-    { id: 'to-walkways', x: 16, y: FLOOR, reach: 14, to: 'walkways' },
-    { id: 'to-great-house', x: 780, y: FLOOR, reach: 14, to: 'great-house' },
+    { id: 'to-ascended-hall', x: 16, y: FLOOR, reach: 14, to: 'ascended-hall' },
+    { id: 'to-great-house', x: 572, y: FLOOR, reach: 8, to: 'great-house' },
+    { id: 'to-walkways', x: 862, y: FLOOR, reach: 14, to: 'walkways' },
   ],
 };

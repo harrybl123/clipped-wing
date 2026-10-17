@@ -87,7 +87,11 @@ export const treesEdge: AreaDefinition = {
     { id: 'crack', x: 615, y: FLOOR, reach: 16, label: 'Look', knot: 'trees_edge_crack' },
   ],
 
-  exits: [{ id: 'to-picked-fields', x: 16, y: FLOOR, reach: 12, to: 'picked-fields' }],
+  exits: [
+    { id: 'to-picked-fields', x: 16, y: FLOOR, reach: 12, to: 'picked-fields' },
+    // Chapter 4: the canopy's cage, come down its cable to the foot of the tree.
+    { id: 'to-lowering-platform', x: 664, y: FLOOR, reach: 12, to: 'lowering-platform', showIf: 'chapter=4' },
+  ],
 
   ambience: [
     { sound: 'creaks', volume: 0.55 }, // the tree settling: Act 1's sound, from outside
