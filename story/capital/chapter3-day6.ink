@@ -96,8 +96,9 @@ You put your hands on the table, and it lights under them: the crag, before ther
 "The bedtime story? Your father's told it at every banquet since we were six." #speaker:heir
 "It's on here. All of it. I only found out the other day." #speaker:prince
 "Then let's see if it's true." #speaker:heir
-"I'll give you the bigger army." #speaker:prince
-"Then I'll take it." #speaker:heir
+// (Jack's skirmish, even armies: a bigger one for him and a first go never won. Draft lines.)
+"Same armies. Whoever loses has no excuses." #speaker:prince
+"Then get yours ready." #speaker:heir
 He comes round to the other side of the table, rubbing his hands.
 "Where do you want to fight it? It'll paint it anywhere." #speaker:prince
 "Anywhere?" #speaker:heir
@@ -128,17 +129,13 @@ He comes round to the other side of the table, rubbing his hands.
 
 === c3day6_duel_won ===
 Your army in his camp, and the light there gone your colour.
-"That's not fair. I had more of everything." #speaker:heir
-"You had more. I brought mine together." #speaker:prince
+"That's not fair. We had the same." #speaker:heir
+"Same men. I brought mine together." #speaker:prince
 He laughs, and leans across the table to shake your hand.
 -> END
 
 === c3day6_duel_lost ===
-{ duel6_how == "keep":
-    His army over the walls, into the keep, the light gone his colour.
-- else:
-    The sun comes up on the table's edge, and his camp's still standing.
-}
+His army over the walls, into the keep, the light gone his colour.
 "The crag falls! History is rewritten!" #speaker:heir
 He's doing a little dance round his side of the table.
 "Don't tell anyone." #speaker:prince
@@ -151,7 +148,7 @@ He's doing a little dance round his side of the table.
 { duel6 == "won":
     "Again. Same armies. I've worked it out now." #speaker:heir
 - else:
-    "Again. You can have the big army this time. Go on." #speaker:heir
+    "Again. We'll swap sides. Go on." #speaker:heir
 }
 "No. I don't think so." #speaker:father #show:father-6s
 Your father, in the doorway of his own room.

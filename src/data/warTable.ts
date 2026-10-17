@@ -1,4 +1,4 @@
-import { ARCHITECT, AUDIENCE, BARRACKS, CHURCH, CLASH, ELITE_SQUAD, MYSTERY, REBEL, RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type RisingStyle, type Side } from '../systems/Riot';
+import { ARCHITECT, AUDIENCE, BARRACKS, CHURCH, CLASH, ELITE_SQUAD, MYSTERY, REBEL, RUMBLE, type RiotBoard, type RiotPlace, type RiotRules, type Side } from '../systems/Riot';
 
 // The war table's maps and games (Chapter 3; the game: src/systems/Riot.ts, its design and how it was
 // tuned: docs/sequences/chapter-3/war-table.md). Day 2: the lesson in the simulation room (you're the rising,
@@ -78,6 +78,20 @@ export const RIOT_START: Setup = [
   { side: 'rising', place: 'tenements', strength: 3 },
 ];
 
+/**
+ * What Jack added, as the riot plays it (and the games after it): rumbles and the elite squads; the audience, the
+ * holy cross, the barracks, the architect, one at a time; anyone can go at the barbarians; two towers each, the
+ * guard's on their way in, the rising's at the back of the district, without walls (simulated: with them, a
+ * first-timer won 2 in 24). Not the rebels' own move: Rally's +2 turns the riot's crowds of 3 into 5s that beat
+ * your 4s (a first-timer won none).
+ */
+const RIOT_FEATURES: Partial<RiotRules> = {
+  rumble: { ...RUMBLE, chance: 0.25 }, elites: ELITE_SQUAD, clash: CLASH, mystery: { ...MYSTERY, from: 3, chance: 0.25 },
+  audience: { ...AUDIENCE, from: 4, chance: 0.2 }, church: { ...CHURCH, from: 5, chance: 0.1 }, barracks: { ...BARRACKS, from: 4, chance: 0.2 },
+  architect: { ...ARCHITECT, chance: 0.2 }, tokensAtOnce: 1, guardsOpen: true,
+  towers: { guard: ['arch', 'lamp'], rising: ['wash', 'tenements'], makes: 2, every: 4, walls: 0 },
+};
+
 /** Day 4: the riot, for real. You're the guard; take the square before dawn. */
 export interface RiotScenario {
   id: string;
@@ -95,12 +109,27 @@ export interface RiotScenario {
   /** The table zoomed in (bigger than the screen, dragged round) and zoomed out (all on the screen): Jack's view mode. */
   views?: { in: RiotBoard; out: RiotBoard };
   /**
+   * The tutorial (Day 2, after "Now."; designer: then you're introduced to all the features): a card (an ink
+   * knot, `c3tut_<topic>`) the first time each thing comes up, and some on set turns; the square taken (`done`)
+   * or dawn first, back to the room (`after`).
+   */
+  tutorial?: { turns: Record<number, TutorialTopic[]>; done: string; dawn: string; after: string };
+  /** Day 6's duel on the skirmish's table (your friend the rebels): its knots, the skirmish over. */
+  duel?: { intro: string; won: string; lost: string; after: string };
+  /**
    * Ink knots: before; you took the square (your father comes in; some of them have broken through, and you
    * go down to stop them: the fight); dawn first (your father comes in); him taking it (and the same news);
    * then, after the fight, at the square.
    */
   knots: { intro: string; won: string; dawn: string; fatherTook: string; square: string };
 }
+
+/** What the tutorial explains, each the first time it comes up (`c3tut_<topic>` in story/capital/tutorial.ink). */
+export const TUTORIAL_TOPICS = [
+  'intro', 'towers', 'fortify', 'split', 'power', 'rumble', 'crest', 'elites', 'enemy_elite', 'clash', 'race', 'captured',
+  'mystery', 'audience', 'barracks', 'architect', 'church',
+] as const;
+export type TutorialTopic = (typeof TUTORIAL_TOPICS)[number];
 
 /**
  * Day 2: the lesson in the simulation room (plan: "A district rises. You'll be the rising. I'll be the guard."):
@@ -119,12 +148,14 @@ export interface LessonScenario {
   dropIn: { encounter: string; knot: string };
   rules?: Partial<RiotRules>;
   /** What he says the first time each thing happens (ink knots). */
-  firsts: { grow: string; pour: string; arrive: string; rumble: string; tie: string; lost: string; idle: string; join: string };
+  firsts: { grow: string; pour: string; arrive: string; tie: string; lost: string; idle: string; join: string };
   /** After so many turns of the lesson, he moves on anyway. */
   lessonTurns: number;
   /** "Now.": where everyone stands, and its lines. He plays until he's taken your square (designer: he crushes you); `turns` is only a safety stop. */
   now: { squads: Setup; turns: number; knots: { now: string; cut: string; end: string } };
   knots: { intro: string; good: string; after: string };
+  /** After "Now.", the next game (the tutorial), instead of back to the room. */
+  next?: string;
 }
 
 export const LESSON: LessonScenario = {
@@ -156,9 +187,11 @@ export const LESSON: LessonScenario = {
     { place: 'screens', start: 'c3day2_lesson_screens' },
   ],
   dropIn: { encounter: 'sim_guards', knot: 'c3day2_table_dropin' },
-  // Rumbles in the lesson too (designer: with his word on war being a game of chance).
-  rules: { rumble: RUMBLE },
-  firsts: { grow: 'c3day2_first_grow', pour: 'c3day2_first_pour', rumble: 'c3day2_first_rumble', arrive: 'c3day2_first_arrive', tie: 'c3day2_react_tie', lost: 'c3day2_react_lost', idle: 'c3day2_react_idle', join: 'c3day2_react_joined' },
+  // Just numbers (designer: the first go against your father is the simple table we started with; then he says
+  // the world's full of chance, and the tutorial brings in everything else).
+  rules: { simple: true },
+  next: 'tutorial',
+  firsts: { grow: 'c3day2_first_grow', pour: 'c3day2_first_pour', arrive: 'c3day2_first_arrive', tie: 'c3day2_react_tie', lost: 'c3day2_react_lost', idle: 'c3day2_react_idle', join: 'c3day2_react_joined' },
   lessonTurns: 14,
   now: {
     // The riot as he'd play it, from the guard's side: your square big enough that it looks like you could hold
@@ -245,53 +278,6 @@ export const CASTLE_BOARD: RiotBoard = (() => {
   };
 })();
 
-/** Day 6: a duel, for fun: you hold the keep (the rising's side of the rules), and take his camp (`siege`) against a friend with the bigger army. */
-export interface DuelScenario {
-  id: string;
-  kind: 'duel';
-  board: RiotBoard;
-  district: 'castle';
-  squads: Setup;
-  rules?: Partial<RiotRules>;
-  /** How your side's keep behaves. */
-  style?: Partial<RisingStyle>;
-  /** Ink knots: before; you took his camp; you lost (the keep taken, or dawn first). After either, back in the room (`after`). */
-  knots: { intro: string; won: string; lost: string; after: string };
-}
-
-/**
- * The siege (tuned by simulation, tests/riotGame.test.ts; designer: the objective's taking his main base, no turn
- * limit for now; new units coming in on both sides; he played too static): you 31 (6 in the keep, the rest on
- * the walls and towers and out at the mill and the orchards), him 32 (8 in his camp, eight 3s across the country).
- * Every turn each base musters 2 onto a road next to it, towards the other (`muster`); a garrison never grows,
- * and a base whose every road out is held by the other side gets none (a siege). He never empties his camp,
- * and everything else of his is on the move (`besieger`). His moves are shown as arrows. A first go that gathers
- * its army at his camp's door and goes in when it's enough takes it about 10 times in 16; doing nothing, or
- * random orders, loses the keep.
- */
-export const DUEL: DuelScenario = {
-  id: 'duel',
-  kind: 'duel',
-  board: CASTLE_BOARD,
-  district: 'castle',
-  squads: [
-    { side: 'rising', place: 'keep', strength: 6 },
-    { side: 'rising', place: 'gate', strength: 5 },
-    { side: 'rising', place: 'wwall', strength: 4 },
-    { side: 'rising', place: 'ewall', strength: 4 },
-    { side: 'rising', place: 'wtower', strength: 3 },
-    { side: 'rising', place: 'etower', strength: 3 },
-    { side: 'rising', place: 'mill', strength: 3 },
-    { side: 'rising', place: 'orchards', strength: 3 },
-    { side: 'guard', place: 'camp', strength: 8 },
-    ...['farms', 'road', 'ford', 'hills', 'tannery', 'chapel', 'marsh', 'quarry'].map((place) => ({ side: 'guard' as const, place, strength: 3 })),
-  ],
-  // No power cuts in a siege; rumbles, as ever (Jack). No turn limit for now (designer: a good game first,
-  // restrictions after; with `dawn`, dawn is his).
-  rules: { dawn: 999, powerEvery: 999, rumble: RUMBLE, siege: true, muster: 2 },
-  knots: { intro: 'c3day6_duel_intro', won: 'c3day6_duel_won', lost: 'c3day6_duel_lost', after: 'c3day6_caught' },
-};
-
 /**
  * The skirmish's table (Jack: a bigger map, the rebels' base well away from yours, its three places round it
  * like yours): the siege of the old castle's crag (`CASTLE_BOARD`, Harry's) turned round. The keep at the top is
@@ -377,11 +363,13 @@ export interface FatherScenario {
 
 /**
  * Day 8's first game (tuned by simulation, tests/riotGame.test.ts): the riot's start with one more crowd, in the
- * cellar lane (the cellar's people), and dawn two turns sooner (16). A first go (`naive`) takes the square about
- * half the time (the riot: four in five); careful play always, sensible nearly always.
+ * cellar lane (the cellar's people, 2 of them), the riot's rules with everything Jack added, and the riot's dawn.
+ * (Retuned after Jack's work on the table, as planned: with his additions, a crowd of 3 next to the square took a
+ * first go from half its games to a few in 32.) A first go (`naive`) takes the square about three games in eight
+ * (the riot: about three in five), sensible play two in three, careful play always.
  */
-export const FATHER_START: Setup = [...RIOT_START, { side: 'rising', place: 'cellar', strength: 3 }];
-const FATHER_RULES: Partial<RiotRules> = { rumble: RUMBLE, dawn: 16 };
+export const FATHER_START: Setup = [...RIOT_START, { side: 'rising', place: 'cellar', strength: 2 }];
+const FATHER_RULES: Partial<RiotRules> = { ...RIOT_FEATURES, dawn: 18 };
 
 /**
  * The transfer list on the table: the barkeep's cellar, the kid's back stairs, the woman's wash house, three
@@ -411,32 +399,59 @@ export const FATHER_LIST: FatherScenario = {
 
 const riot = (id: string, board: RiotBoard, district: RiotScenario['district'], squareArea: RiotScenario['squareArea']): RiotScenario => ({
   id, kind: 'riot', board, district, squads: RIOT_START, square: 'riot_square', squareArea,
-  // Rumbles and the elite squads in the riot (Jack), not the lesson; and (Jack: what we built for the skirmish) the
-  // audience, the holy cross, the barracks, the architect, one at a time; anyone can go at the barbarians; two towers
-  // each, the guard's on their way in, the rising's at the back of the district, without walls (simulated: with
-  // them, a first-timer won 2 in 24). Not the rebels' own move: Rally's +2 turns the riot's crowds of 3 into 5s
-  // that beat your 4s (a first-timer won none).
-  rules: {
-    rumble: { ...RUMBLE, chance: 0.25 }, elites: ELITE_SQUAD, clash: CLASH, mystery: { ...MYSTERY, from: 3, chance: 0.25 },
-    audience: { ...AUDIENCE, from: 4, chance: 0.2 }, church: { ...CHURCH, from: 5, chance: 0.1 }, barracks: { ...BARRACKS, from: 4, chance: 0.2 },
-    architect: { ...ARCHITECT, chance: 0.2 }, tokensAtOnce: 1, guardsOpen: true,
-    towers: { guard: ['arch', 'lamp'], rising: ['wash', 'tenements'], makes: 2, every: 4, walls: 0 },
-  },
+  rules: RIOT_FEATURES,
   knots: { intro: 'c3day4_riot_intro', won: 'c3day4_table_won', dawn: 'c3day4_dawn', fatherTook: 'c3day4_father_took', square: 'c3day4_square' },
 });
 
-export const RIOTS: Record<string, RiotScenario | LessonScenario | DuelScenario | FatherScenario> = {
-  lesson: LESSON,
-  duel: DUEL,
-  father8: FATHER,
-  father8_list: FATHER_LIST,
-  riot_low: riot('riot_low', LOW_DISTRICT_BOARD, 'low', { areaId: 'low-district', start: { x: 720, y: 236 } }),
-  riot_promenade: riot('riot_promenade', PROMENADE_BOARD, 'promenade', { areaId: 'promenade', start: { x: 720, y: 232 } }),
-  // A game mode of its own, for playtesting (Jack: no dawn, an indefinite game; a shake-up every 6 turns gives
-  // each side a crest, or a quarter of the time it's the trickster; the elite come back once they're gone; take their base and you've won, lose yours and
-  // you've lost). Dev: ?scene=wartable.
-  // On the crag (Jack: Harry's bigger map, the rebels' base well away from yours, three places round each base).
-  skirmish: {
+/**
+ * Day 2, after "Now.": the table as it really is (designer: the world is full of chance; war is more complex than
+ * this; then you're introduced to all the features, in a tutorial). Day 4's district, Day 4's game (you're the
+ * guard: take the square before dawn), with everything Jack added that Day 4 has; but the things on the map come
+ * on set turns, one at a time, next to your squads (so you can get there first), each explained as it comes:
+ * a rumble, a crest (the elite squad), the diviner, an audience, the barracks, the architect, the holy cross. A
+ * longer night, and three crowds fewer, so there's room and time to try it all.
+ */
+export const TUTORIAL: RiotScenario = (() => {
+  const base = riot('tutorial', LOW_DISTRICT_BOARD, 'low', { areaId: 'simulation-room', start: { x: 200, y: 230 } });
+  const off = { chance: 0 };
+  return {
+    ...base,
+    // (Three crowds fewer than the riot: with them the district fills up, there's nowhere for things to come,
+    // and simulated, a first go never won; without, three in four.)
+    squads: RIOT_START.filter((q) => !['back', 'wash', 'bridge'].includes(q.place)),
+    rules: {
+      ...base.rules,
+      dawn: 24,
+      rumble: { ...RUMBLE, ...off },
+      mystery: { ...MYSTERY, ...off },
+      audience: { ...AUDIENCE, ...off, call: { ...AUDIENCE.call, chance: 0 } },
+      church: { ...CHURCH, ...off },
+      barracks: { ...BARRACKS, ...off },
+      architect: { ...ARCHITECT, ...off },
+      elites: { ...ELITE_SQUAD, crest: { ...ELITE_SQUAD.crest, first: 999 } },
+      script: {
+        side: 'guard',
+        tokens: [
+          { turn: 2, token: 'rumble' },
+          { turn: 3, token: 'crest' },
+          { turn: 5, token: 'mystery', mark: 'diviner' },
+          { turn: 6, token: 'audience' },
+          { turn: 7, token: 'barracks' },
+          { turn: 8, token: 'architect' },
+          { turn: 9, token: 'church' },
+        ],
+      },
+    },
+    tutorial: { turns: { 1: ['intro', 'towers', 'fortify'], 2: ['split'], 4: ['power'] }, done: 'c3tut_done', dawn: 'c3tut_dawn', after: 'c3day2_after_table' },
+    knots: { ...base.knots, intro: 'c3day2_tutorial_intro' },
+  };
+})();
+
+// A game mode of its own, for playtesting (Jack: no dawn, an indefinite game; a shake-up every 6 turns gives
+// each side a crest, or a quarter of the time it's the trickster; the elite come back once they're gone; take their base and you've won, lose yours and
+// you've lost). Dev: ?scene=wartable.
+// On the crag (Jack: Harry's bigger map, the rebels' base well away from yours, three places round each base).
+const SKIRMISH: RiotScenario = {
     ...riot('skirmish', SKIRMISH_BOARD, 'castle', { areaId: 'low-district', start: { x: 720, y: 236 } }),
     squads: SKIRMISH_START,
     skirmish: true,
@@ -450,5 +465,32 @@ export const RIOTS: Record<string, RiotScenario | LessonScenario | DuelScenario 
       // Two towers each, out on the flanks (Jack), three streets from home: each makes 2 every 4 turns, there, for
       // whoever holds it (Jack: not 1 every turn). No shake-ups, no brothel (Jack).
       towers: { guard: ['mill', 'orchards'], rising: ['marsh', 'quarry'], makes: 2, every: 4, walls: 1 }, clashOutput: { by: 1, turns: 3 }, dawn: 100000, baseLoss: true },
-  },
+  };
+
+/**
+ * Day 6: a duel with your friend, for fun (designer: the siege of the crag, a new map; then: Jack's gameplay is
+ * what the game needed, wire it into the chapter): Jack's skirmish, on the crag. You hold the keep (the guard's
+ * side), he's the army in the siege camp (the rebels' side, Jack's computer player); even armies (simulated: a
+ * bigger army for him, and a first go never took his camp; even, sensible play always does, a first go now and
+ * then). Take his camp and you've won; he takes your keep and he has.
+ */
+const camp = (b: RiotBoard): RiotBoard => ({ ...b, places: b.places.map((p) => (p.id === 'camp' ? { ...p, name: 'The siege camp' } : p)) });
+export const DUEL: RiotScenario = {
+  ...SKIRMISH,
+  id: 'duel',
+  board: camp(SKIRMISH.board),
+  views: { in: camp(SKIRMISH_WIDE), out: camp(SKIRMISH_BOARD) },
+  duel: { intro: 'c3day6_duel_intro', won: 'c3day6_duel_won', lost: 'c3day6_duel_lost', after: 'c3day6_caught' },
+  knots: { ...SKIRMISH.knots, intro: 'c3day6_duel_intro' },
+};
+
+export const RIOTS: Record<string, RiotScenario | LessonScenario | FatherScenario> = {
+  lesson: LESSON,
+  tutorial: TUTORIAL,
+  duel: DUEL,
+  father8: FATHER,
+  father8_list: FATHER_LIST,
+  riot_low: riot('riot_low', LOW_DISTRICT_BOARD, 'low', { areaId: 'low-district', start: { x: 720, y: 236 } }),
+  riot_promenade: riot('riot_promenade', PROMENADE_BOARD, 'promenade', { areaId: 'promenade', start: { x: 720, y: 232 } }),
+  skirmish: SKIRMISH,
 };

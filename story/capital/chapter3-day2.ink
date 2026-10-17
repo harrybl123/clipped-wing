@@ -92,8 +92,6 @@ The table's dark. Just glass.
 
 === c3day2_lesson_weavers_done ===
 "Good. And if the numbers are equal, whoever's there holds. Remember that." #speaker:father
-"When you see one of my arrows coming for one of yours, pick it up and fortify it." #speaker:father
-"Dug in, nothing can touch it that turn. But it can't move, and nothing joins it. Once every three turns." #speaker:father
 -> END
 
 === c3day2_lesson_market ===
@@ -124,12 +122,6 @@ The table's dark. Just glass.
 
 === c3day2_first_pour ===
 "Your square's full. It sends people out on its own now: two at a time, into the streets." #speaker:father
--> END
-
-=== c3day2_first_rumble ===
-He points at a flare on the table, a street nobody holds.
-"A rumble. Whoever gets there first sets it off, and every squad next to it is hurt. Mine and yours." #speaker:father
-"War's a game of chance, whatever anyone tells you. The trick is to need the dice less than the other man." #speaker:father
 -> END
 
 === c3day2_first_arrive ===
@@ -188,6 +180,33 @@ He touches the table. Under one of your squads, the lights go out.
 "I've played this table every night for thirty years. You won't ever be as good at it as I am." #speaker:father
 "You held your square and waited. I let your people come to me and break. I fed one fist from the lifts, cut your power, and struck once." #speaker:father
 "Remember it from my side of the table." #speaker:father
+// (Designer: the first go is just numbers; then he says the world's full of chance, and war's more complex than
+// this; then the tutorial brings in everything else. Draft lines.)
+"And that's the table as my father taught it to me. Numbers." #speaker:father
+"The world isn't numbers. It's full of chance, whatever anyone tells you." #speaker:father
+"A real war has a hundred things on it this doesn't. Weather. Luck. Who's praying, and who's paying." #speaker:father
+"The trick is to need the dice less than the other man." #speaker:father
+He touches the table, and it sets itself again: the same district, the same streets. This time the blue is under your hands.
+-> END
+
+// The tutorial (src/data/warTable.ts, TUTORIAL; its cards: story/capital/tutorial.ink): the table as it really is.
+=== c3day2_tutorial_intro ===
+"You're the guard, this time. Take the square before dawn." #speaker:father
+"The table will show you the rest as it comes." #speaker:father
+-> END
+
+// The tutorial over: the square taken, or dawn first.
+=== c3tut_done ===
+Your guard on the square, and the light there gone your colour.
+"Good." #speaker:father
+-> c3tut_off
+
+=== c3tut_dawn ===
+The sun comes up on the table's edge, and the square's still theirs.
+"It takes more than one night to learn." #speaker:father
+-> c3tut_off
+
+=== c3tut_off ===
 He switches it off, and the city goes dark under your hands.
 "I hope you never need it." #speaker:father
 -> END

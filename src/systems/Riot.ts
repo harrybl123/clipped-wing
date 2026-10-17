@@ -163,7 +163,21 @@ export interface RiotRules {
   guardsOpen?: boolean;
   /** How many things can be on the map at once (Jack: more of them); 1 if absent. */
   tokensAtOnce?: number;
+  /**
+   * The table as it first was (designer: Day 2's first game, "just numbers"): no fortify, no split. Everything
+   * else Jack added comes in through its own rule, so without those this is the old table.
+   */
+  simple?: boolean;
+  /**
+   * The tutorial (designer: then you're introduced to everything): things put on the map on set turns, in order,
+   * instead of by the dice, next to the `side`'s squads and away from the other's (so you can get there first);
+   * one waits while something else is still on the map.
+   */
+  script?: { side: Side; tokens: { turn: number; token: ScriptToken; mark?: 'diviner' | 'trickster' }[] };
 }
+
+/** What the tutorial can put on the map. */
+export type ScriptToken = 'rumble' | 'crest' | 'mystery' | 'audience' | 'church' | 'barracks' | 'architect';
 
 /**
  * The rebels' own move (Jack: like your power cut), once every `every` turns, at the start of a turn, whichever
@@ -468,6 +482,8 @@ export interface RiotState {
   lastSabotage?: number;
   /** A street sabotaged (Jack): nobody can use it, up to and including turn `until`. */
   blocked?: { ways: [string, string]; until: number } | null;
+  /** How many of the tutorial's things have been put on the map so far. */
+  scripted?: number;
 }
 
 /**
@@ -682,10 +698,10 @@ export class RiotGame {
   fortified = (s: RiotState, place: string): boolean => s.fortified.includes(place);
   /** A side can fortify now: once every so many turns (Jack: like the power cut). */
   /** A side can split a squad now (Jack: once every 3 turns, like fortify). */
-  canSplit = (s: RiotState, side: Side): boolean => s.turn - s.lastSplit[side] >= this.rules.splitEvery;
+  canSplit = (s: RiotState, side: Side): boolean => !this.rules.simple && s.turn - s.lastSplit[side] >= this.rules.splitEvery;
   /** Turns until a side can split again (0: now). */
   splitIn = (s: RiotState, side: Side): number => Math.max(0, this.rules.splitEvery - (s.turn - s.lastSplit[side]));
-  canFortify = (s: RiotState, side: Side): boolean => s.turn - s.lastFortify[side] >= this.rules.fortifyEvery;
+  canFortify = (s: RiotState, side: Side): boolean => !this.rules.simple && s.turn - s.lastFortify[side] >= this.rules.fortifyEvery;
   /** Turns until the next shake-up (1: at the end of this one). */
   shakeIn = (s: RiotState): number => (this.rules.shakeUp ? this.rules.shakeUp.every - ((s.turn - 1) % this.rules.shakeUp.every) : 0);
   /** Turns until a side can fortify again (0: now). */
@@ -1843,6 +1859,31 @@ export class RiotGame {
   /** A side's bases making more or less this turn (Jack: the townsfolk). */
   /** The towers (Jack): every one, whose it was to start with. */
   towerList = (): { place: string; side: Side }[] => (this.rules.towers ? [...this.rules.towers.guard.map((place) => ({ place, side: 'guard' as Side })), ...this.rules.towers.rising.map((place) => ({ place, side: 'rising' as Side }))] : []);
+  /**
+   * Where the tutorial puts something: an empty street next to one of `side`'s squads (not a base, a tower, or
+   * something already there), nobody of the other side's next to it if it can (so it's yours to take), nearest the
+   * square (where the game's going).
+   */
+  scriptPlace(s: RiotState, side: Side): string | null {
+    this.use(s);
+    const empty = this.board.places.filter((p) => !p.heart && !p.lifts && !this.squadAt(s, p.id) && !this.tokenAt(s, p.id) && !this.isTower(p.id));
+    const nextTo = (p: RiotPlace, who: Side) => this.adj.get(p.id)!.some((n) => this.squadAt(s, n)?.side === who);
+    const hops = (from: string) => {
+      const seen = new Map([[from, 0]]);
+      const todo = [from];
+      while (todo.length) {
+        const p = todo.shift()!;
+        if (p === this.heart) return seen.get(p)!;
+        for (const n of this.adj.get(p)!) if (!seen.has(n)) (seen.set(n, seen.get(p)! + 1), todo.push(n));
+      }
+      return 99;
+    };
+    const mine = empty.filter((p) => nextTo(p, side));
+    const safe = mine.filter((p) => !nextTo(p, this.other(side)));
+    const pool = (safe.length ? safe : mine.length ? mine : empty).sort((a, b) => hops(a.id) - hops(b.id) || a.id.localeCompare(b.id));
+    return pool[0]?.id ?? null;
+  }
+
   isTower = (place: string): boolean => this.towerList().some((t) => t.place === place);
   /** Who holds a tower now (whoever last took the place). */
   towerHolder = (s: RiotState, place: string): Side | undefined => s.owner[place];
@@ -2635,6 +2676,23 @@ export class RiotGame {
       } else if (r && !s.crestDue && !taken() && s.turn + 1 >= r.from && this.roll(s) < r.chance) {
         const at = this.crestPlace(s, false);
         if (at) (s[kind] = { place: at, left: r.lasts }), events.push({ type: names[kind][0], at });
+      }
+    }
+    // The tutorial's things, on their turns, in order (one waits while the map's not clear).
+    const script = this.rules.script;
+    const next = script?.tokens[s.scripted ?? 0];
+    if (script && next && s.turn + 1 >= next.turn && !taken()) {
+      const at = this.scriptPlace(s, script.side);
+      if (at) {
+        s.scripted = (s.scripted ?? 0) + 1;
+        const lasts = 3;
+        if (next.token === 'rumble') (s.rumble = { place: at, left: lasts }), events.push({ type: 'rumbleAppears', at });
+        else if (next.token === 'crest') (s.crest = { place: at, left: lasts }), events.push({ type: 'crestAppears', at });
+        else if (next.token === 'mystery') (s.mystery = { place: at, left: lasts, ...(next.mark ? { mark: next.mark } : {}) }), events.push({ type: 'mysteryAppears', at, ...(next.mark ? { mark: next.mark } : {}) });
+        else {
+          s[next.token] = { place: at, left: lasts };
+          events.push({ type: `${next.token}Appears`, at });
+        }
       }
     }
     // An audience with the Lord (Jack: far less often): in each stretch of turns, now and then, on one turn of it,

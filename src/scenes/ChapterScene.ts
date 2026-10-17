@@ -233,6 +233,9 @@ export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
     start: { area: { areaId: 'prince-quarters', start: { x: 120, y: 226 }, script: 'c3day2_start', card: 'Day 2' }, slots: 0, vars: {} },
     study: { area: { areaId: 'fathers-study', start: { x: 60, y: 230 }, script: 'c3day2_study' }, slots: 0, vars: { c3day2: 'study', objective: 'Go with your father', objective_target: 'fathers-study:father-2' } },
     table: { area: { areaId: 'simulation-room', start: { x: 300, y: 230 } }, slots: 0, vars: { c3day2: 'room', sim_open: true, room2: true, objective: 'Practise the art of war', objective_target: 'simulation-room:table' } },
+    // (Straight into "Now.", or the tutorial after it.)
+    now: { area: { areaId: 'simulation-room', start: { x: 300, y: 230 } }, slots: 0, vars: { c3day2: 'table', sim_open: true, room2: true } },
+    tutorial: { area: { areaId: 'simulation-room', start: { x: 300, y: 230 } }, slots: 0, vars: { c3day2: 'table', sim_open: true, room2: true } },
     council: { area: { areaId: 'citadel-halls', start: { x: 300, y: 232 } }, slots: 1, vars: { c3day2: 'council', sim_open: true, room2: true, objective: 'Go to the council chamber', objective_target: 'council-chamber:father-4' } },
     dusk: { area: { areaId: 'prince-quarters', start: { x: 300, y: 226 } }, slots: 2, vars: { c3day2: 'dusk', sim_open: true, room2: true, council2: true, heard2: 3, energy, objective: 'Watch from your balcony', objective_target: 'prince-quarters:telescope' } },
     below: { area: { areaId: 'diplomats-office', start: { x: 200, y: 230 } }, slots: 2, vars: { c3day2: 'report', sim_open: true, room2: true, council2: true, energy, dark_district: dark, citadel_dimmed: energy === 'people', dusk2: true, reported2: true, objective: "Go to your hand's office", objective_target: 'diplomats-office:hand-6' } },
@@ -341,6 +344,10 @@ export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
   set(mid.vars);
   session.calendar.jumpTo(day as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8);
   for (let i = 0; i < mid.slots; i++) session.calendar.advance();
+  if (day === 2 && (at === 'now' || at === 'tutorial')) {
+    scene.scene.start('RiotTable', { scenario: at === 'now' ? 'lesson' : 'tutorial', back: mid.area, ...(at === 'now' ? { phase: 'now' as const } : {}) } satisfies RiotTableSceneData);
+    return;
+  }
   if (day >= 8 && (at === 'game' || at === 'list')) {
     scene.scene.start('RiotTable', { scenario: at === 'list' ? 'father8_list' : 'father8', back: mid.area } satisfies RiotTableSceneData);
     return;

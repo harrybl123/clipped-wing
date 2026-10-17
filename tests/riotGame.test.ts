@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { CASTLE_BOARD, DUEL, FATHER, FATHER_LIST, FATHER_START, LESSON, LOW_DISTRICT_BOARD, PROMENADE_BOARD, RIOT_START, RIOTS, TRANSFER_LIST } from '../src/data/warTable';
+import { CASTLE_BOARD, DUEL, FATHER, FATHER_LIST, FATHER_START, LESSON, LOW_DISTRICT_BOARD, PROMENADE_BOARD, RIOT_START, RIOTS, TRANSFER_LIST, TUTORIAL, TUTORIAL_TOPICS, type RiotScenario } from '../src/data/warTable';
 import { ENCOUNTERS } from '../src/data/combat';
-import { RIOT_RULES, RISING_STYLE, RiotGame, type Order, type RiotState } from '../src/systems/Riot';
-import { besieger, careful, naive, playOut, random, sensible, steady } from '../src/systems/RiotPlayers';
+import { StoryBridge } from '../src/systems/StoryBridge';
+import { storyJson } from './compiledStory';
+import { RIOT_RULES, RiotGame, type Order, type RiotState } from '../src/systems/Riot';
+import { careful, naive, playOut, random, sensible, steady } from '../src/systems/RiotPlayers';
 
 // The war table's game (docs/sequences/chapter-3/war-table.md): the old table's rules with four for the riot,
 // and the balance found by simulated play (designer: simple; on the easy side but not really easy).
@@ -144,7 +146,18 @@ describe('the war table: Day 4, the riot (simulated play)', () => {
 });
 
 describe('the war table: Day 2, the lesson', () => {
-  const game = new RiotGame(LESSON.board);
+  const game = new RiotGame(LESSON.board, { ...RIOT_RULES, ...LESSON.rules });
+
+  it('just numbers (designer: the first go is the table we started with): no fortify, no split, nothing on the map', () => {
+    const s = game.start(LESSON.squads);
+    expect(game.canFortify(s, 'rising')).toBe(false);
+    expect(game.canSplit(s, 'rising')).toBe(false);
+    for (const k of ['rumble', 'elites', 'clash', 'mystery', 'audience', 'church', 'barracks', 'architect', 'towers', 'script'] as const) expect(LESSON.rules?.[k]).toBeUndefined();
+    let t = s;
+    for (let i = 0; i < 12; i++) t = game.turn(t, [], []).state;
+    expect([t.rumble, t.crest, t.mystery].filter(Boolean)).toHaveLength(0);
+    expect(LESSON.next).toBe('tutorial');
+  });
 
   it('every goal can be taken, in order, against his steady guard', () => {
     // A plain way through: the wash house into the Weavers' Row; the tenements join the well, then the market;
@@ -178,113 +191,91 @@ describe('the war table: Day 2, the lesson', () => {
   }, 120000);
 });
 
+describe('the war table: Day 2, the tutorial (the table as it really is)', () => {
+  const game = new RiotGame(TUTORIAL.board, { ...RIOT_RULES, ...TUTORIAL.rules });
+
+  it('it’s Day 4’s game with everything Jack added, but each thing comes on its turn, next to your squads and away from theirs', () => {
+    let s = game.start(TUTORIAL.squads, 7);
+    const seen: { turn: number; type: string; at: string }[] = [];
+    for (let i = 0; i < 12; i++) {
+      const r = game.turn(s, [], []);
+      for (const e of r.events) if (e.type.endsWith('Appears')) seen.push({ turn: r.state.turn, type: e.type, at: (e as { at: string }).at });
+      s = r.state;
+      // (Nobody takes them here: each goes after its three turns, and the next waits for the map to clear.)
+    }
+    expect(seen.map((e) => e.type).slice(0, 2)).toEqual(['rumbleAppears', 'crestAppears']);
+    expect(seen[0]!.turn).toBe(2);
+    expect(seen[1]!.turn).toBe(5);
+    // Next to one of yours.
+    const s1 = game.turn(game.start(TUTORIAL.squads, 7), [], []).state;
+    expect(game.adj.get(seen[0]!.at)!.some((n) => game.squadAt(s1, n)?.side === 'guard')).toBe(true);
+  });
+
+  it('taken as they come, all seven appear by turn 9, the diviner’s mark among them', () => {
+    let s = game.start(TUTORIAL.squads, 3);
+    const kinds: string[] = [];
+    for (let i = 0; i < 10; i++) {
+      const r = game.turn(s, [], []);
+      for (const e of r.events) if (e.type.endsWith('Appears')) kinds.push(e.type === 'mysteryAppears' ? `mystery:${e.mark}` : e.type);
+      s = r.state;
+      // (As if each were taken at once.)
+      s = { ...s, rumble: null, crest: null, mystery: null, audience: null, church: null, barracks: null, architect: null };
+    }
+    expect(kinds).toEqual(['rumbleAppears', 'crestAppears', 'mystery:diviner', 'audienceAppears', 'barracksAppears', 'architectAppears', 'churchAppears']);
+  });
+
+  it('nothing comes by the dice, and dawn is later than the riot’s', () => {
+    expect(TUTORIAL.rules?.dawn).toBeGreaterThan(18);
+    for (const k of ['rumble', 'mystery', 'church', 'barracks', 'architect'] as const) expect(TUTORIAL.rules?.[k]?.chance).toBe(0);
+    expect(TUTORIAL.rules?.audience?.call.chance).toBe(0);
+  });
+
+  it('a first go takes the square more often than not', () => {
+    const won = Array.from({ length: 16 }, (_, i) => playOut(game, game.start(TUTORIAL.squads, i + 1), naive())).filter((r) => r.winner === 'guard').length;
+    expect(won).toBeGreaterThanOrEqual(9);
+  }, 300000);
+
+  it('every topic has its card, and every game’s lines are in the story', () => {
+    const story = new StoryBridge(storyJson());
+    const knots = [
+      ...TUTORIAL_TOPICS.map((t) => `c3tut_${t}`),
+      ...Object.values(TUTORIAL.tutorial!).filter((v): v is string => typeof v === 'string'),
+      TUTORIAL.knots.intro,
+      ...Object.values(DUEL.duel!),
+      ...Object.values(LESSON.knots), ...Object.values(LESSON.firsts), ...Object.values(LESSON.now.knots), ...LESSON.goals.flatMap((g) => [g.start, ...(g.done ? [g.done] : [])]),
+      ...Object.values(FATHER.knots), ...Object.values(FATHER_LIST.knots),
+    ];
+    for (const k of knots) expect(() => story.startKnot(k), k).not.toThrow();
+  });
+});
+
 describe('the war table: Day 6, the duel with your friend (simulated play)', () => {
-  // You hold the keep (the rising's side); he has the bigger army, played sensibly, never emptying his camp.
-  // Take his camp to win (designer: the objective's his main base; no turn limit for now). Your orders go first,
-  // in order; his, shown at the start of the turn, all at once.
-  const game = () => {
-    const g = new RiotGame(DUEL.board, { ...RIOT_RULES, ...DUEL.rules });
-    g.style = { ...RISING_STYLE, ...DUEL.style };
-    return g;
-  };
-  type You = (g: RiotGame, s: RiotState) => Order[];
-  const duel = (g: RiotGame, seed: number, you: You, turns = 40) => {
-    const him = besieger();
-    let s = g.start(DUEL.squads, seed);
-    for (let i = 0; i < turns && !g.outcome(s); i++) s = g.turn(s, you(g, s), him(g, s).orders).state;
-    return { winner: g.outcome(s), turn: s.turn };
-  };
-  const steps = (g: RiotGame, a: string, b: string) => {
-    const seen = new Map([[a, 0]]);
-    const todo = [a];
-    while (todo.length) {
-      const p = todo.shift()!;
-      if (p === b) return seen.get(p)!;
-      for (const n of g.adj.get(p)!) if (!seen.has(n)) (seen.set(n, seen.get(p)! + 1), todo.push(n));
-    }
-    return 99;
-  };
-  // A first go at his camp (as a person plays it): everyone but the keep heads for the camp's door, beating what
-  // they can on the way; whoever's already at the door waits for the rest to join it, and goes in once it's enough.
-  const firstGo: You = (g, s) => {
-    const orders: Order[] = [];
-    const camp = g.squadAt(s, g.lifts);
-    const need = camp?.side === 'guard' ? g.defence(s, g.lifts, camp.strength) : 0;
-    const lead = g.mine(s, 'rising').filter((q) => g.near(q.place, g.lifts)).sort((a, b) => b.strength - a.strength)[0];
-    for (const q of [...g.mine(s, 'rising')].sort((a, b) => b.strength - a.strength)) {
-      if (q.place === g.heart) continue;
-      const ways = g.dests(s, q);
-      if (ways.includes(g.lifts) && q.strength > need) {
-        orders.push({ squad: q.id, to: g.lifts });
-        continue;
-      }
-      const beat = ways.find((to) => {
-        const t = g.squadAt(s, to);
-        return to !== g.lifts && t?.side === 'guard' && q.strength > g.defence(s, to, t.strength);
-      });
-      if (beat) {
-        orders.push({ squad: q.id, to: beat });
-        continue;
-      }
-      if (lead && q !== lead && ways.includes(lead.place)) {
-        orders.push({ squad: q.id, to: lead.place });
-        continue;
-      }
-      if (q === lead) continue;
-      const step = ways.filter((to) => g.squadAt(s, to)?.side !== 'guard').sort((a, b) => steps(g, a, g.lifts) - steps(g, b, g.lifts))[0];
-      if (step && steps(g, step, g.lifts) < steps(g, q.place, g.lifts)) orders.push({ squad: q.id, to: step });
-    }
-    return orders;
-  };
+  // Jack's skirmish on the crag (designer: wire his gameplay into the chapter): you hold the keep (the guard), he's
+  // the army in the siege camp (the rebels, Jack's computer player). Take his camp to win; he takes your keep, he has.
+  const game = () => new RiotGame(DUEL.board, { ...RIOT_RULES, ...DUEL.rules });
 
-  it('a first go usually takes his camp (designer: as easy as the riot)', () => {
-    const results = Array.from({ length: 16 }, (_, i) => duel(game(), i + 1, firstGo));
-    expect(results.filter((r) => r.winner === 'rising').length).toBeGreaterThanOrEqual(8);
-  }, 120000);
-
-  it('both bases muster new men every turn onto a road next to them; a garrison never grows; cut off, none come', () => {
-    const g = game();
-    const s = g.start([{ side: 'rising', place: 'keep', strength: 6 }, { side: 'guard', place: 'camp', strength: 8 }]);
-    const t = g.turn(s, [], []).state;
-    expect(g.squadAt(t, 'keep')!.strength).toBe(6);
-    expect(g.squadAt(t, 'camp')!.strength).toBe(8);
-    expect(g.mine(t, 'rising').filter((q) => q.place !== 'keep').map((q) => [q.place, q.strength])).toEqual([['gate', 2]]);
-    expect(g.mine(t, 'guard').filter((q) => q.place !== 'camp').map((q) => q.strength)).toEqual([2]);
-    // Every road out of the keep held by him: none come.
-    const sieged = g.start([{ side: 'rising', place: 'keep', strength: 6 }, ...['postern', 'yard', 'gate'].map((place) => ({ side: 'guard' as const, place, strength: 3 })), { side: 'guard', place: 'camp', strength: 8 }]);
-    expect(g.mine(g.turn(sieged, [], []).state, 'rising')).toHaveLength(1);
+  it('it is the skirmish, with the story round it, and his camp is the siege camp', () => {
+    const sk = RIOTS.skirmish as RiotScenario;
+    expect(DUEL.skirmish).toBe(true);
+    expect(DUEL.rules).toBe(sk.rules);
+    expect(DUEL.squads).toBe(sk.squads);
+    expect(DUEL.duel).toMatchObject({ won: 'c3day6_duel_won', lost: 'c3day6_duel_lost', after: 'c3day6_caught' });
+    for (const b of [DUEL.board, DUEL.views!.in, DUEL.views!.out]) expect(b.places.find((p) => p.heart)!.name).toBe('The siege camp');
   });
 
-  it('he keeps moving (designer: he played too static)', () => {
-    const g = game();
-    const s = g.start(DUEL.squads, 1);
-    const his = besieger()(g, s).orders;
-    expect(his.length).toBeGreaterThanOrEqual(6);
-  });
-
-  it('the map is considerably bigger than the riot’s (designer), on a table bigger than the screen', () => {
-    expect(CASTLE_BOARD.places.length).toBeGreaterThanOrEqual(LOW_DISTRICT_BOARD.places.length * 1.7);
-    for (const p of CASTLE_BOARD.places) {
-      expect(p.x).toBeLessThanOrEqual(CASTLE_BOARD.width! - 30);
-      expect(p.y).toBeLessThanOrEqual(CASTLE_BOARD.height! - 30);
-    }
-  });
-
-  it('you have fewer troops, technically', () => {
+  it('even armies (a bigger one for him and a first go never took his camp): sensible play always takes it', () => {
     const total = (side: string) => DUEL.squads.filter((q) => q.side === side).reduce((n, q) => n + q.strength, 0);
-    expect(total('rising')).toBeLessThan(total('guard'));
+    expect(total('guard')).toBe(total('rising'));
+    for (const seed of [1, 2, 3, 4]) expect(playOut(game(), game().start(DUEL.squads, seed), sensible()).winner).toBe('guard');
+  }, 300000);
+
+  it('the map is considerably bigger than the riot’s (designer)', () => {
+    expect(CASTLE_BOARD.places.length).toBeGreaterThanOrEqual(LOW_DISTRICT_BOARD.places.length * 1.7);
+    expect(DUEL.views!.in.width).toBeGreaterThan(480);
   });
 
-  it('doing nothing, or random orders, loses the keep', () => {
-    for (const seed of [1, 2, 3]) {
-      expect(duel(game(), seed, () => [], 30).winner).toBe('guard');
-      let r = seed;
-      const rnd = () => ((r = (r * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
-      expect(duel(game(), seed, (g, s) => g.mine(s, 'rising').map((q) => {
-        const o = [q.place, ...g.dests(s, q)];
-        return { squad: q.id, to: o[Math.floor(rnd() * o.length)]! };
-      })).winner).toBe('guard');
-    }
+  it('doing nothing loses the keep', () => {
+    for (const seed of [1, 2]) expect(playOut(game(), game().start(DUEL.squads, seed), () => ({ orders: [] })).winner).toBe('rising');
   }, 120000);
 });
 
@@ -299,12 +290,17 @@ describe('the war table: Day 8, against your father (simulated play)', () => {
   };
 
   it('winnable but difficult (designer): harder than the riot for a first go, which still wins it some of the time; careful play wins', () => {
-    const seeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-    const first = seeds.filter((seed) => playOut(game, game.start(FATHER_START, seed), naive()).winner === 'guard').length;
-    expect(first).toBeGreaterThanOrEqual(3);
-    expect(first).toBeLessThanOrEqual(9);
+    // (Retuned with Jack's additions: a first go about three in eight, sensible about two in three.)
+    const first = Array.from({ length: 32 }, (_, i) => playOut(game, game.start(FATHER_START, i + 1), naive())).filter((r) => r.winner === 'guard').length;
+    expect(first).toBeGreaterThanOrEqual(8);
+    expect(first).toBeLessThanOrEqual(18);
     for (const seed of [1, 2, 3]) expect(playOut(game, game.start(FATHER_START, seed), careful()).winner).toBe('guard');
   }, 300000);
+
+  it('it has everything Jack added that the riot has', () => {
+    const riot = (RIOTS.riot_low as RiotScenario).rules!;
+    for (const k of ['elites', 'clash', 'mystery', 'audience', 'church', 'barracks', 'architect', 'towers'] as const) expect(FATHER.rules?.[k]).toEqual(riot[k]);
+  });
 
   it('with the list off the table, it\u2019s easy, even with one name kept', () => {
     for (const kept of ['none', 'barkeep', 'kid', 'woman']) {

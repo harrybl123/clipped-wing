@@ -136,6 +136,8 @@ Opens on the chapter card: "Chapter 3", **The Prince** (designer). No tutorial c
 
 ---
 
+**As built, after Jack's war table (2026-10-17, designer):** the lesson and "Now." are just numbers (the table we started with); then your father says the world's full of chance and war's more complex than this, and the tutorial plays Day 4's game with everything Jack added, each thing on its turn with a card (`TUTORIAL` in `src/data/warTable.ts`, `story/capital/tutorial.ink`). Day 6's duel is Jack's skirmish on the crag; Day 8's games have Day 4's rules.
+
 ## Day 3: two weeks on (suggestion, unless marked)
 
 The card: **"Two weeks on."** The district you darkened has been dark for two weeks. The symbol has spread: chalked on walls you can see from the lifts, scratched into a lift's glass, once on a screen for a second before it cut out. **Your father is in the sealed wing more than he's out of it**, so more of his work comes to you.

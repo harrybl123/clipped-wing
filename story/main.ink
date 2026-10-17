@@ -830,6 +830,7 @@ INCLUDE borderland/deep-ground.ink
 INCLUDE borderland/trees-edge.ink
 INCLUDE capital/chapter3-day1.ink
 INCLUDE capital/chapter3-day2.ink
+INCLUDE capital/tutorial.ink
 INCLUDE capital/chapter3-day3.ink
 INCLUDE capital/chapter3-day4.ink
 INCLUDE capital/chapter3-day5.ink

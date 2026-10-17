@@ -228,3 +228,22 @@ A game mode of its own (dev: `?scene=wartable`): the riot's table and rules, no 
 ### The Lord less often, and the holy cross (Jack, 2026-10-16)
 
 (Jack: too frequent.) An audience with the Lord comes to one side only (by the dice) in each 12 turns, about a third of the time (`AUDIENCE.call`: once in about 35 turns; it was each side, half the time, in each 7). **A holy cross on the map** now and then (`CHURCH`, the skirmish: from turn 8, 8% a turn with the map clear, 3 turns, within reach of both; a gold cross on a dark tile, glowing; "A holy cross!"): first there has the audience with the Lord (`takeChurch`); races for it like any other. Only the player's side (the guard) is called to an audience with the Lord out of the blue (Jack; `AUDIENCE.prays`); either side can still reach the holy cross for one.
+
+
+### Wired into the chapter (2026-10-17, designer)
+
+Harry merged Jack's work and asked for it in the story: the first go against your father just numbers, then the
+tutorial. **Day 2**: the lesson and "Now." with `simple` rules (no fortify, no split, nothing on the map). **The
+tutorial** (`TUTORIAL`): Day 4's district and rules, you the guard; the things on the map come by `script`, not
+the dice: a rumble (turn 2), a crest (3), the diviner's mark (5), an audience (6), the barracks (7), the architect
+(8), the holy cross (9), each waiting for the map to clear, each on an empty street next to one of yours and none
+of theirs, nearest the square (`scriptPlace`). With the riot's start the district filled with the rising's crowds
+and nothing could appear; a first go (`naive`) never won (it doesn't chase the bonuses, and only one crest comes).
+Three crowds fewer (the back stairs, the wash house, the drain bridge): a first go wins about three in four, and
+all seven things appear in nearly every game. Dawn 24. **Day 6**: the duel is the skirmish on the crag (`DUEL`),
+your friend the rebels' computer player. Simulated (16 games): with the skirmish's even armies, a first go took
+his camp 3 times and sensible play 16; with 2 more in his camp, 0 and 16; with 4 more, 0 and 14. Even, then.
+**Day 8**: `father8` and `father8_list` with the riot's rules (`RIOT_FEATURES`). With the old start (a crowd of 3
+in the cellar lane, dawn 16), a first go won none of 24; the cellar's crowd (next to the square) was decisive:
+with it 2, dawn 18, a first go 12 in 32, sensible 21, careful 32 (the riot's start alone: 19 in 32). The list
+game is over in 2 to 4 turns whichever name you kept.
