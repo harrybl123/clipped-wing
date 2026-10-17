@@ -180,3 +180,10 @@ Come back to this when planning the later days.
   For now, cracks only change lines and suspicion.
 - **Searches and other mechanics** (e.g. guards searching your home for the plate): keep simple
   now, add depth in a later pass.
+- **Bug, Chapter 2 Day 7 night** (Jack, playtesting, 2026-10-17; not fixed). Told to "Go home" after the
+  tally house; at home, the marker points back out of the door, though sleeping is what moves the story
+  on (the bed works). Likely cause: after the yard ambush the objective is "Go home" at
+  `swap-yard:to-shack` (the swap yard's door into the shack), and only the rat-on-the-door scene
+  (`c2day7_door`, a trigger by that door) changes it to "Go to bed" at `shack:bed`. If that scene doesn't
+  play, the marker inside the shack points back out to the swap yard. `story/borderland/chapter2-day7.ink`
+  (`c2day7_after_ambush`, `c2day7_door_done`), `src/data/areas/borderland/swapYard.ts` (the triggers).
