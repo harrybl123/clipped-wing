@@ -48,7 +48,7 @@ Only the tube and rot endings continue (the loyal ending doesn't). Two things fr
 1. **Opening (every ending):** **you're scared and shocked by everything** (designer, 2026-10-17: this is important). Up the tube, **the master with the spiral finds you, careful and kind**, understanding you'll be in shock (designer: someone from the colony; Claude suggested her, designer agreed: you watched her ascend on Day 1). Through the rot, **the hunter finds you** at the bottom (designer), with the girl or alone; with her, she's bickering at you, and he basically tells you to shut up. Then Grounded. He explains the world and who he is, and tells you his real name. His people are hungry, and you can be their key of leverage. You can reject this, but you can't bluntly tell your people the truth, because they'd reject it. If you commit to freeing them, you have to devise a plan with the tree scavengers.
 2. **Life in the colony:** getting to know the treehouse colony, hunting in the lowlands with the hunter, and secret trips back into the tree.
 3. **The big decisions** (below).
-4. **The Tender, and the battle** (designer, 2026-10-17): **the Tender is revealed as an agent of the capital**, and you find out he's orchestrating an attack on the canopy's people with the king. **A boss fight with him**, and **a final big battle**. The capital can't blow the canopy up: they need the tree undisrupted. **The tree stays as it is for now**: no revolution in the tree this chapter (designer).
+4. **The Tender, and the battle** (designer, 2026-10-17): **the Tender is revealed as an agent of the capital**, and you find out he's orchestrating an attack on the canopy's people with the king. **A boss fight with him**, beside the hunter and his electric bow (designer), and **a final big battle**. The capital can't blow the canopy up: they need the tree undisrupted. **The tree stays as it is for now**: no revolution in the tree this chapter (designer).
 5. **Final beat:** after the ultimate choice and the battle, the chapter ends quietly with the hunter crouched over dog prints at the base of the tree (designer, 2026-10-17) in the lowlands. Dogs are meant to be extinct. This sets up meeting the scavenger in a later chapter.
 
 ## Locations
@@ -94,26 +94,27 @@ A treehouse civilisation. Height means status.
 
 ## Big decisions
 
-Simple by design: only the second decision differs between the two Act 1 endings.
+Revised with the designer, 2026-10-17. **The chapter centres on a day or two of tree espionage:** slipping back inside to find out what the powers that be have really been doing in there (designer).
 
-### 1. Your person inside (both endings)
+### 1. Your person inside (every route)
 
-Choose who inside the tree knows you're alive:
+Choose who inside the tree you use, depending on your relationships in Act 1 (designer):
 
 - **Your friend:** only if you confided in him in Act 1.
 - **The archivist:** only if he was your ally in Act 1.
+- **The girl:** if she's still in there, not with you (designer). *(To settle: framed and flown, she's alone in the rot and hates you.)*
 - **Mum.**
 
 Ascended, they're your hands. Through the rot, they're your messenger, and they spread the rumours that the dead carver walks.
 
-### 2. Different for each ending
+### 2. Spare the Tender, or not (every route)
 
-- **Ascended: the diversion.** You send two messages down first and slip inside to see how they land. Then the network asks for the tree's output to be diverted to a hidden reserve for when the revolution comes. Take it from your people, take it from the canopy's share, or refuse.
-- **Through the rot: the cell.** Organise the poorest in the lower roots into the network's hands inside the tree. The revolution gets a foothold, but they're the ones in danger. Or keep them out of it.
+(Designer, 2026-10-17, to confirm.) After the boss fight, which you fight beside the hunter (he has an electric bow: designer), you decide what happens to the Tender, the capital's agent.
 
-### 3. Free the tree or keep it as an asset (both endings)
+### Not in this chapter
 
-The biggest decision. Liberate your tree by revealing the truth, or leave it as an asset in Grounded's greater plan for the revolution. The freeing itself plays out in the next tree chapter, not this one.
+- **Free the tree or keep it as an asset:** not here; the tree stays as it is for now (designer, 2026-10-17). It moves to a later tree chapter.
+- **The diversion and the cell** (the earlier draft's second choice, different by route: hide the tree's output away for the revolution, or organise the lower roots into a cell): dropped for now (designer: didn't make sense), as both are about steering the tree, which this chapter no longer does.
 
 ## Medium decisions
 
