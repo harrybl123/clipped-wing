@@ -1,6 +1,6 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './canopyProps';
-import { CANOPY_AMBIENCE, sides, stair } from './canopyArea';
+import { CANOPY_AMBIENCE, sides, stair, stairSide } from './canopyArea';
 import type { AreaDefinition, Prop } from '../types';
 
 // The walkways (Chapter 4): rope bridges and platforms linking the treehouses (doc;
@@ -77,11 +77,6 @@ export const walkways: AreaDefinition = {
       { from: { x: a!, y: MAIN - 15 }, to: { x: a!, y: MAIN - 1 }, colour: S.wood },
       { from: { x: b! - 1, y: MAIN - 15 }, to: { x: b! - 1, y: MAIN - 1 }, colour: S.wood },
     ]),
-    // The stairs' stringers.
-    ...[[100, UP + 5, 28, MAIN], [290, TOP + 5, 362, UP], [610, UP2 + 5, 666, MAIN], [410, MAIN + 9, 466, LOW]].flatMap(([x1, y1, x2, y2]) => [
-      { from: { x: x1!, y: y1! }, to: { x: x2!, y: y2! }, colour: S.wood },
-      { from: { x: x1!, y: y1! + 1 }, to: { x: x2!, y: y2! + 1 }, colour: S.deep },
-    ]),
   ],
 
   props: [
@@ -89,6 +84,11 @@ export const walkways: AreaDefinition = {
     { sprite: P.leafFloor(W, 70, 1), x: 0, y: H - 70, behind: true },
     { sprite: P.giantTrunk(92, H, 11), x: 150, y: 0, behind: true },
     { sprite: P.giantTrunk(104, H, 12), x: 466, y: 0, behind: true },
+    // The stairs' sides (the one up to the top hangs out past its platform: posts down to the bridge).
+    stairSide(100, MAIN, UP, 'right'),
+    stairSide(290, UP, TOP, 'left', MAIN),
+    stairSide(610, MAIN, UP2, 'left'),
+    stairSide(410, LOW, MAIN, 'left'),
     // The platforms' lips and struts.
     { sprite: P.ringDeck(210, 1), x: 90, y: MAIN },
     { sprite: P.ringDeck(220, 2), x: 410, y: MAIN },

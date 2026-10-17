@@ -2,7 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import type { RowSprite } from '../../../ui/sprites';
 import * as P from './canopyProps';
 import * as I from './canopyInteriors';
-import { CANOPY_AMBIENCE, sides, stair } from './canopyArea';
+import { CANOPY_AMBIENCE, sides, stair, stairSide } from './canopyArea';
 import type { AreaDefinition } from '../types';
 
 // The great house (Chapter 4): the grand central treehouse (docs/areas/canopy/great-house.md), seen in
@@ -96,6 +96,9 @@ export const greatHouse: AreaDefinition = {
     },
     // The great limb it's built round, going up through every floor and out through the roof.
     { sprite: P.giantTrunk(110, H, 45), x: 326, y: 0, behind: true },
+    // The stairs' sides.
+    stairSide(520, GROUND, WORKSHOP, 'left'),
+    stairSide(240, WORKSHOP, SORTING, 'right'),
     // Offerings hung on the walls, sacks and barrels, baskets hanging from the beams.
     { sprite: I.wallOfferings(110, 1), x: 300, y: SORTING - 52, behind: true },
     { sprite: I.wallOfferings(90, 2), x: 104, y: WORKSHOP - 64, behind: true },

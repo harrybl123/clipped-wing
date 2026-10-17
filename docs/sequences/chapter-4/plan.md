@@ -130,7 +130,7 @@ Opens on the chapter card: "Chapter 4", then its title (open).
 - **The carver with the metal fist** (designer): turn-based, on the combat system (`docs/combat-design.md`). Moves to design with you (suggestion): the fist, heavy and slow; the carving knife, quick and precise; and something only a carver has (reading a foe the way you read a plate, Act 1's tells turned round).
 - **The hunter** fights beside you from behind, as the son and the dog did in Chapter 2: **the electric bow** (designer); suggestion: a shot that shorts out tech.
 - **The Tender** (designer: a techno wizard, a tough boss): suggestion: his staff throws light that's hard to read (like a straggler's Grit), a charge that stuns, and a ward only the hunter's bow can short out.
-- **Battles 1 and 2 are Jack's war table** (designer), placeholders until his are ready.
+- **Battles 1 and 2 are Jack's war table** (designer). **Until then, no gameplay at all** (designer, 2026-10-17: leave them blank): each is just a message saying it's a placeholder, then the story carries on.
 
 ## The colony's people and their part (designer: go with the suggestion)
 

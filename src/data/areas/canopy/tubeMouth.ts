@@ -1,6 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './canopyProps';
 import type { AreaDefinition, Feature, Solid } from '../types';
+import { stairSide } from './canopyArea';
 
 // The tube mouth (Chapter 4): where the tube comes out of the top of the tree, and offerings and the
 // ascended arrive (docs/areas/canopy/tube-mouth.md). The first place in the canopy, so it sets the look:
@@ -118,6 +119,7 @@ export const tubeMouth: AreaDefinition = {
     { sprite: P.WATER_TANK, x: 70, y: FLOOR - 15 },
     { sprite: P.hammock(44), x: 114, y: FLOOR - 18 },
     { sprite: P.pots(40, 3), x: 188, y: FLOOR - 16 },
+    stairSide(LEDGE_TO, FLOOR, LEDGE, 'left'),
     { sprite: P.birdRail(LEDGE_TO - LEDGE_FROM, 5), x: LEDGE_FROM, y: LEDGE - 22 },
     { sprite: P.rail(52), x: 116, y: HIGH - 10 },
     { sprite: P.bunting(120, 1), x: 168, y: HIGH + 4 },

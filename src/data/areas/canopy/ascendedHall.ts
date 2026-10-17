@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './canopyProps';
 import * as I from './canopyInteriors';
-import { CANOPY_AMBIENCE, sides, stair } from './canopyArea';
+import { CANOPY_AMBIENCE, sides, stair, stairSide } from './canopyArea';
 import type { AreaDefinition } from '../types';
 
 // The ascended's hall (Chapter 4): everyone who ever went up the tube is alive here (doc;
@@ -60,6 +60,7 @@ export const ascendedHall: AreaDefinition = {
     { sprite: P.leafClump(240, 60, 32), x: 0, y: 0 },
     { sprite: P.leafClump(200, 56, 33), x: 560, y: 0 },
     { sprite: P.vines(40, 80, 34), x: 610, y: 40 },
+    stairSide(120, LOW, FLOOR, 'right'),
     // The hall: its back wall of masters' last pieces, alcoves, columns of living wood, the low roof.
     { sprite: I.wovenWall(HALL_TO - HALL_FROM, FLOOR - 112, 35, [[400, 30, 22, 40]], 0), x: HALL_FROM, y: 112, behind: true },
     { sprite: I.lastPieces(240, 98, 36), x: 246, y: FLOOR - 104, behind: true },
