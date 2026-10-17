@@ -90,7 +90,7 @@ export const treesEdge: AreaDefinition = {
   exits: [
     { id: 'to-picked-fields', x: 16, y: FLOOR, reach: 12, to: 'picked-fields' },
     // Chapter 4: the canopy's cage, come down its cable to the foot of the tree.
-    { id: 'to-lowering-platform', x: 664, y: FLOOR, reach: 12, to: 'lowering-platform', showIf: 'chapter=4' },
+    { id: 'to-lowering-platform', x: 664, y: FLOOR, reach: 12, to: 'lowering-platform', showIf: 'carver_below' },
   ],
 
   ambience: [

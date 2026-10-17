@@ -208,3 +208,24 @@ A shed, the door ajar. Inside, crates stacked up. Crates like the ones on the lo
 === c4_look_homestead_garden ===
 Rows of something green, pushing up out of the dirt.
 -> END
+
+=== c4_look_groundeds_books ===
+Books. More than you've seen in your life, more than the archive. Crammed in, piled up, read to pieces.
+-> END
+
+=== c4_look_groundeds_wing ===
+A wing, painted big on the wall. The wing from the plates he sent you.
+-> END
+
+=== c4_look_groundeds_desk ===
+Papers everywhere. Lines crossed out, written again, crossed out. A candle burnt right down.
+Somebody's been up all night with this, more than once.
+-> END
+
+=== c4_look_press ===
+A heavy frame with a screw in it, and stacks of paper tied up beside it. The wing on the top sheet.
+-> END
+
+=== c4_look_world_map ===
+A map, but not of the tree. The tree's a little mark in one corner. Threads run from it to places you've never heard of.
+-> END

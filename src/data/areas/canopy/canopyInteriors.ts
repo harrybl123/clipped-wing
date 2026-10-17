@@ -702,3 +702,168 @@ export const barkDoor: RowSprite = (() => {
   for (let x = -1; x < 19; x++) plot(g, x, 30, 'p');
   return sprite(g);
 })();
+
+// --- Grounded's house: a revolutionary's, a poet's (designer) ----------------------------------------
+
+const SPINES = ['n', 'o', 'p', 'M', 'A', 'G', 'g', 'q', 'm', 'l', 'i', 'a'];
+
+/** Shelves crammed with books: spines of every colour and height, some leaning, some stacked flat. */
+export const bookshelves = (width: number, height: number, seed: number): RowSprite => {
+  const g = grid(width, height);
+  box(g, 0, 0, width, height, 'd');
+  for (let y = 0; y < height; y++) {
+    plot(g, 0, y, 'o');
+    plot(g, width - 1, y, 'o');
+  }
+  for (let sy = 14; sy < height; sy += 15) {
+    for (let x = 0; x < width; x++) {
+      plot(g, x, sy, 'p');
+      plot(g, x, sy + 1, 'o');
+    }
+    for (let x = 1, i = 0; x < width - 2; i++) {
+      const r = cellRandom(i, sy, seed);
+      const c = SPINES[Math.floor(cellRandom(i, sy + 1, seed) * SPINES.length)]!;
+      if (r > 0.88) {
+        // A pile laid flat.
+        for (let k = 0; k < 3; k++) for (let xx = x; xx < x + 7; xx++) plot(g, xx, sy - 1 - k * 2, SPINES[(i + k) % SPINES.length]!), plot(g, xx, sy - 2 - k * 2, 'd');
+        x += 8;
+        continue;
+      }
+      const w = 2 + Math.floor(r * 2);
+      const h = 8 + Math.floor(cellRandom(i, sy + 2, seed) * 5);
+      for (let xx = x; xx < x + w; xx++) for (let y = sy - h; y < sy; y++) plot(g, xx, y, y === sy - h + 2 ? 'l' : c);
+      x += w + (cellRandom(i, sy + 3, seed) > 0.85 ? 2 : 0);
+    }
+  }
+  return sprite(g);
+};
+
+/** Books in piles on the floor, leaning towers of them. */
+export const bookPiles = (width: number, seed: number): RowSprite => {
+  const g = grid(width, 26);
+  for (let x = 0, i = 0; x < width - 8; i++) {
+    const n = 3 + Math.floor(cellRandom(i, 0, seed) * 8);
+    for (let k = 0; k < n; k++) {
+      const bw = 7 + Math.floor(cellRandom(i, k, seed) * 4);
+      const off = Math.round(cellRandom(i, k + 9, seed) * 2 - 1);
+      const c = SPINES[Math.floor(cellRandom(i, k + 20, seed) * SPINES.length)]!;
+      for (let xx = 0; xx < bw; xx++) {
+        plot(g, x + xx + off, 25 - k * 3, c);
+        plot(g, x + xx + off, 24 - k * 3, xx === 0 || xx === bw - 1 ? 'd' : 'l');
+        plot(g, x + xx + off, 23 - k * 3, c);
+      }
+    }
+    x += 12 + Math.floor(cellRandom(i, 30, seed) * 6);
+  }
+  return sprite(g);
+};
+
+/** His writing desk: papers everywhere, an open book, an inkwell and a quill, candles burnt low, a cup. */
+export const WRITING_DESK: RowSprite = (() => {
+  const g = grid(66, 34);
+  box(g, 0, 18, 66, 3, 'p');
+  box(g, 0, 18, 66, 1, 'l');
+  box(g, 0, 21, 66, 1, 'd');
+  for (const x of [2, 3, 62, 63]) box(g, x, 22, 1, 12, 'o');
+  box(g, 4, 23, 22, 9, 'o'); // drawers
+  box(g, 5, 24, 20, 3, 'n');
+  box(g, 5, 28, 20, 3, 'n');
+  plot(g, 15, 25, 'l');
+  plot(g, 15, 29, 'l');
+  // Papers in drifts; an open book; the inkwell and quill; candles; a cup.
+  for (const [x, w] of [[2, 10], [8, 9], [40, 12], [50, 9]] as const) for (let xx = x; xx < x + w; xx++) {
+    plot(g, xx, 17, 'w');
+    if ((xx * 3) % 4) plot(g, xx, 16, xx % 3 ? 'w' : 'i');
+  }
+  stamp(g, ['wwwwwww.wwwwwww', 'wiiwiiwdwiwiiww', 'wwwwwwwdwwwwwww'], 20, 15);
+  stamp(g, ['....l', '...l.', '..l..', 'dd...', 'dd...'], 36, 13);
+  stamp(g, ['.a..a.', '.M..M.', 'lw.ll.', 'lw.ll.', 'll.ll.'], 54, 12);
+  stamp(g, ['ii', 'ln'], 12, 15);
+  return sprite(g);
+})();
+
+/** The wall over the desk: pages pinned up, poems and plans, sketches, threads strung between the pins. */
+export const pinnedPages = (width: number, height: number, seed: number): RowSprite => {
+  const g = grid(width, height);
+  const pins: [number, number][] = [];
+  for (let i = 0; i < Math.floor((width * height) / 240); i++) {
+    const w = 9 + Math.floor(cellRandom(i, 0, seed) * 7);
+    const h = 11 + Math.floor(cellRandom(i, 1, seed) * 6);
+    const x = Math.floor(cellRandom(i, 2, seed) * (width - w));
+    const y = Math.floor(cellRandom(i, 3, seed) * (height - h));
+    const sketch = cellRandom(i, 4, seed) > 0.7;
+    for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) {
+      const line = !sketch && (yy - y) % 3 === 2 && xx > x && xx < x + w - 1 - ((yy * 7 + xx) % 5 === 0 ? 2 : 0);
+      plot(g, xx, yy, xx === x + w - 1 || yy === y + h - 1 ? 'l' : line ? 'i' : 'w');
+    }
+    if (sketch) stamp(g, cellRandom(i, 5, seed) > 0.5 ? ['..i..', '.iii.', 'i.i.i', '..i..'] : ['iii.', 'i..i', 'iii.', 'i..i'], x + 2, y + 3);
+    plot(g, x + Math.floor(w / 2), y, 'a');
+    pins.push([x + Math.floor(w / 2), y]);
+  }
+  // Threads between some of the pins.
+  for (let i = 0; i + 1 < pins.length; i += 2) {
+    const [ax, ay] = pins[i]!;
+    const [bx, by] = pins[i + 1]!;
+    const n = Math.max(Math.abs(bx - ax), Math.abs(by - ay));
+    for (let k = 1; k < n; k++) if (k % 2) plot(g, ax + ((bx - ax) * k) / n, ay + ((by - ay) * k) / n, 'A');
+  }
+  return sprite(g);
+};
+
+/** A map of the world as he knows it, pinned up: the tree, the capital, places between, threads joining them. */
+export const WORLD_MAP: RowSprite = (() => {
+  const g = grid(70, 44);
+  box(g, 0, 0, 70, 44, 'p');
+  for (let x = 0; x < 70; x++) {
+    plot(g, x, 0, 'n');
+    plot(g, x, 43, 'n');
+  }
+  // Coast and rivers in faint lines, land patches.
+  for (let x = 2; x < 68; x++) plot(g, x, 30 + Math.round(Math.sin(x / 7) * 3), 'i');
+  for (let y = 4; y < 30; y++) plot(g, 40 + Math.round(Math.sin(y / 5) * 2), y, 'm');
+  // The tree (a little crown), the capital (towers), other places (rings), threads between them.
+  stamp(g, ['.GGG.', 'GGGGG', '.GGG.', '..o..', '..o..'], 10, 14);
+  stamp(g, ['.i.i.', 'iiiii', 'iiiii'], 54, 8);
+  const places: [number, number][] = [[12, 16], [56, 9], [30, 8], [48, 22], [22, 34], [60, 36]];
+  for (const [x, y] of places.slice(2)) stamp(g, ['.d.', 'd.d', '.d.'], x - 1, y - 1);
+  for (const [x, y] of places) plot(g, x, y - 3, 'a');
+  for (let i = 1; i < places.length; i++) {
+    const [ax, ay] = places[0]!;
+    const [bx, by] = places[i]!;
+    const n = Math.max(Math.abs(bx - ax), Math.abs(by - ay));
+    for (let k = 1; k < n; k++) if (k % 2) plot(g, ax + ((bx - ax) * k) / n, ay - 3 + ((by - ay) * k) / n, 'A');
+  }
+  return sprite(g);
+})();
+
+/** A hand press for printing pamphlets: its frame and screw, a lever, a stack of printed sheets beside it. */
+export const PRINTING_PRESS: RowSprite = (() => {
+  const g = grid(46, 40);
+  for (const x of [4, 5, 26, 27]) box(g, x, 4, 1, 36, x % 2 ? 'o' : 'n');
+  box(g, 2, 2, 28, 3, 'n');
+  box(g, 2, 2, 28, 1, 'p');
+  box(g, 15, 5, 2, 12, 'i'); // the screw
+  box(g, 6, 16, 20, 3, 'i'); // the platen
+  box(g, 6, 26, 20, 3, 'o'); // the bed
+  box(g, 6, 26, 20, 1, 'p');
+  for (let k = 0; k < 10; k++) plot(g, 16 + k, 8 - Math.round(k * 0.4), 'l'); // the lever
+  box(g, 2, 36, 28, 4, 'o');
+  // Pamphlets, stacked and tied; one on top, the wing printed on it.
+  box(g, 32, 28, 13, 12, 'w');
+  for (let y = 29; y < 40; y += 2) box(g, 32, y, 13, 1, 'l');
+  box(g, 38, 28, 1, 12, 'A');
+  stamp(g, ['...i.', '.iii.', 'iii.i'], 34, 23);
+  box(g, 32, 26, 13, 1, 'w');
+  return sprite(g);
+})();
+
+/** A reading chair, worn, a blanket over its arm. */
+export const ARMCHAIR: RowSprite = {
+  rows: [
+    '.MMMMMMMMMM...', 'MAAAAAAAAAAM..', 'MAMMMMMMMMAM..', 'MAMMMMMMMMAM..', 'MAMMMMMMMMAMgg', 'MMMMMMMMMMMMgg', 'MAaaaaaaaaAMgG', 'MAaaaaaaaaAMgG', 'MMMMMMMMMMMMgG', '.o........o...', '.o........o...',
+  ],
+  colours: C,
+};
+
+/** Candles, a cluster of them burnt to different heights, wax run down. */
+export const CANDLES: RowSprite = { rows: ['.a....a..', '.M..a.M..', '.l..M.l.a', '.l..l.l.M', 'wl..l.l.l', 'wllwlwllw'], colours: C };

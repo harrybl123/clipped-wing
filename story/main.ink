@@ -201,6 +201,8 @@ VAR glossary_climb = ""
 VAR found_dog = false
 // Which chapter you're playing: 1 (the carver, in the tree), 2 (the scavenger, in the borderland) or 3 (the prince, in the capital).
 VAR chapter = 1
+// Chapter 4: the carver's been up in the canopy, so the borderland below is the carver's to walk too (and the ways back up show).
+VAR carver_below = false
 // Chapter 2, Day 1 (story/borderland/chapter2-day1.ink; docs/sequences/chapter-2/part-1.md).
 // Stages: dig, brother, trade, tribute, home, done.
 VAR c2day1 = ""

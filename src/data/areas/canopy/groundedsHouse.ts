@@ -1,14 +1,16 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './canopyProps';
 import * as I from './canopyInteriors';
+import * as CAPITAL from '../capital/cityProps';
 import { CANOPY_AMBIENCE, sides } from './canopyArea';
 import type { AreaDefinition } from '../types';
 
 // Grounded's house (Chapter 4): the highest and oldest treehouse (doc; docs/areas/canopy/groundeds-house.md).
-// Old wood, untidy, a carver's: his bench, half-carved things, his tools; the radio; a chart of the canopy
-// pinned up. And on his shelves, every bird you ever sent up, in order, the clipped wing on every one (doc:
-// he keeps every one): the only red in the canopy. A hammock; a balcony out over the leaves, the bridge on to
-// the seed bed; a ladder up through the roof to the lookout; the door down to the walkways.
+// Old wood, untidy, a revolutionary's and a poet's (designer: lots of character, clearly an intellectual):
+// books everywhere, the wing painted big on the wall, poems and plans pinned up with threads between them, a
+// map of the world, the press he prints pamphlets on, his radio, a reading chair, candles burnt low. A
+// balcony out over the leaves, the bridge on to the seed bed; a ladder up his limb to the lookout; the door
+// down to the walkways.
 
 const W = 600;
 const H = 300;
@@ -44,19 +46,27 @@ export const groundedsHouse: AreaDefinition = {
 
   props: [
     { sprite: P.leafClump(200, 50, 51), x: 400, y: 0 },
-    // The room: old walls, two round windows; the roof; his things.
+    // The room: old walls, two round windows; the limb up through it; the roof.
     { sprite: I.wovenWall(ROOM_TO - ROOM_FROM, FLOOR - 100, 53, [[300, 24, 30, 30], [30, 30, 26, 30]], 0), x: ROOM_FROM, y: 100, behind: true },
-    // The limb it's built round, up through the room and the roof: the ladder up it to the lookout.
     { sprite: P.giantTrunk(76, H, 52), x: 392, y: 0, behind: true },
     { sprite: I.bigRoof(ROOM_TO - ROOM_FROM + 50, 40, 54), x: ROOM_FROM - 25, y: 62 },
-    { sprite: I.birdShelves(196, 5), x: 96, y: FLOOR - 112 },
-    { sprite: I.CANOPY_CHART, x: 310, y: 130 },
-    { sprite: I.workbench(56, 55), x: 300, y: FLOOR - 30 },
-    { sprite: I.RADIO, x: 362, y: FLOOR - 33 },
-    { sprite: P.hammock(54), x: 36, y: FLOOR - 18 },
+    // A revolutionary's, a poet's (designer): books on every wall and in piles on the floor; the wing, his
+    // mark, painted big; pages pinned up over his desk with threads between them; a map of the world with
+    // the places he knows joined up; the press he prints his pamphlets on; a reading chair, candles.
+    { sprite: I.bookshelves(70, 120, 1), x: 62, y: FLOOR - 120 },
+    { sprite: CAPITAL.symbolMark('paint', 2), x: 142, y: 110 },
+    { sprite: I.pinnedPages(110, 60, 2), x: 196, y: 112 },
+    { sprite: I.WORLD_MAP, x: 312, y: 118 },
+    { sprite: I.bookshelves(46, 90, 3), x: 340, y: FLOOR - 90 },
+    { sprite: I.ARMCHAIR, x: 36, y: FLOOR - 11 },
+    { sprite: I.bookPiles(40, 4), x: 136, y: FLOOR - 26 },
+    { sprite: I.WRITING_DESK, x: 192, y: FLOOR - 34 },
+    { sprite: I.CANDLES, x: 232, y: FLOOR - 40 },
+    { sprite: I.PRINTING_PRESS, x: 268, y: FLOOR - 40 },
+    { sprite: I.bookPiles(30, 5), x: 312, y: FLOOR - 26 },
+    { sprite: I.RADIO, x: 350, y: FLOOR - 101 },
     { sprite: I.homeDoor(9), x: 4, y: FLOOR - 30 },
     { sprite: P.ladder(FLOOR - 66), x: 420, y: 66 },
-    { sprite: I.SACKS, x: 238, y: FLOOR - 6 },
     // The balcony: a rail, pots, a chime; the bridge to the seed bed.
     { sprite: P.rail(90), x: 470, y: FLOOR - 10 },
     { sprite: P.pots(30, 56), x: 480, y: FLOOR - 16 },
@@ -72,10 +82,11 @@ export const groundedsHouse: AreaDefinition = {
   people: [],
 
   interactables: [
-    { id: 'birds', x: 194, y: FLOOR, reach: 40, label: 'Look', knot: 'c4_look_your_birds' },
-    { id: 'bench', x: 324, y: FLOOR, reach: 14, label: 'Look', knot: 'c4_look_groundeds_bench' },
-    { id: 'radio', x: 370, y: FLOOR, reach: 8, label: 'Look', knot: 'c4_look_radio' },
-    { id: 'chart', x: 340, y: FLOOR, reach: 6, label: 'Look', knot: 'c4_look_chart' },
+    { id: 'books', x: 96, y: FLOOR, reach: 26, label: 'Look', knot: 'c4_look_groundeds_books' },
+    { id: 'wing', x: 160, y: FLOOR, reach: 10, label: 'Look', knot: 'c4_look_groundeds_wing' },
+    { id: 'desk', x: 224, y: FLOOR, reach: 16, label: 'Look', knot: 'c4_look_groundeds_desk' },
+    { id: 'press', x: 290, y: FLOOR, reach: 12, label: 'Look', knot: 'c4_look_press' },
+    { id: 'map', x: 348, y: FLOOR, reach: 12, label: 'Look', knot: 'c4_look_world_map' },
   ],
 
   exits: [
