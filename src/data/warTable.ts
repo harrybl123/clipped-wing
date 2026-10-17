@@ -363,13 +363,13 @@ export interface FatherScenario {
 
 /**
  * Day 8's first game (tuned by simulation, tests/riotGame.test.ts): the riot's start with one more crowd, in the
- * cellar lane (the cellar's people, 2 of them), the riot's rules with everything Jack added, and the riot's dawn.
- * (Retuned after Jack's work on the table, as planned: with his additions, a crowd of 3 next to the square took a
- * first go from half its games to a few in 32.) A first go (`naive`) takes the square about three games in eight
- * (the riot: about three in five), sensible play two in three, careful play always.
+ * cellar lane (the cellar's people, 2 of them), the square 12, the riot's rules with everything Jack added, and
+ * dawn at 20. (Retuned after Jack's work: with a crowd of 3 in the cellar a first go won a few in 32; then, at
+ * three in eight, designer: really hard.) A first go (`naive`) takes the square about three in five (the riot's
+ * the same), sensible play three in four, careful play always.
  */
-export const FATHER_START: Setup = [...RIOT_START, { side: 'rising', place: 'cellar', strength: 2 }];
-const FATHER_RULES: Partial<RiotRules> = { ...RIOT_FEATURES, dawn: 18 };
+export const FATHER_START: Setup = [...RIOT_START.map((q) => (q.place === 'square' ? { ...q, strength: 12 } : q)), { side: 'rising', place: 'cellar', strength: 2 }];
+const FATHER_RULES: Partial<RiotRules> = { ...RIOT_FEATURES, dawn: 20 };
 
 /**
  * The transfer list on the table: the barkeep's cellar, the kid's back stairs, the woman's wash house, three

@@ -2795,6 +2795,9 @@ export class RiotGame {
     if (this.rules.baseLoss && !this.mine(s, 'guard').length) return 'rising';
     if (this.rules.baseLoss && !this.mine(s, 'rising').length) return 'guard';
     if (this.squadAt(s, this.heart)?.side === 'guard') return 'guard';
+    // The guard all gone, and the lifts' foot theirs, so none can come (designer: only his pieces on the board,
+    // and the game didn't end).
+    if (!this.rules.siege && !this.rules.muster && !this.mine(s, 'guard').length && s.owner[this.lifts] === 'rising') return 'rising';
     if (this.rules.siege && this.squadAt(s, this.lifts)?.side === 'rising') return 'rising';
     if (s.turn > this.rules.dawn) return this.rules.siege ? 'guard' : 'rising';
     return null;

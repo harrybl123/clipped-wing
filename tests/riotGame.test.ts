@@ -290,12 +290,19 @@ describe('the war table: Day 8, against your father (simulated play)', () => {
   };
 
   it('winnable but difficult (designer): harder than the riot for a first go, which still wins it some of the time; careful play wins', () => {
-    // (Retuned with Jack's additions: a first go about three in eight, sensible about two in three.)
+    // (Retuned with Jack's additions: a first go about three in five, as the riot.)
     const first = Array.from({ length: 32 }, (_, i) => playOut(game, game.start(FATHER_START, i + 1), naive())).filter((r) => r.winner === 'guard').length;
-    expect(first).toBeGreaterThanOrEqual(8);
-    expect(first).toBeLessThanOrEqual(18);
+    expect(first).toBeGreaterThanOrEqual(14);
+    expect(first).toBeLessThanOrEqual(26);
     for (const seed of [1, 2, 3]) expect(playOut(game, game.start(FATHER_START, seed), careful()).winner).toBe('guard');
   }, 300000);
+
+  it('the guard all gone, and the lifts’ foot theirs: it’s over (designer: it didn’t end)', () => {
+    const s = game.start([{ side: 'rising', place: 'square', strength: 5 }, { side: 'rising', place: 'lifts', strength: 2 }]);
+    expect(game.outcome(s)).toBe('rising');
+    // (The lifts' foot still the guard's: more can come down.)
+    expect(game.outcome(game.start([{ side: 'rising', place: 'square', strength: 5 }]))).toBeNull();
+  });
 
   it('it has everything Jack added that the riot has', () => {
     const riot = (RIOTS.riot_low as RiotScenario).rules!;

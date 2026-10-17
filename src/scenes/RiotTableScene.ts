@@ -409,13 +409,126 @@ export class RiotTableScene extends Phaser.Scene {
     }
   }
 
-  /** Show the cards waiting (if any), then carry on playing. */
+  /** Show the tour's stops waiting (if any), then carry on playing. */
   private flushTeaching(): void {
     if (!this.teaching.length || this.busy) return;
     const topics = this.teaching;
     this.teaching = [];
     for (const t of topics) this.said.add(t);
-    this.say(topics.map((t) => `c3tut_${t}`), () => ((this.busy = false), this.draw()));
+    this.busy = true;
+    this.draw();
+    void (async () => {
+      for (const t of topics) await this.tour(`c3tut_${t}`);
+      this.busy = false;
+      this.closedAt = this.time.now;
+      this.draw();
+    })();
+  }
+
+  /**
+   * The guided tour (designer: as you play, not a load of text): each line of the knot in a small box beside
+   * what it's about (its `#at:` tag), ringed; E, Enter, Space or a click for the next.
+   */
+  private async tour(knot: string): Promise<void> {
+    const { story } = getSession(this);
+    story.startKnot(knot);
+    const stops: { text: string; at?: string }[] = [];
+    for (let l = story.nextLine(); l; l = story.nextLine()) {
+      if (l.text) stops.push({ text: l.text, at: l.tags.find((t) => t.startsWith('at:'))?.slice(3).trim() });
+    }
+    for (const stop of stops) await this.tourStop(stop.text, stop.at);
+  }
+
+  /** Where a tour stop points, on the screen (a place, a button, the elite bar), and how big a ring; null: nowhere. */
+  private tourTarget(at?: string): { x: number; y: number; r: number } | null {
+    if (!at) return null;
+    const s = this.state;
+    const cam = this.cameras.main;
+    const onTable = (id: string | undefined, r = 15) => {
+      if (!id) return null;
+      const p = this.place(id);
+      return { x: p.x - cam.scrollX, y: p.y - cam.scrollY, r };
+    };
+    const button = (b: { x: number; y: number; w: number; h: number }) => ({ x: b.x + b.w / 2, y: b.y + b.h / 2, r: Math.max(b.w, b.h) / 2 + 4 });
+    const them = this.g.other(this.you);
+    switch (at) {
+      case 'square': return onTable(this.g.heart);
+      case 'base': return onTable(this.g.base(this.you), 18);
+      case 'end': return button(END);
+      case 'power': return button(POWER);
+      case 'bar': {
+        const bar = this.eliteBar();
+        if (!bar.length) return null;
+        const a = bar[0]!.box;
+        const b = bar[bar.length - 1]!.box;
+        return { x: (a.x + b.x + b.w) / 2, y: a.y + a.h / 2, r: (b.x + b.w - a.x) / 2 + 4 };
+      }
+      case 'squad': return onTable([...this.g.mine(s, this.you)].filter((q) => !q.elite && !q.hired && !q.built).sort((a, b) => b.strength - a.strength)[0]?.place);
+      case 'arrow': {
+        const o = this.theirs.find((x) => s.squads.some((q) => q.id === x.squad));
+        if (!o) return null;
+        const from = this.place(s.squads.find((q) => q.id === o.squad)!.place);
+        const to = this.place(o.to);
+        return { x: (from.x + to.x) / 2 - cam.scrollX, y: (from.y + to.y) / 2 - cam.scrollY, r: 12 };
+      }
+      case 'mytower': return onTable(this.g.towerList().find((t) => s.owner[t.place] === this.you)?.place);
+      case 'theirtower': return onTable(this.g.towerList().find((t) => s.owner[t.place] === them)?.place);
+      case 'enemy_elite': return onTable(s.squads.find((q) => q.side === them && q.elite)?.place);
+      case 'rumble': case 'crest': case 'mystery': case 'audience': case 'church': case 'barracks': case 'architect':
+        return onTable(s[at]?.place ?? undefined);
+      default: return null;
+    }
+  }
+
+  private async tourStop(text: string, at?: string): Promise<void> {
+    const target = this.tourTarget(at);
+    const bits: Phaser.GameObjects.GameObject[] = [];
+    const ring = this.add.graphics().setDepth(120).setScrollFactor(0);
+    bits.push(ring);
+    if (target) {
+      ring.lineStyle(2, AMBER, 1).strokeCircle(target.x, target.y, target.r);
+      this.tweens.add({ targets: ring, alpha: 0.35, duration: 450, yoyo: true, repeat: -1 });
+    }
+    const words = new PixelText(this, 0, 0, text, { color: SHADES.white, shadow: SHADES.shadow, wrapWidth: 176 }).setDepth(122).setScrollFactor(0);
+    const hint = new PixelText(this, 0, 0, 'E', { color: SHADES.amber, shadow: SHADES.shadow }).setDepth(122).setScrollFactor(0);
+    const w = words.width + 12;
+    const h = words.height + 14;
+    let x = Math.round(W / 2 - w / 2);
+    let y = 40;
+    if (target) {
+      x = Math.round(Math.max(6, Math.min(W - 6 - w, target.x - w / 2)));
+      y = target.y > H / 2 ? Math.round(target.y - target.r - 8 - h) : Math.round(target.y + target.r + 8);
+      y = Math.max(4, Math.min(H - 4 - h, y));
+    }
+    const box = this.add.graphics().setDepth(121).setScrollFactor(0);
+    box.fillStyle(SHADES.shadow, 0.94).fillRect(x, y, w, h);
+    box.lineStyle(1, AMBER, 1).strokeRect(x, y, w, h);
+    if (target) {
+      // A little line from the box to the ring.
+      const ty = target.y > H / 2 ? y + h : y;
+      const ey = target.y > H / 2 ? target.y - target.r : target.y + target.r;
+      box.lineStyle(1, AMBER, 0.8).lineBetween(Math.max(x + 4, Math.min(x + w - 4, target.x)), ty, target.x, ey);
+    }
+    words.setPosition(x + 6, y + 5);
+    hint.setPosition(x + w - 9, y + h - 9);
+    bits.push(box, words, hint);
+    playMove(this);
+    await new Promise<void>((done) => {
+      const kb = this.input.keyboard!;
+      const onKey = (e: KeyboardEvent) => {
+        if (['e', 'E', 'Enter', ' '].includes(e.key)) go();
+      };
+      const go = () => {
+        kb.off('keydown', onKey);
+        this.input.off('pointerdown', go);
+        done();
+      };
+      this.time.delayedCall(250, () => {
+        kb.on('keydown', onKey);
+        this.input.on('pointerdown', go);
+      });
+    });
+    for (const b of bits) b.destroy();
   }
 
   /** Your orders go, then the other side's; then the square grows and the guard arrive. */
@@ -538,8 +651,8 @@ export class RiotTableScene extends Phaser.Scene {
     await this.wait(this.fatherPlaying ? 250 : 500);
     this.teachFrom([...events, ...end.events]);
     if (this.fatherPlaying) return this.startTurn();
-    // Dawn.
-    if (this.g.outcome(this.state) === 'rising') return this.dawn();
+    // Dawn (or your guard all gone). (Not the lesson's own turns: there you're the rising.)
+    if (this.phase !== 'lesson' && this.g.outcome(this.state) === 'rising') return this.dawn();
     if (this.phase === 'now' && this.state.turn > this.lesson()!.now.turns) return this.switchOff();
     if (this.phase === 'lesson') return this.afterLessonTurn(events, end.events, yours);
     this.startTurn();
@@ -1363,6 +1476,11 @@ export class RiotTableScene extends Phaser.Scene {
     });
   }
 
+  /** Why you lost: dawn came first, or your guard are all gone. */
+  private lostText(): string {
+    return this.g.mine(this.state, this.you).length ? 'Dawn. The square\u2019s still theirs.' : 'Your guard are all gone.';
+  }
+
   /** The tutorial over: the square yours (back to the room), or dawn first (play it again, or go on). */
   private tutorialOver(sc: RiotScenario, won: boolean): void {
     this.busy = true;
@@ -1370,7 +1488,7 @@ export class RiotTableScene extends Phaser.Scene {
     const t = sc.tutorial!;
     const out = () => this.talk(won ? t.done : t.dawn, () => this.leave(() => this.scene.start('Area', { ...this.params.back, script: t.after } satisfies AreaSceneData)));
     if (won) return out();
-    this.dialogue.openMenu('Dawn. The square\u2019s still theirs.', [
+    this.dialogue.openMenu(this.lostText(), [
       { label: 'Play it again', run: () => this.leave(() => this.scene.restart({ ...this.params, resume: undefined } satisfies RiotTableSceneData)) },
       { label: 'Go on', run: () => this.time.delayedCall(150, out) },
     ]);
@@ -1398,6 +1516,7 @@ export class RiotTableScene extends Phaser.Scene {
 
   /** Dawn, and the square's still theirs: your father comes in, and takes the table from you (designer). */
   private dawn(): void {
+    if (this.sc.kind === 'lesson') return this.switchOff();
     if (this.sc.kind === 'father') return this.fatherOver(this.sc, false);
     const sc = this.sc as RiotScenario;
     if (sc.tutorial) return this.tutorialOver(sc, false);
@@ -1407,7 +1526,7 @@ export class RiotTableScene extends Phaser.Scene {
     story.setVariable('riot_table', 'lost');
     story.setVariable('riot_turns', this.state.turn);
     // Lost (designer): play it again, or let the story go on (your father comes in and takes it).
-    this.dialogue.openMenu('Dawn. The square\u2019s still theirs.', [
+    this.dialogue.openMenu(this.lostText(), [
       { label: 'Play it again', run: () => this.leave(() => this.scene.restart({ ...this.params, phase: undefined, resume: undefined } satisfies RiotTableSceneData)) },
       { label: 'Go on (your father comes in)', run: () => this.time.delayedCall(150, () => this.fatherIn(sc)) },
     ]);
@@ -1470,7 +1589,7 @@ export class RiotTableScene extends Phaser.Scene {
     };
     const out = () => this.talk(won ? sc.knots.won : sc.knots.lost, after);
     if (won) return out();
-    this.dialogue.openMenu('Dawn. The square\u2019s still theirs.', [
+    this.dialogue.openMenu(this.lostText(), [
       { label: 'Play it again', run: () => this.leave(() => this.scene.restart({ ...this.params, phase: undefined } satisfies RiotTableSceneData)) },
       { label: 'Go on', run: () => this.time.delayedCall(150, out) },
     ]);
@@ -1481,6 +1600,11 @@ export class RiotTableScene extends Phaser.Scene {
       // He plays it from where it is; the night's no longer a limit.
       this.g = new RiotGame(sc.board, { ...RIOT_RULES, ...sc.rules, dawn: this.state.turn + 40 });
       this.fatherPlaying = true;
+      // (Your guard all gone: he sends down more, and takes the lifts' foot back first.)
+      if (!this.g.mine(this.state, 'guard').length) {
+        const lifts = this.g.lifts;
+        this.state = { ...this.state, squads: [...this.state.squads.filter((q) => q.place !== lifts), { id: `q${this.state.nextId}`, side: 'guard', place: lifts, strength: 12 }], nextId: this.state.nextId + 1, owner: { ...this.state.owner, [lifts]: 'guard' } };
+      }
       this.startTurn();
     });
   }
@@ -1688,7 +1812,7 @@ export class RiotTableScene extends Phaser.Scene {
       const ready = !used && !out && this.g.canDeploy(s, this.you, elite);
       const state = this.deploying === elite ? 'picked' : out ? 'out' : used ? 'used' : ready ? 'ready' : 'wait';
       const again = elite === 'guard3' && some && short > 0 ? `: make up ${short}` : '';
-      const label = state === 'wait' ? `${name}${again}: needs a crest` : state === 'used' ? `${name}: used` : state === 'out' ? `${name}: out` : `${name}${again}`;
+      const label = state === 'wait' ? `${name}${again}: needs a crest` : state === 'used' ? `${name}: used` : state === 'out' ? `${name}: out` : state === 'ready' ? `${name}${again}: ready! Click to put in` : `${name}${again}`;
       const box = { x, y: H - SLOT.h - 4, w: SLOT.w, h: SLOT.h };
       x += SLOT.w + 3;
       const run = () => {
@@ -2297,6 +2421,8 @@ export class RiotTableScene extends Phaser.Scene {
       const lit = b.state === 'ready' || b.state === 'picked';
       eb.fillStyle(fill, 1).fillRect(b.box.x, b.box.y, b.box.w, b.box.h);
       eb.lineStyle(1, lit || this.barHover === b.elite ? SHADES.light : SHADES.dim, 1).strokeRect(b.box.x, b.box.y, b.box.w, b.box.h);
+      // Ready to put in (designer: it wasn't clear when you had a hero): a blinking amber frame round it.
+      if (b.state === 'ready' && blink) eb.lineStyle(2, AMBER, 1).strokeRect(b.box.x - 2, b.box.y - 2, b.box.w + 4, b.box.h + 4);
       // Its emblem: the piece itself, darkened while it waits or once it's used.
       const at = { x: b.box.x + Math.floor(b.box.w / 2), y: b.box.y + 17 };
       if (b.elite === 'hero') this.drawHero(eb, at, this.you, !lit && b.state !== 'out');
@@ -2307,7 +2433,7 @@ export class RiotTableScene extends Phaser.Scene {
       // Its key, in the corner.
       this.numbers.push(new PixelText(this, b.box.x + 2, b.box.y + 2, String(ELITES.indexOf(b.elite) + 1), { color: lit ? SHADES.white : SHADES.dim, shadow: SHADES.shadow }).setDepth(10).setScrollFactor(0));
       // Its name, beside the bar, under the mouse or picked.
-      if (this.barHover === b.elite || b.state === 'picked') this.numbers.push(new PixelText(this, 4 + ELITES.length * (SLOT.w + 3) + 2, b.box.y + 19, b.label, { color: SHADES.white, shadow: SHADES.shadow }).setDepth(10).setScrollFactor(0));
+      if (this.barHover === b.elite || b.state === 'picked' || (b.state === 'ready' && !this.barHover && !this.deploying && b === this.eliteBar().find((x) => x.state === 'ready'))) this.numbers.push(new PixelText(this, 4 + ELITES.length * (SLOT.w + 3) + 2, b.box.y + 19, b.label, { color: SHADES.white, shadow: SHADES.shadow }).setDepth(10).setScrollFactor(0));
     }
     // The crests you hold (Jack), beside the bar.
     const held = this.g.rules.elites && this.phase === 'riot' && !this.fatherPlaying ? s.elites[this.you].crests : 0;
@@ -2316,7 +2442,14 @@ export class RiotTableScene extends Phaser.Scene {
       this.drawCrest(eb, at, 0.8);
       this.numbers.push(new PixelText(this, at.x + 9, at.y - 3, `x${held}`, { color: SHADES.amber, shadow: SHADES.shadow }).setDepth(10).setScrollFactor(0));
     }
-    if (this.deploying) for (const id of this.g.deployPlaces(s, this.you, this.deploying)) g.lineStyle(1, SHADES.white, blink ? 1 : 0.4).strokeCircle(this.place(id).x, this.place(id).y, 14);
+    // Where it can go (designer: it wasn't clear): next to your base, ringed bright and pulsing.
+    if (this.deploying) {
+      for (const id of this.g.deployPlaces(s, this.you, this.deploying)) {
+        const p = this.place(id);
+        g.lineStyle(2, AMBER, blink ? 1 : 0.5).strokeCircle(p.x, p.y, 15);
+        g.fillStyle(AMBER, blink ? 0.25 : 0.1).fillCircle(p.x, p.y, 13);
+      }
+    }
     // The buttons.
     const idle = !this.busy && !this.aiming && !this.cutting;
     ui.fillStyle(idle ? SHADES.cyanDeep : SHADES.deep, 0.95).fillRect(END.x, END.y, END.w, END.h);
@@ -2346,6 +2479,7 @@ export class RiotTableScene extends Phaser.Scene {
   private chipText(): string {
     const sc = this.sc;
     if (this.picking) return this.picking.prompt;
+    if (this.deploying) return `Put your ${ELITE_NAMES[this.you][this.deploying].toLowerCase()} on a ringed place, next to your base.`;
     if (this.fatherPlaying) return 'Your father has the table.';
     if (sc.kind === 'lesson') return this.phase === 'lesson' ? `Take ${lower(this.place(sc.goals[this.goal]?.place ?? this.g.heart).name)}.` : 'Hold the square.';
     const left = this.g.rules.dawn - this.state.turn + 1;

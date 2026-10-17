@@ -1,87 +1,81 @@
 // The war table's tutorial (Day 2, after "Now."; src/data/warTable.ts, TUTORIAL; designer: the first go is just
-// numbers, then you're introduced to all the features, which can be a generic tutorial). A card the first time
-// each thing comes up (`c3tut_<topic>`, shown by src/scenes/RiotTableScene.ts). Draft wording, for Harry and Jack.
+// numbers, then you're introduced to all the features, as a guided tour while you play, not a load of text). Each
+// knot is one stop on the tour, the first time that thing comes up (`c3tut_<topic>`); each line is a small box
+// beside what its `#at:` tag points to (a place, a button, the elite bar; none: the middle of the screen), shown
+// by src/scenes/RiotTableScene.ts. Draft wording, for Harry and Jack.
 
 === c3tut_intro ===
-The full table: everything the lesson left out.
 You're the guard: the blue. Take the square before dawn.
-Hover over anything on the table to see what it is.
+The square. Beat its number to take it. #at:square
+Dashed amber arrows are their moves this turn, shown before they make them. Yours show in blue. #at:arrow
+Give your squads their orders, then end the turn. #at:end
 -> END
 
 === c3tut_towers ===
-Towers. Each side has two. Every four turns, a tower makes two more men, on its own street, for whoever holds it.
-Take one of theirs, and it makes them for you.
+Your tower. Every four turns it makes two men. #at:mytower
+Theirs. Take it, and it makes them for you. #at:theirtower
 -> END
 
 === c3tut_fortify ===
-Fortify. Pick up a squad, and the button under it digs it in for the turn: nothing can attack it, but it can't move.
-Once every three turns.
+Click a squad to pick it up. Fortify, under it, digs it in for a turn: it can't be attacked, but it can't move. #at:squad
 -> END
 
 === c3tut_split ===
-Split. Pick up a squad, press Split, and choose where the bigger half goes. Then choose where the rest goes: its own street, and it stays.
-Once every three turns.
+Split sends half a squad one way and the rest another. Pick it up, press Split, then click where each half goes. #at:squad
 -> END
 
 === c3tut_power ===
-Cut power. Click one of theirs, then Cut power under it: they can't move, the square doesn't grow, and they fight at one less.
-Once every three turns.
+Cut the power under one of theirs: it can't move, and fights at one less. Click one of theirs, then Cut power. #at:power
 -> END
 
 === c3tut_rumble ===
-A rumble. The first squad onto it sets it off, and every squad next to it is hurt, yours or theirs. The one that set it off is spared.
+A rumble. Step on it first and everyone next to it gets hurt, yours or theirs. #at:rumble
 -> END
 
 === c3tut_crest ===
-An elite crest. The first squad onto it takes it.
+An elite crest. Get a squad onto it first and it's yours. #at:crest
 If both sides go for the same thing on the same turn, it's a race.
 -> END
 
 === c3tut_elites ===
-A crest. Spend it on one of your elite squad, along the bottom of the table. Click one, then where it goes, next to your base.
-The hero: seven to deal out, up to two streets a turn, and nothing can attack it.
-The maiden: she moves onto one of theirs and seduces it to your side. Or join her to one of yours, and it might strike a critical hit.
-The king's guard: three squads of two, dug in round your base.
+You've won a crest. Spend it here, on one of your elite squad: click one (or press 1, 2 or 3). #at:bar
+The hero hits hard and can't be attacked. The maiden wins one of theirs over. The king's guard hold your base. #at:bar
+Then put it on a ringed place, next to your base. #at:base
 -> END
 
 === c3tut_enemy_elite ===
-They've put in one of their elite squad: the bastard, the witch or the barbarians. Hover over it to see what it does.
-Only your hero can hurt their bastard, and only their bastard can hurt your hero.
+Their elite squad. Hover over it to see what it does. #at:enemy_elite
 -> END
 
 === c3tut_clash ===
-A clash. Two squads of the same size, straight at each other: it comes down to the odds.
-Morale sways them: how much of the table is yours, who's round the fight, an elite nearby.
+A clash: the same numbers, head on. It came down to the odds.
 -> END
 
 === c3tut_race ===
-A race. Both sides went for the same thing on the same turn. The numbers set the odds; the winner takes it, and the loser stays where it was.
-Five more and half as many again, and it isn't a race.
+A race: both sides went for the same thing. The bigger number's more likely to win it.
 -> END
 
 === c3tut_captured ===
-A tower's changed hands. It makes its men for whoever holds it now.
+A tower's changed hands. It makes men for whoever holds it now.
 -> END
 
 === c3tut_mystery ===
-A mystery square. This one has the diviner's mark: first there picks one of three cards, face down.
-Others hide a thief, the plague, or the trickster, who changes every street on the table.
+The diviner. Get there first and pick one of three cards. #at:mystery
+Other mystery squares hide a thief, the plague, or the trickster.
 -> END
 
 === c3tut_audience ===
-An audience. First there hears one of three: the accountant (your morale), the townsfolk (say the right things, and your bases make more), or the commander (see their moves before they make them).
+An audience. Get there first and pick who to hear. It can go well, or badly. #at:audience
 -> END
 
 === c3tut_barracks ===
-The barracks. First there hires fighters: rogues, who hunt what they can beat; archers, who shoot whatever's next to them; or an assassin, who goes for their base.
-Nobody gives them orders. They fight on their own.
+The barracks. Get there first and hire fighters. They fight on their own. #at:barracks
 -> END
 
 === c3tut_architect ===
-The architect. First there builds something on your side of the table: artillery, a storehouse (your elite twice as strong), or a fortress (your base or a tower next to it makes more).
+The architect. Get there first and he'll build you something. #at:architect
 -> END
 
 === c3tut_church ===
-A holy cross. First there has an audience with the Lord. His judgement lasts five turns.
-Blessed, and the dice favour you. Called a heretic, and they don't.
+A holy cross. Get there first for the Lord's judgement: blessed, the dice favour you. Called a heretic, they don't. #at:church
 -> END

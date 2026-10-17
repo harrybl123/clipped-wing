@@ -247,3 +247,7 @@ his camp 3 times and sensible play 16; with 2 more in his camp, 0 and 16; with 4
 in the cellar lane, dawn 16), a first go won none of 24; the cellar's crowd (next to the square) was decisive:
 with it 2, dawn 18, a first go 12 in 32, sensible 21, careful 32 (the riot's start alone: 19 in 32). The list
 game is over in 2 to 4 turns whichever name you kept.
+
+After the first look (designer: Day 8 really hard; he won with only his pieces on the board and it didn't end):
+the square 12 and dawn 20 (simulated, 32 games: a first go 20, sensible 24; the riot's a first go 19 in 32). A
+game where the guard are all gone and the lifts' foot is the rising's is the rising's (`outcome`).

@@ -14,9 +14,10 @@ import { playSound } from './soundscape';
 // one, then where it goes. Draft looks and words.
 
 const PLANS: Record<Building, { name: string; says: string[] }> = {
-  artillery: { name: 'Artillery', says: ['5, dug in at first.', 'Shoots one of theirs', 'next to it for 3', 'a turn. Never moves.'] },
-  storehouse: { name: 'A storehouse', says: ['3. Does nothing itself,', 'but while it stands', 'your elite are doubled:', 'hero 14, maiden 10, guard 4.'] },
-  fortress: { name: 'A fortress', says: ['Dug in for good,', 'for 7 turns. Your base', 'or a tower next to it', 'makes 1 more a turn.'] },
+  // (Designer: massively simplified. The numbers are on the card when you hover over it on the table.)
+  artillery: { name: 'Artillery', says: ['Shoots the enemy', 'next to it.'] },
+  storehouse: { name: 'A storehouse', says: ['Your elite squad', 'twice as strong.'] },
+  fortress: { name: 'A fortress', says: ['Your base or tower', 'next to it makes', 'more men.'] },
 };
 
 /** The architect himself: older, spectacles, grey hair, a draughtsman's coat (a look made from the engineer's). */
