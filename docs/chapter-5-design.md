@@ -27,11 +27,10 @@ A half-integrated freelancer takes a job with a ridiculous price: kill Grounded,
 Unlike the other chapters, this isn't a week in one place. It's a journey through a string of set pieces, most of them shaped by earlier choices. Keep the presentation simple, even where the links are complex.
 
 1. **The outlaw haven (fixed):** a cyberpunk refuge for outlaws, where he lives. The job comes to his flat.
-2. **The convoy (chapter 4, second big decision):**
-   - *Diverted from the carver's people:* he finds a convoy loaded with the tree's goods.
-   - *Diverted from the canopy's share:* it's guarded by starving scavengers.
-   - *Refused:* an empty cache, and angry men.
-   - *The cell (rot ending):* he catches a runner from the lower roots smuggling messages out.
+2. **The convoy (chapter 4, the Tender)** (re-linked 2026-10-17: chapter 4's second big decision is now killing or sparing the Tender, the capital's agent in the tree; suggestion, to settle with what happens to him if spared):
+   - *The Tender killed:* the capital's men escorting someone to the tree, to be their new eyes.
+   - *The Tender spared:* a courier carrying the king's orders to the Tender, who now answers to the carver.
+   - (Earlier draft, dropped with chapter 4's diversion and cell: a convoy of the tree's goods, starving scavengers, an empty cache, a runner from the lower roots.)
 3. **Another managed place (chapter 3, the envoy's plea):** it's the envoy's home.
    - *If the prince granted the plea and his father quietly undid it:* a place promised relief by the heir and then had it taken back. Bitter towards the capital, the symbol on the walls.
    - *If the prince refused:* worn down and resigned, sending everything with no fight left. He sees the human cost of the system.

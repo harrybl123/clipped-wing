@@ -4,6 +4,8 @@ Oct 4, 2026 · Harry Breeze-Lamb
 
 Design for the fourth playable chapter, where the game returns to the carver from Act 1. The wider cast and world notes live in [ideas.md](ideas.md). Chapters 2 and 3 are in [chapter-2-design.md](chapter-2-design.md) and [chapter-3-design.md](chapter-3-design.md). Act 1 is in [design-doc.md](design-doc.md).
 
+**2026-10-17: the chapter is planned day by day in [sequences/chapter-4/plan.md](sequences/chapter-4/plan.md), which supersedes this doc where they differ** (this doc keeps earlier drafts, marked).
+
 ## Pitch
 
 The carver gets out of the tree and finds the people who have been receiving its offerings all along: a treehouse colony of scavengers in the canopy, led by Grounded. He explains the world, and the carver has to decide what to do with the power they now hold over the tree they came from.
@@ -20,6 +22,8 @@ The carver gets out of the tree and finds the people who have been receiving its
 
 ## What Act 1 hands this chapter
 
+*(Earlier draft: superseded by the plan. The routes no longer fork the chapter, and the seed sets the treehouse town's sentiment.)*
+
 Only the tube and rot endings continue (the loyal ending doesn't). Two things from Act 1 shape the start:
 
 | | Healthy seed: the scavengers manage the tree carefully | Rotten seed: they think it's over and maximally exploit it |
@@ -33,6 +37,8 @@ Only the tube and rot endings continue (the loyal ending doesn't). Two things fr
 
 ## Tube vs rot
 
+*(Earlier draft: superseded by the plan. Both routes play the same; the route sets who finds you and the power you end with, a prophet or fear.)*
+
 - **Ascended (holy power):** your messages carry a deity's weight. You write them in the canopy, then slip into the tree under your hood to see how they land. There's no decoding. If you ascended, you might at some point reveal this power to the capital, slowly linking the two worlds.
 - **Through the rot (cruel power):** the tree thinks you died in disgrace. You work from inside the tree, through the back routes, using someone as your messenger. You spread rumours that you're a ghost back from the dead, which gives you a cruel, fearful sort of power instead of a holy one.
 
@@ -45,7 +51,7 @@ Only the tube and rot endings continue (the loyal ending doesn't). Two things fr
 
 ## Chapter shape
 
-1. **Opening (every ending):** **you're scared and shocked by everything** (designer, 2026-10-17: this is important). Up the tube, **the master with the spiral finds you, careful and kind**, understanding you'll be in shock (designer: someone from the colony; Claude suggested her, designer agreed: you watched her ascend on Day 1). Through the rot, **the hunter finds you** at the bottom (designer), with the girl or alone; with her, she's bickering at you, and he basically tells you to shut up. Then Grounded. **His explanation of the world is staged like the prologue's** (designer, 2026-10-17): narration over black and a few stills (in Act 1: the tree, then the tube), here in his voice. He explains the world and who he is, and tells you his real name. His people are hungry, and you can be their key of leverage. You can reject this, but you can't bluntly tell your people the truth, because they'd reject it. If you commit to freeing them, you have to devise a plan with the tree scavengers.
+1. **Opening (every ending):** **you're scared and shocked by everything** (designer, 2026-10-17: this is important). Up the tube, **the master finds you, careful and kind**, understanding you'll be in shock (designer: someone from the colony; Claude suggested her, designer agreed: you watched her ascend on Day 1). Through the rot, **the hunter finds you** at the bottom (designer), with the girl or alone; with her, she's bickering at you, and he basically tells you to shut up. Then Grounded. **His explanation of the world is staged like the prologue's** (designer, 2026-10-17): narration over black and a few stills (in Act 1: the tree, then the tube), here in his voice. He explains the world and who he is, and tells you his real name. His people are hungry, and you can be their key of leverage. You can reject this, but you can't bluntly tell your people the truth, because they'd reject it. If you commit to freeing them, you have to devise a plan with the tree scavengers.
 2. **Fast paced** (designer, 2026-10-17): kept quick wherever it isn't consequential to the story; **fairly short and active** in days.
 
    **What Grounded explains when you meet him** (designer, 2026-10-17; this is all of it):
@@ -86,7 +92,7 @@ A treehouse civilisation. Height means status.
 
 **The colony**
 - **Grounded:** charismatic and theatrical. He talks to you like an old friend because he's been reading your birds for weeks, and he keeps every one of them. He preaches freedom while pulling your strings, and can't see the contradiction.
-- **The master with the spiral:** the celebrated master you watched ascend on Day 1. Once the tree's greatest carver, now making blessings to order. Bitter, drinks, and mocks the faith she used to embody. She still hides her spiral in every blessing. She wants to go home and never can.
+- **The master** (designer, 2026-10-17: was "the master with the spiral", but in Act 1 every master carves the spiral): the celebrated master you watched ascend on Day 1. Once the tree's greatest carver, now making blessings to order. Bitter, drinks, and mocks the faith she used to embody. She still hides her spiral in every blessing. She wants to go home and never can.
 - **The quartermaster:** a ground scavenger who clawed her way up. Ruthless and funny. She's fed the canopy through two famines and won't apologise for how. She treats your people like a crop, and wants no one up here to starve again.
 - **The doubter:** a former roots-dweller who finally has a good life up here. He doesn't want a revolution to take it away, and he'll inform to protect it.
 - **The hatch-keeper:** canopy-born and has never been inside. Obsessed with the tree like a fairytale, full of questions, and reckless. Your guide back in.
@@ -99,7 +105,7 @@ A treehouse civilisation. Height means status.
 - **Your friend:** still devout, or broken, depending on Act 1.
 - **The archivist:** keeps the Ascension records, so he's the one person who could prove the truth.
 - **The Tender:** reads your messages to the tree, and can twist them.
-- **The girl** (tube ending only): your contact in the lower roots.
+- **The girl** (if you saved her): she's still inside, and can be your person inside.
 
 ## Big decisions
 
