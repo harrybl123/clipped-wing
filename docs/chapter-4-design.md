@@ -47,7 +47,7 @@ Only the tube and rot endings continue (the loyal ending doesn't). Two things fr
 
 1. **Opening (every ending):** **you're scared and shocked by everything** (designer, 2026-10-17: this is important). Up the tube, **the master with the spiral finds you, careful and kind**, understanding you'll be in shock (designer: someone from the colony; Claude suggested her, designer agreed: you watched her ascend on Day 1). Through the rot, **the hunter finds you** at the bottom (designer), with the girl or alone; with her, she's bickering at you, and he basically tells you to shut up. Then Grounded. He explains the world and who he is, and tells you his real name. His people are hungry, and you can be their key of leverage. You can reject this, but you can't bluntly tell your people the truth, because they'd reject it. If you commit to freeing them, you have to devise a plan with the tree scavengers.
 2. **Fast paced** (designer, 2026-10-17): kept quick wherever it isn't consequential to the story.
-3. **Scavenging with the hunter, and an invasion, early on** (designer, 2026-10-17): the hunter takes you down scavenging for weapons and trains you; the tree is invaded by scavengers while this is going on (details to settle). **Your weapon is a big metal fist** you find, from one of the unsuccessfully integrated (like Chapter 5's hitman) (designer). *(Claude's note: you lost your left thumb and finger in the prologue, and on Day 4 you can't make a fist; this is the fist you couldn't make.)*
+3. **Scavenging with the hunter, and an invasion, early on** (designer, 2026-10-17): the hunter takes you down scavenging for weapons and trains you; the canopy is invaded by scavengers while this is going on (details to settle). **Nobody breaks into the tree itself: the people inside stay none the wiser** (designer, 2026-10-17). **Your weapon is a big metal fist** you find, from one of the unsuccessfully integrated (like Chapter 5's hitman) (designer). *(Claude's note: you lost your left thumb and finger in the prologue, and on Day 4 you can't make a fist; this is the fist you couldn't make.)*
 4. **Life in the colony:** getting to know the treehouse colony, hunting in the lowlands with the hunter, and secret trips back into the tree.
 5. **The big decisions** (below).
 6. **The Tender, and the battle** (designer, 2026-10-17): **the Tender is revealed as an agent of the capital**, and you find out he's orchestrating an attack on the canopy's people with the king. **A boss fight with him**, beside the hunter and his electric bow (designer), and **a final big battle**. The capital can't blow the canopy up: they need the tree undisrupted. **The tree stays as it is for now**: no revolution in the tree this chapter (designer).
@@ -109,13 +109,19 @@ Choose who inside the tree you use, depending on your relationships in Act 1 (de
 
 Ascended, they're your hands. Through the rot, they're your messenger, and they spread the rumours that the dead carver walks.
 
-### 2. Spare the Tender, or not (every route)
+### 2. Kill the Tender, or spare him (every route)
 
-(Designer, 2026-10-17, to confirm.) After the boss fight, which you fight beside the hunter (he has an electric bow: designer), you decide what happens to the Tender, the capital's agent.
+(Designer, 2026-10-17.) After the boss fight, beside the hunter (he has an electric bow: designer). **Killing him leaves a power vacuum in the tree**: do you want one?
+
+### 3. Rule by fear, or be a prophet (every route)
+
+(Designer, 2026-10-17, to settle.) At the end of the chapter **you see the power in your hands**: how you'll rule the tree, by fear or as a prophet, depending on whether you rose and whether you spared the Tender (how exactly, to settle). The ruling itself plays out in a later tree chapter.
+
+**Before any of it, you find out the tree's mysteries for yourself** (designer): Grounded explains how he wants to use you to control the tree, then wants you to learn first hand what really goes on in there (the espionage).
 
 ### Not in this chapter
 
-- **Free the tree or keep it as an asset:** not here; the tree stays as it is for now (designer, 2026-10-17). It moves to a later tree chapter.
+- **Free the tree or keep it as an asset:** not here; the tree stays as it is for now (designer, 2026-10-17). It moves to a later tree chapter (choice 3 replaces it).
 - **The diversion and the cell** (the earlier draft's second choice, different by route: hide the tree's output away for the revolution, or organise the lower roots into a cell): dropped for now (designer: didn't make sense), as both are about steering the tree, which this chapter no longer does.
 
 ## Medium decisions
