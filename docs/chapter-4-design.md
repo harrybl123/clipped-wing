@@ -57,7 +57,7 @@ Only the tube and rot endings continue (the loyal ending doesn't). Two things fr
 3. **Scavenging with the hunter, and an invasion, early on** (designer, 2026-10-17): the hunter takes you down scavenging for weapons and trains you; **once you find the metal fist, turn-based fights** (the combat system) with him; then you see people climbing the canopy, **the hunter radios up to Grounded**, and you play the war table as him. **Jack is building this battle: placeholder gameplay until then** (designer); the canopy is invaded by scavengers while this is going on (details to settle). **Nobody breaks into the tree itself: the people inside stay none the wiser** (designer, 2026-10-17). **You see the attack coming from below and the hunter warns Grounded on a radio; you play it as Grounded, who controls the people, on Jack's war table** (designer, 2026-10-17). **Two war-table battles this chapter** (designer): this one against the ground scavengers, and the final one against the capital's troops. **Your weapon is a big metal fist** you find, from one of the unsuccessfully integrated (like Chapter 5's hitman) (designer). *(Claude's note: you lost your left thumb and finger in the prologue, and on Day 4 you can't make a fist; this is the fist you couldn't make.)*
 4. **Life in the colony:** getting to know the treehouse colony, hunting in the lowlands with the hunter, and secret trips back into the tree.
 5. **The big decisions** (below).
-6. **The Tender, and the battle** (designer, 2026-10-17): **the Tender is revealed as an agent of the capital**, and you find out he's orchestrating an attack on the canopy's people with the king. **A boss fight with him**, beside the hunter and his electric bow (designer), and **a final big battle**. The capital can't blow the canopy up: they need the tree undisrupted. **The tree stays as it is for now**: no revolution in the tree this chapter (designer).
+6. **The Tender, and the battle** (designer, 2026-10-17): **you follow the Tender through the tree, and watch him go to a place you didn't know existed** (maybe an outside deck) (designer). **The Tender is revealed as an agent of the capital**, and you find out he's orchestrating an attack on the canopy's people with the king. **A boss fight with him**, beside the hunter and his electric bow (designer), **before the capital's attack**, so you decide whether to spare him first (designer). Once you've found out about the Tender, **you speak to Grounded**, who comments on the cruelty of using religion to control the people, and making himself the symbol of it (designer). Then **a final big battle**. The capital can't blow the canopy up: they need the tree undisrupted. **The tree stays as it is for now**: no revolution in the tree this chapter (designer).
 7. **Final beat:** after the ultimate choice and the battle, the chapter ends quietly with the hunter crouched over dog prints at the base of the tree (designer, 2026-10-17) in the lowlands. Dogs are meant to be extinct. This sets up meeting the scavenger in a later chapter.
 
 ## Locations
@@ -114,21 +114,26 @@ Choose who inside the tree you use, depending on your relationships in Act 1 (de
 - **The girl:** if she's still in there, not with you (designer). *(To settle: framed and flown, she's alone in the rot and hates you.)*
 - **Mum.**
 
-Ascended, they're your hands. Through the rot, they're your messenger, and they spread the rumours that the dead carver walks.
+**What they're used for is to settle, maybe later** (designer, 2026-10-17). Earlier draft: ascended, they're your hands. Through the rot, they're your messenger, and they spread the rumours that the dead carver walks.
 
 ### 2. Kill the Tender, or spare him (every route)
 
 (Designer, 2026-10-17.) After the boss fight, beside the hunter (he has an electric bow: designer). **Killing him leaves a power vacuum in the tree**: do you want one?
 
-### Not a choice: the power you hold
+### 3. Your message (every route)
 
-(Designer, 2026-10-17.) **Rule by fear or as a prophet isn't a choice**: at the end of the chapter you see the result of your actions, the power you now hold over the tree, shaped by whether you rose and whether you spared the Tender. You need to see it once you've found out **the tree is controlled by the capital, as an asset to bargain with the integrated** (designer). The ruling itself plays out in a later tree chapter.
+(Designer, 2026-10-17: perhaps framed as a big choice.) At the end of the chapter **you see the power you hold** over the tree, shaped by whether you rose and whether you spared the Tender (fear or prophet is the result, not a choice), once you've found out **the tree is controlled by the capital, as an asset to bargain with the integrated** (designer). **Either way you choose your message:**
+
+- **By fear:** you go down in the night and leave cursed symbols and words of instruction.
+- **As a prophet:** you send messages down, and the chapter ends seeing the people's reaction to your message.
+
+What the messages are: to settle.
 
 **Before any of it, you find out the tree's mysteries for yourself** (designer): Grounded explains how he wants to use you to control the tree, then wants you to learn first hand what really goes on in there (the espionage).
 
 ### Not in this chapter
 
-- **Free the tree or keep it as an asset:** not here; the tree stays as it is for now (designer, 2026-10-17). It moves to a later tree chapter (the power you hold, at the end, replaces it).
+- **Free the tree or keep it as an asset:** not here; the tree stays as it is for now (designer, 2026-10-17). It moves to a later tree chapter (your message, at the end, replaces it).
 - **The diversion and the cell** (the earlier draft's second choice, different by route: hide the tree's output away for the revolution, or organise the lower roots into a cell): dropped for now (designer: didn't make sense), as both are about steering the tree, which this chapter no longer does.
 
 ## Medium decisions
