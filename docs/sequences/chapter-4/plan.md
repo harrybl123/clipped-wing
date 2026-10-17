@@ -41,6 +41,7 @@ Staged like the prologue (designer): narration over black and a few stills, in h
 - The tree is an important economic resource to the king, and now you have power over it: why, and how.
 - Why he chose you: he could build a relationship with you from outside the tree, because every piece of your work had the same deficiency. Everyone else's offerings were different every time, so he couldn't make anyone out.
 - Why nobody could just go in and say it: everyone is so devout.
+- **The canopy's people live off what the tree sends up** (designer, 2026-10-17): the offerings that come up the tube feed and furnish them before the rest goes on, so **they're scavengers really**.
 - **He knew it would put you in a difficult position** (the rejections, the hunger blamed on you), **and did it anyway** (designer). The bitten bird was **a child's hunger, something silly** (designer) (suggestion: you meet the child in the mess, who owns up, mortified).
 
 ---
@@ -105,7 +106,7 @@ Opens on the chapter card: "Chapter 4", then its title (open).
 | Time | Where | What happens | You play | Objective |
 | --- | --- | --- | --- | --- |
 | Before dawn | The outside deck | You and the hunter wait for the Tender. **The boss fight** (designer): **the Tender, a techno wizard** (designer), **the hunter and his electric bow beside you** (designer). **You have to beat him** (designer: must win). It comes **before the capital's attack** (designer). | **The boss fight** | "Stop the Tender" |
-| Dawn | The deck | **Big choice 2: kill him or spare him** (designer). Second box: **kill him, and there's a power vacuum in the tree** (designer; suggestion: the preacher takes the tube, the man who looked down on the lower roots); **spare him** (to settle; suggestion: he goes back in as yours, the capital still thinking he's theirs, and he tells you where the attack will come from). | **The choice** | |
+| Dawn | The deck | **Big choice 2: kill him or spare him** (designer). Second box: **kill him, and there's a power vacuum in the tree** (designer; suggestion: the preacher takes the tube, the man who looked down on the lower roots); **spare him** (designer): he goes back in as yours, the capital still thinking he's theirs, and he tells you where the attack will come from (suggestion). | **The choice** | |
 | Day | The canopy | Ready for the attack (short). The master, the quartermaster (with you if you kept her secret: suggestion), the hunter. The town's mood by the seed. | Talk round | "Get ready" |
 | Night | The canopy | **Battle 2: the capital's troops** (designer), **at night so the tree never sees** (suggestion), **nothing blown up** (designer). Played as Grounded again (suggestion). Spared, the Tender's told you where they'll come from: their moves shown (suggestion; Jack's table has it in the commander). Win or lose, the canopy holds (suggestion), at a cost if you lose (to settle). Jack's (designer). | **The war table** | "Hold the canopy" |
 | Late night | **The message loft** (doc) | **Big choice 3: your message** (designer). **It plants a doubt** (designer): **"The Tree did not choose them"** (the Ascension), **"The Tender lies"** (the man at the tube), **"Keep what you make"** (the offerings) (designer agreed). **Made in pictures, the way Grounded made his** (agreed): Act 1's scratched reply, the other way round. Second box. **The power you hold isn't a choice: it's the result of what you've done** (designer): **up the tube, a prophet**: it goes down the tube; **through the rot, fear**: you go down in the night and leave cursed symbols and words of instruction (designer). | **Make your message** | "Send your message" |
@@ -153,17 +154,11 @@ Opens on the chapter card: "Chapter 4", then its title (open).
 - Big 1: your person inside (friend, archivist, the girl if she's still there, Mum); they get your message to the people. Big 2: kill the Tender (a power vacuum) or spare him. Big 3: your message, a doubt, in pictures. Fear or prophet is the result, not a choice. The tree stays as it is: freeing it is for a later tree chapter. The medium choices stay (the hoard, the delivery).
 - The colony's people get their parts in the plot (above). The hunter's coda at the base of the tree, after the battle.
 
+**Agreed 2026-10-17** (designer: back in as yours, go with your suggestions): **spared, the Tender goes back into the tree as yours**, the capital still thinking he's theirs; Grounded's reason for sending you in is "go in and listen"; the doubter sent the clan; battle 2 is played as Grounded again; the lowlands are Chapter 2's borderland; the girl, framed and flown, is gone from the rot (a thread for later); the delivery is for the old man from Act 1's rites. **Losing a battle** (suggestion, given after): the canopy holds either way; lose battle 1 and the clan gets away with the colony's stores (a hungrier town, its mood darker); lose battle 2 and the troops take someone before they go (the doubter, back to the capital, if you'd like it simple).
+
 ## Open
 
-- **If you spare the Tender:** back in the tree as yours (suggestion), or a prisoner in the canopy?
-- **The reason Grounded gives you for going in** (suggestion: "go in and listen").
-- **Why the clan wants you** (suggestion: the doubter sent them).
-- **What losing a battle costs.**
-- **Who plays battle 2** (suggestion: Grounded again).
 - **The chapter card's title**, the ending cards' titles, and names (Grounded's real name, the colony).
-- **The delivery's recipient** (suggestion: the old man from Act 1's rites).
-- **The girl, framed and flown** (suggestion: gone from the rot; a thread for later).
-- **The lowlands as Chapter 2's borderland** (suggestion).
 
 ---
 
