@@ -9,9 +9,10 @@ import { playSound } from './soundscape';
 // The barracks (Jack): its doors open on three kinds of fighter to hire. Draft words.
 
 const FIGHTERS: Record<Hire, { kind: Hired; name: string; says: string[] }> = {
-  rogues: { kind: 'rogue', name: 'Rogue mercenaries', says: ['Three of 3.', 'They go after the enemy', 'on their own.', "They don't join up or grow."] },
-  archers: { kind: 'archer', name: 'Archers', says: ['Two of 2, next to', 'the barracks. They hold', 'there and shoot anyone', 'next to them: 1 a turn.'] },
-  assassin: { kind: 'assassin', name: 'An assassin', says: ['One of 3. Slips through', 'to their base the safest', 'way, and strikes it: 3,', 'half the time 6.'] },
+  // (Designer: simplified, like the architect's. The numbers are on the card when you hover over them on the table.)
+  rogues: { kind: 'rogue', name: 'Rogue mercenaries', says: ['Hunt the enemy', 'on their own.'] },
+  archers: { kind: 'archer', name: 'Archers', says: ['Shoot the enemy', 'next to them.'] },
+  assassin: { kind: 'assassin', name: 'An assassin', says: ['Sneaks to their base', 'and strikes it.'] },
 };
 
 export interface BarracksShow {
