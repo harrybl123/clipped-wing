@@ -45,10 +45,11 @@ Only the tube and rot endings continue (the loyal ending doesn't). Two things fr
 
 ## Chapter shape
 
-1. **Opening (every ending):** **you're scared and shocked by everything** (designer, 2026-10-17: this is important). Up the tube, **someone from the colony finds you, careful and kind**, understanding you'll be in shock (designer). Through the rot, **the hunter finds you** at the bottom (designer), with the girl or alone; with her, she's bickering at you, and he basically tells you to shut up. Then Grounded. He explains the world and who he is, and tells you his real name. His people are hungry, and you can be their key of leverage. You can reject this, but you can't bluntly tell your people the truth, because they'd reject it. If you commit to freeing them, you have to devise a plan with the tree scavengers.
+1. **Opening (every ending):** **you're scared and shocked by everything** (designer, 2026-10-17: this is important). Up the tube, **the master with the spiral finds you, careful and kind**, understanding you'll be in shock (designer: someone from the colony; Claude suggested her, designer agreed: you watched her ascend on Day 1). Through the rot, **the hunter finds you** at the bottom (designer), with the girl or alone; with her, she's bickering at you, and he basically tells you to shut up. Then Grounded. He explains the world and who he is, and tells you his real name. His people are hungry, and you can be their key of leverage. You can reject this, but you can't bluntly tell your people the truth, because they'd reject it. If you commit to freeing them, you have to devise a plan with the tree scavengers.
 2. **Life in the colony:** getting to know the treehouse colony, hunting in the lowlands with the hunter, and secret trips back into the tree.
 3. **The big decisions** (below).
-4. **Final beat:** after the ultimate choice, the chapter ends quietly with the hunter crouched over dog prints in the lowlands. Dogs are meant to be extinct. This sets up meeting the scavenger in a later chapter.
+4. **The Tender, and the battle** (designer, 2026-10-17): **the Tender is revealed as an agent of the capital**, and you find out he's orchestrating an attack on the canopy's people with the king. **A boss fight with him**, and **a final big battle**. The capital can't blow the canopy up: they need the tree undisrupted. **The tree stays as it is for now**: no revolution in the tree this chapter (designer).
+5. **Final beat:** after the ultimate choice and the battle, the chapter ends quietly with the hunter crouched over dog prints at the base of the tree (designer, 2026-10-17) in the lowlands. Dogs are meant to be extinct. This sets up meeting the scavenger in a later chapter.
 
 ## Locations
 
