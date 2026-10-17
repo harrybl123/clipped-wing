@@ -34,6 +34,7 @@ import { dataCentre } from './capital/dataCentre';
 import { hideout } from './capital/hideout';
 import { lifts } from './capital/lifts';
 import { lowDistrict } from './capital/lowDistrict';
+import { tubeMouth } from './canopy/tubeMouth';
 import { friendsHome } from './friendsHome';
 import { girlsHome } from './girlsHome';
 import { home } from './home';
@@ -103,8 +104,21 @@ export const CAPITAL_AREAS: Record<string, string> = {
   'city-gate': 'the gate',
 };
 
+/** Every area in the canopy (Chapter 4; docs/chapter-4-world.md), by id, with the name used in menus. Built or not. Names are placeholders. */
+export const CANOPY_AREAS: Record<string, string> = {
+  'tube-mouth': 'the tube mouth',
+  'great-house': 'the great house',
+  'ascended-hall': "the ascended's hall",
+  walkways: 'the walkways',
+  'groundeds-house': "Grounded's house",
+  'seed-bed': 'the seed bed',
+  lookout: 'the lookout',
+  'lowering-platform': 'the lowering platform',
+  hatches: 'the hatches',
+};
+
 /** Every area on a map, in any chapter, by id, with the name used in menus. Built or not. */
-export const PLANNED_AREAS: Record<string, string> = { ...TREE_AREAS, ...BORDERLAND_AREAS, ...CAPITAL_AREAS };
+export const PLANNED_AREAS: Record<string, string> = { ...TREE_AREAS, ...BORDERLAND_AREAS, ...CAPITAL_AREAS, ...CANOPY_AREAS };
 
 /** Places that aren't on the map: you only reach them through the story (her door, the board in her floor). */
 export const HIDDEN_AREAS: Record<string, string> = {
@@ -190,4 +204,6 @@ export const AREAS: Record<string, AreaDefinition> = {
   [hideout.id]: hideout,
   [dataCentre.id]: dataCentre,
   [cityGate.id]: cityGate,
+  // Chapter 4: the canopy.
+  [tubeMouth.id]: tubeMouth,
 };

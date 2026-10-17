@@ -5,6 +5,7 @@ import { AREAS, PLANNED_AREAS, placeOf } from '../data/areas';
 import { MAP_CANOPY_Y, MAP_PLACES, MAP_TUBE_X, neighbourInDirection, treeHalfWidth, WORLDS, worldOf, type MapPlace, type MapWorld } from '../data/map';
 import { addLight, falloff, noise, rgb, SHADES, smoothstep, type PixelColour, type RGB } from '../ui/pixelArt';
 import { paintBorderlandMap } from '../ui/paintBorderlandMap';
+import { paintCanopyMap } from '../ui/paintCanopyMap';
 import { paintCapitalMap } from '../ui/paintCapitalMap';
 import { makePaintedTexture, makeSpriteTexture } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
@@ -32,7 +33,7 @@ const WINDOW_LIGHT: Record<MapPlace['light'], number> = { amber: SHADES.amber, c
 const OFFERING_Y = MAP_PLACES.find((p) => p.id === 'offering-floor')!.y;
 
 /**
- * The map of the world you're in (the tree as a cutaway in Act 1, the borderland in Chapter 2, the capital in Chapter 3), opened over the paused area. Arrow keys/WASD move between
+ * The map of the world you're in (the tree as a cutaway in Act 1, the borderland in Chapter 2, the capital in Chapter 3, the canopy in Chapter 4), opened over the paused area. Arrow keys/WASD move between
  * places, Enter travels, Esc (or M) goes back. Unbuilt places are dim and can't be travelled to.
  */
 export class MapScene extends Phaser.Scene {
@@ -65,7 +66,7 @@ export class MapScene extends Phaser.Scene {
     this.cameras.main.fadeIn(250);
     const { world } = this;
     // Painted once per world (built places glow, so a new build shows after a reload).
-    makePaintedTexture(this, `map-${world.id}`, W, H, world.id === 'tree' ? paintTree() : world.id === 'borderland' ? paintBorderland() : paintCapital());
+    makePaintedTexture(this, `map-${world.id}`, W, H, world.id === 'tree' ? paintTree() : world.id === 'borderland' ? paintBorderland() : world.id === 'canopy' ? paintCanopy() : paintCapital());
     this.add.image(0, 0, `map-${world.id}`).setOrigin(0);
 
     new PixelText(this, 6, 6, world.title, { color: SHADES.light, shadow: SHADES.shadow });
@@ -318,4 +319,11 @@ export function paintCapital(): (x: number, y: number) => PixelColour {
   const capital = WORLDS.find((w) => w.id === 'capital')!;
   const glows = capital.places.filter((p) => p.id in AREAS && !p.showIf).map((p) => ({ x: p.x, y: p.y, rgb: rgb(WINDOW_LIGHT[p.light]) }));
   return paintCapitalMap(pathPixels(capital), glows);
+}
+
+/** The canopy's map (src/ui/paintCanopyMap.ts), with this map's paths and the glow of built places. */
+export function paintCanopy(): (x: number, y: number) => PixelColour {
+  const canopy = WORLDS.find((w) => w.id === 'canopy')!;
+  const glows = canopy.places.filter((p) => p.id in AREAS && !p.showIf).map((p) => ({ x: p.x, y: p.y, rgb: rgb(WINDOW_LIGHT[p.light]) }));
+  return paintCanopyMap(pathPixels(canopy), glows);
 }

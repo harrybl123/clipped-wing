@@ -206,15 +206,18 @@ export interface Outdoor {
   atRoots?: boolean;
   /**
    * What's between you and the tree: the open plain (default), the settlement's rooftops (inside its walls),
-   * or the capital's towers (Chapter 3: lit cyan and amber, the citadel high above them).
+   * the capital's towers (Chapter 3: lit cyan and amber, the citadel high above them), or the canopy (Chapter 4:
+   * up in the treetop, the crown's leaves all round, its treehouses, the plain far below in the haze).
    */
-  backdrop?: 'plain' | 'settlement' | 'city';
+  backdrop?: 'plain' | 'settlement' | 'city' | 'canopy';
   /** With the city backdrop: where its towers begin in the far layer (the open plain before it: the gate, looking out). */
   cityFrom?: number;
   /** With the city backdrop: where the citadel stands above the towers, in the far layer's pixels. */
   citadelX?: number;
-  /** The ground: scrapland dirt (default), the deep ground's (harder, darker, no junk, cut with straight grooves running away to the horizon), or the capital's paved streets. */
-  ground?: 'scrap' | 'deep' | 'street';
+  /** With the canopy backdrop: where the tentacles (the tubes out of the top of the tree) rise in the far layer, if they're in view. */
+  tentaclesX?: number;
+  /** The ground: scrapland dirt (default), the deep ground's (harder, darker, no junk, cut with straight grooves running away to the horizon), the capital's paved streets, or the canopy's decks (planks over living wood). */
+  ground?: 'scrap' | 'deep' | 'street' | 'deck';
   /** Ground level, when there's earth far below it (the sunk town): dirt is darker and layered by its depth below this, unlit by the sky, with no sunlit crust on floors underground. */
   groundY?: number;
 }

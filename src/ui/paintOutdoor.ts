@@ -3,7 +3,8 @@ import type { TimeSlot } from '../systems/Calendar';
 import { addLight, cellRandom, falloff, noise, poweredLights, rgb, SHADES, smoothstep, type PixelColour, type Power, type RGB } from './pixelArt';
 import { stampRows } from './pixelTextures';
 
-// Areas out in the open (the borderland, Chapter 2; docs/chapter-2-world.md). Two layers:
+// Areas out in the open (the borderland, Chapter 2; docs/chapter-2-world.md; the capital's streets, Chapter 3;
+// the canopy, Chapter 4). Two layers:
 // - the far layer: the sky, the tree vast on the horizon with its top lost in white, and the plain
 //   receding beneath it with distant junk; it scrolls at FAR_SCROLL of the camera, so the tree stays put;
 // - the near layer: the area's solids as packed dirt (lit by its lights), its lines and props, and
@@ -62,6 +63,7 @@ export function paintFar(outdoor: Outdoor, slot: TimeSlot, height: number): (x: 
   const tree = treePainter(TX, HY, s, sky, night, outdoor.atRoots);
   // Distant junk heaps along the horizon.
   const heapTop = (x: number) => HY - Math.max(0, noise(x / 23) * 7 + noise(x / 7) * 2 - 2);
+  if (outdoor.backdrop === 'canopy') return canopyPainter(outdoor, sky, slot, height);
   const town = outdoor.backdrop === 'settlement' ? skyline(HY, sky, slot) : null;
   const city = outdoor.backdrop === 'city' ? cityPainter(outdoor, sky, slot) : null;
   const cityFrom = outdoor.cityFrom ?? -Infinity;
@@ -126,6 +128,130 @@ export function paintFar(outdoor: Outdoor, slot: TimeSlot, height: number): (x: 
       return scale(rgb(dy > 0.75 ? lit : body), sky.ground * (night ? 0.6 : 1));
     }
     return c;
+  };
+}
+
+/**
+ * Up in the canopy (Chapter 4; docs/chapter-4-world.md): solarpunk treehouses in the leaves. The sky, with a
+ * few soft clouds by day; far off, the plain in the haze, a long way down, showing where the crown dips; the
+ * crown's leaves all round in two banks, the far one hazy, the near one in clumps lit from above, boughs
+ * through it; treehouses on the far bank (their windows lit from dusk, lanterns dotted through the leaves at
+ * night); the tentacles rising in the distance if `tentaclesX` is in view; mist below in the morning.
+ */
+function canopyPainter(outdoor: Outdoor, base: Sky, slot: TimeSlot, height: number): (x: number, y: number) => PixelColour {
+  const HY = outdoor.horizon;
+  const lit = slot === 'evening' || slot === 'night';
+  const night = slot === 'night';
+  const [green, greenMid, greenDeep, white, amber, cyan, cyanMid, pale] = [SHADES.green, SHADES.greenMid, SHADES.greenDeep, SHADES.white, SHADES.amber, SHADES.cyan, SHADES.cyanMid, SHADES.woodPale].map(rgb) as RGB[];
+  // Above the haze the sky's clearer than down on the plain: bluer by day (the borderland's is dusty).
+  const sky: Sky = slot === 'morning' || slot === 'afternoon'
+    ? { ...base, top: mix(mix(white!, cyan!, 0.45), cyanMid!, slot === 'morning' ? 0.3 : 0.42), horizon: mix(white!, slot === 'morning' ? amber! : cyan!, 0.15) }
+    : base;
+  /** A bank of leaves: billows (overlapping rounds) along it; the top edge, and how far below the nearest billow's top a point is. */
+  const bank = (y0: number, rMin: number, rMax: number, step: number, seed: number) => {
+    const billows: { x: number; y: number; r: number }[] = [];
+    for (let x = -40, i = 0; x < 2600; i++) {
+      const r = rMin + cellRandom(i, 0, seed) * (rMax - rMin);
+      billows.push({ x, y: y0 + noise(i / 3 + seed) * 18 + r * 0.3, r });
+      x += step * (0.6 + cellRandom(i, 1, seed) * 0.8);
+    }
+    return (x: number) => {
+      let top = Infinity;
+      for (const b of billows) {
+        const dx = x - b.x;
+        if (Math.abs(dx) >= b.r) continue;
+        top = Math.min(top, b.y - Math.sqrt(b.r * b.r - dx * dx));
+      }
+      return top;
+    };
+  };
+  const farTop = bank(HY - 40, 16, 34, 30, 3);
+  const nearTop = bank(HY + 14, 22, 40, 34, 9);
+  // Inner billows: darker crescents under each round inside a bank, so it reads as clumps of leaves.
+  const inner = (x: number, y: number, size: number, seed: number) => {
+    const cx = Math.floor(x / size);
+    const cy = Math.floor(y / (size * 0.7));
+    let shade = 0;
+    for (const [ox, oy] of [[0, 0], [-1, 0], [0, -1], [-1, -1], [1, 0], [1, -1]] as const) {
+      const bx = (cx + ox + cellRandom(cx + ox, cy + oy, seed)) * size;
+      const by = (cy + oy + cellRandom(cx + ox, cy + oy, seed + 1)) * size * 0.7;
+      const d = Math.hypot(x - bx, (y - by) * 1.2) / (size * 0.75);
+      if (d < 1) shade = Math.max(shade, y < by ? 0.6 - d * 0.4 : -0.5 * (1 - d)); // lit on top, shaded underneath
+    }
+    return shade;
+  };
+  // Treehouses along the far bank.
+  const houses: { x: number; w: number; h: number; seed: number }[] = [];
+  for (let x = 30, i = 0; x < 2400; i++) {
+    if (cellRandom(i, 0, 211) > 0.45) houses.push({ x, w: 7 + Math.floor(cellRandom(i, 1, 211) * 7), h: 6 + Math.floor(cellRandom(i, 2, 211) * 5), seed: i });
+    x += 50 + Math.floor(cellRandom(i, 3, 211) * 70);
+  }
+  const TX = outdoor.tentaclesX;
+
+  return (x, y) => {
+    const nt = nearTop(x);
+    // The near bank of leaves: big billows lit from above, darker into the depths, a bough now and then.
+    if (y >= nt) {
+      const leaf = noise(x / 2.5 + noise(y / 3) * 2) * 0.5 + noise(y / 2 + x / 11) * 0.5;
+      const shade = inner(x, y, 22, 51);
+      const rim = 1 - smoothstep(nt, nt + 5, y);
+      let c = mix(greenDeep!, greenMid!, Math.max(0, Math.min(1, 0.3 + 0.5 * rim + 0.5 * shade + 0.15 * leaf)));
+      if ((rim > 0.5 || shade > 0.35) && leaf > 0.2 && cellRandom(x, y, 7) > 0.3) c = mix(greenMid!, green!, 0.55);
+      const limb = (x + y * 0.6 + noise(y / 20) * 10) % 173;
+      if (limb < 3 && y > nt + 8) c = mix(rgb(SHADES.wood), rgb(SHADES.deep), limb / 3);
+      c = scale(c, sky.ground * (0.9 - 0.35 * smoothstep(nt + 10, height, y)));
+      if (night && cellRandom(x, y, 9) > 0.9985) return SHADES.amber; // a lantern in the leaves
+      return addLight(c, amber!, sky.warm);
+    }
+    // The far bank: paler with distance, its treehouses standing on it.
+    const ft = farTop(x);
+    const house = houses.find((h) => x >= h.x && x < h.x + h.w);
+    if (house) {
+      const hx = x - house.x;
+      const floor = Math.round(farTop(house.x + house.w / 2)) + 2;
+      const roofTop = floor - house.h - 4;
+      if (y >= roofTop && y < floor - house.h && Math.abs(hx - (house.w - 1) / 2) <= (y - roofTop) + 0.5) return mix(scale(greenDeep!, sky.ground), sky.horizon, 0.3);
+      if (y >= floor - house.h && y < floor) {
+        if (lit && (y - (floor - house.h)) % 4 === 2 && hx % 3 === 1 && cellRandom(house.seed, hx, 212) > 0.3) return SHADES.amber;
+        return mix(scale(hx === house.w - 1 ? rgb(SHADES.woodLight) : pale!, sky.ground), sky.horizon, 0.3);
+      }
+    }
+    if (y >= ft) {
+      const shade = inner(x, y, 14, 61);
+      const rim = 1 - smoothstep(ft, ft + 4, y);
+      let c = mix(greenDeep!, greenMid!, Math.max(0, Math.min(1, 0.45 + 0.4 * rim + 0.45 * shade)));
+      if (rim > 0.5 && cellRandom(x, y, 12) > 0.5) c = mix(greenMid!, green!, 0.4);
+      c = mix(scale(c, sky.ground), sky.horizon, 0.3);
+      if (night && cellRandom(x, y, 10) > 0.999) return SHADES.amber;
+      return c;
+    }
+    // The tentacles, far off: pale tubes curling up out of the crown, glowing.
+    if (TX !== undefined) {
+      for (const [k, lean] of [[0, -0.5], [1, -0.15], [2, 0.2], [3, 0.55]] as const) {
+        const t = (HY - 40 - y) / 140;
+        if (t < 0 || t > 1) continue;
+        const cx = TX + (k - 1.5) * 8 + lean * 90 * t * t;
+        const w = 3.5 - 2 * t;
+        if (Math.abs(x - cx) <= w) {
+          const core = Math.abs(x - cx) < 1;
+          return mix(core ? (lit ? cyan! : white!) : cyanMid!, sky.horizon, lit ? 0.1 : 0.3);
+        }
+      }
+    }
+    // The sky; below the far horizon (where the crown dips), the plain, a long way down in the haze.
+    if (y >= HY) {
+      const c = mix(scale(mix(pale!, greenMid!, 0.3), sky.ground * 0.9), sky.horizon, 0.6 - 0.2 * smoothstep(HY, HY + 30, y));
+      return addLight(c, amber!, sky.warm);
+    }
+    let c = mix(sky.top, sky.horizon, smoothstep(0, HY, y) ** 0.8);
+    if (!night) {
+      // Soft clouds, drifting in bands.
+      const cloud = noise(x / 41 + y / 13) * 0.6 + noise(x / 13 - y / 7) * 0.4 - 0.3 - smoothstep(HY - 70, HY, y);
+      if (cloud > 0 && y < HY - 40) c = mix(c, white!, Math.min(0.6, cloud * 1.8) * (slot === 'evening' ? 0.5 : 1));
+    } else if (cellRandom(x, y, 31) > 0.996) return SHADES.light; // stars
+    // Morning mist low down.
+    if (slot === 'morning') c = mix(c, white!, 0.25 * smoothstep(HY - 50, HY, y));
+    return c.map((v) => Math.min(255, v)) as RGB;
   };
 }
 
@@ -471,6 +597,32 @@ function paving(s: Solid, x: number, y: number, sky: Sky, lit: boolean): RGB | n
   return scale(base, (lit ? 0.8 : sky.ground) * (1 + 0.06 * noise(x / 5 + row)));
 }
 
+/**
+ * A deck in the canopy (Chapter 4): planks laid over living wood. A sunlit edge, planks with staggered seams, a
+ * dark gap under them; below, the branch itself: bark with its grain running along it, moss on top, darker
+ * the further down.
+ */
+function deck(s: Solid, x: number, y: number, sky: Sky): RGB | number {
+  const row = y - s.y;
+  if (row === 0) return addLight(scale(rgb(SHADES.light), sky.ground * 0.9), rgb(SHADES.amber), sky.warm);
+  if (row < 5) {
+    const band = Math.floor((row - 1) / 2);
+    if ((x - s.x + band * 7) % 16 === 0) return scale(rgb(SHADES.woodLight), sky.ground);
+    const c = mix(rgb(SHADES.woodPale), rgb(SHADES.dim), row === 1 ? 0.45 : 0.15);
+    return addLight(scale(c, sky.ground * (1 + 0.06 * noise(x / 4 + row * 3))), rgb(SHADES.amber), sky.warm);
+  }
+  if (row === 5) return SHADES.deep;
+  if (s.height <= 8) return scale(rgb(SHADES.wood), sky.ground);
+  // The branch: moss along its top, bark grain running along it, darker below.
+  const moss = row < 10 && noise(x / 6 + 2) > -0.3 + (row - 6) * 0.25;
+  if (moss) return scale(mix(rgb(SHADES.greenDeep), rgb(SHADES.greenMid), cellRandom(x, y, 41) > 0.55 ? 0.7 : 0.25), sky.ground);
+  const grain = noise(y / 1.6 + noise(x / 45) * 3) * 0.6 + noise(x / 7 + y / 30) * 0.4;
+  const cell = Math.floor(x / 97);
+  const knot = cellRandom(cell, 0, 43) > 0.55 && Math.hypot((x % 97) - 20 - cellRandom(cell, 1, 43) * 57, (row - 14 - cellRandom(cell, 2, 43) * 22) * 1.8) < 2.5 + cellRandom(cell, 3, 43) * 2;
+  const c = knot ? rgb(SHADES.wood) : mix(rgb(SHADES.woodPale), rgb(SHADES.dim), 0.15 + 0.25 * grain);
+  return addLight(scale(c, sky.ground * (0.95 - 0.4 * smoothstep(8, 70, row))), rgb(SHADES.amber), sky.warm * 0.5);
+}
+
 /** The near layer: dirt solids, lines and props; transparent elsewhere so the far layer shows. */
 export function paintOutdoorNear(area: AreaDefinition, slot: TimeSlot, power: Power = {}): (x: number, y: number) => PixelColour {
   const sky = skyFor(slot);
@@ -493,9 +645,12 @@ export function paintOutdoorNear(area: AreaDefinition, slot: TimeSlot, power: Po
     if (exact !== undefined) return exact;
     const s = solids.find((o) => x >= o.x && x < o.x + o.width && y >= o.y && y < o.y + o.height);
     if (!s) return null;
-    const c = area.outdoor?.ground === 'street'
+    const ground = area.outdoor?.ground;
+    const c = ground === 'street'
       ? paving(s, x, y, sky, slot === 'evening' || slot === 'night')
-      : dirt(s, x, y, sky, area.outdoor?.ground === 'deep', area.outdoor?.groundY);
+      : ground === 'deck'
+        ? deck(s, x, y, sky)
+        : dirt(s, x, y, sky, ground === 'deep', area.outdoor?.groundY);
     if (typeof c === 'number') return c;
     let lit = c;
     for (const l of lights) lit = addLight(lit, l.rgb, l.strength * falloff(x, y, l.x, l.y, l.radius, l.radiusY ?? l.radius));

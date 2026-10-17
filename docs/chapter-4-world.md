@@ -104,8 +104,8 @@ Briefs in `docs/areas/canopy/`. Ids are suggestions.
 
 ## Build order (suggestion)
 
-1. The map, every place dark.
-2. **The tube mouth** first: it sets the look (the tentacles, the sky, the great house beyond), and it's where the chapter starts.
+1. The map, every place dark. **Done** (`src/data/canopyMap.ts`, `src/ui/paintCanopyMap.ts`).
+2. **The tube mouth** first: it sets the look (the tentacles, the sky, the great house beyond), and it's where the chapter starts. **Built** (designer: start with the tube mouth; `src/data/areas/canopy/tubeMouth.ts`, `canopyProps.ts`; the canopy backdrop and decks in `src/ui/paintOutdoor.ts`; dev `?area=tube-mouth`).
 3. The rest of the canopy: the great house, the walkways, the ascended's hall, Grounded's house, the seed bed, the lookout, the message loft, the lowering platform.
 4. The ways down: the hatches, the outside deck, the homestead.
 5. The cast: the carver in colour, then Grounded, the colony, the ascended and the canopy's folk, placed by time of day.

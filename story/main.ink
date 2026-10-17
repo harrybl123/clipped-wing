@@ -840,6 +840,7 @@ INCLUDE capital/chapter3-day8.ink
 INCLUDE capital/cast.ink
 INCLUDE capital/folk.ink
 INCLUDE capital/looks.ink
+INCLUDE canopy/looks.ink
 
 // The game starts conversations by knot name via StoryBridge, so the root
 // flow does nothing.
