@@ -38,8 +38,10 @@ Only the tube and rot endings continue (the loyal ending doesn't). Two things fr
 
 ## The girl
 
-- **Rot ending:** she's with you. She hates you for what being kind to you cost her, and Grounded shows her the truth too. With her gone, nobody is left in the lower roots, so your life is harder.
-- **Tube ending:** she's still inside, and plants seeds of revolution in the lower roots.
+**The same general shape on every route; nothing forks wildly** (designer, 2026-10-17). **The girl is with you only if you fell and had framed her**, and that decides whether you're found at the bottom with her or alone (designer, 2026-10-17; as built in Act 1, she's down in the rot only if you blamed her).
+
+- **Fell, framed her:** she's with you. She hates you for what being kind to you cost her, and Grounded shows her the truth too. With her gone, nobody is left in the lower roots, so your life is harder.
+- **Every other route:** she isn't with you. (Earlier draft, for the tube: she's still inside, and plants seeds of revolution in the lower roots. Still to settle: where she is if you flew after framing her, or fell after saving her.)
 
 ## Chapter shape
 
