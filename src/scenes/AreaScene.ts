@@ -595,7 +595,8 @@ export class AreaScene extends Phaser.Scene {
     if (world === 'canopy') session.story.setVariable('carver_below', true);
     const carverAgain = session.story.getVariable('chapter') === 4 || !!session.story.getVariable('carver_below');
     if (world === 'borderland') this.player.look = carverAgain ? 'carverDay' : 'scavenger';
-    if (world === 'canopy' || (carverAgain && area.outdoor)) this.player.look = 'carverDay'; // (in the open, by day: the deck on the trunk, the homestead)
+    if (world === 'canopy' || (carverAgain && area.outdoor)) this.player.look = 'carverDay';
+    this.player.fist = !!session.story.getVariable('has_fist'); // (in the open, by day: the deck on the trunk, the homestead)
     if (world === 'capital') this.player.look = 'prince';
     // Anyone following you comes in with you (whether or not they're showing yet: after a fight, the
     // dog comes back beside you, not where it stands when you first come into the area).

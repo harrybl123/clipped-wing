@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { PRINCE, PRINCE_CROUCH, CARVER_DAY, CARVER_DAY_CROUCH, PRINCE_PLAIN, PROTAGONIST, PROTAGONIST_CLOAKED, PROTAGONIST_CROUCH, SCAVENGER, SCAVENGER_CROUCH } from '../ui/characters';
+import { PRINCE, PRINCE_CROUCH, CARVER_DAY, CARVER_DAY_CROUCH, CARVER_FIST, PRINCE_PLAIN, PROTAGONIST, PROTAGONIST_CLOAKED, PROTAGONIST_CROUCH, SCAVENGER, SCAVENGER_CROUCH } from '../ui/characters';
 import { makeSpriteTexture } from '../ui/pixelTextures';
 import type { RowSprite } from '../ui/sprites';
 
@@ -25,6 +25,7 @@ function createAnimations(scene: Phaser.Scene): void {
     { suffix: '-scav', idle: SCAVENGER.idle, walk: SCAVENGER.walk, jump: SCAVENGER.jump, fall: SCAVENGER.fall, crouch: SCAVENGER_CROUCH.idle, crawl: SCAVENGER_CROUCH.walk },
     { suffix: '-prince', idle: PRINCE.idle, walk: PRINCE.walk, jump: PRINCE.jump, fall: PRINCE.fall, crouch: PRINCE_CROUCH.idle, crawl: PRINCE_CROUCH.walk },
     { suffix: '-prince-plain', ...PRINCE_PLAIN },
+    { suffix: '-fist', idle: CARVER_FIST.idle, walk: CARVER_FIST.walk, jump: CARVER_FIST.jump, fall: CARVER_FIST.fall, crouch: CARVER_DAY_CROUCH.idle, crawl: CARVER_DAY_CROUCH.walk },
     { suffix: '-day', idle: CARVER_DAY.idle, walk: CARVER_DAY.walk, jump: CARVER_DAY.jump, fall: CARVER_DAY.fall, crouch: CARVER_DAY_CROUCH.idle, crawl: CARVER_DAY_CROUCH.walk },
   ];
   for (const set of sets) {
@@ -63,6 +64,8 @@ export class Player {
   /** Who you are: the carver (in the tree), the scavenger (Chapter 2, in the borderland) or the prince (Chapter 3, in the capital). Set by the scene. */
   /** `carverDay`: the carver in colour, out in the canopy's daylight (Chapter 4). */
   look: 'carver' | 'carverDay' | 'scavenger' | 'prince' = 'carver';
+  /** By daylight, the metal fist on your left hand (Chapter 4, Day 2 on: `has_fist`). */
+  fist = false;
 
   constructor(
     scene: Phaser.Scene,
@@ -132,7 +135,7 @@ export class Player {
   }
 
   private animate(direction: number): void {
-    const c = this.look === 'carverDay' ? '-day' : this.look === 'scavenger' ? '-scav' : this.look === 'prince' ? (this.cloaked ? '-prince-plain' : '-prince') : this.cloaked ? '-cloak' : '';
+    const c = this.look === 'carverDay' ? (this.fist ? '-fist' : '-day') : this.look === 'scavenger' ? '-scav' : this.look === 'prince' ? (this.cloaked ? '-prince-plain' : '-prince') : this.cloaked ? '-cloak' : '';
     if (this.crouching || this.kneeling) {
       if (direction !== 0 && !this.kneeling) this.sprite.play(`player-crawl${c}`, true);
       else {

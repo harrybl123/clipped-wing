@@ -876,10 +876,11 @@ const CARVER_DAY_COLOURS = {
   B: SHADES.wood, // the belt
   R: SHADES.red, r: SHADES.redDark, // the red thread
   W: SHADES.white, // the bandage
+  F: SHADES.dim, f: SHADES.light, // the metal fist (Chapter 4, Day 2 on)
   P: SHADES.wood, p: SHADES.deep, b: SHADES.shadow, // trousers, their shadow; boots
 };
 
-function carverDay(pose: PrincePose): RowSprite {
+function carverDay(pose: PrincePose, fist = false): RowSprite {
   const g = grid(PROTAGONIST_W, PROTAGONIST_H);
   const b = pose.bob ?? 0;
   // Head: messy hair over the crown and falling over the brow, the face to the right.
@@ -912,7 +913,13 @@ function carverDay(pose: PrincePose): RowSprite {
     const swing = y >= 10 ? -Math.sign(arm) * Math.min(Math.abs(arm), y - 9) : 0;
     if (g[y + b]?.[3 + swing] === '.') put(g, 3 + swing, y + b, 'c');
   }
-  if (g[14 + b]?.[3 - arm] === '.') put(g, 3 - arm, 14 + b, 'W');
+  if (fist) {
+    // The metal fist on the left hand (designer: from one of the unsuccessfully integrated): big, grey, lit on top.
+    const fx = 2 - arm;
+    span(g, 13 + b, fx, fx + 1, 'f');
+    span(g, 14 + b, fx - 1, fx + 1, 'F');
+    span(g, 15 + b, fx - 1, fx + 1, 'F');
+  } else if (g[14 + b]?.[3 - arm] === '.') put(g, 3 - arm, 14 + b, 'W');
   // Front arm: the sleeve, the hand.
   for (let y = 7; y <= 13; y++) {
     const swing = y >= 10 ? Math.sign(arm) * Math.min(Math.abs(arm), y - 9) : 0;
@@ -946,6 +953,19 @@ export const CARVER_DAY = {
   ],
   jump: carverDay({ sway: [-1, 2], lift: [3, 2], arm: 1 }),
   fall: carverDay({ sway: [-1, 1], arm: -1 }),
+};
+
+/** The carver by daylight with the metal fist (Chapter 4, Day 2 on). */
+export const CARVER_FIST = {
+  idle: [carverDay({ sway: [0, 0] }, true), carverDay({ sway: [0, 0], bob: 1 }, true)],
+  walk: [
+    carverDay({ sway: [-3, 3], arm: -1 }, true),
+    carverDay({ sway: [-1, 1], lift: [0, 2], bob: 1, arm: 0 }, true),
+    carverDay({ sway: [3, -3], arm: 1 }, true),
+    carverDay({ sway: [1, -1], lift: [2, 0], bob: 1, arm: 0 }, true),
+  ],
+  jump: carverDay({ sway: [-1, 2], lift: [3, 2], arm: 1 }, true),
+  fall: carverDay({ sway: [-1, 1], arm: -1 }, true),
 };
 
 /** Crouching: bent forward, head low and out in front. */

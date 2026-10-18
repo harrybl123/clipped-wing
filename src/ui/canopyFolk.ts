@@ -1,5 +1,6 @@
 import { SHADES as S } from './pixelArt';
-import { courtlyFrames, type CapitalLook } from './capitalFolk';
+import { courtly, courtlyFrames, type CapitalLook } from './capitalFolk';
+import type { RowSprite } from './sprites';
 
 // PLACEHOLDER people of the canopy (Chapter 4; docs/chapter-4-world.md) until the art pass, drawn with the
 // capital's detailed generator (`courtly`) in the canopy's own clothes: earthy, worked-in, warm; harnesses,
@@ -56,3 +57,24 @@ export const ASCENDED_LOOKS: CapitalLook[] = [
 
 export const CANOPY_FOLK = CANOPY_FOLK_LOOKS.map(courtlyFrames);
 export const ASCENDED = ASCENDED_LOOKS.map(courtlyFrames);
+
+/**
+ * The girl from the lower roots by daylight (Chapter 4: with you only if you fell after framing her,
+ * designer): choppy dark hair with its glowing green strand, a ring in her ear, fungus-ink tattoos on her
+ * arms, patched roots clothes, arms crossed. Her Act 1 self in colour (Claude's, suggestion).
+ */
+export const GIRL_DAY_LOOK: CapitalLook = { height: 24, width: 2, skin: 'fair', hair: S.shadow, hairStyle: 'messy', top: S.woodLight, topStyle: 'vest', patches: S.greenDeep, belt: S.wood, legs: S.wood, pose: 'front', slender: true };
+const strand = (s: RowSprite): RowSprite => {
+  // Her glowing green strand, down the front of her hair; a tattoo's mark on her arm.
+  const rows = s.rows.map((r) => [...r]);
+  const hairRow = rows.findIndex((r) => r.includes('h'));
+  if (hairRow >= 0) {
+    const r = rows[hairRow + 1] ?? rows[hairRow]!;
+    const x = r.lastIndexOf('h');
+    if (x >= 0) r[x] = 'N';
+    const r2 = rows[hairRow + 2];
+    if (r2 && x >= 0 && r2[x] !== '.') r2[x] = 'N';
+  }
+  return { rows: rows.map((r) => r.join('')), colours: { ...s.colours, N: S.green } };
+};
+export const GIRL_DAY = { idle: [strand(courtly(GIRL_DAY_LOOK)), strand(courtly(GIRL_DAY_LOOK, true))], walk: [strand(courtly(GIRL_DAY_LOOK, false, 2)), strand(courtly(GIRL_DAY_LOOK, true, -2))] };
