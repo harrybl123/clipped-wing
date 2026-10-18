@@ -4,7 +4,7 @@ import * as I from './canopyInteriors';
 import * as CAPITAL from '../capital/cityProps';
 import { CANOPY_AMBIENCE, sides } from './canopyArea';
 import type { AreaDefinition } from '../types';
-import { colonist } from './people';
+import { colonist, girlGuide, guide, inStory } from './people';
 
 // Grounded's house (Chapter 4): the highest and oldest treehouse (doc; docs/areas/canopy/groundeds-house.md).
 // Old wood, untidy, a revolutionary's and a poet's (designer: lots of character, clearly an intellectual):
@@ -76,11 +76,20 @@ export const groundedsHouse: AreaDefinition = {
   ],
 
   features: [
+    // Chapter 4, Day 1: coming in.
+    { type: 'trigger', x: 76, y: FLOOR, reach: 16, knot: 'c4day1_grounded', showIf: 'c4day1=led' },
     { type: 'swing', sprite: P.LANTERN, x: 200, y: FLOOR - 70, ropeTop: 100, quiet: true, ropeColour: S.wood },
     { type: 'swing', sprite: P.CHIME, x: 530, y: FLOOR - 40, ropeTop: 92, quiet: true, ropeColour: S.wood },
   ],
 
-  people: [colonist('grounded', 'grounded', 250, FLOOR, ['afternoon', 'evening', 'night'])],
+  people: [
+    colonist('grounded', 'grounded', 250, FLOOR, ['afternoon', 'evening', 'night']),
+    // Chapter 4, Day 1: at his desk, his back to the door, before you come in.
+    inStory('grounded-1', 'grounded', 250, FLOOR, 'c4day1=led,house', 'c4day1_grounded_desk', { turns: false }),
+    guide('master', 30, FLOOR),
+    guide('hunter', 30, FLOOR),
+    girlGuide(24, FLOOR),
+  ],
 
   interactables: [
     { id: 'books', x: 96, y: FLOOR, reach: 26, label: 'Look', knot: 'c4_look_groundeds_books' },

@@ -7,6 +7,7 @@ import { BIRD } from '../ui/sprites';
 import type { AreaSceneData } from './AreaScene';
 import type { RiotTableSceneData } from './RiotTableScene';
 import type { CombatSceneData } from './CombatScene';
+import type { LoreSceneData } from './LoreScene';
 import { getSession } from '../session';
 
 export interface ChapterSceneData {
@@ -368,6 +369,86 @@ export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
 }
 
 /** How long the card holds before fading out (ms). */
+/**
+ * Chapter 4 begins: the carver again, out of the tree (docs/sequences/chapter-4/plan.md). Act 1's ending
+ * decides where you wake: up the tube (you flew: the basin at the tube mouth, the master kneeling by you)
+ * or out of the rot (you fell: the foot of the tree, the hunter, and the girl if she came out with you).
+ * The chapter's title is still to come (designer).
+ */
+export function beginChapter4(scene: Phaser.Scene): void {
+  const session = getSession(scene);
+  const story = session.story;
+  const left = story.getVariable('chased') ? 'tube' : 'rot';
+  story.setVariable('chapter', 4);
+  story.setVariable('c4_story', true);
+  story.setVariable('c4_left', left);
+  story.setVariable('carver_below', true);
+  story.setVariable('c4_girl', left === 'rot' && story.getVariable('girl_follows') ? 'follows' : '');
+  story.setVariable('objective', '');
+  story.setVariable('objective_target', '');
+  session.calendar.jumpTo(1);
+  const next = chapter4Start(left);
+  session.dayStarts = { 1: { ink: story.saveState(), calendar: session.calendar.toJSON(), wake: { areaId: next.areaId, start: next.start!, script: next.script } } };
+  scene.scene.start('Chapter', { number: 'Chapter 4', title: '(title to come)', next } satisfies ChapterSceneData);
+}
+
+/** Where Chapter 4 opens, by how you left the tree. */
+const chapter4Start = (left: 'tube' | 'rot'): AreaSceneData =>
+  left === 'tube'
+    ? { areaId: 'tube-mouth', start: { x: 668, y: 252 }, card: 'Day 1', script: 'c4day1_tube' }
+    : { areaId: 'trees-edge', start: { x: 615, y: 232 }, card: 'Day 1', script: 'c4day1_rot' };
+
+/**
+ * Dev: Chapter 4 with Act 1's routes as flags (`?chapter=4`): `&left=tube|rot` (how you left: up the tube or into
+ * the rot), `&girl=saved|framed` (framed and fell: she's with you), `&seed=healthy|roots`, `&told=1` (you told the
+ * archivist), `&confided=1` (you confided in your friend). Part way into Day 1 with `&at=`: `house` (Grounded's
+ * door, your guide with you), `seed` (the seed bed), `look` (the great house, the afternoon), `hall` (the
+ * workshop, the master about to walk you through), `mess` (the mess, evening), `lookout` (Grounded at the rail),
+ * `lore` (straight into his telling), `bed` (the hall at night).
+ */
+export function devChapter4(scene: Phaser.Scene, at: string): void {
+  const session = getSession(scene);
+  const params = params0();
+  const set = (vars: Record<string, string | number | boolean>) => {
+    for (const [name, value] of Object.entries(vars)) session.story.setVariable(name, value);
+  };
+  const left = params.get('left') === 'rot' ? 'rot' : 'tube';
+  const framed = params.get('girl') === 'framed';
+  set({
+    chased: left === 'tube',
+    girl_fate: framed ? 'blamed' : 'saved',
+    in_custody: !framed,
+    girl_follows: framed && left === 'rot',
+    seed: params.get('seed') === 'roots' ? 'roots' : 'healthy',
+    told_archivist: params.get('told') === '1',
+    confided: params.get('confided') === '1',
+  });
+  if (at === 'start') return beginChapter4(scene);
+  const girl = framed && left === 'rot';
+  set({ chapter: 4, c4_story: true, c4_left: left, carver_below: true, c4_girl: girl ? 'follows' : '' });
+  const guide = left === 'tube' ? 'master' : 'hunter';
+  const afternoon = { c4_girl: girl ? 'mess' : '', c4_guide: '' };
+  const parts: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | number | boolean> }> = {
+    house: { area: { areaId: 'groundeds-house', start: { x: 40, y: 240 } }, slots: 0, vars: { c4day1: 'led', c4_guide: guide, objective: `Go with the ${guide} to Grounded's house`, objective_target: 'groundeds-house:grounded-1' } },
+    seed: { area: { areaId: 'seed-bed', start: { x: 30, y: 230 } }, slots: 0, vars: { ...afternoon, c4day1: 'seed', objective: 'Follow Grounded', objective_target: 'seed-bed:grounded-seed' } },
+    look: { area: { areaId: 'great-house', start: { x: 730, y: 380 } }, slots: 1, vars: { ...afternoon, c4day1: 'look', objective: 'Look round the great house', objective_target: 'great-house:quartermaster-sort' } },
+    hall: { area: { areaId: 'great-house', start: { x: 160, y: 292 } }, slots: 1, vars: { ...afternoon, c4day1: 'look', c4day1_sorted: true, objective: 'Find the master in the workshop', objective_target: 'great-house:master-bench' } },
+    mess: { area: { areaId: 'great-house', start: { x: 100, y: 380 } }, slots: 2, vars: { ...afternoon, c4day1: 'mess', c4day1_sorted: true, objective: 'Eat in the mess', objective_target: 'great-house:child-mess' } },
+    lookout: { area: { areaId: 'lookout', start: { x: 172, y: 210 } }, slots: 2, vars: { ...afternoon, c4day1: 'mess', c4day1_sorted: true, c4day1_owned: true, objective: 'Go up to the lookout', objective_target: 'lookout:grounded-lookout' } },
+    lore: { area: { areaId: 'lookout', start: { x: 230, y: 210 }, script: 'c4day1_after_lore' }, slots: 2, vars: { ...afternoon, c4day1: 'lore', c4day1_sorted: true, c4day1_owned: true } },
+    bed: { area: { areaId: 'ascended-hall', start: { x: 420, y: 240 } }, slots: 3, vars: { c4_girl: girl ? 'bed' : '', c4_guide: '', c4day1: 'bed', c4day1_sorted: true, c4day1_owned: true, objective: 'Go to bed', objective_target: 'ascended-hall:bed' } },
+  };
+  const mid = parts[at] ?? parts.house!;
+  set(mid.vars);
+  session.calendar.jumpTo(1);
+  for (let i = 0; i < mid.slots; i++) session.calendar.advance();
+  if (at === 'lore') {
+    scene.scene.start('Lore', { knot: 'c4lore', voice: 'grounded', back: mid.area } satisfies LoreSceneData);
+    return;
+  }
+  scene.scene.start('Area', mid.area);
+}
+
 const HOLD = 2800;
 
 /**

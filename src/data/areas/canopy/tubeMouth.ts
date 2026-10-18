@@ -2,7 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './canopyProps';
 import type { AreaDefinition, Feature, Solid } from '../types';
 import { stairSide } from './canopyArea';
-import { DAY, MORNING, folk, strollingFolk } from './people';
+import { DAY, MORNING, folk, guide, strollingFolk } from './people';
 
 // The tube mouth (Chapter 4): where the tube comes out of the top of the tree, and offerings and the
 // ascended arrive (docs/areas/canopy/tube-mouth.md). The first place in the canopy, so it sets the look:
@@ -163,6 +163,7 @@ export const tubeMouth: AreaDefinition = {
   ],
 
   people: [
+    guide('master', 654, FLOOR),
     folk('sorter-1', 1, 616, FLOOR, 'c4_folk_tube', DAY),
     folk('sorter-2', 4, 700, FLOOR, 'c4_folk_tube', MORNING),
     strollingFolk('passer-1', 0, 250, 520, FLOOR, 'c4_folk_tube', DAY),

@@ -2,6 +2,7 @@ import * as P from './treesEdgeProps';
 import { dugHole } from './scrapProps';
 import type { AreaDefinition, Solid } from '../types';
 import { cast, dogFollowing } from './people';
+import { girlGuide, guide, inStory } from '../canopy/people';
 
 // The tree's edge (Chapter 2): where the borderland meets the tree's roots. Nobody goes close. The tree's
 // mystery, seen from outside: the waste running up to roots that come out of the ground like walls, bigger
@@ -73,6 +74,10 @@ export const treesEdge: AreaDefinition = {
     { type: 'trigger', x: 250, y: FLOOR, reach: 50, knot: 'c2day11_edge', showIf: 'edge_ready11', hideIf: 'edge11' },
   ],
   people: [
+    // Chapter 4, Day 1, out of the rot: the hunter, waiting; the girl, if she came out with you.
+    inStory('hunter-edge', 'hunter', 560, FLOOR, 'c4day1=rot', 'c4day1_hunter_guide'),
+    guide('hunter', 560, FLOOR),
+    girlGuide(640, FLOOR),
     dogFollowing(30, FLOOR),
     // Day 11: the watcher, walking you out (the truce); the old scavenger pushing your brother in a cart.
     cast('watcher', 170, FLOOR, { id: 'watcher-edge11', showIf: 'watcher_edge11', hideIf: 'old_edge11' }),

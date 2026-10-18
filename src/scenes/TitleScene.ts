@@ -8,7 +8,7 @@ import { stopScore } from '../ui/score';
 import { savedScreenFit, setScreenFit, toggleFullscreen } from '../ui/displaySetting';
 import { setMuted } from '../ui/soundSetting';
 import { BIRD, FUNGI, LAMP } from '../ui/sprites';
-import { beginChapter2, beginChapter3 } from './ChapterScene';
+import { beginChapter2, beginChapter3, beginChapter4 } from './ChapterScene';
 
 // Title screen, visual only: looking up the inside of the trunk at the tube rising into the
 // white Canopy, with the menu beside it. Only New Game does anything yet (parked menu ideas
@@ -94,6 +94,7 @@ export class TitleScene extends Phaser.Scene {
       // (For now, always here, to play it from the title (designer); later, perhaps once Chapter 1 is finished.)
       { label: 'Chapter 2', action: () => this.startGame(() => beginChapter2(this)) },
       { label: 'Chapter 3', action: () => this.startGame(() => beginChapter3(this)) },
+      { label: 'Chapter 4', action: () => this.startGame(() => beginChapter4(this)) },
       { label: 'Continue', action: () => this.showNotice('Not built yet.') },
       { label: 'Settings', action: () => this.setMenu(this.settingsMenu()) },
       { label: 'Credits', action: () => this.showNotice('Not built yet.') },

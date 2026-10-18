@@ -63,6 +63,8 @@ Opens on the chapter card: "Chapter 4", then its title (open).
 
 **What Day 1 sets:** nothing chosen; the town's mood from `seed`.
 
+**As built (2026-10-18; designer: pace the reveal, don't reveal everything too quickly; Grounded covers his list and nothing more).** The explanation is spread over the day in three layers rather than all at once in his house: (1) arrival explains nothing ("Where are the gods?" goes unanswered; "He'll tell you"); (2) in his house in the morning, only what's between you and him: Mum, why you (the deficiency), the cost (he knew), why nobody could walk in and say it (everyone's devout); "Tonight. You wouldn't believe me now. Go and look first."; (3) the afternoon is seen, not explained (the sorting deck, the blessings made by hand and smaller, the hall); the child owns up in the mess; (4) at dusk at the lookout, with the capital's lights in front of you, the rest of his list over moving pictures (story/canopy/lore.ink). Your bed is in the ascended's hall (suggestion). Out of the rot, the master is first seen at her bench in the workshop.
+
 ---
 
 ## Day 2: down (suggestion, unless marked)

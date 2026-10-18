@@ -8,6 +8,8 @@ import type { AmbienceLayer, AreaDefinition, Exit, Feature, FindItem, Person, Su
 import { nextHop } from '../data/route';
 import { Player } from '../objects/Player';
 import type { CarveSceneData } from './CarveScene';
+import type { LoreSceneData } from './LoreScene';
+import type { VoiceId } from '../systems/voices';
 import type { DecodeResult, DecodeSceneData } from './DecodeScene';
 import type { EndingSceneData } from './EndingScene';
 import type { StepSceneData } from './StepScene';
@@ -1512,6 +1514,7 @@ export class AreaScene extends Phaser.Scene {
    *   #dim:on / #dim:off      the room darkens around the conversation, or lightens again
    *   #throw                  something is thrown at you from the crowd
    *   #carve:<knot>           after the conversation, the carving close-up plays the knot
+   *   #lore:<knot>[:<then>[:<voice>]]  after the conversation, someone tells you how the world is, over moving pictures (LoreScene); back here, <then> plays
    *   #when:<variable>:<knot>[:<seconds>]  once the variable reaches 0 (e.g. everything hidden), or the time runs out, the knot plays
    *   #ending:<id>            after the conversation, an ending (e.g. loyal)
    *   #fight:<knot>[:<then>]  after the conversation, the fight close-up plays the knot; back here, <then> plays
@@ -1695,6 +1698,14 @@ export class AreaScene extends Phaser.Scene {
           const knot = args[0];
           const start = { ...this.player.feet };
           if (knot) this.afterClose.push(() => this.leaveFor('Carve', { knot, back: { areaId: this.area.id, start } } satisfies CarveSceneData));
+          break;
+        }
+        case 'lore': {
+          // #lore:<knot>[:<then>[:<voice>]]: after the conversation, someone tells you how the world is, over moving
+          // pictures (src/scenes/LoreScene.ts; Grounded's voice unless another's given); back here, <then> plays.
+          const [knot, then, voice] = args;
+          const start = { ...this.player.feet };
+          if (knot) this.afterClose.push(() => this.leaveFor('Lore', { knot, voice: (voice || 'grounded') as VoiceId, back: { areaId: this.area.id, start, script: then || undefined } } satisfies LoreSceneData, 1200));
           break;
         }
         case 'fight': {

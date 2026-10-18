@@ -3,7 +3,7 @@ import * as P from './canopyProps';
 import * as I from './canopyInteriors';
 import { CANOPY_AMBIENCE, sides } from './canopyArea';
 import type { AreaDefinition } from '../types';
-import { DAY, MORNING, colonist, folk } from './people';
+import { DAY, MORNING, colonist, folk, girlGuide, guide } from './people';
 
 // The lowering platform (Chapter 4): where the tree's output leaves for the outside (doc;
 // docs/areas/canopy/lowering-platform.md). Out on a long branch over the drop: the winch, its great drum of
@@ -72,12 +72,16 @@ export const loweringPlatform: AreaDefinition = {
   ],
 
   features: [
+    // Chapter 4, Day 1, out of the rot: the cage reaches the top.
+    { type: 'trigger', x: 612, y: FLOOR, reach: 30, knot: 'c4day1_cage', showIf: 'c4day1=cage' },
     // A crate going down on the cable, now and then.
     { type: 'pulse', points: [{ x: 712, y: 200 }, { x: 712, y: H + 10 }], speed: 22, every: 3500, sprite: P.CRATE },
     { type: 'swing', sprite: P.LANTERN, x: 640, y: 126, ropeTop: 111, quiet: true, ropeColour: S.wood },
   ],
 
   people: [
+    guide('hunter', 600, FLOOR),
+    girlGuide(612, FLOOR),
     colonist('hunter', 'hunter', 250, FLOOR, ['afternoon', 'evening']),
     colonist('quartermaster', 'quartermaster', 160, FLOOR, MORNING),
     folk('winch-1', 3, 470, FLOOR, 'c4_folk_winch', DAY),
