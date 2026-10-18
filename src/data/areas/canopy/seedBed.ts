@@ -3,6 +3,7 @@ import * as P from './canopyProps';
 import * as I from './canopyInteriors';
 import { CANOPY_AMBIENCE, sides } from './canopyArea';
 import type { AreaDefinition } from '../types';
+import { MORNING, colonist } from './people';
 
 // The seed bed (Chapter 4): where Grounded keeps the seed and reads the tree's vitality (doc;
 // docs/areas/canopy/seed-bed.md). A glasshouse in the high branches, the sky through its panes: raised beds of
@@ -63,7 +64,7 @@ export const seedBed: AreaDefinition = {
     { type: 'motes', x: 262, top: FLOOR - 60, bottom: FLOOR - 24, halfWidth: 8 },
   ],
 
-  people: [],
+  people: [colonist('grounded-seeds', 'grounded', 330, FLOOR, MORNING)],
 
   interactables: [
     { id: 'seedlings', x: 140, y: FLOOR, reach: 40, label: 'Look', knot: 'c4_look_seedlings' },

@@ -577,6 +577,8 @@ VAR friend8 = false
 // Chapter 3's story is running: the day's own people are where the story has them, and Claude's placeholder
 // schedule for the capital's named cast steps aside (src/data/areas/capital/people.ts).
 VAR c3_story = false
+// Chapter 4's story is running (the day's people take over from the placeholder schedule).
+VAR c4_story = false
 // What carries through the chapter (and later chapters): small decisions, counted quietly, never shown.
 // `lean`: your duties' answers, towards the people (+1) or towards order (-1). `standing`: how upper society takes you.
 VAR lean = 0
@@ -843,6 +845,7 @@ INCLUDE capital/cast.ink
 INCLUDE capital/folk.ink
 INCLUDE capital/looks.ink
 INCLUDE canopy/looks.ink
+INCLUDE canopy/cast.ink
 
 // The game starts conversations by knot name via StoryBridge, so the root
 // flow does nothing.

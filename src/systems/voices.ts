@@ -56,6 +56,13 @@ export const VOICES = {
   captain: { pitch: 98, spread: 0.8, wave: 'triangle', length: 0.07, speed: 1.15, every: 3, glide: -1.2, breath: 0.25, wobble: 0, formant: 0.78, volume: 1 }, // clipped, hard, falling
   lady: { pitch: 205, spread: 1.8, wave: 'sine', length: 0.09, speed: 0.95, every: 2, glide: 0.7, breath: 0.2, wobble: 0.08, formant: 1.12, volume: 0.95 }, // high society: light, musical
   commander: { pitch: 170, spread: 1, wave: 'triangle', length: 0.08, speed: 1, every: 3, glide: -1, breath: 0.25, wobble: 0, formant: 0.95, volume: 0.95 }, // level, few words
+  // Chapter 4, the canopy (Claude's, draft).
+  grounded: { pitch: 118, spread: 2.2, wave: 'triangle', length: 0.09, speed: 1.05, every: 2, glide: 0.6, breath: 0.35, wobble: 0, formant: 0.88, volume: 1 }, // warm, rough, rising when he gets going
+  master: { pitch: 185, spread: 1.4, wave: 'sine', length: 0.1, speed: 0.85, every: 3, glide: -0.6, breath: 0.45, wobble: 0.3, formant: 1.05, volume: 0.95 }, // old, dry, a little slurred
+  hunter: { pitch: 168, spread: 3, wave: 'triangle', length: 0.06, speed: 1.35, every: 2, glide: -1.4, breath: 0.3, wobble: 0, formant: 0.95, volume: 0.95 }, // quick, rough, clipped
+  quartermaster: { pitch: 190, spread: 1.8, wave: 'triangle', length: 0.075, speed: 1.15, every: 2, glide: 0.4, breath: 0.2, wobble: 0, formant: 1, volume: 1 }, // brisk, amused
+  keeper: { pitch: 245, spread: 2.8, wave: 'sine', length: 0.065, speed: 1.3, every: 2, glide: 1.2, breath: 0.2, wobble: 0, formant: 1.12, volume: 0.9 }, // young, eager, all questions
+  messenger: { pitch: 140, spread: 1.1, wave: 'sine', length: 0.1, speed: 0.92, every: 3, glide: 0.2, breath: 0.15, wobble: 0, formant: 0.98, volume: 0.95 }, // smooth, unhurried
 } satisfies Record<string, Voice>;
 
 export type VoiceId = keyof typeof VOICES;

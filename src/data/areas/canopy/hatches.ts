@@ -3,6 +3,7 @@ import type { RowSprite } from '../../../ui/sprites';
 import { heartwoodSolids } from '../tunnels';
 import * as P from './canopyProps';
 import type { AreaDefinition, Rect, Solid } from '../types';
+import { AWAKE, colonist } from './people';
 
 // The hatches (Chapter 4): hidden ways through the bark that only the canopy's people know (doc;
 // docs/areas/canopy/hatches.md). A long shaft down inside the bark, boards wedged across it to climb and drop
@@ -76,7 +77,7 @@ export const hatches: AreaDefinition = {
     { type: 'pulse', points: [{ x: 199, y: BOTTOM - 10 }, { x: 199, y: 60 }], speed: 40, every: 900, count: 3, colour: S.cyan },
   ],
 
-  people: [],
+  people: [colonist('keeper', 'keeper', 92, TOP, AWAKE)],
 
   interactables: [{ id: 'glow', x: 186, y: 304, reach: 10, label: 'Look', knot: 'c4_look_hatch_glow' }],
 

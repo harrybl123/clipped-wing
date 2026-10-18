@@ -2,6 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './canopyProps';
 import { CANOPY_AMBIENCE, sides, stair, stairSide } from './canopyArea';
 import type { AreaDefinition, Prop } from '../types';
+import { AWAKE, DAY, colonist, folk, strollingFolk } from './people';
 
 // The walkways (Chapter 4): rope bridges and platforms linking the treehouses (doc;
 // docs/areas/canopy/walkways.md); a village among the limbs (designer: more treehousey, like the Ewoks' in
@@ -124,7 +125,13 @@ export const walkways: AreaDefinition = {
     { type: 'swing', sprite: P.CHIME, x: 110, y: TOP + 18, ropeTop: TOP + 6, quiet: true, ropeColour: S.wood },
   ],
 
-  people: [],
+  people: [
+    strollingFolk('stroller-1', 7, 100, 290, MAIN, 'c4_folk_walkways', DAY),
+    strollingFolk('stroller-2', 0, 420, 620, MAIN, 'c4_folk_walkways', AWAKE),
+    folk('washer', 2, 500, UP2, 'c4_folk_walkways', DAY),
+    folk('gardener', 1, 530, LOW, 'c4_folk_walkways', DAY),
+    colonist('messenger', 'messenger', 340, MAIN, ['afternoon']),
+  ],
 
   interactables: [
     { id: 'houses', x: 270, y: MAIN, reach: 12, label: 'Look', knot: 'c4_look_houses' },

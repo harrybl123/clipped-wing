@@ -3,6 +3,7 @@ import * as P from './canopyProps';
 import * as I from './canopyInteriors';
 import { CANOPY_AMBIENCE, sides } from './canopyArea';
 import type { AreaDefinition } from '../types';
+import { DAY, MORNING, colonist, folk } from './people';
 
 // The lowering platform (Chapter 4): where the tree's output leaves for the outside (doc;
 // docs/areas/canopy/lowering-platform.md). Out on a long branch over the drop: the winch, its great drum of
@@ -76,7 +77,12 @@ export const loweringPlatform: AreaDefinition = {
     { type: 'swing', sprite: P.LANTERN, x: 640, y: 126, ropeTop: 111, quiet: true, ropeColour: S.wood },
   ],
 
-  people: [],
+  people: [
+    colonist('hunter', 'hunter', 250, FLOOR, ['afternoon', 'evening']),
+    colonist('quartermaster', 'quartermaster', 160, FLOOR, MORNING),
+    folk('winch-1', 3, 470, FLOOR, 'c4_folk_winch', DAY),
+    folk('winch-2', 6, 368, FLOOR, 'c4_folk_winch', DAY),
+  ],
 
   interactables: [
     { id: 'winch', x: 466, y: FLOOR, reach: 26, label: 'Look', knot: 'c4_look_winch' },

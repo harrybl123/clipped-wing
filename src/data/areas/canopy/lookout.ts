@@ -3,6 +3,7 @@ import type { RowSprite } from '../../../ui/sprites';
 import * as P from './canopyProps';
 import * as I from './canopyInteriors';
 import type { AreaDefinition } from '../types';
+import { colonist } from './people';
 
 // The lookout (Chapter 4): the highest point (doc; docs/areas/canopy/lookout.md). A small railed platform on a
 // mast above all the leaves, all sky: a spyglass on its stand, the canopy's flag, a turbine turning, the wind.
@@ -56,7 +57,7 @@ export const lookout: AreaDefinition = {
 
   features: [{ type: 'frames', frames: P.turbineFrames(40), x: 246, y: DECK - 65, every: 120, power: 'any' }],
 
-  people: [],
+  people: [colonist('hunter-lookout', 'hunter', 310, DECK, ['night'])],
 
   interactables: [
     { id: 'spyglass', x: 296, y: DECK, reach: 12, label: 'Look', knot: 'c4_look_spyglass' },

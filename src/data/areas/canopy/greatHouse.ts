@@ -4,6 +4,7 @@ import * as P from './canopyProps';
 import * as I from './canopyInteriors';
 import { CANOPY_AMBIENCE, sides, stair, stairSide } from './canopyArea';
 import type { AreaDefinition } from '../types';
+import { AWAKE, DAY, MORNING, ascended, colonist, folk } from './people';
 
 // The great house (Chapter 4): the grand central treehouse (docs/areas/canopy/great-house.md), seen in
 // cutaway, three storeys under a roof of leaf shingles with solar sails along its ridge. At the top, the
@@ -157,7 +158,19 @@ export const greatHouse: AreaDefinition = {
     { type: 'swing', sprite: P.CHIME, x: 70, y: GROUND - 60, ropeTop: GROUND - 70, quiet: true, ropeColour: S.wood },
   ],
 
-  people: [],
+  people: [
+    colonist('master', 'master', 125, WORKSHOP, AWAKE),
+    colonist('quartermaster', 'quartermaster', 222, GROUND, ['afternoon', 'evening']),
+    colonist('doubter', 'doubter', 600, GROUND, ['afternoon']),
+    colonist('child', 'child', 252, GROUND, ['evening']),
+    ascended('bench-1', 1, 278, WORKSHOP, 'c4_ascended_workshop', DAY),
+    ascended('bench-2', 2, 386, WORKSHOP, 'c4_ascended_workshop', DAY),
+    folk('sorter-1', 3, 320, SORTING, 'c4_folk_sorting', DAY),
+    folk('sorter-2', 6, 432, SORTING, 'c4_folk_sorting', MORNING),
+    folk('eater-1', 2, 360, GROUND, 'c4_folk_mess', ['evening']),
+    folk('eater-2', 5, 404, GROUND, 'c4_folk_mess', ['evening']),
+    folk('cook', 7, 150, GROUND, 'c4_folk_mess', AWAKE),
+  ],
 
   interactables: [
     { id: 'sorting', x: 330, y: SORTING, reach: 30, label: 'Look', knot: 'c4_look_sorting' },

@@ -4,6 +4,7 @@ import * as I from './canopyInteriors';
 import * as CAPITAL from '../capital/cityProps';
 import { CANOPY_AMBIENCE, sides } from './canopyArea';
 import type { AreaDefinition } from '../types';
+import { colonist } from './people';
 
 // Grounded's house (Chapter 4): the highest and oldest treehouse (doc; docs/areas/canopy/groundeds-house.md).
 // Old wood, untidy, a revolutionary's and a poet's (designer: lots of character, clearly an intellectual):
@@ -79,7 +80,7 @@ export const groundedsHouse: AreaDefinition = {
     { type: 'swing', sprite: P.CHIME, x: 530, y: FLOOR - 40, ropeTop: 92, quiet: true, ropeColour: S.wood },
   ],
 
-  people: [],
+  people: [colonist('grounded', 'grounded', 250, FLOOR, ['afternoon', 'evening', 'night'])],
 
   interactables: [
     { id: 'books', x: 96, y: FLOOR, reach: 26, label: 'Look', knot: 'c4_look_groundeds_books' },

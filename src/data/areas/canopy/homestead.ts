@@ -2,6 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as I from './canopyInteriors';
 import * as P from './canopyProps';
 import type { AreaDefinition } from '../types';
+import { AWAKE, DAY, folk } from './people';
 
 // The quartermaster's family (Chapter 4): their homestead on the ground (doc; docs/areas/canopy/homestead.md),
 // at the forest's edge near the tree's foot, the tree vast beside it. A house of scrap and timber, a fenced
@@ -48,7 +49,10 @@ export const homestead: AreaDefinition = {
     { type: 'smoke', x: 470, y: FLOOR - 10, top: 60 },
   ],
 
-  people: [],
+  people: [
+    folk('mother', 7, 300, FLOOR, 'c4_folk_homestead', AWAKE),
+    folk('brother', 3, 440, FLOOR, 'c4_folk_homestead', DAY),
+  ],
 
   interactables: [
     { id: 'shed', x: 588, y: FLOOR, reach: 16, label: 'Look', knot: 'c4_look_store_shed' },

@@ -3,6 +3,7 @@ import * as P from './canopyProps';
 import * as I from './canopyInteriors';
 import { CANOPY_AMBIENCE, sides, stair, stairSide } from './canopyArea';
 import type { AreaDefinition } from '../types';
+import { AWAKE, DAY, LATE, ascended, strollingAscended } from './people';
 
 // The ascended's hall (Chapter 4): everyone who ever went up the tube is alive here (doc;
 // docs/areas/canopy/ascended-hall.md). A long hall in the boughs under a low roof held up by columns of living
@@ -91,7 +92,12 @@ export const ascendedHall: AreaDefinition = {
     { type: 'swing', sprite: P.CHIME, x: 680, y: FLOOR + 24, ropeTop: FLOOR + 4, quiet: true, ropeColour: S.wood },
   ],
 
-  people: [],
+  people: [
+    ascended('sitter-1', 0, 290, FLOOR, 'c4_ascended_hall', AWAKE),
+    ascended('sitter-2', 3, 412, FLOOR, 'c4_ascended_hall', DAY),
+    ascended('alcove', 4, 214, FLOOR, 'c4_ascended_hall', LATE),
+    strollingAscended('walker', 1, 300, 560, FLOOR, 'c4_ascended_hall', DAY),
+  ],
 
   interactables: [
     { id: 'pieces', x: 366, y: FLOOR, reach: 40, label: 'Look', knot: 'c4_look_last_pieces' },

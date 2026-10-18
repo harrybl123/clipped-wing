@@ -861,6 +861,122 @@ export const PRINCE = {
   fall: prince({ sway: [-1, 1], arm: -1 }),
 };
 
+// --- The carver by daylight (Chapter 4) ---
+
+/**
+ * The carver in colour, for the canopy's daylight (in the tree they're a rim-lit figure in the dark): messy
+ * dark-brown hair falling over the brow, fair skin, a roots-dweller's worn tunic, belted, plain trousers;
+ * the red thread knotted at the neck, its end trailing behind (reserved: the protagonist's); the left hand
+ * bandaged (the prologue). Looks are Claude's (suggestion). 12×26 like the others.
+ */
+const CARVER_DAY_COLOURS = {
+  H: SHADES.woodLight, h: SHADES.woodPale, // the hair, where the light catches it
+  K: SHADES.skinFair, k: SHADES.skinFairShade, d: SHADES.shadow, // skin, its shadow; the eye
+  C: SHADES.dim, c: SHADES.woodPale, // the tunic and its shadow
+  B: SHADES.wood, // the belt
+  R: SHADES.red, r: SHADES.redDark, // the red thread
+  W: SHADES.white, // the bandage
+  P: SHADES.wood, p: SHADES.deep, b: SHADES.shadow, // trousers, their shadow; boots
+};
+
+function carverDay(pose: PrincePose): RowSprite {
+  const g = grid(PROTAGONIST_W, PROTAGONIST_H);
+  const b = pose.bob ?? 0;
+  // Head: messy hair over the crown and falling over the brow, the face to the right.
+  span(g, 0 + b, 4, 7, 'H');
+  put(g, 5, 0 + b, 'h');
+  span(g, 1 + b, 3, 8, 'H');
+  put(g, 6, 1 + b, 'h');
+  span(g, 2 + b, 3, 4, 'H');
+  span(g, 2 + b, 5, 8, 'K');
+  put(g, 6, 2 + b, 'H'); // the fringe falling over the brow
+  put(g, 7, 2 + b, 'd'); // the eye
+  put(g, 3, 3 + b, 'H');
+  span(g, 3 + b, 4, 8, 'K');
+  put(g, 5, 3 + b, 'k');
+  span(g, 4 + b, 5, 7, 'K');
+  put(g, 5, 4 + b, 'k');
+  // The red thread knotted at the neck, its end trailing behind.
+  span(g, 5 + b, 4, 7, 'R');
+  put(g, 4, 5 + b, 'r');
+  put(g, 3, 6 + b, 'R');
+  put(g, 2, 7 + b, 'r');
+  // The tunic, belted, to the thigh.
+  for (let y = 6; y <= 15; y++) {
+    span(g, y + b, 4, 8, y === 12 ? 'B' : 'C');
+    put(g, 4, y + b, y === 12 ? 'B' : 'c');
+  }
+  // Back arm (in shadow), the bandaged hand at its end.
+  const arm = pose.arm ?? 0;
+  for (let y = 7; y <= 13; y++) {
+    const swing = y >= 10 ? -Math.sign(arm) * Math.min(Math.abs(arm), y - 9) : 0;
+    if (g[y + b]?.[3 + swing] === '.') put(g, 3 + swing, y + b, 'c');
+  }
+  if (g[14 + b]?.[3 - arm] === '.') put(g, 3 - arm, 14 + b, 'W');
+  // Front arm: the sleeve, the hand.
+  for (let y = 7; y <= 13; y++) {
+    const swing = y >= 10 ? Math.sign(arm) * Math.min(Math.abs(arm), y - 9) : 0;
+    put(g, 9 + swing, y + b, 'C');
+  }
+  put(g, 9 + arm, 14 + b, 'K');
+  // Legs; boots for the last two rows.
+  const [liftBack, liftFront] = pose.lift ?? [0, 0];
+  const leg = (hipX: number, sway: number, lift: number, front: boolean) => {
+    const bottom = PROTAGONIST_H - 1 - lift;
+    for (let y = 16; y <= bottom; y++) {
+      const x = hipX + Math.round((sway * (y - 16)) / Math.max(1, bottom - 16));
+      const boot = y > bottom - 2;
+      put(g, x, y, boot ? 'b' : front ? 'P' : 'p');
+      put(g, x + 1, y, boot ? 'b' : front ? 'P' : 'p');
+      if (y === bottom) put(g, x + 2, y, 'b');
+    }
+  };
+  leg(4, pose.sway[0], liftBack, false);
+  leg(6, pose.sway[1], liftFront, true);
+  return { rows: rows(g), colours: CARVER_DAY_COLOURS };
+}
+
+export const CARVER_DAY = {
+  idle: [carverDay({ sway: [0, 0] }), carverDay({ sway: [0, 0], bob: 1 })],
+  walk: [
+    carverDay({ sway: [-3, 3], arm: -1 }),
+    carverDay({ sway: [-1, 1], lift: [0, 2], bob: 1, arm: 0 }),
+    carverDay({ sway: [3, -3], arm: 1 }),
+    carverDay({ sway: [1, -1], lift: [2, 0], bob: 1, arm: 0 }),
+  ],
+  jump: carverDay({ sway: [-1, 2], lift: [3, 2], arm: 1 }),
+  fall: carverDay({ sway: [-1, 1], arm: -1 }),
+};
+
+/** Crouching: bent forward, head low and out in front. */
+const carverDayCrouch = (legs: [string, string, string, string]): RowSprite => ({
+  rows: [
+    ...Array<string>(10).fill('............'),
+    '......HHH...',
+    '.....HHHHH..',
+    '.....HKHdK..',
+    '..r.RRkKKK..',
+    '...rCRRKK...',
+    '..cCCCCCC...',
+    '..cCCCCCC.K.',
+    '..cBBBBBB...',
+    '.WcCCCCCC...',
+    '..cCCCCCC...',
+    '..pPPPPP....',
+    '..pPPPPPP...',
+    ...legs,
+  ],
+  colours: CARVER_DAY_COLOURS,
+});
+
+export const CARVER_DAY_CROUCH = {
+  idle: carverDayCrouch(['..pp..PPP...', '..pp...PP...', '..bb...bb...', '.bbb...bbb..']),
+  walk: [
+    carverDayCrouch(['..pp..PPP...', '..pp...PP...', '..bb...bb...', '.bbb...bbb..']),
+    carverDayCrouch(['..pp..PPP...', '...pp.PP....', '...bb.bb....', '..bbb.bbb...']),
+  ],
+};
+
 /** Crouching: bent forward, head low and out in front, the coat's skirt over his legs. */
 const princeCrouch = (legs: [string, string, string, string]): RowSprite => ({
   rows: [
