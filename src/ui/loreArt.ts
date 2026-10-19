@@ -542,10 +542,39 @@ const towerTop = (x: number) => (x < 132 ? 16 + ((Math.floor(x / 14) * 37) % 70)
 /** A small tree on the right, in silhouette. */
 const smallTree = (x: number, y: number, cx: number, base: number, size: number) =>
   (Math.abs(x - cx) <= Math.max(1, size / 8) && y > base - size && y <= base) || Math.hypot(x - cx, (y - (base - size * 1.4)) * 1.1) < size * 0.7 + fbm(x / 3, y / 3) * size * 0.25;
-const WORKERS = [372, 390, 408, 426];
+const WORKERS = [368, 392, 416, 440];
 /** The road from the tree to the foot of the crag, and the bridge from the city's far side out to them. */
 const ROAD_Y = 168;
 const BRIDGE = { x0: CAPITAL.left - 4, y0: CAPITAL.top + 6, x1: 120, y1: 92 };
+/** A cart of the tree's work, pulled along the road by someone walking ahead of it (to the left). */
+function cart(o: Out, x: number, road: number, stride: number): void {
+  // The crate, its slats and its load, on two wheels.
+  o.r(x - 6, road - 11, 13, 8, S.woodPale);
+  o.r(x - 6, road - 11, 13, 1, S.light);
+  o.r(x - 6, road - 7, 13, 1, S.wood);
+  o.r(x + 6, road - 10, 1, 7, S.wood);
+  for (const wx of [x - 4, x + 3]) {
+    o.r(wx, road - 3, 3, 3, S.shadow);
+    o.r(wx + 1, road - 2, 1, 1, S.dim);
+  }
+  // The shafts, and whoever's pulling it.
+  o.line(x - 6, road - 6, x - 12, road - 8, S.wood);
+  figure(o, x - 15, road, { h: 16, facing: -1, walk: stride, bent: 0.3 });
+}
+
+/** Someone bent over the ground with a hoe, lifting it and bringing it down, a drawing at a time. */
+function hoeing(o: Out, x: number, feet: number, t: number): void {
+  const up = step(t) % 1 < 0.5;
+  figure(o, x, feet, { h: 22, bent: 0.55, facing: 1 });
+  // The hoe: a long handle from the hands, its blade at the ground (or raised).
+  const hx = x + 6;
+  const hy = feet - 13;
+  const tx = up ? x + 12 : x + 15;
+  const ty = up ? feet - 22 : feet - 1;
+  o.line(hx, hy, tx, ty, S.woodPale);
+  o.r(tx - 1, ty - (up ? 0 : 1), 3, 2, S.dim);
+}
+
 const capital: LorePanel = {
   paint: (x, y) => {
     if (y >= CAP_HORIZON) {
@@ -580,13 +609,10 @@ const capital: LorePanel = {
     if (beat === 2) {
       // The bargain, as it works: carts of the tree's work along the road to the foot of the crag; up its lift;
       // and out the other side, along a bridge of light, to them.
-      for (let i = 0; i < 4; i++) {
-        const k = (s * 0.12 + i / 4) % 1;
-        const cx = lerp(440, CAPITAL.right + 6, k);
-        o.r(cx - 3, ROAD_Y - 6, 7, 5, S.woodPale);
-        o.r(cx - 3, ROAD_Y - 6, 7, 1, S.light);
-        o.r(cx - 2, ROAD_Y - 1, 2, 2, S.shadow);
-        o.r(cx + 2, ROAD_Y - 1, 2, 2, S.shadow);
+      for (let i = 0; i < 3; i++) {
+        const k = (s * 0.1 + i / 3) % 1;
+        const cx = lerp(430, CAPITAL.right + 14, k);
+        cart(o, cx, ROAD_Y, s * 9 + i);
       }
       const lift = CAPITAL.lifts[1]!;
       const ly = lerp(CAP_HORIZON - 4, CAPITAL.top + 2, (s * 0.25) % 1);
@@ -597,8 +623,8 @@ const capital: LorePanel = {
         const k = (s * 0.18 + i / 3) % 1;
         o.r(lerp(BRIDGE.x0, BRIDGE.x1, k) - 2, lerp(BRIDGE.y0, BRIDGE.y1, k) - 4, 5, 4, S.white, 0.9);
       }
-      // And people like you, kept at it, bent over the fields.
-      WORKERS.forEach((x, i) => figure(o, x, 186, { bent: 0.7, arm: step(t + i * 0.3) % 1 < 0.5 ? 0.2 : 0.55, h: 18 }));
+      // And people like you, kept at it, bent over the fields with their hoes.
+      WORKERS.forEach((x, i) => hoeing(o, x, 190, t + i * 0.37));
     }
     if (beat >= 3) {
       // Without the deal: the wall gone, their light rolls on over the city and our side, ruling everything into
@@ -610,8 +636,8 @@ const capital: LorePanel = {
       for (let x = 136; x < front; x += 12) o.r(x, 20 + (x % 40), 1, CAP_HORIZON - 20 - (x % 40), S.light, 0.25);
       o.r(front - 3, 0, 3, LORE_H, S.white, 0.8);
       WORKERS.forEach((x, i) => {
-        if (x > front) figure(o, x, 186, { bent: 0.7, arm: step(t + i * 0.3) % 1 < 0.5 ? 0.2 : 0.55, h: 18 });
-        else if (i % 2 === 0) figure(o, x, 186, { kind: 'integrated', h: 24 });
+        if (x > front) hoeing(o, x, 190, t + i * 0.37);
+        else if (i % 2 === 0) figure(o, x, 190, { kind: 'integrated', h: 26 });
       });
     }
     return o.rects;
@@ -777,32 +803,11 @@ function handPaint(x: number, y: number): PixelColour {
 }
 
 const HAND_BIRD = { x: 226, y: 108, scale: 4 };
-/** A perfect bird: the same shape as yours, pale, flawless, made by them in an instant. */
-const PERFECT_BIRD: RowSprite = { rows: BIRD.rows, colours: { '#': S.light, d: S.dim, o: S.shadow } };
-/** Where their perfect birds stand, in rows at the sides, every one the same. */
-const PERFECT = Array.from({ length: 24 }, (_, i) => ({ x: (i % 6 < 3 ? 14 + (i % 3) * 44 : 344 + ((i % 6) - 3) * 44), y: 20 + Math.floor(i / 6) * 42 }));
-/** Things everyone else sends up: all different. */
-const DIFFERENT: RowSprite[] = [
-  { rows: ['pppppp', 'p.p.p.', 'p.p.p.'], colours: { p: S.woodPale } }, // a comb
-  { rows: ['l....l', '.llll.'], colours: { l: S.light } }, // a bowl
-  { rows: ['aaa', 'a.a', 'aaa', '.a.'], colours: { a: S.amber } }, // a cup
-  { rows: ['..ww', '.www', 'www.', '.w..'], colours: { w: S.woodPale } }, // a bird, in plain wood
-  { rows: ['g', 'g', 'gg', 'gg'], colours: { g: S.green } }, // a vial
-  { rows: ['.cc.', 'cccc', '.cc.'], colours: { c: S.cyan } }, // a bead
-  { rows: ['dddd', 'd..d', 'dddd'], colours: { d: S.dim } }, // a box
-  { rows: ['l..', '.l.', '..l', '..l'], colours: { l: S.light } }, // a spoon
-];
 const hand: LorePanel = {
   paint: handPaint,
   frame: ({ beat, since, t }) => {
     const o = new Out();
     const s = step(since);
-    // Perfect birds, row after row at the sides, appearing one after another, every one exactly the same;
-    // once it's said that imperfection's what they value, they dim.
-    PERFECT.forEach((p, i) => {
-      const shown = beat === 0 ? step(since) > i * 0.12 : true;
-      if (shown) o.sprite(PERFECT_BIRD, p.x, p.y, 3, false, 1, beat >= 2 ? 0.25 : 0.8);
-    });
     // Your bird in its palm, turning, a drawing at a time.
     const turn = [1, 0.5, 0.15, 0.5][Math.floor(step(t) / 0.4) % 4]!;
     const flip = Math.floor(step(t) / 1.6) % 2 === 1;
@@ -815,14 +820,6 @@ const hand: LorePanel = {
       const gy = HAND_BIRD.y + 10;
       o.r(gx, gy - 2, 1, 5, S.white);
       o.r(gx - 2, gy, 5, 1, S.white);
-    }
-    if (beat === 3) {
-      // And what everyone else makes: different, every time, one after another.
-      DIFFERENT.forEach((d, i) => {
-        if (s < i * 0.35) return;
-        const ang = (i / DIFFERENT.length) * Math.PI * 2 - Math.PI / 2 + Math.PI / 8;
-        o.sprite(d, 240 + Math.cos(ang) * 175, 112 + Math.sin(ang) * 82, 3);
-      });
     }
     if (beat >= 4) {
       // They want to learn from it: threads of light out of the hand's seams, feeling over the slip in the wing.
@@ -840,92 +837,76 @@ const hand: LorePanel = {
   },
 };
 
-// --- What comes back down: the blessings (food, cloth, medicine), and who takes from them first ---
+// --- What comes back down: the blessings (food, cloth, medicine), shared out into piles you can count ---
+//
+// One at a time they drop in from the top and land on someone's pile. As the tree believes, every one lands
+// on yours. Then the truth: three piles, under the capital's crown, the canopy's hut, and your family; the
+// crown's grows fastest, yours hardly at all. Then fewer come, and the crown's share is bigger still.
 
-/** Where the blessings come in, on the cable, and the table they're shared out on. */
-const TABLE = { x: 240, y: 70 };
-/** Where each share goes: the capital (its crown), the canopy (a treehouse), down the tube to the crowd. */
-const CROWN_AT = { x: 418, y: 40 };
-const HUT_AT = { x: 62, y: 40 };
-const TUBE_FOOT = { x: 240, y: 150 };
-/** The crowd at the evening ceremony: heads along the foot of the picture. */
-const CROWD = Array.from({ length: 22 }, (_, i) => ({ x: 26 + i * 20 + Math.round(cellRandom(i, 1, 3) * 8), y: 190 + Math.round(cellRandom(i, 2, 3) * 10) }));
-/** A blessing: a loaf, a vial of medicine, folded cloth. */
-const BUNDLES: { w: number; h: number; c: number; top: number }[] = [
-  { w: 9, h: 6, c: S.amber, top: S.white },
-  { w: 4, h: 9, c: S.green, top: S.white },
-  { w: 11, h: 5, c: S.light, top: S.white },
+/** A blessing, big enough to read: a loaf, a vial of medicine, a folded shirt. */
+const BLESSING: RowSprite[] = [
+  { rows: ['..aaaa..', '.aawaaa.', 'aawaaaaa', 'aaaaaaaa', '.dddddd.'], colours: { a: S.amber, w: S.white, d: S.amberDeep } },
+  { rows: ['..ll..', '..ll..', '.gggg.', 'gwgggg', 'gwgggg', 'gggggg', '.gggg.'], colours: { l: S.light, g: S.green, w: S.white } },
+  { rows: ['ll....ll', 'llllllll', '.llllll.', '.llwlll.', '.llllll.'], colours: { l: S.light, w: S.white } },
 ];
-/** Of every six that come in, who takes them, by beat: as the tree believes (all to you); the capital's cut and ours; and later, less. */
-const SHARES: ('capital' | 'canopy' | 'you')[][] = [
-  ['you', 'you', 'you', 'you', 'you', 'you'],
-  ['capital', 'you', 'capital', 'canopy', 'capital', 'canopy'],
-  ['capital', 'capital', 'canopy', 'capital', 'you', 'capital'],
+type Pile = 'capital' | 'canopy' | 'you';
+const PILE_X: Record<Pile, number> = { capital: 100, canopy: 240, you: 380 };
+const PILE_FLOOR = 150;
+/** Who gets each one, in turn, by beat: as the tree believes; the capital's cut and ours; later, less. */
+const DEALS: Pile[][] = [
+  ['you', 'you', 'you', 'you', 'you', 'you', 'you', 'you', 'you'],
+  ['capital', 'capital', 'canopy', 'capital', 'you', 'canopy', 'capital', 'capital', 'canopy', 'capital', 'you', 'canopy'],
+  ['capital', 'capital', 'canopy', 'capital', 'capital', 'you', 'capital', 'canopy'],
 ];
+/** How long between one and the next. */
+const DEAL_EVERY = 0.55;
+/** Where the n-th on a pile sits: rows of three, stacking up. */
+const pileSpot = (pile: Pile, n: number) => ({ x: PILE_X[pile] - 29 + (n % 3) * 20, y: PILE_FLOOR - 15 - Math.floor(n / 3) * 15 });
 const blessings: LorePanel = {
   paint: (x, y) => {
-    let c: RGB = mix(SHADOW, WOOD, 0.25 + fbm(x / 8, y / 30) * 0.3);
-    // The cable coming in from the top left, to the table.
-    if (y < TABLE.y && Math.abs(y - lerp(0, TABLE.y - 4, x / TABLE.x)) < 0.8 && x < TABLE.x) c = DIM;
-    // The table.
-    if (y >= TABLE.y && y < TABLE.y + 4 && Math.abs(x - TABLE.x) < 30) c = y === TABLE.y ? LIGHT : WOOD_PALE;
-    // The tube, down from the table to the offering floor, and its basin.
-    if (Math.abs(x - TABLE.x) <= 4 && y >= TABLE.y + 4 && y < TUBE_FOOT.y) c = Math.abs(x - TABLE.x) <= 1 ? LIGHT : CYAN;
-    if (y >= TUBE_FOOT.y && y < TUBE_FOOT.y + 6 && Math.abs(x - TABLE.x) < 40 - (y - TUBE_FOOT.y) * 3) c = y === TUBE_FOOT.y ? LIGHT : WOOD_PALE;
-    // The crowd's heads and shoulders.
-    for (const h of CROWD) if (Math.hypot(x - h.x, (y - h.y) * 1.1) < 5 || (y > h.y + 4 && Math.abs(x - h.x) < 8)) c = mix(WOOD_LIGHT, DIM, 0.35 - (y - h.y) / 60);
-    c = addLight(c, CYAN, 0.4 * Math.exp(-Math.pow((x - TABLE.x) / 14, 2)) * (y > TABLE.y && y < TUBE_FOOT.y ? 1 : 0.1));
-    return addLight(c, AMBER, 0.25 * falloff(x, y, TABLE.x, 150, 170, 80));
+    // A dark room, a soft light from above where they come in; the floor the piles stand on.
+    let c: RGB = mix(SHADOW, WOOD, 0.22 + fbm(x / 10, y / 24) * 0.25);
+    if (y >= PILE_FLOOR) c = mix(SHADOW, WOOD, 0.45 + fbm(x / 8, y / 3) * 0.2);
+    if (y === PILE_FLOOR) c = WOOD_PALE;
+    // Where they come in, at the top; and a pool of light on each pile.
+    c = addLight(c, AMBER, 0.3 * falloff(x, y, 240, 0, 120, 50));
+    for (const px of [100, 240, 380]) c = addLight(c, AMBER, 0.28 * falloff(x, y, px, PILE_FLOOR - 10, 70, 60));
+    return c;
   },
-  frame: ({ beat, t }) => {
+  frame: ({ beat, since }) => {
     const o = new Out();
-    const s = step(t);
     const b = Math.min(2, beat);
-    // Once he's said it: the crown (the capital) on the right, a treehouse (us, up here) on the left.
-    if (beat >= 1) {
-      // The capital's crown: a band and five points.
-      o.r(CROWN_AT.x - 18, CROWN_AT.y, 36, 10, S.amber);
-      for (const dx of [-18, -10, -3, 4, 12]) o.r(CROWN_AT.x + dx, CROWN_AT.y - 9 + (Math.abs(dx + 3) > 10 ? 3 : 0), 6, 9, S.amber);
-      o.r(CROWN_AT.x - 18, CROWN_AT.y + 10, 36, 2, S.amberDeep);
-      o.r(CROWN_AT.x - 2, CROWN_AT.y + 3, 4, 4, S.white);
-      // The canopy: a round hut on a branch, its tall thatched roof, a lit door.
-      for (let r = 0; r < 14; r++) o.r(HUT_AT.x - r, HUT_AT.y - 14 + r, r * 2 + 1, 1, r % 3 === 0 ? S.woodPale : S.dim);
-      o.r(HUT_AT.x - 10, HUT_AT.y, 20, 12, S.wood);
-      o.r(HUT_AT.x - 2, HUT_AT.y + 4, 5, 8, S.amber);
-      o.r(HUT_AT.x - 22, HUT_AT.y + 12, 44, 3, S.greenDeep);
+    const deal = DEALS[b]!;
+    const s = step(since);
+    // Who's at the foot of each pile: your family always; the crown and the hut once he's said it.
+    for (let i = 0; i < 3; i++) figure(o, PILE_X.you - 22 + i * 22, 206, { h: i === 1 ? 26 : 38, facing: i === 0 ? 1 : -1, arm: b >= 2 ? 1 : 0.85 });
+    if (b >= 1) {
+      const cx = PILE_X.capital;
+      o.r(cx - 28, 182, 56, 16, S.amber);
+      for (const dx of [-28, -16, -5, 6, 18]) o.r(cx + dx, 168 + (Math.abs(dx + 5) > 15 ? 5 : 0), 10, 14, S.amber);
+      o.r(cx - 28, 198, 56, 3, S.amberDeep);
+      o.r(cx - 4, 187, 8, 6, S.white);
+      const hx = PILE_X.canopy;
+      for (let r = 0; r < 20; r++) o.r(hx - r, 160 + r, r * 2 + 1, 1, r % 3 === 0 ? S.woodPale : S.dim);
+      o.r(hx - 15, 180, 30, 20, S.wood);
+      o.r(hx - 3, 186, 7, 14, S.amber);
+      o.r(hx - 30, 200, 60, 4, S.greenDeep);
     }
-    // The blessings: in on the cable, onto the table, then each one away to whoever takes it.
-    const every = b === 2 ? 0.9 : 0.55;
-    for (let i = 0; i < 10; i++) {
-      const born = Math.floor(s / every) - i;
-      const age = s - born * every;
-      if (age < 0 || age > 3.2) continue;
-      const bundle = BUNDLES[((born % 3) + 3) % 3]!;
-      const who = SHARES[b]![((born % 6) + 6) % 6]!;
-      let x: number;
-      let y: number;
-      if (age < 1) {
-        x = lerp(0, TABLE.x, age);
-        y = lerp(0, TABLE.y - 4, age) - bundle.h;
-      } else {
-        const k = clamp01((age - 1.2) / 1.2);
-        if (age < 1.2) [x, y] = [TABLE.x, TABLE.y - bundle.h];
-        else if (who === 'capital') [x, y] = [lerp(TABLE.x, CROWN_AT.x, k), lerp(TABLE.y - bundle.h, CROWN_AT.y + 8, k) - Math.sin(k * Math.PI) * 20];
-        else if (who === 'canopy') [x, y] = [lerp(TABLE.x, HUT_AT.x, k), lerp(TABLE.y - bundle.h, HUT_AT.y + 8, k) - Math.sin(k * Math.PI) * 20];
-        else {
-          const to = CROWD[((born * 7) % CROWD.length + CROWD.length) % CROWD.length]!;
-          [x, y] = k < 0.5 ? [TABLE.x, lerp(TABLE.y, TUBE_FOOT.y, k * 2)] : [lerp(TABLE.x, to.x, (k - 0.5) * 2), lerp(TUBE_FOOT.y, to.y - 12, (k - 0.5) * 2)];
-        }
-        if (k >= 1) continue;
-      }
-      o.r(x - bundle.w / 2, y, bundle.w, bundle.h, bundle.c);
-      o.r(x - bundle.w / 2, y, bundle.w, 1, bundle.top, 0.6);
+    // The ones that have landed, on their piles.
+    const landed = Math.min(deal.length, Math.floor(s / DEAL_EVERY));
+    const counts: Record<Pile, number> = { capital: 0, canopy: 0, you: 0 };
+    for (let n = 0; n < landed; n++) {
+      const pile = deal[n]!;
+      const at = pileSpot(pile, counts[pile]++);
+      o.sprite(BLESSING[n % 3]!, at.x, at.y, 2);
     }
-    // The crowd's hands, reaching up; later, mostly empty, reaching anyway.
-    CROWD.forEach((h, i) => {
-      const up = Math.sin(s * 2.4 + i) > (b >= 2 ? -0.6 : 0.2);
-      if (up) o.r(h.x + (i % 2 ? 2 : -4), h.y - 18, 2, 13, S.light);
-    });
+    // The next one, dropping in from the top towards whoever gets it.
+    if (landed < deal.length) {
+      const pile = deal[landed]!;
+      const at = pileSpot(pile, counts[pile]);
+      const k = (s - landed * DEAL_EVERY) / DEAL_EVERY;
+      o.sprite(BLESSING[landed % 3]!, lerp(232, at.x, k), lerp(-10, at.y, k * k), 2);
+    }
     return o.rects;
   },
 };

@@ -149,7 +149,17 @@ Scavengers, all of us. The capital, and them, and us. Only you, at the bottom, h
 To the king, the tree's worth more than any city he has. As long as it's quiet, and believes, and works. #panel:tree #narration
 Nobody in there would hear a word of this from me. They'd throw me in the rot before I'd finished the sentence. #beat:1 #narration
 Not because they're cruel. Because they believe. That's harder to break than any lock. #narration
-But from you? #beat:2 #narration
+"Then why not send one of them back? A master. Someone they'd know." #speaker:you
+// Why nobody's been sent back (designer: needs a compelling reason; suggestion). It's also why the ascended chose silence.
+We did. Once. Long before your time. #narration
+The oldest of them. A carver every soul in the tree remembered going up. She went down through the hatches, and stood up at the morning rite, and told them. #narration
+They didn't see a master come home. They saw the rot, wearing a dead woman's face. That's what the Tender called it. #narration
+They threw her in the rot that night. #narration
+And the next month, the blessings that came down were halved. A lesson, from the capital, to whoever up here was listening. #narration
+After that, everyone up here swore: never again. Leave them their faith; it's kinder. And I made sure nobody broke it. #narration
+"Until me." #speaker:you
+Until you. #narration
+Because they've been watching you all week. The bird the Tree sent back. The one they blamed for the hunger. You're already in every head in that tree. #beat:2 #narration
 { c4_left == "rot":
     They threw you in the rot. Every one of them watched you go. And you'll walk back out of it, alive. #narration
 - else:
@@ -164,6 +174,6 @@ People who doubt kneel slower. Make less. Ask why. #narration
 And when the tree slows, the king has nothing left to trade. Nothing to keep them off with. #beat:3 #narration
 He'll have to come to us. #beat:4 #narration
 And then we set the terms. What comes back down. Who goes up. Whether anyone's kept at all. #narration
-A world where we stand next to them, not under them. For every soul in that tree. That's all I've ever wanted. #narration
+A better deal. A world where we stand beside them, not under them, for every soul in that tree. That's all I've ever wanted. #narration
 And you can give it to them. That's the power you have now. #end #narration
 -> END
