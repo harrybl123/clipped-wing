@@ -12,6 +12,7 @@ import { MORE_ARROW } from '../ui/sprites';
 import { playSyllable } from '../ui/voice';
 import { startLoreMusic, type LoreMusic } from '../ui/loreMusic';
 import { playSound, type SoundId } from '../ui/soundscape';
+import { startTubeRush, type TubeRush } from '../ui/tubeRush';
 import type { AreaSceneData } from './AreaScene';
 
 // Someone tells you how the world is, staged like the prologue (designer): their words under moving
@@ -21,6 +22,7 @@ import type { AreaSceneData } from './AreaScene';
 //   #beat:<n>             the picture moves on
 //   #narration            the line is theirs, typed out under the picture in their voice (or silent: `voice: 'none'`)
 //   #flash[:dark]         a flash of light (or of dark); #sound:<id> a sound; #black the picture fades to black
+//   #rush:<1-3>|off       the rush of rising up the tube, building; off cuts it dead
 //   (#speaker:<id>)       anyone else (you), in the dialogue box
 //   #end                  after this line, back to the area (`back`, which can play a knot on arrival)
 // Choices, if any, are menus in the dialogue box.
@@ -51,6 +53,7 @@ export class LoreScene extends Phaser.Scene {
   private ending = false;
   private endAfter = false;
   private music: LoreMusic | null = null;
+  private rush: TubeRush | null = null;
 
   constructor() {
     super('Lore');
@@ -84,7 +87,10 @@ export class LoreScene extends Phaser.Scene {
 
     getSession(this).story.startKnot(this.params.knot);
     if (this.params.music) this.music = startLoreMusic(this);
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.music?.stop());
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.music?.stop();
+      this.rush?.stop();
+    });
     this.cameras.main.fadeIn(1200);
     this.time.delayedCall(900, () => this.next());
   }
@@ -144,6 +150,13 @@ export class LoreScene extends Phaser.Scene {
     const flash = tag('flash');
     if (flash) this.cameras.main.flash(900, ...(flash[0] === 'dark' ? [0, 0, 0] : [255, 255, 250]) as [number, number, number]);
     for (const id of tag('sound') ?? []) playSound(this, id as SoundId);
+    // Rising up the tube: the rush builds with the level given, and cuts dead at `off`.
+    const rush = tag('rush')?.[0];
+    if (rush === 'off') this.rush?.cut();
+    else if (rush) {
+      this.rush ??= startTubeRush(this);
+      this.rush.level(Number(rush));
+    }
     if (tags.includes('black')) {
       this.tweens.add({ targets: [...this.pictures.list, this.moving], alpha: 0, duration: 900 });
       this.panel = null;

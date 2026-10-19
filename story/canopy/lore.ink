@@ -18,21 +18,21 @@
 //   #beat:<n>             the picture moves on
 //   #narration            the words under the picture (his voice, or silent for your thoughts)
 //   #speaker:you          you, in the dialogue box
-//   #flash, #sound:<id>, #black, #end
+//   #flash, #sound:<id>, #black, #rush:<1-3>|off (rising up the tube), #end
 // ============================================================================
 
 // --- The opening: halfway up the tube ---
 
 === c4_rise ===
-Up. #panel:rise #narration
+Up. #panel:rise #rush:1 #narration
 The torches drop away below you. Faces at the glass, mouths open, gone. #narration
 The trunk. The middle tiers. The upper halls, their windows going by like sparks. #narration
 Somewhere down there, Mum, at the door. #narration
-Nobody's ever come back from where you're going. #beat:1 #narration
+Nobody's ever come back from where you're going. #beat:1 #rush:2 #narration
 The Canopy. Where the Tree lives. Where it chose every one of them. #narration
-The light above you gets bigger, and whiter, until there's nothing else in the world. #beat:2 #narration
+The light above you gets bigger, and whiter, until there's nothing else in the world. #beat:2 #rush:3 #narration
 So this is what it's like, you think. To be chosen. #narration
-Then nothing at all. #beat:3 #end #narration
+Then nothing at all. #beat:3 #rush:off #end #narration
 -> END
 
 // --- The opening: the end of the rot ---
