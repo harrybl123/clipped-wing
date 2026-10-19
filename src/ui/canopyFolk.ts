@@ -25,8 +25,8 @@ export const CANOPY_CAST_LOOKS = {
   keeper: { height: 21, width: 2, skin: 'tan', hair: S.amberDeep, hairStyle: 'messy', top: S.cyanDeep, topStyle: 'overalls', belt: S.amber, bag: S.woodPale, legs: S.cyanDeep, hold: 'book' },
   /** The messenger: polished, a capital coat with its gold trim under a traveller's cloak, a case. */
   messenger: { height: 26, width: 2, skin: 'dark', hair: S.shadow, hairStyle: 'crop', top: S.deep, topStyle: 'coat', trim: S.amber, cape: S.woodLight, legs: S.deep, hold: 'case' },
-  /** The hunter (designer: Sevro, Red Rising, as a type): small, wiry, a wolf's pelt over his head and shoulders, the electric bow. */
-  hunter: { height: 20, width: 2, skin: 'fair', hair: S.shadow, hairStyle: 'short', head: 'pelt', headColour: S.dim, cape: S.dim, top: S.wood, topStyle: 'vest', belt: S.woodLight, legs: S.woodLight, boots: S.deep, hold: 'bow' },
+  /** The hunter (designer: Sevro, Red Rising, as a type): small, wiry, a fur mantle over his shoulders (no pelt over his head: designer, too close to his inspiration), the electric bow. */
+  hunter: { height: 20, width: 2, skin: 'fair', hair: S.shadow, hairStyle: 'short', cape: S.dim, top: S.wood, topStyle: 'vest', belt: S.woodLight, legs: S.woodLight, boots: S.deep, hold: 'bow' },
   /** The child who bit your bird (designer: a child's hunger). */
   child: { height: 18, width: 2, skin: 'tan', hair: S.woodLight, hairStyle: 'curls', top: S.amberMid, topStyle: 'tunic', legs: S.wood },
 } satisfies Record<string, CapitalLook>;

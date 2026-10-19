@@ -3,7 +3,7 @@ import * as P from './canopyProps';
 import * as I from './canopyInteriors';
 import { CANOPY_AMBIENCE, sides } from './canopyArea';
 import type { AreaDefinition } from '../types';
-import { DAY, MORNING, colonist, folk, girlGuide, guide } from './people';
+import { DAY, MORNING, colonist, folk, girlGuide, inStory } from './people';
 
 // The lowering platform (Chapter 4): where the tree's output leaves for the outside (doc;
 // docs/areas/canopy/lowering-platform.md). Out on a long branch over the drop: the winch, its great drum of
@@ -72,15 +72,26 @@ export const loweringPlatform: AreaDefinition = {
   ],
 
   features: [
-    // Chapter 4, Day 1, out of the rot: the cage reaches the top.
-    { type: 'trigger', x: 612, y: FLOOR, reach: 30, knot: 'c4day1_cage', showIf: 'c4day1=cage' },
+    // Chapter 4, Day 1, out of the rot: the hunter leads you across, the winch crew staring; at the far end, up.
+    { type: 'lead', person: 'hunter-top', route: 'hunter', near: 70, speed: 60, says: ['Oi. This way.', 'Today, rot-rat.', 'Keep up.'] },
+    { type: 'trigger', x: 40, y: FLOOR, reach: 12, knot: 'c4day1_platform_walk', showIf: 'c4day1=platform' },
+    {
+      type: 'barks',
+      showIf: 'c4day1=platform',
+      lines: [
+        { who: 'winch-1', text: 'Out of the rot? Never.' },
+        { who: 'winch-2', text: 'Look at the state of them.' },
+        { who: 'winch-1', text: "That's the carver. The bird one." },
+      ],
+    },
     // A crate going down on the cable, now and then.
     { type: 'pulse', points: [{ x: 712, y: 200 }, { x: 712, y: H + 10 }], speed: 22, every: 3500, sprite: P.CRATE },
     { type: 'swing', sprite: P.LANTERN, x: 640, y: 126, ropeTop: 111, quiet: true, ropeColour: S.wood },
   ],
 
   people: [
-    guide('hunter', 600, FLOOR),
+    // Chapter 4, Day 1, out of the rot: the hunter at the top of the cage, then leading you across.
+    inStory('hunter-top', 'hunter', 580, FLOOR, 'c4day1=platform', 'c4day1_hunter_guide'),
     girlGuide(612, FLOOR),
     colonist('hunter', 'hunter', 250, FLOOR, ['afternoon', 'evening']),
     colonist('quartermaster', 'quartermaster', 160, FLOOR, MORNING),
@@ -93,6 +104,9 @@ export const loweringPlatform: AreaDefinition = {
     { id: 'crates', x: 318, y: FLOOR, reach: 22, label: 'Look', knot: 'c4_look_going_down' },
     { id: 'tally', x: 134, y: FLOOR, reach: 12, label: 'Look', knot: 'c4_look_tally' },
   ],
+
+  // Chapter 4, Day 1: the hunter's way across.
+  routes: { hunter: [{ x: 580, y: FLOOR }, { x: 480, y: FLOOR }, { x: 360, y: FLOOR }, { x: 230, y: FLOOR }, { x: 110, y: FLOOR }, { x: 44, y: FLOOR }] },
 
   exits: [
     { id: 'to-walkways', x: 12, y: FLOOR, reach: 10, to: 'walkways' },

@@ -57,7 +57,7 @@ export const lookout: AreaDefinition = {
 
   features: [{ type: 'frames', frames: P.turbineFrames(40), x: 246, y: DECK - 65, every: 120, power: 'any' }],
 
-  people: [colonist('hunter-lookout', 'hunter', 310, DECK, ['night']), inStory('grounded-lookout', 'grounded', 270, DECK, 'c4day1=mess,dusk,lore', 'c4day1_grounded_lookout')],
+  people: [colonist('hunter-lookout', 'hunter', 310, DECK, ['night']), inStory('grounded-lookout', 'grounded', 270, DECK, 'c4day1=lookout,lore', 'c4day1_grounded_lookout')],
 
   interactables: [
     { id: 'spyglass', x: 296, y: DECK, reach: 12, label: 'Look', knot: 'c4_look_spyglass' },

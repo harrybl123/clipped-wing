@@ -69,11 +69,11 @@ export const inStory = (id: string, who: CanopyCastId, x: number, y: number, sho
   ...extra,
 });
 
-/** Whoever's walking with you (`c4_guide`): the master up the tube, the hunter out of the rot. */
-export const guide = (who: 'master' | 'hunter', x: number, y: number): Person => ({
-  ...inStory(`${who}-guide`, who, x, y, `c4_guide=${who}`, `c4day1_${who}_guide`),
-  follow: true,
-});
+/** Whoever brought you somewhere (`c4_guide`), standing by: the master up the tube, the hunter out of the rot. */
+export const guide = (who: 'master' | 'hunter', x: number, y: number): Person => inStory(`${who}-guide`, who, x, y, `c4_guide=${who}`, `c4day1_${who}_guide`);
+
+/** The master showing you round in the afternoon (each stop's knot puts her beside you). */
+export const masterTour = (x: number, y: number): Person => inStory('master-tour', 'master', x, y, 'c4_guide=master', 'c4day1_master_tour');
 
 /** The girl in colour, if she's with you (you fell after framing her): there while `showIf` holds. */
 export const girl = (id: string, x: number, y: number, showIf: string, knot: string, extra: Partial<Person> = {}): Person => ({

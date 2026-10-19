@@ -76,8 +76,6 @@ export const groundedsHouse: AreaDefinition = {
   ],
 
   features: [
-    // Chapter 4, Day 1: coming in.
-    { type: 'trigger', x: 76, y: FLOOR, reach: 16, knot: 'c4day1_grounded', showIf: 'c4day1=led' },
     { type: 'swing', sprite: P.LANTERN, x: 200, y: FLOOR - 70, ropeTop: 100, quiet: true, ropeColour: S.wood },
     { type: 'swing', sprite: P.CHIME, x: 530, y: FLOOR - 40, ropeTop: 92, quiet: true, ropeColour: S.wood },
   ],
@@ -85,10 +83,11 @@ export const groundedsHouse: AreaDefinition = {
   people: [
     colonist('grounded', 'grounded', 250, FLOOR, ['afternoon', 'evening', 'night']),
     // Chapter 4, Day 1: at his desk, his back to the door, before you come in.
-    inStory('grounded-1', 'grounded', 250, FLOOR, 'c4day1=led,house', 'c4day1_grounded_desk', { turns: false }),
-    guide('master', 30, FLOOR),
-    guide('hunter', 30, FLOOR),
-    girlGuide(24, FLOOR),
+    inStory('grounded-1', 'grounded', 250, FLOOR, 'c4day1=led,platform,house', 'c4day1_grounded_desk', { turns: false }),
+    // Whoever brought you, by the door; the girl behind you; the master, sent for.
+    guide('master', 24, FLOOR),
+    guide('hunter', 22, FLOOR),
+    girlGuide(10, FLOOR),
   ],
 
   interactables: [

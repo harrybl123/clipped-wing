@@ -10,6 +10,8 @@ import { makePaintedTexture, makeSpriteTexture } from '../ui/pixelTextures';
 import { PixelText } from '../ui/PixelText';
 import { MORE_ARROW } from '../ui/sprites';
 import { playSyllable } from '../ui/voice';
+import { startLoreMusic, type LoreMusic } from '../ui/loreMusic';
+import { playSound, type SoundId } from '../ui/soundscape';
 import type { AreaSceneData } from './AreaScene';
 
 // Someone tells you how the world is, staged like the prologue (designer): their words under moving
@@ -17,15 +19,19 @@ import type { AreaSceneData } from './AreaScene';
 // Chapter 4's first day (story/canopy/lore.ink). It steps through an ink knot itself:
 //   #panel:<id>[:<beat>]  a new picture fades in (at that beat)
 //   #beat:<n>             the picture moves on
-//   #narration            the line is theirs, typed out under the picture in their voice
+//   #narration            the line is theirs, typed out under the picture in their voice (or silent: `voice: 'none'`)
+//   #flash[:dark]         a flash of light (or of dark); #sound:<id> a sound; #black the picture fades to black
 //   (#speaker:<id>)       anyone else (you), in the dialogue box
 //   #end                  after this line, back to the area (`back`, which can play a knot on arrival)
 // Choices, if any, are menus in the dialogue box.
 
 export interface LoreSceneData {
   knot: string;
-  /** Whose voice the narration is in. */
-  voice: VoiceId;
+  /** Whose voice the narration is in (`none`: silent, your own thoughts, as the prologue's narration). */
+  voice: VoiceId | 'none';
+  /** The telling's music under it (designer: philosophical, soft). */
+  music?: boolean;
+  /** A title card on arrival back in the area (the day's, after an opening cinematic). */
   back: AreaSceneData;
 }
 
@@ -44,6 +50,7 @@ export class LoreScene extends Phaser.Scene {
   private waiting = false;
   private ending = false;
   private endAfter = false;
+  private music: LoreMusic | null = null;
 
   constructor() {
     super('Lore');
@@ -76,6 +83,8 @@ export class LoreScene extends Phaser.Scene {
     this.input.on('pointerdown', () => this.press());
 
     getSession(this).story.startKnot(this.params.knot);
+    if (this.params.music) this.music = startLoreMusic(this);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.music?.stop());
     this.cameras.main.fadeIn(1200);
     this.time.delayedCall(900, () => this.next());
   }
@@ -131,6 +140,14 @@ export class LoreScene extends Phaser.Scene {
       this.beat = Number(beat[0]);
       this.beatAt = this.time.now;
     }
+    // A flash of light (bursting out of the tube), a sound, or the picture going to black.
+    const flash = tag('flash');
+    if (flash) this.cameras.main.flash(900, ...(flash[0] === 'dark' ? [0, 0, 0] : [255, 255, 250]) as [number, number, number]);
+    for (const id of tag('sound') ?? []) playSound(this, id as SoundId);
+    if (tags.includes('black')) {
+      this.tweens.add({ targets: [...this.pictures.list, this.moving], alpha: 0, duration: 900 });
+      this.panel = null;
+    }
     this.endAfter = tags.includes('end');
     const choices = story.canContinue ? [] : story.choices();
     if (choices.length) {
@@ -153,7 +170,8 @@ export class LoreScene extends Phaser.Scene {
     const y = LORE_PICTURE_H + Math.round((H - LORE_PICTURE_H - this.words.height) / 2) - 2;
     this.words.setPosition(x, y);
     this.arrow.setPosition(W / 2, y + this.words.height + 6).setVisible(false);
-    this.typing = { letters: typeLine(this.words.laidOut, VOICES[this.params.voice]), index: 0, wait: 0 };
+    const voice = this.params.voice === 'none' ? undefined : VOICES[this.params.voice];
+    this.typing = { letters: typeLine(this.words.laidOut, voice), index: 0, wait: 0 };
     this.waiting = false;
   }
 
@@ -165,7 +183,7 @@ export class LoreScene extends Phaser.Scene {
       const letter = t.letters[t.index]!;
       t.index++;
       this.words.setRevealed(t.index);
-      if (letter.syllable) playSyllable(this, VOICES[this.params.voice], letter.syllable);
+      if (letter.syllable && this.params.voice !== 'none') playSyllable(this, VOICES[this.params.voice], letter.syllable);
       t.wait += t.letters[t.index]?.delay ?? 0;
     }
     if (t.index >= t.letters.length) this.doneTyping();
@@ -189,6 +207,7 @@ export class LoreScene extends Phaser.Scene {
   private finish(): void {
     if (this.ending) return;
     this.ending = true;
+    this.music?.stop();
     this.cameras.main.fadeOut(1400, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Area', this.params.back));
   }

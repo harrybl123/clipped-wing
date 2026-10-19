@@ -4,7 +4,7 @@ import * as P from './canopyProps';
 import * as I from './canopyInteriors';
 import { CANOPY_AMBIENCE, sides, stair, stairSide } from './canopyArea';
 import type { AreaDefinition } from '../types';
-import { AWAKE, DAY, MORNING, ascended, colonist, folk, girl, guide, inStory } from './people';
+import { AWAKE, DAY, MORNING, ascended, colonist, folk, girl, inStory, masterTour } from './people';
 
 // The great house (Chapter 4): the grand central treehouse (docs/areas/canopy/great-house.md), seen in
 // cutaway, three storeys under a roof of leaf shingles with solar sails along its ridge. At the top, the
@@ -162,13 +162,15 @@ export const greatHouse: AreaDefinition = {
     // Chapter 4, Day 1: the quartermaster sorting; the master at her bench (until she walks you to the hall);
     // the mess in the evening, the child who bit your bird among them.
     inStory('quartermaster-sort', 'quartermaster', 470, SORTING, 'c4day1=look', 'c4day1_sorting'),
-    inStory('master-bench', 'master', 125, WORKSHOP, 'c4day1=look,hall,mess,dusk,lore,bed', 'c4day1_workshop', { hideIf: 'c4_guide=master' }),
-    guide('master', 125, WORKSHOP),
-    inStory('quartermaster-mess', 'quartermaster', 180, GROUND, 'c4day1=mess,dusk,lore,bed', 'c4day1_quartermaster'),
-    inStory('child-mess', 'child', 252, GROUND, 'c4day1=mess,dusk,lore,bed', 'c4day1_child'),
-    inStory('messenger-mess', 'messenger', 430, GROUND, 'c4day1=mess,dusk', 'c4day1_messenger'),
-    inStory('keeper-mess', 'keeper', 500, GROUND, 'c4day1=mess,dusk', 'c4day1_keeper'),
-    inStory('doubter-mess', 'doubter', 600, GROUND, 'c4day1=mess,dusk', 'c4day1_doubter'),
+    masterTour(400, SORTING),
+    inStory('master-bench', 'master', 125, WORKSHOP, 'c4day1=mess,bed', 'c4day1_master_tour'),
+    inStory('grounded-mess', 'grounded', 100, GROUND, 'c4day1=mess', 'c4day1_grounded_mess'),
+    inStory('quartermaster-mess', 'quartermaster', 180, GROUND, 'c4day1=mess,bed', 'c4day1_quartermaster'),
+    folk('mess-mother', 2, 232, GROUND, 'c4day1_child', undefined, { showIf: 'c4day1=mess,bed' }),
+    inStory('child-mess', 'child', 252, GROUND, 'c4day1=mess,bed', 'c4day1_child'),
+    inStory('messenger-mess', 'messenger', 430, GROUND, 'c4day1=mess', 'c4day1_messenger'),
+    inStory('keeper-mess', 'keeper', 500, GROUND, 'c4day1=mess', 'c4day1_keeper'),
+    inStory('doubter-mess', 'doubter', 600, GROUND, 'c4day1=mess', 'c4day1_doubter'),
     girl('girl-mess', 320, GROUND, 'c4_girl=mess', 'c4day1_girl_mess'),
     colonist('master', 'master', 125, WORKSHOP, AWAKE),
     colonist('quartermaster', 'quartermaster', 222, GROUND, ['afternoon', 'evening']),

@@ -2,7 +2,7 @@ import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './canopyProps';
 import type { AreaDefinition, Feature, Solid } from '../types';
 import { stairSide } from './canopyArea';
-import { DAY, MORNING, folk, guide, strollingFolk } from './people';
+import { DAY, MORNING, folk, inStory, strollingFolk } from './people';
 
 // The tube mouth (Chapter 4): where the tube comes out of the top of the tree, and offerings and the
 // ascended arrive (docs/areas/canopy/tube-mouth.md). The first place in the canopy, so it sets the look:
@@ -151,6 +151,20 @@ export const tubeMouth: AreaDefinition = {
   ],
 
   features: [
+    // Chapter 4, Day 1: she leads you to the far end, people stopping to stare and mutter as you pass.
+    { type: 'lead', person: 'master-lead', route: 'master', near: 60, speed: 42, says: ['This way.', 'Stay close.', 'Come on, love.'] },
+    { type: 'trigger', x: 840, y: FLOOR, reach: 12, knot: 'c4day1_tube_walk', showIf: 'c4day1=led' },
+    {
+      type: 'barks',
+      showIf: 'c4day1=led',
+      lines: [
+        { who: 'sorter-1', text: 'Up the tube? Today?' },
+        { who: 'passer-1', text: 'Is that the carver?' },
+        { who: 'sorter-2', text: 'Look at the hand.' },
+        { who: 'sorter-1', text: "Nobody's come up for years..." },
+        { who: 'passer-1', text: 'Poor thing. Look at it shaking.' },
+      ],
+    },
     ...tentacleLight(),
     // A basket of offerings riding up the cable to the great house, now and then.
     { type: 'pulse', points: [{ x: 750, y: 199 }, { x: 879, y: 154 }], speed: 26, every: 4200, sprite: P.CABLE_BASKET },
@@ -163,7 +177,8 @@ export const tubeMouth: AreaDefinition = {
   ],
 
   people: [
-    guide('master', 654, FLOOR),
+    // Chapter 4, Day 1, up the tube: the master, kneeling by the basin; then leading you out along the deck.
+    inStory('master-lead', 'master', 638, FLOOR, 'c4day1=tube,led', 'c4day1_master_guide'),
     folk('sorter-1', 1, 616, FLOOR, 'c4_folk_tube', DAY),
     folk('sorter-2', 4, 700, FLOOR, 'c4_folk_tube', MORNING),
     strollingFolk('passer-1', 0, 250, 520, FLOOR, 'c4_folk_tube', DAY),
@@ -176,6 +191,9 @@ export const tubeMouth: AreaDefinition = {
     { id: 'birds', x: 140, y: LEDGE, reach: 30, label: 'Look', knot: 'c4_look_birds' },
     { id: 'view', x: 142, y: HIGH, reach: 20, label: 'Look', knot: 'c4_look_canopy' },
   ],
+
+  // Chapter 4, Day 1: the master's way out along the deck.
+  routes: { master: [{ x: 638, y: FLOOR }, { x: 700, y: FLOOR }, { x: 760, y: FLOOR }, { x: 810, y: FLOOR }, { x: 846, y: FLOOR }] },
 
   exits: [
     { id: 'to-ascended-hall', x: 16, y: FLOOR, reach: 14, to: 'ascended-hall' },

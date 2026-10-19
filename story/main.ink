@@ -584,8 +584,8 @@ VAR c4_story = false
 // How you left the tree at the end of Act 1: "tube" (you flew: up the tube) or "rot" (you fell). Set when Chapter 4 begins.
 VAR c4_left = ""
 // Chapter 4, Day 1 (story/canopy/chapter4-day1.ink; docs/sequences/chapter-4/plan.md). Stages: tube or rot (waking),
-// cage (rot: up the lowering platform), led (on the way to Grounded's), house, seed, look (the great house),
-// hall, mess, dusk, lore (at the lookout), bed, done.
+// led (up the tube: the master leading you), cage and platform (out of the rot: the hunter leading you), house
+// (Grounded's welcome), seed, look (the sorting deck), workshop, hall, lookout, lore (the telling), mess, bed, done.
 VAR c4day1 = ""
 // Who's walking with you on Day 1: "master" or "hunter" (a follower; journeys are on foot while anyone is).
 VAR c4_guide = ""
@@ -594,6 +594,8 @@ VAR c4_girl = ""
 // Day 1's afternoon: you've seen the sorting deck; the child has owned up.
 VAR c4day1_sorted = false
 VAR c4day1_owned = false
+// Day 1: you kept your mum's bird, from this morning's offerings on the sorting deck.
+VAR c4_mums_bird = false
 // What carries through the chapter (and later chapters): small decisions, counted quietly, never shown.
 // `lean`: your duties' answers, towards the people (+1) or towards order (-1). `standing`: how upper society takes you.
 VAR lean = 0

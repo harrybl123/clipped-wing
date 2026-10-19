@@ -17,6 +17,8 @@ export interface ChapterSceneData {
   title: string;
   /** Where the game goes next. */
   next: AreaSceneData;
+  /** A cinematic first, which then goes on to `next` (Chapter 4: halfway up the tube, or the end of the rot). */
+  lore?: LoreSceneData;
 }
 
 /**
@@ -389,7 +391,9 @@ export function beginChapter4(scene: Phaser.Scene): void {
   session.calendar.jumpTo(1);
   const next = chapter4Start(left);
   session.dayStarts = { 1: { ink: story.saveState(), calendar: session.calendar.toJSON(), wake: { areaId: next.areaId, start: next.start!, script: next.script } } };
-  scene.scene.start('Chapter', { number: 'Chapter 4', title: '(title to come)', next } satisfies ChapterSceneData);
+  // The card, then the cinematic (halfway up the tube, or the end of the rot), then out.
+  const lore: LoreSceneData = { knot: left === 'tube' ? 'c4_rise' : 'c4_crack', voice: 'none', back: next };
+  scene.scene.start('Chapter', { number: 'Chapter 4', title: '(title to come)', next, lore } satisfies ChapterSceneData);
 }
 
 /** Where Chapter 4 opens, by how you left the tree. */
@@ -402,9 +406,8 @@ const chapter4Start = (left: 'tube' | 'rot'): AreaSceneData =>
  * Dev: Chapter 4 with Act 1's routes as flags (`?chapter=4`): `&left=tube|rot` (how you left: up the tube or into
  * the rot), `&girl=saved|framed` (framed and fell: she's with you), `&seed=healthy|roots`, `&told=1` (you told the
  * archivist), `&confided=1` (you confided in your friend). Part way into Day 1 with `&at=`: `house` (Grounded's
- * door, your guide with you), `seed` (the seed bed), `look` (the great house, the afternoon), `hall` (the
- * workshop, the master about to walk you through), `mess` (the mess, evening), `lookout` (Grounded at the rail),
- * `lore` (straight into his telling), `bed` (the hall at night).
+ * welcome), `seed` (the seed bed), `look` (the sorting deck), `workshop`, `hall` (the master showing you round),
+ * `lookout` (Grounded at the rail), `lore` (straight into his telling), `mess` (the child), `bed` (the hall at night).
  */
 export function devChapter4(scene: Phaser.Scene, at: string): void {
   const session = getSession(scene);
@@ -429,21 +432,22 @@ export function devChapter4(scene: Phaser.Scene, at: string): void {
   const guide = left === 'tube' ? 'master' : 'hunter';
   const afternoon = { c4_girl: girl ? 'mess' : '', c4_guide: '' };
   const parts: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | number | boolean> }> = {
-    house: { area: { areaId: 'groundeds-house', start: { x: 40, y: 240 } }, slots: 0, vars: { c4day1: 'led', c4_guide: guide, objective: `Go with the ${guide} to Grounded's house`, objective_target: 'groundeds-house:grounded-1' } },
-    seed: { area: { areaId: 'seed-bed', start: { x: 30, y: 230 } }, slots: 0, vars: { ...afternoon, c4day1: 'seed', objective: 'Follow Grounded', objective_target: 'seed-bed:grounded-seed' } },
-    look: { area: { areaId: 'great-house', start: { x: 730, y: 380 } }, slots: 1, vars: { ...afternoon, c4day1: 'look', objective: 'Look round the great house', objective_target: 'great-house:quartermaster-sort' } },
-    hall: { area: { areaId: 'great-house', start: { x: 160, y: 292 } }, slots: 1, vars: { ...afternoon, c4day1: 'look', c4day1_sorted: true, objective: 'Find the master in the workshop', objective_target: 'great-house:master-bench' } },
-    mess: { area: { areaId: 'great-house', start: { x: 100, y: 380 } }, slots: 2, vars: { ...afternoon, c4day1: 'mess', c4day1_sorted: true, objective: 'Eat in the mess', objective_target: 'great-house:child-mess' } },
-    lookout: { area: { areaId: 'lookout', start: { x: 172, y: 210 } }, slots: 2, vars: { ...afternoon, c4day1: 'mess', c4day1_sorted: true, c4day1_owned: true, objective: 'Go up to the lookout', objective_target: 'lookout:grounded-lookout' } },
-    lore: { area: { areaId: 'lookout', start: { x: 230, y: 210 }, script: 'c4day1_after_lore' }, slots: 2, vars: { ...afternoon, c4day1: 'lore', c4day1_sorted: true, c4day1_owned: true } },
-    bed: { area: { areaId: 'ascended-hall', start: { x: 420, y: 240 } }, slots: 3, vars: { c4_girl: girl ? 'bed' : '', c4_guide: '', c4day1: 'bed', c4day1_sorted: true, c4day1_owned: true, objective: 'Go to bed', objective_target: 'ascended-hall:bed' } },
+    house: { area: { areaId: 'groundeds-house', start: { x: 40, y: 240 }, script: 'c4day1_grounded' }, slots: 0, vars: { c4day1: left === 'tube' ? 'led' : 'platform', c4_guide: guide } },
+    seed: { area: { areaId: 'seed-bed', start: { x: 250, y: 230 }, script: 'c4day1_seed' }, slots: 0, vars: { ...afternoon, c4day1: 'seed', c4_guide: 'master' } },
+    look: { area: { areaId: 'great-house', start: { x: 430, y: 204 }, script: 'c4day1_sorting' }, slots: 1, vars: { ...afternoon, c4day1: 'look', c4_guide: 'master' } },
+    workshop: { area: { areaId: 'great-house', start: { x: 180, y: 292 }, script: 'c4day1_workshop' }, slots: 1, vars: { ...afternoon, c4day1: 'look', c4_guide: 'master', c4_mums_bird: true } },
+    hall: { area: { areaId: 'ascended-hall', start: { x: 200, y: 240 }, script: 'c4day1_hall' }, slots: 1, vars: { ...afternoon, c4day1: 'workshop', c4_guide: 'master', c4_mums_bird: true } },
+    lookout: { area: { areaId: 'lookout', start: { x: 172, y: 210 }, script: 'c4day1_lookout' }, slots: 2, vars: { ...afternoon, c4day1: 'lookout', c4_mums_bird: true } },
+    lore: { area: { areaId: 'lookout', start: { x: 230, y: 210 }, script: 'c4day1_after_lore' }, slots: 2, vars: { ...afternoon, c4day1: 'lore', c4_mums_bird: true } },
+    mess: { area: { areaId: 'great-house', start: { x: 120, y: 380 }, script: 'c4day1_mess' }, slots: 3, vars: { ...afternoon, c4day1: 'mess', c4_mums_bird: true } },
+    bed: { area: { areaId: 'ascended-hall', start: { x: 420, y: 240 } }, slots: 3, vars: { c4_girl: girl ? 'bed' : '', c4_guide: '', c4day1: 'bed', c4day1_owned: true, c4_mums_bird: true, objective: 'Go to bed', objective_target: 'ascended-hall:bed' } },
   };
   const mid = parts[at] ?? parts.house!;
   set(mid.vars);
   session.calendar.jumpTo(1);
   for (let i = 0; i < mid.slots; i++) session.calendar.advance();
   if (at === 'lore') {
-    scene.scene.start('Lore', { knot: 'c4lore', voice: 'grounded', back: mid.area } satisfies LoreSceneData);
+    scene.scene.start('Lore', { knot: 'c4lore', voice: 'grounded', music: true, back: mid.area } satisfies LoreSceneData);
     return;
   }
   scene.scene.start('Area', mid.area);
@@ -459,6 +463,7 @@ const HOLD = 2800;
 export class ChapterScene extends Phaser.Scene {
   private leaving = false;
   private next!: AreaSceneData;
+  private lore: LoreSceneData | undefined;
 
   constructor() {
     super('Chapter');
@@ -467,6 +472,7 @@ export class ChapterScene extends Phaser.Scene {
   create(data: ChapterSceneData): void {
     this.leaving = false;
     this.next = data.next;
+    this.lore = data.lore;
     this.cameras.main.setBackgroundColor(SHADES.shadow);
     const number = new PixelText(this, 0, 92, data.number, { color: SHADES.dim });
     number.setX(Math.round((W - number.width) / 2));
@@ -489,6 +495,6 @@ export class ChapterScene extends Phaser.Scene {
     if (this.leaving) return;
     this.leaving = true;
     this.cameras.main.fadeOut(1200, 0, 0, 0);
-    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Area', this.next));
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => (this.lore ? this.scene.start('Lore', this.lore) : this.scene.start('Area', this.next)));
   }
 }

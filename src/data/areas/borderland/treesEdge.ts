@@ -2,7 +2,7 @@ import * as P from './treesEdgeProps';
 import { dugHole } from './scrapProps';
 import type { AreaDefinition, Solid } from '../types';
 import { cast, dogFollowing } from './people';
-import { girlGuide, guide, inStory } from '../canopy/people';
+import { girlGuide, inStory } from '../canopy/people';
 
 // The tree's edge (Chapter 2): where the borderland meets the tree's roots. Nobody goes close. The tree's
 // mystery, seen from outside: the waste running up to roots that come out of the ground like walls, bigger
@@ -70,13 +70,15 @@ export const treesEdge: AreaDefinition = {
   ],
 
   features: [
+    // Chapter 4, Day 1, out of the rot: the hunter leads you round to the cage.
+    { type: 'lead', person: 'hunter-edge', route: 'hunter', near: 70, speed: 60, says: ['Oi. This way.', 'Today, rot-rat.', 'Keep up.'] },
+    { type: 'trigger', x: 654, y: FLOOR, reach: 10, knot: 'c4day1_cage', showIf: 'c4day1=cage' },
     // Chapter 2, Day 11, dusk: out past the signs, where nobody goes.
     { type: 'trigger', x: 250, y: FLOOR, reach: 50, knot: 'c2day11_edge', showIf: 'edge_ready11', hideIf: 'edge11' },
   ],
   people: [
     // Chapter 4, Day 1, out of the rot: the hunter, waiting; the girl, if she came out with you.
-    inStory('hunter-edge', 'hunter', 560, FLOOR, 'c4day1=rot', 'c4day1_hunter_guide'),
-    guide('hunter', 560, FLOOR),
+    inStory('hunter-edge', 'hunter', 560, FLOOR, 'c4day1=rot,cage', 'c4day1_hunter_guide'),
     girlGuide(640, FLOOR),
     dogFollowing(30, FLOOR),
     // Day 11: the watcher, walking you out (the truce); the old scavenger pushing your brother in a cart.
@@ -91,6 +93,9 @@ export const treesEdge: AreaDefinition = {
     { id: 'listen', x: ROOT_TOP.x + 4, y: ROOT_TOP.y, reach: 12, label: 'Listen', knot: 'trees_edge_listen' },
     { id: 'crack', x: 615, y: FLOOR, reach: 16, label: 'Look', knot: 'trees_edge_crack' },
   ],
+
+  // Chapter 4, Day 1: the hunter's way round to the cage.
+  routes: { hunter: [{ x: 560, y: FLOOR }, { x: 596, y: FLOOR }, { x: 630, y: FLOOR }, { x: 656, y: FLOOR }] },
 
   exits: [
     { id: 'to-picked-fields', x: 16, y: FLOOR, reach: 12, to: 'picked-fields' },

@@ -602,7 +602,8 @@ export class AreaScene extends Phaser.Scene {
     if (world === 'capital') this.player.look = 'prince';
     // Anyone following you comes in with you (whether or not they're showing yet: after a fight, the
     // dog comes back beside you, not where it stands when you first come into the area).
-    for (const entry of this.people.values()) if (entry.person.follow) entry.image.setPosition(Math.max(this.area.cavity.x + 8, arrival.x - 16), arrival.y);
+    let place = 0;
+    for (const entry of this.people.values()) if (entry.person.follow) entry.image.setPosition(Math.max(this.area.cavity.x + 8, arrival.x - 16 * ++place), arrival.y);
     // Pressing down drops through one-way platforms (walkways, bridges, roofs, stairs).
     const notDroppingThrough = (_p: unknown, other: unknown) => !(this.player.dropping && (other as Phaser.GameObjects.GameObject).getData('oneWay'));
     this.physics.add.collider(this.player.sprite, solids, undefined, notDroppingThrough);
@@ -891,13 +892,17 @@ export class AreaScene extends Phaser.Scene {
   private updateFollowers(delta: number): void {
     if (!this.player.body.enable) return; // e.g. rising up the tube: they stay where they are
     const { x, y } = this.player.feet;
+    // Two or three walking with you keep their own places in the line, one behind the other (designer: the
+    // hunter and the girl walked in the same space).
+    let place = 0;
     for (const entry of this.people.values()) {
       if (!entry.person.follow || !entry.image.visible || entry.scripted) continue;
+      const behind = FOLLOW_GAP * ++place;
       const img = entry.image;
       let trail = entry.trail;
       const last = trail?.[trail.length - 1];
       // A fresh start: just arrived, or you were thrown back, or you're right beside them.
-      if (!trail || !last || Math.hypot(x - last.x, y - last.y) > 40 || (Math.abs(img.y - y) <= 2 && Math.abs(img.x - x) <= 20)) {
+      if (!trail || !last || Math.hypot(x - last.x, y - last.y) > 40 + behind || (Math.abs(img.y - y) <= 2 && Math.abs(img.x - x) <= 4 + behind)) {
         trail = entry.trail = [{ x: img.x, y: img.y, d: 0 }];
         entry.along = 0;
       }
@@ -905,7 +910,7 @@ export class AreaScene extends Phaser.Scene {
       const moved = Math.hypot(x - end.x, y - end.y);
       if (moved >= 2) trail.push({ x, y, d: end.d + moved });
       const total = trail[trail.length - 1]!.d;
-      const gap = total - FOLLOW_GAP - (entry.along ?? 0);
+      const gap = total - behind - (entry.along ?? 0);
       if (gap <= 0) {
         img.setFlipX(x < img.x);
         if (entry.walking) img.setTexture(entry.idleKeys[0]!);
@@ -1705,7 +1710,7 @@ export class AreaScene extends Phaser.Scene {
           // pictures (src/scenes/LoreScene.ts; Grounded's voice unless another's given); back here, <then> plays.
           const [knot, then, voice] = args;
           const start = { ...this.player.feet };
-          if (knot) this.afterClose.push(() => this.leaveFor('Lore', { knot, voice: (voice || 'grounded') as VoiceId, back: { areaId: this.area.id, start, script: then || undefined } } satisfies LoreSceneData, 1200));
+          if (knot) this.afterClose.push(() => this.leaveFor('Lore', { knot, voice: (voice || 'grounded') as VoiceId, music: true, back: { areaId: this.area.id, start, script: then || undefined } } satisfies LoreSceneData, 1200));
           break;
         }
         case 'fight': {
@@ -1829,11 +1834,11 @@ export class AreaScene extends Phaser.Scene {
         lead.moving = true;
         lead.idle = 0;
         const to = route[++lead.index]!;
-        this.stepTo(entry, to, 100, () => {
+        this.stepTo(entry, to, lead.feature.speed ?? 100, () => {
           lead.moving = false;
           const ahead = route[lead.index + 1];
           if (ahead) img.setFlipX(ahead.x < img.x);
-          if (Math.random() < 0.35) this.floatText(Math.random() < 0.5 ? 'sniff' : 'sniff sniff', img.x, img.y - img.height - 12, SHADES.white);
+          if (!lead.feature.says && Math.random() < 0.35) this.floatText(Math.random() < 0.5 ? 'sniff' : 'sniff sniff', img.x, img.y - img.height - 12, SHADES.white);
         });
         continue;
       }
@@ -1842,8 +1847,13 @@ export class AreaScene extends Phaser.Scene {
       lead.idle += delta;
       if (lead.idle > 3200) {
         lead.idle = 0;
-        this.floatText('Woof!', img.x, img.y - img.height - 12, SHADES.white);
-        this.soundscape.play('bark', { x: img.x, y: img.y });
+        // A guide waiting for you says so; the dog barks.
+        const says = lead.feature.says;
+        if (says?.length) this.floatText(says[Math.floor(Math.random() * says.length)]!, img.x, img.y - img.height - 12, SHADES.white);
+        else {
+          this.floatText('Woof!', img.x, img.y - img.height - 12, SHADES.white);
+          this.soundscape.play('bark', { x: img.x, y: img.y });
+        }
       }
     }
   }

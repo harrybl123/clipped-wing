@@ -82,7 +82,7 @@ Briefs in `docs/areas/canopy/`. Ids are suggestions.
 - **The doubter** (doc): a former roots-dweller with a good life up here; the Tender's man in the canopy (agreed). (Suggestion) Too clean, too pleased with his garden; Act 1's roots in his face and his manners.
 - **The hatch-keeper** (doc): canopy-born, never been inside, obsessed with the tree like a fairytale, reckless. (Suggestion) Young, ropes and a harness, goggles up, a book of drawings of the inside made from what people have told them.
 - **The messenger** (doc): cool, polished, never stays a night, a hint of the capital. (Suggestion) A capital coat (Chapter 3's cut) under a traveller's cloak.
-- **The hunter** (designer): Sevro au Barca (*Red Rising*) as a type: small, wiry, feral, a wolf's pelt over his head and shoulders, foul-mouthed, fiercely loyal; the electric bow. (Suggestion) Face paint in the pelt's shadow, a radio on his chest.
+- **The hunter** (designer): Sevro au Barca (*Red Rising*) as a type: small, wiry, feral, a fur mantle over his shoulders (designer, 2026-10-19: no pelt over his head, too close to his inspiration), foul-mouthed, fiercely loyal; the electric bow. (Suggestion) A radio on his chest.
 - **The child who bit your bird** (designer): small, hungry, mortified.
 - **The ascended** (doc): the old masters, alive. (Suggestion) Older people at work, each with their spiral somewhere.
 - **Canopy-born folk** (suggestion): light layered clothes in greens and creams, harnesses and clips (everyone's clipped on near a drop), sun hats, goggles, gardening gloves.
