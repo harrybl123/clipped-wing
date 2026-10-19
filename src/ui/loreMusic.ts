@@ -11,7 +11,7 @@ import { audioOut, type AudioOut } from './audioMix';
 // apply, as for all music.
 
 const F2 = 87.31;
-const LEVEL = 0.42;
+const LEVEL = 0.8;
 const BPM = 54;
 /** Each bar's chord: semitones above F, the bass first. */
 const CHORDS = [

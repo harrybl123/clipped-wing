@@ -1,7 +1,7 @@
 import { MAP_CANOPY_Y, MAP_TUBE_X } from '../data/map';
 import { SHADES as S, addLight, cellRandom, falloff, rgb, type PixelColour, type RGB } from './pixelArt';
 import { BIRD, type RowSprite } from './sprites';
-import { PROTAGONIST, PROTAGONIST_CROUCH } from './characters';
+import { PROTAGONIST_CROUCH } from './characters';
 
 // Grounded's telling (Chapter 4, Day 1, at the lookout): the pictures under his words, staged like the
 // prologue's stills but moving, almost frame by frame (designer). Each panel is a still painted once
@@ -91,6 +91,14 @@ class Out {
   ring(cx: number, cy: number, r: number, c: number, a?: number): void {
     const n = Math.max(8, Math.round(r * 6));
     for (let i = 0; i < n; i++) this.r(cx + Math.cos((i / n) * Math.PI * 2) * r, cy + Math.sin((i / n) * Math.PI * 2) * r, 1, 1, c, a);
+  }
+  /** A filled disc (an ellipse, `squash` its height to width), a row at a time. */
+  disc(cx: number, cy: number, r: number, c: number, a?: number, squash = 1): void {
+    const rows = Math.ceil(r * squash);
+    for (let dy = -rows; dy <= rows; dy++) {
+      const w = Math.sqrt(Math.max(0, 1 - (dy / (r * squash)) ** 2)) * r;
+      if (w >= 0.5) this.r(cx - w, cy + dy, w * 2, 1, c, a);
+    }
   }
   /** A row sprite, scaled up by whole pixels, flipped, or squeezed to `squeeze` of its width (turning). */
   sprite(s: RowSprite, x: number, y: number, scale = 1, flip = false, squeeze = 1, a?: number): void {
@@ -226,24 +234,109 @@ const duskSky = (y: number, horizon: number): RGB => mix(SHADOW, AMBER_DEEP, Mat
 /** A dark ground, with a little texture. */
 const ground = (x: number, y: number, k = 0.4): RGB => mix(SHADOW, WOOD, k * (0.5 + fbm(x / 9, y / 4) * 0.8));
 
-/** The capital's crag on the horizon: its top edge at x (Infinity where there's none). */
-function cragTop(x: number, cx: number, half: number, height: number, horizon: number): number {
-  const d = Math.abs(x - cx) / half;
-  if (d >= 1) return Infinity;
-  const towers = (Math.floor(x / 3) % 4 === 0 ? height * 0.18 : 0) * (1 - d);
-  return horizon - height * (1 - d * d) - towers - noise2(x / 4, 0) * 3;
+/**
+ * The capital: a city on a sheer crag (designer: not a mound of dirt). Steep cliffs, banded and streaked, with
+ * ledges, windows carved into the rock near the top and the glass lifts up its face; a wall along the top;
+ * crowded towers behind it, taller towards the middle, roofs flat, peaked and domed, windows lit; the
+ * citadel in the middle with its spire. Drawn at any size (`scale`): close up, or far off on the horizon.
+ */
+interface City {
+  cx: number;
+  /** Half the plateau's width, at full size. */
+  half: number;
+  /** The plateau's height above the base, at full size. */
+  rise: number;
+  /** Where the crag meets the ground. */
+  base: number;
+  scale: number;
 }
-
-/** The capital's lights on its crag: fixed points, which the frames make twinkle. */
-function cragLights(cx: number, half: number, height: number, horizon: number, count: number): { x: number; y: number }[] {
-  const out: { x: number; y: number }[] = [];
-  for (let i = 0; i < count; i++) {
-    const x = Math.round(cx - half * 0.8 + hash(i, 1) * half * 1.6);
-    const top = cragTop(x, cx, half, height, horizon);
-    if (!Number.isFinite(top)) continue;
-    out.push({ x, y: Math.round(top + 2 + hash(i, 2) * (horizon - top - 3)) });
+interface CityParts {
+  paint: (x: number, y: number) => RGB | null;
+  /** Its lit windows (for twinkling). */
+  windows: { x: number; y: number }[];
+  /** The plateau's top, and its edges. */
+  top: number;
+  left: number;
+  right: number;
+  /** The citadel's spire's tip. */
+  spire: { x: number; y: number };
+  /** The lifts up the cliff (x). */
+  lifts: number[];
+}
+function makeCity(c: City): CityParts {
+  const k = c.scale;
+  const top = c.base - c.rise * k;
+  const half = c.half * k;
+  const left = c.cx - half;
+  const right = c.cx + half;
+  // The crag widens a little towards its foot, its edges ragged.
+  const edgeAt = (y: number) => half + (y - top) * 0.22 + (noise2(y / (6 * k + 1), c.cx) - 0.5) * 6 * k;
+  // Buildings along the plateau, left to right.
+  const buildings: { x0: number; x1: number; top: number; roof: 'flat' | 'peak' | 'dome' }[] = [];
+  let bx = left + 3 * k;
+  let n = 0;
+  while (bx < right - 3 * k) {
+    const w = Math.max(2, Math.round((4 + cellRandom(n, 1, 21) * 7) * k));
+    const near = 1 - Math.abs(bx + w / 2 - c.cx) / half;
+    const h = Math.max(2, (6 + cellRandom(n, 2, 21) * 22 + near * 26) * k);
+    buildings.push({ x0: bx, x1: bx + w, top: top - 4 * k - h, roof: (['flat', 'peak', 'dome'] as const)[Math.floor(cellRandom(n, 3, 21) * 3)]! });
+    bx += w + (cellRandom(n, 4, 21) < 0.3 ? Math.round(k) : 0);
+    n++;
   }
-  return out;
+  const citadel = { x0: c.cx - 8 * k, x1: c.cx + 8 * k, top: top - 4 * k - 66 * k };
+  const spire = { x: c.cx, y: citadel.top - 34 * k };
+  const lifts = [Math.round(c.cx - half * 0.55), Math.round(c.cx + half * 0.5)];
+  const windows: { x: number; y: number }[] = [];
+  const isWindow = (x: number, y: number, b: { x0: number; x1: number; top: number }) => {
+    const gx = Math.round(x - b.x0);
+    const gy = Math.round(y - b.top);
+    const step = Math.max(2, Math.round(3 * k));
+    return gx > 0 && x < b.x1 - 1 && gy > 2 && gx % step === 1 && gy % step === 1 && cellRandom(x, y, 22) < 0.45;
+  };
+  const paint = (x: number, y: number): RGB | null => {
+    if (y > c.base) return null;
+    // The citadel and its spire.
+    if (x >= citadel.x0 && x < citadel.x1 && y >= citadel.top && y < top) {
+      if (isWindow(x, y, citadel)) return AMBER;
+      return mix(SHADOW, WOOD_LIGHT, x < c.cx - 4 * k ? 0.55 : 0.3);
+    }
+    if (y >= spire.y && y < citadel.top && Math.abs(x - c.cx) <= Math.max(0.5, (y - spire.y) / (34 * k) * 4 * k)) return mix(SHADOW, WOOD_PALE, 0.5);
+    // The buildings.
+    for (const b of buildings) {
+      if (x < b.x0 || x >= b.x1) continue;
+      const w = b.x1 - b.x0;
+      const roofH = b.roof === 'flat' ? 0 : Math.min(w * 0.6, 6 * k);
+      const across = Math.abs(x - (b.x0 + w / 2)) / (w / 2);
+      const roofTop = b.roof === 'peak' ? b.top - roofH * (1 - across) : b.roof === 'dome' ? b.top - roofH * Math.sqrt(Math.max(0, 1 - across * across)) : b.top;
+      if (y >= roofTop && y < top) {
+        if (y >= b.top && isWindow(x, y, b)) return AMBER;
+        // Lit from the sunset on their left faces.
+        return mix(SHADOW, WOOD_LIGHT, (x - b.x0 < Math.max(1, k) ? 0.6 : 0.25) + (y < b.top ? 0.15 : 0));
+      }
+    }
+    // The wall along the top, with its battlements.
+    if (y >= top - 4 * k && y < top && x >= left && x <= right) {
+      if (y < top - 2.5 * k && Math.floor((x - left) / Math.max(2, 2 * k)) % 2 === 1) return null;
+      return mix(DIM, WOOD_PALE, 0.5);
+    }
+    // The crag: sheer rock, streaked down its face, ledges across it; the lifts' glass up it; windows in the rock.
+    if (y >= top && Math.abs(x - c.cx) <= edgeAt(y)) {
+      if (lifts.some((lx) => Math.abs(x - lx) < Math.max(0.6, k)) && y < c.base - 2) return CYAN_DEEP;
+      const ledge = (Math.round(y - top) % Math.max(4, Math.round(13 * k)) === 0) && noise2(x / 5, y) > 0.35;
+      if (ledge) return mix(WOOD, WOOD_PALE, 0.4);
+      if (y < top + 18 * k && cellRandom(Math.round(x), Math.round(y), 23) < 0.04) return AMBER;
+      const streak = noise2(x / (1.5 + k), y / (18 * k + 1));
+      const lit = x < c.cx - edgeAt(y) * 0.6 ? 0.18 : 0;
+      return mix(SHADOW, WOOD, 0.35 + streak * 0.35 + lit - (y - top) / (c.rise * k * 3));
+    }
+    return null;
+  };
+  // Every lit window, for twinkling.
+  for (let y = Math.floor(spire.y); y < c.base; y++) for (let x = Math.floor(left - half); x < right + half; x++) {
+    const colour = paint(x, y);
+    if (colour === AMBER) windows.push({ x, y });
+  }
+  return { paint, windows, top, left, right, spire, lifts };
 }
 
 function twinkle(o: Out, lights: { x: number; y: number }[], t: number): void {
@@ -264,8 +357,9 @@ const billowTop = (x: number, base: number, size: number) => {
 // --- The lights on the horizon, from the lookout ---
 
 const LIGHTS_HORIZON = 140;
-const LIGHTS_CRAG = { cx: 330, half: 34, height: 26 };
-const lightsPoints = cragLights(LIGHTS_CRAG.cx, LIGHTS_CRAG.half, LIGHTS_CRAG.height, LIGHTS_HORIZON, 40);
+/** The capital far off on the horizon: the same city as close up, small. */
+const FAR_CITY = makeCity({ cx: 330, half: 60, rise: 34, base: LIGHTS_HORIZON, scale: 0.42 });
+const LIGHTS_CRAG = { cx: 330, half: 34 };
 
 const lights: LorePanel = {
   paint: (x, y) => {
@@ -277,12 +371,13 @@ const lights: LorePanel = {
     if (y >= mid) return mix(GREEN_DEEP, GREEN_MID, 0.15 + fbm(x / 6, y / 6) * 0.35 - (y - mid) / 40);
     if (y >= far) return mix(GREEN_DEEP, AMBER_DEEP, 0.35 + fbm(x / 5, y / 5) * 0.25 - (y - far) / 50);
     if (y >= LIGHTS_HORIZON) return mix(mix(GREEN_DEEP, AMBER_DEEP, 0.6), SHADOW, 0.2 + (y - LIGHTS_HORIZON) / 40);
-    if (y >= cragTop(x, LIGHTS_CRAG.cx, LIGHTS_CRAG.half, LIGHTS_CRAG.height, LIGHTS_HORIZON)) return mix(SHADOW, DEEP, 0.4);
+    const city = FAR_CITY.paint(x, y);
+    if (city) return mix(city, duskSky(y, LIGHTS_HORIZON), 0.25);
     return addLight(duskSky(y, LIGHTS_HORIZON), AMBER, 0.4 * falloff(x, y, 300, LIGHTS_HORIZON, 220, 36));
   },
   frame: ({ beat, since, t }) => {
     const o = new Out();
-    twinkle(o, lightsPoints, t);
+    twinkle(o, FAR_CITY.windows, t);
     if (beat >= 1) {
       // That glow along the edge of the sky, coming up beyond the capital: them.
       const k = beat > 1 ? 1 : ease(step(since) / 2.5);
@@ -441,97 +536,83 @@ const choice: LorePanel = {
 // --- The capital between them and us; its king's bargain ---
 
 const CAP_HORIZON = 160;
-/** The capital: a city on a sheer crag, towers crowded on its top, the citadel's spire in the middle. */
-const CAP = { x0: 186, x1: 306, top: 112, spire: 246 };
-/** The crag's cliff faces (steep, not a mound): its outline at x. */
-const cliffTop = (x: number) => {
-  if (x < CAP.x0 - 10 || x > CAP.x1 + 10) return Infinity;
-  const edge = Math.min(x - (CAP.x0 - 10), CAP.x1 + 10 - x);
-  return edge < 12 ? CAP.top + (12 - edge) * 4 : CAP.top;
-};
-/** The city's skyline on top of the crag. */
-const skyline = (x: number) => {
-  if (x < CAP.x0 || x > CAP.x1) return Infinity;
-  if (Math.abs(x - CAP.spire) <= 2) return CAP.top - 64 + Math.abs(x - CAP.spire) * 6;
-  if (Math.abs(x - CAP.spire) <= 9) return CAP.top - 40;
-  const cell = Math.floor(x / 6);
-  return CAP.top - 6 - cellRandom(cell, 9, 2) * 26 * (1 - Math.abs(x - CAP.spire) / 90);
-};
-const CAP_WINDOWS = (() => {
-  const out: { x: number; y: number }[] = [];
-  for (let x = CAP.x0; x <= CAP.x1; x += 2) {
-    const top = skyline(x);
-    for (let y = Math.round(top) + 2; y < CAP.top; y += 3) if (cellRandom(x, y, 4) < 0.35) out.push({ x, y });
-  }
-  return out;
-})();
+const CAPITAL = makeCity({ cx: 252, half: 64, rise: 50, base: CAP_HORIZON, scale: 1 });
 /** The integrated's towers, far left: their tops. */
-const towerTop = (x: number) => (x < 140 ? 16 + ((Math.floor(x / 14) * 37) % 70) + (x % 14 < 3 ? 400 : 0) : Infinity);
+const towerTop = (x: number) => (x < 132 ? 16 + ((Math.floor(x / 14) * 37) % 70) + (x % 14 < 3 ? 400 : 0) : Infinity);
 /** A small tree on the right, in silhouette. */
 const smallTree = (x: number, y: number, cx: number, base: number, size: number) =>
   (Math.abs(x - cx) <= Math.max(1, size / 8) && y > base - size && y <= base) || Math.hypot(x - cx, (y - (base - size * 1.4)) * 1.1) < size * 0.7 + fbm(x / 3, y / 3) * size * 0.25;
-const WORKERS = [366, 384, 402, 420];
+const WORKERS = [372, 390, 408, 426];
+/** The road from the tree to the foot of the crag, and the bridge from the city's far side out to them. */
+const ROAD_Y = 168;
+const BRIDGE = { x0: CAPITAL.left - 4, y0: CAPITAL.top + 6, x1: 120, y1: 92 };
 const capital: LorePanel = {
   paint: (x, y) => {
     if (y >= CAP_HORIZON) {
-      // Fields in rows on the right, under the tree; bare ground on the left.
-      const field = x > 330 && (y - CAP_HORIZON) % 5 === 0 ? 0.3 : 0;
+      // The road along the ground; fields in rows on the right, under the tree; bare ground elsewhere.
+      if (Math.abs(y - ROAD_Y) <= 1 && x > CAPITAL.right && x < 446) return mix(WOOD, WOOD_PALE, 0.5);
+      const field = x > 346 && (y - CAP_HORIZON) % 5 === 0 ? 0.3 : 0;
       return mix(ground(x, y, 0.45), WOOD_PALE, field);
     }
-    if (smallTree(x, y, 452, CAP_HORIZON, 28)) return mix(GREEN_DEEP, GREEN_MID, fbm(x / 4, y / 4) * 0.5);
-    // The crag: sheer rock, banded, darker at its foot; the lifts' cables of light up its face.
-    if (y >= cliffTop(x)) {
-      if ((x === 214 || x === 280) && y < CAP_HORIZON - 2) return CYAN_DEEP;
-      return mix(WOOD, SHADOW, 0.4 + ((y >> 2) % 3) * 0.08 + (y - CAP.top) / 120);
-    }
-    // The city on top: walls along the edge, towers behind, the citadel's spire.
-    if (y >= CAP.top - 5 && x >= CAP.x0 && x <= CAP.x1) return mix(DIM, WOOD_PALE, 0.4);
-    if (y >= skyline(x)) return mix(rgb(S.shadow), WOOD_LIGHT, 0.35 + (Math.abs(x - CAP.spire) < 3 ? 0.35 : 0));
+    if (smallTree(x, y, 456, CAP_HORIZON, 28)) return mix(GREEN_DEEP, GREEN_MID, fbm(x / 4, y / 4) * 0.5);
+    const city = CAPITAL.paint(x, y);
+    if (city) return city;
     // The integrated's towers: pale, enormous, hazy with distance, ruled with their light.
     if (y >= towerTop(x)) return mix(duskSky(y, CAP_HORIZON), (y + x * 2) % 11 === 0 ? CYAN : LIGHT, 0.42);
-    return addLight(duskSky(y, CAP_HORIZON), AMBER, 0.32 * falloff(x, y, CAP.spire, CAP.top, 150, 70));
+    return addLight(duskSky(y, CAP_HORIZON), AMBER, 0.32 * falloff(x, y, 252, CAPITAL.top, 160, 70));
   },
   frame: ({ beat, since, t }) => {
     const o = new Out();
     const s = step(t);
-    // The city's windows, lit and twinkling.
-    CAP_WINDOWS.forEach((p, i) => {
-      if (hash(i, Math.floor(s * 2)) < 0.1) return;
-      o.r(p.x, p.y, 1, 1, hash(i, 7) < 0.25 ? S.white : S.amber);
-    });
-    o.r(CAP.spire, CAP.top - 66, 1, 2, S.white, 0.6 + 0.4 * Math.sin(s * 3));
-    // Their towers' seams, breathing.
-    for (let x = 6; x < 140; x += 14) o.r(x, towerTop(x) + 4, 1, CAP_HORIZON - towerTop(x) - 4, S.cyan, 0.2 + 0.15 * Math.sin(s * 2 + x));
-    // Their haze, held back at the capital's edge: a wall of light down through the city (the peace it keeps).
-    const held = beat >= 1 ? ease(step(since) / 1.5) : 0;
-    for (let i = 0; i < 6; i++) o.r(140 + i * 8, 30, 8, CAP_HORIZON - 30, S.cyan, 0.05 * (6 - i) * (beat >= 1 ? 1 : 0.4));
-    if (beat >= 1) {
-      o.r(CAP.x0 - 12, 20, 2, (CAP_HORIZON - 20) * held, S.white, 0.55);
-      o.r(CAP.x0 - 10, 20, 1, (CAP_HORIZON - 20) * held, S.cyan, 0.7);
+    // The city's windows, lit and twinkling; the spire's light.
+    twinkle(o, CAPITAL.windows, t);
+    o.r(CAPITAL.spire.x, CAPITAL.spire.y - 1, 1, 2, S.white, 0.6 + 0.4 * Math.sin(s * 3));
+    // Their towers' seams, breathing; their haze, pressing towards us.
+    for (let x = 6; x < 132; x += 14) o.r(x, towerTop(x) + 4, 1, CAP_HORIZON - towerTop(x) - 4, S.cyan, 0.2 + 0.15 * Math.sin(s * 2 + x));
+    for (let i = 0; i < 6; i++) o.r(132 + i * 8, 30, 8, CAP_HORIZON - 30, S.cyan, 0.05 * (6 - i) * (beat >= 1 ? 1 : 0.4));
+    if (beat === 1 || beat === 2) {
+      // The peace it keeps: a wall of light at the city's edge, holding them back.
+      const held = beat === 1 ? ease(step(since) / 1.5) : 1;
+      const wx = CAPITAL.left - 16;
+      o.r(wx, 20, 2, (CAP_HORIZON - 20) * held, S.white, 0.55);
+      o.r(wx + 2, 20, 1, (CAP_HORIZON - 20) * held, S.cyan, 0.7);
     }
-    if (beat >= 3) {
-      // Without the deal: the wall gives, and their light rolls on over our side, ruling everything into its lines;
-      // the people in the fields gone, or one of them.
-      const front = CAP.x0 - 12 + ease(step(since) / 5) * (LORE_W - CAP.x0 + 12);
-      o.r(CAP.x0 - 12, 0, front - CAP.x0 + 12, LORE_H, S.cyan, 0.2);
-      for (let x = CAP.x0 - 12; x < front; x += 8) o.r(x, CAP_HORIZON, 1, LORE_H - CAP_HORIZON, S.cyan, 0.4);
-      for (let y = CAP_HORIZON; y < LORE_H; y += 8) o.r(CAP.x0 - 12, y, front - CAP.x0 + 12, 1, S.cyan, 0.4);
-      o.r(front - 3, 0, 3, LORE_H, S.white, 0.8);
-      WORKERS.forEach((x, i) => {
-        if (x > front) figure(o, x, 182, { bent: 0.7, arm: step(t + i * 0.3) % 1 < 0.5 ? 0.2 : 0.55, h: 18 });
-        else if (i % 2 === 0) figure(o, x, 182, { kind: 'integrated', h: 24 });
-      });
-      return o.rects;
-    }
-    if (beat >= 2) {
-      // What passes through it: the tree's work going in from the right, and on out to them.
-      for (let i = 0; i < 8; i++) {
-        const k = (s * 0.35 + i / 8) % 1;
-        if (k < 0.5) o.r(lerp(440, CAP.x1, k * 2), lerp(150, CAP.top + 8, k * 2), 2, 2, S.amber);
-        else o.r(lerp(CAP.x0, 120, (k - 0.5) * 2), lerp(CAP.top + 8, 70, (k - 0.5) * 2), 2, 2, S.amber, 1 - (k - 0.5));
+    if (beat === 2) {
+      // The bargain, as it works: carts of the tree's work along the road to the foot of the crag; up its lift;
+      // and out the other side, along a bridge of light, to them.
+      for (let i = 0; i < 4; i++) {
+        const k = (s * 0.12 + i / 4) % 1;
+        const cx = lerp(440, CAPITAL.right + 6, k);
+        o.r(cx - 3, ROAD_Y - 6, 7, 5, S.woodPale);
+        o.r(cx - 3, ROAD_Y - 6, 7, 1, S.light);
+        o.r(cx - 2, ROAD_Y - 1, 2, 2, S.shadow);
+        o.r(cx + 2, ROAD_Y - 1, 2, 2, S.shadow);
+      }
+      const lift = CAPITAL.lifts[1]!;
+      const ly = lerp(CAP_HORIZON - 4, CAPITAL.top + 2, (s * 0.25) % 1);
+      o.r(lift - 2, ly - 4, 5, 5, S.cyan);
+      o.line(BRIDGE.x0, BRIDGE.y0, BRIDGE.x1, BRIDGE.y1, S.light, 0.6);
+      o.line(BRIDGE.x0, BRIDGE.y0 + 1, BRIDGE.x1, BRIDGE.y1 + 1, S.cyan, 0.5);
+      for (let i = 0; i < 3; i++) {
+        const k = (s * 0.18 + i / 3) % 1;
+        o.r(lerp(BRIDGE.x0, BRIDGE.x1, k) - 2, lerp(BRIDGE.y0, BRIDGE.y1, k) - 4, 5, 4, S.white, 0.9);
       }
       // And people like you, kept at it, bent over the fields.
-      WORKERS.forEach((x, i) => figure(o, x, 182, { bent: 0.7, arm: step(t + i * 0.3) % 1 < 0.5 ? 0.2 : 0.55, h: 18 }));
+      WORKERS.forEach((x, i) => figure(o, x, 186, { bent: 0.7, arm: step(t + i * 0.3) % 1 < 0.5 ? 0.2 : 0.55, h: 18 }));
+    }
+    if (beat >= 3) {
+      // Without the deal: the wall gone, their light rolls on over the city and our side, ruling everything into
+      // its lines; the people in the fields gone, or one of them.
+      const front = 132 + ease(step(since) / 5) * (LORE_W - 132);
+      o.r(132, 0, front - 132, LORE_H, S.cyan, 0.2);
+      for (let x = 132; x < front; x += 8) o.r(x, CAP_HORIZON, 1, LORE_H - CAP_HORIZON, S.cyan, 0.4);
+      for (let y = CAP_HORIZON; y < LORE_H; y += 8) o.r(132, y, front - 132, 1, S.cyan, 0.4);
+      for (let x = 136; x < front; x += 12) o.r(x, 20 + (x % 40), 1, CAP_HORIZON - 20 - (x % 40), S.light, 0.25);
+      o.r(front - 3, 0, 3, LORE_H, S.white, 0.8);
+      WORKERS.forEach((x, i) => {
+        if (x > front) figure(o, x, 186, { bent: 0.7, arm: step(t + i * 0.3) % 1 < 0.5 ? 0.2 : 0.55, h: 18 });
+        else if (i % 2 === 0) figure(o, x, 186, { kind: 'integrated', h: 24 });
+      });
     }
     return o.rects;
   },
@@ -696,8 +777,10 @@ function handPaint(x: number, y: number): PixelColour {
 }
 
 const HAND_BIRD = { x: 226, y: 108, scale: 4 };
-/** Perfect things falling away: only out to the sides, behind nothing. */
-const PERFECT = Array.from({ length: 12 }, (_, i) => ({ x: i < 6 ? 12 + i * 22 : 368 + (i - 6) * 18 }));
+/** A perfect bird: the same shape as yours, pale, flawless, made by them in an instant. */
+const PERFECT_BIRD: RowSprite = { rows: BIRD.rows, colours: { '#': S.light, d: S.dim, o: S.shadow } };
+/** Where their perfect birds stand, in rows at the sides, every one the same. */
+const PERFECT = Array.from({ length: 24 }, (_, i) => ({ x: (i % 6 < 3 ? 14 + (i % 3) * 44 : 344 + ((i % 6) - 3) * 44), y: 20 + Math.floor(i / 6) * 42 }));
 /** Things everyone else sends up: all different. */
 const DIFFERENT: RowSprite[] = [
   { rows: ['pppppp', 'p.p.p.', 'p.p.p.'], colours: { p: S.woodPale } }, // a comb
@@ -714,15 +797,12 @@ const hand: LorePanel = {
   frame: ({ beat, since, t }) => {
     const o = new Out();
     const s = step(since);
-    if (beat >= 2) {
-      // Perfect things, endlessly, falling away into the dark at the sides: all exactly the same.
-      PERFECT.forEach((p, i) => {
-        const y = ((step(t) * 40 + i * 37) % 300) - 20;
-        o.r(p.x, y, 8, 8, S.light, 0.45);
-        o.r(p.x, y, 8, 1, S.white, 0.55);
-        o.r(p.x + 7, y + 1, 1, 7, S.dim, 0.45);
-      });
-    }
+    // Perfect birds, row after row at the sides, appearing one after another, every one exactly the same;
+    // once it's said that imperfection's what they value, they dim.
+    PERFECT.forEach((p, i) => {
+      const shown = beat === 0 ? step(since) > i * 0.12 : true;
+      if (shown) o.sprite(PERFECT_BIRD, p.x, p.y, 3, false, 1, beat >= 2 ? 0.25 : 0.8);
+    });
     // Your bird in its palm, turning, a drawing at a time.
     const turn = [1, 0.5, 0.15, 0.5][Math.floor(step(t) / 0.4) % 4]!;
     const flip = Math.floor(step(t) / 1.6) % 2 === 1;
@@ -760,9 +840,14 @@ const hand: LorePanel = {
   },
 };
 
-// --- What comes back down: the blessings (food, cloth, medicine), and the hands that take from them first ---
+// --- What comes back down: the blessings (food, cloth, medicine), and who takes from them first ---
 
-const MOUTH = { x: 240, y: 74 };
+/** Where the blessings come in, on the cable, and the table they're shared out on. */
+const TABLE = { x: 240, y: 70 };
+/** Where each share goes: the capital (its crown), the canopy (a treehouse), down the tube to the crowd. */
+const CROWN_AT = { x: 418, y: 40 };
+const HUT_AT = { x: 62, y: 40 };
+const TUBE_FOOT = { x: 240, y: 150 };
 /** The crowd at the evening ceremony: heads along the foot of the picture. */
 const CROWD = Array.from({ length: 22 }, (_, i) => ({ x: 26 + i * 20 + Math.round(cellRandom(i, 1, 3) * 8), y: 190 + Math.round(cellRandom(i, 2, 3) * 10) }));
 /** A blessing: a loaf, a vial of medicine, folded cloth. */
@@ -771,54 +856,74 @@ const BUNDLES: { w: number; h: number; c: number; top: number }[] = [
   { w: 4, h: 9, c: S.green, top: S.white },
   { w: 11, h: 5, c: S.light, top: S.white },
 ];
+/** Of every six that come in, who takes them, by beat: as the tree believes (all to you); the capital's cut and ours; and later, less. */
+const SHARES: ('capital' | 'canopy' | 'you')[][] = [
+  ['you', 'you', 'you', 'you', 'you', 'you'],
+  ['capital', 'you', 'capital', 'canopy', 'capital', 'canopy'],
+  ['capital', 'capital', 'canopy', 'capital', 'you', 'capital'],
+];
 const blessings: LorePanel = {
   paint: (x, y) => {
-    // The offering floor at the evening ceremony: dark, the tube coming down into its basin, lamps.
-    let c: RGB = mix(SHADOW, WOOD, 0.3 + fbm(x / 8, y / 30) * 0.3);
-    if (Math.abs(x - MOUTH.x) <= 5 && y < MOUTH.y) c = Math.abs(x - MOUTH.x) <= 1 ? LIGHT : CYAN;
-    if (Math.abs(x - MOUTH.x) <= 8 && y >= MOUTH.y - 3 && y < MOUTH.y) c = LIGHT;
-    // The basin, and the crowd's heads and shoulders round it.
-    if (y >= 120 && y < 128 && Math.abs(x - MOUTH.x) < 44 - (y - 120) * 2) c = y === 120 ? LIGHT : WOOD_PALE;
+    let c: RGB = mix(SHADOW, WOOD, 0.25 + fbm(x / 8, y / 30) * 0.3);
+    // The cable coming in from the top left, to the table.
+    if (y < TABLE.y && Math.abs(y - lerp(0, TABLE.y - 4, x / TABLE.x)) < 0.8 && x < TABLE.x) c = DIM;
+    // The table.
+    if (y >= TABLE.y && y < TABLE.y + 4 && Math.abs(x - TABLE.x) < 30) c = y === TABLE.y ? LIGHT : WOOD_PALE;
+    // The tube, down from the table to the offering floor, and its basin.
+    if (Math.abs(x - TABLE.x) <= 4 && y >= TABLE.y + 4 && y < TUBE_FOOT.y) c = Math.abs(x - TABLE.x) <= 1 ? LIGHT : CYAN;
+    if (y >= TUBE_FOOT.y && y < TUBE_FOOT.y + 6 && Math.abs(x - TABLE.x) < 40 - (y - TUBE_FOOT.y) * 3) c = y === TUBE_FOOT.y ? LIGHT : WOOD_PALE;
+    // The crowd's heads and shoulders.
     for (const h of CROWD) if (Math.hypot(x - h.x, (y - h.y) * 1.1) < 5 || (y > h.y + 4 && Math.abs(x - h.x) < 8)) c = mix(WOOD_LIGHT, DIM, 0.35 - (y - h.y) / 60);
-    c = addLight(c, CYAN, 0.45 * Math.exp(-Math.pow((x - MOUTH.x) / 14, 2)) * (y < MOUTH.y ? 1 : 0.2));
-    return addLight(c, AMBER, 0.25 * falloff(x, y, MOUTH.x, 130, 160, 70));
+    c = addLight(c, CYAN, 0.4 * Math.exp(-Math.pow((x - TABLE.x) / 14, 2)) * (y > TABLE.y && y < TUBE_FOOT.y ? 1 : 0.1));
+    return addLight(c, AMBER, 0.25 * falloff(x, y, TABLE.x, 150, 170, 80));
   },
   frame: ({ beat, t }) => {
     const o = new Out();
     const s = step(t);
-    // The blessings come down the tube and drop into the reaching hands, fewer every beat.
-    const every = beat === 0 ? 0.35 : beat === 1 ? 0.35 : 1.6;
-    for (let i = 0; i < 8; i++) {
+    const b = Math.min(2, beat);
+    // Once he's said it: the crown (the capital) on the right, a treehouse (us, up here) on the left.
+    if (beat >= 1) {
+      // The capital's crown: a band and five points.
+      o.r(CROWN_AT.x - 18, CROWN_AT.y, 36, 10, S.amber);
+      for (const dx of [-18, -10, -3, 4, 12]) o.r(CROWN_AT.x + dx, CROWN_AT.y - 9 + (Math.abs(dx + 3) > 10 ? 3 : 0), 6, 9, S.amber);
+      o.r(CROWN_AT.x - 18, CROWN_AT.y + 10, 36, 2, S.amberDeep);
+      o.r(CROWN_AT.x - 2, CROWN_AT.y + 3, 4, 4, S.white);
+      // The canopy: a round hut on a branch, its tall thatched roof, a lit door.
+      for (let r = 0; r < 14; r++) o.r(HUT_AT.x - r, HUT_AT.y - 14 + r, r * 2 + 1, 1, r % 3 === 0 ? S.woodPale : S.dim);
+      o.r(HUT_AT.x - 10, HUT_AT.y, 20, 12, S.wood);
+      o.r(HUT_AT.x - 2, HUT_AT.y + 4, 5, 8, S.amber);
+      o.r(HUT_AT.x - 22, HUT_AT.y + 12, 44, 3, S.greenDeep);
+    }
+    // The blessings: in on the cable, onto the table, then each one away to whoever takes it.
+    const every = b === 2 ? 0.9 : 0.55;
+    for (let i = 0; i < 10; i++) {
       const born = Math.floor(s / every) - i;
       const age = s - born * every;
-      const b = BUNDLES[((born % 3) + 3) % 3]!;
-      const toX = CROWD[((born * 7) % CROWD.length + CROWD.length) % CROWD.length]!.x;
-      // On the second beat, hands come for them on the way down: the capital's (gold at the wrist) takes most,
-      // the canopy's (plain) a share; only what's left reaches the crowd.
-      const taken = beat === 1 ? (((born % 5) + 5) % 5 < 2 ? 'capital' : ((born % 5) + 5) % 5 === 2 ? 'canopy' : null) : null;
-      if (age < 0 || age > 2.4) continue;
-      if (taken && age > 0.5) continue;
-      const k = clamp01(age / 1.4);
-      o.r(lerp(MOUTH.x, toX, k) - b.w / 2, lerp(MOUTH.y - 40 + age * 40, 186, k * k), b.w, b.h, b.c);
-      o.r(lerp(MOUTH.x, toX, k) - b.w / 2, lerp(MOUTH.y - 40 + age * 40, 186, k * k), b.w, 1, b.top, 0.6);
+      if (age < 0 || age > 3.2) continue;
+      const bundle = BUNDLES[((born % 3) + 3) % 3]!;
+      const who = SHARES[b]![((born % 6) + 6) % 6]!;
+      let x: number;
+      let y: number;
+      if (age < 1) {
+        x = lerp(0, TABLE.x, age);
+        y = lerp(0, TABLE.y - 4, age) - bundle.h;
+      } else {
+        const k = clamp01((age - 1.2) / 1.2);
+        if (age < 1.2) [x, y] = [TABLE.x, TABLE.y - bundle.h];
+        else if (who === 'capital') [x, y] = [lerp(TABLE.x, CROWN_AT.x, k), lerp(TABLE.y - bundle.h, CROWN_AT.y + 8, k) - Math.sin(k * Math.PI) * 20];
+        else if (who === 'canopy') [x, y] = [lerp(TABLE.x, HUT_AT.x, k), lerp(TABLE.y - bundle.h, HUT_AT.y + 8, k) - Math.sin(k * Math.PI) * 20];
+        else {
+          const to = CROWD[((born * 7) % CROWD.length + CROWD.length) % CROWD.length]!;
+          [x, y] = k < 0.5 ? [TABLE.x, lerp(TABLE.y, TUBE_FOOT.y, k * 2)] : [lerp(TABLE.x, to.x, (k - 0.5) * 2), lerp(TUBE_FOOT.y, to.y - 12, (k - 0.5) * 2)];
+        }
+        if (k >= 1) continue;
+      }
+      o.r(x - bundle.w / 2, y, bundle.w, bundle.h, bundle.c);
+      o.r(x - bundle.w / 2, y, bundle.w, 1, bundle.top, 0.6);
     }
-    if (beat >= 1) {
-      // The capital's hand, down from the top right; the canopy's, from the top left: each taking from the stream.
-      const reach = (from: { x: number; y: number }, gold: boolean, phase: number) => {
-        const k = 0.6 + 0.4 * Math.sin(s * 3 + phase);
-        const hx = lerp(from.x, MOUTH.x + (gold ? 8 : -8), k);
-        const hy = lerp(from.y, MOUTH.y - 34, k);
-        o.line(from.x, from.y, hx, hy, S.light, undefined, 5);
-        if (gold) o.line(lerp(from.x, hx, 0.75), lerp(from.y, hy, 0.75), lerp(from.x, hx, 0.8), lerp(from.y, hy, 0.8), S.amber, undefined, 6);
-        o.r(hx - 4, hy - 3, 8, 6, S.light);
-        o.r(hx - 4, hy + 2, 8, 1, S.dim);
-      };
-      reach({ x: 480, y: 0 }, true, 0);
-      reach({ x: 0, y: 10 }, false, 1.7);
-    }
-    // The crowd's hands, reaching up; on the last beat, mostly empty, reaching anyway.
+    // The crowd's hands, reaching up; later, mostly empty, reaching anyway.
     CROWD.forEach((h, i) => {
-      const up = Math.sin(s * 2.4 + i) > (beat >= 2 ? -0.6 : 0.2);
+      const up = Math.sin(s * 2.4 + i) > (b >= 2 ? -0.6 : 0.2);
       if (up) o.r(h.x + (i % 2 ? 2 : -4), h.y - 18, 2, 13, S.light);
     });
     return o.rects;
@@ -827,46 +932,51 @@ const blessings: LorePanel = {
 
 // --- Opening the chapter: halfway up the tube (you flew), or crawling to the light (you fell) ---
 
-/** The floors of the tree going by outside the glass as you rise. */
-const LEVEL_GAP = 96;
+/**
+ * Rising up the tube, through your own eyes (designer: first person, the light rushing past): looking up the
+ * tube into the light, its rings and seams flying past you, the tree's lit floors streaking by through the
+ * glass, faster and brighter until it's white; then black.
+ */
+const RISE_C = { x: 240, y: 104 };
 const rise: LorePanel = {
   paint: (x, y) => {
-    // Inside the tube: the glass walls either side, light all round you; outside, the dark of the tree.
-    const inside = x > 170 && x < 310;
-    if (Math.abs(x - 170) <= 1 || Math.abs(x - 310) <= 1) return x === 170 || x === 310 ? LIGHT : CYAN;
-    if (inside) return addLight(mix(CYAN_DEEP, CYAN, 0.35 + 0.25 * Math.exp(-Math.pow((x - 240) / 40, 2))), rgb(S.white), 0.15 * (1 - y / LORE_H));
-    return mix(SHADOW, WOOD, 0.35 + fbm(x / 3, y / 40) * 0.35);
+    // Looking straight up the tube: dark at the edges, the light far above at its centre.
+    const d = Math.hypot(x - RISE_C.x, (y - RISE_C.y) * 1.15);
+    return addLight(mix(SHADOW, CYAN_DEEP, clamp01(1 - d / 300) * 0.8), CYAN, 0.6 * Math.exp(-Math.pow(d / 60, 2)));
   },
   frame: ({ beat, since, t }) => {
     const o = new Out();
-    const s = step(t);
-    // The tree's floors sliding down past the glass, faster as you go: lit windows, people looking up.
-    const speed = beat === 0 ? 50 : 120;
-    const scroll = beat === 0 ? s * speed : 50 * 30 + step(since) * speed;
-    for (let n = -1; n < 4; n++) {
-      const level = Math.floor(scroll / LEVEL_GAP) - n;
-      const y = (scroll % LEVEL_GAP) + n * LEVEL_GAP;
-      if (y < -20 || y > LORE_H) continue;
-      for (const [x0, x1] of [[0, 168], [312, LORE_W]] as const) {
-        o.r(x0, y, x1 - x0, 6, S.woodLight);
-        o.r(x0, y, x1 - x0, 1, S.woodPale);
-        for (let w = x0 + 8; w < x1 - 8; w += 26) if (cellRandom(w, level, 3) < 0.55) o.r(w, y - 22, 6, 9, S.amber, 0.8);
-        // The ones you left: faces at the glass, looking up after you (a torch or two, early on).
-        for (let p = x0 + 14; p < x1 - 6; p += 34) if (cellRandom(p, level, 5) < 0.4) {
-          figure(o, x0 === 0 ? 160 - (p % 60) : 320 + (p % 60), y, { h: 16, facing: x0 === 0 ? 1 : -1, arm: 0.8 });
-          if (level < 3 && cellRandom(p, level, 6) < 0.5) o.r(x0 === 0 ? 160 - (p % 60) + 4 : 320 + (p % 60) - 5, y - 20 - (s * 8) % 2, 2, 3, S.amber);
-        }
-      }
+    if (beat >= 3) {
+      o.r(0, 0, LORE_W, LORE_H, S.shadow);
+      return o.rects;
     }
-    // Rings of the tube's light passing down over you.
-    for (let r = 0; r < 4; r++) o.r(172, ((s * 140 + r * 70) % 300) - 20, 136, 2, S.white, 0.35);
-    // You, carried up, arms out, the thread at your neck.
-    const bob = Math.round(Math.sin(s * 3) * 2);
-    o.sprite(PROTAGONIST.jump, 240 - 24, 70 + bob, 4);
-    // The light above, swelling until it's everything.
-    const white = beat === 0 ? 0 : beat === 1 ? ease(step(since) / 4) * 0.5 : 0.5 + ease(step(since) / 1.5) * 0.5;
-    for (let i = 0; i < 12; i++) o.r(0, i * 18, LORE_W, 18, S.white, white * (1 - i / 14));
-    if (beat >= 2) o.r(0, 0, LORE_W, LORE_H, S.white, ease(step(since) / 1.5));
+    const s = step(t);
+    const fast = beat === 0 ? 1 : 1 + ease(step(since) / 3) * 2.5;
+    const travel = beat === 0 ? s * 0.6 : 0.6 * 30 + step(since) * 0.6 * fast;
+    // The tube's rings, coming at you out of the light and past (nearer, bigger, brighter).
+    for (let i = 0; i < 10; i++) {
+      const z = 1 - (((travel + i / 10) % 1 + 1) % 1);
+      const r = 14 / Math.max(0.05, z);
+      if (r > 340) continue;
+      o.ring(RISE_C.x, RISE_C.y, r, S.cyan, clamp01(0.25 + (1 - z) * 0.6));
+      if (r > 60) o.ring(RISE_C.x, RISE_C.y, r + 1, S.white, clamp01((1 - z) * 0.5));
+    }
+    // Through the glass, the tree going by: lit windows and the shapes of people streaking outwards.
+    for (let i = 0; i < 26; i++) {
+      const ang = (i / 26) * Math.PI * 2 + cellRandom(i, 1, 4);
+      const z = 1 - (((travel * 1.3 + cellRandom(i, 2, 4)) % 1 + 1) % 1);
+      const r = 20 / Math.max(0.05, z);
+      if (r > 330 || r < 26) continue;
+      const len = Math.min(40, (1 - z) * 30 * fast);
+      const x0 = RISE_C.x + Math.cos(ang) * r;
+      const y0 = RISE_C.y + Math.sin(ang) * r * 0.87;
+      const person = cellRandom(i, 3, 4) < 0.3;
+      o.line(x0, y0, x0 + Math.cos(ang) * len, y0 + Math.sin(ang) * len * 0.87, person ? S.woodPale : S.amber, clamp01(1 - z + 0.2), person ? 2 : 1);
+    }
+    // The light above: a white heart that swells until it's everything.
+    const swell = beat === 0 ? 0.15 : beat === 1 ? 0.15 + ease(step(since) / 4) * 0.5 : 0.65 + ease(step(since) / 1.4) * 0.35;
+    for (let r = 0; r < 6; r++) o.disc(RISE_C.x, RISE_C.y, 10 + swell * 260 * (1 - r / 6), S.white, 0.12 + swell * 0.12, 0.87);
+    if (beat >= 2) o.r(0, 0, LORE_W, LORE_H, S.white, ease(step(since) / 1.4));
     return o.rects;
   },
 };
@@ -909,10 +1019,12 @@ const treeNow: LorePanel = {
     // The tube's light, going up (until the tree stops).
     if (beat < 3) o.r(TREE.x - 1, TREE.ground - ((s * 70) % 190) - 12, 3, 12, S.white, 0.7);
     if (beat >= 1 && beat !== 3) {
-      // A thread from the tree to the capital's lights: what it's worth to him.
-      for (let i = 0; i < 14; i++) {
-        const k = (s * 0.25 + i / 14) % 1;
-        o.r(lerp(TREE.x + 40, 452, k), lerp(150, 188, k) - Math.sin(k * Math.PI) * 34, 1, 1, S.amber);
+      // What it's worth to him: the crates going down the cable and away across the plain to his lights.
+      for (let i = 0; i < 4; i++) {
+        const k = (s * 0.2 + i / 4) % 1;
+        o.r(lerp(CABLE.x0, CABLE.x1, k) - 3, lerp(CABLE.y0, CABLE.y1, k) + 1, 6, 5, S.woodPale);
+        const g = (s * 0.16 + i / 4) % 1;
+        o.r(lerp(CABLE.x1 + 2, 448, g), TREE.ground - 5, 6, 5, S.woodPale, 1 - g * 0.6);
       }
       FAR_LIGHTS.forEach((p, i) => o.r(p.x, p.y, 1, 1, hash(i, Math.floor(s * 3)) < 0.5 ? S.white : S.amber));
     }

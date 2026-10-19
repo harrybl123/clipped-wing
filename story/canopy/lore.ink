@@ -25,14 +25,14 @@
 
 === c4_rise ===
 Up. #panel:rise #narration
-The torches drop away below you. Faces at the glass, mouths open, getting smaller. #narration
+The torches drop away below you. Faces at the glass, mouths open, gone. #narration
 The trunk. The middle tiers. The upper halls, their windows going by like sparks. #narration
 Somewhere down there, Mum, at the door. #narration
 Nobody's ever come back from where you're going. #beat:1 #narration
 The Canopy. Where the Tree lives. Where it chose every one of them. #narration
-You don't have wings. You never did. #narration
 The light above you gets bigger, and whiter, until there's nothing else in the world. #beat:2 #narration
-So this is what it's like, you think. To be chosen. #end #narration
+So this is what it's like, you think. To be chosen. #narration
+Then nothing at all. #beat:3 #end #narration
 -> END
 
 // --- The opening: the end of the rot ---
@@ -136,7 +136,8 @@ I'm sorry. I'd do it again. Both of those are true. #narration
 And us, up here? We live off what comes up the tube, before the rest goes on. Your combs. Your bowls. Your cloth. #panel:tube:3 #narration
 And what comes back down to you, the price of your work: the food, the cloth, the medicine. #panel:blessings #narration
 The capital takes its cut of it first. And then we take ours. #beat:1 #narration
-"The baby next door. The winter he had the cough." #speaker:you
+"The medicine too? When the baby two doors down was sick last winter, one vial came down for him. One." #speaker:you
+"You took from that?" #speaker:you
 Yes. #narration
 // The shrinking blessings are the world's economics (designer).
 Every year the capital wants more for the same. So less comes down. #beat:2 #narration
@@ -148,17 +149,21 @@ Scavengers, all of us. The capital, and them, and us. Only you, at the bottom, h
 To the king, the tree's worth more than any city he has. As long as it's quiet, and believes, and works. #panel:tree #narration
 Nobody in there would hear a word of this from me. They'd throw me in the rot before I'd finished the sentence. #beat:1 #narration
 Not because they're cruel. Because they believe. That's harder to break than any lock. #narration
+But from you? #beat:2 #narration
 { c4_left == "rot":
-    But from the one they threw in the rot, walking back out of it? #beat:2 #narration
+    They threw you in the rot. Every one of them watched you go. And you'll walk back out of it, alive. #narration
 - else:
-    But from the one the Tree chose, come back down the tube? #beat:2 #narration
+    They watched the Tree choose you. Every one of them saw you go up the tube. And you'll come back down it. #narration
 }
-Here's what I want. Not a war. Not yet. #narration
+Nobody's ever done that. They'll listen to you, the way they'll never listen to me. #narration
+Here's what I want. Not a war. Not to bring the capital down. #narration
+A better bargain. One where we live alongside them, and nobody has to be kept to pay for it. No slaves. #narration
+And the only way the king will ever make it is if he has to. #narration
 You go back in. Not to tell them everything: they couldn't bear it, not all at once. A doubt. One true thing, where they'll find it. Then another. #narration
 People who doubt kneel slower. Make less. Ask why. #narration
 And when the tree slows, the king has nothing left to trade. Nothing to keep them off with. #beat:3 #narration
 He'll have to come to us. #beat:4 #narration
-And then we set the price. What comes back down. Who goes up. Who's kept. #narration
-A better bargain, for every soul in that tree. That's all I've ever wanted. #narration
+And then we set the terms. What comes back down. Who goes up. Whether anyone's kept at all. #narration
+A world where we stand next to them, not under them. For every soul in that tree. That's all I've ever wanted. #narration
 And you can give it to them. That's the power you have now. #end #narration
 -> END

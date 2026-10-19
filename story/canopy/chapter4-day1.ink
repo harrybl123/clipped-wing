@@ -16,7 +16,8 @@
 // The day moves on through the stages in `c4day1` (main.ink).
 // ============================================================================
 
-// --- Up the tube: out of the light, into the basin (after the rise, story/canopy/lore.ink) ---
+// --- Up the tube: out of the tube's mouth, dropping into the basin (after the rise, story/canopy/lore.ink; you
+// start in the air under the mouth, and fall) ---
 
 === c4day1_tube ===
 ~ c4day1 = "tube"
@@ -323,7 +324,7 @@ You watch a man take a loaf out of a bundle and put it in a basket at his feet. 
 "We take some." #speaker:master
 She says it the way you'd admit to something you'd stopped being ashamed of a long time ago, and then started again.
 You pick up a bundle. It's so light.
-The winter the baby next door had the cough, a vial like this came down for him. The whole street said the Tree had seen him.
+When the baby two doors down from you was sick last winter, a vial just like this came down in his family's blessing. The whole street said the Tree had seen him.
 "They're smaller than they used to be." #speaker:you
 "They are. Every year." #speaker:master
 "Why?" #speaker:you
@@ -385,7 +386,7 @@ Leaves below you, all the way to the edge of the world. And on the edge of the w
 
 // Back on the lookout, after: dark now.
 === c4day1_after_lore ===
-It's dark now. The lights on the horizon haven't moved.
+It's night now. The lights on the horizon haven't moved. #time:night
 You realise you're holding Mum's bird so tight the wing's cut into your palm.
 { not c4_mums_bird: You realise you're holding the rail so tight your hand's gone numb. }
 + ["I want to go home."]
@@ -404,7 +405,7 @@ You realise you're holding Mum's bird so tight the wing's cut into your palm.
 -
 "Come down. Eat something. Even if you can't." #speaker:grounded
 ~ c4day1 = "mess"
-He takes you down, through the dark walkways, lanterns lit now, to the great house. The mess is full, and loud, and then it isn't. #time:night #goto:great-house:120:380:c4day1_mess
+He takes you down, through the dark walkways, lanterns lit now, to the great house. The mess is full, and loud, and then it isn't. #goto:great-house:120:380:c4day1_mess
 -> END
 
 // Grounded at the lookout, any other time.

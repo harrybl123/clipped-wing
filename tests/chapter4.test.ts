@@ -53,6 +53,7 @@ describe('Chapter 4, Day 1', () => {
     expect(v['c4day1']).toBe('lookout');
     expect(play('c4day1_lookout').tags).toContain('lore:c4lore:c4day1_after_lore');
     expect(play('c4day1_after_lore', 2).tags).toContain('time:night');
+    expect(play('c4lore', 0).text).toContain('No slaves');
     const mess = play('c4day1_mess', 0);
     expect(mess.text).toContain('I bit one');
     expect(v['objective_target']).toBe('ascended-hall:bed');
@@ -118,8 +119,8 @@ describe('Chapter 4, Day 1', () => {
         for (const since of [0, 0.7, 3, 9]) {
           for (const r of panel.frame({ beat, since, t: since + 2 })) {
             expect(Number.isInteger(r.x) && Number.isInteger(r.y) && r.w > 0 && r.h > 0, `${id} ${beat}`).toBe(true);
-            // (Things may slip off the edge as they go, but nothing's drawn far off the picture.)
-            expect(r.x > -60 && r.x < LORE_W + 60 && r.y > -120 && r.y < LORE_PICTURE_H + 60, `${id} ${beat} ${JSON.stringify(r)}`).toBe(true);
+            // (Everything drawn is at least partly on the picture.)
+            expect(r.x < LORE_W && r.x + r.w > 0 && r.y < LORE_PICTURE_H + 60 && r.y + r.h > 0, `${id} ${beat} ${JSON.stringify(r)}`).toBe(true);
           }
         }
       }

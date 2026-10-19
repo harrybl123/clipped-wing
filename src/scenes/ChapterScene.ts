@@ -399,7 +399,7 @@ export function beginChapter4(scene: Phaser.Scene): void {
 /** Where Chapter 4 opens, by how you left the tree. */
 const chapter4Start = (left: 'tube' | 'rot'): AreaSceneData =>
   left === 'tube'
-    ? { areaId: 'tube-mouth', start: { x: 668, y: 252 }, card: 'Day 1', script: 'c4day1_tube' }
+    ? { areaId: 'tube-mouth', start: { x: 668, y: 200 }, card: 'Day 1', script: 'c4day1_tube' }
     : { areaId: 'trees-edge', start: { x: 615, y: 232 }, card: 'Day 1', script: 'c4day1_rot' };
 
 /**
