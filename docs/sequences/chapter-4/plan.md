@@ -48,7 +48,7 @@ Staged like the prologue (designer): narration over black and a few stills, in h
 
 ## Day 1: out (suggestion, unless marked)
 
-Opens on the chapter card: "Chapter 4", then its title (open).
+Opens on the chapter card: "Chapter 4", then its title: **Divine Intervention** (up the tube) or **A Sinner Speaks** (through the rot) (designer).
 
 | Time | Where | What happens | You play | Objective |
 | --- | --- | --- | --- | --- |
@@ -162,7 +162,7 @@ Opens on the chapter card: "Chapter 4", then its title (open).
 
 ## Open
 
-- **The chapter card's title**, the ending cards' titles, and names (Grounded's real name, the colony).
+- The ending cards' titles, and names (Grounded's real name, the colony). (The chapter's title, by how you left: **Divine Intervention** up the tube, **A Sinner Speaks** through the rot: designer, 2026-10-19.)
 
 ---
 

@@ -375,7 +375,7 @@ export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
  * Chapter 4 begins: the carver again, out of the tree (docs/sequences/chapter-4/plan.md). Act 1's ending
  * decides where you wake: up the tube (you flew: the basin at the tube mouth, the master kneeling by you)
  * or out of the rot (you fell: the foot of the tree, the hunter, and the girl if she came out with you).
- * The chapter's title is still to come (designer).
+ * Its title depends on how you left (designer): "Divine Intervention" up the tube, "A Sinner Speaks" through the rot.
  */
 export function beginChapter4(scene: Phaser.Scene): void {
   const session = getSession(scene);
@@ -393,7 +393,8 @@ export function beginChapter4(scene: Phaser.Scene): void {
   session.dayStarts = { 1: { ink: story.saveState(), calendar: session.calendar.toJSON(), wake: { areaId: next.areaId, start: next.start!, script: next.script } } };
   // The card, then the cinematic (halfway up the tube, or the end of the rot), then out.
   const lore: LoreSceneData = { knot: left === 'tube' ? 'c4_rise' : 'c4_crack', voice: 'none', back: next };
-  scene.scene.start('Chapter', { number: 'Chapter 4', title: '(title to come)', next, lore } satisfies ChapterSceneData);
+  // The title by how you left (designer): up the tube, "Divine Intervention"; through the rot, "A Sinner Speaks".
+  scene.scene.start('Chapter', { number: 'Chapter 4', title: left === 'tube' ? 'Divine Intervention' : 'A Sinner Speaks', next, lore } satisfies ChapterSceneData);
 }
 
 /** Where Chapter 4 opens, by how you left the tree. */

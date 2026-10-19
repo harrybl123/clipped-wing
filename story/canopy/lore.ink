@@ -160,7 +160,7 @@ Not because they're cruel. Because they believe. That's harder to break than any
 "Then why not send one of them back? A master. Someone they'd know." #speaker:you
 // Why nobody's been sent back (designer: needs a compelling reason; suggestion). It's also why the ascended chose silence.
 We did. Once. Long before your time. #narration
-The oldest of them. A carver every soul in the tree remembered going up. She went down through the hatches, and stood up at the morning rite, and told them. #narration
+The oldest of them. A carver every soul in the tree remembered going up. She went down through the hatches, and stood up at the morning rite, and tried to tell them. #narration
 They didn't see a master come home. They saw the rot, wearing a dead woman's face. That's what the Tender called it. #narration
 They threw her in the rot that night. #narration
 And the next month, the blessings that came down were halved. A lesson, from the capital, to whoever up here was listening. #narration
