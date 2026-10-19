@@ -107,7 +107,7 @@ describe('Chapter 4, Day 1', () => {
       const story = new Story(storyJson());
       story.variablesState['c4_left'] = left;
       const { text, tags } = player(story)('c4lore', 1);
-      for (const words of ['Join it, or be ruled by it', 'one mind', 'keeps the peace', 'Slaves', 'cleared away', 'Imperfection', 'learn from it', 'Then why me?', 'same heavy wing', 'I sent it anyway', 'Scavengers', 'medicine', 'It was never you', 'He\'ll have to come to us', 'the power you have now']) expect(text).toContain(words);
+      for (const words of ['Join it, or be ruled by it', 'one mind', 'keeps the peace', 'Slaves', 'cleared away', 'Imperfection', 'learn from it', 'Then why me?', 'same heavy wing', 'I sent it anyway', 'Scavengers', 'medicine', 'It was never you', 'He\'ll have to come to us', 'Whoever controls what the tree makes', 'speaking to you', 'chalked on their walls', 'the power you have now']) expect(text).toContain(words);
       expect(tags).toContain('end');
       for (const panel of tags.filter((t) => t.startsWith('panel:')).map((t) => t.split(':')[1]!)) expect(LORE_PANELS[panel], panel).toBeDefined();
     }

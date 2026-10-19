@@ -145,9 +145,17 @@ That's the hunger. That's all it ever was. Not the Tree. Not a judgement. #narra
 It was never you. #narration
 Scavengers, all of us. The capital, and them, and us. Only you, at the bottom, have nobody to take from. #narration
 
-// The tree as the king's resource; his plan; your power over it (designer: why, and how).
+// The tree as the king's resource; his plan; your power over it (designer: why, and how; be transparent:
+// whoever controls what the tree makes has power over the capital).
 To the king, the tree's worth more than any city he has. As long as it's quiet, and believes, and works. #panel:tree #narration
-Nobody in there would hear a word of this from me. They'd throw me in the rot before I'd finished the sentence. #beat:1 #narration
+That's the whole of it. Whoever controls what the tree makes has power over the capital. #beat:1 #narration
+"Then stop the crates. You're right here. You could stop them tomorrow." #speaker:you
+// Why the canopy can't just cut it off (designer: they'd starve; the revolution has to be the tree's own).
+And then? The capital stops what comes back down. Not a crumb for the tree. Not a crumb for us. #beat:3 #narration
+The tree starves, and never knows why. They'd blame the Tree. They'd blame you. #narration
+And the capital would come up that cable for us before the month was out. #narration
+It only works if the tree does it itself. Knowing why. Choosing it. Holding out together, every one of them. #beat:1 #narration
+And nobody in there would hear a word of it from me. They'd throw me in the rot before I'd finished the sentence. #narration
 Not because they're cruel. Because they believe. That's harder to break than any lock. #narration
 "Then why not send one of them back? A master. Someone they'd know." #speaker:you
 // Why nobody's been sent back (designer: needs a compelling reason; suggestion). It's also why the ascended chose silence.
@@ -159,20 +167,28 @@ And the next month, the blessings that came down were halved. A lesson, from the
 After that, everyone up here swore: never again. Leave them their faith; it's kinder. And I made sure nobody broke it. #narration
 "Until me." #speaker:you
 Until you. #narration
-Because they've been watching you all week. The bird the Tree sent back. The one they blamed for the hunger. You're already in every head in that tree. #beat:2 #narration
+// Why you (designer: not that they've been watching you; the Tree wasn't rejecting you, it was speaking to you).
+They think the Tree rejected you. Bird after bird, sent back, the whole tree watching. #beat:2 #narration
+But what if it wasn't rejecting you? What if it was speaking to you? #narration
 { c4_left == "rot":
-    They threw you in the rot. Every one of them watched you go. And you'll walk back out of it, alive. #narration
+    They threw you in the rot to be rid of you. And you'll walk back out of it, alive, with the Tree's words in your mouth. #narration
+    To them you'll be a devil, come back from the dead. Something to fear. #narration
 - else:
-    They watched the Tree choose you. Every one of them saw you go up the tube. And you'll come back down it. #narration
+    They watched the Tree take you up the tube. And you'll come back down it, with the Tree's words in your mouth. #narration
+    To them you'll be a prophet. The one the Tree speaks through. #narration
 }
-Nobody's ever done that. They'll listen to you, the way they'll never listen to me. #narration
+Either way, they'll listen. The way they'll never listen to me. #narration
+"You want me to lie to them." #speaker:you
+I want you to give them a truth they can carry. A little at a time. #narration
 Here's what I want. Not a war. Not to bring the capital down. #narration
 A better bargain. One where we live alongside them, and nobody has to be kept to pay for it. No slaves. #narration
 And the only way the king will ever make it is if he has to. #narration
-You go back in. Not to tell them everything: they couldn't bear it, not all at once. A doubt. One true thing, where they'll find it. Then another. #narration
+// The revolution in the capital (designer: set it up soon; suggestion: here, in a line).
+And I'm not alone. In the capital itself, there are people with me. My wing's chalked on their walls. #narration
+You go back in. A doubt. One true thing, where they'll find it. Then another. #narration
 People who doubt kneel slower. Make less. Ask why. #narration
-And when the tree slows, the king has nothing left to trade. Nothing to keep them off with. #beat:3 #narration
-He'll have to come to us. #beat:4 #narration
+And when the whole tree slows, together, the king has nothing left to trade. #beat:3 #narration
+With the capital stirring under him too, he'll have nowhere left to turn. He'll have to come to us. #beat:4 #narration
 And then we set the terms. What comes back down. Who goes up. Whether anyone's kept at all. #narration
 A better deal. A world where we stand beside them, not under them, for every soul in that tree. That's all I've ever wanted. #narration
 And you can give it to them. That's the power you have now. #end #narration
