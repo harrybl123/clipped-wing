@@ -42,7 +42,7 @@ export abstract class StepScene extends Phaser.Scene {
   protected begin(hintY: number): void {
     this.hint = new PixelText(this, 0, hintY, '', { color: SHADES.light, shadow: SHADES.shadow }).setDepth(20);
     this.input.keyboard!.on('keydown', (e: KeyboardEvent) => {
-      if (!e.repeat && (e.key === 'e' || e.key === 'E' || e.key === ' ')) this.tryPress();
+      if (!e.repeat && (e.key === 'e' || e.key === 'E' || e.key === ' ' || e.key === 'Enter')) this.tryPress();
     });
     this.input.on('pointerdown', () => this.tryPress());
     this.dialogue = new DialogueBox(this, getSession(this).story);

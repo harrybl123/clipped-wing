@@ -24,6 +24,11 @@ export function evaluate(g: RiotGame, s: RiotState): number {
   // Crowds next to the square will fall back into it.
   for (const q of rising) if (q.place !== g.heart && g.near(q.place, g.heart)) v -= q.strength * 2;
   for (const p of g.board.places) if (s.owner[p.id] === 'guard') v += 1;
+  // Crests (Jack): each one taken is an elite; a crest on the map, worth getting near.
+  if (g.rules.elites) {
+    v += (g.crestsTaken(s, 'guard') - g.crestsTaken(s, 'rising')) * 4;
+    for (const q of guard) if (q.poison) v += 3;
+  }
   // Crowds near the way up are a worry.
   for (const q of rising) if (q.place !== g.heart) v -= Math.max(0, 3 - (g.upDist.get(q.place) ?? 9)) * q.strength;
   // Closing on the square: how much is next to it, and the biggest squad, how near and how close to matching it.
@@ -36,13 +41,14 @@ export function evaluate(g: RiotGame, s: RiotState): number {
   return v;
 }
 
-function distance(g: RiotGame, a: string, b: string): number {
+function distance(g: RiotGame, a: string, b: string, s?: RiotState): number {
   const seen = new Map([[a, 0]]);
   const todo = [a];
   while (todo.length) {
     const p = todo.shift()!;
     if (p === b) return seen.get(p)!;
-    for (const n of g.adj.get(p)!) if (!seen.has(n)) (seen.set(n, seen.get(p)! + 1), todo.push(n));
+    // (Given the state, round a street that's closed, as a person would: Jack's sabotage.)
+    for (const n of g.adj.get(p)!) if (!seen.has(n) && (!s || g.open(s, p, n))) (seen.set(n, seen.get(p)! + 1), todo.push(n));
   }
   return 99;
 }
@@ -147,9 +153,92 @@ export function random(seed = 1): GuardPlayer {
   }) });
 }
 
-/** A whole game, the guard against the rising (by default the rising's own play), to the end or a turn limit. */
+/**
+ * A whole game, the guard against the rising (by default the rising's own play, its elite squad too: Jack), to
+ * the end or a turn limit.
+ */
 export function playOut(g: RiotGame, s0: RiotState, player: GuardPlayer, rising?: (g: RiotGame, s: RiotState) => Order[], limit = 40): { state: RiotState; winner: 'guard' | 'rising' } {
   let s = s0;
-  for (let i = 0; i < limit && !g.outcome(s); i++) s = playTurn(g, s, player(g, s), rising ? rising(g, s) : g.risingOrders(s));
+  for (let i = 0; i < limit && !g.outcome(s); i++) {
+    if (!rising) s = g.risingActs(s).state;
+    // (The guard's elite squad too, played simply: Jack.)
+    if (g.rules.elites) s = g.eliteActs(s, 'guard').state;
+    s = playTurn(g, s, player(g, s), rising ? rising(g, s) : g.risingOrders(s));
+  }
   return { state: s, winner: g.outcome(s) ?? 'rising' };
+}
+
+/**
+ * Naive (a person on their first go, as the designer played it): every squad heads for the square by the
+ * shortest way, attacking anything it can beat on the way, joining up with its own; at the square, it attacks
+ * only if it'd take it. No power cut, no fortify, no thought for the order.
+ */
+export function naive(): GuardPlayer {
+  return (g, s) => {
+    const orders: Order[] = [];
+    for (const q of [...g.mine(s, 'guard')].sort((a, b) => b.strength - a.strength)) {
+      const ways = g.dests(s, q);
+      const beat = ways.find((to) => {
+        const there = g.squadAt(s, to);
+        return there?.side === 'rising' && g.attack(q.place, to, q.strength) > g.defence(s, to, there.strength) - (to === g.heart ? 1 : 0);
+      });
+      if (beat) {
+        orders.push({ squad: q.id, to: beat });
+        continue;
+      }
+      const step = ways.filter((to) => g.squadAt(s, to)?.side !== 'rising').sort((a, b) => distance(g, a, g.heart, s) - distance(g, b, g.heart, s))[0];
+      if (step && distance(g, step, g.heart, s) < distance(g, q.place, g.heart, s)) orders.push({ squad: q.id, to: step });
+    }
+    return { orders };
+  };
+}
+
+/**
+ * Your friend in the duel (Day 6; designer: he played too static): he never empties his camp (the duel's won by
+ * taking it), but everything else is always on the move. Each squad hits a squad of yours it can beat next to
+ * it; if you're closing on his camp with more than its garrison, the nearest two come back to stand in your
+ * way; otherwise they march on your keep by the shortest way, joining up as they meet, and go in when they'd
+ * take it.
+ */
+export function besieger(): GuardPlayer {
+  return (g, s) => {
+    const orders: Order[] = [];
+    const camp = g.squadAt(s, g.lifts);
+    const home = camp?.side === 'guard' ? camp : undefined;
+    // Your biggest squad within two steps of his camp, and whether it's more than the camp could hold.
+    const near = g.mine(s, 'rising').filter((q) => distance(g, q.place, g.lifts) <= 2).sort((a, b) => b.strength - a.strength)[0];
+    const threat = !!near && near.strength >= (home ? g.defence(s, g.lifts, home.strength) : 0);
+    const claimed = new Set<string>();
+    const field = g.mine(s, 'guard').filter((q) => q !== home).sort((a, b) => b.strength - a.strength);
+    const defenders = threat ? [...field].sort((a, b) => distance(g, a.place, near.place) - distance(g, b.place, near.place)).slice(0, 2) : [];
+    for (const q of field) {
+      const ways = g.dests(s, q);
+      const beat = ways.filter((to) => {
+        const t = g.squadAt(s, to);
+        return to !== g.heart && !claimed.has(to) && t?.side === 'rising' && g.attack(q.place, to, q.strength) > g.defence(s, to, t.strength);
+      }).sort((a, b) => g.squadAt(s, b)!.strength - g.squadAt(s, a)!.strength)[0];
+      if (beat) {
+        orders.push({ squad: q.id, to: beat });
+        claimed.add(beat);
+        continue;
+      }
+      const goal = defenders.includes(q) ? near!.place : g.heart;
+      if (goal === g.heart && ways.includes(g.heart)) {
+        const keep = g.squadAt(s, g.heart);
+        if (!keep || keep.side !== 'rising' || q.strength >= keep.strength) {
+          orders.push({ squad: q.id, to: g.heart });
+          continue;
+        }
+        // Not enough on its own: join the biggest of his others at the keep's door, so they can go in together.
+        const mate = ways.map((to) => g.squadAt(s, to)).filter((m) => m?.side === 'guard' && m !== home && g.near(m.place, g.heart) && m.strength >= q.strength).sort((a, b) => b!.strength - a!.strength)[0];
+        if (mate) {
+          orders.push({ squad: q.id, to: mate.place });
+          continue;
+        }
+      }
+      const step = ways.filter((to) => to !== g.heart && g.squadAt(s, to)?.side !== 'rising').sort((a, b) => distance(g, a, goal) - distance(g, b, goal))[0];
+      if (step && distance(g, step, goal) < distance(g, q.place, goal)) orders.push({ squad: q.id, to: step });
+    }
+    return { orders };
+  };
 }

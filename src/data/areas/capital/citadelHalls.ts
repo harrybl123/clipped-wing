@@ -66,6 +66,9 @@ export const citadelHalls: AreaDefinition = {
     { x: 0, y: FLOOR, width: W, height: 270 - FLOOR },
     { x: 16, y: UPPER, width: CL - 16, height: 6, oneWay: true }, // the left gallery
     { x: CR, y: UPPER, width: LIFT - CR, height: 6, oneWay: true }, // the right gallery, up to the lift's shaft
+    // Firm floor in the right gallery's doorways and the banner's shadow (Day 7's sneak: you crouch in them, and
+    // down on a one-way board drops you through it).
+    ...[[704, 32], [786, 26], [846, 30]].map(([x, width]) => ({ x: x!, y: UPPER, width: width!, height: 6, invisible: true })),
     ...grandStair(),
     { x: 0, y: 0, width: 16, height: 270, invisible: true },
     { x: W - 16, y: 0, width: 16, height: 270, invisible: true },
@@ -142,6 +145,23 @@ export const citadelHalls: AreaDefinition = {
     // Day 3 on: every so often the great screen shows the wing for a moment, then cuts back (nobody can find
     // where it comes from).
     { type: 'frames', frames: [...Array.from({ length: 10 }, (_, i) => P.screen(76, 46, i % 3)), P.birdScreen(76, 46), P.birdScreen(76, 46)], x: C - 38, y: TOP + 14, every: 450, showIf: 'c3day3' },
+    // Day 5 on: your father's address on it (the word, him and you, his hand on your shoulder).
+    ...P.addressScreens(76, 46, C - 38, TOP + 14),
+    // Day 6: coming out of the banquet, your hand's door opens up on the gallery (clue 6).
+    { type: 'trigger', x: 660, y: FLOOR, reach: 14, knot: 'c3day6_office', showIf: 'c3day6=office', hideIf: 'office6' },
+    // Day 6's night: out of your door at the third bell, you see your sister slip along the gallery into your
+    // father's study (the tail itself is in the sealed wing).
+    { type: 'trigger', x: 104, y: UPPER, reach: 14, knot: 'c3day6_gallery', showIf: 'c3day6=follow', hideIf: 'gallery6' },
+    // Day 7's night: your friend out of the guest wing to your hand's door, past one of the night guard walking
+    // the gallery between them, his lamp up. Keep to the doorways (the guest wing's, the banner's shadow, your
+    // hand's), and go when his back's turned; seen, you're both back at the guest wing's door.
+    {
+      type: 'watch', from: 610, to: 836, y: UPPER, speed: 22, range: 64, pause: 1500, reset: { x: 860, y: UPPER }, showIf: 'c3day7=halls',
+      who: 'capital-guard-2', id: 'gallery-guard', call: 'Who’s that? Stop there!',
+    },
+    { type: 'shadow', x: 848, y: UPPER, width: 26, showIf: 'c3day7=halls' },
+    { type: 'shadow', x: 788, y: UPPER, width: 22, showIf: 'c3day7=halls' },
+    { type: 'shadow', x: 706, y: UPPER, width: 28, showIf: 'c3day7=halls' },
   ],
   people: [
     // The guards on the audience hall's great doors, always.
@@ -165,7 +185,7 @@ export const citadelHalls: AreaDefinition = {
     cast('sister', 770, UPPER, { knot: 'halls_sister', when: ['afternoon'] }), // among the portraits, where she shouldn't be
     cast('captain', 480, FLOOR, { knot: 'halls_captain', when: LATE, flipX: true }), // at the foot of the stair
     // At night, a guard on your father's door.
-    guard('night-guard', 2, 270, UPPER, 'c3_guard_night', ['night'], { flipX: true }),
+    guard('night-guard', 2, 270, UPPER, 'c3_guard_night', ['night'], { flipX: true, hideIf: 'c3day6=follow,sealed' }), // (not at the change of the guard)
     // More of the people you know: the old councillor by the council's door in the morning, the reformer in
     // the evening, your sister creeping along the gallery at night.
     cast('councillor', 330, FLOOR, { knot: 'halls_councillor', when: MORNING }),
@@ -180,6 +200,30 @@ export const citadelHalls: AreaDefinition = {
     inStory('captain-4', 'captain', 170, UPPER, 'c3day4=captain', { knot: 'c3day4_captain' }),
     inStory('physician-4', 'physician', 286, UPPER, 'c3day4=captain,physician', { knot: 'c3day4_physician', flipX: true }),
     inStory('sister-4', 'sister', 770, UPPER, 'c3day4=afternoon', { knot: 'c3day4_sister' }),
+    // Day 5: the captain at his post at the foot of the stair, with his warrants.
+    inStory('captain-5h', 'captain', 450, FLOOR, 'c3day5=warrants', { knot: 'c3day5_warrants', flipX: true }),
+    // Day 6: your friend with you in the morning. At noon, the guests at the foot of the stair in their best
+    // (the old councillor's grandson among them, if you passed the councillor over on Day 1). At evening, the
+    // commander and the engineer out of your hand's office, and him in his doorway (the story shows them).
+    // At night, your sister on the gallery.
+    inStory('heir-f', 'heir', 110, UPPER, 'heir_with_you', { follow: true, knot: 'c3day6_heir_walk' }),
+    courtier('guest-6a', 1, 404, FLOOR, 'c3day6_arrive', undefined, { showIf: 'c3day6=arrive' }),
+    courtier('guest-6b', 2, 424, FLOOR, 'c3day6_guest', undefined, { showIf: 'c3day6=arrive', flipX: true }),
+    courtier('guest-6c', 6, 548, FLOOR, 'c3day6_guest', undefined, { showIf: 'c3day6=arrive', flipX: true }),
+    courtier('guest-6d', 3, 568, FLOOR, 'c3day6_guest', undefined, { showIf: 'c3day6=arrive', flipX: true }),
+    courtier('grandson-6', 5, 596, FLOOR, 'c3day6_grandson', undefined, { showIf: 'c3day6=arrive', hideIf: 'seated=councillor', flipX: true }),
+    inStory('commander-6', 'commander', 694, UPPER, 'c3day6=office', { hidden: true }),
+    inStory('engineer-6', 'engineer', 706, UPPER, 'c3day6=office', { hidden: true }),
+    inStory('hand-6h', 'diplomat', 714, UPPER, 'c3day6=office', { hidden: true, flipX: true }),
+    inStory('sister-6n', 'sister', 170, UPPER, 'c3day6=follow', { hideIf: 'sister_hall6' }),
+    // Day 7: the captain at his post with the transfer list; at night, the guest wing's two guards, sent to the
+    // foot of the stair by you, waiting for him.
+    inStory('captain-7', 'captain', 450, FLOOR, 'c3day7=list,friend', { knot: 'c3day7_list', flipX: true }),
+    guard('guard-7c', 0, 458, FLOOR, 'c3_guard_night', undefined, { showIf: 'c3day7=halls' }),
+    // Day 8's evening, if you backed your father: the captain's men on the gallery, on their way to your hand's office.
+    guard('guard-8a', 1, 150, UPPER, 'c3day8_guards', undefined, { showIf: 'c3day8=evening,balcony', hideIf: 'broadcast=defied,middle' }),
+    guard('guard-8b', 0, 180, UPPER, 'c3day8_guards', undefined, { showIf: 'c3day8=evening,balcony', hideIf: 'broadcast=defied,middle', flipX: true }),
+    guard('guard-7d', 1, 502, FLOOR, 'c3_guard_night', undefined, { showIf: 'c3day7=halls', flipX: true }),
   ],
   interactables: [
     { id: 'statue', x: 206, y: FLOOR, reach: 14, label: 'Look', knot: 'halls_statue' },

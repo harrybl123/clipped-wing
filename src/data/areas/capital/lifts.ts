@@ -93,6 +93,8 @@ export const lifts: AreaDefinition = {
 
   features: [
     { type: 'rain' },
+    // Day 7's night: the lift operator sees the two of you, and looks away.
+    { type: 'trigger', x: 96, y: CITADEL, reach: 16, knot: 'c3day7_lifts', showIf: 'c3day7=lifts', hideIf: 'lifts7' },
     // The cars, each a stage of the way.
     { type: 'mover', sprite: liftCar(CAR), x: L, y: CITADEL - 2, to: { x: L, y: PROMENADE - 2 }, speed: 60 },
     { type: 'mover', sprite: liftCar(CAR), x: R, y: PROMENADE - 2, to: { x: R, y: DATA - 2 }, speed: 60 },
@@ -103,6 +105,8 @@ export const lifts: AreaDefinition = {
     { type: 'frames', frames: [P.symbolMark('scratch')], x: L + 6, y: CITADEL - 34, every: 60000, showIf: 'c3day3', power: 'any' },
     // And the reward notice on the tower's face, by the street.
     { type: 'frames', frames: P.REWARD_FRAMES, x: 74, y: FLOOR - 74, every: 260, showIf: 'rewards', power: 'any' },
+    // (Day 5 on: the word, and your father's hand on your shoulder; the face of the man you let go.)
+    ...P.terrorScreens(66, FLOOR - 74),
   ],
   people: [
     cast('lift_operator', 150, CITADEL, { knot: 'lifts_operator' }), // at the top, always
@@ -115,8 +119,15 @@ export const lifts: AreaDefinition = {
     // Chapter 3's story: the lift operator at the top, as always; your hand with you (Day 1).
     inStory('lift-operator', 'lift_operator', 150, CITADEL, 'c3_story', { knot: 'lifts_operator' }),
     inStory('hand', 'diplomat', 60, CITADEL, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
+    inStory('heir-f', 'heir', 44, CITADEL, 'heir_with_you', { follow: true, knot: 'c3day7_heir_walk' }),
     // Day 4, the afternoon: the kid from the cellar, at the foot of the lifts, watching them come down.
     inStory('painter-4', 'painter', 120, FLOOR, 'c3day4=afternoon', { knot: 'c3day4_painter', hideIf: 'painter4' }),
+    // Day 5, the address (a cutaway): the queue for the first car up, stopped under the screen on the tower.
+    ...([[84, 7], [100, 3], [118, 10], [140, 5], [158, 14]] as const).map(([x, look], i) =>
+      citizen(`lift-5${'abcde'[i]}`, look, x, FLOOR, 'c3day5_watching', undefined, { showIf: 'c3day5=speech', flipX: x > 97 })),
+    // Day 8, the broadcast (a cutaway): the queue again, waiting for you to speak.
+    ...([[84, 3], [100, 10], [118, 7], [140, 14], [158, 5]] as const).map(([x, look], i) =>
+      citizen(`lift-8${'abcde'[i]}`, look, x, FLOOR, 'c3day8_watching', undefined, { showIf: 'c3day8=speech', flipX: x > 97 })),
   ],
   interactables: [
     { id: 'glass', x: 100, y: CITADEL, reach: 14, label: 'Look', knot: 'lifts_glass' },

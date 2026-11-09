@@ -6,6 +6,8 @@ import { PixelText } from '../ui/PixelText';
 import { BIRD } from '../ui/sprites';
 import type { AreaSceneData } from './AreaScene';
 import type { RiotTableSceneData } from './RiotTableScene';
+import type { CombatSceneData } from './CombatScene';
+import type { LoreSceneData } from './LoreScene';
 import { getSession } from '../session';
 
 export interface ChapterSceneData {
@@ -15,6 +17,8 @@ export interface ChapterSceneData {
   title: string;
   /** Where the game goes next. */
   next: AreaSceneData;
+  /** A cinematic first, which then goes on to `next` (Chapter 4: halfway up the tube, or the end of the rot). */
+  lore?: LoreSceneData;
 }
 
 /**
@@ -191,6 +195,24 @@ export function beginChapter3(scene: Phaser.Scene): void {
  * the balcony), `physician`, `afternoon`, `evening` (back to your balcony as it starts), `table` (the
  * simulation room), `riot` (straight onto the war table), `square` (out of the fight; `&table=lost`);
  * `&sleeve=asked|told`, `&physician=yes|no`.
+ * Day 5 (`&day=5`): `start` (dawn, the captain at the door), `address` (the audience hall, your place ahead),
+ * `warrants` (the captain at his post), `evening` (your rooms, your sister), `below` (your hand's office at
+ * night), `hideout` (in the cellar, they're waiting), `raid` (the last of them heard: the raid), `hide` (out
+ * the back way); Day 4's as `&table=lost`, `&riot=let_go`, and this day's `&warrants=struck`.
+ * Day 6 (`&day=6`): `start` (dawn, your friend on your couch), `table` (the simulation room with him), `duel`
+ * (straight onto the war table), `study` (your father, after), `arrive` (the guests at the foot of the stair),
+ * `wing` (the guest wing), `banquet`, `night` (the third bell: your sister on the gallery); Day 5's as
+ * `&raid=stayed_out`, `&standoff=taken`, and this day's `&map=forest|station` (where the duel's painted), `&duel=lost`,
+ * `&invitation=captain`, `&promised=0`.
+ * Day 7 (`&day=7`): `start` (dawn, the note), `study` (your father, the order), `list` (the captain's list),
+ * `friend` (the guest wing, evening), `night` (your rooms, waiting for the last bell), `halls` (past the barrier,
+ * the gallery guard), `gate` (the gate, your friend with you), `fight` (straight into the fight at the gate);
+ * Day 6's as `&promised=0`, `&sister=told`, and Day 5's and Day 4's as above (`&raid=`, `&standoff=`, `&riot=`).
+ * Day 8 (`&day=8`): `start` (dawn, your hand with your coat), `table` (the simulation room, your father at the
+ * table), `game` (straight onto the war table against him), `list` (straight onto the second game, with the
+ * list), `hall` (the audience hall, your place ahead), `choice` (on the dais, the speech's choice), `balcony` (evening, your hand at the rail); Day 7's as
+ * `&struck=kid|woman|barkeep|none`, `&gate=lost` (the commander saw you), `&promised=0` (he went without you),
+ * and this day's `&broadcast=backed|defied|middle` (for `balcony`).
  */
 export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
   const session = getSession(scene);
@@ -214,6 +236,9 @@ export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
     start: { area: { areaId: 'prince-quarters', start: { x: 120, y: 226 }, script: 'c3day2_start', card: 'Day 2' }, slots: 0, vars: {} },
     study: { area: { areaId: 'fathers-study', start: { x: 60, y: 230 }, script: 'c3day2_study' }, slots: 0, vars: { c3day2: 'study', objective: 'Go with your father', objective_target: 'fathers-study:father-2' } },
     table: { area: { areaId: 'simulation-room', start: { x: 300, y: 230 } }, slots: 0, vars: { c3day2: 'room', sim_open: true, room2: true, objective: 'Practise the art of war', objective_target: 'simulation-room:table' } },
+    // (Straight into "Now.", or the tutorial after it.)
+    now: { area: { areaId: 'simulation-room', start: { x: 300, y: 230 } }, slots: 0, vars: { c3day2: 'table', sim_open: true, room2: true } },
+    tutorial: { area: { areaId: 'simulation-room', start: { x: 300, y: 230 } }, slots: 0, vars: { c3day2: 'table', sim_open: true, room2: true } },
     council: { area: { areaId: 'citadel-halls', start: { x: 300, y: 232 } }, slots: 1, vars: { c3day2: 'council', sim_open: true, room2: true, objective: 'Go to the council chamber', objective_target: 'council-chamber:father-4' } },
     dusk: { area: { areaId: 'prince-quarters', start: { x: 300, y: 226 } }, slots: 2, vars: { c3day2: 'dusk', sim_open: true, room2: true, council2: true, heard2: 3, energy, objective: 'Watch from your balcony', objective_target: 'prince-quarters:telescope' } },
     below: { area: { areaId: 'diplomats-office', start: { x: 200, y: 230 } }, slots: 2, vars: { c3day2: 'report', sim_open: true, room2: true, council2: true, energy, dark_district: dark, citadel_dimmed: energy === 'people', dusk2: true, reported2: true, objective: "Go to your hand's office", objective_target: 'diplomats-office:hand-6' } },
@@ -245,16 +270,99 @@ export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
     riot: { area: { areaId: 'simulation-room', start: { x: 330, y: 230 } }, slots: 2, vars: { c3day4: 'table', ...evening4, room4: true } },
     square: { area: { areaId: energy === 'high' ? 'low-district' : 'promenade', start: { x: 720, y: energy === 'high' ? 236 : 232 }, script: 'c3day4_square' }, slots: 2, vars: { c3day4: 'table', ...evening4, room4: true, riot_table: params.get('table') === 'lost' ? 'lost' : 'won', riot_turns: 11, riot_fight: 'won', plain_coat: true } },
   };
+  // Day 5 (`&day=5`; Day 4's as `&table=lost`, `&riot=let_go`; this day's `&warrants=struck`).
+  const riot = params.get('riot') === 'let_go' ? 'let_go' : 'brought_in';
+  const screens = `${leader === 'firebrand' ? 'brother' : 'reformer'}_${riot === 'let_go' ? 'wanted' : 'executed'}_hand`;
+  const warrants = params.get('warrants') === 'struck' ? 'struck' : 'sealed';
+  const morning5 = { screens5: screens, warrants, list5: true };
+  const night5 = { ...morning5, plain_coat: true, hand_with_you: true, low5: true };
+  const day5: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | number | boolean> }> = {
+    start: { area: { areaId: 'prince-quarters', start: { x: 120, y: 226 }, script: 'c3day5_start', card: 'Day 5' }, slots: 0, vars: {} },
+    address: { area: { areaId: 'audience-hall', start: { x: 60, y: 236 } }, slots: 0, vars: { c3day5: 'address', objective: 'Stand beside your father', objective_target: 'audience-hall:mark-5' } },
+    warrants: { area: { areaId: 'citadel-halls', start: { x: 130, y: 232 } }, slots: 1, vars: { c3day5: 'warrants', screens5: screens, objective: 'Sign the warrants', objective_target: 'citadel-halls:captain-5h' } },
+    evening: { area: { areaId: 'prince-quarters', start: { x: 50, y: 226 } }, slots: 2, vars: { c3day5: 'evening', ...morning5, list5: warrants === 'sealed', objective: 'Go back to your rooms', objective_target: 'prince-quarters:sister-5' } },
+    below: { area: { areaId: 'diplomats-office', start: { x: 200, y: 230 } }, slots: 2, vars: { c3day5: 'office', ...morning5, objective: 'Go below with your hand', objective_target: 'diplomats-office:hand-5o' } },
+    hideout: { area: { areaId: 'low-district', start: { x: 560, y: 236 } }, slots: 3, vars: { c3day5: 'below', ...night5, objective: 'Go down to the cellar', objective_target: 'low-district:to-hideout' } },
+    raid: { area: { areaId: 'hideout', start: { x: 300, y: 226 } }, slots: 3, vars: { c3day5: 'hideout', ...night5, hand_with_you: false, heard5: 2, keeper5: true, angry5: true, objective: 'Hear them out', objective_target: 'hideout:painter-5' } },
+    hide: { area: { areaId: 'low-district', start: { x: 910, y: 236 }, script: 'c3day5_backway' }, slots: 3, vars: { c3day5: 'raid', ...night5, hand_with_you: false, heard5: 3, keeper5: true, angry5: true, painter5: true, raid: 'stayed_out' } },
+  };
+  // Day 6 (`&day=6`; Day 5's as `&raid=stayed_out`, `&standoff=taken`; this day's `&duel=lost`, `&invitation=captain`, `&promised=0`).
+  const raid = params.get('raid') === 'stayed_out' ? 'stayed_out' : 'stepped_in';
+  const invitation = params.get('invitation') === 'captain' ? 'captain' : 'you';
+  const promised = params.get('promised') !== '0';
+  const morning6 = { duel6: params.get('duel') === 'lost' ? 'lost' : 'won', duel6_turns: 12, invitation, father6: true, room6: true };
+  const day6: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | number | boolean> }> = {
+    start: { area: { areaId: 'prince-quarters', start: { x: 120, y: 226 }, script: 'c3day6_start', card: 'Days later.' }, slots: 0, vars: {} },
+    table: { area: { areaId: 'simulation-room', start: { x: 120, y: 230 } }, slots: 0, vars: { c3day6: 'room', sim_open: true, heir_with_you: true, objective: 'Show your friend the war table', objective_target: 'simulation-room:table-6' } },
+    duel: { area: { areaId: 'simulation-room', start: { x: 330, y: 230 } }, slots: 0, vars: { c3day6: 'table', sim_open: true, room6: true, duel6_map: params.get('map') ?? 'crag' } },
+    study: { area: { areaId: 'fathers-study', start: { x: 60, y: 230 } }, slots: 0, vars: { c3day6: 'study', ...morning6, father6: false, sim_open: false, objective: "Go to your father's study", objective_target: 'fathers-study:father-6' } },
+    arrive: { area: { areaId: 'citadel-halls', start: { x: 250, y: 136 } }, slots: 0, vars: { c3day6: 'arrive', ...morning6, objective: 'Greet the guests', objective_target: 'citadel-halls:guest-6a' } },
+    wing: { area: { areaId: 'guest-wing', start: { x: 610, y: 226 } }, slots: 1, vars: { c3day6: 'wing', ...morning6, objective: 'See the guests settled', objective_target: 'guest-wing:heir-6w' } },
+    banquet: { area: { areaId: 'banquet-gallery', start: { x: 40, y: 230 } }, slots: 2, vars: { c3day6: 'banquet', ...morning6, barrier6: true, promised, friend_cool: !promised, objective: 'Go to the banquet', objective_target: 'banquet-gallery:father-6b' } },
+    night: { area: { areaId: 'prince-quarters', start: { x: 60, y: 226 }, script: 'c3day6_bed' }, slots: 2, vars: { c3day6: 'home', ...morning6, barrier6: true, promised, friend_cool: !promised, banquet6: true, office6: true } },
+  };
+  // Day 7 (`&day=7`; Day 6's as `&promised=0`, `&sister=told`; earlier days' as above).
+  const sister = params.get('sister') === 'told' ? 'told' : 'covered';
+  const order7 = { order7: true, asked_soften: false };
+  const list7 = { ...order7, list7: true, struck: 'barkeep' };
+  const night7 = { ...list7, wing7: true, plain_coat: true };
+  const day7: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | number | boolean> }> = {
+    start: { area: { areaId: 'prince-quarters', start: { x: 120, y: 226 }, script: 'c3day7_start', card: 'Day 7' }, slots: 0, vars: {} },
+    study: { area: { areaId: 'fathers-study', start: { x: 60, y: 230 } }, slots: 0, vars: { c3day7: 'wake', objective: "Go to your father's study", objective_target: 'fathers-study:father-7' } },
+    list: { area: { areaId: 'citadel-halls', start: { x: 250, y: 136 } }, slots: 1, vars: { c3day7: 'list', ...order7, objective: 'See the transfer list', objective_target: 'citadel-halls:captain-7' } },
+    friend: { area: { areaId: 'guest-wing', start: { x: 610, y: 226 } }, slots: 2, vars: { c3day7: 'friend', ...list7, objective: 'See your friend', objective_target: 'guest-wing:heir-7' } },
+    night: { area: { areaId: 'prince-quarters', start: { x: 60, y: 226 } }, slots: 2, vars: promised ? { c3day7: 'night', ...list7, wing7: true, objective: 'Wait for the last bell', objective_target: 'prince-quarters:bed-7' } : { c3day7: 'bed', ...list7, wing7: true, objective: 'Go to bed', objective_target: 'prince-quarters:bed-7s' } },
+    halls: { area: { areaId: 'citadel-halls', start: { x: 860, y: 136 } }, slots: 3, vars: { c3day7: 'halls', ...night7, barrier7: true, heir_with_you: true, objective: "Get him to your hand's office unseen", objective_target: 'citadel-halls:to-office' } },
+    gate: { area: { areaId: 'city-gate', start: { x: 760, y: 232 } }, slots: 3, vars: { c3day7: 'lifts', ...night7, barrier7: true, office7: true, lifts7: true, heir_with_you: true, objective: 'Get him to the gate', objective_target: 'city-gate:commander-7' } },
+    fight: { area: { areaId: 'city-gate', start: { x: 470, y: 232 } }, slots: 3, vars: { c3day7: 'fight', ...night7, barrier7: true, office7: true, lifts7: true, gate_seen7: true } },
+  };
+  // Day 8 (`&day=8`; Day 7's as `&struck=`, `&gate=lost`, `&promised=0`; this day's `&broadcast=`).
+  const gateLost = params.get('gate') === 'lost';
+  const struck = params.get('struck') ?? 'barkeep';
+  const broadcast = params.get('broadcast') ?? 'backed';
+  const day8: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | number | boolean> }> = {
+    start: { area: { areaId: 'prince-quarters', start: { x: 120, y: 226 }, script: 'c3day8_start', card: 'Day 8' }, slots: 0, vars: {} },
+    table: { area: { areaId: 'simulation-room', start: { x: 120, y: 230 } }, slots: 0, vars: { c3day8: 'study', sim_open: true, objective: 'Go to your father', objective_target: 'simulation-room:father-8' } },
+    game: { area: { areaId: 'simulation-room', start: { x: 330, y: 230 } }, slots: 0, vars: { c3day8: 'table', sim_open: true } },
+    list: { area: { areaId: 'simulation-room', start: { x: 330, y: 230 } }, slots: 0, vars: { c3day8: 'table', sim_open: true, table8: 'won' } },
+    hall: { area: { areaId: 'audience-hall', start: { x: 60, y: 236 } }, slots: 0, vars: { c3day8: 'hall', sim_open: true, table8: 'won', list8: 'won', objective: 'Speak to the city', objective_target: 'audience-hall:mark-8' } },
+    choice: { area: { areaId: 'audience-hall', start: { x: 610, y: 212 }, script: 'c3day8_choice' }, slots: 0, vars: { c3day8: 'speech', sim_open: true, table8: 'won', list8: 'won' } },
+    balcony: { area: { areaId: 'prince-quarters', start: { x: 300, y: 226 } }, slots: 2, vars: { c3day8: 'evening', sim_open: true, table8: 'won', list8: 'won', broadcast, objective: 'Go out to the balcony', objective_target: 'prince-quarters:hand-8b' } },
+  };
   if (day >= 2) set({ c3day1: 'done', c3day2: 'wake', lift_mended: params.get('lift') === 'mended', seated: params.get('seated') ?? 'councillor', signed_requests: true });
   // (Day 2 done: the energy choice made, the district dark, the war table played, below with your hand.)
   if (day >= 3) set({ c3day2: 'done', sim_open: true, sim_turns: 5, sim_taken: true, energy, dark_district: dark, dark_fade: 100, citadel_dimmed: energy === 'people', painter2: true, woman2: true, streets_cut: true, rewards: true });
   // (Day 3 done: the audience, the requests, the salon, below to the hideout.)
   if (day >= 4) set({ c3day3: 'done', ...morning3, signed3: true, hostess3: true, friend3: true, low3: true, met_hideout: true, heard3: 4, painter3: true, outside3: true });
-  const table = day >= 4 ? day4 : day >= 3 ? day3 : day >= 2 ? day2 : day1;
+  // (Day 4 done: the riot, the square, your father in your rooms.)
+  if (day >= 5) set({ ...day4.square!.vars, c3day4: 'done', plain_coat: false, riot, father4n: true, c3day5: 'wake' });
+  // (Day 5 done: the address, the warrants, below, the raid.)
+  if (day >= 6) set({ ...day5.raid!.vars, c3day5: 'done', plain_coat: false, hand_with_you: false, heard5: 3, painter5: true, raid, seen_below: raid === 'stepped_in', standoff5: raid === 'stepped_in' ? (params.get('standoff') === 'taken' ? 'taken' : 'held') : '', after5: true, c3day6: 'wake' });
+  // (Day 6 done: the duel, the guests, the banquet, your sister at the sealed door.)
+  if (day >= 7) set({ ...day6.night!.vars, c3day6: 'done', c3day7: 'wake', heir_with_you: false, walking6: false, gallery6: true, sister_hall6: true, study6: true, sister_wing6: true, door6: true, sister });
+  // (Day 7 done: the order, the list, your friend gone, through the gate with you or without you.)
+  if (day >= 8) set({ ...list7, c3day7: 'done', c3day8: 'wake', wing7: true, struck, friend_gone: true, helped_escape: promised, gate7: promised ? (gateLost ? 'lost' : 'won') : '', seen_gate: promised && gateLost, plain_coat: false, heir_with_you: false });
+  const table = day >= 8 ? day8 : day >= 7 ? day7 : day >= 6 ? day6 : day >= 5 ? day5 : day >= 4 ? day4 : day >= 3 ? day3 : day >= 2 ? day2 : day1;
   const mid = table[at] ?? Object.values(table)[0]!;
   set(mid.vars);
-  session.calendar.jumpTo(day as 1 | 2 | 3 | 4);
+  session.calendar.jumpTo(day as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8);
   for (let i = 0; i < mid.slots; i++) session.calendar.advance();
+  if (day === 2 && (at === 'now' || at === 'tutorial')) {
+    scene.scene.start('RiotTable', { scenario: at === 'now' ? 'lesson' : 'tutorial', back: mid.area, ...(at === 'now' ? { phase: 'now' as const } : {}) } satisfies RiotTableSceneData);
+    return;
+  }
+  if (day >= 8 && (at === 'game' || at === 'list')) {
+    scene.scene.start('RiotTable', { scenario: at === 'list' ? 'father8_list' : 'father8', back: mid.area } satisfies RiotTableSceneData);
+    return;
+  }
+  if (day >= 7 && at === 'fight') {
+    scene.scene.start('Combat', { encounter: 'gate_watch', back: { ...mid.area, script: 'c3day7_after_fight' } } satisfies CombatSceneData);
+    return;
+  }
+  if (day >= 6 && at === 'duel') {
+    scene.scene.start('RiotTable', { scenario: 'duel', back: mid.area } satisfies RiotTableSceneData);
+    return;
+  }
   if (day >= 4 && at === 'riot') {
     scene.scene.start('RiotTable', { scenario: leader === 'firebrand' ? 'riot_low' : 'riot_promenade', back: mid.area } satisfies RiotTableSceneData);
     return;
@@ -263,6 +371,89 @@ export function devChapter3(scene: Phaser.Scene, at: string, day = 1): void {
 }
 
 /** How long the card holds before fading out (ms). */
+/**
+ * Chapter 4 begins: the carver again, out of the tree (docs/sequences/chapter-4/plan.md). Act 1's ending
+ * decides where you wake: up the tube (you flew: the basin at the tube mouth, the master kneeling by you)
+ * or out of the rot (you fell: the foot of the tree, the hunter, and the girl if she came out with you).
+ * Its title depends on how you left (designer): "Divine Intervention" up the tube, "A Sinner Speaks" through the rot.
+ */
+export function beginChapter4(scene: Phaser.Scene): void {
+  const session = getSession(scene);
+  const story = session.story;
+  const left = story.getVariable('chased') ? 'tube' : 'rot';
+  story.setVariable('chapter', 4);
+  story.setVariable('c4_story', true);
+  story.setVariable('c4_left', left);
+  story.setVariable('carver_below', true);
+  story.setVariable('c4_girl', left === 'rot' && story.getVariable('girl_follows') ? 'follows' : '');
+  story.setVariable('objective', '');
+  story.setVariable('objective_target', '');
+  session.calendar.jumpTo(1);
+  const next = chapter4Start(left);
+  session.dayStarts = { 1: { ink: story.saveState(), calendar: session.calendar.toJSON(), wake: { areaId: next.areaId, start: next.start!, script: next.script } } };
+  // The card, then the cinematic (halfway up the tube, or the end of the rot), then out.
+  const lore: LoreSceneData = { knot: left === 'tube' ? 'c4_rise' : 'c4_crack', voice: 'none', back: next };
+  // The title by how you left (designer): up the tube, "Divine Intervention"; through the rot, "A Sinner Speaks".
+  scene.scene.start('Chapter', { number: 'Chapter 4', title: left === 'tube' ? 'Divine Intervention' : 'A Sinner Speaks', next, lore } satisfies ChapterSceneData);
+}
+
+/** Where Chapter 4 opens, by how you left the tree. */
+const chapter4Start = (left: 'tube' | 'rot'): AreaSceneData =>
+  left === 'tube'
+    ? { areaId: 'tube-mouth', start: { x: 668, y: 200 }, card: 'Day 1', script: 'c4day1_tube' }
+    : { areaId: 'trees-edge', start: { x: 615, y: 232 }, card: 'Day 1', script: 'c4day1_rot' };
+
+/**
+ * Dev: Chapter 4 with Act 1's routes as flags (`?chapter=4`): `&left=tube|rot` (how you left: up the tube or into
+ * the rot), `&girl=saved|framed` (framed and fell: she's with you), `&seed=healthy|roots`, `&told=1` (you told the
+ * archivist), `&confided=1` (you confided in your friend). Part way into Day 1 with `&at=`: `house` (Grounded's
+ * welcome), `seed` (the seed bed), `look` (the sorting deck), `workshop`, `hall` (the master showing you round),
+ * `lookout` (Grounded at the rail), `lore` (straight into his telling), `mess` (the child), `bed` (the hall at night).
+ */
+export function devChapter4(scene: Phaser.Scene, at: string): void {
+  const session = getSession(scene);
+  const params = params0();
+  const set = (vars: Record<string, string | number | boolean>) => {
+    for (const [name, value] of Object.entries(vars)) session.story.setVariable(name, value);
+  };
+  const left = params.get('left') === 'rot' ? 'rot' : 'tube';
+  const framed = params.get('girl') === 'framed';
+  set({
+    chased: left === 'tube',
+    girl_fate: framed ? 'blamed' : 'saved',
+    in_custody: !framed,
+    girl_follows: framed && left === 'rot',
+    seed: params.get('seed') === 'roots' ? 'roots' : 'healthy',
+    told_archivist: params.get('told') === '1',
+    confided: params.get('confided') === '1',
+  });
+  if (at === 'start') return beginChapter4(scene);
+  const girl = framed && left === 'rot';
+  set({ chapter: 4, c4_story: true, c4_left: left, carver_below: true, c4_girl: girl ? 'follows' : '' });
+  const guide = left === 'tube' ? 'master' : 'hunter';
+  const afternoon = { c4_girl: girl ? 'mess' : '', c4_guide: '' };
+  const parts: Record<string, { area: AreaSceneData; slots: number; vars: Record<string, string | number | boolean> }> = {
+    house: { area: { areaId: 'groundeds-house', start: { x: 40, y: 240 }, script: 'c4day1_grounded' }, slots: 0, vars: { c4day1: left === 'tube' ? 'led' : 'platform', c4_guide: guide } },
+    seed: { area: { areaId: 'seed-bed', start: { x: 250, y: 230 }, script: 'c4day1_seed' }, slots: 0, vars: { ...afternoon, c4day1: 'seed', c4_guide: 'master' } },
+    look: { area: { areaId: 'great-house', start: { x: 430, y: 204 }, script: 'c4day1_sorting' }, slots: 1, vars: { ...afternoon, c4day1: 'look', c4_guide: 'master' } },
+    workshop: { area: { areaId: 'great-house', start: { x: 180, y: 292 }, script: 'c4day1_workshop' }, slots: 1, vars: { ...afternoon, c4day1: 'look', c4_guide: 'master', c4_mums_bird: true } },
+    hall: { area: { areaId: 'ascended-hall', start: { x: 200, y: 240 }, script: 'c4day1_hall' }, slots: 1, vars: { ...afternoon, c4day1: 'workshop', c4_guide: 'master', c4_mums_bird: true } },
+    lookout: { area: { areaId: 'lookout', start: { x: 172, y: 210 }, script: 'c4day1_lookout' }, slots: 2, vars: { ...afternoon, c4day1: 'lookout', c4_mums_bird: true } },
+    lore: { area: { areaId: 'lookout', start: { x: 230, y: 210 }, script: 'c4day1_after_lore' }, slots: 2, vars: { ...afternoon, c4day1: 'lore', c4_mums_bird: true } },
+    mess: { area: { areaId: 'great-house', start: { x: 120, y: 380 }, script: 'c4day1_mess' }, slots: 3, vars: { ...afternoon, c4day1: 'mess', c4_mums_bird: true } },
+    bed: { area: { areaId: 'ascended-hall', start: { x: 420, y: 240 } }, slots: 3, vars: { c4_girl: girl ? 'bed' : '', c4_guide: '', c4day1: 'bed', c4day1_owned: true, c4_mums_bird: true, objective: 'Go to bed', objective_target: 'ascended-hall:bed' } },
+  };
+  const mid = parts[at] ?? parts.house!;
+  set(mid.vars);
+  session.calendar.jumpTo(1);
+  for (let i = 0; i < mid.slots; i++) session.calendar.advance();
+  if (at === 'lore') {
+    scene.scene.start('Lore', { knot: 'c4lore', voice: 'grounded', music: true, back: mid.area } satisfies LoreSceneData);
+    return;
+  }
+  scene.scene.start('Area', mid.area);
+}
+
 const HOLD = 2800;
 
 /**
@@ -273,6 +464,7 @@ const HOLD = 2800;
 export class ChapterScene extends Phaser.Scene {
   private leaving = false;
   private next!: AreaSceneData;
+  private lore: LoreSceneData | undefined;
 
   constructor() {
     super('Chapter');
@@ -281,6 +473,7 @@ export class ChapterScene extends Phaser.Scene {
   create(data: ChapterSceneData): void {
     this.leaving = false;
     this.next = data.next;
+    this.lore = data.lore;
     this.cameras.main.setBackgroundColor(SHADES.shadow);
     const number = new PixelText(this, 0, 92, data.number, { color: SHADES.dim });
     number.setX(Math.round((W - number.width) / 2));
@@ -303,6 +496,6 @@ export class ChapterScene extends Phaser.Scene {
     if (this.leaving) return;
     this.leaving = true;
     this.cameras.main.fadeOut(1200, 0, 0, 0);
-    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Area', this.next));
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => (this.lore ? this.scene.start('Lore', this.lore) : this.scene.start('Area', this.next)));
   }
 }

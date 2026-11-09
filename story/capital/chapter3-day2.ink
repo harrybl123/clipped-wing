@@ -116,7 +116,8 @@ The table's dark. Just glass.
 // The first time each thing happens: what it is.
 === c3day2_first_grow ===
 "Your square grows. People keep joining it: one a turn. Past nine, it starts sending them out." #speaker:father
-"Behind its barricades it holds at one more. And when it holds, it loses nothing." #speaker:father
+// (Jack's proposal: match the square's number and you take it, the barricades costing one more. Draft wording, for Harry; it said it holds at one more, and loses nothing when it holds.)
+"Behind its barricades it costs one more to take. But match it, and it's yours." #speaker:father
 -> END
 
 === c3day2_first_pour ===
@@ -124,7 +125,7 @@ The table's dark. Just glass.
 -> END
 
 === c3day2_first_arrive ===
-"My guard come down the lifts. Two a turn, as long as the lifts' foot is mine." #speaker:father
+"My guard come down the lifts. Three a turn, as long as the lifts' foot is mine." #speaker:father
 -> END
 
 === c3day2_react_idle ===
@@ -154,7 +155,7 @@ He looks at the table a long moment.
 === c3day2_table_now ===
 He stands up straight, and steps back from the table.
 "That was a lesson. Now I'll play." #speaker:father
-He touches the table, and it sets itself again. Your square, twenty-four strong behind its barricades. Your crowds out through the district. His guard along the top.
+He touches the table, and it sets itself again. Your square, thirty strong behind its barricades. Your crowds out through the district. His guard along the top.
 "The guard has until dawn to take the square. The rising has to hold it." #speaker:father
 "Same rules. No arrows." #speaker:father
 "Hold it." #speaker:father
@@ -179,6 +180,33 @@ He touches the table. Under one of your squads, the lights go out.
 "I've played this table every night for thirty years. You won't ever be as good at it as I am." #speaker:father
 "You held your square and waited. I let your people come to me and break. I fed one fist from the lifts, cut your power, and struck once." #speaker:father
 "Remember it from my side of the table." #speaker:father
+// (Designer: the first go is just numbers; then he says the world's full of chance, and war's more complex than
+// this; then the tutorial brings in everything else. Draft lines.)
+"And that's the table as my father taught it to me. Numbers." #speaker:father
+"The world isn't numbers. It's full of chance, whatever anyone tells you." #speaker:father
+"A real war has a hundred things on it this doesn't. Weather. Luck. Who's praying, and who's paying." #speaker:father
+"The trick is to need the dice less than the other man." #speaker:father
+He touches the table, and it sets itself again: the same district, the same streets. This time the blue is under your hands.
+-> END
+
+// The tutorial (src/data/warTable.ts, TUTORIAL; its cards: story/capital/tutorial.ink): the table as it really is.
+=== c3day2_tutorial_intro ===
+"You're the guard, this time. Take the square before dawn." #speaker:father
+"The table will show you the rest as it comes." #speaker:father
+-> END
+
+// The tutorial over: the square taken, or dawn first.
+=== c3tut_done ===
+Your guard on the square, and the light there gone your colour.
+"Good." #speaker:father
+-> c3tut_off
+
+=== c3tut_dawn ===
+The sun comes up on the table's edge, and the square's still theirs.
+"It takes more than one night to learn." #speaker:father
+-> c3tut_off
+
+=== c3tut_off ===
 He switches it off, and the city goes dark under your hands.
 "I hope you never need it." #speaker:father
 -> END

@@ -3,7 +3,8 @@ import type { TimeSlot } from '../systems/Calendar';
 import { addLight, cellRandom, falloff, noise, poweredLights, rgb, SHADES, smoothstep, type PixelColour, type Power, type RGB } from './pixelArt';
 import { stampRows } from './pixelTextures';
 
-// Areas out in the open (the borderland, Chapter 2; docs/chapter-2-world.md). Two layers:
+// Areas out in the open (the borderland, Chapter 2; docs/chapter-2-world.md; the capital's streets, Chapter 3;
+// the canopy, Chapter 4). Two layers:
 // - the far layer: the sky, the tree vast on the horizon with its top lost in white, and the plain
 //   receding beneath it with distant junk; it scrolls at FAR_SCROLL of the camera, so the tree stays put;
 // - the near layer: the area's solids as packed dirt (lit by its lights), its lines and props, and
@@ -62,6 +63,7 @@ export function paintFar(outdoor: Outdoor, slot: TimeSlot, height: number): (x: 
   const tree = treePainter(TX, HY, s, sky, night, outdoor.atRoots);
   // Distant junk heaps along the horizon.
   const heapTop = (x: number) => HY - Math.max(0, noise(x / 23) * 7 + noise(x / 7) * 2 - 2);
+  if (outdoor.backdrop === 'canopy') return canopyPainter(outdoor, sky, slot, height);
   const town = outdoor.backdrop === 'settlement' ? skyline(HY, sky, slot) : null;
   const city = outdoor.backdrop === 'city' ? cityPainter(outdoor, sky, slot) : null;
   const cityFrom = outdoor.cityFrom ?? -Infinity;
@@ -126,6 +128,190 @@ export function paintFar(outdoor: Outdoor, slot: TimeSlot, height: number): (x: 
       return scale(rgb(dy > 0.75 ? lit : body), sky.ground * (night ? 0.6 : 1));
     }
     return c;
+  };
+}
+
+/**
+ * Up in the canopy (Chapter 4; docs/chapter-4-world.md), kept calm so what's near reads clearly (designer:
+ * you couldn't make things out): a smooth sky with a few soft clouds; far off, the treetop going on in two
+ * hazy bands of rounded crowns, the further one barely there, a few treehouse shapes on the nearer, their
+ * windows lit from dusk; the tentacles far off if `tentaclesX` is in view; the capital on the horizon from the
+ * lookout (`citadelX`); below, the leaves close by, dark and quiet.
+ */
+function canopyPainter(outdoor: Outdoor, base: Sky, slot: TimeSlot, height: number): (x: number, y: number) => PixelColour {
+  // Among the limbs (everywhere but the lookout, which is above them all).
+  if ((outdoor.canopyDrop ?? 0) < 60) return limbsPainter(outdoor, base, slot, height);
+  const HY = outdoor.horizon;
+  /** Where the leaves lie (below the horizon by `canopyDrop` at the lookout). */
+  const LY = HY + (outdoor.canopyDrop ?? 0);
+  const CX = outdoor.citadelX;
+  const lit = slot === 'evening' || slot === 'night';
+  const night = slot === 'night';
+  const [greenMid, greenDeep, white, amber, cyan, cyanMid] = [SHADES.greenMid, SHADES.greenDeep, SHADES.white, SHADES.amber, SHADES.cyan, SHADES.cyanMid].map(rgb) as RGB[];
+  // Above the haze the sky's clearer than down on the plain: bluer by day.
+  const sky: Sky = slot === 'morning' || slot === 'afternoon'
+    ? { ...base, top: mix(mix(white!, cyan!, 0.45), cyanMid!, slot === 'morning' ? 0.3 : 0.42), horizon: mix(white!, slot === 'morning' ? amber! : cyan!, 0.15) }
+    : base;
+  /** A band of crowns: the top edge, made of rounds. */
+  const band = (y0: number, rMin: number, rMax: number, step: number, seed: number) => {
+    const crowns: { x: number; y: number; r: number }[] = [];
+    for (let x = -60, i = 0; x < 2800; i++) {
+      const r = rMin + cellRandom(i, 0, seed) * (rMax - rMin);
+      crowns.push({ x, y: y0 + noise(i / 3 + seed) * 10 + r * 0.4, r });
+      x += step * (0.7 + cellRandom(i, 1, seed) * 0.6);
+    }
+    return (x: number) => {
+      let top = Infinity;
+      for (const c of crowns) {
+        const dx = x - c.x;
+        if (Math.abs(dx) < c.r) top = Math.min(top, c.y - Math.sqrt(c.r * c.r - dx * dx));
+      }
+      return top;
+    };
+  };
+  const distantTop = band(LY - 64, 30, 60, 52, 17);
+  const farTop = band(LY - 26, 20, 40, 38, 3);
+  const nearTop = band(LY + 34, 26, 44, 44, 9);
+  // A few treehouse shapes on the far band (no stilts, no wires): flat tone, a lit window or two from dusk.
+  const houses: { x: number; w: number; h: number; seed: number }[] = [];
+  for (let x = 40, i = 0; x < 2600; i++) {
+    houses.push({ x, w: 10 + Math.floor(cellRandom(i, 1, 211) * 8), h: 7 + Math.floor(cellRandom(i, 2, 211) * 4), seed: i });
+    x += 90 + Math.floor(cellRandom(i, 3, 211) * 120);
+  }
+  const TX = outdoor.tentaclesX;
+  const haze = (c: RGB, k: number) => mix(scale(c, sky.ground), sky.horizon, k);
+
+  return (x, y) => {
+    // The leaves close by, below: dark and quiet.
+    const nt = nearTop(x);
+    if (y >= nt) {
+      const rim = y - nt < 2;
+      const c = rim ? mix(greenDeep!, greenMid!, 0.6) : mix(greenDeep!, rgb(SHADES.deep), 0.25 * smoothstep(nt, height, y));
+      if (night && cellRandom(x, y, 9) > 0.9992) return SHADES.amber;
+      return scale(c, sky.ground * 0.9);
+    }
+    // The far band, with its treehouses.
+    const ft = farTop(x);
+    const house = houses.find((h) => x >= h.x && x < h.x + h.w);
+    if (house) {
+      const floor = Math.round(farTop(house.x + house.w / 2)) + 3;
+      const roof = floor - house.h;
+      const hx = x - house.x;
+      if (y >= roof - 4 && y < roof && Math.abs(hx - (house.w - 1) / 2) <= y - (roof - 4) + house.w / 2 - 3) return haze(greenDeep!, 0.4);
+      if (y >= roof && y < floor) {
+        if (lit && y === roof + 3 && hx % 4 === 2 && hx < house.w - 2) return SHADES.amber;
+        return haze(rgb(SHADES.woodLight), 0.4);
+      }
+    }
+    if (y >= ft) {
+      if (night && cellRandom(x, y, 10) > 0.9994) return SHADES.amber;
+      return haze(y - ft < 2 ? greenMid! : mix(greenDeep!, greenMid!, 0.45), 0.42);
+    }
+    // The distant band: barely there.
+    if (y >= distantTop(x)) return haze(greenMid!, night ? 0.45 : 0.68);
+    // The tentacles, far off: pale tubes rising out of the treetop.
+    if (TX !== undefined) {
+      for (const [k, lean] of [[0, -0.5], [1, -0.15], [2, 0.2], [3, 0.55]] as const) {
+        const t = (LY - 50 - y) / 140;
+        if (t < 0 || t > 1) continue;
+        const cx = TX + (k - 1.5) * 8 + lean * 90 * t * t;
+        if (Math.abs(x - cx) <= 3.5 - 2 * t) return mix(Math.abs(x - cx) < 1 ? (lit ? cyan! : white!) : cyanMid!, sky.horizon, lit ? 0.15 : 0.45);
+      }
+    }
+    // The capital, far off on the horizon (from the lookout): towers in the haze by day, its lights at night.
+    if (CX !== undefined && y < HY && y > HY - 22 && Math.abs(x - CX) < 34) {
+      const i = Math.floor((x - CX + 34) / 3);
+      const top = HY - 3 - Math.round(cellRandom(i, 0, 301) * 10 * Math.exp(-(((x - CX) / 20) ** 2)) - 6 * Math.exp(-(((x - CX) / 6) ** 2)));
+      if (y >= top) {
+        if (lit && cellRandom(x, y, 302) > 0.55) return cellRandom(x, y, 303) > 0.5 ? SHADES.cyan : SHADES.amber;
+        return mix(scale(rgb(SHADES.dim), sky.ground), sky.horizon, night ? 0.2 : 0.6);
+      }
+    }
+    // Below the horizon where nothing's in the way: the plain, a long way down in the haze.
+    if (y >= HY) return haze(mix(rgb(SHADES.woodPale), greenMid!, 0.3), 0.6);
+    // The sky: smooth, a few soft round clouds by day, stars at night.
+    let c = mix(sky.top, sky.horizon, smoothstep(0, HY, y) ** 0.8);
+    if (!night) {
+      const cell = Math.floor(x / 140);
+      const cx = cell * 140 + 30 + cellRandom(cell, 0, 41) * 80;
+      const cy = 30 + cellRandom(cell, 1, 41) * Math.max(10, HY * 0.35);
+      const d = Math.hypot((x - cx) / 34, (y - cy) / 9) - 0.12 * Math.abs(Math.sin((x - cx) / 7));
+      if (cellRandom(cell, 2, 41) > 0.35 && d < 1) c = mix(c, white!, (slot === 'evening' ? 0.35 : 0.7) * (d < 0.85 ? 1 : (1 - d) / 0.15));
+    } else if (cellRandom(x, y, 31) > 0.996) return SHADES.light;
+    if (slot === 'morning') c = mix(c, white!, 0.2 * smoothstep(HY - 50, HY, y));
+    return c.map((v) => Math.min(255, v)) as RGB;
+  };
+}
+
+/**
+ * Among the canopy's limbs (Chapter 4; designer: more treehousey, like the Ewoks' village in Return of the
+ * Jedi): a forest of the tree's own giant limbs going up out of sight, rank behind rank into the haze, ring
+ * platforms round some of them with round huts on (their windows lit from dusk, lanterns at night); leaves overhead, light coming down between them; the haze below. Kept
+ * low in contrast and simple, so what's near reads clearly (designer: you couldn't make things out).
+ */
+function limbsPainter(_outdoor: Outdoor, base: Sky, slot: TimeSlot, height: number): (x: number, y: number) => PixelColour {
+  const lit = slot === 'evening' || slot === 'night';
+  const night = slot === 'night';
+  const [greenMid, greenDeep, white, amber, cyanMid, bark, barkLight, deep] = [SHADES.greenMid, SHADES.greenDeep, SHADES.white, SHADES.amber, SHADES.cyanMid, SHADES.wood, SHADES.woodLight, SHADES.deep].map(rgb) as RGB[];
+  // The haze between the limbs: pale green-grey by day, gold at dusk, dark at night.
+  const fog: RGB = slot === 'night' ? mix(deep!, greenDeep!, 0.5) : slot === 'evening' ? mix(mix(amber!, rgb(SHADES.dim), 0.45), greenMid!, 0.35) : mix(mix(white!, greenMid!, slot === 'morning' ? 0.42 : 0.5), cyanMid!, 0.15);
+  const ground = base.ground;
+  // Ranks of limbs, furthest first: [haze, width range, spacing, seed].
+  const ranks = [
+    { haze: 0.72, w: [10, 18], step: 46, seed: 1 },
+    { haze: 0.5, w: [20, 32], step: 80, seed: 2 },
+    { haze: 0.3, w: [34, 52], step: 150, seed: 3 },
+  ].map((r) => {
+    const limbs: { x: number; w: number; seed: number; deck: number; hut: boolean }[] = [];
+    for (let x = -40, i = 0; x < 2800; i++) {
+      const w = r.w[0]! + cellRandom(i, 0, r.seed * 7) * (r.w[1]! - r.w[0]!);
+      limbs.push({ x, w, seed: i, deck: 40 + cellRandom(i, 1, r.seed * 7) * (height - 110), hut: cellRandom(i, 2, r.seed * 7) > 0.4 });
+      x += r.step * (0.6 + cellRandom(i, 3, r.seed * 7) * 0.8);
+    }
+    return { ...r, limbs };
+  });
+  const canopy = (x: number) => 26 + noise(x / 31) * 10 + Math.abs(Math.sin(x / 13)) * 6;
+
+  return (x, y) => {
+    // Leaves overhead.
+    const ct = canopy(x);
+    if (y < ct) {
+      const edge = ct - y < 3;
+      const clump = Math.hypot(((x % 26) - 13) / 13, ((y % 14) - 7) / 7) < 0.8;
+      return scale(edge ? mix(greenDeep!, greenMid!, 0.6) : clump ? mix(greenDeep!, greenMid!, 0.3) : greenDeep!, ground * (edge ? 1 : 0.8));
+    }
+    // The limbs, nearest rank first.
+    for (let k = ranks.length - 1; k >= 0; k--) {
+      const r = ranks[k]!;
+      for (const l of r.limbs) {
+        const wob = Math.sin(y / 60 + l.seed) * 2;
+        const lx = x - l.x - wob;
+        const deckY = Math.round(l.deck);
+        const deckHalf = l.w * 1.2 + 6;
+        // A ring platform round it, and a round hut on it.
+        if (Math.abs(lx - l.w / 2) <= deckHalf && y >= deckY && y < deckY + 3) return mix(scale(y === deckY ? barkLight! : bark!, ground), fog, r.haze);
+        if (l.hut) {
+          const hx = l.w / 2 + l.w * 0.9;
+          const hw = 5 + l.w * 0.22;
+          const hh = 4 + l.w * 0.2;
+          if (Math.abs(lx - hx) <= hw && y < deckY && y >= deckY - hh) {
+            if (lit && y === deckY - Math.round(hh / 2) && Math.abs(lx - hx) < 1.5) return SHADES.amber;
+            return mix(scale(barkLight!, ground), fog, r.haze);
+          }
+          const roofY = deckY - hh;
+          if (y < roofY && y >= roofY - hw * 0.8 && Math.abs(lx - hx) <= (y - (roofY - hw * 0.8)) * 1.25 + 1) return mix(scale(rgb(SHADES.amberDeep), ground), fog, r.haze);
+        }
+        // The limb itself: bark, furrowed, lit along one side.
+        if (lx >= 0 && lx <= l.w) {
+          const furrow = Math.abs(Math.sin(lx / Math.max(3, l.w / 6) + noise(y / 25 + l.seed) * 1.5));
+          const c = lx < 2 ? barkLight! : lx > l.w - 3 ? deep! : furrow < 0.3 ? deep! : bark!;
+          if (night && cellRandom(x, y, 70 + k) > 0.9993) return SHADES.amber;
+          return mix(scale(c, ground), fog, r.haze);
+        }
+      }
+    }
+    // The haze, darker low down, a shaft of light here and there.
+    return mix(fog, scale(fog, 0.75), smoothstep(height * 0.5, height, y));
   };
 }
 
@@ -471,6 +657,34 @@ function paving(s: Solid, x: number, y: number, sky: Sky, lit: boolean): RGB | n
   return scale(base, (lit ? 0.8 : sky.ground) * (1 + 0.06 * noise(x / 5 + row)));
 }
 
+/**
+ * A deck in the canopy (Chapter 4): planks laid over living wood. A sunlit edge, planks with staggered seams, a
+ * dark gap under them; below, the branch itself: bark with its grain running along it, moss on top, darker
+ * the further down.
+ */
+function deck(s: Solid, x: number, y: number, sky: Sky): RGB | number | null {
+  const row = y - s.y;
+  // A step or a ledge you can jump up through is just its planks: open beneath (what holds it up shows).
+  if (s.oneWay && row > 4) return null;
+  if (row === 0) return addLight(scale(rgb(SHADES.light), sky.ground * 0.9), rgb(SHADES.amber), sky.warm);
+  if (row < 5) {
+    const band = Math.floor((row - 1) / 2);
+    if ((x - s.x + band * 7) % 16 === 0) return scale(rgb(SHADES.woodLight), sky.ground);
+    const c = mix(rgb(SHADES.woodPale), rgb(SHADES.dim), row === 1 ? 0.45 : 0.15);
+    return addLight(scale(c, sky.ground * (1 + 0.06 * noise(x / 4 + row * 3))), rgb(SHADES.amber), sky.warm);
+  }
+  if (row === 5) return SHADES.deep;
+  if (s.height <= 8) return scale(rgb(SHADES.wood), sky.ground);
+  // The branch: moss along its top, bark grain running along it, darker below.
+  const moss = row < 10 && noise(x / 6 + 2) > -0.3 + (row - 6) * 0.25;
+  if (moss) return scale(mix(rgb(SHADES.greenDeep), rgb(SHADES.greenMid), cellRandom(x, y, 41) > 0.55 ? 0.7 : 0.25), sky.ground);
+  const grain = noise(y / 1.6 + noise(x / 45) * 3) * 0.6 + noise(x / 7 + y / 30) * 0.4;
+  const cell = Math.floor(x / 97);
+  const knot = cellRandom(cell, 0, 43) > 0.55 && Math.hypot((x % 97) - 20 - cellRandom(cell, 1, 43) * 57, (row - 14 - cellRandom(cell, 2, 43) * 22) * 1.8) < 2.5 + cellRandom(cell, 3, 43) * 2;
+  const c = knot ? rgb(SHADES.wood) : mix(rgb(SHADES.woodPale), rgb(SHADES.dim), 0.15 + 0.25 * grain);
+  return addLight(scale(c, sky.ground * (0.95 - 0.4 * smoothstep(8, 70, row))), rgb(SHADES.amber), sky.warm * 0.5);
+}
+
 /** The near layer: dirt solids, lines and props; transparent elsewhere so the far layer shows. */
 export function paintOutdoorNear(area: AreaDefinition, slot: TimeSlot, power: Power = {}): (x: number, y: number) => PixelColour {
   const sky = skyFor(slot);
@@ -484,7 +698,13 @@ export function paintOutdoorNear(area: AreaDefinition, slot: TimeSlot, power: Po
     for (let i = 0; i <= steps; i++) put(Math.round(from.x + ((to.x - from.x) * i) / steps), Math.round(from.y + ((to.y - from.y) * i) / steps), colour);
   }
   // (With the power cut, every lit window, sign and strip on the buildings goes dark: Chapter 3.)
-  for (const prop of area.props) stampRows(put, prop.sprite.rows, power.cut ? unlit(prop.sprite.colours) : prop.sprite.colours, prop.x, prop.y);
+  for (const prop of area.props) if (!prop.behind) stampRows(put, prop.sprite.rows, power.cut ? unlit(prop.sprite.colours) : prop.sprite.colours, prop.x, prop.y);
+  // Props behind the solids (Chapter 4's trunks and boughs running down behind the decks).
+  const back = new Map<number, number>();
+  const putBack = (x: number, y: number, c: number) => {
+    if (x >= 0 && y >= 0 && x < width && y < area.height) back.set(y * width + x, c);
+  };
+  for (const prop of area.props) if (prop.behind) stampRows(putBack, prop.sprite.rows, prop.sprite.colours, prop.x, prop.y);
   const solids = area.solids.filter((s) => !s.invisible);
   const lights = poweredLights(area, power);
 
@@ -492,10 +712,19 @@ export function paintOutdoorNear(area: AreaDefinition, slot: TimeSlot, power: Po
     const exact = overlay.get(y * width + x);
     if (exact !== undefined) return exact;
     const s = solids.find((o) => x >= o.x && x < o.x + o.width && y >= o.y && y < o.y + o.height);
-    if (!s) return null;
-    const c = area.outdoor?.ground === 'street'
+    if (!s) return back.get(y * width + x) ?? null;
+    const ground = area.outdoor?.ground;
+    if (ground === 'deck') {
+      const d = deck(s, x, y, sky);
+      if (d === null) return back.get(y * width + x) ?? null;
+      if (typeof d === 'number') return d;
+      let lit = d;
+      for (const l of lights) lit = addLight(lit, l.rgb, l.strength * falloff(x, y, l.x, l.y, l.radius, l.radiusY ?? l.radius));
+      return lit;
+    }
+    const c = ground === 'street'
       ? paving(s, x, y, sky, slot === 'evening' || slot === 'night')
-      : dirt(s, x, y, sky, area.outdoor?.ground === 'deep', area.outdoor?.groundY);
+      : dirt(s, x, y, sky, ground === 'deep', area.outdoor?.groundY);
     if (typeof c === 'number') return c;
     let lit = c;
     for (const l of lights) lit = addLight(lit, l.rgb, l.strength * falloff(x, y, l.x, l.y, l.radius, l.radiusY ?? l.radius));

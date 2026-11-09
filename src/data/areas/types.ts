@@ -34,6 +34,11 @@ export interface Prop {
   sprite: RowSprite;
   x: number;
   y: number;
+  /**
+   * Out in the open (`outdoor`), drawn behind the area's solids instead of over them: a trunk or a bough
+   * running down behind a deck, a house behind a walkway (the canopy: nothing floats, designer).
+   */
+  behind?: boolean;
 }
 
 /** A straight line of pixels baked into the backdrop (ropes, cords, pipes, beams). */
@@ -49,7 +54,7 @@ export type Feature =
   | { type: 'smoke'; x: number; y: number; top: number; showIf?: string } // grey smoke rising from (x, y) up to `top` (a crack in a ceiling), while showIf is true
   | { type: 'swing'; sprite: RowSprite; x: number; y: number; ropeTop: number; quiet?: boolean; ropeColour?: number } // hanging from ropeTop, sways (creaking, unless quiet: a chandelier, a pendulum); its rope or chain in ropeColour
   | { type: 'rain'; when?: TimeSlot[]; showIf?: string } // rain falling across the area (the capital at night): only at these times of day (default night)
-  | { type: 'frames'; frames: RowSprite[]; x: number; y: number; every: number; showIf?: string; power?: 'needs' | 'without' | 'any' } // an animated prop (top-left at x, y): cycles through its frames every `every` ms (a screen scrolling, a table of light flickering, water running) `power`: with the place's power cut (Chapter 3), a screen or sign goes off (`needs`, the default); `without`: shown only then (a lift stopped dead); `any`: either way
+  | { type: 'frames'; frames: RowSprite[]; x: number; y: number; every: number; showIf?: string; hideIf?: string; power?: 'needs' | 'without' | 'any' } // an animated prop (top-left at x, y): cycles through its frames every `every` ms (a screen scrolling, a table of light flickering, water running) `power`: with the place's power cut (Chapter 3), a screen or sign goes off (`needs`, the default); `without`: shown only then (a lift stopped dead); `any`: either way
   | { type: 'pulse'; points: { x: number; y: number }[]; speed: number; every: number; count?: number; sprite?: RowSprite; colour?: number; showIf?: string } // something travelling along a line, over and over: a capsule shooting through a message tube, light running along a cable. `count` of them, spaced out; each sets off again `every` ms after it arrives (a 2×2 dot of `colour` if no sprite)
   | { type: 'drip'; x: number; y: number; floorY: number } // a drop falls from (x, y) every so often
   | { type: 'motes'; x: number; top: number; bottom: number; halfWidth: number } // pale motes rising in a column (the tube)
@@ -70,7 +75,7 @@ export type Feature =
       face?: 1 | -1;
       /** A standing watch who glances back over his shoulder now and then: `tell` over his head first, then he looks the other way for `for` ms (with a longer reach, `range`), and someone may call him back round (`back`). */
       glance?: { every: number; for: number; range?: number; tell?: string; back?: { who: string; text: string } };
-      /** One of the borderland's cast keeping watch instead of the night watchman (a `CastId`, Chapter 2: the boss's son at dawn): no lantern, only where he's looking. Or `capital-watch-<n>`: one of the city watch, with a lantern (Chapter 3); or `capital-citizen-<n>`: someone of the city's, no lantern, who'd report a face they know (Chapter 3's informants). */
+      /** One of the borderland's cast keeping watch instead of the night watchman (a `CastId`, Chapter 2: the boss's son at dawn): no lantern, only where he's looking. Or `capital-watch-<n>`: one of the city watch, with a lantern (Chapter 3); or `capital-citizen-<n>`: someone of the city's, no lantern, who'd report a face they know (Chapter 3's informants); or `capital-guard-<n>`: one of the citadel guard, with a lantern (Day 5's raid). */
       who?: string;
       /** A name for them, so lines can be said over their head (`barks`, `#bark`). */
       id?: string;
@@ -93,8 +98,8 @@ export type Feature =
     } // the dog finds things (Chapter 2): while showIf is true and the dog (person id, following you) is with you, when you come within `range` of a find on the floor you're both on, it runs to it, sniffs and digs there; dig beside it (E) and the thing comes up (as with `dig`), its knot plays, and the dog follows you again
   | { type: 'slide'; x: number; width: number; top: number; bottom: number } // a long drop you slide down rather than fall (designer: the sunk town's gap was a huge drop): falling through x..x+width between top and bottom, you're slowed, crouched against the earth, dust flying
   | { type: 'trigger'; x: number; y: number; reach: number; knot: string; showIf?: string; hideIf?: string } // plays a knot by itself once when you reach this spot on surface y (while showIf is true and hideIf isn't; the knot should set hideIf so it doesn't play again on the next visit)
-  | { type: 'quarry'; people: string[]; y: number; path: { x: number; wait?: number; look?: boolean }[]; speed: number; range: number; lose: number; reset: { x: number; y: number }; showIf: string; done: string } // people you tail (the first leads, the rest keep their distance from him): they walk the path on floor y, stopping `wait` ms at each point, and at `look` points turn round. If they see you (in front of them, too close, or behind within `range` while they look, not in a shadow), or you fall more than `lose` px behind, you're back at `reset` and they start again. At the end they slip away and the ink variable `done` becomes true. Only while showIf is true
-  | { type: 'lead'; person: string; route: string; near: number }; // someone who leads you (the dog on a scent): while they're showing, they go along the area's route a point at a time whenever you're within `near` px of them, sniffing as they go, and wait (looking back, barking now and then) when you fall behind; at the last point they wait for you
+  | { type: 'quarry'; people: string[]; y: number; path: { x: number; wait?: number; look?: boolean }[]; speed: number; range: number; lose: number; reset: { x: number; y: number }; showIf: string; done: string; seen?: string } // people you tail (the first leads, the rest keep their distance from him): they walk the path on floor y, stopping `wait` ms at each point, and at `look` points turn round. If they see you (in front of them, too close, or behind within `range` while they look, not in a shadow), or you fall more than `lose` px behind, you're back at `reset` and they start again. At the end they slip away and the ink variable `done` becomes true. Only while showIf is true. `seen`: what they say when they see you (default "Hm? Who's that?")
+  | { type: 'lead'; person: string; route: string; near: number; says?: string[]; speed?: number }; // someone who leads you (the dog on a scent; a guide): while they're showing, they go along the area's route a point at a time (at `speed`, default 100) whenever you're within `near` px of them, sniffing as they go, and wait (looking back, barking now and then) when you fall behind; at the last point they wait for you. With `says`, it's a person: no sniffing, and while they wait they say one of these over their head now and then
 
 /**
  * A sound the whole area makes, under everything else (docs/audio-plan.md). Continuous: `room` (the tree's
@@ -206,15 +211,20 @@ export interface Outdoor {
   atRoots?: boolean;
   /**
    * What's between you and the tree: the open plain (default), the settlement's rooftops (inside its walls),
-   * or the capital's towers (Chapter 3: lit cyan and amber, the citadel high above them).
+   * the capital's towers (Chapter 3: lit cyan and amber, the citadel high above them), or the canopy (Chapter 4:
+   * up in the treetop, the crown's leaves all round, its treehouses, the plain far below in the haze).
    */
-  backdrop?: 'plain' | 'settlement' | 'city';
+  backdrop?: 'plain' | 'settlement' | 'city' | 'canopy';
   /** With the city backdrop: where its towers begin in the far layer (the open plain before it: the gate, looking out). */
   cityFrom?: number;
-  /** With the city backdrop: where the citadel stands above the towers, in the far layer's pixels. */
+  /** With the city backdrop: where the citadel stands above the towers, in the far layer's pixels. With the canopy's: where the capital's lights are, far off on the horizon (the lookout). */
   citadelX?: number;
-  /** The ground: scrapland dirt (default), the deep ground's (harder, darker, no junk, cut with straight grooves running away to the horizon), or the capital's paved streets. */
-  ground?: 'scrap' | 'deep' | 'street';
+  /** With the canopy backdrop: where the tentacles (the tubes out of the top of the tree) rise in the far layer, if they're in view. */
+  tentaclesX?: number;
+  /** With the canopy backdrop: how far below the horizon the treetop's leaves lie (the lookout: above them all, the horizon clear). */
+  canopyDrop?: number;
+  /** The ground: scrapland dirt (default), the deep ground's (harder, darker, no junk, cut with straight grooves running away to the horizon), the capital's paved streets, or the canopy's decks (planks over living wood). */
+  ground?: 'scrap' | 'deep' | 'street' | 'deck';
   /** Ground level, when there's earth far below it (the sunk town): dirt is darker and layered by its depth below this, unlit by the sky, with no sunlit crust on floors underground. */
   groundY?: number;
 }

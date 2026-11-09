@@ -81,7 +81,7 @@ export function capitalPortrait(look: CapitalLook, face: CourtFace = {}): RowSpr
   const slope = look.slender ? 1.8 : child ? 1.6 : 2.2;
   const spread = (y: number) => shoulders + (y - T) * slope;
   const neck = look.neck ?? (look.collar !== undefined ? 'high' : 'open');
-  const hooded = look.head === 'hood';
+  const hooded = look.head === 'hood' || look.head === 'pelt';
   const helmet = look.head === 'helmet';
   const hat = look.head === 'hat';
 

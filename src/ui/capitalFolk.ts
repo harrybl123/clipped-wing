@@ -44,9 +44,10 @@ export interface CapitalLook {
    * `circlet`: a gold band with a blue stone (the ruler's family); `helmet`: the citadel guard's, dark
    * with a gold crest and a glowing visor; `watchcap`: the city watch's peaked cap with its blue band;
    * `cap`: a round cap with a gold band (the lifts); `hood`; `hat`: wide-brimmed, for the road; `visor`: a
-   * band of light across the eyes; `lens`: a glowing lens over one eye.
+   * band of light across the eyes; `lens`: a glowing lens over one eye; `pelt`: an animal's pelt over the
+   * head and shoulders, its ears up (Chapter 4's hunter).
    */
-  head?: 'circlet' | 'helmet' | 'watchcap' | 'cap' | 'hood' | 'hat' | 'visor' | 'lens';
+  head?: 'circlet' | 'helmet' | 'watchcap' | 'cap' | 'hood' | 'hat' | 'visor' | 'lens' | 'pelt';
   /** The colour of a hood or a hat, if not the top's. */
   headColour?: number;
   /** A light at the ear. */
@@ -88,7 +89,7 @@ export interface CapitalLook {
   boots?: number;
   /** A bag over the shoulder, in this colour. */
   bag?: number;
-  hold?: 'pike' | 'baton' | 'slate' | 'cane' | 'glass' | 'letters' | 'case' | 'spanner' | 'chalk' | 'tray' | 'brush';
+  hold?: 'pike' | 'baton' | 'slate' | 'cane' | 'glass' | 'letters' | 'case' | 'spanner' | 'chalk' | 'tray' | 'brush' | 'book' | 'bottle' | 'keys' | 'bow';
   /** Arms at the side (swinging), hands behind the back, or clasped in front. */
   pose?: 'side' | 'behind' | 'front' | 'reach';
   slender?: boolean;
@@ -114,7 +115,7 @@ type Grid = string[][];
 const grid = (w: number, h: number): Grid => Array.from({ length: h }, () => Array.from({ length: w }, () => '.'));
 
 /** Headwear or hair that stands above the head, so the figure is a row taller. */
-export const standsTall = (look: CapitalLook) => look.head === 'helmet' || look.head === 'hat' || look.hairStyle === 'up' || look.hairStyle === 'swept';
+export const standsTall = (look: CapitalLook) => look.head === 'helmet' || look.head === 'hat' || look.head === 'pelt' || look.hairStyle === 'up' || look.hairStyle === 'swept';
 
 /** One frame: `breathe` bobs the upper body, `stride` spreads the legs (walking). */
 export function courtly(look: CapitalLook, breathe = false, stride = 0): RowSprite {
@@ -397,12 +398,17 @@ export function courtly(look: CapitalLook, breathe = false, stride = 0): RowSpri
       hspan(1, 1, 4, 'g');
       hd(1, 1, 'Y');
       break;
+    case 'pelt':
     case 'hood':
       hspan(0, 0, 4, 'k');
       for (let r = 1; r <= 5; r++) hd(-1, r, 'K');
       for (let r = 1; r <= 4; r++) hd(0, r, 'k');
       hspan(1, 1, 3, 'k');
       hd(1, 2, 'K');
+      if (look.head === 'pelt') {
+        hd(0, -1, 'K'); // its ears
+        hd(3, -1, 'k');
+      }
       break;
     case 'hat':
       hspan(-1, 1, 4, 'k');
@@ -522,6 +528,29 @@ export function courtly(look: CapitalLook, breathe = false, stride = 0): RowSpri
         else {
           putUp(hX, hY + 1, 'P');
           span(up(hY + 2), hX - 1, hX + 1, 'p');
+        }
+        break;
+      case 'book':
+        putUp(hX, hY - 1, 'z');
+        putUp(hX + 1, hY - 1, 'z');
+        putUp(hX, hY, 'Z');
+        putUp(hX + 1, hY, 'p');
+        break;
+      case 'bottle':
+        putUp(hX + 1, hY - 2, 'M');
+        putUp(hX + 1, hY - 1, 'g');
+        putUp(hX + 1, hY, 'Y');
+        break;
+      case 'keys':
+        putUp(hX, hY + 1, 'g');
+        putUp(hX + 1, hY + 2, 'g');
+        break;
+      case 'bow':
+        // The hunter's electric bow, upright: its limbs, the string glowing.
+        for (let y = hY - 7; y <= hY + 5; y++) {
+          const bend = Math.abs(y - hY + 1) < 4 ? 1 : 0;
+          putUp(hX + 1 + bend, y, 'P');
+          putUp(hX, y, 'G');
         }
         break;
       case 'tray':

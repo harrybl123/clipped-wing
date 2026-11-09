@@ -3,6 +3,7 @@ import type { VoiceId } from '../systems/voices';
 import { CAST_LOOKS, HOSTESS_LOOKS, RIVAL_LOOKS, STRAGGLER_LOOKS, TOWNSFOLK_LOOKS, type FolkLook } from './borderlandFolk';
 import { CAPITAL_CAST_LOOKS as C3, CITIZEN_LOOKS, COUNCIL_LOOKS, COURTIER_LOOKS, GUARD_LOOKS as CITADEL_GUARD_LOOKS, SERVANT_LOOKS, WATCH_LOOKS, type CapitalLook } from './capitalFolk';
 import { capitalPortrait, type CourtFace } from './capitalPortraits';
+import { ASCENDED_LOOKS, CANOPY_CAST_LOOKS as C4, CANOPY_FOLK_LOOKS } from './canopyFolk';
 import { SHADES } from './pixelArt';
 import type { RowSprite } from './sprites';
 
@@ -923,6 +924,11 @@ export const DOG_PORTRAIT: RowSprite = (() => {
   };
 })();
 
+/** A group of the canopy's background people as speakers, one per look: `c4_<group>_<look>` (Chapter 4). */
+function canopyGroup(group: string, looks: CapitalLook[], names: string[], faces: CourtFace[], voices: VoiceId[]): Record<string, { name: string; portrait: RowSprite; voice: VoiceId }> {
+  return Object.fromEntries(looks.map((look, i) => [`c4_${group}_${i}`, { name: names[i % names.length]!, portrait: capitalPortrait(look, faces[i % faces.length]), voice: voices[i % voices.length]! }]));
+}
+
 /** A group of the capital's background people as speakers, one per look: `c3_<group>_<look>`. */
 function capitalGroup(group: string, looks: CapitalLook[], names: string[], faces: CourtFace[], voices: VoiceId[]): Record<string, { name: string; portrait: RowSprite; voice: VoiceId }> {
   return Object.fromEntries(looks.map((look, i) => [`c3_${group}_${i}`, { name: names[i % names.length]!, portrait: capitalPortrait(look, faces[i % faces.length]), voice: voices[i % voices.length]! }]));
@@ -1031,6 +1037,32 @@ export const SPEAKERS: Record<string, { name: string; portrait: RowSprite; voice
   engineer: { name: 'The engineer', portrait: capitalPortrait(C3.engineer, { jaw: 'soft', nose: 'small', mouth: 'smirk', items: ['freckles'] }), voice: 'roots_woman' },
   hideout_keeper: { name: 'The barkeep', portrait: capitalPortrait(C3.hideout_keeper, { build: 'heavy', age: 1, brow: 'heavy', eyes: 'narrow', nose: 'broad', mouth: 'flat' }), voice: 'roots_man' },
   physician: { name: 'The physician', portrait: capitalPortrait(C3.physician, { age: 1, brow: 'arched', eyes: 'tired', mouth: 'smile', items: ['spectacles'] }), voice: 'upper' },
+  // Chapter 4, the canopy (looks and faces are Claude's, names placeholders; src/ui/canopyFolk.ts).
+  grounded: { name: 'Grounded', portrait: capitalPortrait(C4.grounded, { build: 'broad', jaw: 'square', age: 1, brow: 'heavy', eyes: 'narrow', nose: 'straight', mouth: 'smirk', items: ['scar'] }), voice: 'grounded' },
+  master: { name: 'The master', portrait: capitalPortrait(C4.master, { build: 'narrow', age: 2, brow: 'thin', eyes: 'tired', nose: 'long', mouth: 'thin' }), voice: 'master' },
+  quartermaster: { name: 'The quartermaster', portrait: capitalPortrait(C4.quartermaster, { build: 'heavy', jaw: 'soft', age: 1, brow: 'raised', eyes: 'narrow', nose: 'broad', mouth: 'smile', items: ['earring'] }), voice: 'quartermaster' },
+  doubter: { name: 'The roots man', portrait: capitalPortrait(C4.doubter, { build: 'narrow', jaw: 'soft', brow: 'arched', eyes: 'wide', nose: 'small', mouth: 'smile' }), voice: 'roots_man' },
+  keeper: { name: 'The hatch-keeper', portrait: capitalPortrait(C4.keeper, { build: 'narrow', jaw: 'pointed', brow: 'raised', eyes: 'wide', nose: 'small', mouth: 'open', items: ['freckles'] }), voice: 'keeper' },
+  messenger: { name: 'The messenger', portrait: capitalPortrait(C4.messenger, { jaw: 'square', brow: 'straight', eyes: 'narrow', nose: 'long', mouth: 'flat', items: ['earring'] }), voice: 'messenger' },
+  hunter: { name: 'The hunter', portrait: capitalPortrait(C4.hunter, { build: 'narrow', jaw: 'pointed', brow: 'knit', eyes: 'narrow', nose: 'small', mouth: 'smirk', items: ['scar', 'tattoo'] }), voice: 'hunter' },
+  child: { name: 'A child', portrait: capitalPortrait(C4.child, { build: 'child', jaw: 'soft', eyes: 'wide', nose: 'small', mouth: 'frown' }), voice: 'boy' },
+  ...canopyGroup('folk', CANOPY_FOLK_LOOKS, ['Someone', 'A man', 'A woman', 'A man', 'A woman', 'Someone', 'An old man', 'A woman'], [
+    { jaw: 'soft', brow: 'raised', mouth: 'smile', items: ['freckles'] },
+    { build: 'broad', age: 1, brow: 'heavy', nose: 'broad', mouth: 'smile' },
+    { build: 'narrow', jaw: 'pointed', eyes: 'lashes', mouth: 'flat', items: ['earring'] },
+    { jaw: 'square', brow: 'straight', eyes: 'narrow', mouth: 'smirk', items: ['tattoo'] },
+    { build: 'narrow', jaw: 'soft', eyes: 'wide', nose: 'small', mouth: 'open' },
+    { brow: 'knit', mouth: 'flat' },
+    { age: 2, brow: 'heavy', eyes: 'tired', mouth: 'smile' },
+    { jaw: 'soft', brow: 'arched', eyes: 'lashes', mouth: 'full' },
+  ], ['roots_woman', 'roots_man', 'roots_woman', 'young', 'roots_woman', 'young', 'old', 'roots_woman']),
+  ...canopyGroup('ascended', ASCENDED_LOOKS, ['An old master'], [
+    { age: 2, brow: 'heavy', eyes: 'tired', nose: 'long', mouth: 'flat' },
+    { build: 'narrow', age: 2, brow: 'thin', eyes: 'tired', mouth: 'thin' },
+    { age: 2, brow: 'raised', eyes: 'narrow', nose: 'broad', mouth: 'smile' },
+    { build: 'narrow', age: 2, jaw: 'pointed', eyes: 'tired', mouth: 'smirk', items: ['spectacles'] },
+    { age: 2, brow: 'knit', mouth: 'frown' },
+  ], ['old', 'elder', 'old', 'elder', 'old']),
   // The capital's background people: one speaker for each look (`c3_<group>_<look>`), so whoever you talk
   // to speaks with their own face (their shared knots say `#speaker:them`).
   ...capitalGroup('guard', CITADEL_GUARD_LOOKS, ['A guard'], [{ build: 'broad', mouth: 'thin' }, { build: 'broad', brow: 'heavy', mouth: 'frown' }, { brow: 'knit', mouth: 'flat', items: ['scar'] }], ['guard']),
