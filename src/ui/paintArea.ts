@@ -1,6 +1,6 @@
 import type { AreaDefinition, Solid } from '../data/areas/types';
 import type { TimeSlot } from '../systems/Calendar';
-import { addLight, cellRandom, falloff, noise, rgb, SHADES, smoothstep, type PixelColour, type RGB } from './pixelArt';
+import { addLight, cellRandom, falloff, noise, poweredLights, rgb, SHADES, smoothstep, type PixelColour, type Power, type RGB } from './pixelArt';
 import { cityViewPainter } from './paintCityView';
 import { stampRows } from './pixelTextures';
 
@@ -199,6 +199,27 @@ function stoneWall(x: number, y: number): RGB | number {
   return base.map((v) => v * (1 + noise(x / 3 + y / 5) * 0.1 + ((y % 9) === 1 ? 0.15 : 0))) as RGB;
 }
 
+/**
+ * The simulation room (Chapter 3; designer: walking into a hall of black with blue lights dotted around): black,
+ * and points of light in rows running off at a slant into the dark, brighter where the table's light falls.
+ */
+function voidPixel(x: number, y: number, glow: number): RGB | number {
+  const slant = y + x * 0.28;
+  if (Math.round(slant) % 9 === 0 && (x + Math.floor(slant / 9) * 3) % 6 === 0) {
+    if (cellRandom(x, y, 91) > 0.97) return SHADES.cyan;
+    return glow > 0.25 ? SHADES.cyanMid : SHADES.cyanDeep;
+  }
+  return addLight(rgb(SHADES.shadow), rgb(SHADES.cyanDeep), Math.min(0.5, glow * 0.6));
+}
+
+/** The simulation room's floor: black, a line of light along its edge, points of light across it. */
+function voidSolidColour(s: Solid, x: number, y: number): number {
+  const row = y - s.y;
+  if (row === 0) return SHADES.cyanMid;
+  if (row === 1) return SHADES.cyanDeep;
+  return row % 6 === 3 && (x + row) % 8 === 0 ? SHADES.cyanDeep : SHADES.shadow;
+}
+
 /** Old stone flags underfoot (the hideout). */
 function stoneSolidColour(s: Solid, x: number, y: number): number {
   const row = y - s.y;
@@ -227,15 +248,15 @@ function plasterWall(x: number, y: number, solids: Solid[]): RGB | number {
 const mix3 = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 
 /** Paints a room. `slot` is the time of day, for any views out over the city (default the afternoon). */
-export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon'): (x: number, y: number) => PixelColour {
+export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon', power: Power = {}): (x: number, y: number) => PixelColour {
   const panelled = area.walls === 'panelled';
   const stoneWalls = area.walls === 'stone';
   const plaster = area.walls === 'plaster';
   const marble = area.walls === 'marble' || area.walls === 'darkMarble' || area.walls === 'bare' || panelled || stoneWalls || plaster;
   const scrap = area.walls === 'scrap' || area.walls === 'hull' || area.walls === 'matched' || marble;
-  const views = (area.views ?? []).map((v) => cityViewPainter(v, slot));
+  const views = (area.views ?? []).map((v) => cityViewPainter(v, slot, power.views, power.fade, power.also));
   // A room that looks out over the city follows the light outside: dimmer from dusk, lamplit at night.
-  const ambient = area.views ? area.ambient * { morning: 1, afternoon: 1, evening: 0.82, night: 0.6 }[slot] : area.ambient;
+  const ambient = (area.views ? area.ambient * { morning: 1, afternoon: 1, evening: 0.82, night: 0.6 }[slot] : area.ambient) * (power.dim ?? 1);
   const hull = area.walls === 'hull';
   const { width } = area;
   const overlay = new Map<number, number>();
@@ -245,7 +266,7 @@ export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon'): (
 
   for (const s of area.solids) {
     if (s.invisible) continue;
-    for (let y = s.y; y < s.y + s.height; y++) for (let x = s.x; x < s.x + s.width; x++) put(x, y, stoneWalls ? stoneSolidColour(s, x, y) : marble ? marbleSolidColour(s, x, y) : scrap ? plateColour(s, x, y) : solidColour(s, x, y));
+    for (let y = s.y; y < s.y + s.height; y++) for (let x = s.x; x < s.x + s.width; x++) put(x, y, area.walls === 'void' ? voidSolidColour(s, x, y) : stoneWalls ? stoneSolidColour(s, x, y) : marble ? marbleSolidColour(s, x, y) : scrap ? plateColour(s, x, y) : solidColour(s, x, y));
   }
   for (const { from, to, colour } of area.lines) {
     const steps = Math.max(Math.abs(to.x - from.x), Math.abs(to.y - from.y), 1);
@@ -256,7 +277,7 @@ export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon'): (
   for (const prop of area.props) stampRows(put, prop.sprite.rows, prop.sprite.colours, prop.x, prop.y);
 
   const wood = rgb(SHADES.wood);
-  const lights = area.lights.map((l) => ({ ...l, rgb: rgb(l.colour) }));
+  const lights = poweredLights(area, power);
   const { cavity } = area;
   // The vignette spans everything carved (the cavity plus any nooks), clipped to the area.
   const carved = [cavity, ...(area.nooks ?? [])];
@@ -298,6 +319,11 @@ export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon'): (
   return (x, y) => {
     const exact = overlay.get(y * width + x);
     if (exact !== undefined) return exact;
+    if (area.walls === 'void') {
+      let glow = 0;
+      for (const l of lights) glow += l.strength * falloff(x, y, l.x, l.y, l.radius, l.radiusY ?? l.radius);
+      return voidPixel(x, y, glow);
+    }
     const arch = dadoFloors.length || area.walls === 'marble' ? architecture(x, y) : null;
     if (typeof arch === 'number') return arch;
     if (arch) {
@@ -372,3 +398,4 @@ export function paintArea(area: AreaDefinition, slot: TimeSlot = 'afternoon'): (
     return c;
   };
 }
+

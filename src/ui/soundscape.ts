@@ -23,8 +23,39 @@ export const SOUND_IDS = [
   // The dog (Chapter 2).
   'bark', 'growl', 'whimper', 'yip',
   // The kennels' wolves (Chapter 2): so loud they distort. Their bark, a snarl, all three at once (and, from
-  // when they were rabid creatures, a hyena's cackle, a hog's squeal, a shriek, sick breathing).
-  'savage', 'cackle', 'squeal', 'shriek', 'snarl', 'wheeze', 'maul',
+  // when they were rabid creatures, a hyena's cackle (`hyena`), a hog's squeal, a shriek, sick breathing).
+  'savage', 'hyena', 'squeal', 'shriek', 'snarl', 'wheeze', 'maul',
+  // The war table (Chapter 3): a rumble going off (Jack: a distorted rumble); a hero arriving: a sword drawn,
+  // and someone calling "Hero!" (silent until a recording's dropped in).
+  'quake', 'shing', 'hero',
+  // Their hero arriving (Jack: "Bastard!"): the sword drawn, pitched down, more menacing.
+  'shingLow',
+  // A maiden's (witch's) kiss, seducing a squad (Jack).
+  'kiss',
+  // The elite squad arriving (Jack): the maiden's giggle, the witch's cackle, the king's guard's (barbarians')
+  // grunt. Each has a stand-in until its recording's dropped in.
+  'giggle', 'cackle', 'grunt',
+  // The barbarians: the same grunt, slowed, deeper (Jack: their evil equivalent).
+  'gruntLow',
+  // An elite crest appearing on the war table (Jack: like a rumble, first to reach it gets an elite): a bright
+  // rising glint. A squad poisoned by a maiden (witch) merging into it (Jack): bubbling (a recording, credited).
+  'crest', 'bubble',
+  // A clash on the war table (Jack): war cries (recordings layered into a crowd, credited; the rising's the same,
+  // deeper) and swords meeting (a recording).
+  'warcry', 'warcryLow', 'clash',
+  // The mystery square (Jack): the diviner appearing (a low bell, shimmering), a card turned over, the thief (a
+  // knife drawn: the sword's recording, higher), the plague (a hollow, dark swell, a skull decaying).
+  'diviner', 'flip', 'thief', 'plague',
+  // A card dealt across the table (Jack: a subtle paper swish; a recording, credited).
+  'deal',
+  // The trickster (Jack): a jester's bells tumbling, a mocking slide down and up.
+  'trickster',
+  // The Lord's judgement (Jack): windows slamming shut (the heretic), an angelic "ahhh" (the loyal servant).
+  'slam', 'angel',
+  // A race on the war table (Jack): horses galloping in.
+  'gallop',
+  // The architect (Jack): his "aha!" (a recording) as the plans unroll, and the paper.
+  'aha', 'paper',
 ] as const;
 export type SoundId = (typeof SOUND_IDS)[number];
 
@@ -33,7 +64,7 @@ export type SoundId = (typeof SOUND_IDS)[number];
  * (designer: the synthesised ones didn't sound real; get recordings later). Their synthesised versions
  * are kept below in case they're wanted again.
  */
-export const AWAITING_RECORDING: ReadonlySet<SoundId> = new Set(['murmur', 'gasp', 'roar', 'jeer', 'chant', 'whispers', 'scream', 'sob']);
+export const AWAITING_RECORDING: ReadonlySet<SoundId> = new Set(['murmur', 'gasp', 'roar', 'jeer', 'chant', 'whispers', 'scream', 'sob', 'hero']);
 
 /** Things that make sound where they are. */
 export type EmitterSound = 'tube' | 'fire' | 'creak' | 'skitter' | 'footsteps' | 'mob' | 'bubbles' | 'rope';
@@ -230,7 +261,7 @@ function crowdOf(t: number, count: number, spread: number, make: (at: number) =>
 
 // --- The kennels' creatures (Chapter 2; Jack) ---
 //
-// The kennels hold wolves now (Jack), barking (`savage`: recordings) and snarling; the rest (the cackle, the
+// The kennels hold wolves now (Jack), barking (`savage`: recordings) and snarling; the rest (the hyena, the
 // squeal, the shriek, the wheeze) are from when they were rabid creatures, kept for now.
 //
 // Rabid, diseased things kept in place of dogs (nobody has dogs). Nothing in them should sound like a dog,
@@ -238,7 +269,7 @@ function crowdOf(t: number, count: number, spread: number, make: (at: number) =>
 // in) pitched and stuttered and ring-modulated till they sound wrong, with sick wet breath and gurgling
 // under them, all pushed through a saturating overdrive (Jack: so loud it distorts).
 
-const CREATURE_SOUNDS: ReadonlySet<SoundId> = new Set(['savage', 'cackle', 'squeal', 'shriek', 'snarl', 'wheeze', 'maul']);
+const CREATURE_SOUNDS: ReadonlySet<SoundId> = new Set(['savage', 'hyena', 'squeal', 'shriek', 'snarl', 'wheeze', 'maul']);
 
 /**
  * The sick chain: what goes in comes out partly as itself and partly ring-modulated at `ring` Hz (a
@@ -341,10 +372,10 @@ function creature(a: Out, dest: AudioNode, t: number, id: SoundId, v: number): v
       gurgle(a, dest, t + 0.5, v * 0.6, 0.4);
       break;
     }
-    case 'cackle': {
+    case 'hyena': {
       // The hyena: a run of whooping, gasping laughs, quickening, gone wrong.
       const chain = sickChain(a, dest, t, level, rand(45, 70), 0.3);
-      if (playRecording(a.ctx, chain, t, 'cackle', 2.5, { rate: rand(0.8, 1), stutter: Math.random() < 0.3 ? 2 : 0 })) break;
+      if (playRecording(a.ctx, chain, t, 'hyena', 2.5, { rate: rand(0.8, 1), stutter: Math.random() < 0.3 ? 2 : 0 })) break;
       let k = t;
       const count = 6 + Math.floor(Math.random() * 4);
       for (let i = 0; i < count; i++) {
@@ -449,6 +480,148 @@ function oneShot(a: Out, dest: AudioNode, t: number, id: SoundId, v: number, sur
       noise(a, dest, t, 'lowpass', 120, 1, 1.6, 0.7 * v, 0.3);
       for (let i = 0; i < 7; i++) noise(a, dest, t + rand(0.1, 1.4), 'lowpass', rand(300, 700), 1, 0.06, 0.18 * v);
       break;
+    case 'quake': {
+      // A rumble going off on the war table (Jack): a deep, rolling roar, driven till it tears.
+      const shaper = a.ctx.createWaveShaper();
+      const n = 1024;
+      const curve = new Float32Array(new ArrayBuffer(n * 4));
+      for (let i = 0; i < n; i++) curve[i] = Math.tanh(((i / (n - 1)) * 2 - 1) * 8) / Math.tanh(8);
+      shaper.curve = curve;
+      const level = a.ctx.createGain();
+      level.gain.value = 0.55 * v;
+      shaper.connect(level).connect(dest);
+      tone(a, shaper, t, 'sawtooth', 55, 32, 1.6, 1.4, 0.05);
+      tone(a, shaper, t, 'sine', 41, 28, 1.8, 1.6, 0.03);
+      noise(a, shaper, t, 'lowpass', 220, 1, 1.7, 1.8, 0.08);
+      for (let i = 0; i < 9; i++) noise(a, shaper, t + rand(0.05, 1.3), 'lowpass', rand(300, 800), 1, 0.08, 1.2); // things falling
+      break;
+    }
+    // (Stand-ins for the elite squad's voices, till their recordings are in: Jack.)
+    case 'giggle':
+      for (const [k, f] of [[0, 820], [0.09, 900], [0.18, 980], [0.29, 900]] as const) tone(a, dest, t + k, 'sine', f, f * 1.15, 0.06, 0.12 * v, 0.01);
+      break;
+    case 'cackle':
+      for (let i = 0; i < 6; i++) {
+        const f = 620 - i * 25;
+        tone(a, dest, t + i * 0.1, 'sawtooth', f, f * 0.8, 0.07, 0.08 * v, 0.01);
+        noise(a, dest, t + i * 0.1, 'bandpass', 1800, 2, 0.06, 0.1 * v, 0.01);
+      }
+      break;
+    case 'gruntLow':
+      if (playRecording(a.ctx, dest, t, 'grunt', v, { rate: 0.75 })) break;
+      tone(a, dest, t, 'sawtooth', 95, 70, 0.22, 0.25 * v, 0.02);
+      noise(a, dest, t, 'bandpass', 380, 1.5, 0.2, 0.3 * v, 0.02);
+      break;
+    case 'grunt':
+      tone(a, dest, t, 'sawtooth', 130, 95, 0.18, 0.25 * v, 0.02);
+      noise(a, dest, t, 'bandpass', 500, 1.5, 0.16, 0.3 * v, 0.02);
+      oneShot(a, dest, t + 0.05, 'boots', v * 0.6);
+      break;
+    case 'diviner':
+      for (const [f, d] of [[196, 2.4], [293, 2], [392.4, 1.6], [587, 1.2]] as const) tone(a, dest, t, 'sine', f, f * 0.995, d, 0.07 * v, 0.02);
+      for (let i = 0; i < 6; i++) tone(a, dest, t + 0.3 + i * 0.12, 'triangle', 1400 + i * 180, 1400 + i * 180, 0.4, 0.025 * v, 0.01);
+      break;
+    case 'trickster':
+      for (let i = 0; i < 9; i++) {
+        const f = [1568, 1319, 1175, 1568, 1760, 1319, 1047, 1397, 1760][i]!;
+        tone(a, dest, t + i * 0.07, 'triangle', f, f * 1.01, 0.25, 0.06 * v, 0.004);
+        tone(a, dest, t + i * 0.07, 'sine', f * 2.01, f * 2, 0.12, 0.02 * v, 0.002);
+      }
+      tone(a, dest, t + 0.1, 'sawtooth', 300, 140, 0.35, 0.05 * v, 0.02);
+      tone(a, dest, t + 0.45, 'sawtooth', 140, 340, 0.35, 0.05 * v, 0.02);
+      break;
+    case 'slam':
+      // Heavy shutters banging shut, one after another, and the boom of the hall.
+      for (const [d, f] of [[0, 140], [0.12, 120], [0.26, 100]] as const) {
+        noise(a, dest, t + d, 'lowpass', 900, 1, 0.22, 0.5 * v, 0.002, 200);
+        tone(a, dest, t + d, 'sine', f, f * 0.5, 0.4, 0.3 * v, 0.003);
+      }
+      break;
+    case 'gallop':
+      // (A recording, `gallop.mp3`; if it's missing: hoofbeats in threes.)
+      for (let i = 0; i < 12; i++) noise(a, dest, t + i * 0.11 + Math.floor(i / 3) * 0.08, 'lowpass', 500, 1, 0.06, 0.35 * v, 0.002, 120);
+      break;
+    case 'aha':
+      // (A recording, `aha.wav`; if it's missing: a rising then falling hum, like a voice.)
+      tone(a, dest, t, 'triangle', 160, 220, 0.18, 0.2 * v, 0.02);
+      tone(a, dest, t + 0.2, 'triangle', 240, 150, 0.35, 0.25 * v, 0.02);
+      break;
+    case 'paper':
+      // A scroll unrolling: dry crinkles running on, then a soft flap as it falls open.
+      for (let i = 0; i < 14; i++) noise(a, dest, t + i * 0.045 + (i % 3) * 0.008, 'bandpass', 2200 + (i % 4) * 500, 2, 0.035, (0.12 + (i % 2) * 0.06) * v, 0.002);
+      noise(a, dest, t + 0.68, 'lowpass', 1400, 1, 0.12, 0.25 * v, 0.004, 400);
+      break;
+    case 'angel':
+      // (A recording, `angel.ogg`; if it's missing: a soft, bright chord swelling up.)
+      for (const f of [523, 659, 784, 1047]) tone(a, dest, t, 'sine', f, f, 1.8, 0.05 * v, 0.6);
+      break;
+    case 'deal':
+      noise(a, dest, t, 'bandpass', 3000, 0.8, 0.16, 0.12 * v, 0.03, 1800);
+      break;
+    case 'flip':
+      noise(a, dest, t, 'bandpass', 2600, 1.5, 0.05, 0.25 * v, 0.003);
+      noise(a, dest, t + 0.06, 'bandpass', 1500, 1.5, 0.04, 0.2 * v, 0.003);
+      break;
+    case 'thief':
+      if (playRecording(a.ctx, dest, t, 'shing', v * 0.8, { rate: 1.45 })) break;
+      noise(a, dest, t, 'bandpass', 4000, 4, 0.18, 0.4 * v, 0.01, 9000);
+      break;
+    case 'plague':
+      // Hollow and dark (Jack): a deep tone through a hollow resonance, a breath of cold air, a slow sinking.
+      tone(a, dest, t, 'sine', 73, 55, 2.6, 0.32 * v, 0.25);
+      tone(a, dest, t, 'triangle', 110, 82, 2.2, 0.08 * v, 0.3);
+      noise(a, dest, t, 'bandpass', 320, 6, 2.4, 0.22 * v, 0.4);
+      noise(a, dest, t + 0.2, 'lowpass', 500, 1, 2, 0.1 * v, 0.6);
+      break;
+    case 'warcryLow':
+    case 'warcry':
+      if (id === 'warcryLow' && playRecording(a.ctx, dest, t, 'warcry', v, { rate: 0.8 })) break;
+      for (let i = 0; i < 5; i++) {
+        const f = rand(150, 260) * (id === 'warcryLow' ? 0.8 : 1);
+        tone(a, dest, t + i * 0.04, 'sawtooth', f, f * 1.3, 0.9, 0.06 * v, 0.08);
+      }
+      noise(a, dest, t, 'bandpass', 900, 1, 1, 0.15 * v, 0.1);
+      break;
+    case 'clash':
+      noise(a, dest, t, 'highpass', 3000, 1, 0.08, 0.4 * v, 0.002);
+      for (const f of [2300, 3400, 4100]) tone(a, dest, t, 'sine', f, f * 0.99, 0.5, 0.08 * v, 0.002);
+      break;
+    case 'crest':
+      for (const [k, f] of [[0, 660], [0.07, 880], [0.14, 1320], [0.21, 1760]] as const) tone(a, dest, t + k, 'triangle', f, f, 0.5, 0.12 * v, 0.005);
+      noise(a, dest, t + 0.2, 'highpass', 6000, 1, 0.4, 0.06 * v, 0.01);
+      break;
+    case 'bubble':
+      for (let i = 0; i < 8; i++) {
+        const f = rand(180, 420);
+        tone(a, dest, t + i * rand(0.08, 0.16), 'sine', f, f * 2.2, 0.07, 0.18 * v, 0.005);
+      }
+      break;
+    case 'kiss':
+      // A kiss: a soft smack of the lips, and a little pop as they part.
+      noise(a, dest, t, 'bandpass', 2400, 2, 0.04, 0.35 * v, 0.004);
+      tone(a, dest, t + 0.02, 'sine', 900, 520, 0.06, 0.25 * v, 0.003);
+      noise(a, dest, t + 0.09, 'bandpass', 3200, 3, 0.03, 0.15 * v, 0.003);
+      break;
+    case 'shingLow':
+      // Their hero's sword (Jack): the same draw, pitched down and darker, a growl of steel under it. (A recording
+      // of the sword, if there is one, slowed down.)
+      if (playRecording(a.ctx, dest, t, 'shing', v, { rate: 0.6 })) break;
+      noise(a, dest, t, 'bandpass', 1200, 4, 0.3, 0.5 * v, 0.03, 3600);
+      for (const [f, level, decay] of [[1480, 0.24, 1.4], [2210, 0.17, 1.1], [3050, 0.12, 0.9], [990, 0.12, 1.6]] as const) {
+        tone(a, dest, t + 0.28, 'sine', f, f * 0.98, decay, level * v, 0.004);
+        tone(a, dest, t + 0.28, 'sine', f * 1.006, f, decay * 0.8, level * 0.6 * v, 0.004);
+      }
+      tone(a, dest, t + 0.28, 'sawtooth', 110, 70, 0.9, 0.08 * v, 0.02);
+      break;
+    case 'shing': {
+      // A sword drawn (Jack: a high "shing!"): steel scraping out of the scabbard, rising, then ringing.
+      noise(a, dest, t, 'bandpass', 2500, 4, 0.22, 0.5 * v, 0.02, 7500);
+      for (const [f, level, decay] of [[2730, 0.22, 1.1], [4120, 0.16, 0.9], [5650, 0.12, 0.7], [7380, 0.08, 0.5]] as const) {
+        tone(a, dest, t + 0.2, 'sine', f, f * 0.995, decay, level * v, 0.004);
+        tone(a, dest, t + 0.2, 'sine', f * 1.003, f, decay * 0.8, level * 0.6 * v, 0.004); // beating against it: a shimmer
+      }
+      break;
+    }
     case 'skitter':
       // Legs on wood: a few low, dry scratches (it rattled like maracas).
       for (let i = 0; i < 3; i++) noise(a, dest, t + i * rand(0.05, 0.09), 'lowpass', rand(500, 900), 1, 0.04, 0.12 * v, 0.01);

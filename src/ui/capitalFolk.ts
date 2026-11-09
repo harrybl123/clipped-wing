@@ -44,9 +44,10 @@ export interface CapitalLook {
    * `circlet`: a gold band with a blue stone (the ruler's family); `helmet`: the citadel guard's, dark
    * with a gold crest and a glowing visor; `watchcap`: the city watch's peaked cap with its blue band;
    * `cap`: a round cap with a gold band (the lifts); `hood`; `hat`: wide-brimmed, for the road; `visor`: a
-   * band of light across the eyes; `lens`: a glowing lens over one eye.
+   * band of light across the eyes; `lens`: a glowing lens over one eye; `pelt`: an animal's pelt over the
+   * head and shoulders, its ears up (Chapter 4's hunter).
    */
-  head?: 'circlet' | 'helmet' | 'watchcap' | 'cap' | 'hood' | 'hat' | 'visor' | 'lens';
+  head?: 'circlet' | 'helmet' | 'watchcap' | 'cap' | 'hood' | 'hat' | 'visor' | 'lens' | 'pelt';
   /** The colour of a hood or a hat, if not the top's. */
   headColour?: number;
   /** A light at the ear. */
@@ -88,9 +89,9 @@ export interface CapitalLook {
   boots?: number;
   /** A bag over the shoulder, in this colour. */
   bag?: number;
-  hold?: 'pike' | 'baton' | 'slate' | 'cane' | 'glass' | 'letters' | 'case' | 'spanner' | 'chalk' | 'tray';
+  hold?: 'pike' | 'baton' | 'slate' | 'cane' | 'glass' | 'letters' | 'case' | 'spanner' | 'chalk' | 'tray' | 'brush' | 'book' | 'bottle' | 'keys' | 'bow';
   /** Arms at the side (swinging), hands behind the back, or clasped in front. */
-  pose?: 'side' | 'behind' | 'front';
+  pose?: 'side' | 'behind' | 'front' | 'reach';
   slender?: boolean;
   belly?: boolean;
 }
@@ -114,7 +115,7 @@ type Grid = string[][];
 const grid = (w: number, h: number): Grid => Array.from({ length: h }, () => Array.from({ length: w }, () => '.'));
 
 /** Headwear or hair that stands above the head, so the figure is a row taller. */
-export const standsTall = (look: CapitalLook) => look.head === 'helmet' || look.head === 'hat' || look.hairStyle === 'up' || look.hairStyle === 'swept';
+export const standsTall = (look: CapitalLook) => look.head === 'helmet' || look.head === 'hat' || look.head === 'pelt' || look.hairStyle === 'up' || look.hairStyle === 'swept';
 
 /** One frame: `breathe` bobs the upper body, `stride` spreads the legs (walking). */
 export function courtly(look: CapitalLook, breathe = false, stride = 0): RowSprite {
@@ -397,12 +398,17 @@ export function courtly(look: CapitalLook, breathe = false, stride = 0): RowSpri
       hspan(1, 1, 4, 'g');
       hd(1, 1, 'Y');
       break;
+    case 'pelt':
     case 'hood':
       hspan(0, 0, 4, 'k');
       for (let r = 1; r <= 5; r++) hd(-1, r, 'K');
       for (let r = 1; r <= 4; r++) hd(0, r, 'k');
       hspan(1, 1, 3, 'k');
       hd(1, 2, 'K');
+      if (look.head === 'pelt') {
+        hd(0, -1, 'K'); // its ears
+        hd(3, -1, 'k');
+      }
       break;
     case 'hat':
       hspan(-1, 1, 4, 'k');
@@ -444,6 +450,13 @@ export function courtly(look: CapitalLook, breathe = false, stride = 0): RowSpri
     for (let y = bodyTop + 1; y <= bodyTop + 4; y++) putUp(armX - (look.belly && y < bodyTop + 3 ? 1 : 0), y, sleeve);
     putUp(armX - 1, bodyTop + 5, sleeve);
     if (look.cape === undefined) putUp(x0 - 1, bodyTop + 5, 'S');
+  } else if (pose === 'reach') {
+    // Reaching out ahead, working at a wall: the hand goes up and down with each frame (scrubbing).
+    putUp(armX, bodyTop + 1, sleeve);
+    putUp(armX + 1, bodyTop + 1, sleeve);
+    putUp(armX + 2, bodyTop + (breathe ? -1 : 1), cuff);
+    hand = [armX + 3, bodyTop + (breathe ? -2 : 1)];
+    put(hand[0], hand[1], 's');
   } else if (pose === 'front') {
     for (let y = bodyTop + 1; y <= bodyTop + 4; y++) putUp(armX - (look.belly && y < bodyTop + 3 ? 1 : 0), y, sleeve);
     putUp(armX, bodyTop + 5, cuff);
@@ -508,6 +521,37 @@ export function courtly(look: CapitalLook, breathe = false, stride = 0): RowSpri
         break;
       case 'chalk':
         putUp(hX + 1, hY, 'p');
+        break;
+      case 'brush':
+        // A scrubbing brush on a short handle, the bristles pale (held to a wall when reaching).
+        if (pose === 'reach') for (let y = hY - 1; y <= hY + 1; y++) put(hX + 1, y, 'p');
+        else {
+          putUp(hX, hY + 1, 'P');
+          span(up(hY + 2), hX - 1, hX + 1, 'p');
+        }
+        break;
+      case 'book':
+        putUp(hX, hY - 1, 'z');
+        putUp(hX + 1, hY - 1, 'z');
+        putUp(hX, hY, 'Z');
+        putUp(hX + 1, hY, 'p');
+        break;
+      case 'bottle':
+        putUp(hX + 1, hY - 2, 'M');
+        putUp(hX + 1, hY - 1, 'g');
+        putUp(hX + 1, hY, 'Y');
+        break;
+      case 'keys':
+        putUp(hX, hY + 1, 'g');
+        putUp(hX + 1, hY + 2, 'g');
+        break;
+      case 'bow':
+        // The hunter's electric bow, upright: its limbs, the string glowing.
+        for (let y = hY - 7; y <= hY + 5; y++) {
+          const bend = Math.abs(y - hY + 1) < 4 ? 1 : 0;
+          putUp(hX + 1 + bend, y, 'P');
+          putUp(hX, y, 'G');
+        }
         break;
       case 'tray':
         span(up(hY - 1), hX - 1, hX + 2, 'g');
@@ -622,6 +666,20 @@ export const CAPITAL_CAST_LOOKS = {
   hideout_keeper: { height: 26, width: 4, skin: 'tan', hair: S.woodLight, hairStyle: 'tail', beard: 'full', top: S.deep, topStyle: 'vest', apron: S.light, belt: S.amberDeep, legs: S.wood },
   /** The physician, your father's doctor: a long white coat, a high blue collar and buttons, a case; greying hair. */
   physician: { height: 26, width: 2, skin: 'dark', hair: S.dim, hairStyle: 'short', beard: 'stubble', top: S.white, topStyle: 'coat', collar: S.cyanMid, buttons: S.cyanMid, belt: S.light, legs: S.woodLight, hold: 'case' },
+  // Day 1's people (docs/sequences/chapter-3/plan.md).
+  /** The woman from the low district whose street's lift is broken: her best, which isn't much; a worn long coat, a patched scarf, her hair tied up. */
+  petitioner: { height: 23, width: 2, skin: 'dark', hair: S.shadow, hairStyle: 'bun', top: S.dim, topStyle: 'long', patches: S.woodPale, scarf: S.woodLight, legs: S.woodLight, pose: 'front' },
+  /** The merchant with the glassworks on the promenade: prosperous and round, a gold-brown coat with gold trim, a pale sash, a sample of his glass in hand. */
+  merchant: { height: 25, width: 3, belly: true, skin: 'fair', hair: S.woodPale, hairStyle: 'receding', beard: 'moustache', top: S.amberMid, topStyle: 'coat', collar: S.amberDeep, trim: S.amber, sash: S.light, buttons: S.amber, legs: S.wood, hold: 'glass' },
+  /** The hostess's cousin (Day 2: in the old councillor's seat, if you passed him over): cold and exact; a dark blue gown, a high gold collar, her hair pinned up. */
+  cousin: { height: 25, width: 2, slender: true, skin: 'fair', hair: S.woodLight, hairStyle: 'up', top: S.cyanDeep, topStyle: 'gown', collar: S.amber, trim: S.amber, necklace: S.amber, legs: S.cyanDeep },
+  /** The steward of the citadel's household: upright, grey, in the household's black and gold, the seating plan in hand. */
+  steward: { height: 26, width: 2, skin: 'tan', hair: S.light, hairStyle: 'short', top: S.deep, topStyle: 'long', collar: S.amber, trim: S.amber, buttons: S.amber, legs: S.deep, hold: 'letters' },
+  // Day 3's people.
+  /** A district warden, up from his streets: a minor official's worn grey-brown coat, a blue warden's sash, a list of his streets; thinning hair, stubble. */
+  warden: { height: 25, width: 3, skin: 'fair', hair: S.woodLight, hairStyle: 'receding', beard: 'stubble', top: S.woodLight, topStyle: 'coat', collar: S.cyanDeep, sash: S.cyanMid, buttons: S.light, belt: S.deep, legs: S.wood, hold: 'letters' },
+  /** The painter's brother: grown, the same curls; a patched work jacket, a scarf, boots. */
+  painter_brother: { height: 25, width: 3, skin: 'tan', hair: S.shadow, hairStyle: 'curls', top: S.woodLight, topStyle: 'jacket', patches: S.dim, scarf: S.amberDeep, belt: S.deep, legs: S.wood, boots: S.deep },
 } satisfies Record<string, CapitalLook>;
 
 export type CapitalCastId = keyof typeof CAPITAL_CAST_LOOKS;
@@ -687,5 +745,7 @@ export const CITIZEN_LOOKS: CapitalLook[] = [
   { height: 25, width: 2, skin: 'fair', hair: S.woodPale, hairStyle: 'crop', head: 'lens', top: S.cyanDeep, topStyle: 'jacket', glow: true, belt: S.shadow, legs: S.wood, hold: 'slate' },
   { height: 24, width: 3, skin: 'tan', hair: S.woodLight, hairStyle: 'tail', top: S.dim, topStyle: 'jacket', patches: S.woodLight, belt: S.wood, legs: S.woodLight, scarf: S.cyanMid },
   { height: 22, width: 2, skin: 'dark', hair: S.shadow, hairStyle: 'curls', top: S.amber, topStyle: 'dress', legs: S.wood, boots: S.woodLight },
+  // A city worker with a scrubbing brush (Day 1: scrubbing a chalk bird off a wall on the promenade).
+  { height: 24, width: 2, skin: 'tan', hair: S.deep, hairStyle: 'crop', head: 'cap', headColour: S.woodLight, top: S.woodLight, topStyle: 'overalls', sleeve: S.dim, legs: S.woodLight, boots: S.deep, hold: 'brush', pose: 'reach' },
 ];
 export const CITIZENS = CITIZEN_LOOKS.map(courtlyFrames);

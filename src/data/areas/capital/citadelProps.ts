@@ -1,5 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import type { RowSprite } from '../../../ui/sprites';
+import { EMBLEM, leaderFace, type Fate, type Leader } from './cityProps';
+import { glyphFor } from '../../../ui/pixelFont';
 
 // PLACEHOLDER pixel props for the capital's citadel (Chapter 3; docs/chapter-3-world.md): clean marble,
 // gold, and a blue glow (designer), obviously futuristic, more cyberpunk than anything before, and still
@@ -63,7 +65,74 @@ export const screen = (width: number, height: number, scroll = 0): RowSprite => 
   colours: C,
 });
 
-/** A screen's frames, its lines scrolling up (for the `frames` feature). */
+/**
+ * A screen gone over to the symbol (Chapter 3, Day 3: the wing on the citadel's own screens for a moment,
+ * and nobody can find where it comes from): the wing, as large as fits, pale on black.
+ */
+export const birdScreen = (width: number, height: number): RowSprite => {
+  const scale = Math.max(1, Math.min(Math.floor((height - 4) / EMBLEM.length), Math.floor((width - 4) / EMBLEM[0]!.length)));
+  const [ox, oy] = [Math.floor((width - EMBLEM[0]!.length * scale) / 2), Math.floor((height - EMBLEM.length * scale) / 2)];
+  return {
+    rows: fill(width, height, (x, y) => {
+      if (x === 0 || y === 0 || x === width - 1 || y === height - 1) return 'a';
+      if (x === 1 || y === 1 || x === width - 2 || y === height - 2) return 'd';
+      const [ex, ey] = [Math.floor((x - ox) / scale), Math.floor((y - oy) / scale)];
+      if (x >= ox && y >= oy && EMBLEM[ey]?.[ex] === '#') return 'W';
+      return 's';
+    }),
+    colours: C,
+  };
+};
+
+/**
+ * A screen during your father's address (Chapter 3, Day 5): a picture (the face of the man who led the riot,
+ * or him and you), and a word under it; `blink` drops the word for a frame, as a screen does.
+ */
+const addressScreen = (width: number, height: number, picture: readonly string[], scale: number, text: string, blink: boolean): RowSprite => {
+  const glyphs = [...text].map(glyphFor);
+  const letters = Array.from({ length: 7 }, (_, y) => glyphs.map((g) => g[y]).join('.'));
+  const [px, py] = [Math.floor((width - picture[0]!.length * scale) / 2), 3];
+  const [tx, ty] = [Math.floor((width - letters[0]!.length) / 2), height - 10];
+  return {
+    rows: fill(width, height, (x, y) => {
+      if (x === 0 || y === 0 || x === width - 1 || y === height - 1) return 'a';
+      if (x === 1 || y === 1 || x === width - 2 || y === height - 2) return 'd';
+      if (text && !blink && y >= ty && y < ty + 7 && letters[y - ty]![x - tx] === '#') return 'W';
+      const [fx, fy] = [Math.floor((x - px) / scale), Math.floor((y - py) / scale)];
+      const c = x >= px && y >= py && y < ty - 1 ? picture[fy]?.[fx] : undefined;
+      if (c && c !== '.') return c;
+      return (x + y) % 7 === 0 ? 'g' : 's';
+    }),
+    colours: C,
+  };
+};
+
+/**
+ * The address on a citadel screen (the audience hall's great screen, 120 by 64; the halls', 76 by 46): his face
+ * and TERRORISTS, then EXECUTED or WANTED.
+ */
+export const addressFrames = (width: number, height: number, leader: Leader, fate: Fate): RowSprite[] => {
+  const big = height >= 60;
+  const face = leaderFace(leader, !big);
+  return [
+    ...[0, 1, 2, 3].map((i) => addressScreen(width, height, face, 1, 'TERRORISTS', i === 3)),
+    ...[0, 1].map((i) => addressScreen(width, height, face, 1, fate.toUpperCase(), i === 1)),
+  ];
+};
+
+/** A screen switched off: its gold frame round dead glass. */
+export const deadScreen = (width: number, height: number): RowSprite => ({
+  rows: fill(width, height, (x, y) => (x === 0 || y === 0 || x === width - 1 || y === height - 1 ? 'a' : x === 1 || y === 1 || x === width - 2 || y === height - 2 ? 'd' : (x - y) % 11 === 0 ? 'd' : 's')),
+  colours: C,
+});
+
+/** One `frames` feature per thing the screen can be saying (`screens5`, as `terrorScreens` in cityProps). */
+export const addressScreens = (width: number, height: number, x: number, y: number, hideIf?: string) =>
+  (['brother', 'reformer'] as const).flatMap((leader) => (['executed', 'wanted'] as const).map((fate) => ({
+    type: 'frames' as const, frames: addressFrames(width, height, leader, fate), x, y, every: 700,
+    showIf: `screens5=${leader}_${fate},${leader}_${fate}_hand`, ...(hideIf ? { hideIf } : {}),
+  })));
+
 export const scrollingScreen = (width: number, height: number): RowSprite[] => [0, 1, 2].map((i) => screen(width, height, i));
 
 /** A strip of blue light, upright, set into the wall. */
@@ -271,6 +340,43 @@ export const bookshelf = (width: number, height: number): RowSprite => ({
   }),
   colours: C,
 });
+
+/**
+ * The bookshelf swung back into the wall (Chapter 3, Day 2): the shelf turned edge-on at the left, and behind
+ * it a dark way through, cyan light from the room beyond along its edges and its floor.
+ */
+export const openShelf = (width: number, height: number): RowSprite => ({
+  rows: fill(width, height, (x, y) => {
+    if (x < 6) return x === 0 || x === 5 ? 'w' : y % 14 === 13 ? 'n' : x % 2 ? 'A' : 'd'; // the shelf, edge-on
+    if (x === width - 1 || y === 0) return 'w';
+    if (y >= height - 3) return y === height - 1 ? 'G' : 'g'; // the light along the floor
+    if (x === 6 || x === width - 2) return y > 10 ? 'G' : 'g';
+    return (x + y * 3) % 23 === 0 && y > 20 ? 'g' : 's';
+  }),
+  colours: C,
+});
+
+/**
+ * The war table (Chapter 3, the simulation room): a long low plinth, and over it the capital in light, side-on,
+ * the citadel at its top and the city stepping down to the low district, points of light moving on it.
+ */
+export const warTable = (phase: number): RowSprite => ({
+  rows: fill(160, 56, (x, y) => {
+    if (y >= 44) return y === 44 ? 'G' : y === 45 ? 'h' : x < 6 || x > 153 ? '.' : x === 6 ? 'm' : x === 153 ? 'W' : y > 52 ? 'd' : 'n';
+    if (y >= 40) return (x + y) % 2 === 0 && x > 8 && x < 151 ? 'g' : '.'; // its beam
+    const cx = 80;
+    const hill = 39 - 30 * Math.exp(-(((x - cx) / 34) ** 2)) - (Math.floor(x / 5) % 3) * 2;
+    if (y < hill) return Math.abs(x - cx) < 1 && y > hill - 9 ? 'c' : '.';
+    // Squads: points moving along the streets, and the scan sweeping across.
+    const dot = (x * 7 + y * 13 + phase * 17) % 97 === 0;
+    if (dot) return 'a';
+    if (Math.abs(x - (10 + phase * 38)) < 1) return 'W';
+    if (y < hill + 1 || x % 5 === 0) return 'c';
+    return (x * 3 + y + phase) % 6 === 0 ? 'G' : '.';
+  }),
+  colours: C,
+});
+export const WAR_TABLE_FRAMES = [0, 1, 2, 3].map(warTable);
 
 /** His desk: dark wood, a green-shaded lamp's warm light, papers, a screen kept face down. */
 export const DESK: RowSprite = {

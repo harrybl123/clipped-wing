@@ -3,7 +3,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import titleMusicUrl from '../assets/audio/light-through-the-window.mp3';
 import { AREAS } from '../data/areas';
 import { getSession } from '../session';
-import { beginChapter2, devChapter2Day } from './ChapterScene';
+import { beginChapter2, beginChapter3, devChapter2Day, devChapter3, devChapter4 } from './ChapterScene';
 import { SHADES } from '../ui/pixelArt';
 import { PIXEL } from '../ui/pixelTextures';
 import { savedMuted } from '../ui/soundSetting';
@@ -48,6 +48,10 @@ export class PreloadScene extends Phaser.Scene {
     else if (params?.get('scene') === 'prologue') this.scene.start('Prologue');
     // ?chapter=2: Chapter 2's card, then its Day 1 on the picked fields.
     else if (params?.get('chapter') === '2') ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11'].includes(params.get('day') ?? '') ? devChapter2Day(this, Number(params.get('day'))) : beginChapter2(this);
+    // ?chapter=3: Chapter 3's card, then Day 1 in the prince's quarters (&at=... part way into the day).
+    else if (params?.get('chapter') === '3') params.get('at') || params.get('day') ? devChapter3(this, params.get('at') ?? 'start', Number(params.get('day') ?? 1)) : beginChapter3(this);
+    // ?chapter=4: Chapter 4's card, then Day 1 (&left=tube|rot and Act 1's other routes as flags; &at=... part way in).
+    else if (params?.get('chapter') === '4') devChapter4(this, params.get('at') ?? 'start');
     else if (params?.get('scene') === 'chapter') {
       // The chapter card after the prologue, then Day 1.
       getSession(this).calendar.jumpTo(1);
@@ -60,6 +64,8 @@ export class PreloadScene extends Phaser.Scene {
       const foe = params.get('foe');
       this.scene.start('Combat', { encounter: encounter ?? 'market_scrap', back: { areaId: 'roots-market' }, ...(foe ? { only: foe } : {}), ...(!encounter && !foe ? { pick: true } : {}) });
     }
+    // ?scene=wartable: the war table as a game of its own, for playtesting (Jack: no dawn, shake-ups).
+    else if (params?.get('scene') === 'wartable') this.scene.start('RiotTable', { scenario: 'skirmish', back: { areaId: 'prince-quarters' } });
     else if (params?.get('scene') === 'decode') this.scene.start('Decode', { message: 'message1' });
     else if (params?.get('ending')) this.scene.start('Ending', { ending: params.get('ending')! });
     else if (params && ['2', '3', '4', '5', '6', '7'].includes(params.get('day') ?? '')) {

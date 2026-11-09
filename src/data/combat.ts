@@ -1051,3 +1051,375 @@ ENCOUNTERS.riot = {
   timing: { lunge: 950, ease: 1.2 },
   outcomes: { won: { riot_won: true }, lost: { riot_won: false } },
 };
+
+// --- Chapter 3: the prince (draft numbers, to playtest) ---
+// His weapon is a light-blade (designer: a laser-like fencing sword), and he fights as a duellist
+// (designer, 2026-10-14: the first moves didn't work; "let's do this"): a Lunge, a Riposte (block the
+// next blow and strike back), Disarm (his blade knocked aside: his next blows are weak, and a wind-up is
+// broken) and Press (three lunges, one after another). Simple QTEs only (designer: the moving circle and
+// keeping a marker in a zone didn't work): a key, the sweeping bar, notes, mashing. His hand spars the same
+// way, a fencer's moves, until a soldier's tricks come out when he's pressed (clue 1: where did a diplomat
+// learn that?). His tells are his lessons (designer: no tutorial cards), until they aren't.
+
+Object.assign(MOVES, {
+  blade_lunge: {
+    id: 'blade_lunge', name: 'Lunge', target: 'enemy', power: 7, kind: 'pierce', crit: 0.15, poses: ['attack'],
+    qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    description: 'Basic attack with the light-blade.',
+  },
+  riposte: {
+    id: 'riposte', name: 'Riposte', target: 'self', sp: 3, braces: true, poses: ['guard'],
+    description: 'Block his next attack: dodge it in time and you take nothing and strike back.',
+  },
+  disarm: {
+    id: 'disarm', name: 'Disarm', target: 'enemy', power: 4, kind: 'strike', sp: 3, interrupts: true, saps: { turns: 2, mult: 0.6 }, poses: ['slap'],
+    qte: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72], alt: { kind: 'key', time: 800, quick: 300 } },
+    description: 'Knocks his blade aside: for 2 rounds his attacks do less. Stops a charged attack.',
+  },
+  press: {
+    id: 'press', name: 'Press', target: 'enemy', power: 4, kind: 'pierce', sp: 4, hits: 3, poses: ['attack', 'slap', 'attack'],
+    qte: { kind: 'notes', outer: 180, perfect: 70, gap: 380, alt: { kind: 'mash', presses: 7, time: 1600 } },
+    combo: { build: 0.25, finisher: true },
+    description: '3 lunges, each stronger than the last. Land all 3 to knock him off balance.',
+  },
+
+  // Your hand, sparring: practice blades. A blow you get out of the way of barely touches you (designer: a
+  // good dodge still hurt too much). A fencer first...
+  hand_lunge: {
+    id: 'hand_lunge', name: 'Lunge', target: 'enemy', power: 7, kind: 'pierce', softened: { dodge: 0.15 },
+    qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    tell: { pose: 'squared', lines: ['“Watch my point. It tells you where I’m going.”', 'He settles back on his heels, point at your chest.'] },
+    description: 'A long lunge.',
+  },
+  hand_cut: {
+    id: 'hand_cut', name: 'Cut', target: 'enemy', power: 4, kind: 'strike', hits: 2, softened: { dodge: 0.15 },
+    qte: { kind: 'notes', outer: 180, perfect: 70, gap: 400, lanes: ['left', 'up', 'right'], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'cock', lines: ['“Two. Count them.”', 'His wrist turns over.'] },
+    description: 'Two quick cuts.',
+  },
+  // ...then, pressed, a soldier's tricks: inside your guard, a foot behind yours, the blade in the other hand.
+  hand_inside: {
+    id: 'hand_inside', name: 'Inside', target: 'enemy', power: 8, kind: 'grab', softened: { dodge: 0.15 },
+    qte: { kind: 'mash', presses: 8, time: 1800, alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'reach', lines: ['He drops his point, and steps in close.', 'He lets his guard fall open.'] },
+    description: 'Inside your guard: an elbow, and he holds you there. Break free.',
+  },
+  hand_trip: {
+    id: 'hand_trip', name: 'Trip', target: 'enemy', power: 5, kind: 'shove', exposes: { turns: 2, mult: 1.3 }, softened: { dodge: 0.15 },
+    qte: { kind: 'bar', time: 1000, zone: [0.62, 0.82], sweet: [0.7, 0.74], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'shift', lines: ['His front foot slides forward.', 'He shifts his weight onto his back foot.'] },
+    description: 'A foot behind yours: off your feet, you take more for 2 rounds.',
+  },
+  hand_switch: {
+    id: 'hand_switch', name: 'Off hand', target: 'self', windsUp: 'hand_off_hand',
+    tell: { pose: 'glance', lines: ['He tosses the blade to his other hand.'] },
+    description: 'Changes hands.',
+  },
+  hand_off_hand: {
+    id: 'hand_off_hand', name: 'Off hand', target: 'enemy', power: 14, kind: 'pierce',
+    softened: { guard: 0.25, dodge: 0.05 },
+    qte: { kind: 'bar', time: 1200, zone: [0.66, 0.84], sweet: [0.73, 0.77], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'windup', lines: ['The blade’s in his left hand now, and he’s smiling.'] },
+    description: 'From the side you weren’t watching. Guard, or Disarm him first.',
+  },
+} satisfies Record<string, MoveDef>);
+
+/** The prince, Chapter 3's lead: a duellist with a light-blade. */
+COMBATANTS.prince = {
+  id: 'prince', name: 'You', sprite: 'prince', hp: 44, sp: 12, attack: 9, defence: 8, speed: 14,
+  basic: 'blade_lunge', moves: ['riposte', 'disarm', 'press'], reactions: ['dodge', 'parry'],
+};
+
+/** Your hand, sparring at dawn: easy at first, then he isn't. */
+COMBATANTS.hand = {
+  id: 'hand', name: 'Your hand', sprite: 'hand', hp: 56, attack: 9, defence: 9, speed: 13,
+  moves: ['hand_lunge', 'hand_cut', 'hand_inside', 'hand_trip', 'hand_switch'], weights: [3, 2.5, 0.3, 0.3, 0.2],
+  poise: 2, feint: 0.15,
+  ai: { opening: ['hand_lunge', 'hand_cut'], maxRepeat: 2, recent: 0.5, when: { hurt: { hand_inside: 8, hand_trip: 8, hand_switch: 7 }, foeGuarding: { hand_inside: 3 } } },
+};
+
+/**
+ * Chapter 3, Day 1, the balcony at dawn: the spar with your hand (designer), practice blades. Win or lose,
+ * the day goes on (not `mustWin`). Writes `spar1`.
+ */
+ENCOUNTERS.spar_hand = {
+  id: 'spar_hand',
+  name: 'Your hand',
+  party: ['prince'],
+  enemies: ['hand'],
+  stage: 'balcony',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { spar1: 'won' }, lost: { spar1: 'lost' } },
+};
+
+// --- Chapter 3, Day 2: the simulation room. The citadel's guard as the war table shows them, in light. ---
+
+Object.assign(MOVES, {
+  pike_thrust: {
+    id: 'pike_thrust', name: 'Pike', target: 'enemy', power: 7, kind: 'pierce', softened: { dodge: 0.15 },
+    qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    tell: { pose: 'squared', lines: ['The pike comes level.', 'It sets its feet.'] },
+    description: 'A thrust with the pike.',
+  },
+  pike_sweep: {
+    id: 'pike_sweep', name: 'Sweep', target: 'enemy', power: 4, kind: 'strike', hits: 2, softened: { dodge: 0.15 },
+    qte: { kind: 'notes', outer: 180, perfect: 70, gap: 420, lanes: ['left', 'up', 'right'], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'cock', lines: ['The pike swings back.', 'It turns the pike flat.'] },
+    description: 'The pike swung, and back again.',
+  },
+} satisfies Record<string, MoveDef>);
+
+/** One of the citadel's guard, made of light (the simulation). */
+COMBATANTS.sim_guard = {
+  id: 'sim_guard', name: 'Guard (light)', sprite: 'sim_guard', hp: 22, attack: 8, defence: 8, speed: 11,
+  moves: ['pike_thrust', 'pike_sweep'], weights: [2, 1.5],
+  weak: ['pierce'], poise: 1, feint: 0,
+  ai: { opening: ['pike_thrust', 'pike_sweep'], maxRepeat: 2, recent: 0.5 },
+};
+
+/**
+ * Chapter 3, Day 2: a fight on the war table, gone down to yourself (designer: drop yourself in): the guard
+ * holding the promenade, in light. How it goes decides that fight on the table. Writes nothing to the story.
+ */
+ENCOUNTERS.sim_guards = {
+  id: 'sim_guards',
+  name: 'The promenade (simulation)',
+  party: ['prince'],
+  enemies: ['sim_guard', 'sim_guard'],
+  stage: 'sim',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: {}, lost: {} },
+};
+
+// --- Chapter 3, Day 4: your friend on the balcony; the square, with your hand beside you (draft numbers) ---
+
+Object.assign(MOVES, {
+  // Your friend, sparring in your hand's place, with your hand's practice blade: quick, laughing, showing off.
+  heir_flick: {
+    id: 'heir_flick', name: 'Flick', target: 'enemy', power: 5, kind: 'pierce', softened: { dodge: 0.15 },
+    qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    tell: { pose: 'squared', lines: ['"Keep up!"', 'He bounces on his toes, point flicking.'] },
+    description: 'A quick flick of the point.',
+  },
+  heir_flurry: {
+    id: 'heir_flurry', name: 'Flurry', target: 'enemy', power: 3, kind: 'strike', hits: 3, softened: { dodge: 0.15 },
+    qte: { kind: 'notes', outer: 190, perfect: 75, gap: 420, lanes: ['left', 'up', 'right'], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'cock', lines: ['"One, two, three!"', 'He grins, and his wrist starts to turn.'] },
+    description: 'Three cuts, fast and showy.',
+  },
+  // Showing off: the blade twirled, then a big lunge (the one where his cuff turns back).
+  heir_twirl: {
+    id: 'heir_twirl', name: 'Twirl', target: 'self', windsUp: 'heir_grand',
+    tell: { pose: 'glance', lines: ['He spins the blade round his hand, for the city.'] },
+    description: 'Showing off.',
+  },
+  heir_grand: {
+    id: 'heir_grand', name: 'Grand lunge', target: 'enemy', power: 11, kind: 'pierce', softened: { guard: 0.3, dodge: 0.1 },
+    qte: { kind: 'bar', time: 1100, zone: [0.64, 0.84], sweet: [0.72, 0.76], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'windup', lines: ['"Watch this."', 'He throws his arm back, all flourish.'] },
+    description: 'A huge lunge, all flourish. Guard, or Disarm him first.',
+  },
+
+  // The rioters at the square: pipes, stones, and all of them at once.
+  pipe_swing: {
+    id: 'pipe_swing', name: 'Pipe', target: 'enemy', power: 7, kind: 'strike',
+    qte: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'cockR', lines: ['The pipe goes up.', '"For the Row!"'] },
+    description: 'A length of pipe, swung.',
+  },
+  stone_throw: {
+    id: 'stone_throw', name: 'Stone', target: 'enemy', power: 5, kind: 'pierce',
+    qte: { kind: 'key', time: 750, quick: 280, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    tell: { pose: 'glance', lines: ['A hand goes down for a cobble.', '"Prince!"'] },
+    description: 'A cobble from the street.',
+  },
+  crowd_rush: {
+    id: 'crowd_rush', name: 'Rush', target: 'enemy', power: 4, kind: 'strike', mob: 0.35,
+    qte: { kind: 'notes', outer: 190, perfect: 75, gap: 440, lanes: ['left', 'up', 'right'], alt: { kind: 'mash', presses: 7, time: 1700 } },
+    tell: { pose: 'jeer', lines: ['The crowd behind them roars them on.', '"All of us!"'] },
+    description: 'They come on together: harder for every one of them still standing.',
+  },
+  brick_smash: {
+    id: 'brick_smash', name: 'Smash', target: 'enemy', power: 9, kind: 'strike',
+    qte: { kind: 'bar', time: 1100, zone: [0.62, 0.82], sweet: [0.7, 0.74], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'windup', lines: ['He lifts a lump of the barricade over his head.'] },
+    description: 'A lump of the barricade, brought down.',
+  },
+
+  // Your hand beside you: a real blade now, and a soldier's way with it (clue: you've seen it before).
+  hand_blade: {
+    id: 'hand_blade', name: 'Cut', target: 'enemy', power: 7, kind: 'strike', crit: 0.15,
+    qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    description: 'Basic attack with his blade.',
+  },
+  hand_sweep: {
+    id: 'hand_sweep', name: 'Sweep', target: 'enemy', power: 5, kind: 'shove', sp: 3, interrupts: true, exposes: { turns: 2, mult: 1.3 },
+    qte: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72], alt: { kind: 'key', time: 800, quick: 300 } },
+    description: 'A foot behind theirs: down, and they take more for 2 rounds. Stops a big swing.',
+  },
+  hand_cover: {
+    id: 'hand_cover', name: 'Cover', target: 'self', sp: 2, taunts: true,
+    description: 'Steps in front of you: draws every one of them that hasn’t moved yet onto him, and braces.',
+  },
+} satisfies Record<string, MoveDef>);
+
+/** Your friend, sparring at dawn: quick and showy, never as good as he thinks. */
+COMBATANTS.heir_spar = {
+  id: 'heir_spar', name: 'Your friend', sprite: 'heir', hp: 40, attack: 8, defence: 7, speed: 15,
+  moves: ['heir_flick', 'heir_flurry', 'heir_twirl'], weights: [3, 2, 1],
+  poise: 2, feint: 0.1,
+  ai: { opening: ['heir_flick', 'heir_twirl'], maxRepeat: 2, recent: 0.5, when: { hurt: { heir_twirl: 2 } } },
+};
+
+/**
+ * Chapter 3, Day 4, the balcony at dawn: your friend in your hand's place (designer, plan). Lighter than
+ * Day 1's: win or lose, the day goes on. Writes `spar4`.
+ */
+ENCOUNTERS.spar_friend = {
+  id: 'spar_friend',
+  name: 'Your friend',
+  party: ['prince'],
+  enemies: ['heir_spar'],
+  stage: 'balcony',
+  timing: { lunge: 950, ease: 1.25 },
+  outcomes: { won: { spar4: 'won' }, lost: { spar4: 'lost' } },
+};
+
+/** The prince at the square: the light-blade at full for the first time (plan). */
+COMBATANTS.prince_riot = { ...COMBATANTS.prince!, id: 'prince_riot', sprite: 'prince_full', attack: 11 };
+
+/** Your hand, beside you, from behind. */
+COMBATANTS.hand_ally = {
+  id: 'hand_ally', name: 'Your hand', sprite: 'hand_back', hp: 50, sp: 10, attack: 10, defence: 9, speed: 14,
+  basic: 'hand_blade', moves: ['hand_sweep', 'hand_cover'], reactions: ['dodge', 'parry'],
+};
+
+/** The rioters who break through the guard towards you. */
+COMBATANTS.rioter = {
+  id: 'rioter', name: 'Rioter', sprite: 'rioter', hp: 24, attack: 8, defence: 7, speed: 11,
+  moves: ['pipe_swing', 'stone_throw', 'crowd_rush'], weights: [2, 1.5, 1.5],
+  weak: ['pierce'], poise: 1, feint: 0.05,
+  ai: { maxRepeat: 2, recent: 0.5 },
+};
+COMBATANTS.rioter_big = {
+  id: 'rioter_big', name: 'The big one', sprite: 'rioter_big', hp: 38, attack: 10, defence: 8, speed: 9,
+  moves: ['brick_smash', 'crowd_rush', 'stone_throw'], weights: [2, 1.5, 1],
+  weak: ['shove'], poise: 2, feint: 0,
+  ai: { opening: ['crowd_rush', 'brick_smash'], maxRepeat: 2, recent: 0.5 },
+};
+
+/**
+ * Chapter 3, Day 4, after the table: some of the rioters have broken through to the citadel steps (designer:
+ * despite the win on the table), and you go down to stop them, your hand fighting beside you, like a soldier
+ * (plan). Must be won. Writes `riot_fight`.
+ */
+ENCOUNTERS.riot_square = {
+  id: 'riot_square',
+  name: 'The citadel steps',
+  party: ['prince_riot', 'hand_ally'],
+  enemies: ['rioter', 'rioter_big', 'rioter'],
+  // The citadel steps (designer: it had the low district's square).
+  stage: 'steps',
+  mustWin: true,
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { riot_fight: 'won' }, lost: { riot_fight: 'lost' } },
+};
+
+// --- Chapter 3, Day 7: the gate at night (draft numbers, to playtest) ---
+// Your friend's escape (designer: a normal fight). The commander turns her back, but not all her watch do: a
+// keen young one calls out, and an older one comes. You, hooded in the plain coat so they don't know you, and
+// your friend beside you for the first time instead of across from you.
+
+Object.assign(MOVES, {
+  // Your friend, beside you: quick and showy still, and better than he lets on.
+  heir_cut: {
+    id: 'heir_cut', name: 'Flick', target: 'enemy', power: 6, kind: 'pierce', crit: 0.15,
+    qte: { kind: 'key', time: 800, quick: 300, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    description: 'Basic attack with his blade.',
+  },
+  heir_three: {
+    id: 'heir_three', name: 'One, two, three', target: 'enemy', power: 3, kind: 'strike', sp: 3, hits: 3,
+    qte: { kind: 'notes', outer: 180, perfect: 70, gap: 400, alt: { kind: 'mash', presses: 7, time: 1600 } },
+    combo: { build: 0.25, finisher: true },
+    description: '3 cuts, fast and showy. Land all 3 to knock them off balance.',
+  },
+  heir_showoff: {
+    id: 'heir_showoff', name: 'Over here!', target: 'self', sp: 2, taunts: true,
+    description: 'Spins his blade for them: draws every one of them that hasn’t moved yet onto him, and braces.',
+  },
+
+  // The watch: batons, a lantern, and shouting for more.
+  baton_strike: {
+    id: 'baton_strike', name: 'Baton', target: 'enemy', power: 7, kind: 'strike',
+    qte: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'cockR', lines: ['The baton goes up.', '"Stay where you are!"'] },
+    description: 'A blow with the baton.',
+  },
+  baton_jab: {
+    id: 'baton_jab', name: 'Jab', target: 'enemy', power: 3, kind: 'pierce', hits: 2,
+    qte: { kind: 'notes', outer: 190, perfect: 75, gap: 420, lanes: ['left', 'up', 'right'], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'cock', lines: ['He shortens his grip.', '"Down! Get down!"'] },
+    description: 'Two jabs with the baton’s end.',
+  },
+  lantern_glare: {
+    id: 'lantern_glare', name: 'Lantern', target: 'enemy', power: 2, kind: 'none', blinds: 2,
+    qte: { kind: 'key', time: 750, quick: 280, alt: { kind: 'bar', time: 1000, zone: [0.6, 0.8], sweet: [0.68, 0.72] } },
+    tell: { pose: 'glance', lines: ['He swings his lantern up.', '“Let’s see your face!”'] },
+    description: 'The lantern in your eyes: for 2 rounds, dodging is harder.',
+  },
+  watch_tackle: {
+    id: 'watch_tackle', name: 'Tackle', target: 'enemy', power: 6, kind: 'grab', exposes: { turns: 2, mult: 1.3 },
+    qte: { kind: 'mash', presses: 8, time: 1800, alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'reach', lines: ['He drops his shoulder.', 'He sets himself to rush you.'] },
+    description: 'Bundled to the ground: break free, or take more for 2 rounds.',
+  },
+  watch_whistle: {
+    id: 'watch_whistle', name: 'Whistle', target: 'self', windsUp: 'watch_heavy',
+    tell: { pose: 'glance', lines: ['He gets his whistle to his lips.'] },
+    description: 'Blows for help.',
+  },
+  watch_heavy: {
+    id: 'watch_heavy', name: 'Two-handed', target: 'enemy', power: 12, kind: 'strike', softened: { guard: 0.3, dodge: 0.1 },
+    qte: { kind: 'bar', time: 1100, zone: [0.64, 0.84], sweet: [0.72, 0.76], alt: { kind: 'key', time: 800, quick: 300 } },
+    tell: { pose: 'windup', lines: ['The whistle’s still shrilling. He brings the baton round in both hands.'] },
+    description: 'The baton in both hands. Guard, or Disarm him first.',
+  },
+} satisfies Record<string, MoveDef>);
+
+/** The prince, hooded in the plain coat, his light-blade at full. */
+COMBATANTS.prince_plain = { ...COMBATANTS.prince!, id: 'prince_plain', sprite: 'prince_plain', attack: 10 };
+
+/** Your friend, beside you, from behind. */
+COMBATANTS.heir_ally = {
+  id: 'heir_ally', name: 'Your friend', sprite: 'heir_back', hp: 40, sp: 10, attack: 9, defence: 7, speed: 15,
+  basic: 'heir_cut', moves: ['heir_three', 'heir_showoff'], reactions: ['dodge'],
+};
+
+/** The young one of the watch: keen, quick, with a lantern. */
+COMBATANTS.watch_young = {
+  id: 'watch_young', name: 'The young one', sprite: 'watch_young', hp: 26, attack: 8, defence: 7, speed: 13,
+  moves: ['baton_jab', 'lantern_glare', 'baton_strike'], weights: [2, 1.2, 1.5],
+  weak: ['pierce'], poise: 1, feint: 0.05,
+  ai: { opening: ['lantern_glare', 'baton_jab'], maxRepeat: 2, recent: 0.5 },
+};
+/** The older one: broad, slow, and he knows to blow for help. */
+COMBATANTS.watch_old = {
+  id: 'watch_old', name: 'The older one', sprite: 'watch_old', hp: 38, attack: 9, defence: 9, speed: 9,
+  moves: ['baton_strike', 'watch_tackle', 'watch_whistle'], weights: [2, 1.5, 0.8],
+  weak: ['shove'], poise: 2, feint: 0,
+  ai: { opening: ['baton_strike', 'watch_tackle'], maxRepeat: 2, recent: 0.5, when: { hurt: { watch_whistle: 3 } } },
+};
+
+/**
+ * Chapter 3, Day 7, the gate at night: two of the watch, you and your friend (designer: a normal fight). Lost,
+ * he still gets away, but you're held, and the commander sees your face (designer). Writes `gate7`.
+ */
+ENCOUNTERS.gate_watch = {
+  id: 'gate_watch',
+  name: 'The gate',
+  party: ['prince_plain', 'heir_ally'],
+  enemies: ['watch_young', 'watch_old'],
+  stage: 'gate',
+  timing: { lunge: 950, ease: 1.2 },
+  outcomes: { won: { gate7: 'won' }, lost: { gate7: 'lost' } },
+};

@@ -821,3 +821,46 @@ describe('your side’s moves', () => {
     }
   });
 });
+
+describe('Chapter 3: the prince and his hand', () => {
+  /** Plays enemies' turns until it's the party's (or the fight ends). */
+  const toParty = (b: Battle) => {
+    while (!b.outcome && b.current!.side === 'enemy') b.enemyTurn('none');
+  };
+  const against = (enemy: string, rng: () => number = half) => new Battle({ ...ENCOUNTERS.spar_hand!, enemies: [enemy] }, MOVES, COMBATANTS, ITEMS, rng);
+
+  it('the spar is his alone, on the balcony, and writes spar1 (won or lost, the day goes on)', () => {
+    const e = ENCOUNTERS.spar_hand!;
+    expect(e.party).toEqual(['prince']);
+    expect(e.enemies).toEqual(['hand']);
+    expect(e.stage).toBe('balcony');
+    expect(e.mustWin).toBeFalsy();
+    expect(e.outcomes).toEqual({ won: { spar1: 'won' }, lost: { spar1: 'lost' } });
+  });
+
+  it('he fights as a duellist: Lunge, Riposte, Disarm, Press (designer)', () => {
+    const p = COMBATANTS.prince!;
+    expect([p.basic, ...p.moves].map((m) => MOVES[m!]!.name)).toEqual(['Lunge', 'Riposte', 'Disarm', 'Press']);
+  });
+
+  it('only the simple QTEs in his fights, Day 4\'s too (designer: no ring, side, grip or balance)', () => {
+    const ids = [COMBATANTS.prince!.basic!, ...COMBATANTS.prince!.moves, ...['hand', 'heir_spar', 'rioter', 'rioter_big', 'hand_ally'].flatMap((c) => [...(COMBATANTS[c]!.basic ? [COMBATANTS[c]!.basic!] : []), ...COMBATANTS[c]!.moves])];
+    const kinds = (q: unknown): string[] => (Array.isArray(q) ? q.flatMap(kinds) : q && typeof q === 'object' ? [(q as { kind: string }).kind, ...kinds((q as { alt?: unknown }).alt)] : []);
+    for (const id of ids) for (const k of kinds(MOVES[id]!.qte)) expect(['key', 'bar', 'notes', 'mash'], `${id}: ${k}`).toContain(k);
+  });
+
+  it('Disarm winds him: his next blows are weaker', () => {
+    const b = against('hand');
+    toParty(b);
+    const events = b.act({ type: 'skill', move: 'disarm', target: 'hand', grades: ['good'] });
+    expect(events).toContainEqual({ type: 'sapped', target: 'hand' });
+  });
+
+  it('your hand keeps the soldier’s tricks back until he’s pressed', () => {
+    const h = COMBATANTS.hand!;
+    const calm = aiWeights(h, ['hand_lunge', 'hand_cut'], { hurt: false, foeHurt: false, foeGuarding: false });
+    const pressed = aiWeights(h, ['hand_lunge', 'hand_cut'], { hurt: true, foeHurt: false, foeGuarding: false });
+    const tricks = (w: number[]) => w[2]! + w[3]! + w[4]!;
+    expect(tricks(pressed) / pressed.reduce((a, b) => a + b)).toBeGreaterThan(3 * (tricks(calm) / calm.reduce((a, b) => a + b)));
+  });
+});

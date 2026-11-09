@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition, Solid } from '../types';
-import { cast, councillor, guard, strollingServant, MORNING } from './people';
+import { cast, councillor, guard, inStory, strollingServant, MORNING } from './people';
 
 // The council chamber (Chapter 3): politics, and empty seats (docs/areas/capital/council-chamber.md). Black
 // marble veined with gold, lamps hanging low on long chains. Tiers
@@ -66,6 +66,8 @@ export const councilChamber: AreaDefinition = {
   ],
 
   features: [
+    // Day 2: coming in, your father sets out what's to be decided.
+    { type: 'trigger', x: 172, y: FLOOR, reach: 14, knot: 'c3day2_council', showIf: 'c3day2=council', hideIf: 'council2' },
     { type: 'frames', frames: P.HOLO_FRAMES, x: 192, y: FLOOR - 66, every: 240 },
     // Lamps hanging low over the table on long chains.
     ...[206, 240, 274].map((x, i) => ({ type: 'swing' as const, sprite: P.PENDANT, x, y: 120 + (i === 1 ? -10 : 0), ropeTop: TOP, quiet: true, ropeColour: S.amberDeep })),
@@ -81,13 +83,23 @@ export const councilChamber: AreaDefinition = {
     councillor('member-2', 1, 425, FLOOR - 32, 'council_member', ['afternoon'], { flipX: true }),
     councillor('member-3', 2, 377, FLOOR - 16, 'council_member', ['afternoon'], { flipX: true }),
     guard('door-guard', 2, 192, FLOOR, 'c3_guard', ['afternoon'], { flipX: true }),
+    // Chapter 3's story. Day 2: the power (big choice 1). Your father at the top; the reformer in the well;
+    // the old councillor in his seat, or, if you passed him over at the banquet, the hostess's cousin in
+    // it; your hand by the door.
+    inStory('father-4', 'father', 456, FLOOR - 48, 'c3day2=council', { knot: 'c3day2_father_council', flipX: true }),
+    inStory('reformer-2', 'reformer', 268, FLOOR, 'c3day2=council', { knot: 'c3day2_reformer' }),
+    inStory('councillor-2', 'councillor', 91, FLOOR - 16, 'c3day2=council', { knot: 'c3day2_councillor', hideIf: 'seated=hostess,merchant' }),
+    inStory('cousin-2', 'cousin', 91, FLOOR - 16, 'c3day2=council', { knot: 'c3day2_cousin', hideIf: 'seated=councillor,' }),
+    inStory('hand-4', 'diplomat', 182, FLOOR, 'c3day2=council', { knot: 'c3day2_hand_council', flipX: true }),
     // The morning: a page laying out the papers.
     strollingServant('page', 1, 180, 330, FLOOR, 'c3_page', MORNING),
   ],
   interactables: [
-    { id: 'table', x: 222, y: FLOOR, reach: 14, label: 'Look', knot: 'council_table' },
+    { id: 'table', x: 222, y: FLOOR, reach: 14, label: 'Look', knot: 'council_table', hideIf: 'c3day4=afternoon' },
+    // Day 4, the afternoon: the city on the table, and a crowd gathering on it.
+    { id: 'table-4', x: 222, y: FLOOR, reach: 14, label: 'Look', knot: 'c3day4_table_light', showIf: 'c3day4=afternoon', hideIf: 'table4' },
     { id: 'empty-seat', x: 36, y: FLOOR - 32, reach: 14, label: 'Look', knot: 'council_empty_seat' },
-    { id: 'top-seat', x: 456, y: FLOOR - 48, reach: 10, label: 'Look', knot: 'council_top_seat' },
+    { id: 'top-seat', x: 456, y: FLOOR - 48, reach: 10, label: 'Look', knot: 'council_top_seat', hideIf: 'c3day2=council' }, // (not while he's in it)
   ],
 
   exits: [{ id: 'to-halls', x: 160, y: FLOOR, reach: 12, to: 'citadel-halls' }],

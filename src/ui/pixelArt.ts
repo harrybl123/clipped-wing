@@ -1,4 +1,5 @@
 import { PALETTE } from '../palette';
+import type { AreaDefinition } from '../data/areas/types';
 
 // Pixel-art colour and lighting helpers. Pure logic (no Phaser) so it can be tested.
 // Backdrops are painted per pixel: a scene computes a continuous colour for each pixel
@@ -122,6 +123,22 @@ export function nearestIndex(palette: readonly RGB[], c: RGB): number {
 export type PixelColour = number | RGB | null;
 
 /**
+ * The capital's power, as a room is painted (Chapter 3: who goes without, big choice 1). From dusk: `views`, a
+ * district seen from up in the citadel with its lights out (`low`, the low district at the bottom; `middle`,
+ * the upper city: everything above it); `cut`, this place itself without power (its lamps out but for fires, its glow
+ * gone); `dim`, how far the room's light is turned down (the citadel, when it gave its power away).
+ */
+export interface Power {
+  views?: 'low' | 'middle';
+  /** The other district with streets cut too (Chapter 3, Day 3: your father's cut where the symbol is): dark in patches. */
+  also?: 'low' | 'middle';
+  /** How far it's gone dark yet (0–1, default all of it): block by block, as you watch. */
+  fade?: number;
+  cut?: boolean;
+  dim?: number;
+}
+
+/**
  * Paints a width×height RGBA buffer. Continuous colours are ordered-dithered to `palette`.
  */
 export function paintPixels(
@@ -151,4 +168,15 @@ export function paintPixels(
     }
   }
   return out;
+}
+
+/**
+ * The lights a place has with its power as it is: cut, its cold lamps and screens (anything not amber) go
+ * out and the rest burn low, fires and candles; dimmed, everything is turned down.
+ */
+export function poweredLights(area: AreaDefinition, power: Power): (AreaDefinition['lights'][number] & { rgb: RGB })[] {
+  const dim = power.dim ?? 1;
+  return area.lights
+    .filter((l) => !power.cut || l.colour === SHADES.amber)
+    .map((l) => ({ ...l, strength: l.strength * dim * (power.cut ? 0.45 : 1), rgb: rgb(l.colour) }));
 }

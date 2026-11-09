@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition, Solid } from '../types';
-import { cast, citizen, courtier, guard, strollingServant, DAY, MORNING } from './people';
+import { cast, citizen, courtier, guard, inStory, strollingServant, DAY, MORNING } from './people';
 
 // The audience hall (Chapter 3): where envoys and petitioners come before the throne
 // (docs/areas/capital/audience-hall.md). Huge and cold: marble columns, a gold-inlaid floor, high windows,
@@ -98,6 +98,9 @@ export const audienceHall: AreaDefinition = {
     { type: 'pulse', points: [{ x: 70, y: FLOOR + 3 }, { x: DAIS_FROM, y: FLOOR + 3 }], speed: 110, every: 300, count: 3, colour: S.cyan },
     { type: 'swing', sprite: P.CHANDELIER, x: 235, y: TOP + 62, ropeTop: TOP, quiet: true, ropeColour: S.amberDeep },
     { type: 'swing', sprite: P.CHANDELIER, x: 425, y: TOP + 62, ropeTop: TOP, quiet: true, ropeColour: S.amberDeep },
+    // Chapter 3, Day 5 on: your father's address on the great screen (the word, him and you; the face of the
+    // man you let go; then his hand on your shoulder), and there from then on.
+    ...P.addressScreens(120, 64, 620, TOP + 26),
   ],
   people: [
     // The guards: on the great doors, by the dais, behind the throne.
@@ -110,7 +113,7 @@ export const audienceHall: AreaDefinition = {
     citizen('petitioner-3', 3, 380, FLOOR, 'audience_petitioner', MORNING),
     citizen('petitioner-4', 2, 470, FLOOR, 'audience_petitioner', MORNING),
     citizen('petitioner-5', 12, 512, FLOOR, 'audience_petitioner', MORNING),
-    citizen('petitioner-6', 9, 300, FLOOR, 'audience_petitioner', ['afternoon']),
+    citizen('petitioner-6', 9, 300, FLOOR, 'audience_petitioner', ['afternoon'], { hideIf: 'c3day1=after,walk,requests' }),
     courtier('courtier-1', 0, 230, FLOOR, 'audience_courtier', MORNING),
     courtier('courtier-2', 7, 430, FLOOR, 'audience_courtier', DAY, { flipX: true }),
     strollingServant('sweeper', 0, 180, 500, FLOOR, 'c3_servant', ['evening']),
@@ -120,12 +123,46 @@ export const audienceHall: AreaDefinition = {
     cast('captain', 544, FLOOR, { knot: 'audience_captain', when: MORNING, flipX: true }),
     // The envoy, still waiting to be heard.
     cast('envoy', 512, FLOOR, { knot: 'audience_envoy', when: ['afternoon'] }),
+    // Chapter 3's story. Day 1: your father on the throne, the captain at the rope, the morning's three
+    // petitioners waiting among the rest (the merchant, the envoy, and the woman whose lift is broken: yours);
+    // your hand with you.
+    inStory('father-1', 'father', 689, DAIS, 'c3day1=halls,audience,after,walk', { knot: 'c3day1_father', flipX: true }),
+    inStory('captain-1', 'captain', 544, FLOOR, 'c3day1=halls,audience,after', { knot: 'c3day1_captain', flipX: true }),
+    inStory('woman', 'petitioner', 232, FLOOR, 'c3day1=halls,audience', { knot: 'c3day1_waiting' }),
+    inStory('merchant', 'merchant', 308, FLOOR, 'c3day1=halls,audience', { knot: 'c3day1_waiting' }),
+    inStory('envoy-1', 'envoy', 428, FLOOR, 'c3day1=halls,audience', { knot: 'c3day1_waiting', flipX: true }),
+    inStory('hand', 'diplomat', 60, FLOOR, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
+    // Day 3: you hold the audience alone (the throne empty), the captain at the rope; the warden of the
+    // Weavers' Row and the envoy, still waiting after two weeks, among the petitioners.
+    inStory('captain-3', 'captain', 544, FLOOR, 'c3day3=audience,hearing', { knot: 'c3day3_captain', flipX: true }),
+    inStory('warden', 'warden', 248, FLOOR, 'c3day3=audience,hearing', { knot: 'c3day1_waiting' }),
+    inStory('envoy-3', 'envoy', 428, FLOOR, 'c3day3=audience,hearing', { knot: 'c3day1_waiting', flipX: true }),
+    // Day 5: your father's address. Him on the throne, your hand by your seat, the captain at the rope; the
+    // hall full of courtiers to the doors (and the screens' eyes on the dais).
+    inStory('father-5', 'father', 689, DAIS, 'c3day5=address,speech', { knot: 'c3day5_father_wait', flipX: true }),
+    inStory('hand-5a', 'diplomat', 626, DAIS, 'c3day5=address,speech', { knot: 'c3day5_hand_address', flipX: true }),
+    inStory('captain-5a', 'captain', 544, FLOOR, 'c3day5=address,speech', { knot: 'c3day5_father_wait', flipX: true }),
+    ...([[200, 0], [222, 3], [262, 5], [296, 1], [384, 6], [406, 2], [430, 4], [452, 7], [486, 3], [512, 0]] as const).map(([x, look], i) =>
+      courtier(`hall-5${i}`, look, x, FLOOR, 'c3day5_courtier', undefined, { showIf: 'c3day5=address,speech', flipX: i % 3 !== 0 })),
+    // Day 8: the broadcast. Your father beside the throne, behind you; the captain at the rope; the hall full;
+    // at the back, the guests, the heirs who can't go home.
+    inStory('father-8', 'father', 689, DAIS, 'c3day8=hall,speech,answer', { knot: 'c3day8_father_wait', flipX: true }),
+    inStory('captain-8', 'captain', 544, FLOOR, 'c3day8=hall,speech,answer', { knot: 'c3day8_father_wait', flipX: true }),
+    ...([[222, 3], [262, 5], [296, 1], [384, 6], [406, 2], [430, 4], [452, 7], [486, 0]] as const).map(([x, look], i) =>
+      courtier(`hall-8${i}`, look, x, FLOOR, 'c3day8_courtier', undefined, { showIf: 'c3day8=hall,speech,answer', flipX: i % 3 !== 0 })),
+    ...([[150, 2], [170, 6], [190, 4]] as const).map(([x, look], i) =>
+      courtier(`guest-8${i}`, look, x, FLOOR, 'c3day8_guest', undefined, { showIf: 'c3day8=hall,speech,answer', flipX: true })),
   ],
   interactables: [
     { id: 'gate', x: 64, y: FLOOR, reach: 10, label: 'Look', knot: 'audience_gate' },
     { id: 'benches', x: 340, y: FLOOR, reach: 14, label: 'Look', knot: 'audience_benches' },
-    { id: 'seat', x: 654, y: DAIS, reach: 10, label: 'Look', knot: 'audience_seat' },
-    { id: 'throne', x: 704, y: DAIS, reach: 10, label: 'Look', knot: 'audience_throne' },
+    { id: 'seat', x: 654, y: DAIS, reach: 10, label: 'Look', knot: 'audience_seat', hideIf: ['c3day1=halls,audience', 'c3day3=audience', 'c3day5=address'] },
+    { id: 'mark-5', x: 654, y: DAIS, reach: 10, label: 'Stand', knot: 'c3day5_address', showIf: 'c3day5=address' },
+    // Day 8: your place at the front of the dais, in front of him.
+    { id: 'mark-8', x: 610, y: DAIS, reach: 10, label: 'Stand', knot: 'c3day8_broadcast', showIf: 'c3day8=hall' },
+    { id: 'seat-3', x: 654, y: DAIS, reach: 10, label: 'Sit', knot: 'c3day3_audience', showIf: 'c3day3=audience' },
+    { id: 'seat-1', x: 654, y: DAIS, reach: 10, label: 'Sit', knot: 'c3day1_audience', showIf: 'c3day1=halls,audience' },
+    { id: 'throne', x: 704, y: DAIS, reach: 10, label: 'Look', knot: 'audience_throne', hideIf: 'c3day1=halls,audience,after,walk' }, // (not while he's on it)
   ],
 
   exits: [

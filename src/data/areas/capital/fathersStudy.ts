@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition } from '../types';
-import { cast, servant, MORNING } from './people';
+import { cast, inStory, servant, MORNING } from './people';
 
 // Your father's study (Chapter 3): his wisdom (docs/areas/capital/fathers-study.md). The warmest room in
 // the citadel: dark wood panelling over the marble floor, shelves of books and old things from before, amber lamplight,
@@ -64,6 +64,10 @@ export const fathersStudy: AreaDefinition = {
 
   features: [
     { type: 'fire', x: 200, y: FLOOR - 7 },
+    // Day 2: the bookshelf swings back, and there's a room behind it (the simulation room).
+    { type: 'frames', frames: [P.openShelf(80, 112)], x: 88, y: FLOOR - 112, every: 200, showIf: 'sim_open' },
+    // Day 6's night: the study dark, the door to the sealed wing open a hand's width.
+    { type: 'trigger', x: 40, y: FLOOR, reach: 14, knot: 'c3day6_study_night', showIf: 'sister_hall6', hideIf: 'study6' },
     { type: 'swing', sprite: P.PENDULUM, x: 313, y: FLOOR - 28, ropeTop: FLOOR - 45, quiet: true, ropeColour: S.amberDeep },
   ],
   people: [
@@ -71,10 +75,25 @@ export const fathersStudy: AreaDefinition = {
     // The evening: your father at his desk, his physician with him.
     cast('father', 406, FLOOR, { knot: 'study_father', when: ['evening'], flipX: true }),
     cast('physician', 318, FLOOR, { knot: 'study_physician', when: ['evening'] }),
+    // Chapter 3's story. Day 2: your father by the bookshelf in the morning (he goes through it ahead of
+    // you); by the fire in the evening, when you report; your sister in the doorway, listening.
+    inStory('father-2', 'father', 160, FLOOR, 'c3day2=study', { knot: 'c3day2_father_study', flipX: true }),
+    inStory('father-5', 'father', 226, FLOOR, 'c3day2=report', { knot: 'c3day2_report', flipX: true }),
+    inStory('sister-5', 'sister', 30, FLOOR, 'c3day2=report', { knot: 'c3day2_sister_door' }),
+    // Day 4: at his desk, in yesterday's clothes (if the physician sent you).
+    inStory('father-4', 'father', 226, FLOOR, 'c3day4=persuade', { knot: 'c3day4_father', flipX: true }),
+    // Day 6: your friend with you; then your father at his desk, after the simulation room.
+    inStory('heir-f', 'heir', 60, FLOOR, 'heir_with_you', { follow: true, knot: 'c3day6_heir_walk' }),
+    inStory('father-6', 'father', 380, FLOOR, 'c3day6=study,arrive', { knot: 'c3day6_father', flipX: true }), // (still at his desk after)
+    // Day 7: at his window with the order, and there after.
+    // (Far right, his back to you: he doesn't turn to talk; the story turns him.)
+    inStory('father-7', 'father', 452, FLOOR, 'c3day7=wake,list,friend', { knot: 'c3day7_order', turns: false }),
   ],
   interactables: [
     { id: 'model', x: 72, y: FLOOR, reach: 14, label: 'Look', knot: 'study_model' },
-    { id: 'books', x: 128, y: FLOOR, reach: 14, label: 'Look', knot: 'study_books' },
+    { id: 'books', x: 128, y: FLOOR, reach: 14, label: 'Look', knot: 'study_books', hideIf: ['sim_open', 'c3day6=friend'] },
+    // Day 6: you know how it opens.
+    { id: 'shelf-6', x: 128, y: FLOOR, reach: 14, label: 'Open the shelf', knot: 'c3day6_shelf', showIf: 'c3day6=friend', hideIf: 'sim_open' },
     { id: 'hearth', x: 196, y: FLOOR, reach: 14, label: 'Look', knot: 'study_hearth' },
     { id: 'clock', x: 312, y: FLOOR, reach: 8, label: 'Look', knot: 'study_clock' },
     { id: 'desk', x: 356, y: FLOOR, reach: 10, label: 'Look', knot: 'study_desk' },
@@ -83,5 +102,7 @@ export const fathersStudy: AreaDefinition = {
   exits: [
     { id: 'to-halls', x: 34, y: FLOOR, reach: 12, to: 'citadel-halls' },
     { id: 'to-sealed-wing', x: 286, y: FLOOR, reach: 14, to: 'sealed-wing' },
+    // Through the bookshelf (Day 2 on).
+    { id: 'to-simulation-room', x: 128, y: FLOOR, reach: 14, to: 'simulation-room', showIf: 'sim_open' },
   ],
 };

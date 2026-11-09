@@ -199,8 +199,12 @@ VAR glossary_climb = ""
 // ---- Chapter 2: the borderland (docs/chapter-2-design.md) ----
 // You've found the dog: the dog's hollow, your secret spot, is on the map from then on.
 VAR found_dog = false
-// Which chapter you're playing: 1 (the carver, in the tree) or 2 (the scavenger, in the borderland).
+// Which chapter you're playing: 1 (the carver, in the tree), 2 (the scavenger, in the borderland) or 3 (the prince, in the capital).
 VAR chapter = 1
+// Chapter 4: the carver's been up in the canopy, so the borderland below is the carver's to walk too (and the ways back up show).
+VAR carver_below = false
+// Chapter 4, Day 2 on: the metal fist you found on the ground (designer).
+VAR has_fist = false
 // Chapter 2, Day 1 (story/borderland/chapter2-day1.ink; docs/sequences/chapter-2/part-1.md).
 // Stages: dig, brother, trade, tribute, home, done.
 VAR c2day1 = ""
@@ -571,6 +575,231 @@ VAR riot_won = false
 VAR friend7 = false
 VAR friend8 = false
 
+// ---- Chapter 3: the prince, in the capital (docs/sequences/chapter-3/plan.md) ----
+// Chapter 3's story is running: the day's own people are where the story has them, and Claude's placeholder
+// schedule for the capital's named cast steps aside (src/data/areas/capital/people.ts).
+VAR c3_story = false
+// Chapter 4's story is running (the day's people take over from the placeholder schedule).
+VAR c4_story = false
+// How you left the tree at the end of Act 1: "tube" (you flew: up the tube) or "rot" (you fell). Set when Chapter 4 begins.
+VAR c4_left = ""
+// Chapter 4, Day 1 (story/canopy/chapter4-day1.ink; docs/sequences/chapter-4/plan.md). Stages: tube or rot (waking),
+// led (up the tube: the master leading you), cage and platform (out of the rot: the hunter leading you), house
+// (Grounded's welcome), seed, look (the sorting deck), workshop, hall, lookout, lore (the telling), mess, bed, done.
+VAR c4day1 = ""
+// Who's walking with you on Day 1: "master" or "hunter" (a follower; journeys are on foot while anyone is).
+VAR c4_guide = ""
+// The girl, if she's with you (you fell after framing her): "follows", then "mess", then "bed".
+VAR c4_girl = ""
+// Day 1's afternoon: you've seen the sorting deck; the child has owned up.
+VAR c4day1_sorted = false
+VAR c4day1_owned = false
+// Day 1: you kept your mum's bird, from this morning's offerings on the sorting deck.
+VAR c4_mums_bird = false
+// What carries through the chapter (and later chapters): small decisions, counted quietly, never shown.
+// `lean`: your duties' answers, towards the people (+1) or towards order (-1). `standing`: how upper society takes you.
+VAR lean = 0
+VAR standing = 0
+// Your hand is walking with you (a follower).
+VAR hand_with_you = false
+// Chapter 3, Day 1 (story/capital/chapter3-day1.ink). Stages: wake, spar, halls, audience, after, walk,
+// requests, banquet, cards, toast, friend, night, done.
+VAR c3day1 = ""
+// The spar with your hand at dawn: "won" or "lost" (the fight writes it).
+VAR spar1 = ""
+VAR tree_seen1 = false
+VAR brief1 = false
+// The petition: you had the woman's street's lift mended today (the glassworks waited a day for its power).
+VAR lift_mended = false
+// The promenade: the stall keeper; inspecting the watch, and its commander asks to clear the street sellers off
+// the square for good (you'll see the square without them from Day 3); the chalk bird behind the stalls.
+VAR stalls_cleared = false
+VAR stall1 = false
+VAR bird1 = false
+// The day's requests at the data centre: you asked about the low district's line; you signed them.
+VAR queried_requests = false
+VAR signed_requests = false
+// The banquet: who sat at your father's right ("councillor", "hostess" or "merchant"), and the cards put out.
+VAR seated = ""
+VAR right_placed = false
+VAR cards_done = false
+// Night: your sister at your telescope.
+VAR sister_called1 = false
+VAR sister_talked1 = false
+// The capital's power (big choice 1, Day 2): who went without, "high" (the low district) or "people" (the
+// upper city: the promenade, and the citadel dims); and the district that's dark from dusk ("low" or
+// "promenade"), which the areas paint dark (and the citadel's views of it).
+VAR energy = ""
+VAR dark_district = ""
+// How far it's gone dark (0–100), as you watch it happen from your balcony; and the citadel's own lights lowered.
+VAR dark_fade = 100
+VAR citadel_dimmed = false
+// Chapter 3, Day 2 (story/capital/chapter3-day2.ink). Stages: wake, study, room, table, council, dusk,
+// report, below, home, done.
+VAR c3day2 = ""
+// The bookshelf in your father's study is open (the simulation room behind it).
+VAR sim_open = false
+// The war table, when he turned it on: how many turns you lasted (never mentioned again until Chapter 7, plan),
+// and whether he took your square.
+VAR sim_turns = 0
+VAR sim_taken = false
+VAR room2 = false
+// The council: you've heard each side (the reformer; the old councillor or, if you passed him over, the
+// hostess's cousin; your hand), and how many.
+VAR council2 = false
+VAR heard2 = 0
+VAR heard_reformer2 = false
+VAR heard_councillor2 = false
+VAR heard_hand2 = false
+VAR dusk2 = false
+VAR reported2 = false
+// Below with your hand at night, in a plain coat (the prince's own look, hooded: Player.cloaked).
+VAR plain_coat = false
+VAR dark_seen2 = false
+VAR painter2 = false
+VAR woman2 = false
+// Chapter 3, Day 3 (story/capital/chapter3-day3.ink): two weeks on. Stages: wake, audience, hearing,
+// requests, salon, friend, office, below, sneak, hideout, home, done.
+VAR c3day3 = ""
+// Your father's pushbacks from Day 3: the streets where the symbol keeps turning up, cut, in whichever district
+// still had its power (the areas paint them dark); and the screens paying for names (the reward notice).
+VAR streets_cut = false
+VAR rewards = false
+// The audience, alone: you sent men to scrub the warden's walls; the envoy's plea ("granted" or "refused": medium).
+VAR scrubbed = false
+VAR envoy = ""
+// The day's requests: you signed, under your father's mark.
+VAR signed3 = false
+// The salon: you told the hostess the truth about the streets (rather than covering for your father); your friend.
+VAR salon_truth = false
+VAR hostess3 = false
+VAR friend3 = false
+// Below: you saw the watch take the neighbour; you got into the hideout unseen; the tables you've listened in on
+// (a woman's sister, two men, the counter), and the kid.
+VAR low3 = false
+VAR met_hideout = false
+VAR heard3 = 0
+VAR heard_sister3 = false
+VAR heard_stairs3 = false
+VAR heard_counter3 = false
+VAR painter3 = false
+VAR outside3 = false
+// Chapter 3, Day 4 (story/capital/chapter3-day4.ink): the riot. Stages: wake, spar, sleeve, captain,
+// physician, persuade, afternoon, evening, table, square, night, done.
+VAR c3day4 = ""
+// The spar with your friend ("won" / "lost"); his sleeve, the wing stitched inside it: you asked him, or told
+// the captain ("asked" / "told": medium).
+VAR spar4 = ""
+VAR sleeve = ""
+// The physician: you persuaded your father to rest and took the night on ("yes"), or wouldn't ("no": medium).
+VAR physician = ""
+// The afternoon, two of three: the table of light in the council chamber, the kid at the foot of the lifts,
+// your sister.
+VAR afternoon4 = 0
+VAR table4 = false
+VAR painter4 = false
+VAR sister4 = false
+// The riot: who leads it ("firebrand", the painter's brother, if the low district rose; "reformer", if the
+// promenade did); the war table (the riot game: "won", or "lost": dawn came first, and your father took it
+// over), in how many turns, and how many times you charged a crowd; the fight at the square; big choice 2
+// ("brought_in" / "let_go"); your father in your rooms after.
+VAR room4 = false
+VAR father4n = false
+VAR riot_leader = ""
+VAR riot_table = ""
+VAR riot_turns = 0
+VAR riot_fight = ""
+VAR riot = ""
+// Chapter 3, Day 5 (story/capital/chapter3-day5.ink): terrorists. Stages: wake, address, speech, warrants,
+// evening, office, below, hideout, raid, hide, watched, out, home, done.
+VAR c3day5 = ""
+// The address: what the screens show from now on: "terror", or "wanted" (the face of the man you let go), then
+// "terror_hand" / "wanted_hand" (your father's hand on your shoulder, on every screen in the city).
+VAR screens5 = ""
+// The captain's warrants: you sealed all four ("sealed"), or struck the hideout's cellar off ("struck"; your
+// father sealed it instead). The list sent back to your desk.
+VAR warrants = ""
+VAR list5 = false
+// Below: the screens; the hideout, where they want to talk to you (the barkeep, the woman whose husband was on
+// the square, the kid); the raid ("stepped_in" / "stayed_out": medium); your face seen below (you stepped in);
+// your hand, after.
+VAR low5 = false
+VAR heard5 = 0
+VAR keeper5 = false
+VAR angry5 = false
+VAR painter5 = false
+VAR raid = ""
+VAR seen_below = false
+VAR after5 = false
+// The address cut to the hideout: the barkeep turned the screen off. You promised the woman to find her husband.
+// Stepping in: how well you calmed it (each answer), and how it ended ("held": they went; "taken": with the kid).
+VAR off5 = false
+VAR promised5 = false
+VAR calm5 = 0
+VAR standoff5 = ""
+// Chapter 3, Day 6 (story/capital/chapter3-day6.ink): the guests. Stages: wake, friend, room, table, caught,
+// study, arrive, wing, banquet, office, home, follow, done.
+VAR c3day6 = ""
+// Your friend with you (a follower), to the simulation room; the duel on the war table, the old castle's siege
+// ("won": you took his camp; "lost"), and in how many turns.
+VAR heir_with_you = false
+VAR room6 = false
+VAR duel6 = ""
+VAR duel6_turns = 0
+// Where you fought it (the table only paints it differently): "crag", "forest" or "station"; and how it ended
+// ("camp": you took his; "keep": he took yours; "dawn": a turn limit, if there's one again).
+VAR duel6_map = ""
+VAR duel6_how = ""
+// Your father in the doorway: his invitation, given to your friend by you ("you") or the captain ("captain").
+VAR invitation = ""
+VAR father6 = false
+// The guest wing: your friend at the barrier; you promised to get him out (or told him to stay: he's cooler with
+// you from now on).
+VAR barrier6 = false
+VAR promised = false
+VAR friend_cool = false
+// The banquet; your hand's door, the commander and the engineer coming out (clue 6).
+VAR banquet6 = false
+VAR office6 = false
+// From the banquet to your hand's door you walk (no map: the office is on the way).
+VAR walking6 = false
+// Night: following your sister to the sealed door; you covered for her ("covered": she's your eyes) or told your
+// father ("told": medium).
+VAR gallery6 = false
+VAR sister_hall6 = false
+VAR study6 = false
+VAR sister_wing6 = false
+VAR door6 = false
+VAR sister = ""
+// Chapter 3, Day 7 (story/capital/chapter3-day7.ink): the order. Stages: wake, list, friend, then (promised)
+// night, barrier, halls, lifts, fight, home, or (not) bed, dawn; done.
+VAR c3day7 = ""
+// The order (pushback 6): you read it back as written, or asked him to soften it (he changed nothing).
+VAR order7 = false
+VAR asked_soften = false
+// The transfer list: the one name you struck ("kid", "woman", "barkeep") or "none".
+VAR list7 = false
+VAR struck = ""
+// Your friend; the escape (promised): the barrier's guards sent off, your hand's office (clue 7), the lifts, the
+// commander turning her back, and the fight at the gate with two of her watch ("won" / "lost": he still gets
+// away, but the commander sees your face, `seen_gate`). He's gone either way; `helped_escape` if you got him out.
+VAR wing7 = false
+VAR barrier7 = false
+VAR office7 = false
+VAR lifts7 = false
+VAR gate_seen7 = false
+VAR gate7 = ""
+VAR seen_gate = false
+VAR helped_escape = false
+VAR friend_gone = false
+// Chapter 3, Day 8 (not built yet).
+VAR c3day8 = ""
+// Day 8: the war table against your father (won / lost), then again with the list.
+VAR table8 = ""
+VAR list8 = ""
+// Big choice 3: the broadcast (backed / defied / middle).
+VAR broadcast = ""
+
 INCLUDE prologue.ink
 INCLUDE day1.ink
 INCLUDE day2.ink
@@ -621,9 +850,22 @@ INCLUDE borderland/rival-line.ink
 INCLUDE borderland/deep-ground.ink
 INCLUDE borderland/trees-edge.ink
 INCLUDE borderland/kennels.ink
+INCLUDE capital/chapter3-day1.ink
+INCLUDE capital/chapter3-day2.ink
+INCLUDE capital/tutorial.ink
+INCLUDE capital/chapter3-day3.ink
+INCLUDE capital/chapter3-day4.ink
+INCLUDE capital/chapter3-day5.ink
+INCLUDE capital/chapter3-day6.ink
+INCLUDE capital/chapter3-day7.ink
+INCLUDE capital/chapter3-day8.ink
 INCLUDE capital/cast.ink
 INCLUDE capital/folk.ink
 INCLUDE capital/looks.ink
+INCLUDE canopy/looks.ink
+INCLUDE canopy/cast.ink
+INCLUDE canopy/chapter4-day1.ink
+INCLUDE canopy/lore.ink
 
 // The game starts conversations by knot name via StoryBridge, so the root
 // flow does nothing.

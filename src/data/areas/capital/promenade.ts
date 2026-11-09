@@ -1,8 +1,10 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './cityProps';
-import { rail, scrollingScreen } from './citadelProps';
+import { addressScreens, rail, scrollingScreen } from './citadelProps';
 import type { AreaDefinition, Feature, Prop, Solid } from '../types';
-import { cast, citizen, patrol, strollingCitizen, watch, AWAKE, DAY, LATE, MORNING } from './people';
+import type { RowSprite } from '../../../ui/sprites';
+import { cast, citizen, guard, inStory, patrol, strollingCitizen, watch, AWAKE, DAY, LATE, MORNING } from './people';
+import { riotSquare } from './lowDistrict';
 
 // The promenade (Chapter 3): the mid-city market, where the city meets, between the citadel and the low
 // district (docs/areas/capital/promenade.md). The first street in the city, so it sets the look: the
@@ -38,6 +40,13 @@ function shop(x: number, width: number, seed: number, floor: number, top: number
 
 /** A stall's steam, and a vent's. */
 const steam = (x: number, y: number): Feature => ({ type: 'smoke', x, y, top: y - 90 });
+
+/** Chapter 3, Day 1: the symbol in chalk, its right side already scrubbed away to a smear. */
+const HALF_SCRUBBED: RowSprite = (() => {
+  const chalk = P.symbolMark('chalk');
+  const scrubbed = P.symbolMark('scrubbed');
+  return { ...chalk, rows: chalk.rows.map((row, y) => row.slice(0, 11) + scrubbed.rows[y]!.slice(11)) };
+})();
 
 export const promenade: AreaDefinition = {
   id: 'promenade',
@@ -116,44 +125,79 @@ export const promenade: AreaDefinition = {
   features: [
     { type: 'rain' },
     { type: 'frames', frames: scrollingScreen(100, 56), x: 360, y: 70, every: 450 },
+    // Day 5 on: your father's address on the great screen (the word, the face, his hand on your shoulder).
+    ...addressScreens(100, 56, 360, 70),
     { type: 'frames', frames: P.signFrames(36, 12, 1), x: 30, y: 100, every: 260 },
     { type: 'frames', frames: P.signFrames(28, 12, 2), x: 112, y: 78, every: 310 },
     { type: 'frames', frames: P.signFrames(30, 14, 3), x: 230, y: 104, every: 280 },
     { type: 'frames', frames: P.signFrames(44, 12, 4), x: 660, y: 48, every: 340 },
     { type: 'frames', frames: P.signFrames(26, 12, 5), x: 820, y: 66, every: 290 },
     steam(340, FLOOR - 22),
+    // Chapter 3, Day 1, the official walk: a chalk wing half scrubbed off a wall; the stall keeper presses
+    // food on you; people bow as you pass.
+    { type: 'frames', frames: [HALF_SCRUBBED], x: 296, y: FLOOR - 24, every: 500, showIf: 'c3day1=walk,requests' },
+    { type: 'trigger', x: 346, y: FLOOR, reach: 10, knot: 'c3day1_stall', showIf: 'c3day1=walk', hideIf: 'stall1' },
+    // Day 2, below at night (if the upper city went without): coming in.
+    { type: 'trigger', x: 50, y: FLOOR, reach: 16, knot: 'c3day2_dark_promenade', showIf: 'c3day2=below', hideIf: 'dark_seen2' },
+    { type: 'barks', lines: [{ who: 'passer-1', text: 'Highness.', wait: 2400 }, { who: 'shopper-3', text: 'Highness!', wait: 2400 }, { who: 'passer-2', text: 'Highness.' }], loopFrom: 99, showIf: 'c3day1=walk' },
     steam(454, FLOOR - 22),
     steam(503, FLOOR - 8),
     // Light running along the walkway's rail.
     { type: 'pulse', points: [{ x: WALK_FROM, y: WALK - 10 }, { x: WALK_TO, y: WALK - 10 }], speed: 90, every: 400, count: 2, colour: S.cyan },
+    // Day 4, the riot (if the promenade rose): the barricade burning across the square.
+    { type: 'fire', x: 912, y: FLOOR - 1, showIf: 'c3day4=square' },
+    { type: 'fire', x: 944, y: FLOOR - 1, showIf: 'c3day4=square' },
+    { type: 'smoke', x: 928, y: FLOOR - 12, top: 30, showIf: 'c3day4=square' },
   ],
   people: [
     // The stalls' cooks.
-    citizen('cook-1', 1, 346, FLOOR, 'promenade_cook', AWAKE),
-    citizen('cook-2', 10, 460, FLOOR, 'promenade_cook', AWAKE, { flipX: true }),
+    citizen('cook-1', 1, 346, FLOOR, 'promenade_cook', AWAKE, { hideIf: 'c3day4=square' }),
+    citizen('cook-2', 10, 460, FLOOR, 'promenade_cook', AWAKE, { flipX: true, hideIf: 'c3day4=square' }),
     // The square: people about their business, a kid, someone resting by the bench.
-    strollingCitizen('passer-1', 0, 60, 560, FLOOR, 'promenade_folk', AWAKE),
-    strollingCitizen('passer-2', 5, 220, 580, FLOOR, 'promenade_folk', DAY),
-    strollingCitizen('passer-3', 12, 80, 300, FLOOR, 'promenade_folk', ['afternoon', 'evening']),
-    strollingCitizen('kid', 6, 300, 520, FLOOR, 'c3_kid', DAY),
+    strollingCitizen('passer-1', 0, 60, 560, FLOOR, 'promenade_folk', AWAKE, { hideIf: ['c3day4=square', 'c3day5=speech', 'c3day8=speech,answer,city'] }),
+    strollingCitizen('passer-2', 5, 220, 580, FLOOR, 'promenade_folk', DAY, { hideIf: ['c3day5=speech', 'c3day8=speech,answer,city'] }),
+    strollingCitizen('passer-3', 12, 80, 300, FLOOR, 'promenade_folk', ['afternoon', 'evening'], { hideIf: 'c3day4=square' }),
+    strollingCitizen('kid', 6, 300, 520, FLOOR, 'c3_kid', DAY, { hideIf: ['c3day5=speech', 'c3day8=speech,answer,city'] }),
     citizen('resting', 3, 404, FLOOR, 'c3_old', ['afternoon']),
     // Shoppers along the walkway and under it.
-    citizen('shopper-1', 8, 650, WALK, 'promenade_shopper', AWAKE),
+    citizen('shopper-1', 8, 650, WALK, 'promenade_shopper', AWAKE, { hideIf: 'c3day4=square' }),
     strollingCitizen('shopper-2', 11, 640, 880, WALK, 'promenade_shopper', DAY),
-    citizen('shopper-3', 13, 800, FLOOR, 'promenade_shopper', AWAKE, { flipX: true }),
+    citizen('shopper-3', 13, 800, FLOOR, 'promenade_shopper', AWAKE, { flipX: true , hideIf: 'c3day4=square' }),
     // At night, in the rain: someone hooded, the watch on its beat.
-    strollingCitizen('hooded', 2, 100, 900, FLOOR, 'promenade_night', ['night']),
-    patrol('watch-1', 1, 200, 580, FLOOR, 'c3_watch', LATE),
-    watch('watch-2', 0, 562, FLOOR, 'c3_watch', ['afternoon', 'night'], { flipX: true }),
+    strollingCitizen('hooded', 2, 100, 900, FLOOR, 'promenade_night', ['night'], { hideIf: 'c3day4=square' }),
+    patrol('watch-1', 1, 200, 580, FLOOR, 'c3_watch', LATE, { hideIf: 'c3day4=square' }),
+    watch('watch-2', 0, 562, FLOOR, 'c3_watch', ['afternoon', 'night'], { flipX: true, hideIf: ['c3day1=walk,requests', 'c3day4=square'] }),
     // The commander of the watch, looking the square over.
     cast('commander', 540, FLOOR, { knot: 'promenade_commander', when: ['afternoon'] }),
     // The reformer talking to people in the morning; the kid who chalks the symbol; the envoy, lost, in the evening.
     cast('reformer', 480, FLOOR, { knot: 'promenade_reformer', when: MORNING }),
+    // Day 5, the address (a cutaway): the morning's shoppers stopped under the great screen, bags down.
+    ...([[372, 4], [388, 8], [404, 11], [424, 1], [440, 13], [456, 6]] as const).map(([x, look], i) =>
+      citizen(`prom-5${'abcdef'[i]}`, look, x, FLOOR, 'c3day5_watching', undefined, { showIf: 'c3day5=speech', flipX: x > 410 })),
+    // Day 8, the broadcast (cutaways): the shoppers under the great screen again, a child lifted up to see.
+    ...([[364, 4], [380, 8], [396, 13], [424, 1], [440, 11], [456, 6]] as const).map(([x, look], i) =>
+      citizen(`prom-8${'abcdef'[i]}`, look, x, FLOOR, 'c3day8_watching', undefined, { showIf: 'c3day8=speech,answer,city', flipX: x > 410 })),
     cast('painter', 250, FLOOR, { knot: 'promenade_painter', when: MORNING }),
     cast('envoy', 250, FLOOR, { id: 'envoy-evening', knot: 'promenade_envoy', when: ['evening'] }),
+    // Chapter 3's story. Day 1: a city worker scrubbing the chalk wing, one of your guards close by; your hand with you.
+    citizen('scrubber', 14, 324, FLOOR, 'c3day1_scrubber', undefined, { showIf: 'c3day1=walk,requests', flipX: true }),
+    guard('escort', 0, 236, FLOOR, 'c3_guard', undefined, { showIf: 'c3day1=walk' }),
+    // Day 1, your duty: inspecting the watch. Its commander, and a pair of the watch at their post.
+    inStory('commander-1', 'commander', 252, FLOOR, 'c3day1=walk,requests', { knot: 'c3day1_commander', flipX: true }),
+    watch('post-1', 0, 196, FLOOR, 'c3_watch', undefined, { showIf: 'c3day1=walk,requests' }),
+    watch('post-2', 1, 210, FLOOR, 'c3_watch', undefined, { showIf: 'c3day1=walk,requests', flipX: true }),
+    inStory('hand', 'diplomat', 40, FLOOR, 'hand_with_you', { follow: true, knot: 'c3day1_hand_walk' }),
+    inStory('heir-f', 'heir', 44, FLOOR, 'heir_with_you', { follow: true, knot: 'c3day7_heir_walk' }),
+    // Day 2, below at night (if the upper city went without): people who know you, and the painter by a dead lamp.
+    citizen('cold-2', 5, 250, FLOOR, 'c3day2_cold', undefined, { showIf: 'c3day2=below', hideIf: 'energy=high' }),
+    citizen('stairs-2', 3, 360, FLOOR, 'c3day2_stairs', undefined, { showIf: 'c3day2=below', hideIf: 'energy=high', flipX: true }),
+    citizen('food-2', 1, 446, FLOOR, 'c3day2_food', undefined, { showIf: 'c3day2=below', hideIf: 'energy=high' }),
+    inStory('painter-2', 'painter', 506, FLOOR, 'c3day2=below', { knot: 'c3day2_painter', hideIf: 'energy=high' }),
+    // Day 4, the square after the fight (if the promenade rose): as in the low district, with the reformer.
+    ...riotSquare('reformer', 'riot_leader=firebrand', FLOOR),
   ],
   interactables: [
-    { id: 'screen', x: 410, y: FLOOR, reach: 10, label: 'Look', knot: 'promenade_screen' },
+    { id: 'screen', x: 410, y: FLOOR, reach: 10, label: 'Look', knot: 'promenade_screen', hideIf: ['c3day5=speech', 'c3day8=speech,answer,city'] },
     { id: 'signs', x: 120, y: FLOOR, reach: 14, label: 'Look', knot: 'promenade_signs' },
     { id: 'view', x: 780, y: WALK, reach: 14, label: 'Look', knot: 'promenade_view' },
   ],

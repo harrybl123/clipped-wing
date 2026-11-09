@@ -1,5 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import type { RowSprite } from '../../../ui/sprites';
+import { glyphFor } from '../../../ui/pixelFont';
+import { SPEAKERS } from '../../../ui/portraits';
 
 // PLACEHOLDER pixel props for the capital's city (Chapter 3; docs/chapter-3-world.md): below the citadel,
 // cyberpunk and earthy at once: shopfronts under striped awnings, signs of cyan and amber light, steam from
@@ -400,37 +402,36 @@ export const NOTICES: RowSprite = {
 };
 
 /**
- * The symbol (designer: Grounded's bird on bare ground, as on the carver's plates in the tree; then: more
- * logo-like, more symbolic; then: a bird taking flight): his bird made an emblem, lifting off: wings raised
- * in a V, their tips touching the ring as if breaking out of it, its head and beak forward, its tail fanned,
- * its feet just off the thick bar of ground that runs through the ring like a horizon.
+ * The symbol: the wing (designer, 2026-10-15: the bird in its ring was too like the Hunger Games' mockingjay;
+ * make it the wing on Grounded's plates in Chapter 1, whole, not cut off). That wing, scratched in outline, over
+ * the bar of bare ground (Grounded's). 24 wide, 21 high.
  */
 export const EMBLEM: readonly string[] = [
-  '.......#######.......',
-  '.....###########.....',
-  '....###.......###....',
-  '...###.........###...',
-  '..##.##.......##.##..',
-  '.##...##.....###..##.',
-  '.##...###...###...##.',
-  '##.....###.###.##..##',
-  '##......##########.##',
-  '##.....#########...##',
-  '##...########......##',
-  '##..###..#.#.......##',
-  '##.......#.#.......##',
-  '##.................##',
-  '.###################.',
-  '.###################.',
-  '..##.............##..',
-  '...##...........##...',
-  '....###.......###....',
-  '.....###########.....',
-  '.......#######.......',
+  '........................',
+  '...........#########....',
+  '......#####.....##..####',
+  '....##............##...#',
+  '..##...........####.##.#',
+  '.##......######.......##',
+  '...######..............#',
+  '....#............###...#',
+  '...#.........####......#',
+  '..##.....####........##.',
+  '....#####........##.#...',
+  '.....#........###.##....',
+  '.....#.....###...#......',
+  '....#######.....#.......',
+  '.........#....##........',
+  '........#..###..........',
+  '........###.............',
+  '........................',
+  '########################',
+  '........................',
+  '........................',
 ];
 
-/** The symbol on a wall: chalked (rough, a pixel missing here and there), half scrubbed off, or painted large (`scale`). */
-export const symbolMark = (style: 'chalk' | 'scrubbed' | 'paint', scale = 1): RowSprite => ({
+/** The symbol on a wall: chalked (rough, a pixel missing here and there), half scrubbed off, scratched into glass (thin, pale, broken), or painted large (`scale`). */
+export const symbolMark = (style: 'chalk' | 'scrubbed' | 'scratch' | 'paint', scale = 1): RowSprite => ({
   rows: EMBLEM.flatMap((row, y) =>
     Array.from({ length: scale }, (_, sy) =>
       [...row].flatMap((c, x) =>
@@ -439,6 +440,7 @@ export const symbolMark = (style: 'chalk' | 'scrubbed' | 'paint', scale = 1): Ro
           const k = r(x * 7 + sx + 3, y * 5 + sy);
           if (style === 'chalk') return k > 0.9 ? '.' : k > 0.65 ? 'm' : 'h';
           if (style === 'scrubbed') return k > 0.5 ? '.' : 'm';
+          if (style === 'scratch') return k > 0.55 ? '.' : k > 0.3 ? 'h' : 'W';
           return k > 0.95 ? 'm' : 'h'; // paint, brushed on
         }),
       ).join(''),
@@ -446,6 +448,103 @@ export const symbolMark = (style: 'chalk' | 'scrubbed' | 'paint', scale = 1): Ro
   ),
   colours: C,
 });
+
+/** A word in the pixel font as sprite rows (7 high), in colour `c`, letters a pixel apart. */
+const word = (text: string, c: string): string[] => {
+  const glyphs = [...text].map(glyphFor);
+  return Array.from({ length: 7 }, (_, y) => glyphs.map((g) => g[y]!.replace(/#/g, c)).join('.'));
+};
+
+/**
+ * The reward notice on the city's screens (Chapter 3, Day 3: your father's second pushback, rewards for
+ * names): the wing, and REPORT above it, REWARD below, white on the screen's blue. Kept lit where the
+ * power's cut, so it's the only light in the street. `phase` sweeps a scan line down it.
+ */
+export const rewardScreen = (phase: number): RowSprite => {
+  const [w, h] = [47, 46];
+  const top = word('REPORT', 'W');
+  const bottom = word('REWARD', 'W');
+  const scan = 2 + ((phase * 11) % (h - 4));
+  return {
+    rows: fill(w, h, (x, y) => {
+      if (x === 0 || y === 0 || x === w - 1 || y === h - 1) return 'n';
+      if (y >= 3 && y < 10 && x >= 6 && x < 41) return top[y - 3]![x - 6] === 'W' ? 'W' : y === scan ? 'G' : 'g';
+      if (y >= 36 && y < 43 && x >= 6 && x < 41) return bottom[y - 36]![x - 6] === 'W' ? 'W' : y === scan ? 'G' : 'g';
+      if (y >= 12 && y < 33 && x >= 11 && x < 35 && EMBLEM[y - 12]![x - 11] === '#') return 'c';
+      return y === scan ? 'G' : 'g';
+    }),
+    colours: C,
+  };
+};
+export const REWARD_FRAMES = [0, 1, 2, 3].map(rewardScreen);
+
+/** Who led the riot, as the screens show him (Day 4's `riot_leader`: the painter's brother, or the reformer). */
+export type Leader = 'brother' | 'reformer';
+
+/**
+ * The face of the man who led the riot, on the screens (designer: the word, and his face): his own portrait,
+ * in the screens' blues and white; `half`, every other pixel (24 by 24, for the small screens).
+ */
+export const leaderFace = (leader: Leader, half = false): string[] => {
+  const portrait = SPEAKERS[leader === 'brother' ? 'painter_brother' : 'reformer']!.portrait;
+  const step = half ? 2 : 1;
+  const bands = ['s', 'g', 'G', 'c', 'h', 'W'];
+  return Array.from({ length: portrait.rows.length / step }, (_, y) =>
+    Array.from({ length: portrait.rows[0]!.length / step }, (_, x) => {
+      const colour = portrait.colours[portrait.rows[y * step]![x * step]!];
+      if (colour === undefined) return '.';
+      const light = (((colour >> 16) & 255) * 0.3 + ((colour >> 8) & 255) * 0.59 + (colour & 255) * 0.11) / 255;
+      return bands[Math.min(bands.length - 1, Math.floor(light * 1.1 * bands.length))]!;
+    }).join(''),
+  );
+};
+
+/** What became of him, as the screens say it (big choice 2: brought in, or let go). */
+export type Fate = 'executed' | 'wanted';
+
+/** A notice on the city's screens (63 by 46): `top` and `bottom` in white, a picture (24 wide, up to 24 high) between. */
+const noticeScreen = (topText: string, picture: readonly string[], bottomText: string, phase: number): RowSprite => {
+  const [w, h] = [63, 46];
+  const top = word(topText, 'W');
+  const bottom = word(bottomText, 'W');
+  const [tx, bx] = [Math.floor((w - top[0]!.length) / 2), Math.floor((w - bottom[0]!.length) / 2)];
+  const [px, py] = [Math.floor((w - 24) / 2), 11 + Math.floor((24 - picture.length) / 2)];
+  const scan = 2 + ((phase * 11) % (h - 4));
+  return {
+    rows: fill(w, h, (x, y) => {
+      if (x === 0 || y === 0 || x === w - 1 || y === h - 1) return 'n';
+      if (y >= 3 && y < 10 && top[y - 3]![x - tx] === 'W') return 'W';
+      if (y >= 36 && y < 43 && bottom[y - 36]![x - bx] === 'W') return 'W';
+      const c = picture[y - py]?.[x - px];
+      if (c && c !== '.') return c === '#' ? 'c' : c;
+      return y === scan ? 'G' : 'g';
+    }),
+    colours: C,
+  };
+};
+
+/**
+ * The city's screens from Day 5 (Chapter 3, your father's third pushback: the word): TERRORISTS, and the
+ * face of the man who led the riot, EXECUTED or WANTED; then the old reward notice. (Your father and you, his
+ * hand on your shoulder, was cut: designer, it looked poor.)
+ */
+export const terrorFrames = (leader: Leader, fate: Fate): RowSprite[] => {
+  const face = leaderFace(leader, true);
+  return [
+    ...[0, 1, 2].map((i) => noticeScreen('TERRORISTS', face, fate.toUpperCase(), i)),
+    ...[0, 1, 2].map((i) => noticeScreen('REPORT', EMBLEM, 'REWARD', i)),
+  ];
+};
+
+/**
+ * Where the city's screens show the address (Day 5 on): one `frames` feature per thing the screens can be
+ * saying (`screens5`: `<leader>_<fate>`, with `_hand` once his hand's on your shoulder), at x, y (63 by 46).
+ */
+export const terrorScreens = (x: number, y: number) =>
+  (['brother', 'reformer'] as const).flatMap((leader) => (['executed', 'wanted'] as const).map((fate) => ({
+    type: 'frames' as const, frames: terrorFrames(leader, fate), x, y, every: 450, power: 'any' as const,
+    showIf: `screens5=${leader}_${fate},${leader}_${fate}_hand`,
+  })));
 
 // --- The low district's homes and shops, in detail (designer: people's things in view) ---
 
@@ -682,3 +781,38 @@ export const alley = (width: number, height: number, seed: number): RowSprite =>
     colours: C,
   };
 };
+
+/**
+ * A street's own lift, up the side of the stacks (Chapter 3: the woman's street, Day 1's petition). A shaft
+ * of girders with a cage in it. Mended (`running`), the cage goes up and down the shaft, a lamp lit on it and
+ * a kid inside riding it for the joy of it (one frame per `step`); broken, it sits at the bottom, dark.
+ */
+export const streetLift = (step: number, running: boolean): RowSprite => {
+  const W = 14;
+  const H = 110;
+  const steps = 8;
+  // Up, then back down.
+  const t = running ? (step < steps / 2 ? step : steps - step) / (steps / 2) : 0;
+  const carTop = Math.round(H - 14 - t * (H - 20));
+  return {
+    rows: Array.from({ length: H }, (_, y) =>
+      Array.from({ length: W }, (_, x) => {
+        const inCar = y >= carTop && y < carTop + 12;
+        if (inCar) {
+          if (y === carTop || y === carTop + 11 || x === 1 || x === W - 2) return running ? 'm' : 'n';
+          if (running && y === carTop + 1 && x === 7) return 'a'; // its lamp
+          // The kid inside: a head and shoulders.
+          if (running && ((y >= carTop + 4 && y <= carTop + 5 && x >= 6 && x <= 7) || (y >= carTop + 6 && y <= carTop + 10 && x >= 5 && x <= 8))) return y <= carTop + 5 ? 'p' : 'G';
+          return x > 1 && x < W - 2 ? (running ? 'g' : 's') : '.';
+        }
+        // The shaft: two girders, cross-braced.
+        if (x === 0 || x === W - 1) return 'w';
+        if ((y + x * 2) % 12 === 0 || (y - x * 2 + 120) % 12 === 0) return 'n';
+        return '.';
+      }).join(''),
+    ),
+    colours: C,
+  };
+};
+export const STREET_LIFT_RUNNING = Array.from({ length: 8 }, (_, i) => streetLift(i, true));
+export const STREET_LIFT_BROKEN = [streetLift(0, false)];

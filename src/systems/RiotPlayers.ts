@@ -1,0 +1,244 @@
+import { RiotGame, type Order, type RiotSquad, type RiotState } from './Riot';
+
+// Computer players for the riot game (src/systems/Riot.ts), all of them the guard: your father when he
+// means it (careful: "Now." in the lesson, and taking the table over if dawn beats you), the guard in the
+// lesson (steady: it only punishes what's left open), and the balance tests (docs/sequences/chapter-3/
+// war-table.md), which play it at different levels of skill. The rising's own play is `RiotGame.risingOrders`.
+
+/** A whole turn for the guard: the power cut (if any) and every order. */
+export interface Turn {
+  cut?: string;
+  orders: Order[];
+}
+
+/** How good a position looks for the guard. */
+export function evaluate(g: RiotGame, s: RiotState): number {
+  const o = g.outcome(s);
+  if (o === 'guard') return 10000 - s.turn * 10;
+  if (o === 'rising') return -10000;
+  let v = 0;
+  const guard = g.mine(s, 'guard');
+  const rising = g.mine(s, 'rising');
+  for (const q of guard) v += q.strength * 3;
+  for (const q of rising) v -= q.strength * (q.place === g.heart ? 4 : 3);
+  // Crowds next to the square will fall back into it.
+  for (const q of rising) if (q.place !== g.heart && g.near(q.place, g.heart)) v -= q.strength * 2;
+  for (const p of g.board.places) if (s.owner[p.id] === 'guard') v += 1;
+  // Crests (Jack): each one taken is an elite; a crest on the map, worth getting near.
+  if (g.rules.elites) {
+    v += (g.crestsTaken(s, 'guard') - g.crestsTaken(s, 'rising')) * 4;
+    for (const q of guard) if (q.poison) v += 3;
+  }
+  // Crowds near the way up are a worry.
+  for (const q of rising) if (q.place !== g.heart) v -= Math.max(0, 3 - (g.upDist.get(q.place) ?? 9)) * q.strength;
+  // Closing on the square: how much is next to it, and the biggest squad, how near and how close to matching it.
+  const h = g.squadAt(s, g.heart);
+  const need = h ? g.defence(s, g.heart, h.strength) : 0;
+  const near = guard.filter((q) => g.near(q.place, g.heart));
+  v += Math.min(near.reduce((n, q) => n + q.strength, 0), need) * 2 + near.length;
+  const biggest = [...guard].sort((a, b) => b.strength - a.strength)[0];
+  if (biggest) v += Math.min(biggest.strength, need + 1) * 2 - distance(g, biggest.place, g.heart) * 2;
+  return v;
+}
+
+function distance(g: RiotGame, a: string, b: string, s?: RiotState): number {
+  const seen = new Map([[a, 0]]);
+  const todo = [a];
+  while (todo.length) {
+    const p = todo.shift()!;
+    if (p === b) return seen.get(p)!;
+    // (Given the state, round a street that's closed, as a person would: Jack's sabotage.)
+    for (const n of g.adj.get(p)!) if (!seen.has(n) && (!s || g.open(s, p, n))) (seen.set(n, seen.get(p)! + 1), todo.push(n));
+  }
+  return 99;
+}
+
+/** A turn played out for the guard: the rising's orders as shown at the start, the power cut, the guard's orders, then the rest. */
+export function playTurn(g: RiotGame, s: RiotState, turn: Turn, rising = g.risingOrders(s)): RiotState {
+  return g.turn(turn.cut ? g.cutPower(s, turn.cut) : s, turn.orders, rising).state;
+}
+
+export type GuardPlayer = (g: RiotGame, s: RiotState) => Turn;
+
+const options = (g: RiotGame, s: RiotState, q: RiotSquad): string[] => [q.place, ...g.dests(s, q)];
+
+function cuts(g: RiotGame, s: RiotState): (string | undefined)[] {
+  return g.canCut(s) ? [undefined, ...g.mine(s, 'rising').map((q) => q.place)] : [undefined];
+}
+
+/** Sensible: the best power cut, then each squad in turn does what looks best one turn ahead. */
+export function sensible(): GuardPlayer {
+  return (g, s) => {
+    let cut: string | undefined;
+    let bv = -Infinity;
+    for (const c of cuts(g, s)) {
+      const v = evaluate(g, playTurn(g, s, { cut: c, orders: [] }));
+      if (v > bv) (bv = v), (cut = c);
+    }
+    const orders: Order[] = [];
+    for (const q of g.mine(s, 'guard')) {
+      let pick = q.place;
+      let pv = -Infinity;
+      for (const to of options(g, s, q)) {
+        const v = evaluate(g, playTurn(g, s, { cut, orders: [...orders, { squad: q.id, to }] }));
+        if (v > pv) (pv = v), (pick = to);
+      }
+      orders.push({ squad: q.id, to: pick });
+    }
+    return { cut, orders };
+  };
+}
+
+/**
+ * Careful (your father): starts from the sensible turn, then keeps changing one squad's order (and when it
+ * goes: first, or last) and the power cut while that improves things, judging each by the turn after too.
+ */
+export function careful(): GuardPlayer {
+  const quick = sensible();
+  const judge = (g: RiotGame, s: RiotState, t: Turn) => {
+    let n = playTurn(g, s, t);
+    if (!g.outcome(n)) n = playTurn(g, n, quick(g, n));
+    return evaluate(g, n);
+  };
+  return (g, s) => {
+    let best = quick(g, s);
+    let bv = judge(g, s, best);
+    for (let pass = 0; pass < 3; pass++) {
+      let improved = false;
+      for (const q of g.mine(s, 'guard')) {
+        const others = best.orders.filter((o) => o.squad !== q.id);
+        for (const to of options(g, s, q)) {
+          const o = { squad: q.id, to };
+          for (const orders of [best.orders.map((x) => (x.squad === q.id ? o : x)), [o, ...others], [...others, o]]) {
+            const t = { cut: best.cut, orders };
+            const v = judge(g, s, t);
+            if (v > bv + 1e-9) (bv = v), (best = t), (improved = true);
+          }
+        }
+      }
+      for (const cut of cuts(g, s)) {
+        const t = { cut, orders: best.orders };
+        const v = judge(g, s, t);
+        if (v > bv + 1e-9) (bv = v), (best = t), (improved = true);
+      }
+      if (!improved) break;
+    }
+    return best;
+  };
+}
+
+/** The guard in the lesson (steady): holds its ground, and only goes for a squad of the rising it beats by 2 or more. */
+export function steady(): GuardPlayer {
+  return (g, s) => {
+    const orders: Order[] = [];
+    const claimed = new Set<string>();
+    for (const q of g.mine(s, 'guard').sort((a, b) => b.strength - a.strength)) {
+      const target = g.dests(s, q).find((to) => {
+        const there = g.squadAt(s, to);
+        return to !== g.heart && !claimed.has(to) && there?.side === 'rising' && g.attack(q.place, to, q.strength) - g.defence(s, to, there.strength) >= 2;
+      });
+      if (target) (orders.push({ squad: q.id, to: target }), claimed.add(target));
+    }
+    return { orders };
+  };
+}
+
+/** Random orders (a player who doesn't know what they're doing). */
+export function random(seed = 1): GuardPlayer {
+  let r = seed;
+  const rnd = () => ((r = (r * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  return (g, s) => ({ orders: g.mine(s, 'guard').map((q) => {
+    const o = options(g, s, q);
+    return { squad: q.id, to: o[Math.floor(rnd() * o.length)]! };
+  }) });
+}
+
+/**
+ * A whole game, the guard against the rising (by default the rising's own play, its elite squad too: Jack), to
+ * the end or a turn limit.
+ */
+export function playOut(g: RiotGame, s0: RiotState, player: GuardPlayer, rising?: (g: RiotGame, s: RiotState) => Order[], limit = 40): { state: RiotState; winner: 'guard' | 'rising' } {
+  let s = s0;
+  for (let i = 0; i < limit && !g.outcome(s); i++) {
+    if (!rising) s = g.risingActs(s).state;
+    // (The guard's elite squad too, played simply: Jack.)
+    if (g.rules.elites) s = g.eliteActs(s, 'guard').state;
+    s = playTurn(g, s, player(g, s), rising ? rising(g, s) : g.risingOrders(s));
+  }
+  return { state: s, winner: g.outcome(s) ?? 'rising' };
+}
+
+/**
+ * Naive (a person on their first go, as the designer played it): every squad heads for the square by the
+ * shortest way, attacking anything it can beat on the way, joining up with its own; at the square, it attacks
+ * only if it'd take it. No power cut, no fortify, no thought for the order.
+ */
+export function naive(): GuardPlayer {
+  return (g, s) => {
+    const orders: Order[] = [];
+    for (const q of [...g.mine(s, 'guard')].sort((a, b) => b.strength - a.strength)) {
+      const ways = g.dests(s, q);
+      const beat = ways.find((to) => {
+        const there = g.squadAt(s, to);
+        return there?.side === 'rising' && g.attack(q.place, to, q.strength) > g.defence(s, to, there.strength) - (to === g.heart ? 1 : 0);
+      });
+      if (beat) {
+        orders.push({ squad: q.id, to: beat });
+        continue;
+      }
+      const step = ways.filter((to) => g.squadAt(s, to)?.side !== 'rising').sort((a, b) => distance(g, a, g.heart, s) - distance(g, b, g.heart, s))[0];
+      if (step && distance(g, step, g.heart, s) < distance(g, q.place, g.heart, s)) orders.push({ squad: q.id, to: step });
+    }
+    return { orders };
+  };
+}
+
+/**
+ * Your friend in the duel (Day 6; designer: he played too static): he never empties his camp (the duel's won by
+ * taking it), but everything else is always on the move. Each squad hits a squad of yours it can beat next to
+ * it; if you're closing on his camp with more than its garrison, the nearest two come back to stand in your
+ * way; otherwise they march on your keep by the shortest way, joining up as they meet, and go in when they'd
+ * take it.
+ */
+export function besieger(): GuardPlayer {
+  return (g, s) => {
+    const orders: Order[] = [];
+    const camp = g.squadAt(s, g.lifts);
+    const home = camp?.side === 'guard' ? camp : undefined;
+    // Your biggest squad within two steps of his camp, and whether it's more than the camp could hold.
+    const near = g.mine(s, 'rising').filter((q) => distance(g, q.place, g.lifts) <= 2).sort((a, b) => b.strength - a.strength)[0];
+    const threat = !!near && near.strength >= (home ? g.defence(s, g.lifts, home.strength) : 0);
+    const claimed = new Set<string>();
+    const field = g.mine(s, 'guard').filter((q) => q !== home).sort((a, b) => b.strength - a.strength);
+    const defenders = threat ? [...field].sort((a, b) => distance(g, a.place, near.place) - distance(g, b.place, near.place)).slice(0, 2) : [];
+    for (const q of field) {
+      const ways = g.dests(s, q);
+      const beat = ways.filter((to) => {
+        const t = g.squadAt(s, to);
+        return to !== g.heart && !claimed.has(to) && t?.side === 'rising' && g.attack(q.place, to, q.strength) > g.defence(s, to, t.strength);
+      }).sort((a, b) => g.squadAt(s, b)!.strength - g.squadAt(s, a)!.strength)[0];
+      if (beat) {
+        orders.push({ squad: q.id, to: beat });
+        claimed.add(beat);
+        continue;
+      }
+      const goal = defenders.includes(q) ? near!.place : g.heart;
+      if (goal === g.heart && ways.includes(g.heart)) {
+        const keep = g.squadAt(s, g.heart);
+        if (!keep || keep.side !== 'rising' || q.strength >= keep.strength) {
+          orders.push({ squad: q.id, to: g.heart });
+          continue;
+        }
+        // Not enough on its own: join the biggest of his others at the keep's door, so they can go in together.
+        const mate = ways.map((to) => g.squadAt(s, to)).filter((m) => m?.side === 'guard' && m !== home && g.near(m.place, g.heart) && m.strength >= q.strength).sort((a, b) => b!.strength - a!.strength)[0];
+        if (mate) {
+          orders.push({ squad: q.id, to: mate.place });
+          continue;
+        }
+      }
+      const step = ways.filter((to) => to !== g.heart && g.squadAt(s, to)?.side !== 'rising').sort((a, b) => distance(g, a, goal) - distance(g, b, goal))[0];
+      if (step && distance(g, step, goal) < distance(g, q.place, goal)) orders.push({ squad: q.id, to: step });
+    }
+    return { orders };
+  };
+}

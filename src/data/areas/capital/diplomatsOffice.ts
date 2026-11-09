@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition } from '../types';
-import { cast, citizen, OPEN_LATE } from './people';
+import { cast, citizen, inStory, OPEN_LATE } from './people';
 
 // The diplomat's office (Chapter 3): your hand's office: maps, letters, and visitors at odd hours
 // (docs/areas/capital/diplomats-office.md). Busy and warm, unlike the rest of the citadel: the wall of
@@ -66,10 +66,21 @@ export const diplomatsOffice: AreaDefinition = {
   features: [
     { type: 'pulse', points: [{ x: 301, y: TOP + 2 }, { x: 301, y: FLOOR - 58 }], speed: 170, every: 2600, sprite: P.CAPSULE },
     { type: 'frames', frames: P.scrollingScreen(44, 28), x: 358, y: 86, every: 400 },
+    // Day 7's night: nobody here, but a lamp lit on his desk, as if someone was expected (clue 7).
+    { type: 'frames', frames: [P.LAMP], x: 270, y: FLOOR - 33, every: 60000, showIf: 'c3day7=halls,lifts' },
+    { type: 'trigger', x: 60, y: FLOOR, reach: 16, knot: 'c3day7_office', showIf: 'c3day7=halls', hideIf: 'office7' },
   ],
   people: [
     cast('diplomat', 336, FLOOR, { knot: 'office_diplomat', when: OPEN_LATE, flipX: true }), // at his desk
-    citizen('visitor', 9, 204, FLOOR, 'office_visitor', ['night']), // someone hooded, at an odd hour
+    citizen('visitor', 9, 204, FLOOR, 'office_visitor', ['night'], { hideIf: 'c3_story' }), // someone hooded, at an odd hour
+    // Chapter 3's story. Day 2: your hand, waiting for you with a plain coat.
+    inStory('hand-6', 'diplomat', 336, FLOOR, 'c3day2=report', { knot: 'c3day2_office', flipX: true }),
+    // Day 3: the same, and faster.
+    inStory('hand-3o', 'diplomat', 336, FLOOR, 'c3day3=office', { knot: 'c3day3_office', flipX: true }),
+    // Day 5: the same: they're waiting.
+    inStory('hand-5o', 'diplomat', 336, FLOOR, 'c3day5=office', { knot: 'c3day5_office', flipX: true }),
+    // Day 7's night: your friend with you, on his way out.
+    inStory('heir-f', 'heir', 50, FLOOR, 'heir_with_you', { follow: true, knot: 'c3day7_heir_walk' }),
   ],
   interactables: [
     { id: 'notes', x: 70, y: FLOOR, reach: 10, label: 'Look', knot: 'office_notes' },

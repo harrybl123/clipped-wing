@@ -4,9 +4,11 @@ import { COMBATANTS, ENCOUNTERS, ITEMS, LESSONS, type Lesson, MOVES } from '../d
 import { getSession } from '../session';
 import { Battle, type Action, type BattleEvent, type Combatant, type Intent, type MoveDef, type Reaction } from '../systems/Combat';
 import type { Grade, Key, Qte, QteKind } from '../systems/qte';
-import { BEETLE_BATTLE, CARVER_BATTLE, COLLECTOR_BATTLE, COLLECTOR_BIG_BATTLE, TICKER_BATTLE, SCOUT_BATTLE, PICKER_BATTLE, PICKER_LOUD_BATTLE, DOG_BATTLE, ENFORCER_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, OLD_SCAV_BATTLE, RAIDER_BATTLE, RAIDER_LEAD_BATTLE, SCAVENGER_BATTLE, SCAVENGER_FISTS_BATTLE, SCOUT_BACK_BATTLE, SON_BACK_BATTLE, SON_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, WATCHER_BACK_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
+import { BEETLE_BATTLE, CARVER_BATTLE, HAND_BATTLE, HAND_BACK_BATTLE, HEIR_BATTLE, HEIR_BACK_BATTLE, PRINCE_PLAIN_BATTLE, WATCH_YOUNG_BATTLE, WATCH_OLD_BATTLE, PRINCE_FULL_BATTLE, RIOTER_BATTLE, RIOTER_BIG_BATTLE, PRINCE_BATTLE, SIM_GUARD_BATTLE, COLLECTOR_BATTLE, COLLECTOR_BIG_BATTLE, TICKER_BATTLE, SCOUT_BATTLE, PICKER_BATTLE, PICKER_LOUD_BATTLE, DOG_BATTLE, ENFORCER_BATTLE, GIRL_BATTLE, LACKEY_BATTLE, OLD_SCAV_BATTLE, RAIDER_BATTLE, RAIDER_LEAD_BATTLE, SCAVENGER_BATTLE, SCAVENGER_FISTS_BATTLE, SCOUT_BACK_BATTLE, SON_BACK_BATTLE, SON_BATTLE, STRAGGLER_BIG_BATTLE, STRAGGLER_SMALL_BATTLE, STRAGGLER_THIN_BATTLE, WATCHER_BACK_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
 import { CAST, DOG, RIVALS } from '../ui/borderlandFolk';
-import { GIRL, PROTAGONIST, SCAVENGER } from '../ui/characters';
+import { GIRL, PRINCE, PRINCE_PLAIN, PROTAGONIST, SCAVENGER } from '../ui/characters';
+import { CAPITAL_CAST } from '../ui/capitalFolk';
+import { cityViewPainter } from '../ui/paintCityView';
 import { paintFar } from '../ui/paintOutdoor';
 import { QteRunner } from '../ui/QteRunner';
 import { addLight, falloff, noise, rgb, SHADES } from '../ui/pixelArt';
@@ -46,6 +48,8 @@ export interface CombatSceneData {
   only?: string;
   /** Dev only: choose the fight first (a picker), instead of starting one. */
   pick?: boolean;
+  /** Back to another scene instead of an area (the war table, after a fight you went down to yourself): it gets this data and the `outcome`. */
+  returnTo?: { scene: string; data: object };
 }
 
 /** Where party member i of n stands (and their panel sits), along the bottom: their own place, in party order. */
@@ -95,6 +99,19 @@ const LOOKS: Record<string, Look> = {
   picker_loud: { poses: PICKER_LOUD_BATTLE, scale: 1 },
   ticker: { poses: TICKER_BATTLE, scale: 1 },
   scout: { poses: SCOUT_BATTLE, scale: 1 },
+  // Chapter 3.
+  prince: { poses: PRINCE_BATTLE, scale: 2, cutIn: PRINCE.idle[0]! },
+  hand: { poses: HAND_BATTLE, scale: 1, cutIn: CAPITAL_CAST.diplomat.idle[0]! },
+  sim_guard: { poses: SIM_GUARD_BATTLE, scale: 1 },
+  heir: { poses: HEIR_BATTLE, scale: 1 },
+  prince_full: { poses: PRINCE_FULL_BATTLE, scale: 2, cutIn: PRINCE.idle[0]! },
+  hand_back: { poses: HAND_BACK_BATTLE, scale: 2, cutIn: CAPITAL_CAST.diplomat.idle[0]! },
+  rioter: { poses: RIOTER_BATTLE, scale: 1 },
+  rioter_big: { poses: RIOTER_BIG_BATTLE, scale: 1 },
+  prince_plain: { poses: PRINCE_PLAIN_BATTLE, scale: 2, cutIn: PRINCE_PLAIN.idle[0]! },
+  heir_back: { poses: HEIR_BACK_BATTLE, scale: 2, cutIn: CAPITAL_CAST.heir.idle[0]! },
+  watch_young: { poses: WATCH_YOUNG_BATTLE, scale: 1 },
+  watch_old: { poses: WATCH_OLD_BATTLE, scale: 1 },
 };
 
 interface View {
@@ -163,7 +180,7 @@ export class CombatScene extends Phaser.Scene {
   init(data?: Partial<CombatSceneData>): void {
     this.params = {
       encounter: data?.encounter ?? 'market_scrap', back: data?.back ?? { areaId: 'roots-market' },
-      ...(data?.only ? { only: data.only } : {}), ...(data?.pick ? { pick: true } : {}),
+      ...(data?.only ? { only: data.only } : {}), ...(data?.pick ? { pick: true } : {}), ...(data?.returnTo ? { returnTo: data.returnTo } : {}),
     };
     this.views = new Map();
     this.menu = null;
@@ -208,7 +225,7 @@ export class CombatScene extends Phaser.Scene {
     this.lessons = [...(encounter.teaches ?? []), ...(also && !getSession(this).story.getVariable(also.unless) ? also.lessons : [])];
     // The stage: where it's fought.
     const where = encounter.stage ?? 'market';
-    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : where === 'fields' ? paintFieldsStage() : where === 'camp' ? paintCampStage() : where === 'bar' ? paintBarStage() : where === 'den' ? paintDenStage() : where === 'yard' ? paintYardStage() : paintStage());
+    makePaintedTexture(this, `combat-stage-${where}`, W, H, where === 'rot' ? paintRotStage() : where === 'fields' ? paintFieldsStage() : where === 'camp' ? paintCampStage() : where === 'bar' ? paintBarStage() : where === 'den' ? paintDenStage() : where === 'yard' ? paintYardStage() : where === 'balcony' ? paintBalconyStage() : where === 'sim' ? paintSimStage() : where === 'square' ? paintSquareStage() : where === 'steps' ? paintStepsStage() : where === 'gate' ? paintGateStage() : paintStage());
     stage.setTexture(`combat-stage-${where}`);
     const party = this.battle.combatants.filter((c) => c.side === 'party');
     const enemies = this.battle.combatants.filter((c) => c.side === 'enemy');
@@ -990,7 +1007,8 @@ export class CombatScene extends Phaser.Scene {
     for (const cam of this.cameras.cameras) cam.fadeOut(600, 0, 0, 0);
     // A fight you have to win: lost, and it starts again.
     const again = outcome === 'lost' && this.battle.encounter.mustWin;
-    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => (again ? this.scene.restart(this.params) : this.scene.start('Area', this.params.back)));
+    const back = () => (this.params.returnTo ? this.scene.start(this.params.returnTo.scene, { ...this.params.returnTo.data, outcome }) : this.scene.start('Area', this.params.back));
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => (again ? this.scene.restart(this.params) : back()));
   }
 
   /** Whose turn it is: they come into focus (with friends), and the camera takes in the whole stage. */
@@ -1917,5 +1935,179 @@ function paintYardStage() {
     if (tree || crown) return SHADES.shadow;
     const star = noise(x * 13.1 + y * 7.3) > 0.985;
     return star ? SHADES.dim : addLight(deep, rgb(SHADES.cyanDeep), 0.15 + (1 - y / HORIZON) * 0.1);
+  };
+}
+
+/**
+ * Your balcony at dawn (Chapter 3, Day 1): the sky pale, the city falling away below with the tree far off
+ * on the horizon (the areas' own view of the city), the rail across the back, and the balcony's pale marble
+ * under your feet, veined, gold at its edge.
+ */
+function paintBalconyStage() {
+  const RAIL = HORIZON - 4;
+  const view = cityViewPainter({ x: 0, y: 0, width: W, height: RAIL, horizon: 52, treeX: 390, treeScale: 0.14 }, 'morning');
+  const marble = rgb(SHADES.light);
+  const vein = rgb(SHADES.dim);
+  const dawn = rgb(SHADES.amber);
+  const vx = 260;
+  return (x: number, y: number) => {
+    if (y < RAIL - 14) return view(x, y);
+    // The rail: a gold capping, then balusters with the city between them.
+    if (y < RAIL - 12) return SHADES.amber;
+    if (y < RAIL - 10) return SHADES.light;
+    if (y < RAIL - 2) return (x % 12) < 4 ? (x % 12 === 0 ? SHADES.dim : SHADES.light) : view(x, y);
+    if (y < RAIL) return SHADES.light;
+    if (y < HORIZON) return SHADES.amberDeep;
+    // The marble floor in perspective: big slabs, a vein through each, the dawn warm across it.
+    const depth = (y - HORIZON) / (H - HORIZON);
+    const u = (x - vx) / Math.max(0.05, depth);
+    const seam = Math.abs((((u / 60) % 1) + 1) % 1 - 0.5) > 0.485 || Math.abs(((1 / Math.max(0.06, depth)) * 1.2) % 1 - 0.5) > 0.48;
+    const base = addLight(addLight(marble, rgb(SHADES.white), 0.35), dawn, 0.04 + (1 - depth) * 0.05);
+    if (seam) return SHADES.dim;
+    if (Math.abs(noise2(u / 40, y / 9) - 0.5) < 0.012) return addLight(base, vein, 0.45);
+    return base;
+  };
+}
+
+/**
+ * The simulation room (Chapter 3, Day 2): a fight on the war table, gone down to yourself. Dark all round,
+ * a floor of light in a grid running away from you, the table's glow, the city in light far off.
+ */
+function paintSimStage() {
+  const deep = rgb(SHADES.shadow);
+  const cyan = rgb(SHADES.cyanMid);
+  const vx = 260;
+  return (x: number, y: number) => {
+    if (y >= HORIZON) {
+      const depth = (y - HORIZON) / (H - HORIZON);
+      const u = (x - vx) / Math.max(0.05, depth);
+      const line = Math.abs((((u / 40) % 1) + 1) % 1 - 0.5) > 0.47 || Math.abs(((1 / Math.max(0.06, depth)) * 1.5) % 1 - 0.5) > 0.46;
+      if (line) return depth > 0.15 ? SHADES.cyanMid : SHADES.cyanDeep;
+      return addLight(deep, cyan, 0.08 + (1 - depth) * 0.08);
+    }
+    // The city far off, in outline: blocks of light on the dark.
+    const col = Math.floor(x / 14);
+    const top = HORIZON - 10 - noise(col * 2.7) * 44 - (Math.abs(x - 240) < 40 ? 30 : 0);
+    if (y > top) return Math.abs(y - top) < 1 || x % 14 === 0 ? SHADES.cyanMid : (x * 7 + y * 3) % 23 === 0 ? SHADES.cyan : SHADES.cyanDeep;
+    return addLight(deep, cyan, 0.04 + (y / HORIZON) * 0.06);
+  };
+}
+
+/**
+ * The square at night, in the riot (Chapter 3, Day 4): the city behind, its lights out where the power's
+ * cut; a barricade burning across the far side of the square; the paving running towards you, lit amber by
+ * the fire and wet with the rain.
+ */
+function paintSquareStage() {
+  const view = cityViewPainter({ x: 0, y: 0, width: W, height: HORIZON, horizon: 70, treeX: 390, treeScale: 0.1 }, 'night');
+  const stone = rgb(SHADES.dim);
+  const fire = rgb(SHADES.amber);
+  const vx = 240;
+  return (x: number, y: number) => {
+    // The barricade: a ragged heap across the square, black against the fire behind it.
+    const heap = HORIZON - 8 - noise(x / 9) * 14 - (Math.abs(x - 300) < 60 ? 6 : 0);
+    if (y < HORIZON) {
+      if (y > heap) return (x * 5 + y * 3) % 17 === 0 ? SHADES.amberDeep : SHADES.shadow;
+      // The fire's glow up into the night over it.
+      const glow = falloff(x, y, 300, heap, 150, 60);
+      const c = view(x, y);
+      const base = c === null ? rgb(SHADES.shadow) : typeof c === 'number' ? rgb(c) : c;
+      return addLight(base, fire, glow * 0.55);
+    }
+    // The paving in perspective, setts in rows; the fire's light on it, stronger near the barricade.
+    const depth = (y - HORIZON) / (H - HORIZON);
+    const u = (x - vx) / Math.max(0.05, depth);
+    const seam = Math.abs((((u / 22) % 1) + 1) % 1 - 0.5) > 0.46 || Math.abs(((1 / Math.max(0.06, depth)) * 2.4) % 1 - 0.5) > 0.44;
+    const lit = addLight(addLight(rgb(SHADES.shadow), stone, 0.35), fire, 0.03 + (1 - depth) * 0.12 + falloff(x, 0, 300, 0, 160) * 0.06);
+    if (seam) return addLight(lit, rgb(SHADES.shadow), 0.5);
+    // Puddles of rain, catching the fire.
+    if (noise2(u / 30, y / 6) > 0.78) return addLight(lit, fire, 0.12);
+    return lit;
+  };
+}
+
+/**
+ * The citadel steps at night, in the riot (Chapter 3, Day 4: the ones who broke through): the citadel's own
+ * look (marble, gold, blue light), the great gate with its old stone arch and the portcullis down at the top
+ * of the steps, and the steps coming down towards you, pale marble edged in gold, lit amber from below by the
+ * fires in the city.
+ */
+/**
+ * The gate at night (Chapter 3, Day 7): the city's old wall, its passage under an arch dark to the road
+ * beyond, the booth's amber light on wet paving, rain.
+ */
+function paintGateStage() {
+  const stone = rgb(SHADES.dim);
+  const lamp = rgb(SHADES.amber);
+  const night = rgb(SHADES.shadow);
+  const gx = 230;
+  return (x: number, y: number) => {
+    if (y < HORIZON) {
+      // The night sky over the wall, the city's glow low on it; rain in slanting streaks.
+      if (y < 34) {
+        let c = addLight(night, rgb(SHADES.cyanDeep), 0.1 + (y / 34) * 0.15);
+        if ((x + y * 2) % 23 === 0 && noise(x / 5 + y) > 0.55) c = addLight(c, rgb(SHADES.light), 0.35);
+        return c;
+      }
+      // The wall: old stone, big blocks, gold gone dull along its top.
+      const blockRow = Math.floor(y / 12);
+      const bx = (x + (blockRow % 2) * 15) % 30;
+      let c = addLight(night, stone, 0.32 + (noise(x / 9 + blockRow) - 0.5) * 0.12);
+      if (bx === 0 || y % 12 === 0) c = addLight(c, night, 0.55);
+      if (y < 38) c = addLight(c, rgb(SHADES.amberDeep), 0.4);
+      // The passage: an arch, dark right through, a lamp in it.
+      const dx = Math.abs(x - gx);
+      const archTop = 52 + (dx < 40 ? 40 - Math.sqrt(Math.max(0, 40 * 40 - dx * dx)) : 99);
+      if (dx < 40 && y > archTop) return addLight(night, lamp, falloff(x, y, gx, archTop + 10, 30, 20) * 0.35);
+      // The booth's light on the wall, off to the right.
+      c = addLight(c, lamp, falloff(x, y, 400, HORIZON, 200, 90) * 0.28);
+      if ((x + y * 2) % 23 === 0 && noise(x / 5 + y) > 0.6) c = addLight(c, rgb(SHADES.light), 0.25);
+      return c;
+    }
+    // The road: wet paving, the booth's light pooled on it, and the lamp's in the arch.
+    const depth = (y - HORIZON) / (H - HORIZON);
+    const row = Math.floor(Math.pow(depth, 0.7) * 10);
+    const px = Math.floor((x + row * 9) / (18 + row * 4));
+    let c = addLight(addLight(stone, night, 0.55 - depth * 0.1), rgb(SHADES.cyanDeep), 0.08);
+    if ((x + row * 9) % (18 + row * 4) === 0 || Math.abs(Math.pow(depth, 0.7) * 10 - row) < 0.06) c = addLight(c, night, 0.5);
+    c = addLight(c, lamp, falloff(x, y, 400, H - 20, 220, 50) * 0.3 + falloff(x, y, gx, HORIZON + 6, 50, 14) * 0.3);
+    if (noise2(px, row) > 0.8) c = addLight(c, rgb(SHADES.light), 0.12); // a puddle catching the light
+    return c;
+  };
+}
+
+function paintStepsStage() {
+  const marble = rgb(SHADES.light);
+  const fire = rgb(SHADES.amber);
+  const night = rgb(SHADES.shadow);
+  const gx = 240;
+  return (x: number, y: number) => {
+    if (y < HORIZON) {
+      // The citadel's wall: pale blocks, darker towards the top; blue light up its seams.
+      const blockRow = Math.floor(y / 9);
+      const bx = (x + (blockRow % 2) * 11) % 22;
+      let c = addLight(night, marble, 0.18 + (y / HORIZON) * 0.25);
+      if (bx === 0 || y % 9 === 0) c = addLight(c, night, 0.5);
+      if (x % 80 === 40 && y > 10) c = addLight(c, rgb(SHADES.cyan), 0.7);
+      // The gate: an old stone arch, the portcullis down behind it, dark through the bars.
+      const dx = Math.abs(x - gx);
+      const archTop = 28 + (dx < 46 ? 46 - Math.sqrt(Math.max(0, 46 * 46 - dx * dx)) : 99);
+      if (dx < 54 && y > archTop - 8) {
+        if (dx >= 46 || y < archTop) return addLight(rgb(SHADES.dim), night, 0.3 + (noise(x / 3 + y) - 0.5) * 0.2); // the old stone
+        if (x % 8 === 0 || y % 10 === 0) return addLight(rgb(SHADES.deep), fire, 0.12); // the portcullis
+        return night;
+      }
+      // Firelight up the wall from below.
+      return addLight(c, fire, falloff(x, y, gx, HORIZON, 260, 70) * 0.18);
+    }
+    // The steps: bands deeper as they come down towards you, each a pale tread with a gold edge and a shadowed riser.
+    const depth = (y - HORIZON) / (H - HORIZON);
+    const step = Math.floor(Math.pow(depth, 0.7) * 9);
+    const within = Math.pow(depth, 0.7) * 9 - step;
+    let c = addLight(addLight(marble, night, 0.25 + step * 0.03), fire, 0.06 + depth * 0.22);
+    if (within < 0.08) c = rgb(SHADES.amber); // the gold edge
+    else if (within > 0.82) c = addLight(c, night, 0.45); // the riser in shadow
+    if (Math.abs(noise2(x / 40, y / 8) - 0.5) < 0.012) c = addLight(c, rgb(SHADES.dim), 0.5); // a vein
+    return c;
   };
 }

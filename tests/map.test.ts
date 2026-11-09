@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { BORDERLAND_AREAS, CAPITAL_AREAS, PLANNED_AREAS, TREE_AREAS } from '../src/data/areas';
+import { BORDERLAND_AREAS, CANOPY_AREAS, CAPITAL_AREAS, PLANNED_AREAS, TREE_AREAS } from '../src/data/areas';
 import { BORDERLAND_LINKS, BORDERLAND_PLACES, SETTLEMENT } from '../src/data/borderlandMap';
+import { CANOPY_LINKS, CANOPY_PLACES } from '../src/data/canopyMap';
 import { CAPITAL_LINKS, CAPITAL_PLACES } from '../src/data/capitalMap';
 import { MAP_LINKS, MAP_PLACES, MAP_TUBE_X, neighbourInDirection, treeHalfWidth, WORLDS, worldOf, type MapPlace } from '../src/data/map';
 
@@ -193,3 +194,47 @@ describe("the capital's map", () => {
     expect([...seen].sort()).toEqual(CAPITAL_PLACES.map((p) => p.id).sort());
   });
 });
+
+describe("the canopy's map", () => {
+  it('has every canopy area exactly once', () => {
+    expect(CANOPY_PLACES.map((p) => p.id).sort()).toEqual(Object.keys(CANOPY_AREAS).sort());
+    expect(worldOf('tube-mouth').id).toBe('canopy');
+  });
+
+  it('keeps places on screen and apart from each other', () => {
+    for (const p of CANOPY_PLACES) {
+      expect(p.x > 8 && p.x < 472 && p.y > 8 && p.y < 256, p.id).toBe(true);
+      for (const q of CANOPY_PLACES) if (q !== p) expect(Math.hypot(p.x - q.x, p.y - q.y), `${p.id}–${q.id}`).toBeGreaterThan(18);
+    }
+  });
+
+  it('puts the top above the middle, and the middle above the edges (height is status)', () => {
+    const lowest = (level: string) => Math.max(...CANOPY_PLACES.filter((p) => p.level === level).map((p) => p.y));
+    const highest = (level: string) => Math.min(...CANOPY_PLACES.filter((p) => p.level === level).map((p) => p.y));
+    expect(lowest('the top')).toBeLessThan(highest('the middle'));
+    expect(lowest('the middle')).toBeLessThan(highest('the edges'));
+  });
+
+  it('links only places that exist', () => {
+    const ids = new Set(CANOPY_PLACES.map((p) => p.id));
+    for (const l of CANOPY_LINKS) expect(ids.has(l.from) && ids.has(l.to), `${l.from}–${l.to}`).toBe(true);
+  });
+
+  it('can reach every place from the tube mouth by pressing directions', () => {
+    const at = (id: string) => CANOPY_PLACES.find((p) => p.id === id)!;
+    const seen = new Set<string>(['tube-mouth']);
+    const queue = [at('tube-mouth')];
+    while (queue.length) {
+      const p = queue.shift()!;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+        const n = neighbourInDirection(p, dx, dy, CANOPY_PLACES);
+        if (n && !seen.has(n.id)) {
+          seen.add(n.id);
+          queue.push(n);
+        }
+      }
+    }
+    expect([...seen].sort()).toEqual(CANOPY_PLACES.map((p) => p.id).sort());
+  });
+});
+

@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition, CityView } from '../types';
-import { cast, courtier, guard, servant, strollingCourtier, MORNING } from './people';
+import { cast, courtier, guard, inStory, servant, strollingCourtier, MORNING } from './people';
 
 // The guest wing (Chapter 3): where the heirs of families your father doubts are invited to live, as an
 // honour, and only find out once they're in that they can't leave (designer; docs/areas/capital/guest-wing.md).
@@ -68,19 +68,34 @@ export const guestWing: AreaDefinition = {
   ],
 
   features: [
+    // Chapter 3, Day 6: coming in, your friend at the barrier, trying to go home.
+    { type: 'trigger', x: 596, y: FLOOR, reach: 16, knot: 'c3day6_barrier', showIf: 'c3day6=wing', hideIf: 'barrier6' },
     { type: 'frames', frames: P.SURVEILLANCE_FRAMES, x: 540, y: 116, every: 700 },
     // Empty gilded cages, hung for ornament.
     ...[194, 304, 414].map((x) => ({ type: 'swing' as const, sprite: P.CAGE, x, y: TOP + 26, ropeTop: TOP, quiet: true, ropeColour: S.amber })),
   ],
   people: [
     // The guards' post at the way out.
-    guard('barrier-guard-1', 0, 522, FLOOR, 'c3_guard_guests', undefined, { flipX: true }),
-    guard('barrier-guard-2', 1, 576, FLOOR, 'c3_guard_guests', undefined, { flipX: true }),
+    guard('barrier-guard-1', 0, 522, FLOOR, 'c3_guard_guests', undefined, { flipX: true, hideIf: 'c3day7=barrier,halls,lifts,fight,home' }),
+    guard('barrier-guard-2', 1, 576, FLOOR, 'c3_guard_guests', undefined, { flipX: true, hideIf: 'c3day7=barrier,halls,lifts,fight,home' }),
     cast('captain', 498, FLOOR, { knot: 'guest_captain', when: ['afternoon'], flipX: true }),
     // The other guests.
     courtier('guest-1', 0, 290, FLOOR, 'guest_wing_guest', MORNING),
     strollingCourtier('guest-2', 5, 160, 470, FLOOR, 'guest_wing_guest', ['afternoon']),
     servant('servant', 0, 404, FLOOR, 'c3_servant', ['evening']),
+    // Chapter 3's story. Day 6: the guests settling in (the old councillor's grandson, if you passed him over);
+    // your friend at the barrier, then in his room at the far end. From then on, there.
+    inStory('heir-6w', 'heir', 506, FLOOR, 'c3day6=wing', { knot: 'c3day6_friend', flipX: true }),
+    courtier('guest-6w1', 2, 266, FLOOR, 'c3day6_guest', undefined, { showIf: 'c3day6=wing' }),
+    courtier('guest-6w2', 6, 360, FLOOR, 'c3day6_guest', undefined, { showIf: 'c3day6=wing', flipX: true }),
+    courtier('guest-6w3', 3, 446, FLOOR, 'c3day6_guest', undefined, { showIf: 'c3day6=wing' }),
+    courtier('grandson-6w', 5, 196, FLOOR, 'c3day6_grandson', undefined, { showIf: 'c3day6=wing', hideIf: 'seated=councillor', flipX: true }),
+    // Day 7: your friend at his window; at night, the barrier's two guards (sent off by you to the stair), and
+    // him with you from there.
+    inStory('heir-7', 'heir', 90, FLOOR, 'c3day7=friend,night,barrier,bed', { knot: 'c3day7_friend', hideIf: 'heir_with_you' }),
+    guard('guard-7a', 0, 522, FLOOR, 'c3day7_barrier', undefined, { showIf: 'c3day7=barrier', flipX: true }),
+    guard('guard-7b', 1, 576, FLOOR, 'c3day7_barrier', undefined, { showIf: 'c3day7=barrier', flipX: true }),
+    inStory('heir-f', 'heir', 560, FLOOR, 'heir_with_you', { follow: true, knot: 'c3day7_heir_walk' }),
   ],
   interactables: [
     { id: 'bed', x: 44, y: FLOOR, reach: 14, label: 'Look', knot: 'guest_bed' },

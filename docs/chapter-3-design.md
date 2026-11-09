@@ -22,7 +22,7 @@ An heir in one of the last human cities spends a week performing his duties: dip
 - The whole secret of the world and the tree is not told until chapter 4.
 - Characters can allude to the problems and constraints they're under, but never actually say them. The trick is to make it seem like they're not holding anything back.
 - The prince doesn't know what the symbol means.
-- **The symbol is Grounded's mark, the bird on bare ground** (Harry, 2026-10-13): the one on the carver's plates in Act 1. There's no reason Grounded hasn't told his people his plan, and about his agent in the tree; it ties the revolution back to the clipped wing.
+- **The symbol is a wing over bare ground: the wing from Grounded's plates in Chapter 1, whole** (Harry, 2026-10-15; it was Grounded's bird on bare ground, 2026-10-13, but the bird in its ring was too like the Hunger Games' mockingjay). Grounded's name for the carver, and the game's title; the bare ground is Grounded's. There's no reason Grounded hasn't told his people his plan, and about his agent in the tree; it ties the revolution back to the clipped wing.
 
 ## The world
 
@@ -54,7 +54,7 @@ Over the week the prince slowly realises two things, and they meet at the broadc
        **His escape is woven into this chapter** (Harry), so chapter 5 can find him on the road with the messenger. How, still to decide.
     6. **The broadcast:** the last, which he hands you to read out: everyone taken in the raids and the riot is to be **sent away to be useful**, "given work" in the managed places outside the capital. Nobody says where, or what the work is. Quiet and permanent, and a hint at the world's secret without telling it.
   - **How you find out: down in the city with your hand** (Harry, 2026-10-13). The diplomat takes you down into the streets in secret, and the people there show you what's really going on. They know who you are, so they're cautious, but they want to tell you (Harry). **(suggestion)** He has his own reason: he wants you to see it. At the end, when you realise he's behind the unrest, these trips look different: he chose what you saw.
-- **Your hand is behind the unrest.** The diplomat plants the symbol and connects the plotters, warm and at your side the whole time. The last beat of the chapter.
+- **Your hand is behind the unrest.** The diplomat plants the symbol and connects the plotters, warm and at your side the whole time. The last beat of the chapter. **It ends on your balcony** (Harry, 2026-10-14): he tells you himself what he's been doing; revolution is inevitable, don't be on the wrong side of history; "Join me." You don't have to choose.
 
 ## Locations
 
@@ -80,7 +80,7 @@ Height means status, as in the tree.
 ## Cast
 
 **The citadel**
-- **Your father:** the ruler. Wise and tired; the only one who goes through the sealed wing.
+- **Your father:** the ruler. Wise and tired; the only one who goes through the sealed wing. **The face of the established order** (Harry, 2026-10-14): a President Snow type, the calm, civil face of the system the revolution is against, for the whole story (Chapter 7 is changing).
 - **The diplomat (your hand):** warm and always at your side. Secretly spreading the symbol and connecting the plotters.
 - **Your younger sister:** sharp and bored; sneaks where she shouldn't and notices things first.
 - **The guard captain:** loyal to your father and suspicious of everyone. A red herring.
@@ -97,7 +97,7 @@ Height means status, as in the tree.
 - **The painter:** a low-district kid who chalks the symbol and doesn't know who you are.
 
 **The plotters** (each sympathetic, mostly only half-suspected this chapter)
-- **The reformer:** a young councillor who argues openly for change. The obvious suspect, but a decoy the real plotters let you watch.
+- **The reformer:** a young councillor who argues openly for change. The obvious suspect, but a decoy the real plotters let you watch. **He doesn't know he's being used** (Harry, 2026-10-14).
 - **The commander:** runs the city watch, separate from your father's guard. Has quietly lost faith and is moving men into place.
 - **The engineer:** keeps the lifts and citadel systems running. Knows what the sealed wing draws all that power for, and can't live with it.
 - **The physician:** your father's doctor. Sees the decisions breaking him, and plots out of compassion.

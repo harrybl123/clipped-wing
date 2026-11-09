@@ -14,7 +14,7 @@ import * as middleTiersProps from '../data/areas/middleTiersProps';
 import * as seedGroveProps from '../data/areas/seedGroveProps';
 import * as tendersShrineProps from '../data/areas/tendersShrineProps';
 import * as rootsMarketProps from '../data/areas/rootsMarketProps';
-import { ARCHIVIST, DODGER, ELDERS, FRIEND, FRIEND_FATHER, GIRL, GUARD, MUM, PREACHER, PRINCE, PRINCE_CROUCH, RESIDENTS, PROTAGONIST, SCAVENGER, SCAVENGER_CROUCH, TENDER, VILLAGERS } from '../ui/characters';
+import { ARCHIVIST, DODGER, ELDERS, FRIEND, FRIEND_FATHER, GIRL, GUARD, MUM, PREACHER, PRINCE, PRINCE_CROUCH, PRINCE_PLAIN, RESIDENTS, PROTAGONIST, SCAVENGER, SCAVENGER_CROUCH, TENDER, VILLAGERS } from '../ui/characters';
 import { BEETLE_BATTLE, CARVER_BATTLE, GIRL_BATTLE, ZEALOT_BATTLE } from '../ui/battleSprites';
 import { hexString } from '../ui/pixelArt';
 import { SPEAKERS } from '../ui/portraits';
@@ -72,6 +72,8 @@ const SECTIONS: { title: string; scale: number; entries: Entry[]; animations?: {
       ...PRINCE.idle.map((f, i): Entry => [`prince idle ${i}`, f]),
       ...PRINCE.walk.map((f, i): Entry => [`prince walk ${i}`, f]),
       ['prince jump', PRINCE.jump],
+      ...PRINCE_PLAIN.idle.map((f, i): Entry => [`prince, plain coat, idle ${i}`, f]),
+      ...PRINCE_PLAIN.walk.map((f, i): Entry => [`prince, plain coat, walk ${i}`, f]),
       ['prince fall', PRINCE.fall],
       ['prince crouch', PRINCE_CROUCH.idle],
       ...Object.entries(CAST).map(([id, f]): Entry => [id, f.idle[0]!]),

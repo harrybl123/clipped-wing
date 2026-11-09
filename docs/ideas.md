@@ -2,6 +2,14 @@
 
 Things discussed but deliberately not built yet. Not decisions; revisit when the time comes.
 
+## Story notes for later (designer, 2026-10-16)
+
+Thoughts for later, not built and not yet in the story docs. Keep them out of placeholder lines (the mystery stays).
+
+- **Why the rebellion lives above the tree** (in the treehouse-capital sort of place up there): they know the
+  capital can't attack it without damaging the tree itself, and the tree is a useful asset to the capital.
+- **The Tender is the capital's agent**, placed in the tree by the prince's father.
+
 ## Title and menu flow (parked 2026-09-30)
 
 The current title screen is visual only. When menus are built for real, consider:
@@ -187,3 +195,17 @@ Come back to this when planning the later days.
   (`c2day7_door`, a trigger by that door) changes it to "Go to bed" at `shack:bed`. If that scene doesn't
   play, the marker inside the shack points back out to the swap yard. `story/borderland/chapter2-day7.ink`
   (`c2day7_after_ambush`, `c2day7_door_done`), `src/data/areas/borderland/swapYard.ts` (the triggers).
+
+## The war table, after the story (designer, 2026-10-17: story first, then come back to these)
+
+The table is the game's core mechanic now (designer: like Dispatch, a story-based RPG with a core gameplay
+mechanic). Once the story's drafted:
+
+- **Spread the features across the chapters.** Day 2's tutorial teaches the basics; the rest arrive in later games,
+  so each has something new and the tutorial is shorter (for example the architect first with your friend on Day 6,
+  the barracks on Day 8). Today everything comes in on Day 2.
+- **Every table game feeds the story** (a variable, a line), as the riot and Day 8 do.
+- **Bonuses in the capital's world, in the story's games** (Claude's suggestion): the Lord and the holy cross, the
+  maiden, the diviner's cards are the skirmish's; in the city, say, public opinion on the screens, hired private
+  security, an informant. Same mechanics, new names and art. For Harry and Jack.
+- **Game length**: a 20-turn game is a big block in a story day; keep an eye on it.

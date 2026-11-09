@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition } from '../types';
-import { cast, servant, MORNING } from './people';
+import { cast, inStory, servant, MORNING } from './people';
 
 // Your quarters (Chapter 3): the prince's private rooms high in the citadel, and the first area of the
 // capital, so it sets the look (docs/areas/capital/prince-quarters.md): white marble with grey veins, gold,
@@ -80,14 +80,68 @@ export const princeQuarters: AreaDefinition = {
     { sprite: P.column(30), x: W - 14, y: FLOOR - 30 },
   ],
 
-  features: [{ type: 'frames', frames: P.scrollingScreen(44, 28), x: 334, y: 100, every: 500 }],
+  features: [
+    { type: 'frames', frames: P.scrollingScreen(44, 28), x: 334, y: 100, every: 500 },
+    // Chapter 3, Day 1: stepping out onto the balcony at dawn; coming in at night to someone at your telescope.
+    { type: 'trigger', x: BALCONY + 8, y: FLOOR, reach: 6, knot: 'c3day1_tree', showIf: 'c3day1=spar', hideIf: 'tree_seen1' },
+    { type: 'trigger', x: 50, y: FLOOR, reach: 14, knot: 'c3day1_home', showIf: 'c3day1=night', hideIf: 'sister_called1' },
+    // Day 2: at dusk, from the balcony, you watch the district you chose go dark.
+    { type: 'trigger', x: BALCONY + 8, y: FLOOR, reach: 6, knot: 'c3day2_dusk', showIf: 'c3day2=dusk', hideIf: 'dusk2' },
+    // Day 4: in the evening, from the balcony, the riot starts.
+    { type: 'trigger', x: BALCONY + 8, y: FLOOR, reach: 6, knot: 'c3day4_riot_start', showIf: 'c3day4=evening' },
+    // Day 5: coming in at evening, the captain's list sent back to your desk (if you struck the cellar off).
+    { type: 'trigger', x: 60, y: FLOOR, reach: 14, knot: 'c3day5_list', showIf: 'c3day5=evening', hideIf: 'list5' },
+  ],
   people: [
     servant('maid', 0, 112, FLOOR, 'c3_maid', MORNING, { flipX: true }), // making the bed
     cast('sister', 452, FLOOR, { knot: 'quarters_sister', when: ['evening'] }), // at your telescope
     cast('heir', 300, FLOOR, { knot: 'quarters_heir', when: MORNING, flipX: true }), // come to fetch you
+    // Chapter 3's story. Day 1: your hand at the door at dawn, then out on the balcony with the practice
+    // blades; your sister at your telescope at night.
+    // (He waits on the balcony; the morning opens with him at the door: `c3day1_start` puts him there.)
+    inStory('hand', 'diplomat', 526, FLOOR, 'c3day1=wake,spar', { knot: 'c3day1_hand', flipX: true }),
+    inStory('sister-1', 'sister', 452, FLOOR, 'c3day1=night', { knot: 'c3day1_sister' }),
+    // Day 2: your hand at the door at dawn, and your father behind him (the story brings them to the door).
+    inStory('hand-2', 'diplomat', 300, FLOOR, 'c3day2=wake', { knot: 'c3day1_hand_walk' }),
+    inStory('father-2', 'father', 60, FLOOR, 'c3day2=wake', { hidden: true }),
+    // Day 3: your hand at the door at dawn (the story brings him there), and with you from here.
+    inStory('hand-3', 'diplomat', 300, FLOOR, 'c3day3=wake,audience', { follow: true, knot: 'c3day3_hand' }),
+    // Day 4: your friend on the balcony at dawn, in your hand's place; the captain, running in when it breaks
+    // out (the story brings him beside you); your sister at your telescope at night.
+    inStory('heir-4', 'heir', 516, FLOOR, 'c3day4=wake,spar,sleeve', { knot: 'c3day4_heir', flipX: true }),
+    inStory('captain-4e', 'captain', 300, FLOOR, 'c3day4=table'),
+    inStory('sister-4n', 'sister', 452, FLOOR, 'c3day4=night', { knot: 'c3day4_sister_night' }),
+    // Day 4, after the riot: your father, waiting at your window.
+    inStory('father-4n', 'father', 300, FLOOR, 'c3day4=night', { knot: 'c3day4_father_night', hideIf: 'father4n', flipX: true }),
+    // Day 5: the captain at the door at dawn, with the day (the story brings him in); your sister waiting on
+    // the end of your bed at evening.
+    inStory('captain-5', 'captain', 40, FLOOR, 'c3day5=wake', { hidden: true }),
+    inStory('sister-5', 'sister', 112, FLOOR, 'c3day5=evening', { knot: 'c3day5_sister', flipX: true }),
+    // Day 6: your friend on your couch at dawn, eating your breakfast; then with you, to the simulation room.
+    inStory('heir-6', 'heir', 244, FLOOR, 'c3day6=wake', { knot: 'c3day6_heir' }),
+    // Day 7, before it's light (if you didn't get your friend out): your sister at your door with the news if
+    // she's your eyes, or the captain.
+    inStory('sister-7d', 'sister', 56, FLOOR, 'c3day7=dawn', { hideIf: 'sister=told' }),
+    inStory('captain-7d', 'captain', 56, FLOOR, 'c3day7=dawn', { hideIf: 'sister=covered' }),
+    inStory('heir-f', 'heir', 230, FLOOR, 'heir_with_you', { follow: true, knot: 'c3day6_heir_walk' }),
+    // Day 8: your hand at the door at dawn with your coat (the story brings him in); in the evening, at the
+    // rail, where he waited with the blades the first morning.
+    inStory('hand-8', 'diplomat', 40, FLOOR, 'c3day8=wake', { hidden: true }),
+    inStory('hand-8b', 'diplomat', 516, FLOOR, 'c3day8=evening,balcony', { knot: 'c3day8_hand', flipX: true }),
+    // Day 8, after the broadcast: your sister on the end of your bed.
+    inStory('sister-8', 'sister', 112, FLOOR, 'c3day8=city,home', { flipX: true }),
   ],
   interactables: [
-    { id: 'bed', x: 84, y: FLOOR, reach: 14, label: 'Look', knot: 'quarters_bed' },
+    { id: 'bed', x: 84, y: FLOOR, reach: 14, label: 'Look', knot: 'quarters_bed', hideIf: ['c3day1=night', 'c3day2=home', 'c3day3=home', 'c3day4=night', 'c3day5=home', 'c3day6=home', 'c3day7=night', 'c3day7=bed'] },
+    { id: 'bed-7', x: 84, y: FLOOR, reach: 14, label: 'Wait', knot: 'c3day7_wait', showIf: 'c3day7=night' },
+    { id: 'bed-7s', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day7_bed', showIf: 'c3day7=bed' },
+    { id: 'bed-6', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day6_bed', showIf: 'c3day6=home' },
+    { id: 'bed-5', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day5_bed', showIf: 'c3day5=home' },
+    // (Only once your father's had his word: designer, you could go to bed before he spoke to you.)
+    { id: 'bed-4', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day4_bed', showIf: 'father4n', hideIf: 'c3day4=done' },
+    { id: 'bed-3', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day3_bed', showIf: 'c3day3=home' },
+    { id: 'bed-2', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day2_bed', showIf: 'c3day2=home' },
+    { id: 'bed-1', x: 84, y: FLOOR, reach: 14, label: 'Sleep', knot: 'c3day1_bed', showIf: 'c3day1=night' },
     { id: 'mirror', x: 160, y: FLOOR, reach: 10, label: 'Look', knot: 'quarters_mirror' },
     { id: 'blades', x: 202, y: FLOOR, reach: 10, label: 'Look', knot: 'quarters_blades' },
     { id: 'game', x: 272, y: FLOOR, reach: 10, label: 'Look', knot: 'quarters_game' },

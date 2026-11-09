@@ -1,7 +1,7 @@
 import { SHADES as S } from '../../../ui/pixelArt';
 import * as P from './citadelProps';
 import type { AreaDefinition } from '../types';
-import { cast, courtier, servant, strollingServant, MORNING } from './people';
+import { cast, courtier, guard, inStory, servant, strollingServant, MORNING } from './people';
 
 // The banquet gallery (Chapter 3): dinners and balls, where you feel the tension: flat toasts, empty seats
 // (docs/areas/capital/banquet-gallery.md). A long gallery: the dance floor at one end under a screen; the
@@ -76,6 +76,8 @@ export const banquetGallery: AreaDefinition = {
   ],
 
   features: [
+    // Chapter 3, Day 6: coming in to the banquet in the guests' honour (the toast).
+    { type: 'trigger', x: 60, y: FLOOR, reach: 14, knot: 'c3day6_banquet', showIf: 'c3day6=banquet', hideIf: 'banquet6' },
     ...[330, 420, 510].map((x) => ({ type: 'swing' as const, sprite: P.CHANDELIER, x, y: TOP + 56, ropeTop: TOP, quiet: true, ropeColour: S.amberDeep })),
   ],
   people: [
@@ -84,23 +86,53 @@ export const banquetGallery: AreaDefinition = {
     strollingServant('server-2', 1, 240, 600, FLOOR, 'c3_servant', MORNING),
     // The evening: music from the gallery, dancing, guests along the table (your father's chair at its head
     // empty), servants with trays; your friend out on the balcony.
-    courtier('harpist', 5, 96, GALLERY, 'banquet_musician', ['evening']),
-    courtier('drummer', 4, 150, GALLERY, 'banquet_musician', ['evening'], { flipX: true }),
-    courtier('dancer-1', 0, 110, FLOOR, 'banquet_dancer', ['evening']),
-    courtier('dancer-2', 3, 126, FLOOR, 'banquet_dancer', ['evening'], { flipX: true }),
-    courtier('guest-1', 2, 300, FLOOR, 'banquet_guest', ['evening']),
-    courtier('guest-2', 6, 372, FLOOR, 'banquet_guest', ['evening'], { flipX: true }),
-    courtier('guest-3', 7, 480, FLOOR, 'banquet_guest', ['evening']),
+    // (Chapter 3, Day 1: not until you've seated the table, when the doors open.)
+    courtier('harpist', 5, 96, GALLERY, 'banquet_musician', ['evening'], { hideIf: 'c3day1=banquet,cards' }),
+    courtier('drummer', 4, 150, GALLERY, 'banquet_musician', ['evening'], { flipX: true, hideIf: 'c3day1=banquet,cards' }),
+    courtier('dancer-1', 0, 110, FLOOR, 'banquet_dancer', ['evening'], { hideIf: 'c3day1=banquet,cards' }),
+    courtier('dancer-2', 3, 126, FLOOR, 'banquet_dancer', ['evening'], { flipX: true, hideIf: 'c3day1=banquet,cards' }),
+    courtier('guest-1', 2, 300, FLOOR, 'banquet_guest', ['evening'], { hideIf: 'c3day1=banquet,cards' }),
+    courtier('guest-2', 6, 372, FLOOR, 'banquet_guest', ['evening'], { flipX: true, hideIf: 'c3day1=banquet,cards' }),
+    courtier('guest-3', 7, 480, FLOOR, 'banquet_guest', ['evening'], { hideIf: 'c3day1=banquet,cards' }),
     strollingServant('server-3', 0, 240, 600, FLOOR, 'c3_server', ['evening']),
     cast('salon_hostess', 420, FLOOR, { knot: 'banquet_hostess', when: ['evening'], flipX: true }),
     cast('heir', 726, FLOOR, { knot: 'banquet_heir', when: ['evening'] }),
     cast('councillor', 560, FLOOR, { knot: 'banquet_councillor', when: ['evening'], flipX: true }), // by your father's empty chair
+    // Chapter 3's story. Day 1: the steward with the seating plan before anyone comes in; then the banquet,
+    // your father at the head of the table and whoever you seated at his right, the other two further down;
+    // your friend on the balcony.
+    inStory('steward', 'steward', 120, FLOOR, 'c3day1=banquet,cards', { knot: 'c3day1_steward' }),
+    inStory('father-1', 'father', 610, FLOOR, 'c3day1=toast,friend', { knot: 'c3day1_father_banquet', flipX: true }),
+    ...(['councillor', 'salon_hostess', 'merchant'] as const).flatMap((who) => {
+      const seat = who === 'salon_hostess' ? 'hostess' : who;
+      const knot = `c3day1_${seat}`;
+      const down = { councillor: 270, salon_hostess: 352, merchant: 414 }[who];
+      return [
+        inStory(`${seat}-right`, who, 556, FLOOR, `seated=${seat}`, { knot, hideIf: 'c3day1=banquet,cards,night,done', flipX: false }),
+        inStory(`${seat}-down`, who, down, FLOOR, 'c3day1=toast,friend', { knot, hideIf: `seated=${seat}`, flipX: who === 'merchant' }),
+      ];
+    }),
+    inStory('heir-1', 'heir', 730, FLOOR, 'c3day1=toast,friend', { knot: 'c3day1_friend', flipX: true }),
+    // Day 6: the banquet in the guests' honour. Your father at the head of the table; the guests along it, a seat
+    // between each where their families would be; your friend halfway down; two of the guard at the doors,
+    // facing in.
+    inStory('father-6b', 'father', 610, FLOOR, 'c3day6=banquet,toasted,office', { knot: 'c3day6_father_banquet', flipX: true }),
+    inStory('heir-6b', 'heir', 418, FLOOR, 'c3day6=banquet,toasted,office', { knot: 'c3day6_heir_banquet' }),
+    ...([[276, 1], [354, 2], [488, 6], [544, 3]] as const).map(([x, look], i) =>
+      courtier(`guest-6b${i}`, look, x, FLOOR, 'c3day6_banquet_guest', undefined, { showIf: 'c3day6=banquet,toasted,office', flipX: i % 2 === 1 })),
+    guard('door-6a', 0, 48, FLOOR, 'c3_guard', undefined, { showIf: 'c3day6=banquet,toasted,office' }),
+    guard('door-6b', 1, 70, FLOOR, 'c3_guard', undefined, { showIf: 'c3day6=banquet,toasted,office' }),
   ],
   interactables: [
     { id: 'mirrors', x: 330, y: FLOOR, reach: 10, label: 'Look', knot: 'banquet_mirrors' },
     { id: 'table', x: 440, y: FLOOR, reach: 10, label: 'Look', knot: 'banquet_table' },
-    { id: 'chair', x: 604, y: FLOOR, reach: 10, label: 'Look', knot: 'banquet_chair' },
+    { id: 'chair', x: 604, y: FLOOR, reach: 10, label: 'Look', knot: 'banquet_chair', hideIf: 'c3day1=toast,friend' }, // (not while he's by it)
     { id: 'balcony', x: 760, y: FLOOR, reach: 14, label: 'Look', knot: 'banquet_balcony' },
+    // Chapter 3, Day 1: the cards (the chair at your father's right, then two further down).
+    // Chapter 3, Day 6: your place, at your father's right.
+    { id: 'seat-6', x: 580, y: FLOOR, reach: 10, label: 'Take your seat', knot: 'c3day6_toast', showIf: 'c3day6=banquet' },
+    { id: 'card-right', x: 558, y: FLOOR, reach: 10, label: 'Place card', knot: 'c3day1_card_right', showIf: 'c3day1=cards', hideIf: 'right_placed' },
+    { id: 'card-down', x: 286, y: FLOOR, reach: 10, label: 'Place cards', knot: 'c3day1_card_down', showIf: 'right_placed', hideIf: 'cards_done' },
   ],
 
   exits: [{ id: 'to-halls', x: 34, y: FLOOR, reach: 12, to: 'citadel-halls' }],
